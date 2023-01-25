@@ -12,7 +12,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
-public class CoinVerifierAuditArchiver
+public class CoinVerifierAuditArchiver : IAsyncDisposable
 {
 	public CoinVerifierAuditArchiver(string directoryPath)
 	{
@@ -24,66 +24,117 @@ public class CoinVerifierAuditArchiver
 
 	private AsyncLock FileAsyncLock { get; } = new();
 
-	public async Task SaveAuditsAsync(IEnumerable<CoinVerifyResult> results, CancellationToken cancellationToken)
+	private object LogLinesLock { get; } = new();
+
+	private List<AuditLine> LogLines { get; } = new();
+
+	public void LogException(Exception exception)
 	{
-		List<string> fileLines = new();
+		string csvCompatibleExceptionMessage = exception.Message.Replace(',', '-');
 
-		foreach (CoinVerifyResult result in results)
+		lock (LogLinesLock)
 		{
-			string details = "No details";
+			LogLines.Add(new AuditLine(DateTimeOffset.UtcNow, AuditEventType.Exception, csvCompatibleExceptionMessage));
+		}
+	}
 
-			if (result.ApiResponseItem is not null)
+	public void LogRoundEvent(uint256 id, string message)
+	{
+		var logAsArray = new string[]
+		{
+			$"{id}",
+			$"{message.Replace(',', '-')}"
+		};
+
+		var csvCompatibleMessage = string.Join(',', logAsArray);
+		lock (LogLinesLock)
+		{
+			LogLines.Add(new AuditLine(DateTimeOffset.UtcNow, AuditEventType.Round, csvCompatibleMessage));
+		}
+	}
+
+	public void LogVerificationResult(CoinVerifyResult coinVerifyResult, Reason reason, ApiResponseItem? apiResponseItem = null, Exception? exception = null)
+	{
+		string details = "No details";
+
+		if (apiResponseItem is not null)
+		{
+			var reportId = apiResponseItem?.Report_info_section.Report_id;
+			var reportType = apiResponseItem?.Report_info_section.Report_type;
+			var ids = apiResponseItem?.Cscore_section.Cscore_info?.Select(x => x.Id) ?? Enumerable.Empty<int>();
+			var categories = apiResponseItem?.Cscore_section.Cscore_info.Select(x => x.Name) ?? Enumerable.Empty<string>();
+
+			var detailsArray = new string[]
 			{
-				var reportId = result.ApiResponseItem?.Report_info_section.Report_id;
-				var reportType = result.ApiResponseItem?.Report_info_section.Report_type;
-				var ids = result.ApiResponseItem?.Cscore_section.Cscore_info?.Select(x => x.Id) ?? Enumerable.Empty<int>();
-				var categories = result.ApiResponseItem?.Cscore_section.Cscore_info.Select(x => x.Name) ?? Enumerable.Empty<string>();
-
-				var detailsArray = new string[]
-				{
 					reportId ?? "ReportID None",
 					reportType ?? "ReportType None",
 					ids.Any() ? string.Join(' ', ids) : "FlagIds None",
 					categories.Any() ? string.Join(' ', categories) : "Risk categories None"
-				};
-
-				details = ReplaceAndJoin(':', detailsArray, '-');
-			}
-			else if (result.Exception is not null)
-			{
-				details = result.Exception.Message;
-			}
-
-			var auditAsArray = new string[]
-			{
-				$"{DateTimeOffset.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss}",
-				$"{result.Coin.Outpoint}",
-				$"{result.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)}",
-				$"{result.ShouldBan}",
-				$"{result.ShouldRemove}",
-				$"{result.Coin.Amount}",
-				$"{result.Reason}",
-				$"{details}"
 			};
 
-			var audit = ReplaceAndJoin(',', auditAsArray, '-');
-
-			fileLines.Add(audit);
+			details = ReplaceAndJoin(':', detailsArray, '-');
+		}
+		else if (exception is not null)
+		{
+			details = exception.Message;
 		}
 
-		// Sanity check: if there is nothing to write, don't append the file with an empty line.
-		if (fileLines.Count <= 0)
+		var auditAsArray = new string[]
+		{
+				$"{coinVerifyResult.Coin.Outpoint}",
+				$"{coinVerifyResult.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)}",
+				$"{coinVerifyResult.ShouldBan}",
+				$"{coinVerifyResult.ShouldRemove}",
+				$"{coinVerifyResult.Coin.Amount}",
+				$"{reason}",
+				$"{details}"
+		};
+
+		var csvCompatibleLogMessage = ReplaceAndJoin(',', auditAsArray, '-');
+
+		lock (LogLinesLock)
+		{
+			LogLines.Add(new AuditLine(DateTimeOffset.UtcNow, AuditEventType.VerificationResult, csvCompatibleLogMessage));
+		}
+	}
+
+	public async Task SaveAuditsAsync()
+	{
+		AuditLine[] logLines;
+
+		lock (LogLinesLock)
+		{
+			logLines = LogLines.ToArray();
+			LogLines.Clear();
+		}
+
+		if (logLines.Length <= 0)
 		{
 			return;
 		}
 
-		var currentDate = DateTimeOffset.UtcNow;
-		string fileName = $"VerifierAudits.{currentDate:yyyy.MM}.txt";
+		var firstDate = logLines.Select(x => x.DateTimeOffset).First();
+		string fileName = $"VerifierAudits.{firstDate:yyyy.MM}.txt";
 		string filePath = Path.Combine(BaseDirectoryPath, fileName);
 
-		using (await FileAsyncLock.LockAsync(cancellationToken))
+		List<string> lines = new();
+
+		foreach (AuditLine line in logLines)
 		{
-			await File.AppendAllLinesAsync(filePath, fileLines, cancellationToken).ConfigureAwait(false);
+			var logAsArray = new string[]
+			{
+				$"{line.DateTimeOffset:yyyy-MM-dd HH:mm:ss}",
+				$"{line.AuditEventType}",
+				$"{line.LogMessage}"
+			};
+
+			var text = string.Join(',', logAsArray);
+			lines.Add(text);
+		}
+
+		using (await FileAsyncLock.LockAsync(CancellationToken.None))
+		{
+			await File.AppendAllLinesAsync(filePath, lines, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 
@@ -92,4 +143,11 @@ public class CoinVerifierAuditArchiver
 		var cleanTextArray = textArray.Select(x => x.Replace(separator, replacment));
 		return string.Join(separator, cleanTextArray);
 	}
+
+	public async ValueTask DisposeAsync()
+	{
+		await SaveAuditsAsync().ConfigureAwait(false);
+	}
+
+	public record AuditLine(DateTimeOffset DateTimeOffset, AuditEventType AuditEventType, string LogMessage);
 }

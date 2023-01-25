@@ -274,6 +274,11 @@ public class Global : IDisposable
 				Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
 			}
 		}
+
+		if (CoinVerifier is { } coinVerifier)
+		{
+			await coinVerifier.DisposeAsync().ConfigureAwait(false);
+		}
 	}
 
 	public void Dispose()

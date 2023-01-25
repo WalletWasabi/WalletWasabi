@@ -134,13 +134,16 @@ public partial class Arena : PeriodicRunner
 							if (coinVerifyInfo.ShouldRemove)
 							{
 								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
+								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from Round.");
 							}
 						}
 					}
 					catch (Exception exc)
 					{
 						// This should never happen.
+
 						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
+						CoinVerifier.VerifierAuditArchiver.LogException(exc);
 						round.EndRound(EndRoundState.AbortedWithError);
 					}
 				}

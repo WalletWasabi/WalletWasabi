@@ -662,7 +662,7 @@ public class CoordinatorRound
 		catch (Exception exc)
 		{
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
-
+			CoinVerifier.VerifierAuditArchiver.LogException(exc);
 			// Fail hard as VerifyCoinsAsync should handle all exceptions.
 			throw;
 		}
