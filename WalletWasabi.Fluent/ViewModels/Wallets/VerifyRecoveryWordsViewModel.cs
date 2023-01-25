@@ -46,6 +46,8 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 		EnableAutoBusyOn(NextCommand);
 	}
 
+	public ObservableCollection<string> Mnemonics { get; } = new();
+
 	private async Task ShowErrorAsync()
 	{
 		await ShowErrorAsync("Error",
@@ -90,8 +92,6 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, ex.Message, "Wasabi was unable to verify the recovery words.");
 		}
 	}
-
-	public ObservableCollection<string> Mnemonics { get; } = new();
 
 	private void ValidateMnemonics(IValidationErrors errors)
 	{
