@@ -360,8 +360,8 @@ public class KeyManager
 	public HdPubKey GetNextChangeKey() =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
-			x.IsInternal == true &&
-			x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
+			x.IsInternal == true)
+			.First();
 
 	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
 		GetKeys(x =>

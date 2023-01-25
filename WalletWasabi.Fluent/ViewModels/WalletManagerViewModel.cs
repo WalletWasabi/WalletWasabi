@@ -110,6 +110,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
+	public bool TryGetSelectedAndLoggedInWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
+	{
+		walletViewModel = Wallets.OfType<WalletViewModel>().FirstOrDefault(x => x.IsSelected);
+		return walletViewModel is { };
+	}
+
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
 		if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel is WalletViewModel result)
@@ -144,6 +150,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 	private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
 	{
 		IsLoadingWallet = true;
+
+		closedWalletViewModel.StopLoading();
 
 		RemoveWallet(closedWalletViewModel);
 

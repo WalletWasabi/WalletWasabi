@@ -8,7 +8,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 
-namespace WalletWasabi.Fluent.Behaviors;
+namespace WalletWasabi.Fluent.Models;
 
 public class NavBarSelectedIndicatorState : IDisposable
 {

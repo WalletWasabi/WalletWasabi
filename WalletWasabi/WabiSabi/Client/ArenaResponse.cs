@@ -11,6 +11,7 @@ public class ArenaResponse
 		IssuedAmountCredentials = realAmountCredentials.ToArray();
 		IssuedVsizeCredentials = realVsizeCredentials.ToArray();
 	}
+
 	public IEnumerable<Credential> IssuedAmountCredentials { get; }
 	public IEnumerable<Credential> IssuedVsizeCredentials { get; }
 }

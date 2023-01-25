@@ -7,10 +7,10 @@ using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ExecuteCommandOnDoubleTapped : DisposingBehavior<Control>
+public class ExecuteCommandOnDoubleTappedBehavior : DisposingBehavior<Control>
 {
 	public static readonly StyledProperty<ICommand?> CommandProperty =
-		AvaloniaProperty.Register<ExecuteCommandOnDoubleTapped, ICommand?>(nameof(Command));
+		AvaloniaProperty.Register<ExecuteCommandOnDoubleTappedBehavior, ICommand?>(nameof(Command));
 
 	public ICommand? Command
 	{
