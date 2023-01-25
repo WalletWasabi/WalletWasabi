@@ -27,7 +27,7 @@
       </Button>
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="a total of" HorizontalContentAlignment="Stretch"
-                     TextValue="{Binding AmountText}">
+                     TextValue="{Binding Amount}">
         <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
       </c:PreviewItem>
     </DockPanel>
@@ -108,7 +108,7 @@
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="there will be an additional transaction fee of"
-                       TextValue="{Binding FeeText}">
+                       TextValue="{Binding Fee}">
           <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
         </c:PreviewItem>
       </StackPanel>
