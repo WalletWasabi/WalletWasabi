@@ -20,8 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
-	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
+	private Mnemonic? _currentMnemonics;
 
 	public VerifyRecoveryWordsViewModel(Wallet wallet)
 	{
@@ -31,7 +31,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 			.Subscribe(x =>
 			{
-				CurrentMnemonics = x;
+				_currentMnemonics = x;
 				IsMnemonicsValid = x is { IsValidChecksum: true };
 				this.RaisePropertyChanged(nameof(Mnemonics));
 			});
@@ -57,7 +57,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 	{
 		try
 		{
-			if (!IsMnemonicsValid)
+			if (!IsMnemonicsValid || _currentMnemonics is not { } currentMnemonics)
 			{
 				await ShowErrorAsync();
 
@@ -65,33 +65,29 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				return;
 			}
 
-			if (_currentMnemonics is { })
+			var saltSoup = wallet.Kitchen.SaltSoup();
+
+			var recovered = KeyManager.Recover(currentMnemonics, saltSoup, wallet.Network,
+				wallet.KeyManager.SegwitAccountKeyPath,
+				null,
+				null,
+				wallet.KeyManager.MinGapLimit);
+
+			if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
 			{
-				var saltSoup = wallet.Kitchen.SaltSoup();
-
-				var recovered = KeyManager.Recover(_currentMnemonics, saltSoup, wallet.Network,
-					wallet.KeyManager.SegwitAccountKeyPath,
-					null,
-					null,
-					wallet.KeyManager.MinGapLimit);
-
-				if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
-				{
-					Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
-						NavigationMode.Clear);
-				}
-				else
-				{
-					await ShowErrorAsync();
-
-					Mnemonics.Clear();
-				}
+				Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
+					NavigationMode.Clear);
+			}
+			else
+			{
+				await ShowErrorAsync();
+				Mnemonics.Clear();
 			}
 		}
 		catch (Exception ex)
 		{
-			// TODO navigate to error dialog.
 			Logger.LogError(ex);
+			await ShowErrorAsync(Title, ex.Message, "Wasabi was unable to verify the recovery words.");
 		}
 	}
 
