@@ -18,6 +18,7 @@ public class SmartCoinSelector : ICoinSelector
 
 	private List<SmartCoin> UnspentCoins { get; }
 	private int IterationCount { get; set; }
+	private Exception? LastTransactionSizeException { get; set; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
 	/// <param name="target">Only <see cref="Money"/> type is really supported by this implementation.</param>
@@ -34,6 +35,11 @@ public class SmartCoinSelector : ICoinSelector
 
 		if (IterationCount > 500)
 		{
+			if (LastTransactionSizeException is not null)
+			{
+				throw LastTransactionSizeException;
+			}
+
 			throw new TimeoutException("Coin selection timed out.");
 		}
 
@@ -43,7 +49,7 @@ public class SmartCoinSelector : ICoinSelector
 			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
 			if (suggestedSum < targetMoney)
 			{
-				throw new TransactionSizeException(targetMoney, suggestedSum);
+				LastTransactionSizeException = new TransactionSizeException(targetMoney, suggestedSum);
 			}
 		}
 
