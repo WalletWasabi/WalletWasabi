@@ -17,7 +17,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	[ObservableProperty] private bool _enableCancelOnEscape;
 	[ObservableProperty] private bool _enableBack;
 	[ObservableProperty] private bool _enableCancel;
-	[ObservableProperty] private bool _isActive;
 
 	public abstract string Title { get; protected set; }
 

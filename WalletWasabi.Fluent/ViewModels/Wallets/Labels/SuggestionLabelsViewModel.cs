@@ -19,7 +19,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 	private readonly ObservableCollectionExtended<string> _suggestions;
 	private readonly ObservableCollectionExtended<string> _labels;
 
-	[ObservableProperty] private bool _isCurrentTextValid;
+	[ObservableProperty] [NotifyPropertyChangedRecipients] private bool _isCurrentTextValid;
 
 	public SuggestionLabelsViewModel(KeyManager keyManager, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{

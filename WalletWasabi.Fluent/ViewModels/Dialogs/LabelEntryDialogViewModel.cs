@@ -3,12 +3,13 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -30,11 +31,8 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 
 		NextCommand = new RelayCommand(OnNext, () => SuggestionLabels.Labels.Any() || SuggestionLabels.IsCurrentTextValid);
 
-		// TODO RelayCommand: refactor?
-		Observable
-			.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
-			.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
-			.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
+		// TODO RelayCommand: Discuss this with Dan
+		SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
@@ -53,5 +51,15 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())
 			.DisposeWith(disposables);
+	}
+
+	protected override void OnActivated()
+	{
+		base.OnActivated();
+
+		Messenger.Register<LabelEntryDialogViewModel, PropertyChangedMessage<bool>>(this, (r, m) =>
+		{
+			r.NextCommand?.NotifyCanExecuteChanged();
+		});
 	}
 }
