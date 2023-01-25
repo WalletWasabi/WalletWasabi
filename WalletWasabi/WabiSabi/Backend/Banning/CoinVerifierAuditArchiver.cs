@@ -43,6 +43,12 @@ public class CoinVerifierAuditArchiver
 			fileContent.AppendLine($"{DateTimeOffset.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss},{result.Coin.Outpoint},{result.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)},{result.ShouldBan},{result.ShouldRemove},{result.Coin.Amount},{result.Reason},{details}");
 		}
 
+		// Sanity check: if there is nothing to write, don't append the file with an empty line.
+		if (fileContent.Length <= 0)
+		{
+			return;
+		}
+
 		var currentDate = DateTimeOffset.UtcNow;
 		string fileName = $"VerifierAudits.{currentDate:yyyy.MM}.txt";
 		string filePath = Path.Combine(BaseDirectoryPath, fileName);
