@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
@@ -15,51 +14,25 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 
 	public AdvancedRecoveryOptionsViewModel(int minGapLimit)
 	{
+		_minGapLimit = minGapLimit.ToString();
+
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
 		EnableBack = false;
 
-		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-		var nextCommandCanExecute = this.WhenAnyValue(
-				x => x.IsDialogOpen,
-				x => x.MinGapLimit,
-				delegate
-				{
-					// This will fire validations before return canExecute value.
-					this.RaisePropertyChanged(nameof(MinGapLimit));
-
-					return IsDialogOpen && !Validations.Any;
-				})
-			.ObserveOn(RxApp.MainThreadScheduler);
-
-		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-		_minGapLimit = minGapLimit.ToString();
-
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
-
-		NextCommand = ReactiveCommand.Create(
-			() => Close(result: int.Parse(MinGapLimit)),
-			nextCommandCanExecute);
-
-		CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
+		NextCommand = ReactiveCommand.Create(() => Close(result: int.Parse(MinGapLimit)),
+			this.WhenAnyValue(x => x.MinGapLimit).Select(_ => !Validations.Any));
 	}
 
 	private void ValidateMinGapLimit(IValidationErrors errors)
 	{
-		if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
-			minGapLimit > KeyManager.MaxGapLimit)
+		if (!int.TryParse(MinGapLimit, out var minGapLimit) ||
+		    minGapLimit is < KeyManager.AbsoluteMinGapLimit or > KeyManager.MaxGapLimit)
 		{
 			errors.Add(
 				ErrorSeverity.Error,
 				$"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
 		}
-	}
-
-	protected override void OnDialogClosed()
-	{
 	}
 }
