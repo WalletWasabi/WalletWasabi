@@ -11,6 +11,6 @@ public enum Reason
 	OneHop,
 	RemoteApiChecked,
 	NotChecked,
-	Inmature,
+	Immature,
 	Exception
 }
