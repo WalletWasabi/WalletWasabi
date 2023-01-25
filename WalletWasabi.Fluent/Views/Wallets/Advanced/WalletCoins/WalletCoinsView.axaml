@@ -5,6 +5,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
              x:DataType="walletcoins:WalletCoinsViewModel"
@@ -20,6 +21,9 @@
                  EnableSkip="{Binding IsAnySelected^}">
     <TreeDataGrid Source="{Binding Source}"
                   CanUserSortColumns="True">
+      <TreeDataGrid.ElementFactory>
+        <treeDataGrid:PrivacyElementFactory />
+      </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGridRow">
           <Setter Property="Focusable" Value="False" />

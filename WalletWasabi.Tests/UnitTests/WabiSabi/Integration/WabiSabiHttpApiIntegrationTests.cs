@@ -110,7 +110,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
@@ -172,7 +172,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Run the coinjoin client task.
 		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
-		Assert.True(coinjoinResult.SuccessfulBroadcast);
+		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -194,7 +194,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
@@ -300,12 +300,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coins = keyManager1.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 
 		var badCoins = keyManager2.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -401,7 +401,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var ex = await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 		Assert.True(ex.InnerExceptions.Last() is TaskCanceledException);
 
-		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
+		Assert.True(coinJoinTask.Result is SuccessfulCoinJoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -531,13 +531,13 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 					// In case some participants claim to have finished successfully then wait a second for seeing
 					// the coinjoin in the mempool. This seems really hard to believe but just in case.
-					if (participantsFinishedSuccessully.All(x => x.SuccessfulBroadcast))
+					if (participantsFinishedSuccessully.All(x => x is SuccessfulCoinJoinResult))
 					{
 						await Task.Delay(TimeSpan.FromSeconds(1));
 						var mempool = await rpc.GetRawMempoolAsync();
 						Assert.Single(mempool);
 					}
-					else if (participantsFinishedSuccessully.All(x => x.GoForBlameRound == false && x.SuccessfulBroadcast == false))
+					else if (participantsFinishedSuccessully.All(x => x is FailedCoinJoinResult))
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 					}
