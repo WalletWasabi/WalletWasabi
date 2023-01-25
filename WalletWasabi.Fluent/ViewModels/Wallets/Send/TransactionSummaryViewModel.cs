@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -23,8 +24,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
-	[AutoNotify] private decimal _fee;
-	[AutoNotify] private decimal _amount;
+	[AutoNotify] private string _fee = "";
+	[AutoNotify] private string _amount = "";
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
@@ -58,11 +59,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
-		Amount = destinationAmount.ToDecimal(MoneyUnit.BTC);
+		Amount = destinationAmount.ToString();
 
 		var fee = _transaction.Fee;
 		FeeText = fee.ToFeeDisplayUnitFormattedString();
-		Fee = _transaction.Fee.ToDecimal(MoneyUnit.BTC);
+		Fee= _transaction.Fee.ToFeeDisplayUnitRawString();
 
 		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		if (exchangeRate != 0)
