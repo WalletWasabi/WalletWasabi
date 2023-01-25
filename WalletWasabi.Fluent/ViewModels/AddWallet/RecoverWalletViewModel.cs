@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
@@ -30,7 +31,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
-		Mnemonics.ToObservableChangeSet()
+		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 			.Subscribe(x =>
 			{
