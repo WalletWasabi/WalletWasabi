@@ -246,7 +246,7 @@ public class CoinVerifier
 						Whitelist.Add(coin.Outpoint);
 					}
 
-					item.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan, Reason.RemoteApiChecked));
+					item.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan, Reason.RemoteApiChecked, apiResponseItem));
 				}
 				catch (Exception ex)
 				{
