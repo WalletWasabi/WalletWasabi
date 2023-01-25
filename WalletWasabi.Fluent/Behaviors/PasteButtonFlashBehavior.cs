@@ -44,8 +44,8 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			var mainWindow = lifetime.MainWindow;
 
 			Observable
-				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).Select(_ => Unit.Default)
-				.Merge(this.WhenAnyValue(x => x.CurrentAddress).Select(_ => Unit.Default))
+				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).ToSignal()
+				.Merge(this.WhenAnyValue(x => x.CurrentAddress).ToSignal())
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.SubscribeAsync(async _ => await CheckClipboardForValidAddressAsync(forceCheck: true))

@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -39,7 +40,7 @@ public partial class Setting<TTarget, TProperty> : ReactiveObject
 		this.WhenAnyValue(x => x.Value)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
-			.Select(_ => Unit.Default)
+			.ToSignal()
 			.InvokeCommand(SetValueCommand);
 
 		this.WhenAnyValue(x => x.Value)
@@ -47,7 +48,7 @@ public partial class Setting<TTarget, TProperty> : ReactiveObject
 			.Throttle(TimeSpan.FromMilliseconds(SettingsTabViewModelBase.ThrottleTime + 50))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Where(_ => SettingsTabViewModelBase.CheckIfRestartIsNeeded())
-			.Select(_ => Unit.Default)
+			.ToSignal()
 			.InvokeCommand(ShowNotificationCommand);
 	}
 
