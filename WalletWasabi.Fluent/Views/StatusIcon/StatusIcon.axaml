@@ -82,7 +82,7 @@
               <c:StatusItem.Icon>
                 <Panel>
                   <PathIcon Data="{StaticResource tor_icon}" IsVisible="{Binding !TorIssues.Count, FallbackValue=True}" />
-                  <st:TorIssuesControl IsVisible="{Binding TorIssues.Count, FallbackValue=False}" />
+                  <st:TorIssues IsVisible="{Binding TorIssues.Count, FallbackValue=False}" />
                 </Panel>
               </c:StatusItem.Icon>
             </c:StatusItem>

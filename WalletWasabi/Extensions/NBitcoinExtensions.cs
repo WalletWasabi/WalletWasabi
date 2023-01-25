@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -77,27 +78,9 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 	/// </summary>
-	public static bool PossiblyP2WPKHInvolved(this Transaction me)
-	{
-		// We omit Guard, because it's performance critical in Wasabi.
-		// We start with the inputs, because, this check is faster.
-		// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
-		foreach (TxIn input in me.Inputs)
-		{
-			if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
-			{
-				return true;
-			}
-		}
-		foreach (TxOut output in me.Outputs)
-		{
-			if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+	public static bool SegWitInvolved(this Transaction me) =>
+		me.Inputs.Any(i => Script.IsNullOrEmpty(i.ScriptSig)) ||
+		me.Outputs.Any(o => o.ScriptPubKey.IsScriptType(ScriptType.Witness));
 
 	public static bool HasIndistinguishableOutputs(this Transaction me)
 	{
@@ -430,7 +413,7 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Tries to equip the PSBT with previous transactions with best effort. Always <see cref="AddKeyPaths"/> first otherwise the prev tx won't be added.
 	/// </summary>
-	public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
+	public static void AddPrevTxs(this PSBT psbt, ITransactionStore transactionStore)
 	{
 		// Fill out previous transactions.
 		foreach (var psbtInput in psbt.Inputs)
@@ -441,7 +424,7 @@ public static class NBitcoinExtensions
 			}
 			else
 			{
-				Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+				Logger.LogDebug($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
 			}
 		}
 	}
@@ -461,7 +444,10 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.TryGetScriptType() switch
+		scriptPubKey.GetScriptType().EstimateInputVsize();
+
+	public static int EstimateInputVsize(this ScriptType scriptType) =>
+		scriptType switch
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
 			ScriptType.Taproot => Constants.P2trInputVirtualSize,
@@ -471,12 +457,18 @@ public static class NBitcoinExtensions
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
-	public static Money EffectiveValue(this Coin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-	{
-		var netFee = feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
-		var coordFee = coordinationFeeRate.GetFee(coin.Amount);
+	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate, coordinationFeeRate);
 
-		return coin.Amount - netFee - coordFee;
+	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate, coordinationFeeRate);
+
+	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+	{
+		var netFee = feeRate.GetFee(virtualSize);
+		var coordFee = coordinationFeeRate.GetFee(amount);
+
+		return amount - netFee - coordFee;
 	}
 
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
@@ -484,6 +476,9 @@ public static class NBitcoinExtensions
 
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
 		EffectiveValue(coin.Coin, feeRate, CoordinationFeeRate.Zero);
+
+	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate) =>
+		EffectiveValue(coin, feeRate, CoordinationFeeRate.Zero);
 
 	public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 	{
@@ -499,7 +494,7 @@ public static class NBitcoinExtensions
 	}
 
 	/// <summary>
-	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
+	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptPubKey byte array.
 	/// </summary>
 	public static byte[] ExtractKeyId(this Script scriptPubKey)
 	{
@@ -510,6 +505,11 @@ public static class NBitcoinExtensions
 			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			_ => scriptPubKey.ToBytes()
 		};
+	}
+
+	public static ScriptType GetScriptType(this Script script)
+	{
+		return TryGetScriptType(script) ?? throw new NotImplementedException($"Unsupported script type.");
 	}
 
 	public static ScriptType? TryGetScriptType(this Script script)
@@ -523,5 +523,43 @@ public static class NBitcoinExtensions
 		}
 
 		return null;
+	}
+
+	public static BitcoinSecret GetBitcoinSecret(this ExtKey hdKey, Network network, Script scriptPubKey)
+		=> GetBitcoinSecret(network, hdKey.PrivateKey, scriptPubKey);
+
+	public static BitcoinSecret GetBitcoinSecret(Network network, Key privateKey, Script scriptPubKey)
+	{
+		var derivedScriptPubKeyType = scriptPubKey switch
+		{
+			_ when scriptPubKey.IsScriptType(ScriptType.P2WPKH) => ScriptPubKeyType.Segwit,
+			_ when scriptPubKey.IsScriptType(ScriptType.Taproot) => ScriptPubKeyType.TaprootBIP86,
+			_ => throw new NotSupportedException("Not supported script type.")
+		};
+
+		if (privateKey.PubKey.GetScriptPubKey(derivedScriptPubKeyType) != scriptPubKey)
+		{
+			throw new InvalidOperationException("The key cannot generate the utxo scriptPubKey. This could happen if the wallet password is not the correct one.");
+		}
+
+		return privateKey.GetBitcoinSecret(network);
+	}
+
+	public static OwnershipProof GetOwnershipProof(Key masterKey, BitcoinSecret secret, Script scriptPubKey, CoinJoinInputCommitmentData commitmentData)
+	{
+		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
+		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019")
+			.DeriveChild("Ownership identification key").Key;
+
+		var signingKey = secret.PrivateKey;
+		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+			signingKey,
+			new OwnershipIdentifier(identificationKey, scriptPubKey),
+			commitmentData,
+			scriptPubKey.IsScriptType(ScriptType.P2WPKH)
+				? ScriptPubKeyType.Segwit
+				: ScriptPubKeyType.TaprootBIP86);
+
+		return ownershipProof;
 	}
 }

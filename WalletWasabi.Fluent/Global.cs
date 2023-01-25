@@ -88,15 +88,9 @@ public class Global
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 
-		if (Config.UseTor)
-		{
-			HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
-				TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri());
-		}
-		else
-		{
-			HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-		}
+		HttpClientFactory = new HttpClientFactory(
+			Config.UseTor ? TorSettings.SocksEndpoint : null,
+			backendUriGetter: () => Config.GetBackendUri());
 
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
@@ -239,7 +233,7 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
@@ -262,6 +256,7 @@ public class Global
 							EndPointStrategy.Default(Network, EndPointType.Rpc),
 							txIndex: null,
 							prune: null,
+							disableWallet: 1,
 							mempoolReplacement: "fee,optin",
 							userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 							fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?

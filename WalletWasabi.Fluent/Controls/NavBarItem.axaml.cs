@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.Controls;
 /// <summary>
 /// Container for NavBarItems.
 /// </summary>
-[PseudoClasses(":horizontal", ":vertical", ":selectable")]
-public class NavBarItem : ListBoxItem
+[PseudoClasses(":horizontal", ":vertical", ":selectable", ":selected")]
+public class NavBarItem : Button
 {
 	public static readonly StyledProperty<IconElement> IconProperty =
 		AvaloniaProperty.Register<NavBarItem, IconElement>(nameof(Icon));
@@ -20,10 +20,13 @@ public class NavBarItem : ListBoxItem
 	public static readonly StyledProperty<bool> IsSelectableProperty =
 		AvaloniaProperty.Register<NavBarItem, bool>(nameof(IsSelectable));
 
+	public static readonly StyledProperty<bool> IsSelectedProperty =
+		AvaloniaProperty.Register<NavBarItem, bool>(nameof(IsSelected));
+
 	public NavBarItem()
 	{
 		UpdateIndicatorOrientationPseudoClasses(IndicatorOrientation);
-		UpdateIsSelectablePseudoClasses(IsSelectable);
+		UpdatePseudoClass(":selectable", IsSelectable);
 	}
 
 	/// <summary>
@@ -53,6 +56,15 @@ public class NavBarItem : ListBoxItem
 		set => SetValue(IsSelectableProperty, value);
 	}
 
+	/// <summary>
+	/// Gets or sets if the item is selected or not.
+	/// </summary>
+	public bool IsSelected
+	{
+		get => GetValue(IsSelectedProperty);
+		set => SetValue(IsSelectedProperty, value);
+	}
+
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
 		base.OnPropertyChanged(change);
@@ -64,7 +76,12 @@ public class NavBarItem : ListBoxItem
 
 		if (change.Property == IsSelectableProperty)
 		{
-			UpdateIsSelectablePseudoClasses(change.NewValue.GetValueOrDefault<bool>());
+			UpdatePseudoClass(":selectable", change.NewValue.GetValueOrDefault<bool>());
+		}
+
+		if (change.Property == IsSelectedProperty)
+		{
+			UpdatePseudoClass(":selected", change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 
@@ -74,8 +91,8 @@ public class NavBarItem : ListBoxItem
 		PseudoClasses.Set(":vertical", orientation == Orientation.Vertical);
 	}
 
-	private void UpdateIsSelectablePseudoClasses(bool isSelectable)
+	private void UpdatePseudoClass(string pseudoClass, bool value)
 	{
-		PseudoClasses.Set(":selectable", isSelectable);
+		PseudoClasses.Set(pseudoClass, value);
 	}
 }

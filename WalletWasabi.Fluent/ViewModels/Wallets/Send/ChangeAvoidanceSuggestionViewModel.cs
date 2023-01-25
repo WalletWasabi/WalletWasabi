@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -18,7 +19,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	private const int SignificantFiguresForFiatAmount = 3;
 	[AutoNotify] private string _amount;
-	[AutoNotify] private string _amountFiat;
+	[AutoNotify] private decimal _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(
@@ -31,16 +32,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var totalAmount = transactionResult.CalculateDestinationAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 
-		_amountFiat = total.RoundToSignificantFigures(SignificantFiguresForFiatAmount).GenerateFiatText(fiatExchangeRate, "USD");
-
 		var fiatTotal = total * fiatExchangeRate;
+
+		_amountFiat = fiatTotal;
+
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
-		var roundedFiatDifference = fiatDifference.RoundToSignificantFigures(SignificantFiguresForFiatAmount);
 
 		_differenceFiat = (fiatDifference > 0
-				? $"{roundedFiatDifference.GenerateFiatText("USD")} More"
-				: $"{Math.Abs(roundedFiatDifference).GenerateFiatText("USD")} Less")
+				? $"{fiatDifference.ToUsd()} More"
+				: $"{Math.Abs(fiatDifference).ToUsd()} Less")
 			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
@@ -50,7 +51,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo,
-		BitcoinAddress destination,
 		Wallet wallet,
 		ImmutableArray<SmartCoin> coinsToUse,
 		int maxInputCount,
@@ -60,7 +60,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		IAsyncEnumerable<IEnumerable<SmartCoin>> selectionsTask = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 			coinsToUse,
 			transactionInfo.FeeRate,
-			new TxOut(transactionInfo.Amount, destination),
+			new TxOut(transactionInfo.Amount, transactionInfo.Destination),
 			maxInputCount,
 			cancellationToken);
 
@@ -76,8 +76,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				{
 					transaction = TransactionHelpers.BuildChangelessTransaction(
 						wallet,
-						destination,
-						transactionInfo.UserLabels,
+						transactionInfo.Destination,
+						transactionInfo.Recipient,
 						transactionInfo.FeeRate,
 						selection,
 						tryToSign: false);

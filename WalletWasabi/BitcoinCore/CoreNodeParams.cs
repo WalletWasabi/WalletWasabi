@@ -18,6 +18,7 @@ public class CoreNodeParams
 		EndPointStrategy rpcEndPointStrategy,
 		int? txIndex,
 		int? prune,
+		int? disableWallet,
 		string mempoolReplacement,
 		string userAgent,
 		Money? fallbackFee,
@@ -32,6 +33,7 @@ public class CoreNodeParams
 		RpcEndPointStrategy = Guard.NotNull(nameof(rpcEndPointStrategy), rpcEndPointStrategy);
 		TxIndex = txIndex;
 		Prune = prune;
+		DisableWallet = disableWallet;
 		MempoolReplacement = mempoolReplacement;
 		UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 		FallbackFee = fallbackFee;
@@ -45,6 +47,7 @@ public class CoreNodeParams
 	public bool TryDeleteDataDir { get; }
 	public int? TxIndex { get; }
 	public int? Prune { get; }
+	public int? DisableWallet { get; }
 	public string MempoolReplacement { get; }
 	public string UserAgent { get; }
 	public Money? FallbackFee { get; }

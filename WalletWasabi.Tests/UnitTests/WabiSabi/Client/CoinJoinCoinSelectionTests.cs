@@ -20,10 +20,10 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure no coins are selected when there are no coins.
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: Enumerable.Empty<SmartCoin>(),
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: 10,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -43,10 +43,10 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -68,10 +68,10 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -92,10 +92,10 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
@@ -117,10 +117,10 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
@@ -141,10 +141,10 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 

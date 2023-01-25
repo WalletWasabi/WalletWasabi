@@ -11,7 +11,15 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-[NavigationMetaData(Title = "Coinjoin Settings")]
+[NavigationMetaData(
+	Title = "Coinjoin Settings",
+	Caption = "Displays wallet coinjoin settings",
+	IconName = "nav_wallet_24_regular",
+	Order = 1,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Settings", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
@@ -25,8 +33,8 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	{
 		_wallet = walletViewModelBase.Wallet;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
-		                     KeyManager.DefaultPlebStopThreshold.ToString();
+		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
+		_anonScoreTarget = _wallet.AnonScoreTarget;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -59,14 +67,6 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
-		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-
-		this.WhenAnyValue(x => x.AnonScoreTarget)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
-
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
@@ -90,17 +90,17 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
-		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
+		AnonScoreTarget = _wallet.AnonScoreTarget;
 
 		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
 			(_wallet.KeyManager.IsCoinjoinProfileSelected,
-					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.KeyManager)) switch
-				{
-					(true, CoinJoinProfileViewModelBase x) => x.Title,
-					(false, _) => "None",
-					_ => "Unknown"
-				};
+			CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.KeyManager)) switch
+			{
+				(true, CoinJoinProfileViewModelBase x) => x.Title,
+				(false, _) => "None",
+				_ => "Unknown"
+			};
 	}
 
 	private async Task SelectCoinjoinProfileAsync()

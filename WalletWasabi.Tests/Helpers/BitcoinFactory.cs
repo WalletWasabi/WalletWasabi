@@ -39,7 +39,7 @@ public static class BitcoinFactory
 		foreach (var (value, anonset, hdpk) in ownInputs)
 		{
 			var sc = CreateSmartCoin(hdpk, value, anonymitySet: anonset);
-			tx.Inputs.Add(sc.OutPoint);
+			tx.Inputs.Add(sc.Outpoint);
 			walletInputs.Add(sc);
 		}
 		foreach (var output in othersOutputs)
@@ -82,7 +82,7 @@ public static class BitcoinFactory
 	{
 		var height = confirmed ? new Height(CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 		pubKey.SetKeyState(KeyState.Used);
-		tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
+		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());

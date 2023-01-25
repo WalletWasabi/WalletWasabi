@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
 using WalletWasabi.Extensions;
 using System.Net.Http;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -101,7 +102,7 @@ public class AliceClient
 			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
 			coin.CoinJoinInProgress = true;
 
-			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
+			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
 		}
 		catch (WabiSabiProtocolException wpe)
 		{
@@ -163,7 +164,7 @@ public class AliceClient
 			try
 			{
 				await roundStatusUpdater
-					.CreateRoundAwaiter(
+					.CreateRoundAwaiterAsync(
 						RoundId,
 						Phase.ConnectionConfirmation,
 						cts.Token)
@@ -206,7 +207,7 @@ public class AliceClient
 
 			await RemoveInputAsync(linkedCts.Token).ConfigureAwait(false);
 			SmartCoin.CoinJoinInProgress = false;
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.OutPoint}.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
 		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
 		{
@@ -246,9 +247,9 @@ public class AliceClient
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 	}
 
-	public async Task SignTransactionAsync(Transaction unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
+	public async Task SignTransactionAsync(TransactionWithPrecomputedData unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
-		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 	}

@@ -10,8 +10,11 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -19,29 +22,35 @@ using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-[NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
+[NavigationMetaData(
+	Title = "Wallet Coins (UTXOs)",
+	Caption = "Displays wallet coins",
+	IconName = "nav_wallet_24_regular",
+	Order = 0,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Coins", "UTXO", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
-	private readonly IObservable<Unit> _balanceChanged;
-	private readonly WalletViewModel _walletViewModel;
+	private readonly WalletViewModel _walletVm;
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 
 	[AutoNotify]
 	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
-	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public WalletCoinsViewModel(WalletViewModel walletVm)
 	{
-		_walletViewModel = walletViewModel;
-		_balanceChanged = balanceChanged;
+		_walletVm = walletVm;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged);
+		var coins = CreateCoinsObservable(_walletVm.UiTriggers.TransactionsUpdateTrigger);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
@@ -93,7 +102,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
 	{
 		var initial = Observable.Return(GetCoins());
-		var coinJoinChanged = _walletViewModel.WhenAnyValue(model => model.IsCoinJoining);
+		var coinJoinChanged = _walletVm.WhenAnyValue(model => model.IsCoinJoining);
 		var coinsChanged = balanceChanged.ToSignal().Merge(coinJoinChanged.ToSignal());
 
 		var coins = coinsChanged
@@ -103,33 +112,36 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return concat;
 	}
 
-	private async Task OnSendCoins()
+	private async Task OnSendCoinsAsync()
 	{
-		var wallet = _walletViewModel.Wallet;
+		var wallet = _walletVm.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
-		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
-		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
+		var addressDialog = new AddressEntryDialogViewModel(wallet.Network);
 		var addressResult = await NavigateDialogAsync(addressDialog, NavigationTarget.CompactDialogScreen);
-		if (addressResult.Result is not { } address)
+		if (addressResult.Result is not { } address || address.Address is null)
 		{
 			return;
 		}
 
-		var labelDialog = new LabelEntryDialogViewModel(wallet, info);
+		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? SmartLabel.Empty);
 		var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 		if (result.Result is not { } label)
 		{
 			return;
 		}
 
-		info.Coins = selectedSmartCoins;
-		info.Amount = selectedSmartCoins.Sum(x => x.Amount);
-		info.SubtractFee = true;
-		info.UserLabels = label;
-		info.IsSelectedCoinModificationEnabled = false;
+		var info = new TransactionInfo(address.Address, wallet.AnonScoreTarget)
+		{
+			Coins = selectedSmartCoins,
+			Amount = selectedSmartCoins.Sum(x => x.Amount),
+			SubtractFee = true,
+			Recipient = label,
+			IsSelectedCoinModificationEnabled = false,
+			IsFixedAmount = true,
+		};
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
+		Navigate().To(new TransactionPreviewViewModel(_walletVm, info));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
@@ -144,68 +156,11 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		{
 			Columns =
 			{
-				// Selection
-				new TemplateColumn<WalletCoinViewModel>(
-					null,
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = false
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-
-				// Indicators
-				new TemplateColumn<WalletCoinViewModel>(
-					null,
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IndicatorsColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x))
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-
-				// Amount
-				new TemplateColumn<WalletCoinViewModel>(
-					"Amount",
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AmountColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount)
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-
-				// AnonymityScore
-				new TemplateColumn<WalletCoinViewModel>(
-					new AnonymitySetHeaderView(),
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
-					},
-					width: new GridLength(50, GridUnitType.Pixel)),
-
-				// Labels
-				new TemplateColumn<WalletCoinViewModel>(
-					"Labels",
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new LabelsColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
-					},
-					width: new GridLength(1, GridUnitType.Star))
+				SelectionColumn(),
+				IndicatorsColumn(),
+				AmountColumn(),
+				AnonymityScoreColumn(),
+				LabelsColumn()
 			}
 		};
 
@@ -214,8 +169,84 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return source;
 	}
 
+	private static IColumn<WalletCoinViewModel> SelectionColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			null,
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = false
+			},
+			width: new GridLength(0, GridUnitType.Auto));
+	}
+
+	private static IColumn<WalletCoinViewModel> IndicatorsColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			null,
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IndicatorsColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x))
+			},
+			width: new GridLength(0, GridUnitType.Auto));
+	}
+
+	private static IColumn<WalletCoinViewModel> AmountColumn()
+	{
+		return new PrivacyTextColumn<WalletCoinViewModel>(
+			"Amount",
+			node => node.Amount.ToFormattedString(),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount),
+				MinWidth = new GridLength(145, GridUnitType.Pixel)
+			},
+			width: new GridLength(0, GridUnitType.Auto),
+			numberOfPrivacyChars: 9);
+	}
+
+	private static IColumn<WalletCoinViewModel> AnonymityScoreColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			new AnonymitySetHeaderView(),
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
+			},
+			width: new GridLength(50, GridUnitType.Pixel));
+	}
+
+	private static IColumn<WalletCoinViewModel> LabelsColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			"Labels",
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new LabelsColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel),
+				MinWidth = new GridLength(100, GridUnitType.Pixel)
+			},
+			width: new GridLength(1, GridUnitType.Star));
+	}
+
 	private ICoinsView GetCoins()
 	{
-		return _walletViewModel.Wallet.Coins;
+		return _walletVm.Wallet.Coins;
 	}
 }

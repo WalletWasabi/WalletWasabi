@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Services;
 using Xunit;
 
@@ -58,7 +59,7 @@ public class SingleInstanceCheckerTests
 		int mainNetPort = GenerateRandomPort();
 
 		// Disposal test.
-		await using SingleInstanceChecker firstInstance = new(mainNetPort);
+		await using SingleInstanceChecker firstInstance = new(mainNetPort, TimeoutMultiplier);
 		long eventCalled = 0;
 
 		firstInstance.OtherInstanceStarted += SetCalled;

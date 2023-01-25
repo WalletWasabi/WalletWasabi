@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -26,8 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 public partial class HistoryViewModel : ActivatableViewModel
 {
 	private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
-	private readonly WalletViewModel _walletViewModel;
-	private readonly IObservable<Unit> _updateTrigger;
+	private readonly WalletViewModel _walletVm;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
@@ -35,13 +33,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private bool _isTransactionHistoryLoaded;
 
-	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
+	public HistoryViewModel(WalletViewModel walletVm)
 	{
-		_walletViewModel = walletViewModel;
-		_updateTrigger = updateTrigger;
+		_walletVm = walletVm;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
@@ -73,100 +68,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			Columns =
 			{
-				// Indicators
-				new HierarchicalExpanderColumn<HistoryItemViewModelBase>(
-				new TemplateColumn<HistoryItemViewModelBase>(
-					null,
-					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
-					options: new ColumnOptions<HistoryItemViewModelBase>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IsCoinJoin),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IsCoinJoin),
-						MinWidth = new GridLength(80, GridUnitType.Pixel)
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-				x => x.Children,
-				x => x.HasChildren(),
-				x => x.IsExpanded),
-
-				// Date
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Date / Time",
-					x => x.DateString,
-					options: new ColumnOptions<HistoryItemViewModelBase>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
-						MinWidth = new GridLength(150, GridUnitType.Pixel)
-					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 15),
-
-				// Labels
-				new TemplateColumn<HistoryItemViewModelBase>(
-					"Labels",
-					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
-					options: new ColumnOptions<HistoryItemViewModelBase>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label),
-						MinWidth = new GridLength(100, GridUnitType.Pixel)
-					},
-					width: new GridLength(1, GridUnitType.Star)),
-
-				// Incoming
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Incoming (BTC)",
-					x => x.IncomingAmount?.ToFormattedString(),
-					options: new ColumnOptions<HistoryItemViewModelBase>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
-						MinWidth = new GridLength(145, GridUnitType.Pixel),
-						MaxWidth = new GridLength(210, GridUnitType.Pixel)
-					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
-
-				// Outgoing
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Outgoing (BTC)",
-					x => x.OutgoingAmount?.ToFormattedString(),
-					options: new ColumnOptions<HistoryItemViewModelBase>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
-						MinWidth = new GridLength(145, GridUnitType.Pixel),
-						MaxWidth = new GridLength(210, GridUnitType.Pixel)
-					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
-
-				// Balance
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Balance (BTC)",
-					x => x.Balance?.ToFormattedString(),
-					options: new ColumnOptions<HistoryItemViewModelBase>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
-						MinWidth = new GridLength(145, GridUnitType.Pixel),
-						MaxWidth = new GridLength(210, GridUnitType.Pixel)
-					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+				IndicatorsColumn(),
+				DateColumn(),
+				LabelsColumn(),
+				IncomingColumn(),
+				OutgoingColumn(),
+				BalanceColumn(),
 			}
 		};
 
@@ -182,6 +89,113 @@ public partial class HistoryViewModel : ActivatableViewModel
 	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
 	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
+
+	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
+	{
+		return new HierarchicalExpanderColumn<HistoryItemViewModelBase>(
+			new TemplateColumn<HistoryItemViewModelBase>(
+				null,
+				new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
+				options: new ColumnOptions<HistoryItemViewModelBase>
+				{
+					CanUserResizeColumn = false,
+					CanUserSortColumn = true,
+					CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IsCoinJoin),
+					CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IsCoinJoin),
+					MinWidth = new GridLength(80, GridUnitType.Pixel)
+				},
+				width: new GridLength(0, GridUnitType.Auto)),
+			x => x.Children,
+			x => x.HasChildren(),
+			x => x.IsExpanded);
+	}
+
+	private static IColumn<HistoryItemViewModelBase> DateColumn()
+	{
+		return new PrivacyTextColumn<HistoryItemViewModelBase>(
+			"Date / Time",
+			x => x.DateString,
+			options: new ColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
+				MinWidth = new GridLength(150, GridUnitType.Pixel)
+			},
+			width: new GridLength(0, GridUnitType.Auto),
+			numberOfPrivacyChars: 15);
+	}
+
+	private static IColumn<HistoryItemViewModelBase> LabelsColumn()
+	{
+		return new TemplateColumn<HistoryItemViewModelBase>(
+			"Labels",
+			new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
+			options: new ColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label),
+				MinWidth = new GridLength(100, GridUnitType.Pixel)
+			},
+			width: new GridLength(1, GridUnitType.Star));
+	}
+
+	private static IColumn<HistoryItemViewModelBase> IncomingColumn()
+	{
+		return new PrivacyTextColumn<HistoryItemViewModelBase>(
+			"Incoming (BTC)",
+			x => x.IncomingAmount?.ToFormattedString(),
+			options: new ColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
+				MinWidth = new GridLength(145, GridUnitType.Pixel),
+				MaxWidth = new GridLength(210, GridUnitType.Pixel)
+			},
+			width: new GridLength(0, GridUnitType.Auto),
+			numberOfPrivacyChars: 9);
+	}
+
+	private static IColumn<HistoryItemViewModelBase> OutgoingColumn()
+	{
+		return new PrivacyTextColumn<HistoryItemViewModelBase>(
+			"Outgoing (BTC)",
+			x => x.OutgoingAmount?.ToFormattedString(),
+			options: new ColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
+				MinWidth = new GridLength(145, GridUnitType.Pixel),
+				MaxWidth = new GridLength(210, GridUnitType.Pixel)
+			},
+			width: new GridLength(0, GridUnitType.Auto),
+			numberOfPrivacyChars: 9);
+	}
+
+	private static IColumn<HistoryItemViewModelBase> BalanceColumn()
+	{
+		return new PrivacyTextColumn<HistoryItemViewModelBase>(
+			"Balance (BTC)",
+			x => x.Balance?.ToFormattedString(),
+			options: new ColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
+				MinWidth = new GridLength(145, GridUnitType.Pixel),
+				MaxWidth = new GridLength(210, GridUnitType.Pixel)
+			},
+			width: new GridLength(0, GridUnitType.Auto),
+			numberOfPrivacyChars: 9);
+	}
 
 	public void SelectTransaction(uint256 txid)
 	{
@@ -209,8 +223,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		_updateTrigger
-			.SubscribeAsync(async _ => await UpdateAsync())
+		_walletVm.UiTriggers.TransactionsUpdateTrigger
+			.DoAsync(async _ => await UpdateAsync())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 
@@ -218,7 +233,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		try
 		{
-			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
+			var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
 			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
@@ -228,8 +243,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
-
-			IsTransactionHistoryLoaded = true;
 		}
 		catch (Exception ex)
 		{
@@ -250,14 +263,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
+				yield return new TransactionHistoryItemViewModel(i, item, _walletVm, balance);
 			}
 
 			if (item.IsOwnCoinjoin)
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, _walletViewModel, _updateTrigger);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, _walletVm);
 				}
 				else
 				{
@@ -271,7 +284,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
-					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletViewModel, balance, _updateTrigger, true);
+					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
 					yield return singleCjItem;
 				}
 				else

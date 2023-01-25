@@ -15,7 +15,8 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
-                 EnableSkip="{Binding IsSkipEnable}">
+                 EnableSkip="{Binding IsSkipEnable}"
+                 IsBusy="{Binding IsBusy}">
     <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Center" MaxWidth="350">
       <ItemsControl Items="{Binding ConfirmationWords}">
         <i:Interaction.Behaviors>

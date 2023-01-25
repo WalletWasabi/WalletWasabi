@@ -10,7 +10,15 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
-[NavigationMetaData(Title = "Wallet Statistics")]
+[NavigationMetaData(
+	Title = "Wallet Stats",
+	Caption = "Displays wallet stats",
+	IconName = "nav_wallet_24_regular",
+	Order = 3,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Stats", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
@@ -24,8 +32,6 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _generatedCleanKeyCount;
 	[AutoNotify] private int _generatedLockedKeyCount;
 	[AutoNotify] private int _generatedUsedKeyCount;
-	[AutoNotify] private int _largestExternalKeyGap;
-	[AutoNotify] private int _largestInternalKeyGap;
 	[AutoNotify] private int _totalTransactionCount;
 	[AutoNotify] private int _nonCoinjointransactionCount;
 	[AutoNotify] private int _coinjoinTransactionCount;
@@ -68,9 +74,6 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		GeneratedCleanKeyCount = _wallet.KeyManager.GetKeys(KeyState.Clean).Count();
 		GeneratedLockedKeyCount = _wallet.KeyManager.GetKeys(KeyState.Locked).Count();
 		GeneratedUsedKeyCount = _wallet.KeyManager.GetKeys(KeyState.Used).Count();
-
-		LargestExternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: false, ignoreTail: true);
-		LargestInternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: true, ignoreTail: true);
 
 		var singleCoinjoins = _walletViewModel.History.Transactions.OfType<CoinJoinHistoryItemViewModel>().ToList();
 		var groupedCoinjoins = _walletViewModel.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().ToList();

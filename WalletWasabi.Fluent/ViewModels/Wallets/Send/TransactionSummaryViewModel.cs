@@ -1,5 +1,4 @@
 using System.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -12,7 +11,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
-	private readonly BitcoinAddress _address;
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
@@ -25,17 +23,16 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
 
-	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, BitcoinAddress address, bool isPreview = false)
+	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
 		Parent = parent;
 		_wallet = wallet;
-		_address = address;
 		IsPreview = isPreview;
 
 		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
 			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
 
-		AddressText = _address.ToString();
+		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
@@ -57,22 +54,28 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 		var destinationAmount = _transaction.CalculateDestinationAmount();
-		var btcAmountText = $"{destinationAmount.ToFormattedString()} BTC";
-		var fiatAmountText = destinationAmount.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-		AmountText = $"{btcAmountText} {fiatAmountText}";
+		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 
 		var fee = _transaction.Fee;
-		var feeText = fee.ToFeeDisplayUnitString();
-		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-		FeeText = $"{feeText} {fiatFeeText}";
+		FeeText = fee.ToFeeDisplayUnitFormattedString();
+
+		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		if (exchangeRate != 0)
+		{
+			var fiatAmountText = destinationAmount.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
+			AmountText += $" {fiatAmountText}";
+
+			var fiatFeeText = fee.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
+			FeeText += $" {fiatFeeText}";
+		}
 
 		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
+			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
-		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.UserLabels.Labels));
+		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient.Labels));
 		TransactionHasPockets = Labels.Any();
 
-		Recipient = info.UserLabels;
+		Recipient = info.Recipient;
 
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;

@@ -9,7 +9,7 @@ public interface IKeyChain
 {
 	OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData);
 
-	Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof);
+	Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData);
 
 	void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
 }

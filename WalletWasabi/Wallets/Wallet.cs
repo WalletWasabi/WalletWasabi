@@ -41,8 +41,6 @@ public class Wallet : BackgroundService, IWallet
 		RuntimeParams.SetDataDir(dataDir);
 		HandleFiltersLock = new AsyncLock();
 
-		KeyManager.AssertCleanKeysIndexedAndPersist();
-
 		if (!KeyManager.IsWatchOnly)
 		{
 			KeyChain = new KeyChain(KeyManager, Kitchen);
@@ -89,9 +87,9 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
-	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), KeyManager.AnonScoreTarget) >= 1;
+	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight) => Task.FromResult(GetCoinjoinCoinCandidates(bestHeight));
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
@@ -110,7 +108,7 @@ public class Wallet : BackgroundService, IWallet
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
 
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates(int bestHeight) => Coins;
+	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
@@ -136,7 +134,6 @@ public class Wallet : BackgroundService, IWallet
 	public bool IsLoggedIn { get; private set; }
 
 	public Kitchen Kitchen { get; } = new();
-	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
@@ -506,8 +503,6 @@ public class Wallet : BackgroundService, IWallet
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 		return wallet;
 	}
-
-	public string Identifier => WalletName;
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets

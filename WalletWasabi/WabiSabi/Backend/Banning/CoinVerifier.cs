@@ -1,15 +1,15 @@
 using NBitcoin;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
-using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
-
-public record CoinVerifyInfo(bool ShouldBan, Coin Coin);
 
 public class CoinVerifier
 {
@@ -21,87 +21,113 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	// Blank constructor used for testing
+	// Constructor used for testing
 	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifierApiClient = apiClient;
-		Whitelist = new();
+		Whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, wabiSabiConfig);
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	public Whitelist Whitelist { get; }
-	public WabiSabiConfig WabiSabiConfig { get; }
+	public event EventHandler<Coin>? CoinBlacklisted;
+
+	// This should be much bigger than the possible input-reg period.
+	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
+
+	private Whitelist Whitelist { get; }
+	private WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
+	private ConcurrentDictionary<Coin, CoinVerifyItem> CoinVerifyItems { get; } = new();
 
-	private bool CheckIfAlreadyVerified(Coin coin)
+	public async Task<IEnumerable<CoinVerifyResult>> VerifyCoinsAsync(IEnumerable<Coin> coinsToCheck, CancellationToken cancellationToken)
 	{
-		// Step 1: Check if address is whitelisted.
-		if (Whitelist.TryGet(coin.Outpoint, out _))
-		{
-			return true;
-		}
+		using CancellationTokenSource timeoutCancellationTokenSource = new(TimeSpan.FromSeconds(30));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
-		// Step 2: Check if address is from a coinjoin.
-		if (CoinJoinIdStore.Contains(coin.Outpoint.Hash))
-		{
-			return true;
-		}
+		// Booting up the results with the default value - ban: no, remove: yes.
+		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 
-		return false;
-	}
-
-	public async IAsyncEnumerable<CoinVerifyInfo> VerifyCoinsAsync(IEnumerable<Coin> coinsToCheck, [EnumeratorCancellation] CancellationToken cancellationToken, string roundId = "")
-	{
-		var before = DateTimeOffset.UtcNow;
-
-		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
-
-		var lastChangeId = Whitelist.ChangeId;
-		Whitelist.RemoveAllExpired(WabiSabiConfig.ReleaseFromWhitelistAfter);
-
-		var scriptsToCheck = new HashSet<Script>();
-		var innocentsCounter = 0;
-
+		// Building up the task list.
+		List<Task<CoinVerifyResult>> tasks = new();
 		foreach (var coin in coinsToCheck)
 		{
-			if (CheckIfAlreadyVerified(coin))
+			if (!CoinVerifyItems.TryGetValue(coin, out var item))
 			{
-				innocentsCounter++;
-				yield return new CoinVerifyInfo(false, coin);
+				// If the coin was not scheduled try to quickly schedule it - it should not happen.
+				Logger.LogWarning($"Trying to re-schedule coin '{coin.Outpoint}' for verification.");
+
+				// Quickly re-scheduling the missing items - we do not want to cancel the verification after the local timeout, so passing cancellationToken.
+				if (!TryScheduleVerification(coin, out item, cancellationToken, TimeSpan.Zero))
+				{
+					// This should not happen.
+					Logger.LogError($"Coin '{coin.Outpoint}' cannot be re-scheduled for verification. The coin will be removed from the round.");
+					continue;
+				}
 			}
-			else
-			{
-				scriptsToCheck.Add(coin.ScriptPubKey);
-			}
+
+			tasks.Add(item.Task);
 		}
 
-		Logger.LogInfo($"{innocentsCounter} out of {coinsToCheck.Count()} utxo is already verified in Round({roundId}).");
-		await foreach (var response in CoinVerifierApiClient.VerifyScriptsAsync(scriptsToCheck, linkedCts.Token))
+		try
 		{
-			bool shouldBanUtxo = CheckForFlags(response.ApiResponseItem);
-
-			// Find all coins with the same script (address reuse).
-			foreach (var coin in coinsToCheck.Where(c => c.ScriptPubKey == response.ScriptPubKey))
+			while (tasks.Any())
 			{
-				if (!shouldBanUtxo)
+				var completedTask = await Task.WhenAny(tasks).WaitAsync(linkedCts.Token).ConfigureAwait(false);
+				tasks.Remove(completedTask);
+				var result = await completedTask.WaitAsync(linkedCts.Token).ConfigureAwait(false);
+
+				// The verification task fulfilled its purpose - clean up.
+				if (CoinVerifyItems.TryRemove(result.Coin, out var item))
 				{
-					Whitelist.Add(coin.Outpoint);
+					item.Dispose();
 				}
 
-				yield return new CoinVerifyInfo(shouldBanUtxo, coin);
+				// Update the default value with the real result.
+				coinVerifyItems[result.Coin] = result;
 			}
 		}
-
-		if (Whitelist.ChangeId != lastChangeId)
+		catch (OperationCanceledException ex)
 		{
-			Whitelist.WriteToFile();
+			if (timeoutCancellationTokenSource.IsCancellationRequested)
+			{
+				Logger.LogError(ex);
+			}
+
+			// Otherwise just continue - the whole round was cancelled.
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
 		}
 
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("verifier-period", duration);
+		CleanUp();
+
+		await Whitelist.WriteToFileIfChangedAsync().ConfigureAwait(false);
+
+		return coinVerifyItems.Values.ToArray();
+	}
+
+	private void CleanUp()
+	{
+		// In a normal case the CoinVerifyItems removed right after queried in VerifyCoinsAsync. This is a sanity clean up.
+		var now = DateTimeOffset.UtcNow;
+		foreach (var (coin, item) in CoinVerifyItems)
+		{
+			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout)
+			{
+				CoinVerifyItems.TryRemove(coin, out var _);
+
+				// This should never happen.
+				if (!item.Task.IsCompleted)
+				{
+					Logger.LogError($"Unfinished task was removed for coin: '{coin.Outpoint}'.");
+				}
+
+				item.Dispose();
+			}
+		}
 	}
 
 	private bool CheckForFlags(ApiResponseItem response)
@@ -124,5 +150,116 @@ public class CoinVerifier
 		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		return shouldBan;
+	}
+
+	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null)
+	{
+		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
+		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
+		return TryScheduleVerification(coin, out coinVerifyItem, cancellationToken, delayUntilStart, oneHop, confirmations);
+	}
+
+	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
+	{
+		var item = new CoinVerifyItem();
+		coinVerifyItem = null;
+
+		if (!CoinVerifyItems.TryAdd(coin, item))
+		{
+			Logger.LogWarning("Coin was already scheduled for verification.");
+			item.Dispose();
+			return false;
+		}
+
+		coinVerifyItem = item;
+
+		if (oneHop)
+		{
+			item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
+			return true;
+		}
+
+		if (Whitelist.TryGet(coin.Outpoint, out _))
+		{
+			item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
+			return true;
+		}
+
+		if (CoinJoinIdStore.Contains(coin.Outpoint.Hash))
+		{
+			item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
+			return true;
+		}
+
+		if (coin.Amount >= WabiSabiConfig.CoinVerifierRequiredConfirmationAmount)
+		{
+			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
+			{
+				item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+				return true;
+			}
+		}
+
+		_ = Task.Run(
+			async () =>
+			{
+				using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, absoluteTimeoutCts.Token, item.Token);
+
+				try
+				{
+					var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
+
+					// Sanity check.
+					if (delay > AbsoluteScheduleSanityTimeout)
+					{
+						Logger.LogError($"Start delay '{delay}' was more than the absolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
+						delay = AbsoluteScheduleSanityTimeout;
+					}
+
+					if (delay > TimeSpan.Zero)
+					{
+						// We only abort and throw from the delay. If the API request already started, we will go with it.
+						using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, item.Token);
+						await Task.Delay(delay, delayCts.Token).ConfigureAwait(false);
+					}
+
+					// This is the last chance to abort with abortCts.
+					item.ThrowIfCancellationRequested();
+
+					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
+					var shouldBan = CheckForFlags(apiResponseItem);
+
+					// We got a definitive answer.
+					if (shouldBan)
+					{
+						CoinBlacklisted?.SafeInvoke(this, coin);
+					}
+					else
+					{
+						Whitelist.Add(coin.Outpoint);
+					}
+
+					item.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan));
+				}
+				catch (Exception ex)
+				{
+					item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+					Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
+
+					// Do not throw an exception here - unobserverved exception prevention.
+				}
+			},
+			verificationCancellationToken);
+
+		return true;
+	}
+
+	public void CancelSchedule(Coin coin)
+	{
+		if (CoinVerifyItems.TryGetValue(coin, out var item) && !item.IsCancellationRequested)
+		{
+			item.Cancel();
+		}
 	}
 }

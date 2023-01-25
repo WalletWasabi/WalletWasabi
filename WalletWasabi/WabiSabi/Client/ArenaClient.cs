@@ -9,6 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -18,23 +19,18 @@ public class ArenaClient
 		WabiSabiClient amountCredentialClient,
 		WabiSabiClient vsizeCredentialClient,
 		string coordinatorIdentifier,
-		IWabiSabiApiRequestHandler requestHandler,
-		IWabiSabiApiRequestHandler? requestHandlerReadyAndSigning = null)
+		IWabiSabiApiRequestHandler requestHandler)
 	{
-		requestHandlerReadyAndSigning ??= requestHandler;
-
 		AmountCredentialClient = amountCredentialClient;
 		VsizeCredentialClient = vsizeCredentialClient;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		RequestHandler = requestHandler;
-		RequestHandlerReadyAndSigning = requestHandlerReadyAndSigning;
 	}
 
 	public WabiSabiClient AmountCredentialClient { get; }
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public string CoordinatorIdentifier { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
-	public IWabiSabiApiRequestHandler RequestHandlerReadyAndSigning { get; }
 
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
@@ -196,16 +192,21 @@ public class ArenaClient
 		return new(false, zeroAmountCredentials, zeroVsizeCredentials);
 	}
 
-	public async Task SignTransactionAsync(uint256 roundId, Coin coin, OwnershipProof ownershipProof, IKeyChain keyChain, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
+	public async Task SignTransactionAsync(
+		uint256 roundId,
+		Coin coin,
+		IKeyChain keyChain, // unused now
+		TransactionWithPrecomputedData unsignedCoinJoin,
+		CancellationToken cancellationToken)
 	{
-		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin, coin, ownershipProof);
+		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, unsignedCoinJoin.PrecomputedTransactionData);
 		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
-		if (!txInput.VerifyScript(coin, out var error))
+		if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
 		{
 			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 		}
 
-		await RequestHandlerReadyAndSigning.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -218,7 +219,7 @@ public class ArenaClient
 		Guid aliceId,
 		CancellationToken cancellationToken)
 	{
-		await RequestHandlerReadyAndSigning.ReadyToSignAsync(
+		await RequestHandler.ReadyToSignAsync(
 			new ReadyToSignRequestRequest(
 				roundId,
 				aliceId),

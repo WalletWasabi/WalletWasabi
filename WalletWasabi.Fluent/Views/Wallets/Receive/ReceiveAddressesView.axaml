@@ -2,7 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
@@ -18,6 +20,28 @@
         <Style Selector="TreeDataGridRow">
           <Setter Property="Focusable" Value="False" />
           <Setter Property="Height" Value="37.5" />
+          <Setter Property="Template">
+            <ControlTemplate>
+              <DockPanel LastChildFill="True"
+                         Background="Transparent"
+                         x:CompileBindings="True" x:DataType="receive:AddressViewModel">
+                <i:Interaction.Behaviors>
+                  <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding NavigateCommand, Mode=OneWay}"/>
+                </i:Interaction.Behaviors>
+                <Border Name="PART_SelectionIndicator"
+                        BorderThickness="2 0 0 0"
+                        DockPanel.Dock="Left"
+                        VerticalAlignment="Stretch" />
+                <Panel>
+                  <Rectangle Name="BackgroundRectangle" />
+                  <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
+                                              ElementFactory="{TemplateBinding ElementFactory}"
+                                              Items="{TemplateBinding Columns}"
+                                              Rows="{TemplateBinding Rows}" />
+                </Panel>
+              </DockPanel>
+            </ControlTemplate>
+          </Setter>
         </Style>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right" />

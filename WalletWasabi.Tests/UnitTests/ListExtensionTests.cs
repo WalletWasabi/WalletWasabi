@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.Extensions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;

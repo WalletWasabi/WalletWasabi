@@ -127,6 +127,11 @@ public class Coordinator : IDisposable
 		}
 
 		BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
+
+		if (CoinVerifier is { })
+		{
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklistedAsync;
+		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcasted;
@@ -433,6 +438,29 @@ public class Coordinator : IDisposable
 		}
 	}
 
+	private async void CoinVerifier_CoinBlacklistedAsync(object? _, Coin coin)
+	{
+		try
+		{
+			foreach (var round in Rounds)
+			{
+				if (round.ContainsInput(coin.Outpoint, out var alices))
+				{
+					var outPointsToBan = alices.SelectMany(a => a.Inputs).Select(i => i.Outpoint).ToArray();
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, forceBan: true, outPointsToBan).ConfigureAwait(false);
+					return;
+				}
+			}
+
+			// Could be a coin from WW2.
+			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, 0, forceBan: true, coin.Outpoint).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+	}
+
 	#region IDisposable Support
 
 	protected virtual void Dispose(bool disposing)
@@ -444,6 +472,11 @@ public class Coordinator : IDisposable
 				if (BlockNotifier is { })
 				{
 					BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
+				}
+
+				if (CoinVerifier is { })
+				{
+					CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklistedAsync;
 				}
 
 				foreach (CoordinatorRound round in Rounds)

@@ -18,13 +18,14 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner
 {
 	public Arena(
 		TimeSpan period,
-		Network network,
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
@@ -34,7 +35,6 @@ public partial class Arena : PeriodicRunner
 		CoinJoinScriptStore? coinJoinScriptStore = null,
 		CoinVerifier? coinVerifier = null) : base(period)
 	{
-		Network = network;
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
@@ -44,6 +44,11 @@ public partial class Arena : PeriodicRunner
 		RoundParameterFactory = roundParameterFactory;
 		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
+
+		if (CoinVerifier is not null)
+		{
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklisted;
+		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -51,7 +56,6 @@ public partial class Arena : PeriodicRunner
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
-	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
@@ -100,29 +104,6 @@ public partial class Arena : PeriodicRunner
 						.ThenBy(x => x.InputCount)
 						.ToList();
 
-		var standardRegistrableRounds = rounds
-			.Where(x =>
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
-			.ToArray();
-
-		// Let's make sure that newer clients prefer rounds that WW2.0.0 clients don't.
-		// In WW2.0.0 on client side we accidentally order rounds by calling .ToImmutableDictionary(x => x.Id, x => x)
-		// therefore whichever round ToImmutableDictionary would make to be the first round, we send it to the back of our list.
-		// With this we can make sure that WW2.0.0 and newer clients prefer different rounds in parallel round configuration.
-		if (standardRegistrableRounds.Any())
-		{
-			var firstRegistrableRoundAccordingToWW200 = standardRegistrableRounds
-				.ToImmutableDictionary(x => x.Id, x => x)
-				.First()
-				.Value;
-
-			// Remove from whatever WW2.0.0's most preferred round is, then add it back to the end of our list.
-			rounds.Remove(firstRegistrableRoundAccordingToWW200);
-			rounds.Add(firstRegistrableRoundAccordingToWW200);
-		}
-
 		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0));
 	}
 
@@ -147,24 +128,20 @@ public partial class Arena : PeriodicRunner
 				{
 					try
 					{
-						int banCounter = 0;
-						var aliceDictionary = round.Alices.Where(x => !x.IsPayingZeroCoordinationFee).ToDictionary(a => a.Coin, a => a);
-						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
-						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
+						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice);
+						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
 						{
-							if (coinVerifyInfo.ShouldBan)
+							if (coinVerifyInfo.ShouldRemove)
 							{
-								banCounter++;
-								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
-								Prison.Ban(aliceToPunish, round.Id, isLongBan: true);
-								round.Alices.Remove(aliceToPunish);
+								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
 							}
 						}
-						Logger.LogInfo($"{banCounter} utxos were banned from round {round.Id}.");
 					}
 					catch (Exception exc)
 					{
+						// This should never happen.
 						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
+						round.EndRound(EndRoundState.AbortedWithError);
 					}
 				}
 
@@ -565,7 +542,14 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 		{
-			var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
+			var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
+			foreach (var alice in alicesToRemove)
+			{
+				round.Alices.Remove(alice);
+				CoinVerifier?.CancelSchedule(alice.Coin);
+			}
+
+			var removedAliceCount = alicesToRemove.Length;
 			if (removedAliceCount > 0)
 			{
 				round.LogInfo($"{removedAliceCount} alices timed out and removed.");
@@ -575,13 +559,10 @@ public partial class Arena : PeriodicRunner
 
 	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
-		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate));
-		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-		var diff = aliceSum - bobSum;
-
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var diffMoney = Money.Satoshis(diff) - round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize());
+		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
+		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
@@ -590,7 +571,7 @@ public partial class Arena : PeriodicRunner
 			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
 			if (coinjoin.EffectiveFeeRate > highestFeeRate)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript));
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
 
 				if (allReady)
 				{
@@ -603,12 +584,19 @@ public partial class Arena : PeriodicRunner
 			}
 			else
 			{
-				round.LogWarning($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				if (allReady)
+				{
+					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				}
+				else
+				{
+					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				}
 			}
 		}
 		else if (!allReady)
 		{
-			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+			round.LogWarning($"Could not add blame script, because the amount was too small: {diffMoney}.");
 		}
 
 		return coinjoin;
@@ -623,11 +611,11 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 
 			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey));
+				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey)).AsPayingForSharedOverhead();
 			}
 			else
 			{
@@ -651,5 +639,24 @@ public partial class Arena : PeriodicRunner
 		}
 
 		return coordinatorScriptPubKey;
+	}
+
+	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
+	{
+		// For logging reason Prison needs the roundId.
+		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
+
+		// Cound be a coin from WW1.
+		var roundId = roundState?.Id ?? uint256.Zero;
+		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
+	}
+
+	public override void Dispose()
+	{
+		if (CoinVerifier is not null)
+		{
+			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
+		}
+		base.Dispose();
 	}
 }
