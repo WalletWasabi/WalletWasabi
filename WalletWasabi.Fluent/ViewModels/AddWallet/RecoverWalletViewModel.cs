@@ -25,6 +25,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
+	[AutoNotify] private bool _isMnemonicsValid;
 
 	public RecoverWalletViewModel(string walletName)
 	{
@@ -42,21 +43,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommandCanExecute =
-			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Select(_ => IsMnemonicsValid);
-
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnNextAsync(walletName),
-			NextCommandCanExecute);
+			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnAdvancedRecoveryOptionsDialogAsync());
 	}
 
-	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
-
-	public IObservable<bool> NextCommandCanExecute { get; }
+	// public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
