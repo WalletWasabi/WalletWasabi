@@ -96,6 +96,9 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
+		"/Satoshi:0.23.1/",
+		"/Satoshi:0.22.1/",
+		"/Satoshi:0.24.0.1/",
 		"/Satoshi:0.23.0/",
 		"/Satoshi:0.22.0/",
 		"/Satoshi:0.21.1/",
