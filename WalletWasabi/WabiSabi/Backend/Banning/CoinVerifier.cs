@@ -250,7 +250,7 @@ public class CoinVerifier
 				}
 				catch (Exception ex)
 				{
-					item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true, Reason.Exception));
+					item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true, Reason.Exception, ApiResponseItem: null, Exception: ex));
 					Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
 
 					// Do not throw an exception here - unobserverved exception prevention.
