@@ -188,7 +188,7 @@ public class CoinVerifierTests
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
 		Whitelist whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig());
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, whitelist, _wabisabiTestConfig);
+		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, whitelist, _wabisabiTestConfig, auditsDirectoryPath: string.Empty);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
 
