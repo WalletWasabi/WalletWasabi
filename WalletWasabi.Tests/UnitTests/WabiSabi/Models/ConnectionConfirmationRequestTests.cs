@@ -120,7 +120,9 @@ public class ConnectionConfirmationRequestTests
 	}
 
 	private static GroupElement NewGroupElement(int i) => Generators.FromText($"T{i}");
+
 	private static GroupElementVector NewGroupElementVector(params int[] arr) => new(arr.Select(i => NewGroupElement(i)));
+
 	private static ScalarVector NewScalarVector(params uint[] arr) => new(arr.Select(i => new Scalar(i)));
 
 	/// <remarks>Each instance represents the same request but a new object instance.</remarks>

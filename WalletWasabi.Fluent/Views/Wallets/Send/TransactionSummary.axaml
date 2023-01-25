@@ -69,7 +69,7 @@
           <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
         </Viewbox>
       </Button>
-      <c:PreviewItem Icon="{StaticResource incognito_pathicon}"
+      <c:PreviewItem Icon="{StaticResource nav_incognito_24_regular}"
                      Label="other people or companies could know about this"
                      TextValue="{Binding Labels}">
         <c:LabelsItemsPresenter Items="{Binding Labels}"

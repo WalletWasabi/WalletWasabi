@@ -7,10 +7,10 @@ using Avalonia.Controls.ApplicationLifetimes;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ExecuteCommandOnActivated : DisposingBehavior<Control>
+public class ExecuteCommandOnActivatedBehavior : DisposingBehavior<Control>
 {
 	public static readonly StyledProperty<ICommand?> CommandProperty =
-		AvaloniaProperty.Register<ExecuteCommandOnActivated, ICommand?>(nameof(Command));
+		AvaloniaProperty.Register<ExecuteCommandOnActivatedBehavior, ICommand?>(nameof(Command));
 
 	public ICommand? Command
 	{

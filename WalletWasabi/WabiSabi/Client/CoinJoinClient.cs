@@ -180,17 +180,27 @@ public class CoinJoinClient
 				ExtraRoundTimeoutMargin);
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
 
-			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
-			if (!result.GoForBlameRound)
+			var result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
+
+			switch (result)
 			{
-				return result;
+				case DisruptedCoinJoinResult info:
+					// Only use successfully registered coins in the blame round.
+					coins = info.SignedCoins;
+				
+					currentRoundState.LogInfo("Waiting for the blame round.");
+					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
+					break;
+
+				case SuccessfulCoinJoinResult success:
+					return success;
+
+				case FailedCoinJoinResult failure:
+					return failure;
+			
+				default:
+					throw new InvalidOperationException("The coinjoin result type was not handled.");
 			}
-
-			// Only use successfully registered coins in the blame round.
-			coins = result.RegisteredCoins;
-
-			currentRoundState.LogInfo("Waiting for the blame round.");
-			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
 		throw new InvalidOperationException("Blame rounds were not successful.");
@@ -253,13 +263,19 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
+			
 			roundState.LogInfo(msg);
-			return new CoinJoinResult(
-				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
-				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
-				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
-				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-				UnsignedCoinJoin: unsignedCoinJoin);
+			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+			
+			return roundState.EndRoundState switch
+			{
+				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
+					Coins: signedCoins,
+					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
+					UnsignedCoinJoin: unsignedCoinJoin!),
+				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(signedCoins),
+				_ => new FailedCoinJoinResult()
+			};
 		}
 		finally
 		{
@@ -499,14 +515,23 @@ public class CoinJoinClient
 				arenaRequestHandler));
 	}
 
-	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
+	internal static bool SanityCheck(IEnumerable<TxOut> expectedOutputs, IEnumerable<TxOut> coinJoinOutputs)
 	{
-		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
-			.GroupBy(x => x.ScriptPubKey)
-			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
+		bool AllExpectedScriptsArePresent() =>
+			coinJoinOutputs
+				.Select(x => x.ScriptPubKey)
+				.IsSuperSetOf(expectedOutputs.Select(x => x.ScriptPubKey));
 
-		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
+		bool AllOutputsHaveAtLeastTheExpectedValue() =>
+			coinJoinOutputs
+				.Join(
+					expectedOutputs,
+					x => x.ScriptPubKey,
+					x => x.ScriptPubKey,
+					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
+				.All(x => x >= 0);
+		
+		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
 	private async Task SignTransactionAsync(
@@ -894,6 +919,28 @@ public class CoinJoinClient
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
+		if (winner.Count < MaxInputsRegistrableByWallet)
+		{
+			// If the address of a winner contains other coins (address reuse, same HdPubKey) that are available but not selected,
+			// complete the selection with them until MaxInputsRegistrableByWallet threshold.
+			// Order by most to least reused to try not splitting coins from same address into several rounds.
+			var nonSelectedCoinsOnSameAddresses = filteredCoins
+				.Except(winner)
+				.Where(x => winner.Any(y => y.ScriptPubKey == x.ScriptPubKey))
+				.GroupBy(x => x.ScriptPubKey)
+				.OrderByDescending(g => g.Count())
+				.SelectMany(g => g)
+				.Take(MaxInputsRegistrableByWallet - winner.Count)
+				.ToList();
+
+			winner.AddRange(nonSelectedCoinsOnSameAddresses);
+
+			if (nonSelectedCoinsOnSameAddresses.Count > 0)
+			{
+				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on the same addresses of some selected coins.");
+			}
+		}
+
 		return winner.ToShuffled().ToImmutableList();
 	}
 
@@ -1042,7 +1089,8 @@ public class CoinJoinClient
 
 		// Get the output's size and its of the input that will spend it in the future.
 		// Here we assume all the outputs share the same scriptpubkey type.
-		var preferTaprootOutputs = false;
+		var isTaprootAllowed = roundParameters.AllowedOutputTypes.Contains(ScriptType.Taproot);
+		var preferTaprootOutputs = isTaprootAllowed && Random.Shared.NextDouble() < .5;
 		var (inputVirtualSize, outputVirtualSize) = DestinationProvider.Peek(preferTaprootOutputs).IsScriptType(ScriptType.Taproot)
 			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
 			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
@@ -1114,7 +1162,7 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
-		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction);
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 		if (!mustSignAllInputs)
 		{
 			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
