@@ -943,9 +943,9 @@ public static class DirectShow
 					.Where(x => x.FieldType == typeof(Guid))
 					.ToDictionary(x => (Guid)x.GetValue(null)!, x => x.Name);
 
-			if (NicknameCache.ContainsKey(guid))
+			if (NicknameCache.TryGetValue(guid, out string? value))
 			{
-				var name = NicknameCache[guid];
+				var name = value;
 				var elem = name.Split('_');
 
 				if (elem.Length >= 2)
