@@ -587,8 +587,6 @@ public class TransactionFactoryTests
 
 		using Key key = new();
 
-		#region test coins init
-
 		var coins = new[]
 		{
 			("", 0, 0.00118098m, true, 1),
@@ -674,8 +672,6 @@ public class TransactionFactoryTests
 			("", 80, 0.00005892m, true, 1),
 			("", 81, 0.00006292m, true, 1)
 		};
-
-		#endregion
 
 		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(coins);
 
