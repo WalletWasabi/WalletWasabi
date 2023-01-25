@@ -106,14 +106,9 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel(MinGapLimit),
 			NavigationTarget.CompactDialogScreen);
 
-		if (result.Kind == DialogResultKind.Normal)
+		if (result.Kind == DialogResultKind.Normal && result.Result is { } minGapLimit)
 		{
-			var minGapLimitIn = result.Result;
-
-			if (minGapLimitIn is { })
-			{
-				MinGapLimit = (int)minGapLimitIn;
-			}
+			MinGapLimit = minGapLimit;
 		}
 	}
 
