@@ -19,9 +19,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [NavigationMetaData(Title = "Verify Recovery Words")]
 public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 {
+	private readonly Wallet _wallet;
+
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
-	private readonly Wallet _wallet;
+	[AutoNotify] private bool _isMnemonicsValid;
 
 	public VerifyRecoveryWordsViewModel(Wallet wallet)
 	{
@@ -30,23 +32,17 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 		_wallet = wallet;
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
-			.Select(x =>
-				x.Count is 12 or 15 or 18 or 21 or 24
-					? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant())
-					: default)
+			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 			.Subscribe(x =>
 			{
 				CurrentMnemonics = x;
+				IsMnemonicsValid = x is { IsValidChecksum: true };
 				this.RaisePropertyChanged(nameof(Mnemonics));
 			});
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
 		EnableBack = true;
-
-		NextCommandCanExecute =
-			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Select(_ => IsMnemonicsValid);
 
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnNextAsync());
@@ -107,10 +103,6 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 		IsBusy = false;
 	}
-
-	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
-
-	public IObservable<bool> NextCommandCanExecute { get; }
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
