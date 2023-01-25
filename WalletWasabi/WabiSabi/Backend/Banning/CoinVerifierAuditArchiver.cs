@@ -24,7 +24,7 @@ public class CoinVerifierAuditArchiver
 
 	public async Task SaveAuditsAsync(IEnumerable<CoinVerifyResult> results, CancellationToken cancellationToken)
 	{
-		StringBuilder fileContent = new();
+		List<string> fileContent = new();
 
 		foreach (CoinVerifyResult result in results)
 		{
@@ -40,11 +40,11 @@ public class CoinVerifierAuditArchiver
 				details = $"{reportId ?? "ReportID None"}:{reportType ?? "ReportType None"}:{(!ids.Any() ? "FlagIds None" : string.Join(',', ids))}:{(!categories.Any() ? "Risk categories None" : string.Join(',', categories))}";
 			}
 
-			fileContent.AppendLine($"{DateTimeOffset.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss},{result.Coin.Outpoint},{result.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)},{result.ShouldBan},{result.ShouldRemove},{result.Coin.Amount},{result.Reason},{details}");
+			fileContent.Add($"{DateTimeOffset.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss},{result.Coin.Outpoint},{result.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)},{result.ShouldBan},{result.ShouldRemove},{result.Coin.Amount},{result.Reason},{details}");
 		}
 
 		// Sanity check: if there is nothing to write, don't append the file with an empty line.
-		if (fileContent.Length <= 0)
+		if (fileContent.Count <= 0)
 		{
 			return;
 		}
@@ -55,7 +55,7 @@ public class CoinVerifierAuditArchiver
 
 		using (await FileAsyncLock.LockAsync(cancellationToken))
 		{
-			await File.AppendAllLinesAsync(filePath, new[] { fileContent.ToString() }, cancellationToken).ConfigureAwait(false);
+			await File.AppendAllLinesAsync(filePath, fileContent, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
