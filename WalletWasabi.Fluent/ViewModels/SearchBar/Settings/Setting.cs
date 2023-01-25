@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;

@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
@@ -8,7 +7,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
