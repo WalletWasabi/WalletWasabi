@@ -1,6 +1,4 @@
-using System.Globalization;
 using System.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -63,7 +61,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var fee = _transaction.Fee;
 		FeeText = fee.ToFeeDisplayUnitFormattedString();
-		Fee= _transaction.Fee.ToFeeDisplayUnitRawString();
+		Fee = _transaction.Fee.ToFeeDisplayUnitRawString();
 
 		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		if (exchangeRate != 0)
