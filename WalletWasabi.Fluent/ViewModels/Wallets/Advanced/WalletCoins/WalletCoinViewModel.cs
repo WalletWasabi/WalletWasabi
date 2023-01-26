@@ -28,7 +28,6 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin = coin;
 		Amount = Coin.Amount;
 
-
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
@@ -39,8 +38,8 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 
 		// Temporarily enable the selection no matter what.
 		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
-		ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected/*, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x)*/);
 		// this.WhenAnyValue(x => x.CoinJoinInProgress).Where(x => x).Subscribe(_ => IsSelected = false); // Remove selection when coin participates in a coinjoin.
+		ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected/*, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x)*/);
 	}
 
 	public ICommand ToggleSelectCommand { get; }
