@@ -17,7 +17,7 @@ public class SmartCoinSelector : ICoinSelector
 		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private List<SmartCoin> UnspentCoins { get; set; }
+	private List<SmartCoin> UnspentCoins { get; }
 	private int IterationCount { get; set; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
