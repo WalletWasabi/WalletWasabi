@@ -87,16 +87,13 @@ public class TransactionFactoryTests
 
 	}
 	[Theory]
-	[InlineData(50)]
+	[InlineData(1000)]
 	public void CoinSelectionPerformanceTest(int iterations)
 	{
-
-		TestOutputHelper.WriteLine("Smaller score = better");
-
 		var testCases = new List<string>()
 		{
 			"Master",
-			"RemoveRecursivelySmallestEachCluster"
+			"RemoveRecursivelySmallestEachClusterBeforeCombinations"
 		};
 		Dictionary<int, Dictionary<string, BuildTransactionResult>> testResults = new();
 
@@ -105,25 +102,39 @@ public class TransactionFactoryTests
 		var transactionId = 0;
 		for (var i = 0; i < iterations; i++)
 		{
+			if (i % 10 == 0)
+			{
+				TestOutputHelper.WriteLine(i.ToString());
+			}
 			// Test with wallets very small, small, medium, big, very big.
 			var walletSizes = new List<int>()
 			{
-				Random.Shared.Next(1, 4),
-				Random.Shared.Next(4, 15),
-				Random.Shared.Next(15, 50),
-				Random.Shared.Next(50, 150),
-				Random.Shared.Next(150, 500)
+				//Random.Shared.Next(1, 4),
+				//Random.Shared.Next(4, 15),
+				//Random.Shared.Next(15, 50),
+				//Random.Shared.Next(50, 150),
+				Random.Shared.Next(40, 500)
 			};
+
+			// Test with wallets very small, small, medium, big, very big, enormous.
+			var feeRates = new List<int>()
+			{
+				Random.Shared.Next(1, 50),
+				//Random.Shared.Next(4, 15),
+				//Random.Shared.Next(15, 50),
+				//Random.Shared.Next(50, 150),
+				//Random.Shared.Next(500, 10000),
+			};
+
+			// Global private percent of the wallet
+			int privacyPercent = new List<int>()
+			{
+				100*Random.Shared.Next(0,2),
+				Random.Shared.Next(1, 100)
+			}.BiasedRandomElement(50); // 37.5% 0, 37.5% 100, 25% random between 1 and 99.
 
 			foreach (var nbOfCoins in walletSizes)
 			{
-				// Global private percent of the wallet
-				int privacyPercent = new List<int>()
-				{
-					100*Random.Shared.Next(0,2),
-					Random.Shared.Next(1, 100)
-				}.BiasedRandomElement(50); // 37.5% 0, 37.5% 100, 25% random between 1 and 99.
-
 				var nbNonPrivateCoins = (int)Math.Round(nbOfCoins * ((100 - (double)privacyPercent) / 100));
 				List<int> clusterDistribution = RandomListIntBiased(1, 15, 3, nbNonPrivateCoins);
 
@@ -156,52 +167,41 @@ public class TransactionFactoryTests
 					if (coin.ClusterName == "")
 					{
 						// Choosing from a standard denom biased toward smaller ones
-						coin.Amount = BlockchainAnalyzer.StdDenoms.BiasedRandomElement(7) / (decimal)100000000;
+						coin.Amount = BlockchainAnalyzer.StdDenoms.BiasedRandomElement(20) / (decimal)100000000;
 						coin.AnonymitySet = Random.Shared.Next(2, 101); // Private = between 2 and 100 for simplifications
 					}
 					else
 					{
-						coin.Amount = (BlockchainAnalyzer.StdDenoms.BiasedRandomElement(5) / (decimal)100000000) + (decimal)Random.Shared.Next(5, 100) / 10000; // Non private = not standard
+						coin.Amount = (BlockchainAnalyzer.StdDenoms.BiasedRandomElement(20) / (decimal)100000000) + (decimal)Random.Shared.Next(5, 100) / 10000; // Non private = not standard
 						coin.AnonymitySet = 1;
 					}
 					coins.Add(coin);
 				}
 
 				// Payment amount is between 30 and 100% of total coins
-				Money paymentAmount = Money.Coins(coins.Sum(x => x.Amount) * (Random.Shared.Next(30, 101) / (decimal)100));
+				Money paymentAmount = Money.Coins(coins.Sum(x => x.Amount) * (Random.Shared.Next(70, 101) / (decimal)100));
 
 				TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(coins.Select(x => x.GetTuple()));
 
 				PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
 
-				// Test with wallets very small, small, medium, big, very big, enormous.
-				var feeRates = new List<int>()
-				{
-					Random.Shared.Next(1, 4),
-					Random.Shared.Next(4, 15),
-					Random.Shared.Next(15, 50),
-					Random.Shared.Next(50, 150),
-					Random.Shared.Next(150, 500),
-					Random.Shared.Next(500, 10000),
-				};
-
 				foreach (var feeRate in feeRates)
 				{
-					try
+					testResults[transactionId] = new Dictionary<string, BuildTransactionResult>();
+					foreach (var testCase in testCases)
 					{
-						testResults[transactionId] = new Dictionary<string, BuildTransactionResult>();
-						foreach (var testCase in testCases)
+						try
 						{
 							testResults[transactionId][testCase] = transactionFactory.BuildTransaction(payment, new FeeRate((decimal)feeRate), null, null, testCase);
 						}
+						catch(Exception ex)
+						{
+							// Most common catch will be fee too high, not enough funds
+							continue;
+						}
+					}
 
-						transactionId++;
-					}
-					catch(Exception ex)
-					{
-						// Most common catch will be fee too high, not enough funds
-						continue;
-					}
+					transactionId++;
 				}
 			}
 		}
@@ -210,9 +210,7 @@ public class TransactionFactoryTests
 		{
 			{ "MostPrivate",  new List<(string, int)>() },
 			{ "SmallestAmount", new List<(string, int)>() },
-			{ "LessInputs", new List<(string, int)>() },
-			{ "LessFees", new List<(string, int)>() },
-			{ "GlobalRank", new List<(string, int)>() }
+			{ "LessInputs", new List<(string, int)>() }
 		};
 
 		foreach (var testTxResults in testResults)
@@ -255,60 +253,40 @@ public class TransactionFactoryTests
 			int lastInputCount = 0;
 			id = 0;
 			currentRank = 0;
-			foreach (var testCase in testTxResults.Value.OrderBy(testCase => testCase.Value.Transaction.WalletInputs.Count()))
+			foreach (var testCase in testTxResults.Value.OrderBy(testCase => testCase.Value.Transaction.WalletInputs.Count))
 			{
 				int rank = 0;
 				id++;
-				var currentInputCount = testCase.Value.Transaction.WalletInputs.Count();
+				var currentInputCount = testCase.Value.Transaction.WalletInputs.Count;
 				rank = lastInputCount == currentInputCount ? currentRank : id;
 				lastInputCount = currentInputCount;
 				currentRank = rank;
 				results["LessInputs"].Add((testCase.Key, rank));
 			}
-
-			// LessFees
-			Money lastFees = Money.Satoshis(0);
-			id = 0;
-			currentRank = 0;
-			foreach (var testCase in testTxResults.Value.OrderBy(testCase => testCase.Value.Fee))
-			{
-				int rank = 0;
-				id++;
-				var currentFees = testCase.Value.Fee;
-				rank = currentFees == lastFees ? currentRank : id;
-				lastFees = currentFees;
-				currentRank = rank;
-				results["LessFees"].Add((testCase.Key, rank));
-			}
-
-			// GlobalRank
-			int lastScore = int.MaxValue;
-			id = 0;
-			currentRank = 0;
-			foreach (var testCase in testCases.OrderByDescending(testCase => results.Except(new[] { results.Last() }).Sum(metric => metric.Value.Last(testResult => testResult.Item1 == testCase).Item2)))
-			{
-				int rank = 0;
-				id++;
-				var currentScore = results.Except(new[] { results.Last() }).Sum(metric => metric.Value.Last(testResult => testResult.Item1 == testCase).Item2);
-				rank = currentScore == lastScore ? currentRank : id;
-				lastScore = currentScore;
-				currentRank = rank;
-				results["GlobalRank"].Add((testCase, rank));
-			}
 		}
 
-		foreach (var result in results)
+
+		TestOutputHelper.WriteLine($"Total results: {results.Values.Sum(x => x.Count)}");
+		foreach (var testCase in testCases)
 		{
-			var resultStr = result.Key;
-			foreach (var testCase in testCases)
+			TestOutputHelper.WriteLine(testCase + ":");
+			var nbResults = 0;
+			foreach (var result in results)
 			{
-				var scoreTestCase = result.Value.Where(x => x.Item1 == testCase)?.Sum(x => x.Item2);
-				if (scoreTestCase != null)
+				var resultStr = result.Key + ": ";
+				var resultsForTestCase = result.Value.Where(x => x.Item1 == testCase);
+				nbResults = resultsForTestCase.Count();
+				var scoreGroupsForTestCase = resultsForTestCase.GroupBy(x => x.Item2).OrderByDescending(x => x.Count());
+				foreach (var scoreGroup in scoreGroupsForTestCase)
 				{
-					resultStr += " " + testCase + ": " + scoreTestCase;
+					resultStr += $" Rank {scoreGroup.Key}: {Math.Round(100*(scoreGroup.Count() / (double)nbResults), 3)} %  ";
 				}
+
+				TestOutputHelper.WriteLine(resultStr);
 			}
-			TestOutputHelper.WriteLine(resultStr);
+
+			TestOutputHelper.WriteLine($"Failures: {Math.Round(100*(1-(nbResults / (double)transactionId)), 3)} %");
+			TestOutputHelper.WriteLine("");
 		}
 	}
 
