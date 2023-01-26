@@ -28,9 +28,9 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 	private List<AuditLine> LogLines { get; } = new();
 
-	public void LogException(Exception exception)
+	public void LogException(uint256 roundId, Exception exception)
 	{
-		string csvCompatibleExceptionMessage = exception.Message.Replace(',', '-');
+		string csvCompatibleExceptionMessage = string.Join(',', exception.Message.Replace(',', '-'), $"Round ID: {roundId}");
 
 		lock (LogLinesLock)
 		{
@@ -38,12 +38,12 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 		}
 	}
 
-	public void LogRoundEvent(uint256 id, string message)
+	public void LogRoundEvent(uint256 roundId, string message)
 	{
 		var logAsArray = new string[]
 		{
-			$"{id}",
-			$"{message.Replace(',', '-')}"
+			$"{message.Replace(',', '-')}",
+			$"Round ID: {roundId}"
 		};
 
 		var csvCompatibleMessage = string.Join(',', logAsArray);
