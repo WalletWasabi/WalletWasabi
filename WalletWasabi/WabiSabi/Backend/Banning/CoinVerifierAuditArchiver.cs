@@ -3,11 +3,8 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
@@ -30,27 +27,24 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 	public void LogException(uint256 roundId, Exception exception)
 	{
-		string csvCompatibleExceptionMessage = string.Join(',', exception.Message.Replace(',', '-'), $"Round ID: {roundId}");
-
-		lock (LogLinesLock)
+		var logArray = new string[]
 		{
-			LogLines.Add(new AuditLine(DateTimeOffset.UtcNow, AuditEventType.Exception, csvCompatibleExceptionMessage));
-		}
+			$"{roundId}",
+			$"{exception.Message}"
+		};
+
+		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.Round, logArray);
 	}
 
 	public void LogRoundEvent(uint256 roundId, string message)
 	{
 		var logAsArray = new string[]
 		{
-			$"{message.Replace(',', '-')}",
+			$"{message}",
 			$"Round ID: {roundId}"
 		};
 
-		var csvCompatibleMessage = string.Join(',', logAsArray);
-		lock (LogLinesLock)
-		{
-			LogLines.Add(new AuditLine(DateTimeOffset.UtcNow, AuditEventType.Round, csvCompatibleMessage));
-		}
+		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.Round, logAsArray);
 	}
 
 	public void LogVerificationResult(CoinVerifyResult coinVerifyResult, Reason reason, ApiResponseItem? apiResponseItem = null, Exception? exception = null)
@@ -72,7 +66,8 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 					categories.Any() ? string.Join(' ', categories) : "Risk categories None"
 			};
 
-			details = ReplaceAndJoin(':', detailsArray, '-');
+			var formattedLines = detailsArray.Select(line => line.Replace(':', '-'));
+			details = string.Join(",", formattedLines);
 		}
 		else if (exception is not null)
 		{
@@ -90,12 +85,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 				$"{details}"
 		};
 
-		var csvCompatibleLogMessage = ReplaceAndJoin(',', auditAsArray, '-');
-
-		lock (LogLinesLock)
-		{
-			LogLines.Add(new AuditLine(DateTimeOffset.UtcNow, AuditEventType.VerificationResult, csvCompatibleLogMessage));
-		}
+		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.VerificationResult, auditAsArray);
 	}
 
 	public async Task SaveAuditsAsync()
@@ -138,10 +128,15 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 		}
 	}
 
-	private string ReplaceAndJoin(char separator, IEnumerable<string> textArray, char replacment)
+	private void AddLogLineAndFormatCsv(DateTimeOffset dateTime, AuditEventType auditEventType, IEnumerable<string> unformattedTexts, bool skipFormat = false)
 	{
-		var cleanTextArray = textArray.Select(x => x.Replace(separator, replacment));
-		return string.Join(separator, cleanTextArray);
+		var csvCompatibleTexts = unformattedTexts.Select(text => text.Replace(',', ' '));
+		var csvCompatibleLogMessage = string.Join(',', csvCompatibleTexts);
+
+		lock (LogLinesLock)
+		{
+			LogLines.Add(new AuditLine(dateTime, auditEventType, csvCompatibleLogMessage));
+		}
 	}
 
 	public async ValueTask DisposeAsync()
