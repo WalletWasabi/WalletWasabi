@@ -66,8 +66,8 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 					categories.Any() ? string.Join(' ', categories) : "Risk categories None"
 			};
 
-			var formattedLines = detailsArray.Select(line => line.Replace(':', '-'));
-			details = string.Join(",", formattedLines);
+			// Separate the different values of the ApiResponseItem with ';', so the details will be one value in the CSV file.
+			details = string.Join(";", detailsArray);
 		}
 		else if (exception is not null)
 		{
@@ -90,37 +90,37 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 	public async Task SaveAuditsAsync()
 	{
-		AuditLine[] logLines;
+		AuditLine[] auditLines;
 
 		lock (LogLinesLock)
 		{
-			logLines = LogLines.ToArray();
+			auditLines = LogLines.ToArray();
 			LogLines.Clear();
 		}
 
-		if (logLines.Length <= 0)
+		if (auditLines.Length <= 0)
 		{
 			return;
 		}
 
-		var firstDate = logLines.Select(x => x.DateTimeOffset).First();
-		string fileName = $"VerifierAudits.{firstDate:yyyy.MM}.txt";
-		string filePath = Path.Combine(BaseDirectoryPath, fileName);
-
 		List<string> lines = new();
 
-		foreach (AuditLine line in logLines)
+		foreach (AuditLine line in auditLines)
 		{
-			var logAsArray = new string[]
+			var auditParts = new string[]
 			{
 				$"{line.DateTimeOffset:yyyy-MM-dd HH:mm:ss}",
 				$"{line.AuditEventType}",
 				$"{line.LogMessage}"
 			};
 
-			var text = string.Join(',', logAsArray);
+			var text = string.Join(',', auditParts);
 			lines.Add(text);
 		}
+
+		var firstDate = auditLines.Select(x => x.DateTimeOffset).First();
+		string fileName = $"VerifierAudits.{firstDate:yyyy.MM}.txt";
+		string filePath = Path.Combine(BaseDirectoryPath, fileName);
 
 		using (await FileAsyncLock.LockAsync(CancellationToken.None))
 		{
@@ -131,11 +131,11 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 	private void AddLogLineAndFormatCsv(DateTimeOffset dateTime, AuditEventType auditEventType, IEnumerable<string> unformattedTexts)
 	{
 		var csvCompatibleTexts = unformattedTexts.Select(text => text.Replace(',', ' '));
-		var csvCompatibleLogMessage = string.Join(',', csvCompatibleTexts);
+		var csvCompatibleAuditInstance = string.Join(',', csvCompatibleTexts);
 
 		lock (LogLinesLock)
 		{
-			LogLines.Add(new AuditLine(dateTime, auditEventType, csvCompatibleLogMessage));
+			LogLines.Add(new AuditLine(dateTime, auditEventType, csvCompatibleAuditInstance));
 		}
 	}
 
