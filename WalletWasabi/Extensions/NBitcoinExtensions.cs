@@ -50,7 +50,7 @@ public static class NBitcoinExtensions
 			if (message.Message.Payload is NotFoundPayload ||
 				(message.Message.Payload is PongPayload p && p.Nonce == pingNonce))
 			{
-				throw new InvalidOperationException($"Disconnected local node, because it does not have the block data.");
+				throw new InvalidOperationException($"Disconnected node, because it does not have the block data.");
 			}
 			else if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
 			{
