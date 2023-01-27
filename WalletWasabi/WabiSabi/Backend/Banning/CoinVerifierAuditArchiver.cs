@@ -128,7 +128,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 		}
 	}
 
-	private void AddLogLineAndFormatCsv(DateTimeOffset dateTime, AuditEventType auditEventType, IEnumerable<string> unformattedTexts, bool skipFormat = false)
+	private void AddLogLineAndFormatCsv(DateTimeOffset dateTime, AuditEventType auditEventType, IEnumerable<string> unformattedTexts)
 	{
 		var csvCompatibleTexts = unformattedTexts.Select(text => text.Replace(',', ' '));
 		var csvCompatibleLogMessage = string.Join(',', csvCompatibleTexts);
