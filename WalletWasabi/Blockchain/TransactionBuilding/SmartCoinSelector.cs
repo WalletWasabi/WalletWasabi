@@ -14,10 +14,10 @@ public class SmartCoinSelector : ICoinSelector
 {
 	public SmartCoinSelector(List<SmartCoin> unspentCoins)
 	{
-		UnspentCoins = unspentCoins.Distinct().ToList();
+		SpendableCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private List<SmartCoin> UnspentCoins { get; }
+	private List<SmartCoin> SpendableCoins { get; }
 	private int IterationCount { get; set; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
@@ -25,12 +25,11 @@ public class SmartCoinSelector : ICoinSelector
 	/// <remarks>Do not call this method repeatedly on a single <see cref="SmartCoinSelector"/> instance.</remarks>
 	public IEnumerable<ICoin> Select(IEnumerable<ICoin> suggestion, IMoney target)
 	{
-		var coins = UnspentCoins;
 		var testCase = TransactionFactory.CurrentTestCase;
 		
 		var targetMoney = (Money)target;
 
-		long available = coins.Sum(x => x.Amount);
+		long available = SpendableCoins.Sum(x => x.Amount);
 		if (available < targetMoney)
 		{
 			throw new InsufficientBalanceException(targetMoney, available);
@@ -52,7 +51,7 @@ public class SmartCoinSelector : ICoinSelector
 		}
 
 		// Get unique clusters.
-		IEnumerable<Cluster> uniqueClusters = coins
+		IEnumerable<Cluster> uniqueClusters = SpendableCoins
 			.Select(coin => coin.HdPubKey.Cluster)
 			.Distinct();
 		
@@ -62,7 +61,7 @@ public class SmartCoinSelector : ICoinSelector
 			// ToDo: Must check the value.
 			for (int i = 0; i < IterationCount; i++)
 			{
-				var groupClusters = coins.GroupBy(x => x.HdPubKey.Cluster);
+				var groupClusters = SpendableCoins.GroupBy(x => x.HdPubKey.Cluster);
 				var maxCoinsForACluster = groupClusters.Max(x => x.Count());
 				if (maxCoinsForACluster <= 1)
 				{
@@ -75,7 +74,7 @@ public class SmartCoinSelector : ICoinSelector
 
 					if (minItem is not null)
 					{
-						coins.Remove(minItem);
+						SpendableCoins.Remove(minItem);
 					}	
 				}
 			}
@@ -85,13 +84,13 @@ public class SmartCoinSelector : ICoinSelector
 		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 			? uniqueClusters
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => coins
+				.Select(clusterCombination => SpendableCoins
 					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
 					.ToList())
 				.ToList()
 			: new List<List<SmartCoin>>(); // ToDo: Maybe we can achieve the same by pre-filtering uniqueClusters and select 10 best or play with upToLength l60 to prefer smaller combinations
 
-		coinClusters.Add(coins);
+		coinClusters.Add(SpendableCoins);
 
 		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 		var sayajinCoinClusters = coinClusters
