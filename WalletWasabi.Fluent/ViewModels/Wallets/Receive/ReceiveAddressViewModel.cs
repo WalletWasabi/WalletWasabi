@@ -84,27 +84,25 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			return;
 		}
 
-		await Task.Run(async () =>
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+		try
 		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-			try
-			{
-				var client = new HwiClient(network);
+			var client = new HwiClient(network);
 
-				await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
-			}
-			catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
-			{
-				// This exception happens everytime on TestNet because of Wasabi Keypath handling.
-				// The user doesn't need to know about it.
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				var exMessage = cts.IsCancellationRequested ? "User response didn't arrive in time." : ex.ToUserFriendlyString();
-				await ShowErrorAsync(Title, exMessage, "Unable to send the address to the device");
-			}
-		});
+			await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
+			throw new Exception();
+		}
+		catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
+		{
+			// This exception happens everytime on TestNet because of Wasabi Keypath handling.
+			// The user doesn't need to know about it.
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			var exMessage = cts.IsCancellationRequested ? "User response didn't arrive in time." : ex.ToUserFriendlyString();
+			await ShowErrorAsync(Title, exMessage, "Unable to send the address to the device");
+		};
 	}
 
 	private async Task OnSaveQrCodeAsync()
