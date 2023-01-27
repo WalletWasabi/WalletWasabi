@@ -132,12 +132,9 @@ public class CoinVerifier
 
 	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response)
 	{
-		bool shouldBan = false;
-		bool shouldRemove = false;
-
 		if (WabiSabiConfig.RiskFlags is null)
 		{
-			return (shouldBan, shouldRemove);
+			return (false, false);
 		}
 
 		var flagIds = response.Cscore_section.Cscore_info.Select(cscores => cscores.Id);
@@ -148,8 +145,8 @@ public class CoinVerifier
 			unknownIds.ForEach(id => Logger.LogWarning($"Flag {id} is unknown for the backend!"));
 		}
 
-		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
-		shouldRemove = !response.Report_info_section.Address_used;
+		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
+		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used;
 		return (shouldBan, shouldRemove);
 	}
 
