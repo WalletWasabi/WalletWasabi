@@ -23,7 +23,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 	private object LogLinesLock { get; } = new();
 
-	private List<AuditLine> LogLines { get; } = new();
+	private List<Audit> LogLines { get; } = new();
 
 	public void LogException(uint256 roundId, Exception exception)
 	{
@@ -90,7 +90,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 	public async Task SaveAuditsAsync()
 	{
-		AuditLine[] auditLines;
+		Audit[] auditLines;
 
 		lock (LogLinesLock)
 		{
@@ -105,7 +105,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 		List<string> lines = new();
 
-		foreach (AuditLine line in auditLines)
+		foreach (Audit line in auditLines)
 		{
 			var auditParts = new string[]
 			{
@@ -114,8 +114,8 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 				$"{line.LogMessage}"
 			};
 
-			var text = string.Join(',', auditParts);
-			lines.Add(text);
+			var audit = string.Join(',', auditParts);
+			lines.Add(audit);
 		}
 
 		var firstDate = auditLines.Select(x => x.DateTimeOffset).First();
@@ -135,7 +135,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 		lock (LogLinesLock)
 		{
-			LogLines.Add(new AuditLine(dateTime, auditEventType, csvCompatibleAuditInstance));
+			LogLines.Add(new Audit(dateTime, auditEventType, csvCompatibleAuditInstance));
 		}
 	}
 
@@ -144,5 +144,5 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 		await SaveAuditsAsync().ConfigureAwait(false);
 	}
 
-	public record AuditLine(DateTimeOffset DateTimeOffset, AuditEventType AuditEventType, string LogMessage);
+	public record Audit(DateTimeOffset DateTimeOffset, AuditEventType AuditEventType, string LogMessage);
 }
