@@ -23,6 +23,7 @@ using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers;
@@ -45,6 +46,7 @@ public class ChaumianCoinJoinController : ControllerBase
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
 	private Coordinator Coordinator => Global.Coordinator;
+	private CoinVerifier? CoinVerifier => Global.CoinVerifier;
 
 	private static AsyncLock InputsLock { get; } = new AsyncLock();
 	private static AsyncLock OutputLock { get; } = new AsyncLock();
@@ -203,6 +205,7 @@ public class ChaumianCoinJoinController : ControllerBase
 				uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 				var inputs = new HashSet<Coin>();
+				var coinAndTxOutResponses = new Dictionary<Coin, GetTxOutResponse>();
 
 				var allInputsConfirmed = true;
 				foreach (var responses in getTxOutResponses)
@@ -243,7 +246,9 @@ public class ChaumianCoinJoinController : ControllerBase
 						return BadRequest("Provided proof is invalid.");
 					}
 
-					inputs.Add(new Coin(inputProof.Input, txOut));
+					var coin = new Coin(inputProof.Input, txOut);
+					inputs.Add(coin);
+					coinAndTxOutResponses.Add(coin, getTxOutResponse);
 				}
 
 				if (!allInputsConfirmed)
@@ -301,6 +306,12 @@ public class ChaumianCoinJoinController : ControllerBase
 				{
 					round.RemoveAlicesBy(aliceToRemove);
 				}
+
+				foreach (var coin in alice.Inputs)
+				{
+					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, out _, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations);
+				}
+
 				round.AddAlice(alice);
 
 				// All checks are good. Sign.

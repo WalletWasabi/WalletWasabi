@@ -843,9 +843,9 @@ public partial class LineChart : Control
 
 	private void UpdateSubscription(INotifyCollectionChanged? oldValue, INotifyCollectionChanged? newValue)
 	{
-		if (oldValue is { } && _collectionChangedSubscriptions.ContainsKey(oldValue))
+		if (oldValue is { } && _collectionChangedSubscriptions.TryGetValue(oldValue, out IDisposable? value))
 		{
-			_collectionChangedSubscriptions[oldValue].Dispose();
+			value.Dispose();
 			_collectionChangedSubscriptions.Remove(oldValue);
 		}
 
