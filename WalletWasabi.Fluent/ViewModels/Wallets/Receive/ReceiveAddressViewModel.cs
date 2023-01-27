@@ -88,9 +88,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		try
 		{
 			var client = new HwiClient(network);
-
 			await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
-			throw new Exception();
 		}
 		catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
 		{
