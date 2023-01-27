@@ -40,8 +40,8 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 	{
 		var logAsArray = new string[]
 		{
-			$"{message}",
-			$"Round ID: {roundId}"
+			$"Round ID: {roundId}",
+			$"{message}"
 		};
 
 		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.Round, logAsArray);
