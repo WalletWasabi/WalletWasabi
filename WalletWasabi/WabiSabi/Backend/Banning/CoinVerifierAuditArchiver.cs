@@ -33,7 +33,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 			$"{exception.Message}"
 		};
 
-		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.Round, logArray);
+		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.Exception, logArray);
 	}
 
 	public void LogRoundEvent(uint256 roundId, string message)
