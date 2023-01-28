@@ -96,10 +96,10 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
-		"/Satoshi:23.1.0/",
 		"/Satoshi:24.0.1/",
-		"/Satoshi:22.1.0/",
+		"/Satoshi:23.1.0/",
 		"/Satoshi:23.0.0/",
+		"/Satoshi:22.1.0/",
 		"/Satoshi:22.0.0/",
 		"/Satoshi:0.21.1/",
 		"/Satoshi:0.21.0/",
