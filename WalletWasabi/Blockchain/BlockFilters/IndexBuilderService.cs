@@ -75,18 +75,18 @@ public class IndexBuilderService
 
 	public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-	public IRPCClient RpcClient { get; }
-	public BlockNotifier BlockNotifier { get; }
+	private IRPCClient RpcClient { get; }
+	private BlockNotifier BlockNotifier { get; }
 	public string IndexFilePath { get; }
 	private List<FilterModel> Index { get; }
 	private AsyncLock IndexLock { get; }
-	public uint StartingHeight { get; }
+	private uint StartingHeight { get; }
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
-	public IndexType IndexType { get; }
+	private IndexType IndexType { get; }
 
-	public RpcPubkeyType[] PubKeyTypes { get; }
+	private RpcPubkeyType[] PubKeyTypes { get; }
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -163,7 +163,7 @@ public class IndexBuilderService
 								// Check that core is fully synced
 								if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
 								{
-									// Mark the process notstarted, so it can be started again
+									// Mark the process as not-started, so it can be started again
 									// and finally block can mark it as stopped.
 									Interlocked.Exchange(ref _serviceStatus, NotStarted);
 									return;
