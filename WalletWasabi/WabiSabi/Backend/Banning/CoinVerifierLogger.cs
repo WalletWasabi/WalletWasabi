@@ -116,7 +116,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 				$"{line.LogMessage}"
 			};
 
-			var audit = string.Join(',', auditParts);
+			var audit = string.Join(CsvSeparator, auditParts);
 			lines.Add(audit);
 		}
 
@@ -131,8 +131,8 @@ public class CoinVerifierLogger : IAsyncDisposable
 
 	private void AddLogLineAndFormatCsv(DateTimeOffset dateTime, AuditEventType auditEventType, IEnumerable<string> unformattedTexts)
 	{
-		var csvCompatibleTexts = unformattedTexts.Select(text => text.Replace(',', ' '));
-		var csvLine = string.Join(',', csvCompatibleTexts);
+		var csvCompatibleTexts = unformattedTexts.Select(text => text.Replace(CsvSeparator, ' '));
+		var csvLine = string.Join(CsvSeparator, csvCompatibleTexts);
 
 		lock (LogLinesLock)
 		{
