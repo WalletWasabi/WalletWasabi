@@ -67,29 +67,28 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using (BenchmarkLogger.Measure())
+		using IDisposable _ = BenchmarkLogger.Measure();
+
+		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
-			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-			using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+			if (Network == Network.RegTest)
 			{
-				if (Network == Network.RegTest)
-				{
-					MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-					ImmatureIndexFileManager.DeleteMe();
-				}
-
-				cancel.ThrowIfCancellationRequested();
-
-				if (!MatureIndexFileManager.Exists())
-				{
-					await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
-				}
-
-				cancel.ThrowIfCancellationRequested();
-
-				await InitializeFiltersAsync(cancel).ConfigureAwait(false);
+				MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+				ImmatureIndexFileManager.DeleteMe();
 			}
+
+			cancel.ThrowIfCancellationRequested();
+
+			if (!MatureIndexFileManager.Exists())
+			{
+				await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
+			}
+
+			cancel.ThrowIfCancellationRequested();
+
+			await InitializeFiltersAsync(cancel).ConfigureAwait(false);
 		}
 	}
 

@@ -2,11 +2,13 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -232,15 +234,32 @@ public partial class MainViewModel : ViewModelBase
 			return null;
 		});
 
-		WalletInfoViewModel.RegisterLazy(() =>
+		WalletInfoViewModel.RegisterAsyncLazy(() =>
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				// TODO: Display password dialog if needed, see WalletInfoCommand execute action.
-				return new WalletInfoViewModel(walletViewModel);
+				async Task<RoutableViewModel?> AuthorizeWalletInfo()
+				{
+					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
+					{
+						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
+						var dialogResult = await RoutableViewModel.NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+
+						if (!dialogResult.Result)
+						{
+							return null;
+						}
+					}
+
+					return new WalletInfoViewModel(walletViewModel);
+				}
+
+				return AuthorizeWalletInfo();
 			}
 
-			return null;
+			Task<RoutableViewModel?> NoWalletInfo() => Task.FromResult<RoutableViewModel?>(null);
+
+			return NoWalletInfo();
 		});
 
 		SendViewModel.RegisterLazy(() =>

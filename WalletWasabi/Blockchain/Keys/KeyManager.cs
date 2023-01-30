@@ -120,15 +120,15 @@ public class KeyManager
 
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		new((network.Name, scriptPubKeyType) switch
-			{
-				("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
-				("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
-				("Main", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
-				("TestNet", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
-				("RegTest", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
-				("Main", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
-				_ => throw new ArgumentException($"Unknown account for network '{network}' and script type '{scriptPubKeyType}'.")
-			});
+		{
+			("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
+			("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
+			("Main", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
+			("TestNet", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
+			("RegTest", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
+			("Main", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
+			_ => throw new ArgumentException($"Unknown account for network '{network}' and script type '{scriptPubKeyType}'.")
+		});
 
 	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 	{
@@ -202,6 +202,9 @@ public class KeyManager
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();
+
+	[JsonProperty(ItemConverterType = typeof(OutPointJsonConverter), PropertyName = "ExcludedCoinsFromCoinJoin")]
+	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -364,7 +367,7 @@ public class KeyManager
 		GetKeys(x =>
 				x.KeyState == KeyState.Locked &&
 				x.IsInternal == true);
-	
+
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
 		// BIP44-ish derivation scheme
@@ -706,6 +709,12 @@ public class KeyManager
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
 		new(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
+
+	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
+	{
+		ExcludedCoinsFromCoinJoin = excludedOutpoints.ToList();
+		ToFile();
+	}
 }
 
 public static class KeyPathExtensions
