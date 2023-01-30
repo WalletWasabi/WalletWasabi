@@ -9,9 +9,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
-public class CoinVerifierAuditArchiver : IAsyncDisposable
+public class CoinVerifierLogger : IAsyncDisposable
 {
-	public CoinVerifierAuditArchiver(string directoryPath)
+	public CoinVerifierLogger(string directoryPath)
 	{
 		IoHelpers.EnsureDirectoryExists(directoryPath);
 		DirectoryPath = directoryPath;

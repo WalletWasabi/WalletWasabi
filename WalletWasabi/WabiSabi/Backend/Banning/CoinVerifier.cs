@@ -19,11 +19,11 @@ public class CoinVerifier : IAsyncDisposable
 		CoinVerifierApiClient = apiClient;
 		Whitelist = whitelist;
 		WabiSabiConfig = wabiSabiConfig;
-		VerifierAuditArchiver = new CoinVerifierAuditArchiver(auditsDirectoryPath);
+		VerifierAuditArchiver = new CoinVerifierLogger(auditsDirectoryPath);
 	}
 
 	// Constructor used for testing
-	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig, Whitelist? whitelist = null, CoinVerifierAuditArchiver? auditArchiver = null)
+	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig, Whitelist? whitelist = null, CoinVerifierLogger? auditArchiver = null)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifierApiClient = apiClient;
@@ -40,7 +40,7 @@ public class CoinVerifier : IAsyncDisposable
 	private Whitelist Whitelist { get; }
 	private WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
-	public CoinVerifierAuditArchiver VerifierAuditArchiver { get; }
+	public CoinVerifierLogger VerifierAuditArchiver { get; }
 
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
 	private ConcurrentDictionary<Coin, CoinVerifyItem> CoinVerifyItems { get; } = new();
