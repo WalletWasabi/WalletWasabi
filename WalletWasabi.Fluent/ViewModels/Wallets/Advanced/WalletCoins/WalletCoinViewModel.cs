@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
+	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private int _anonymitySet;
 	[AutoNotify] private SmartLabel _smartLabel = "";
@@ -27,7 +28,10 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	{
 		Coin = coin;
 		Amount = Coin.Amount;
+		IsExcludedFromCoinJoin = coin.IsExcludedFromCoinJoin;
+		ToggleExcludeCommand = ReactiveCommand.Create(() => coin.IsExcludedFromCoinJoin = !coin.IsExcludedFromCoinJoin, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x));
 
+		Coin.WhenAnyValue(c => c.IsExcludedFromCoinJoin).Subscribe(x => IsExcludedFromCoinJoin = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
@@ -39,10 +43,10 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		// Temporarily enable the selection no matter what.
 		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
 		// this.WhenAnyValue(x => x.CoinJoinInProgress).Where(x => x).Subscribe(_ => IsSelected = false); // Remove selection when coin participates in a coinjoin.
-		ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected/*, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x)*/);
+		// ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected/*, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x)*/);
 	}
 
-	public ICommand ToggleSelectCommand { get; }
+	public ICommand ToggleExcludeCommand { get; }
 
 	public SmartCoin Coin { get; }
 
