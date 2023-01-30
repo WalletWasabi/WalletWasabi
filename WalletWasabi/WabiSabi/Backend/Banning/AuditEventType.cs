@@ -13,7 +13,6 @@ public enum Reason
 	Whitelisted,
 	OneHop,
 	RemoteApiChecked,
-	NotChecked,
 	Immature,
 	Exception
 }

@@ -14,16 +14,16 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 	public CoinVerifierAuditArchiver(string directoryPath)
 	{
 		IoHelpers.EnsureDirectoryExists(directoryPath);
-		BaseDirectoryPath = directoryPath;
+		DirectoryPath = directoryPath;
 	}
 
-	private string BaseDirectoryPath { get; }
+	private string DirectoryPath { get; }
 
 	private AsyncLock FileAsyncLock { get; } = new();
 
 	private object LogLinesLock { get; } = new();
 
-	private List<Audit> LogLines { get; } = new();
+	private List<AuditEvent> LogLines { get; } = new();
 
 	public void LogException(uint256 roundId, Exception exception)
 	{
@@ -76,13 +76,13 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 		var auditAsArray = new string[]
 		{
-				$"{coinVerifyResult.Coin.Outpoint}",
-				$"{coinVerifyResult.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)}",
-				$"{coinVerifyResult.ShouldBan}",
-				$"{coinVerifyResult.ShouldRemove}",
-				$"{coinVerifyResult.Coin.Amount}",
-				$"{reason}",
-				$"{details}"
+			$"{coinVerifyResult.Coin.Outpoint}",
+			$"{coinVerifyResult.Coin.ScriptPubKey.GetDestinationAddress(Network.Main)}",
+			$"{coinVerifyResult.ShouldBan}",
+			$"{coinVerifyResult.ShouldRemove}",
+			$"{coinVerifyResult.Coin.Amount}",
+			$"{reason}",
+			$"{details}"
 		};
 
 		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.VerificationResult, auditAsArray);
@@ -90,7 +90,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 
 	public async Task SaveAuditsAsync()
 	{
-		Audit[] auditLines;
+		AuditEvent[] auditLines;
 
 		lock (LogLinesLock)
 		{
@@ -98,14 +98,14 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 			LogLines.Clear();
 		}
 
-		if (auditLines.Length <= 0)
+		if (auditLines.Length == 0)
 		{
 			return;
 		}
 
 		List<string> lines = new();
 
-		foreach (Audit line in auditLines)
+		foreach (AuditEvent line in auditLines)
 		{
 			var auditParts = new string[]
 			{
@@ -119,8 +119,7 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 		}
 
 		var firstDate = auditLines.Select(x => x.DateTimeOffset).First();
-		string fileName = $"VerifierAudits.{firstDate:yyyy.MM}.txt";
-		string filePath = Path.Combine(BaseDirectoryPath, fileName);
+		string filePath = Path.Combine(DirectoryPath, $"VerifierAudits.{firstDate:yyyy.MM}.txt");
 
 		using (await FileAsyncLock.LockAsync(CancellationToken.None))
 		{
@@ -131,11 +130,11 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 	private void AddLogLineAndFormatCsv(DateTimeOffset dateTime, AuditEventType auditEventType, IEnumerable<string> unformattedTexts)
 	{
 		var csvCompatibleTexts = unformattedTexts.Select(text => text.Replace(',', ' '));
-		var csvCompatibleAuditInstance = string.Join(',', csvCompatibleTexts);
+		var csvLine = string.Join(',', csvCompatibleTexts);
 
 		lock (LogLinesLock)
 		{
-			LogLines.Add(new Audit(dateTime, auditEventType, csvCompatibleAuditInstance));
+			LogLines.Add(new AuditEvent(dateTime, auditEventType, csvLine));
 		}
 	}
 
@@ -144,5 +143,5 @@ public class CoinVerifierAuditArchiver : IAsyncDisposable
 		await SaveAuditsAsync().ConfigureAwait(false);
 	}
 
-	public record Audit(DateTimeOffset DateTimeOffset, AuditEventType AuditEventType, string LogMessage);
+	public record AuditEvent(DateTimeOffset DateTimeOffset, AuditEventType AuditEventType, string LogMessage);
 }

@@ -134,7 +134,7 @@ public partial class Arena : PeriodicRunner
 							if (coinVerifyInfo.ShouldRemove)
 							{
 								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
-								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from Round");
+								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from round");
 							}
 						}
 					}

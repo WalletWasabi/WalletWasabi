@@ -23,11 +23,11 @@ public class CoinVerifier : IAsyncDisposable
 	}
 
 	// Constructor used for testing
-	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig, CoinVerifierAuditArchiver? auditArchiver = null)
+	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig, Whitelist? whitelist = null, CoinVerifierAuditArchiver? auditArchiver = null)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifierApiClient = apiClient;
-		Whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, wabiSabiConfig);
+		Whitelist = whitelist ?? new(Enumerable.Empty<Innocent>(), string.Empty, wabiSabiConfig);
 		WabiSabiConfig = wabiSabiConfig;
 		VerifierAuditArchiver = auditArchiver ?? new("test/directory/path");
 	}

@@ -656,7 +656,7 @@ public class CoordinatorRound
 				{
 					var aliceToRemove = coinDictionary[info.Coin];
 					Alices.Remove(aliceToRemove);
-					CoinVerifier.VerifierAuditArchiver.LogRoundEvent(new uint256((ulong)RoundId), $"{info.Coin.Outpoint} got removed from Round");
+					CoinVerifier.VerifierAuditArchiver.LogRoundEvent(new uint256((ulong)RoundId), $"{info.Coin.Outpoint} got removed from round");
 				}
 			}
 		}
