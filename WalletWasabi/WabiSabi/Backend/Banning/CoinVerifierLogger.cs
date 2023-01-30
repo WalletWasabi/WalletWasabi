@@ -11,6 +11,8 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierLogger : IAsyncDisposable
 {
+	private const char CsvSeparator = ',';
+
 	public CoinVerifierLogger(string directoryPath)
 	{
 		IoHelpers.EnsureDirectoryExists(directoryPath);
