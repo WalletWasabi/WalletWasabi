@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -60,9 +61,17 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		var cache = new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
+
+		var blockProvider = new SmartBlockProvider(
+			new CachedBlockProvider(bitcoinStore.BlockRepository),
+			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
+			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
+			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -213,9 +222,18 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		var cache = new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
+
+		var blockProvider = new SmartBlockProvider(
+			new CachedBlockProvider(bitcoinStore.BlockRepository),
+			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
+			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
+			cache);
+
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 

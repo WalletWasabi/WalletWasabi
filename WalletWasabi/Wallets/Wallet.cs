@@ -128,7 +128,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public HybridFeeProvider FeeProvider { get; private set; }
 	public FilterModel LastProcessedFilter { get; private set; }
-	public IBlockProvider BlockProvider { get; private set; }
+	public SmartBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
 
 	public bool IsLoggedIn { get; private set; }
@@ -166,7 +166,7 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		SmartBlockProvider blockProvider)
 	{
 		if (State > WalletState.WaitingForInit)
 		{
@@ -366,10 +366,7 @@ public class Wallet : BackgroundService, IWallet
 			using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 			{
 				uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
-				if (BlockProvider is CachedBlockProvider blockCache)
-				{
-					await blockCache.InvalidateAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
-				}
+				await BlockProvider.InvalidateAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
 
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
@@ -519,7 +516,7 @@ public class Wallet : BackgroundService, IWallet
 		State = WalletState.WaitingForInit;
 	}
 
-	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, SmartBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);

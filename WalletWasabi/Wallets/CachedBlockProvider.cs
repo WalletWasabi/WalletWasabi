@@ -9,14 +9,12 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public class CachedBlockProvider : IBlockProvider
 {
-	public CachedBlockProvider(IBlockProvider blockSourceProvider, IRepository<uint256, Block> blockRepository)
+	public CachedBlockProvider(IRepository<uint256, Block> blockRepository)
 	{
 		BlockRepository = blockRepository;
-		BlockSourceProvider = blockSourceProvider;
 	}
 
 	public IRepository<uint256, Block> BlockRepository { get; }
-	public IBlockProvider BlockSourceProvider { get; }
 
 	/// <summary>
 	/// Gets a bitcoin block. In case the requested block is not available in the repository it is returned
@@ -26,15 +24,14 @@ public class CachedBlockProvider : IBlockProvider
 	/// <param name="hash">The block's hash that identifies the requested block.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>The requested bitcoin block.</returns>
-	public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
+	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
-		Block? block = await BlockRepository.TryGetAsync(hash, cancellationToken).ConfigureAwait(false);
-		if (block is null)
-		{
-			block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-			await BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
-		}
-		return block;
+		return await BlockRepository.TryGetAsync(hash, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task SaveBlockAsync(Block block, CancellationToken cancellationToken)
+	{
+		await BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>

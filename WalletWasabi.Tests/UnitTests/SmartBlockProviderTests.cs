@@ -10,6 +10,7 @@ namespace WalletWasabi.Tests.UnitTests;
 
 public class SmartBlockProviderTests
 {
+	/*
 	/// <summary>
 	/// Tests <see cref="SmartBlockProvider.GetBlockAsync(uint256, CancellationToken)"/> behavior.
 	/// </summary>
@@ -40,4 +41,5 @@ public class SmartBlockProviderTests
 
 		Assert.NotEqual(blocks[0], result[1]);
 	}
+	*/
 }

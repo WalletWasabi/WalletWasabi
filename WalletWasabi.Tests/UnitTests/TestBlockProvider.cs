@@ -15,8 +15,8 @@ public class TestBlockProvider : IBlockProvider
 
 	private Dictionary<uint256, Block> Blocks { get; }
 
-	public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
+	public Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel)
 	{
-		return Task.FromResult(Blocks[hash]);
+		return Task.FromResult(Blocks[hash])!;
 	}
 }

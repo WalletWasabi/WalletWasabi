@@ -9,5 +9,5 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public interface IBlockProvider
 {
-	Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel);
+	Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel);
 }
