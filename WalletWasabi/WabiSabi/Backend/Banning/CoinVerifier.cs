@@ -130,13 +130,11 @@ public class CoinVerifier
 		}
 	}
 
-	private bool CheckForFlags(ApiResponseItem response)
+	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response)
 	{
-		bool shouldBan = false;
-
 		if (WabiSabiConfig.RiskFlags is null)
 		{
-			return shouldBan;
+			return (false, false);
 		}
 
 		var flagIds = response.Cscore_section.Cscore_info.Select(cscores => cscores.Id);
@@ -147,9 +145,9 @@ public class CoinVerifier
 			unknownIds.ForEach(id => Logger.LogWarning($"Flag {id} is unknown for the backend!"));
 		}
 
-		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
-
-		return shouldBan;
+		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
+		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used;
+		return (shouldBan, shouldRemove);
 	}
 
 	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null)
@@ -228,19 +226,19 @@ public class CoinVerifier
 					item.ThrowIfCancellationRequested();
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
-					var shouldBan = CheckForFlags(apiResponseItem);
+					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem);
 
 					// We got a definitive answer.
 					if (shouldBan)
 					{
 						CoinBlacklisted?.SafeInvoke(this, coin);
 					}
-					else
+					else if (!shouldRemove)
 					{
 						Whitelist.Add(coin.Outpoint);
 					}
 
-					item.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan));
+					item.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldRemove));
 				}
 				catch (Exception ex)
 				{
