@@ -37,9 +37,9 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 	private ConcurrentDictionary<uint256, RoundData> RoundData { get; }
 	private AsyncQueue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; }
 
-	public ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
+	public ImmutableDictionary<string, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
 	{
-		return CoinjoinRequests.ToDictionary(x => x.Key, x => x.Value.ToImmutableDictionary()).ToImmutableDictionary();
+		return CoinjoinRequests.ToDictionary(x => x.Key.ToString(), x => x.Value.ToImmutableDictionary()).ToImmutableDictionary();
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
