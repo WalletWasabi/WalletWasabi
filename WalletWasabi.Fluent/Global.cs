@@ -189,7 +189,7 @@ public class Global
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				var blockProvider = new SmartBlockProvider(
-					new CachedBlockProvider(BitcoinStore.BlockRepository),
+					BitcoinStore.BlockRepository,
 					new LocalBlockProvider(BitcoinCoreNode, HttpClientFactory, Config.ServiceConfiguration, Network),
 					new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory, Config.ServiceConfiguration, Network),
 					Cache);

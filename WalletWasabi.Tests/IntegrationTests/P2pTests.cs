@@ -107,7 +107,7 @@ public class P2pTests
 		});
 
 		var blockProvider = new SmartBlockProvider(
-			new CachedBlockProvider(bitcoinStore.BlockRepository),
+			bitcoinStore.BlockRepository,
 			new LocalBlockProvider(null, httpClientFactory, serviceConfig, network),
 			new P2pBlockProvider(nodes, httpClientFactory, serviceConfig, network),
 			cache);

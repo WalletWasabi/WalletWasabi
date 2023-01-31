@@ -68,7 +68,7 @@ public class BuildTests
 		});
 
 		var blockProvider = new SmartBlockProvider(
-			new CachedBlockProvider(bitcoinStore.BlockRepository),
+			bitcoinStore.BlockRepository,
 			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
 			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
 			cache);
@@ -229,7 +229,7 @@ public class BuildTests
 		});
 
 		var blockProvider = new SmartBlockProvider(
-			new CachedBlockProvider(bitcoinStore.BlockRepository),
+			bitcoinStore.BlockRepository,
 			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
 			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
 			cache);
