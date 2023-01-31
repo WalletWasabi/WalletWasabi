@@ -35,15 +35,11 @@ public class ClosedWalletViewModel : WalletViewModelBase
 		_disposable = null;
 	}
 
-	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		if (!Wallet.IsLoggedIn)
 		{
 			Navigate().To(new LoginViewModel(this), NavigationMode.Clear);
-		}
-		else
-		{
-			await base.OnOpen(defaultNavigationMode);
 		}
 	}
 

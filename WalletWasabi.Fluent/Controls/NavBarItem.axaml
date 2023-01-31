@@ -59,18 +59,6 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator" x:DataType="Border" x:CompileBindings="True">
-    <Setter Property="(id:Interaction.Behaviors)">
-      <id:BehaviorCollectionTemplate>
-        <id:BehaviorCollection>
-          <behaviors:NavBarSelectedIndicatorChildBehavior />
-        </id:BehaviorCollection>
-      </id:BehaviorCollectionTemplate>
-    </Setter>
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.NavBarItemParent)" Value="{Binding $parent[c:NavBarItem], Mode=OneWay}" />
-  </Style>
-
   <Style Selector="c|NavBarItem:vertical /template/ Border#SelectionIndicator">
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="HorizontalAlignment" Value="Left" />

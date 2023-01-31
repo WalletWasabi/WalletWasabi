@@ -9,15 +9,12 @@
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:extensions="clr-namespace:WalletWasabi.Fluent.Extensions"
+             xmlns:navigation="clr-namespace:WalletWasabi.Fluent.ViewModels.Navigation"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
-
-  <i:Interaction.Behaviors>
-    <behaviors:NavBarSelectedIndicatorParentBehavior />
-  </i:Interaction.Behaviors>
   <UserControl.Resources>
     <ControlTheme x:Key="NavBarListBoxItemTheme" TargetType="ListBoxItem"
                   BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -75,14 +72,11 @@
         <Setter Property="Background" Value="{DynamicResource NavBarAccentColor}" />
       </Style>
     </ControlTheme>
-
-
   </UserControl.Resources>
   <UserControl.Styles>
-
     <Style Selector="Panel.navBarItemPanel LayoutTransformControl">
-      <Setter Property="LayoutTransform" Value="scaleY(0)" />
-      <Setter Property="Opacity" Value="0" />
+      <Setter Property="LayoutTransform" Value="scaleY(1)" />
+      <Setter Property="Opacity" Value="1" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
@@ -91,13 +85,12 @@
       </Setter>
     </Style>
 
-
     <Style Selector="ListBoxItem:selected Panel.navBarItemPanel LayoutTransformControl">
-      <Setter Property="LayoutTransform" Value="scaleY(1)" />
-      <Setter Property="Opacity" Value="1" />
+      <Setter Property="LayoutTransform" Value="scaleY(0)" />
+      <Setter Property="Opacity" Value="0" />
     </Style>
 
-    <Style Selector="  Panel.navBarItemPanel PathIcon" x:DataType="vm:NavBarItemViewModel">
+    <Style Selector="Panel.navBarItemPanel PathIcon" x:DataType="navigation:RoutableViewModel">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -106,7 +99,7 @@
       <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <Style Selector="ListBoxItem:selected Panel.navBarItemPanel PathIcon" x:DataType="vm:NavBarItemViewModel">
+    <Style Selector="ListBoxItem:selected Panel.navBarItemPanel PathIcon" x:DataType="navigation:RoutableViewModel">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
@@ -115,7 +108,7 @@
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector="Panel.navBarItemPanel" x:DataType="vm:NavBarItemViewModel">
+    <Style Selector="Panel.navBarItemPanel">
       <Setter Property="Width" Value="75" />
       <Setter Property="Height" Value="58" />
       <Setter Property="Cursor" Value="Hand" />
@@ -127,7 +120,6 @@
       <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
     </Style>
-
 
     <Style Selector="Panel.navBarItemPanel StackPanel">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -166,7 +158,6 @@
     <Style Selector="Panel.navBarItemPanel Ellipse.isLoggedIn.isCoinjoining">
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
-
   </UserControl.Styles>
 
   <DockPanel>
@@ -195,14 +186,18 @@
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
-    <ListBox Items="{Binding Wallets}" Background="Transparent"
-             SelectedItem="{Binding SelectedWallet}" extensions:SelectingItemsControlExtension.EnableSelectionAnimation="True"
+    <ListBox Items="{Binding Wallets}"
+             Background="Transparent"
+             SelectedItem="{Binding SelectedWallet}"
+             extensions:SelectingItemsControlExtension.EnableSelectionAnimation="True"
              ItemContainerTheme="{StaticResource NavBarListBoxItemTheme}"
              VirtualizationMode="None">
+      <Interaction.Behaviors>
+        <behaviors:NavBarWalletListBoxBehavior/>
+      </Interaction.Behaviors>
       <ListBox.ItemTemplate>
         <DataTemplate DataType="vmw:WalletViewModelBase">
-
-          <Panel  Classes="navBarItemPanel">
+          <Panel Classes="navBarItemPanel">
             <Ellipse Classes.isLoading="{Binding IsLoading}"
                      Classes.isLoggedIn="{Binding IsLoggedIn}"
                      Classes.isCoinjoining="{Binding IsCoinJoining}" />

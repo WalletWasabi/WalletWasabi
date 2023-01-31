@@ -91,11 +91,7 @@ public partial class LoginViewModel : RoutableViewModel
 	{
 		closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 		closedWalletViewModel.StartLoading();
-
-		if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
-		{
-			closedWalletViewModel.OpenCommand.Execute(true);
-		}
+		Navigate().To(closedWalletViewModel);
 	}
 
 	private async Task<bool> ShowLegalAsync()

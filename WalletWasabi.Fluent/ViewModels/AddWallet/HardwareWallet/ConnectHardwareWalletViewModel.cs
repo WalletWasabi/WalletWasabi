@@ -79,10 +79,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
+		if (ExistingWallet is { })
 		{
 			Navigate().Clear();
-			ExistingWallet.OpenCommand.Execute(default);
+			Navigate().To(ExistingWallet);
 		}
 	}
 
