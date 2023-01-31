@@ -14,5 +14,6 @@ public enum Reason
 	OneHop,
 	RemoteApiChecked,
 	Immature,
+	UnprocessedByApiProvider,
 	Exception
 }

@@ -59,6 +59,12 @@ public class CoinVerifierLogger : IAsyncDisposable
 			var reportType = apiResponseItem?.Report_info_section.Report_type;
 			var ids = apiResponseItem?.Cscore_section.Cscore_info?.Select(x => x.Id) ?? Enumerable.Empty<int>();
 			var categories = apiResponseItem?.Cscore_section.Cscore_info.Select(x => x.Name) ?? Enumerable.Empty<string>();
+			var unprocessedByApiProvider = !apiResponseItem?.Report_info_section.Address_used ?? true;
+
+			if (unprocessedByApiProvider)
+			{
+				reason = Reason.UnprocessedByApiProvider;
+			}
 
 			var detailsArray = new string[]
 			{
