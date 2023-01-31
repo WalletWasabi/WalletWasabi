@@ -43,7 +43,7 @@ public class SmartBlockProvider
 			return result;
 		}
 
-		string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
+		string cacheKey = $"{nameof(GetBlockAsync)}:{blockHash}";
 
 		result = await Cache.GetCachedResponseAsync(
 			cacheKey,
