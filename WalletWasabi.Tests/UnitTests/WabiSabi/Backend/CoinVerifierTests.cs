@@ -37,7 +37,7 @@ public class CoinVerifierTests
 
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
+		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(98);
 		List<Coin> naughtyCoins = new();
@@ -78,7 +78,7 @@ public class CoinVerifierTests
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
+		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
 		List<Coin> removedCoins = new();
@@ -122,7 +122,7 @@ public class CoinVerifierTests
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
+		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(5);
 
@@ -160,7 +160,7 @@ public class CoinVerifierTests
 		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
+		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
 		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
@@ -188,7 +188,7 @@ public class CoinVerifierTests
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
 		Whitelist whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig());
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, whitelist, _wabisabiTestConfig);
+		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig, whitelist);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
 

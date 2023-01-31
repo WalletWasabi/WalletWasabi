@@ -656,13 +656,14 @@ public class CoordinatorRound
 				{
 					var aliceToRemove = coinDictionary[info.Coin];
 					Alices.Remove(aliceToRemove);
+					CoinVerifier.VerifierAuditArchiver.LogRoundEvent(new uint256((ulong)RoundId), $"{info.Coin.Outpoint} got removed from round");
 				}
 			}
 		}
 		catch (Exception exc)
 		{
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
-
+			CoinVerifier.VerifierAuditArchiver.LogException(new uint256((ulong)RoundId), exc);
 			// Fail hard as VerifyCoinsAsync should handle all exceptions.
 			throw;
 		}
