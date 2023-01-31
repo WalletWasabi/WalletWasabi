@@ -248,7 +248,7 @@ public class WalletTests
 		// 4. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		var cache = new MemoryCache(new MemoryCacheOptions
+		using MemoryCache cache = new(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
