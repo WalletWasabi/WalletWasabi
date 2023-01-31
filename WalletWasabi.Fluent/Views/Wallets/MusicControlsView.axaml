@@ -58,8 +58,8 @@
                 <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
               </TransitioningContentControl.PageTransition>
               <TransitioningContentControl.DataTemplates>
-                <DataTemplate DataType="wallets:MusicStatusMessageViewModel">
-                  <TextBlock Text="{Binding Message}">
+                <DataTemplate DataType="x:String">
+                  <TextBlock Text="{Binding .}">
                     <TextBlock.OpacityMask>
                       <LinearGradientBrush StartPoint="100%,0%" EndPoint="90%,0%">
                         <LinearGradientBrush.GradientStops>

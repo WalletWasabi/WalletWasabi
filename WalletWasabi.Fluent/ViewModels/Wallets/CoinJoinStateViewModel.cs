@@ -21,26 +21,26 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly DispatcherTimer _countdownTimer;
 	private readonly DispatcherTimer _autoCoinJoinStartTimer;
 
-	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
-	private readonly MusicStatusMessageViewModel _waitingMessage = new() { Message = "Waiting for coinjoin" };
-	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
-	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin! Continuing..." };
-	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for next round" };
-	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
-	private readonly MusicStatusMessageViewModel _coinJoinInProgress = new() { Message = "Coinjoin in progress" };
-	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for other participants" };
-	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for the blame round" };
-	private readonly MusicStatusMessageViewModel _waitingRoundMessage = new() { Message = "Waiting for a round" };
-	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Coinjoining might be uneconomical" };
-	private readonly MusicStatusMessageViewModel _plebStopMessageBelow = new() { Message = "Receive more funds or press play to bypass" };
+	private readonly string _countDownMessage = "Waiting to auto-start coinjoin";
+	private readonly string _waitingMessage = "Waiting for coinjoin";
+	private readonly string _pauseMessage = "Coinjoin is paused";
+	private readonly string _stoppedMessage = "Coinjoin is stopped";
+	private readonly string _roundSucceedMessage = "Successful coinjoin! Continuing...";
+	private readonly string _roundFinishedMessage = "Round finished, waiting for next round";
+	private readonly string _abortedNotEnoughAlicesMessage = "Not enough participants, retrying...";
+	private readonly string _coinJoinInProgress = "Coinjoin in progress";
+	private readonly string _inputRegistrationMessage = "Waiting for other participants";
+	private readonly string _waitingForBlameRoundMessage = "Waiting for the blame round";
+	private readonly string _waitingRoundMessage = "Waiting for a round";
+	private readonly string _plebStopMessage = "Coinjoining might be uneconomical";
+	private readonly string _plebStopMessageBelow = "Receive more funds or press play to bypass";
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible = true;
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _pauseSpreading;
 	[AutoNotify] private bool _stopVisible;
-	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
+	[AutoNotify] private string _currentStatus = "";
 	[AutoNotify] private bool _isProgressReversed;
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
@@ -253,7 +253,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 
 				CurrentStatus = _plebStopMessage;
-				ElapsedTime = _plebStopMessageBelow.Message!;
+				ElapsedTime = _plebStopMessageBelow;
 			})
 			.OnExit(() => ElapsedTime = "");
 	}
@@ -304,10 +304,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case StartErrorEventArgs start:
 				CurrentStatus = start.Error switch
 				{
-					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for confirmed funds" },
-					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
-					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray! Your funds are private" },
-					_ => new() { Message = "Waiting for valid conditions" }
+					CoinjoinError.NoCoinsToMix => "Waiting for confirmed funds",
+					CoinjoinError.UserInSendWorkflow => "Waiting for closed send dialog",
+					CoinjoinError.AllCoinsPrivate => "Hurray! Your funds are private",
+					_ => "Waiting for valid conditions"
 				};
 
 				break;
@@ -387,7 +387,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 	}
 
-	private void StartCountDown(MusicStatusMessageViewModel message, DateTimeOffset start, DateTimeOffset end)
+	private void StartCountDown(string message, DateTimeOffset start, DateTimeOffset end)
 	{
 		CurrentStatus = message;
 		_countDownStartTime = start;
