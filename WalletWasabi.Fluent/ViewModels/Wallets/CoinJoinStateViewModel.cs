@@ -40,15 +40,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string GeneralErrorMessage = "Waiting for valid conditions";
 
 	[AutoNotify] private bool _isAutoWaiting;
-	[AutoNotify] private bool _playVisible = true;
+	[AutoNotify] private bool _playVisible;
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _pauseSpreading;
 	[AutoNotify] private bool _stopVisible;
 	[AutoNotify] private string _currentStatus = "";
 	[AutoNotify] private bool _isProgressReversed;
 	[AutoNotify] private double _progressValue;
-	[AutoNotify] private string _elapsedTime;
-	[AutoNotify] private string _remainingTime;
+	[AutoNotify] private string _elapsedTime = "";
+	[AutoNotify] private string _remainingTime = "";
 	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
 	[AutoNotify] private bool _areAllCoinsPrivate;
@@ -62,9 +62,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
-
-		_elapsedTime = "";
-		_remainingTime = "";
 
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += OnTimerTick;
