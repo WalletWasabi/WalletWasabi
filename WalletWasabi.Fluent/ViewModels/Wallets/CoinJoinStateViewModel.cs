@@ -21,23 +21,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly DispatcherTimer _countdownTimer;
 	private readonly DispatcherTimer _autoCoinJoinStartTimer;
 
-	private readonly string _countDownMessage = "Waiting to auto-start coinjoin";
-	private readonly string _waitingMessage = "Waiting for coinjoin";
-	private readonly string _pauseMessage = "Coinjoin is paused";
-	private readonly string _stoppedMessage = "Coinjoin is stopped";
-	private readonly string _roundSucceedMessage = "Successful coinjoin! Continuing...";
-	private readonly string _roundFinishedMessage = "Round finished, waiting for next round";
-	private readonly string _abortedNotEnoughAlicesMessage = "Not enough participants, retrying...";
-	private readonly string _coinJoinInProgress = "Coinjoin in progress";
-	private readonly string _inputRegistrationMessage = "Waiting for other participants";
-	private readonly string _waitingForBlameRoundMessage = "Waiting for the blame round";
-	private readonly string _waitingRoundMessage = "Waiting for a round";
-	private readonly string _plebStopMessage = "Coinjoining might be uneconomical";
-	private readonly string _plebStopMessageBelow = "Receive more funds or press play to bypass";
-	private readonly string _waitingForConfrmedFundsMessage = "Waiting for confirmed funds";
-	private readonly string _userInSendWorkflowMessage = "Waiting for closed send dialog";
-	private readonly string _allPrivateMessage = "Hurray! Your funds are private";
-	private readonly string _generalErrorMessage = "Waiting for valid conditions";
+	private const string CountDownMessage = "Waiting to auto-start coinjoin";
+	private const string WaitingMessage = "Waiting for coinjoin";
+	private const string PauseMessage = "Coinjoin is paused";
+	private const string StoppedMessage = "Coinjoin is stopped";
+	private const string RoundSucceedMessage = "Successful coinjoin! Continuing...";
+	private const string RoundFinishedMessage = "Round finished, waiting for next round";
+	private const string AbortedNotEnoughAlicesMessage = "Not enough participants, retrying...";
+	private const string CoinJoinInProgress = "Coinjoin in progress";
+	private const string InputRegistrationMessage = "Waiting for other participants";
+	private const string WaitingForBlameRoundMessage = "Waiting for the blame round";
+	private const string WaitingRoundMessage = "Waiting for a round";
+	private const string PlebStopMessage = "Coinjoining might be uneconomical";
+	private const string PlebStopMessageBelow = "Receive more funds or press play to bypass";
+	private const string WaitingForConfirmedFundsMessage = "Waiting for confirmed funds";
+	private const string UserInSendWorkflowMessage = "Waiting for closed send dialog";
+	private const string AllPrivateMessage = "Hurray! Your funds are private";
+	private const string GeneralErrorMessage = "Waiting for valid conditions";
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible = true;
@@ -207,7 +207,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
 				_autoCoinJoinStartTimer.Start();
 
-				StartCountDown(_countDownMessage, now, autoStartEnd);
+				StartCountDown(CountDownMessage, now, autoStartEnd);
 			})
 			.OnExit(() =>
 			{
@@ -227,7 +227,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PauseSpreading = false;
 				StopVisible = false;
-				CurrentStatus = IsAutoCoinJoinEnabled ? _pauseMessage : _stoppedMessage;
+				CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
 				ElapsedTime = "Press Play to start";
 			})
 			.OnExit(() => ElapsedTime = "");
@@ -241,7 +241,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = IsAutoCoinJoinEnabled;
 				StopVisible = !IsAutoCoinJoinEnabled;
 
-				CurrentStatus = _waitingMessage;
+				CurrentStatus = WaitingMessage;
 			})
 			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
@@ -256,8 +256,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				StopVisible = false;
 
-				CurrentStatus = _plebStopMessage;
-				ElapsedTime = _plebStopMessageBelow;
+				CurrentStatus = PlebStopMessage;
+				ElapsedTime = PlebStopMessageBelow;
 			})
 			.OnExit(() => ElapsedTime = "");
 	}
@@ -308,10 +308,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case StartErrorEventArgs start:
 				CurrentStatus = start.Error switch
 				{
-					CoinjoinError.NoCoinsToMix => _waitingForConfrmedFundsMessage,
-					CoinjoinError.UserInSendWorkflow => _userInSendWorkflowMessage,
-					CoinjoinError.AllCoinsPrivate => _allPrivateMessage,
-					_ => _generalErrorMessage
+					CoinjoinError.NoCoinsToMix => WaitingForConfirmedFundsMessage,
+					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
+					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
+					_ => GeneralErrorMessage
 				};
 
 				break;
@@ -335,9 +335,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				{
 					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
 					{
-						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
-						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
-						_ => _roundFinishedMessage
+						EndRoundState.TransactionBroadcasted => RoundSucceedMessage,
+						EndRoundState.AbortedNotEnoughAlices => AbortedNotEnoughAlicesMessage,
+						_ => RoundFinishedMessage
 					};
 					StopCountDown();
 				}
@@ -353,17 +353,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case EnteringInputRegistrationPhase inputRegPhase:
 				StartCountDown(
-					message: _inputRegistrationMessage,
+					message: InputRegistrationMessage,
 					start: inputRegPhase.TimeoutAt - inputRegPhase.RoundState.InputRegistrationTimeout,
 					end: inputRegPhase.TimeoutAt);
 				break;
 
 			case WaitingForBlameRound waitingForBlameRound:
-				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
+				StartCountDown(message: WaitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
 				break;
 
 			case WaitingForRound:
-				CurrentStatus = _waitingRoundMessage;
+				CurrentStatus = WaitingRoundMessage;
 				StopCountDown();
 				break;
 
@@ -375,7 +375,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 								   confirmationPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout;
 
 				StartCountDown(
-					message: _coinJoinInProgress,
+					message: CoinJoinInProgress,
 					start: startTime,
 					end: totalEndTime);
 
