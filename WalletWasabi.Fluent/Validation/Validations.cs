@@ -87,9 +87,8 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 	{
 		if (!string.IsNullOrWhiteSpace(propertyName))
 		{
-			return ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any()
-				? ErrorsByPropertyName[propertyName]
-				: ErrorDescriptors.Empty;
+			return ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? value) && value.Any()
+				? value : ErrorDescriptors.Empty;
 		}
 		else
 		{
@@ -113,7 +112,7 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 
 	private void OnErrorsChanged(string propertyName, List<ErrorSeverity> categoriesToNotify)
 	{
-		Func<ErrorSeverity, string> selector = x => x switch
+		static string Selector(ErrorSeverity x) => x switch
 		{
 			ErrorSeverity.Info => nameof(AnyInfos),
 			ErrorSeverity.Warning => nameof(AnyWarnings),
@@ -121,7 +120,7 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 			_ => throw new NotImplementedException(),
 		};
 
-		var propertiesToNotify = categoriesToNotify.Select(selector).ToList();
+		var propertiesToNotify = categoriesToNotify.Select(Selector).ToList();
 
 		if (propertiesToNotify.Any())
 		{
