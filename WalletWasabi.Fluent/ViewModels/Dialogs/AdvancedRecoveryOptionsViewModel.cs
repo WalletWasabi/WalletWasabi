@@ -21,7 +21,8 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.Create(() => Close(result: int.Parse(MinGapLimit)),
+		NextCommand = ReactiveCommand.Create(
+			() => Close(result: int.Parse(MinGapLimit)),
 			this.WhenAnyValue(x => x.MinGapLimit).Select(_ => !Validations.Any));
 	}
 
