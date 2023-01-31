@@ -366,7 +366,7 @@ public class Wallet : BackgroundService, IWallet
 			using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 			{
 				uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
-				await BlockProvider.InvalidateAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
+				await BlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
 
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);

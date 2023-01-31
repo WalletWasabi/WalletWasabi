@@ -76,10 +76,10 @@ public class SmartBlockProvider
 	}
 
 	/// <summary>
-	/// Remove the given block from the file-system storage.
+	/// Removes the given block from the file-system storage.
 	/// </summary>
 	/// <remarks>No exception is thrown if there is no such block.</remarks>
-	public Task InvalidateAsync(uint256 blockHash, CancellationToken cancellationToken)
+	public Task RemoveAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		return BlockRepository.RemoveAsync(blockHash, cancellationToken);
 	}

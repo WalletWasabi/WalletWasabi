@@ -161,7 +161,7 @@ public class P2pTests
 			// So next test will download the block.
 			foreach (var hash in blocksToDownload)
 			{
-				await blockProvider.InvalidateAsync(hash, CancellationToken.None);
+				await blockProvider.RemoveAsync(hash, CancellationToken.None);
 			}
 			if (wallet is { })
 			{
