@@ -7,42 +7,47 @@ using WalletWasabi.Cache;
 namespace WalletWasabi.Wallets;
 
 /// <summary>
-/// <see cref="SmartBlockProvider"/> is a block provider that can provide
-/// blocks from multiple requesters.
+/// Block provider that can provide blocks from multiple sources.
 /// </summary>
 public class SmartBlockProvider
 {
 	private static MemoryCacheEntryOptions CacheOptions = new()
 	{
-		Size = 10,
-		SlidingExpiration = TimeSpan.FromSeconds(4)
+		Size = 1000,
+		SlidingExpiration = TimeSpan.FromSeconds(5)
 	};
 
-	public SmartBlockProvider(CachedBlockProvider cachedProvider, LocalBlockProvider localBlockProvider, P2pBlockProvider p2PBlockProvider, IMemoryCache cache)
+	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, LocalBlockProvider localBlockProvider, P2pBlockProvider p2PBlockProvider, IMemoryCache cache)
 	{
-		CachedProvider = cachedProvider;
+		BlockRepository = blockRepository;
 		P2PBlockProvider = p2PBlockProvider;
 		LocalBlockProvider = localBlockProvider;
 		Cache = new(cache);
 	}
 
-	private CachedBlockProvider CachedProvider { get; }
 	private LocalBlockProvider LocalBlockProvider { get; }
 	private P2pBlockProvider P2PBlockProvider { get; }
 
 	private IdempotencyRequestCache Cache { get; }
 
-	public IRepository<uint256, Block> BlockRepository => CachedProvider.BlockRepository;
+	public IRepository<uint256, Block> BlockRepository { get; }
 
+	/// <summary>
+	/// Gets the block from file-system storage or from other block providers.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">If the block cannot be obtained.</exception>
 	public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		Block? result = await CachedProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		// Try get the block from the file-system storage.
+		Block? result = await BlockRepository.TryGetAsync(blockHash, cancellationToken).ConfigureAwait(false);
 
 		if (result is not null)
 		{
 			return result;
 		}
 
+		// Use the in-memory cache to prevent multiple callers from getting the same block in parallel.
+		// The cache makes sure that either in-memory or file-system cache is hit by other callers once we get a block.
 		string cacheKey = $"{nameof(GetBlockAsync)}:{blockHash}";
 
 		result = await Cache.GetCachedResponseAsync(
@@ -56,19 +61,28 @@ public class SmartBlockProvider
 			throw new InvalidOperationException($"Block {blockHash} could not be downloaded from any source.");
 		}
 
-		await CachedProvider.SaveBlockAsync(result, cancellationToken).ConfigureAwait(false);
+		// Store the block to the file-system.
+		await BlockRepository.SaveAsync(result, cancellationToken).ConfigureAwait(false);
 
 		return result;
 	}
 
+	/// <summary>
+	/// Gets a block without relying on a cache.
+	/// </summary>
+	/// <remarks>First ask the local block provider (which may or may not be set up) and use the P2P block provider as a fallback.</remarks>
 	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		return await LocalBlockProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
 			?? await P2PBlockProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
 
-	public Task InvalidateAsync(uint256 hash, CancellationToken cancellationToken)
+	/// <summary>
+	/// Remove the given block from the file-system storage.
+	/// </summary>
+	/// <remarks>No exception is thrown if there is no such block.</remarks>
+	public Task InvalidateAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		return CachedProvider.InvalidateAsync(hash, cancellationToken);
+		return BlockRepository.RemoveAsync(blockHash, cancellationToken);
 	}
 }
