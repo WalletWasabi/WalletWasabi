@@ -27,10 +27,8 @@ public class SmartBlockProvider
 
 	private LocalBlockProvider LocalBlockProvider { get; }
 	private P2pBlockProvider P2PBlockProvider { get; }
-
 	private IdempotencyRequestCache Cache { get; }
-
-	public IRepository<uint256, Block> BlockRepository { get; }
+	private IRepository<uint256, Block> BlockRepository { get; }
 
 	/// <summary>
 	/// Gets the block from file-system storage or from other block providers.

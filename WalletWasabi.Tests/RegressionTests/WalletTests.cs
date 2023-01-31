@@ -248,14 +248,16 @@ public class WalletTests
 		// 4. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
+		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+
 		using MemoryCache cache = new(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		var blockProvider = new SmartBlockProvider(
-			bitcoinStore.BlockRepository,
+		SmartBlockProvider blockProvider = new(
+			blockRepository,
 			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
 			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
 			cache);
@@ -284,7 +286,7 @@ public class WalletTests
 			{
 				await wallet.StartAsync(cts.Token); // Initialize wallet service.
 			}
-			Assert.Equal(1, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
+			Assert.Equal(1, await blockRepository.CountAsync(CancellationToken.None));
 
 			Assert.Single(wallet.Coins);
 			var firstCoin = wallet.Coins.Single();
@@ -308,7 +310,7 @@ public class WalletTests
 			await rpc.GenerateAsync(1);
 
 			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
-			Assert.Equal(3, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
+			Assert.Equal(3, await blockRepository.CountAsync(CancellationToken.None));
 
 			Assert.Equal(3, wallet.Coins.Count());
 			firstCoin = wallet.Coins.OrderBy(x => x.Height).First();
@@ -360,7 +362,7 @@ public class WalletTests
 			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(3);
 			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
-			Assert.Equal(4, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
+			Assert.Equal(4, await blockRepository.CountAsync(CancellationToken.None));
 
 			Assert.Equal(4, wallet.Coins.Count());
 			Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
