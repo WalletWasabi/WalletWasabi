@@ -34,6 +34,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly string _waitingRoundMessage = "Waiting for a round";
 	private readonly string _plebStopMessage = "Coinjoining might be uneconomical";
 	private readonly string _plebStopMessageBelow = "Receive more funds or press play to bypass";
+	private readonly string _waitingForConfrmedFundsMessage = "Waiting for confirmed funds";
+	private readonly string _userInSendWorkflowMessage = "Waiting for closed send dialog";
+	private readonly string _allPrivateMessage = "Hurray! Your funds are private";
+	private readonly string _generalErrorMessage = "Waiting for valid conditions";
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible = true;
@@ -304,10 +308,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case StartErrorEventArgs start:
 				CurrentStatus = start.Error switch
 				{
-					CoinjoinError.NoCoinsToMix => "Waiting for confirmed funds",
-					CoinjoinError.UserInSendWorkflow => "Waiting for closed send dialog",
-					CoinjoinError.AllCoinsPrivate => "Hurray! Your funds are private",
-					_ => "Waiting for valid conditions"
+					CoinjoinError.NoCoinsToMix => _waitingForConfrmedFundsMessage,
+					CoinjoinError.UserInSendWorkflow => _userInSendWorkflowMessage,
+					CoinjoinError.AllCoinsPrivate => _allPrivateMessage,
+					_ => _generalErrorMessage
 				};
 
 				break;
