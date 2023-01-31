@@ -71,7 +71,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 			};
 
 			// Separate the different values of the ApiResponseItem with ';', so the details will be one value in the CSV file.
-			details = string.Join(";", detailsArray);
+			details = string.Join("|", detailsArray);
 		}
 		else if (exception is not null)
 		{
