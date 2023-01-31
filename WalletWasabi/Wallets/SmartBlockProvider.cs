@@ -31,45 +31,44 @@ public class SmartBlockProvider
 	private P2pBlockProvider P2PBlockProvider { get; }
 
 	private IdempotencyRequestCache Cache { get; }
-	
+
 	public IRepository<uint256, Block> BlockRepository => CachedProvider.BlockRepository;
 
-	public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
+	public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		Block? result = await CachedProvider.TryGetBlockAsync(blockHash, cancel).ConfigureAwait(false);
-		
+		Block? result = await CachedProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+
 		if (result is not null)
 		{
 			return result;
 		}
-		
+
 		string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
 
 		result = await Cache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken token) => GetBlockNoCacheAsync(blockHash, token),
 			options: CacheOptions,
-			cancel).ConfigureAwait(false);
+			cancellationToken).ConfigureAwait(false);
 
 		if (result is null)
 		{
 			throw new InvalidOperationException($"Block {blockHash} could not be downloaded from any source.");
 		}
 
-		await CachedProvider.SaveBlockAsync(result, cancel).ConfigureAwait(false);
-		
+		await CachedProvider.SaveBlockAsync(result, cancellationToken).ConfigureAwait(false);
+
 		return result;
 	}
 
-	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancel)
+	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		return await LocalBlockProvider.TryGetBlockAsync(blockHash, cancel).ConfigureAwait(false) ??
-		       await P2PBlockProvider.TryGetBlockAsync(blockHash, cancel).ConfigureAwait(false);
+		return await LocalBlockProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
+			?? await P2PBlockProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
-	
+
 	public Task InvalidateAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		return CachedProvider.InvalidateAsync(hash, cancellationToken);
 	}
-	
 }
