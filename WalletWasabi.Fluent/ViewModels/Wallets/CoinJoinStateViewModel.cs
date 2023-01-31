@@ -1,4 +1,3 @@
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,11 +107,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		IsPauseButtonEnabled = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
+		var topPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
 			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
 		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
-			await coinJoinManager.StopAsync(wallet, CancellationToken.None), IsPauseButtonEnabled);
+			await coinJoinManager.StopAsync(wallet, CancellationToken.None), topPauseCommandCanExecute);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
@@ -173,8 +172,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	}
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
-
-	public IObservable<bool> IsPauseButtonEnabled { get; }
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
 
