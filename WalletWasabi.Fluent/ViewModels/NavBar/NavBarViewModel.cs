@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -12,36 +13,19 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public class NavBarViewModel : ViewModelBase
+public partial class NavBarViewModel : ViewModelBase
 {
 	public NavBarViewModel()
 	{
 		TopItems = new ObservableCollection<NavBarItemViewModel>();
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
+		this.WhenAnyValue(x => x.SelectedWallet)
+			.Where(x=> x is { })
+			.Do(x =>  x!.OpenCommand.Execute(default))
+			.Subscribe();
+
 		SetDefaultSelection();
-
-		Observable.Amb(
-				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
-				TopItems.ToObservableChangeSet(),
-				BottomItems.ToObservableChangeSet())
-			.WhenPropertyChanged(x => x.IsSelected)
-			.Where(x => x.Value)
-			.Select(x => x.Sender)
-			.Buffer(2, 1)
-			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
-			.Subscribe(x =>
-			{
-				if (x.OldValue is { } old)
-				{
-					old.IsSelected = false;
-				}
-
-				if (x.NewValue is WalletViewModelBase wallet)
-				{
-					Services.UiConfig.LastSelectedWallet = wallet.WalletName;
-				}
-			});
 	}
 
 	public ObservableCollection<NavBarItemViewModel> TopItems { get; }
@@ -50,13 +34,16 @@ public class NavBarViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
+
+	[AutoNotify] private WalletViewModelBase? _selectedWallet;
+
 	private void SetDefaultSelection()
 	{
 		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
 
-		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
+		if (walletToSelect is { })
 		{
-			walletToSelect.OpenCommand.Execute(default);
+			SelectedWallet = walletToSelect;
 		}
 	}
 
