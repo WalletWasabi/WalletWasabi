@@ -131,7 +131,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				}
 			});
 
-		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
+		walletVm.CoinJoinSettings.WhenAnyValue(x => x.PlebStopThreshold)
 			.SubscribeAsync(async _ =>
 			{
 				// Hack: we take the value from KeyManager but it is saved later.
