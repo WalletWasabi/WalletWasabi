@@ -49,8 +49,28 @@ public class CoinVerifierApiClient
 		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 		content.Headers.Authorization = new("Bearer", ApiToken);
 
-		var response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+		int tries = 3;
 
+		HttpResponseMessage? response = null;
+
+		do
+		{
+			tries--;
+			response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+
+			if (response.StatusCode == HttpStatusCode.OK)
+			{
+				// Successful request, break the iteration.
+				break;
+			}
+			else
+			{
+				Logger.LogWarning($"API request failed. {nameof(HttpStatusCode)} was {response.StatusCode}.");
+			}
+		}
+		while (tries > 0);
+
+		// Throw proper exceptions - if needed - according to the latest response.
 		if (response.StatusCode == HttpStatusCode.Forbidden)
 		{
 			throw new UnauthorizedAccessException("User roles access forbidden.");
