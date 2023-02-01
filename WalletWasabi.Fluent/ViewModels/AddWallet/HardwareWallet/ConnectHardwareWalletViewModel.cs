@@ -29,7 +29,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		_message = "";
 		WalletName = walletName;
-		Wallets = UiServices.WalletManager.Wallets;
+		// Wallets = UiServices.WalletManager.Wallets;
 		AbandonedTasks = new AbandonedTasks();
 		CancelCts = new CancellationTokenSource();
 
@@ -79,11 +79,11 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
-		{
-			Navigate().Clear();
-			ExistingWallet.OpenCommand.Execute(default);
-		}
+		// if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
+		// {
+		// 	Navigate().Clear();
+		// 	ExistingWallet.OpenCommand.Execute(default);
+		// }
 	}
 
 	private void StartDetection()

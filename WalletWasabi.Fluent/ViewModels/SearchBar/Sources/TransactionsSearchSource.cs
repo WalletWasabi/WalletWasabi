@@ -87,7 +87,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private static IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)> GetTransactionsByWallet()
 	{
 		return UiServices.WalletManager.Wallets
-			.Where(x => x.IsLoggedIn && x.WalletState == WalletState.Started)
+			.Where(x => x.IsLoggedIn && x.Wallet.State == WalletState.Started)
 			.OfType<WalletViewModel>()
 			.Select(
 				x => (Wallet: x,

@@ -14,7 +14,7 @@ public class ClosedWalletViewModel : WalletViewModelBase
 	protected ClosedWalletViewModel(Wallet wallet)
 		: base(wallet)
 	{
-		Loading = new LoadingViewModel(Wallet);
+		// Loading = new LoadingViewModel(Wallet);
 
 		this.WhenAnyValue(x => x.Loading.IsLoading)
 			.BindTo(this, x => x.IsLoading);
@@ -26,7 +26,7 @@ public class ClosedWalletViewModel : WalletViewModelBase
 	{
 		_disposable?.Dispose();
 		_disposable = new CompositeDisposable();
-		Loading.Activate(_disposable);
+		// Loading.Activate(_disposable);
 	}
 
 	public void StopLoading()
@@ -35,17 +35,18 @@ public class ClosedWalletViewModel : WalletViewModelBase
 		_disposable = null;
 	}
 
-	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
-	{
-		if (!Wallet.IsLoggedIn)
-		{
-			Navigate().To(new LoginViewModel(this), NavigationMode.Clear);
-		}
-		else
-		{
-			await base.OnOpen(defaultNavigationMode);
-		}
-	}
+	//TODO: fix this.
+	// protected override async Task OnOpen(NavigationMode defaultNavigationMode)
+	// {
+	// 	if (!Wallet.IsLoggedIn)
+	// 	{
+	// 		Navigate().To(new LoginViewModel(this), NavigationMode.Clear);
+	// 	}
+	// 	else
+	// 	{
+	// 		await base.OnOpen(defaultNavigationMode);
+	// 	}
+	// }
 
 	public static WalletViewModelBase Create(Wallet wallet)
 	{

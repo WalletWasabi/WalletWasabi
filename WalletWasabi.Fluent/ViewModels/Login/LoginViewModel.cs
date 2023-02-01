@@ -19,16 +19,16 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _errorMessage;
 	[AutoNotify] private bool _isForgotPasswordVisible;
 
-	public LoginViewModel(ClosedWalletViewModel closedWalletViewModel)
+	public LoginViewModel(NavBarWalletStateViewModel nbwsvm)
 	{
-		var wallet = closedWalletViewModel.Wallet;
+		var wallet = nbwsvm.Wallet;
 		IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
 		WalletName = wallet.WalletName;
 		_password = "";
 		_errorMessage = "";
-		WalletType = WalletHelpers.GetType(closedWalletViewModel.Wallet.KeyManager);
+		WalletType = WalletHelpers.GetType(nbwsvm.Wallet.KeyManager);
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(closedWalletViewModel, wallet));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(nbwsvm, wallet));
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
@@ -45,7 +45,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 	public ICommand ForgotPasswordCommand { get; }
 
-	private async Task OnNextAsync(ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+	private async Task OnNextAsync(NavBarWalletStateViewModel nbwsvm, Wallet wallet)
 	{
 		string? compatibilityPasswordUsed = null;
 
@@ -67,7 +67,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (legalResult)
 		{
-			LoginWallet(closedWalletViewModel);
+			LoginWallet(nbwsvm);
 		}
 		else
 		{
@@ -87,15 +87,19 @@ public partial class LoginViewModel : RoutableViewModel
 		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 	}
 
-	private void LoginWallet(ClosedWalletViewModel closedWalletViewModel)
+	private void LoginWallet(NavBarWalletStateViewModel nbwsvm)
 	{
-		closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-		closedWalletViewModel.StartLoading();
+		// closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
+		// closedWalletViewModel.StartLoading();
 
-		if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
-		{
-			closedWalletViewModel.OpenCommand.Execute(true);
-		}
+		nbwsvm.IsLoggedIn = true;
+
+		nbwsvm.CurrentPage = new LoadingViewModel(nbwsvm);
+
+		// if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
+		// {
+		// 	closedWalletViewModel.OpenCommand.Execute(true);
+		// }
 	}
 
 	private async Task<bool> ShowLegalAsync()

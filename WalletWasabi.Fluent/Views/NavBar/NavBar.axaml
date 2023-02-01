@@ -135,10 +135,12 @@
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
-    <ListBox Items="{Binding Wallets}" SelectionMode="AlwaysSelected">
+    <ListBox Items="{Binding Wallets}"
+             SelectionMode="AlwaysSelected"
+             SelectedItem="{Binding SelectedWallet}">
       <ListBox.DataTemplates>
-        <DataTemplate DataType="vmw:WalletViewModelBase">
-          <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}"   />
+        <DataTemplate DataType="vmw:NavBarWalletStateViewModel">
+          <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
         </DataTemplate>
       </ListBox.DataTemplates>
     </ListBox>
