@@ -184,7 +184,7 @@ public class TorHttpPoolTests
 			set-cookie: sails.sid=s%3AMPaQCDY1u1swPgAI5RhbPg2extVNNhjI.oby40NpOE2CpyzIdRlGhD7Uja%2BGX1WbBaFV13T0f4eA; Path=/; HttpOnly
 			
 			{"args":{},"data":"This is expected to be sent back as part of response body.","files":{},"form":{},"headers":{"x-forwarded-proto":"http","x-forwarded-port":"80","host":"postman-echo.com","x-amzn-trace-id":"Root=1-5fc7db06-24adc2a91c86c14f2d63ea61","content-length":"58","accept-encoding":"gzip","content-type":"text/plain; charset=utf-8"},"json":null,"url":"http://postman-echo.com/post"}
-			""".AsMemory(),
+			""".ReplaceLineEndings("\r\n").AsMemory(),
 			timeoutCts.Token);
 		await serverWriter.FlushAsync().WaitAsync(timeoutCts.Token);
 
