@@ -105,11 +105,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		var topPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
+		var stopPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
 			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
 		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
-			await coinJoinManager.StopAsync(wallet, CancellationToken.None), topPauseCommandCanExecute);
+			await coinJoinManager.StopAsync(wallet, CancellationToken.None), stopPauseCommandCanExecute);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
