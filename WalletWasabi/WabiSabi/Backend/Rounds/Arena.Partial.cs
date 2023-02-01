@@ -83,8 +83,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				}
 			}
 
-			var isPayingZeroCoordinationFee = comingFromCoinJoin || oneHop;
-			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
+			var isCoordinationFeeExempted = comingFromCoinJoin || oneHop;
+			var alice = new Alice(coin, request.OwnershipProof, round, id, isCoordinationFeeExempted);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
 			{
@@ -124,7 +124,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			return new(alice.Id,
 				commitAmountCredentialResponse,
 				commitVsizeCredentialResponse,
-				alice.IsPayingZeroCoordinationFee);
+				alice.IsCoordinationFeeExempted);
 		}
 	}
 
