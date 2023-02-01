@@ -60,7 +60,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		{
 			if (UnfoldException(exception).All(IsCatchableException))
 			{
-				Logging.Logger.LogError(exception.Message);
+				Logging.Logger.LogError(exception);
 				return false;
 			}
 			else
