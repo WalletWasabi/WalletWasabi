@@ -43,3 +43,18 @@ public class SmartBlockProviderTests
 	}
 	*/
 }
+
+file class TestBlockProvider : IBlockProvider
+{
+	public TestBlockProvider(Dictionary<uint256, Block> blocks)
+	{
+		Blocks = blocks;
+	}
+
+	private Dictionary<uint256, Block> Blocks { get; }
+
+	public Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel)
+	{
+		return Task.FromResult<Block?>(Blocks[hash]);
+	}
+}
