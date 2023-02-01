@@ -197,7 +197,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoCoinJoinOff, State.StoppedOrPaused)
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.Permit(Trigger.StartError, State.Playing)
-			.Permit(Trigger.StartError, State.Playing)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -303,11 +302,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.WalletStoppedCoinJoin);
 				break;
 
-			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
-				_stateMachine.Fire(Trigger.PlebStopActivated);
-				break;
-
 			case StartErrorEventArgs start:
+				if (start.Error is CoinjoinError.NotEnoughUnprivateBalance)
+				{
+					_stateMachine.Fire(Trigger.PlebStopActivated);
+					break;
+				}
+
 				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
