@@ -21,7 +21,7 @@ public class AffiliationManager : BackgroundService, IAffiliationManager, IDispo
 			 x => x.Key,
 			  x =>
 			  {
-				  HttpClient httpClient = httpClientFactory.CreateClient();
+				  HttpClient httpClient = httpClientFactory.CreateClient("AffiliateHttpClient");
 				  ClearnetHttpClient client = new(httpClient, baseUriGetter: () => new Uri(x.Value));
 				  return new AffiliateServerHttpApiClient(client);
 			  }).ToImmutableDictionary();

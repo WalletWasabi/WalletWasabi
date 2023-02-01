@@ -84,7 +84,11 @@ public class Startup
 		});
 
 		services.AddSingleton<IdempotencyRequestCache>();
-		services.AddHttpClient();
+		services.AddHttpClient("AffiliateHttpClient").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+		{
+			// See https://github.com/dotnet/runtime/issues/18348#issuecomment-415845645
+			PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+		});
 		services.AddSingleton(serviceProvider =>
 		{
 			Config config = serviceProvider.GetRequiredService<Config>();
