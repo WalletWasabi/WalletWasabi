@@ -17,6 +17,6 @@ public class TestBlockProvider : IBlockProvider
 
 	public Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel)
 	{
-		return Task.FromResult(Blocks[hash])!;
+		return Task.FromResult<Block?>(Blocks[hash]);
 	}
 }

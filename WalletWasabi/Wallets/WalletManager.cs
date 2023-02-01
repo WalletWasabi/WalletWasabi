@@ -67,7 +67,7 @@ public class WalletManager : IWalletProvider
 	private HybridFeeProvider FeeProvider { get; set; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private SmartBlockProvider BlockProvider { get; set; }
+	private IBlockProvider BlockProvider { get; set; }
 	public string WorkDir { get; }
 
 	private void RefreshWalletList()
@@ -375,7 +375,7 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, SmartBlockProvider blockProvider)
+	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		BitcoinStore = bitcoinStore;
 		Synchronizer = synchronizer;

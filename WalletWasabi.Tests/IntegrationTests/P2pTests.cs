@@ -35,6 +35,7 @@ public class P2pTests
 		await RuntimeParams.LoadAsync();
 		var network = Network.GetNetwork(networkString);
 		var blocksToDownload = new List<uint256>();
+
 		if (network == Network.Main)
 		{
 			blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
@@ -65,6 +66,7 @@ public class P2pTests
 		var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 		var connectionParameters = new NodeConnectionParameters();
 		AddressManager addressManager;
+
 		try
 		{
 			addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
@@ -100,14 +102,15 @@ public class P2pTests
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-		var cache = new MemoryCache(new MemoryCacheOptions
+		using MemoryCache cache = new(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		var blockProvider = new SmartBlockProvider(
-			bitcoinStore.BlockRepository,
+		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		IBlockProvider blockProvider = new SmartBlockProvider(
+			blockRepository,
 			new LocalBlockProvider(null, httpClientFactory, serviceConfig, network),
 			new P2pBlockProvider(nodes, httpClientFactory, serviceConfig, network),
 			cache);
@@ -161,8 +164,9 @@ public class P2pTests
 			// So next test will download the block.
 			foreach (var hash in blocksToDownload)
 			{
-				await blockProvider.RemoveAsync(hash, CancellationToken.None);
+				await blockRepository.RemoveAsync(hash, CancellationToken.None);
 			}
+
 			if (wallet is { })
 			{
 				await wallet.StopAsync(CancellationToken.None);

@@ -9,7 +9,7 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// Block provider that can provide blocks from multiple sources.
 /// </summary>
-public class SmartBlockProvider
+public class SmartBlockProvider : IBlockProvider
 {
 	private static MemoryCacheEntryOptions CacheOptions = new()
 	{
@@ -31,10 +31,9 @@ public class SmartBlockProvider
 	private IRepository<uint256, Block> BlockRepository { get; }
 
 	/// <summary>
-	/// Gets the block from file-system storage or from other block providers.
+	/// Tries to get the block from file-system storage or from other block providers.
 	/// </summary>
-	/// <exception cref="InvalidOperationException">If the block cannot be obtained.</exception>
-	public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
+	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		// Try get the block from the file-system storage.
 		Block? result = await BlockRepository.TryGetAsync(blockHash, cancellationToken).ConfigureAwait(false);
@@ -46,7 +45,7 @@ public class SmartBlockProvider
 
 		// Use the in-memory cache to prevent multiple callers from getting the same block in parallel.
 		// The cache makes sure that either in-memory or file-system cache is hit by other callers once we get a block.
-		string cacheKey = $"{nameof(GetBlockAsync)}:{blockHash}";
+		string cacheKey = $"{nameof(TryGetBlockAsync)}:{blockHash}";
 
 		result = await Cache.GetCachedResponseAsync(
 			cacheKey,
@@ -54,13 +53,11 @@ public class SmartBlockProvider
 			options: CacheOptions,
 			cancellationToken).ConfigureAwait(false);
 
-		if (result is null)
+		if (result is not null)
 		{
-			throw new InvalidOperationException($"Block {blockHash} could not be downloaded from any source.");
+			// Store the block to the file-system.
+			await BlockRepository.SaveAsync(result, cancellationToken).ConfigureAwait(false);
 		}
-
-		// Store the block to the file-system.
-		await BlockRepository.SaveAsync(result, cancellationToken).ConfigureAwait(false);
 
 		return result;
 	}
