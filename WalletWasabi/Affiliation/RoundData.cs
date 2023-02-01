@@ -36,9 +36,9 @@ public class RoundData
 		OutpointAffiliationPairs.Add(new Tuple<OutPoint, AffiliationFlag>(coin.Outpoint, affiliationFlag));
 	}
 
-	public void AddInputFeeExemption(Coin coin, bool feeExemption)
+	public void AddInputFeeExemption(Coin coin, bool isCoordinationFeeExempted)
 	{
-		OutpointFeeExemptionPairs.Add(new Tuple<OutPoint, bool>(coin.Outpoint, feeExemption));
+		OutpointFeeExemptionPairs.Add(new Tuple<OutPoint, bool>(coin.Outpoint, isCoordinationFeeExempted));
 	}
 
 	private Dictionary<OutPoint, TValue> GetDictionary<TValue>(IEnumerable<Tuple<OutPoint, TValue>> pairs, IEnumerable<OutPoint> outpoints, string name)
@@ -71,7 +71,7 @@ public class RoundData
 	{
 		HashSet<OutPoint> transactionOutpoints = transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 		Dictionary<OutPoint, AffiliationFlag> affiliationFlagsByOutpoints = GetDictionary(OutpointAffiliationPairs, transactionOutpoints, "affiliation flag");
-		Dictionary<OutPoint, bool> feeExemptionsByOutpoints = GetDictionary(OutpointFeeExemptionPairs, transactionOutpoints, "fee exemptoin");
+		Dictionary<OutPoint, bool> feeExemptionsByOutpoints = GetDictionary(OutpointFeeExemptionPairs, transactionOutpoints, "fee exemptions");
 		Dictionary<OutPoint, Coin> coinByOutpoints = GetDictionary(OutpointCoinPairs, transactionOutpoints, "coin");
 
 		Func<Money, bool> isNoFee = amount => RoundParameters.CoordinationFeeRate.GetFee(amount) == Money.Zero;

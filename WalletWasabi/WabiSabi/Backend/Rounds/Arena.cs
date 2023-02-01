@@ -663,9 +663,9 @@ public partial class Arena : PeriodicRunner
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
 	}
 
-	private void NotifyInput(uint256 roundId, Coin coin, bool isPayingZeroCoordinationFee)
+	private void NotifyInput(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)
 	{
-		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isPayingZeroCoordinationFee));
+		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isCoordinationFeeExempted));
 	}
 
 	private void NotifyAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag)

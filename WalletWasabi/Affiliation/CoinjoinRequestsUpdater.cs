@@ -113,7 +113,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		return getCoinjoinRequestResponse.CoinjoinRequest;
 	}
 
-	private void AddCoin(uint256 roundId, Coin coin, bool isPayingZeroCoordinationFee)
+	private void AddCoin(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)
 	{
 		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
 		{
@@ -121,7 +121,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		}
 
 		roundData.AddInputCoin(coin);
-		roundData.AddInputFeeExemption(coin, isPayingZeroCoordinationFee);
+		roundData.AddInputFeeExemption(coin, isCoordinationFeeExempted);
 	}
 
 	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag)
@@ -166,9 +166,9 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 	{
 		uint256 roundId = inputAddedEventArgs.RoundId;
 		Coin coin = inputAddedEventArgs.Coin;
-		bool isPayingZeroCoordinationFee = inputAddedEventArgs.IsPayingZeroCoordinationFee;
+		bool isCoordinationFeeExempted = inputAddedEventArgs.IsFeeExempted;
 
-		AddCoin(roundId, coin, isPayingZeroCoordinationFee);
+		AddCoin(roundId, coin, isCoordinationFeeExempted);
 	}
 
 	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs affiliationAddedEventArgs)
