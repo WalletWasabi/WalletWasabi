@@ -47,8 +47,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _currentStatus = "";
 	[AutoNotify] private bool _isProgressReversed;
 	[AutoNotify] private double _progressValue;
-	[AutoNotify] private string _elapsedTime = "";
-	[AutoNotify] private string _remainingTime = "";
+	[AutoNotify] private string _leftText = "";
+	[AutoNotify] private string _rightText = "";
 	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
 	[AutoNotify] private bool _areAllCoinsPrivate;
@@ -223,9 +223,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseSpreading = false;
 				StopVisible = false;
 				CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
-				ElapsedTime = "Press Play to start";
+				LeftText = "Press Play to start";
 			})
-			.OnExit(() => ElapsedTime = "");
+			.OnExit(() => LeftText = "");
 
 		_stateMachine.Configure(State.Playing)
 			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
@@ -252,9 +252,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 
 				CurrentStatus = PlebStopMessage;
-				ElapsedTime = PlebStopMessageBelow;
+				LeftText = PlebStopMessageBelow;
 			})
-			.OnExit(() => ElapsedTime = "");
+			.OnExit(() => LeftText = "");
 	}
 
 	private void UpdateCountDown()
@@ -265,14 +265,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// and the countdown has finished but the client hasn't received any new phase changed message.
 		if (IsCountDownDelayHappening)
 		{
-			ElapsedTime = "Waiting for response";
-			RemainingTime = "";
+			LeftText = "Waiting for response";
+			RightText = "";
 			return;
 		}
 
 		var format = @"hh\:mm\:ss";
-		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
-		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
+		LeftText = $"{GetElapsedTime().ToString(format)}";
+		RightText = $"-{GetRemainingTime().ToString(format)}";
 		ProgressValue = GetPercentage();
 	}
 
@@ -401,8 +401,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		IsCountDownDelayHappening = false;
 		_countDownStartTime = DateTimeOffset.MinValue;
 		_countDownEndTime = DateTimeOffset.MinValue;
-		ElapsedTime = "";
-		RemainingTime = "";
+		LeftText = "";
+		RightText = "";
 		ProgressValue = 0;
 	}
 }

@@ -83,8 +83,8 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding ElapsedTime}" />
-              <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
+              <TextBlock Text="{Binding LeftText}" />
+              <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>
 
