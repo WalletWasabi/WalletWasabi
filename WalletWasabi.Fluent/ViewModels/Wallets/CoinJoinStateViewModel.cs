@@ -164,6 +164,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		PlebStopActivated,
+		StartError,
 		BalanceChanged,
 		Tick,
 		PlebStopChanged,
@@ -195,6 +196,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.AutoCoinJoinOff, State.StoppedOrPaused)
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
+			.Permit(Trigger.StartError, State.Playing)
+			.Permit(Trigger.StartError, State.Playing)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -305,6 +308,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case StartErrorEventArgs start:
+				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for confirmed funds" },
@@ -312,7 +316,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray! Your funds are private" },
 					_ => new() { Message = "Waiting for valid conditions" }
 				};
-
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:
