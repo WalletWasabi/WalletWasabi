@@ -76,14 +76,68 @@ public class TorHttpClient : IHttpClient
 	/// </remarks>
 	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 	{
+		HttpResponseMessage result = null;
 		if (Mode is Mode.NewCircuitPerRequest)
 		{
-			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, cancellationToken).ConfigureAwait(false);
+			result = await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
-			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, cancellationToken).ConfigureAwait(false);
+			result = await TorHttpPool.SendAsync(request, PredefinedCircuit!, cancellationToken).ConfigureAwait(false);
 		}
+
+		var redirectUri = GetUriForRedirect(request.RequestUri, result);
+		if (redirectUri is null)
+		{
+			return result;
+		}
+
+		request.RequestUri = redirectUri;
+		request.Headers.Remove("Host");
+		return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+	}
+	
+	private Uri? GetUriForRedirect(Uri requestUri, HttpResponseMessage response)
+	{
+		switch (response.StatusCode)
+		{
+			case HttpStatusCode.Moved:
+			case HttpStatusCode.Found:
+			case HttpStatusCode.SeeOther:
+			case HttpStatusCode.TemporaryRedirect:
+			case HttpStatusCode.MultipleChoices:
+			case HttpStatusCode.PermanentRedirect:
+				break;
+
+			default:
+				return null;
+		}
+
+		Uri? location = response.Headers.Location;
+		if (location == null)
+		{
+			return null;
+		}
+
+		// Ensure the redirect location is an absolute URI.
+		if (!location.IsAbsoluteUri)
+		{
+			location = new Uri(requestUri, location);
+		}
+
+		// Per https://tools.ietf.org/html/rfc7231#section-7.1.2, a redirect location without a
+		// fragment should inherit the fragment from the original URI.
+		string requestFragment = requestUri.Fragment;
+		if (!string.IsNullOrEmpty(requestFragment))
+		{
+			string redirectFragment = location.Fragment;
+			if (string.IsNullOrEmpty(redirectFragment))
+			{
+				location = new UriBuilder(location) { Fragment = requestFragment }.Uri;
+			}
+		}
+
+		return location;
 	}
 
 	/// <inheritdoc cref="TorHttpPool.PrebuildCircuitsUpfront(Uri, int, TimeSpan)"/>
