@@ -63,9 +63,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
 
-		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-		_countdownTimer.Tick += OnTimerTick;
-
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
@@ -145,6 +142,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: false, false, CancellationToken.None);
 			_autoCoinJoinStartTimer.Stop();
 		};
+
+		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
 
 		_stateMachine.Start();
 	}
@@ -404,10 +404,5 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ElapsedTime = "";
 		RemainingTime = "";
 		ProgressValue = 0;
-	}
-
-	private void OnTimerTick(object? sender, EventArgs e)
-	{
-		_stateMachine.Fire(Trigger.Tick);
 	}
 }
