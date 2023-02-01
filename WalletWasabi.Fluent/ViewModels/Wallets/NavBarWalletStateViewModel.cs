@@ -31,7 +31,9 @@ public partial class NavBarWalletStateViewModel : ViewModelBase
 		_viewDisposable = new CompositeDisposable();
 
 		this.WhenAnyValue(x => x.CurrentPage)
-			.Do(x=>x?.Navigate().To(x))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Skip(1)
+			.Do(x => x?.Navigate().To(x))
 			.Subscribe()
 			.DisposeWith(_viewDisposable);
 
@@ -39,9 +41,7 @@ public partial class NavBarWalletStateViewModel : ViewModelBase
 		{
 			CurrentPage = new LoginViewModel(this);
 		}
-		else
-		{
-			CurrentPage?.Navigate().To(CurrentPage);
-		}
+
+		CurrentPage?.Navigate().To(CurrentPage, NavigationMode.Clear);
 	}
 }

@@ -24,7 +24,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
 	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
 
-	public CoinSelectorViewModel(WalletViewModelBase walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
+	public CoinSelectorViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);

@@ -21,6 +21,7 @@ public partial class NavBarViewModel : ViewModelBase
         SetDefaultSelection();
 
         this.WhenAnyValue(x => x.SelectedWallet)
+	        .ObserveOn(RxApp.MainThreadScheduler)
 	        .Do(x => x?.Activate())
 	        .Subscribe();
 	}

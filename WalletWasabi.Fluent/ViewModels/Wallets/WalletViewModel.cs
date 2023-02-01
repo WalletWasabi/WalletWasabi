@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -23,7 +24,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletViewModel : WalletViewModelBase
+public partial class WalletViewModel : RoutableViewModel, IComparable<WalletViewModel>
 {
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
@@ -33,8 +34,127 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
-	protected WalletViewModel(Wallet wallet) : base(wallet)
+	[AutoNotify(SetterModifier = AccessModifier.Protected)]
+	private bool _isLoading;
+
+	[AutoNotify(SetterModifier = AccessModifier.Protected)]
+	private bool _isCoinJoining;
+
+	 public WalletState WalletState => Wallet.State;
+
+	private string _title;
+
+
+	public Wallet Wallet { get; }
+
+	public string WalletName => Wallet.WalletName;
+
+	public bool IsLoggedIn => Wallet.IsLoggedIn;
+
+	public bool PreferPsbtWorkflow => Wallet.KeyManager.PreferPsbtWorkflow;
+
+	public int CompareTo(WalletViewModel? other)
 	{
+		if (other is null)
+		{
+			return -1;
+		}
+
+		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
+
+		if (result == 0)
+		{
+			result = string.Compare(Title, other.Title, StringComparison.Ordinal);
+		}
+
+		return result;
+	}
+
+	public override string ToString() => WalletName;
+
+	protected WalletViewModel(Wallet wallet)
+	{
+
+		Wallet = wallet;
+	}
+
+	private bool _isInitialized;
+
+	public UiTriggers UiTriggers { get; private set;}
+
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set;}
+
+	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
+
+	public IObservable<bool> IsMusicBoxVisible { get; }
+
+	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set;}
+
+	public WalletSettingsViewModel Settings { get; private set;}
+
+	public ICommand SendCommand { get; private set;}
+
+	public ICommand? BroadcastPsbtCommand { get; set; }
+
+	public ICommand ReceiveCommand { get; private set;}
+
+	public ICommand WalletInfoCommand { get; private set;}
+
+	public ICommand WalletSettingsCommand { get; private set;}
+
+	public ICommand WalletStatsCommand { get; private set;}
+
+	public ICommand WalletCoinsCommand { get;private set; }
+
+	public ICommand CoinJoinSettingsCommand { get; private set; }
+
+	private CompositeDisposable Disposables { get;  set; }
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private HistoryViewModel _history;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private  IEnumerable<ActivatableViewModel>  _tiles;
+
+	public void NavigateAndHighlight(uint256 txid)
+	{
+		Navigate().To(this, NavigationMode.Clear);
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await Task.Delay(500);
+			History.SelectTransaction(txid);
+		});
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		if (!_isInitialized)
+		{
+			InitializeWallet();
+			_isInitialized = true;
+		}
+
+		History.Activate(disposables);
+
+		foreach (var tile in Tiles)
+		{
+			tile.Activate(disposables);
+		}
+
+		Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => this.RaisePropertyChanged(nameof(WalletState)))
+			.DisposeWith(disposables);
+	}
+
+	private void InitializeWallet()
+	{
+		_title = WalletName;
+
+		SetIcon();
+
+		this.WhenAnyValue(x => x.IsCoinJoining)
+			.Skip(1)
+			.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
+
 		Disposables = Disposables is null
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -45,7 +165,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		History = new HistoryViewModel(this);
 
 		UiTriggers.TransactionsUpdateTrigger
-			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
+			.Subscribe(_ => IsWalletBalanceZero = Wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
@@ -71,7 +191,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(x => IsTransactionHistoryEmpty = x);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
+			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!Wallet.KeyManager.IsWatchOnly || Wallet.KeyManager.IsHardwareWallet));
 
 		// IsMusicBoxVisible =
 		// 	this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
@@ -84,13 +204,13 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+			if (!string.IsNullOrEmpty(Wallet.Kitchen.SaltSoup()))
 			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
+				var pwAuthDialog = new PasswordAuthDialogViewModel(Wallet);
 				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 				if (!dialogResult.Result)
@@ -108,68 +228,12 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
 
 		Tiles = GetTiles().ToList();
-	}
 
-	public IEnumerable<ActivatableViewModel> Tiles { get; }
-
-	public UiTriggers UiTriggers { get; }
-
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
-
-	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
-
-	public IObservable<bool> IsMusicBoxVisible { get; }
-
-	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; }
-
-	public WalletSettingsViewModel Settings { get; }
-
-	public ICommand SendCommand { get; }
-
-	public ICommand? BroadcastPsbtCommand { get; set; }
-
-	public ICommand ReceiveCommand { get; }
-
-	public ICommand WalletInfoCommand { get; }
-
-	public ICommand WalletSettingsCommand { get; }
-
-	public ICommand WalletStatsCommand { get; }
-
-	public ICommand WalletCoinsCommand { get; }
-
-	public ICommand CoinJoinSettingsCommand { get; }
-
-	private CompositeDisposable Disposables { get; }
-
-	public HistoryViewModel History { get; }
-
-	public void NavigateAndHighlight(uint256 txid)
-	{
-		Navigate().To(this, NavigationMode.Clear);
-
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await Task.Delay(500);
-			History.SelectTransaction(txid);
-		});
-	}
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		History.Activate(disposables);
-
-		foreach (var tile in Tiles)
-		{
-			tile.Activate(disposables);
-		}
 	}
 
 	public static WalletViewModel Create(Wallet wallet)
@@ -179,6 +243,12 @@ public partial class WalletViewModel : WalletViewModelBase
 			: wallet.KeyManager.IsWatchOnly
 				? new WatchOnlyWalletViewModel(wallet)
 				: new WalletViewModel(wallet);
+	}
+
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
@@ -191,5 +261,22 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 
 		yield return new BtcPriceTileViewModel(Wallet);
+	}
+
+
+	private void SetIcon()
+	{
+		var walletType = WalletHelpers.GetType(Wallet.KeyManager);
+
+		var baseResourceName = walletType switch
+		{
+			WalletType.Coldcard => "coldcard_24",
+			WalletType.Trezor => "trezor_24",
+			WalletType.Ledger => "ledger_24",
+			_ => "wallet_24"
+		};
+
+		IconName = $"nav_{baseResourceName}_regular";
+		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
 }
