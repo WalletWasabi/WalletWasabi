@@ -135,7 +135,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubscribeAsync(async _ =>
 			{
 				// Hack: we take the value from KeyManager but it is saved later.
-				// https://github.com/molnard/WalletWasabi/blob/master/WalletWasabi.Fluent/ViewModels/Wallets/WalletSettingsViewModel.cs#L105
 				await Task.Delay(1500);
 				_stateMachine.Fire(Trigger.PlebStopChanged);
 			});
@@ -186,7 +185,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void ConfigureStateMachine()
 	{
-		// See diagram in the developer docs.
 		_stateMachine.Configure(State.Disabled);
 
 		_stateMachine.Configure(State.WaitingForAutoStart)
