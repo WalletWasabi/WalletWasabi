@@ -24,7 +24,7 @@ public class AsyncQueue<T>
 
 	public IAsyncEnumerable<T> GetAsyncIterator(CancellationToken cancellationToken)
 	{
-		return _channel.Reader.ReadAllAsync();
+		return _channel.Reader.ReadAllAsync(cancellationToken);
 	}
 
 	public void Enqueue(T item)

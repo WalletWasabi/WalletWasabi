@@ -44,16 +44,22 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		await foreach (FinalizedRoundDataWithRoundId finalizedRoundDataWithRoundId in RoundsToUpdate.GetAsyncIterator(cancellationToken))
+		try
 		{
-			try
+			await foreach (FinalizedRoundDataWithRoundId finalizedRoundDataWithRoundId in RoundsToUpdate.GetAsyncIterator(cancellationToken))
 			{
-				await Task.WhenAll(Clients.Select(x => UpdateCoinjoinRequestsAsync(finalizedRoundDataWithRoundId.RoundId, finalizedRoundDataWithRoundId.FinalizedRoundData, x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
+				try
+				{
+					await Task.WhenAll(Clients.Select(x => UpdateCoinjoinRequestsAsync(finalizedRoundDataWithRoundId.RoundId, finalizedRoundDataWithRoundId.FinalizedRoundData, x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
+				}
+				catch (Exception exception)
+				{
+					Logging.Logger.LogError(exception.Message);
+				}
 			}
-			catch (Exception exception)
-			{
-				Logging.Logger.LogError(exception.Message);
-			}
+		}
+		catch (TaskCanceledException)
+		{
 		}
 	}
 
