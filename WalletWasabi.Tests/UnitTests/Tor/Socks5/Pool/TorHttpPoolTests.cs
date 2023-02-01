@@ -169,7 +169,7 @@ public class TorHttpPoolTests
 		// Assert replies line by line.
 		foreach (string expectedLine in expectedResponse)
 		{
-			Assert.Equal(expectedLine, await serverReader.ReadLineAsync().WithAwaitCancellationAsync(timeoutCts.Token));
+			Assert.Equal(expectedLine, await serverReader.ReadLineAsync(timeoutCts.Token));
 		}
 
 		// We respond to the client with the following content.
@@ -188,7 +188,7 @@ public class TorHttpPoolTests
 			"",
 			"{\"args\":{},\"data\":\"This is expected to be sent back as part of response body.\",\"files\":{},\"form\":{},\"headers\":{\"x-forwarded-proto\":\"http\",\"x-forwarded-port\":\"80\",\"host\":\"postman-echo.com\",\"x-amzn-trace-id\":\"Root=1-5fc7db06-24adc2a91c86c14f2d63ea61\",\"content-length\":\"58\",\"accept-encoding\":\"gzip\",\"content-type\":\"text/plain; charset=utf-8\"},\"json\":null,\"url\":\"http://postman-echo.com/post\"}").AsMemory(),
 			timeoutCts.Token);
-		await serverWriter.FlushAsync().WithAwaitCancellationAsync(timeoutCts.Token);
+		await serverWriter.FlushAsync().WaitAsync(timeoutCts.Token);
 
 		Debug.WriteLine("[server] Wait for the sendTask to finish.");
 		await sendTask;
@@ -287,7 +287,7 @@ public class TorHttpPoolTests
 		{
 			Task connectClientTask = Server.WaitForConnectionAsync(cancellationToken);
 			await Client.ConnectAsync(cancellationToken).ConfigureAwait(false);
-			await connectClientTask.ConfigureAwait(false);
+			await connectClientTask.WaitAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public async ValueTask DisposeAsync()
