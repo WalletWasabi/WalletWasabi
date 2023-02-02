@@ -61,16 +61,13 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		var cache = new MemoryCache(new MemoryCacheOptions
-		{
-			SizeLimit = 1_000,
-			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-		});
+
+		using MemoryCache cache = CreateMemoryCache();
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
-			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
+			localBlockProvider: new LocalBlockProvider(coreNode: null, httpClientFactory, serviceConfiguration, network),
+			p2PBlockProvider: new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
@@ -222,16 +219,12 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		var cache = new MemoryCache(new MemoryCacheOptions
-		{
-			SizeLimit = 1_000,
-			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-		});
+		using MemoryCache cache = CreateMemoryCache();
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
-			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
+			localBlockProvider: new LocalBlockProvider(coreNode: null, httpClientFactory, serviceConfiguration, network),
+			p2PBlockProvider: new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
@@ -421,5 +414,14 @@ public class BuildTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }
