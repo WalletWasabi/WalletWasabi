@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -7,7 +8,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class NavBarWalletStateViewModel : ViewModelBase
+public partial class NavBarWalletStateViewModel : ViewModelBase, IEquatable<NavBarWalletStateViewModel>, IComparable<NavBarWalletStateViewModel>
 {
 	public Wallet Wallet { get; }
 
@@ -48,5 +49,30 @@ public partial class NavBarWalletStateViewModel : ViewModelBase
 		}
 
 		CurrentPage?.Navigate().To(CurrentPage, NavigationMode.Clear);
+	}
+
+	public bool Equals(NavBarWalletStateViewModel? other)
+	{
+		return Wallet == other?.Wallet;
+	}
+
+	public int CompareTo(NavBarWalletStateViewModel? other)
+	{
+
+		if (other is null)
+		{
+			return -1;
+		}
+
+		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
+
+		if (result == 0)
+		{
+			result = string.Compare(Title, other.Title, StringComparison.Ordinal);
+		}
+
+		return result;
+
+
 	}
 }

@@ -21,7 +21,7 @@ public partial class NavBarViewModel : ViewModelBase
 		SetDefaultSelection();
 
 		this.WhenAnyValue(x => x.SelectedWallet)
-			.Buffer(2, 1)
+			.Buffer(2,1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(x =>
@@ -42,7 +42,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
-	public ObservableCollection<NavBarWalletStateViewModel> Wallets => UiServices.WalletManager.Wallets;
+	public ReadOnlyObservableCollection<NavBarWalletStateViewModel> Wallets => UiServices.WalletManager.Wallets;
 
 	[AutoNotify] private NavBarWalletStateViewModel? _selectedWallet;
 

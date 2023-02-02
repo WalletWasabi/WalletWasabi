@@ -134,9 +134,11 @@
     <!-- Separator -->
     <Separator DockPanel.Dock="Bottom" />
 
+    <TextBlock DockPanel.Dock="Bottom" Text="{Binding SelectedWallet.Title}"/>
     <!-- Wallet List -->
     <ListBox Items="{Binding Wallets}"
              SelectionMode="AlwaysSelected"
+             VirtualizationMode="None"
              SelectedItem="{Binding SelectedWallet}">
       <ListBox.DataTemplates>
         <DataTemplate DataType="vmw:NavBarWalletStateViewModel">
