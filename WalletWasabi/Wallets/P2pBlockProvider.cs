@@ -14,16 +14,16 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public class P2pBlockProvider : IBlockProvider
 {
-	public P2pBlockProvider(NodesGroup nodes, HttpClientFactory httpClientFactory, Network network)
+	public P2pBlockProvider(Network network, NodesGroup nodes, HttpClientFactory httpClientFactory)
 	{
+		Network = network;
 		Nodes = nodes;
 		HttpClientFactory = httpClientFactory;
-		Network = network;
 	}
 
+	private Network Network { get; }
 	private NodesGroup Nodes { get; }
 	private HttpClientFactory HttpClientFactory { get; }
-	private Network Network { get; }
 
 	private int NodeTimeouts { get; set; }
 
@@ -147,6 +147,7 @@ public class P2pBlockProvider : IBlockProvider
 		// Sanity check
 		var minTimeout = Network == Network.Main ? 3 : 2;
 		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout * 1.5) : minTimeout;
+
 		if (timeout < minTimeout)
 		{
 			timeout = minTimeout;
@@ -160,6 +161,7 @@ public class P2pBlockProvider : IBlockProvider
 		{
 			return;
 		}
+
 		RuntimeParams.Instance.NetworkNodeTimeout = timeout;
 		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 

@@ -112,7 +112,7 @@ public class P2pTests
 		IBlockProvider blockProvider = new SmartBlockProvider(
 			blockRepository,
 			new LocalBlockProvider(network, serviceConfig, null, httpClientFactory),
-			new P2pBlockProvider(nodes, httpClientFactory, network),
+			new P2pBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
 		using Wallet wallet = Wallet.CreateAndRegisterServices(

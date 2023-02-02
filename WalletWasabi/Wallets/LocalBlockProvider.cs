@@ -18,9 +18,9 @@ public class LocalBlockProvider : IBlockProvider
 
 	public LocalBlockProvider(Network network, ServiceConfiguration serviceConfiguration, CoreNode? coreNode, HttpClientFactory httpClientFactory)
 	{
-		CoreNode = coreNode;
 		Network = network;
 		ServiceConfiguration = serviceConfiguration;
+		CoreNode = coreNode;
 		HttpClientFactory = httpClientFactory;
 	}
 
