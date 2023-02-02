@@ -831,36 +831,34 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionWithDustForWalletAsync()
 	{
-		static void WhenVerySmallCoinIsProcessed(object? s, ProcessedResult e)
+		static void AssertCoin(ProcessedResult e, bool expectDust)
 		{
-			// The dust coin should raise an event, but it shouldn't be fully processed.
-			Assert.Empty(e.ReceivedDusts);
-			Assert.NotEmpty(e.ReceivedCoins);
-			Assert.NotEmpty(e.NewlyReceivedCoins);
-			Assert.Empty(e.NewlyConfirmedReceivedCoins);
-		}
-
-		static void WhenDustCoinIsProcessed(object? s, ProcessedResult e)
-		{
-			// The dust coin should raise an event, but it shouldn't be fully processed.
-			Assert.NotEmpty(e.ReceivedDusts);
-			Assert.Empty(e.ReceivedCoins);
-			Assert.Empty(e.NewlyReceivedCoins);
+			if (!expectDust)
+			{
+				Assert.Empty(e.ReceivedDusts);
+				Assert.NotEmpty(e.ReceivedCoins);
+				Assert.NotEmpty(e.NewlyReceivedCoins);
+			}
+			else
+			{
+				Assert.NotEmpty(e.ReceivedDusts);
+				Assert.Empty(e.ReceivedCoins);
+				Assert.Empty(e.NewlyReceivedCoins);
+			}
+			Assert.True(e.IsNews);
 			Assert.Empty(e.NewlyConfirmedReceivedCoins);
 		}
 
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
-		transactionProcessor.WalletRelevantTransactionProcessed += WhenVerySmallCoinIsProcessed;
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
 		var relevant = transactionProcessor.Process(tx);
 
 		// It is relevant even when all the coins can be dust.
-		Assert.True(relevant.IsNews);
+		AssertCoin(relevant, expectDust: false);
 		Assert.NotEmpty(transactionProcessor.Coins);
-		transactionProcessor.WalletRelevantTransactionProcessed -= WhenVerySmallCoinIsProcessed;
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -869,15 +867,13 @@ public class TransactionProcessorTests
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
 
-		transactionProcessor.WalletRelevantTransactionProcessed += WhenDustCoinIsProcessed;
 		var attackTx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
 		relevant = transactionProcessor.Process(attackTx);
 
 		// It is relevant even when all the coins can be dust.
-		Assert.True(relevant.IsNews);
+		AssertCoin(relevant, expectDust: true);
 		Assert.Single(transactionProcessor.Coins); // the dust coin used is not added to the coin registry
-		transactionProcessor.WalletRelevantTransactionProcessed -= WhenVerySmallCoinIsProcessed;
 	}
 
 	[Fact]
