@@ -16,6 +16,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 	public FadeOutTextBlock()
 	{
+		AffectsMeasure<FadeOutTextBlock>(TextProperty);
 		TextWrapping = TextWrapping.NoWrap;
 	}
 
@@ -126,11 +127,8 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 		availableSize = availableSize.Deflate(padding);
 
-		if (_constraint != availableSize)
-		{
-			_constraint = availableSize;
-			NewCreateTextLayout(_constraint, Text);
-		}
+		_constraint = availableSize;
+		NewCreateTextLayout(_constraint, Text);
 
 		return (_trimmedLayout?.Size ?? Size.Empty).Inflate(padding);
 	}
