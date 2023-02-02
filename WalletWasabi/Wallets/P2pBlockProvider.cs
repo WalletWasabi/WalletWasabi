@@ -19,17 +19,15 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public class P2pBlockProvider : IBlockProvider
 {
-	public P2pBlockProvider(NodesGroup nodes, HttpClientFactory httpClientFactory, ServiceConfiguration serviceConfiguration, Network network)
+	public P2pBlockProvider(NodesGroup nodes, HttpClientFactory httpClientFactory, Network network)
 	{
 		Nodes = nodes;
 		HttpClientFactory = httpClientFactory;
-		ServiceConfiguration = serviceConfiguration;
 		Network = network;
 	}
 
 	private NodesGroup Nodes { get; }
 	private HttpClientFactory HttpClientFactory { get; }
-	private ServiceConfiguration ServiceConfiguration { get; }
 	private Network Network { get; }
 
 	private int NodeTimeouts { get; set; }

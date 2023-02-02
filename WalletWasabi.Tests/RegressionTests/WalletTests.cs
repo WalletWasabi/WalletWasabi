@@ -259,7 +259,7 @@ public class WalletTests
 		SmartBlockProvider blockProvider = new(
 			blockRepository,
 			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
-			new P2pBlockProvider(nodes, httpClientFactory, serviceConfiguration, network),
+			new P2pBlockProvider(nodes, httpClientFactory, network),
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
