@@ -135,21 +135,22 @@
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
-    <ListBox Items="{Binding Wallets}"
-             SelectionMode="AlwaysSelected"
-             VirtualizationMode="None"
-             MaxWidth="75"
-             SelectedItem="{Binding SelectedWallet}">
-      <ListBox.DataTemplates>
-        <DataTemplate DataType="vmw:NavBarWalletStateViewModel">
-          <StackPanel>
-            <c:FadeOutTextBlock Classes="h9" Text="{Binding IsSelected}" />
-            <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
-          </StackPanel>
-        </DataTemplate>
-      </ListBox.DataTemplates>
-    </ListBox>
-
+    <DockPanel MaxWidth="75" LastChildFill="True">
+      <c:FadeOutTextBlock DockPanel.Dock="Bottom" Classes="h9" Text="{Binding SelectedWallet.Title}" />
+      <ListBox Items="{Binding Wallets}"
+               SelectionMode="AlwaysSelected"
+               VirtualizationMode="None"
+               SelectedItem="{Binding SelectedWallet}">
+        <ListBox.DataTemplates>
+          <DataTemplate DataType="vmw:NavBarWalletStateViewModel">
+            <StackPanel>
+              <c:FadeOutTextBlock Classes="h9" Text="{Binding IsSelected}" />
+              <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.DataTemplates>
+      </ListBox>
+    </DockPanel>
 
   </DockPanel>
 </UserControl>
