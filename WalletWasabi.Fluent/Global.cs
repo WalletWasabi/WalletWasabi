@@ -88,15 +88,8 @@ public class Global
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
-
-		HttpClientFactory = new HttpClientFactory(
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter: () => Config.GetBackendUri());
-
-		CoordinatorHttpClientFactory = new HttpClientFactory(
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter: () => Config.GetCoordinatorUri());
-		
+		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
+		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
@@ -111,6 +104,11 @@ public class Global
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 	}
+
+	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
+		new (
+			Config.UseTor ? TorSettings.SocksEndpoint : null,
+			backendUriGetter);
 
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
@@ -378,11 +376,9 @@ public class Global
 					await httpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
 				}
-				if (CoordinatorHttpClientFactory is { } coordinatorHttpClientFactory)
-				{
-					await coordinatorHttpClientFactory.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(CoordinatorHttpClientFactory)} is disposed.");
-				}
+
+				await CoordinatorHttpClientFactory.DisposeAsync().ConfigureAwait(false);
+				Logger.LogInfo($"{nameof(CoordinatorHttpClientFactory)} is disposed.");
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
 				{
