@@ -6,13 +6,13 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;
 
-public class P2pNodesManager
+public class P2PNodesManager
 {
 	private Network Network { get; }
 	private NodesGroup Nodes { get; }
 	private bool IsTorEnabled { get; }
 	
-	public P2pNodesManager(Network network, NodesGroup nodes, bool isTorEnabled)
+	public P2PNodesManager(Network network, NodesGroup nodes, bool isTorEnabled)
 	{
 		Network = network;
 		Nodes = nodes;

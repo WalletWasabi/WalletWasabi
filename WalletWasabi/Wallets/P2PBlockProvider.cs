@@ -11,20 +11,20 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// P2P block provider is a blocks provider getting the blocks from bitcoin nodes using the P2P bitcoin protocol.
 /// </summary>
-public class P2pBlockProvider : IBlockProvider
+public class P2PBlockProvider : IBlockProvider
 {
-	public P2pBlockProvider(Network network, NodesGroup nodes, HttpClientFactory httpClientFactory)
+	public P2PBlockProvider(Network network, NodesGroup nodes, HttpClientFactory httpClientFactory)
 	{
 		Network = network;
 		Nodes = nodes;
 		HttpClientFactory = httpClientFactory;
-		P2pNodesManager = new P2pNodesManager(network, Nodes, HttpClientFactory.IsTorEnabled);
+		P2PNodesManager = new P2PNodesManager(network, Nodes, HttpClientFactory.IsTorEnabled);
 	}
 
 	private Network Network { get; }
 	private NodesGroup Nodes { get; }
 	private HttpClientFactory HttpClientFactory { get; }
-	private P2pNodesManager P2pNodesManager { get; }
+	private P2PNodesManager P2PNodesManager { get; }
 
 	/// <summary>
 	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
@@ -59,7 +59,7 @@ public class P2pBlockProvider : IBlockProvider
 				// Download block from selected node.
 				try
 				{
-					var timeout = P2pNodesManager.GetCurrentTimeout();
+					var timeout = P2PNodesManager.GetCurrentTimeout();
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 					{
 						using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
@@ -69,25 +69,25 @@ public class P2pBlockProvider : IBlockProvider
 					// Validate block
 					if (!block.Check())
 					{
-						P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
+						P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 						continue;
 					}
 
-					P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+					P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
-					await P2pNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
+					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
-					await P2pNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
+					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 
-					P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+					P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 					continue;
 				}
 				catch (Exception ex)
 				{
 					Logger.LogDebug(ex);
-					P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+					P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
 					continue;
 				}
 

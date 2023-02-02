@@ -65,7 +65,7 @@ public class SendTests
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
 			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
-			new P2pBlockProvider(network, nodes, httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
@@ -547,7 +547,7 @@ public class SendTests
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
 			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
-			new P2pBlockProvider(network, nodes, httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
@@ -725,7 +725,7 @@ public class SendTests
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
 			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
-			new P2pBlockProvider(network, nodes, httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
