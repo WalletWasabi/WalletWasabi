@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.WabiSabi.Models;
@@ -38,25 +36,4 @@ public class FinalizedRoundData
 	{
 		return ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
 	}
-}
-
-public record AffiliateInput
-{
-	public AffiliateInput(OutPoint prevout, Script scriptPubKey, AffiliationFlag affiliationFlag, bool isNoFee)
-	{
-		Prevout = prevout;
-		ScriptPubKey = scriptPubKey;
-		AffiliationFlag = affiliationFlag;
-		IsNoFee = isNoFee;
-	}
-
-	public AffiliateInput(Coin coin, AffiliationFlag affiliationFlag, bool isNoFee)
-		  : this(coin.Outpoint, coin.ScriptPubKey, affiliationFlag, isNoFee)
-	{
-	}
-
-	public OutPoint Prevout { get; }
-	public Script ScriptPubKey { get; }
-	public AffiliationFlag AffiliationFlag { get; }
-	public bool IsNoFee { get; }
 }

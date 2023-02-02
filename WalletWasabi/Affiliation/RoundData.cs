@@ -17,7 +17,6 @@ public class RoundData
 		OutpointCoinPairs = new();
 		OutpointAffiliationPairs = new();
 		OutpointFeeExemptionPairs = new();
-
 	}
 
 	private RoundParameters RoundParameters { get; }
@@ -65,7 +64,6 @@ public class RoundData
 		Dictionary<OutPoint, TValue> valuesByOutpoints = pairsGroupedByOutpoints.ToDictionary(g => g.Key, g => g.First().Item2);
 		return valuesByOutpoints;
 	}
-
 
 	public FinalizedRoundData FinalizeRoundData(NBitcoin.Transaction transaction)
 	{
