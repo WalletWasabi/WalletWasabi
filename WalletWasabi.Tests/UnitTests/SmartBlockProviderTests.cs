@@ -62,7 +62,7 @@ public class SmartBlockProviderTests
 	}
 }
 
-file class TestBlockProvider : IBlockProvider
+public class TestBlockProvider : IBlockProvider
 {
 	public TestBlockProvider(Dictionary<uint256, Block> blocks)
 	{
