@@ -127,8 +127,11 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 		availableSize = availableSize.Deflate(padding);
 
-		_constraint = availableSize;
-		NewCreateTextLayout(_constraint, Text);
+		if (availableSize != _noTrimLayout?.Size)
+		{
+			_constraint = availableSize;
+			NewCreateTextLayout(_constraint, Text);
+		}
 
 		return (_trimmedLayout?.Size ?? Size.Empty).Inflate(padding);
 	}
