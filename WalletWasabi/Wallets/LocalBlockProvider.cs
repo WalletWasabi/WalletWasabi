@@ -53,8 +53,7 @@ public class LocalBlockProvider : IBlockProvider
 	{
 		try
 		{
-			var block = await CoreNode!.RpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-			return block;
+			return await CoreNode!.RpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -111,7 +110,7 @@ public class LocalBlockProvider : IBlockProvider
 				}
 			}
 
-			// Get Block from local node
+			// Get block from local node.
 			Block blockFromLocalNode;
 			// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
@@ -119,13 +118,13 @@ public class LocalBlockProvider : IBlockProvider
 				blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
 			}
 
-			// Validate retrieved block
+			// Validate retrieved block.
 			if (!blockFromLocalNode.Check())
 			{
 				throw new InvalidOperationException("Disconnected node, because invalid block received!");
 			}
 
-			// Retrieved block from local node and block is valid
+			// Retrieved block from local node and block is valid.
 			Logger.LogInfo($"Block acquired from local P2P connection: {hash}.");
 			return blockFromLocalNode;
 		}
