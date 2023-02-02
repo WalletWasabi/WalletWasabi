@@ -121,7 +121,7 @@ public class Startup
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-			return (IAffiliationManager)coordinator.AffiliationManager;
+			return coordinator.AffiliationManager;
 		});
 		services.AddStartupTask<InitConfigStartupTask>();
 

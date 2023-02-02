@@ -48,7 +48,7 @@ public class WabiSabiCoordinator : BackgroundService
 			transactionArchiver,
 			coinJoinScriptStore,
 			coinVerifier);
-		AffiliationManager = new(Arena, Config.AffiliateServers, Config.AffiliationMessageSignerKey, httpClientFactory);
+		AffiliationManager = new(Arena, Config, httpClientFactory);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;

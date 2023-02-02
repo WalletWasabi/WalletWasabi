@@ -65,7 +65,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
-			services.AddSingleton<IAffiliationManager>(NewMockAffiliationManager());
+			services.AddHttpClient();
+			services.AddSingleton<AffiliationManager>();
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
@@ -91,9 +92,9 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
 		new(new ClearnetHttpClient(httpClient));
 
-	private static IAffiliationManager NewMockAffiliationManager()
+	private static AffiliationManager NewMockAffiliationManager()
 	{
-		Mock<IAffiliationManager> mockManager = new();
+		Mock<AffiliationManager> mockManager = new();
 		mockManager.Setup(x => x.GetAffiliateInformation()).Returns(AffiliateInformation.Empty);
 		return mockManager.Object;
 	}
