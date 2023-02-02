@@ -219,9 +219,10 @@ public class TransactionProcessor
 					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
 				}
 
-				KeyManager.SetKeyState(KeyState.Used, foundKey);
 				var areWeSending = myInputs.Any();
-				if (output.Value <= DustThreshold && !areWeSending)
+				var isReusingAddress = foundKey.KeyState == KeyState.Used; 
+				KeyManager.SetKeyState(KeyState.Used, foundKey);
+				if (output.Value <= DustThreshold && !areWeSending && isReusingAddress)
 				{
 					result.ReceivedDusts.Add(output);
 					continue;
