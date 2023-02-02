@@ -1,9 +1,9 @@
-using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -16,14 +16,14 @@ namespace WalletWasabi.Wallets;
 public class LocalBlockProvider : IBlockProvider
 {
 
-	public LocalBlockProvider(CoreNode? coreNode, HttpClientFactory httpClientFactory,  ServiceConfiguration serviceConfiguration, Network network)
+	public LocalBlockProvider(CoreNode? coreNode, HttpClientFactory httpClientFactory, ServiceConfiguration serviceConfiguration, Network network)
 	{
 		CoreNode = coreNode;
 		Network = network;
 		ServiceConfiguration = serviceConfiguration;
 		HttpClientFactory = httpClientFactory;
 	}
-	
+
 	private Network Network { get; }
 	private CoreNode? CoreNode { get; }
 	private Node? LocalBitcoinCoreNode { get; set; }
@@ -33,7 +33,7 @@ public class LocalBlockProvider : IBlockProvider
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		Block? rpcResult = null;
-		
+
 		if (CoreNode?.RpcClient is not null)
 		{
 			try
@@ -62,7 +62,7 @@ public class LocalBlockProvider : IBlockProvider
 			return null;
 		}
 	}
-	
+
 	private async Task<Block?> GetBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		try
