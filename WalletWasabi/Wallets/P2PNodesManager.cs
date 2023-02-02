@@ -8,7 +8,6 @@ namespace WalletWasabi.Wallets;
 
 public class P2PNodesManager
 {
-	
 	public P2PNodesManager(Network network, NodesGroup nodes, bool isTorEnabled)
 	{
 		Network = network;
