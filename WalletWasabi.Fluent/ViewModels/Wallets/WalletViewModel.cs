@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -26,13 +27,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletViewModel : RoutableViewModel, IComparable<WalletViewModel>
 {
+	private readonly NavBarWalletStateViewModel _parent;
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
 	[AutoNotify] private bool _isPointerOver;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isWalletBalanceZero;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isTransactionHistoryEmpty;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isSendButtonVisible;
 
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private bool _isLoading;
@@ -40,7 +47,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private bool _isCoinJoining;
 
-	 public WalletState WalletState => Wallet.State;
+	public WalletState WalletState => Wallet.State;
 
 	private string _title;
 
@@ -72,46 +79,52 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 	public override string ToString() => WalletName;
 
-	protected WalletViewModel(Wallet wallet)
+	protected WalletViewModel(NavBarWalletStateViewModel parent)
 	{
+		_parent = parent;
 
-		Wallet = wallet;
+		Wallet = parent.Wallet;
 	}
 
 	private bool _isInitialized;
 
-	public UiTriggers UiTriggers { get; private set;}
+	public UiTriggers UiTriggers { get; private set; }
 
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set;}
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
 
 	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
-	public IObservable<bool> IsMusicBoxVisible { get; }
 
-	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set;}
+	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
 
-	public WalletSettingsViewModel Settings { get; private set;}
+	public WalletSettingsViewModel Settings { get; private set; }
 
-	public ICommand SendCommand { get; private set;}
+	public ICommand SendCommand { get; private set; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
 
-	public ICommand ReceiveCommand { get; private set;}
+	public ICommand ReceiveCommand { get; private set; }
 
-	public ICommand WalletInfoCommand { get; private set;}
+	public ICommand WalletInfoCommand { get; private set; }
 
-	public ICommand WalletSettingsCommand { get; private set;}
+	public ICommand WalletSettingsCommand { get; private set; }
 
-	public ICommand WalletStatsCommand { get; private set;}
+	public ICommand WalletStatsCommand { get; private set; }
 
-	public ICommand WalletCoinsCommand { get;private set; }
+	public ICommand WalletCoinsCommand { get; private set; }
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
 
-	private CompositeDisposable Disposables { get;  set; }
+	private CompositeDisposable Disposables { get; set; }
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private HistoryViewModel _history;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private  IEnumerable<ActivatableViewModel>  _tiles;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private HistoryViewModel _history;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private IEnumerable<ActivatableViewModel> _tiles;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private IObservable<bool> _isMusicBoxVisible;
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
@@ -173,7 +186,8 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
 				args switch
 				{
-					CoinJoinStatusEventArgs e when e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase => true,
+					CoinJoinStatusEventArgs e when e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase =>
+						true,
 					CompletedEventArgs _ => false,
 					_ => null
 				};
@@ -191,20 +205,23 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 			.Subscribe(x => IsTransactionHistoryEmpty = x);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!Wallet.KeyManager.IsWatchOnly || Wallet.KeyManager.IsHardwareWallet));
+			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero &&
+			                                      (!Wallet.KeyManager.IsWatchOnly ||
+			                                       Wallet.KeyManager.IsHardwareWallet));
 
-		// IsMusicBoxVisible =
-		// 	this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
-		// 		.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-		// 		.Select(tuple =>
-		// 		{
-		// 			var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
-		// 			return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
-		// 		});
+		IsMusicBoxVisible =
+			this.WhenAnyValue(x => x._parent.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
+				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
+				.Select(tuple =>
+				{
+					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
+					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !Wallet.KeyManager.IsWatchOnly;
+				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(Wallet)));
+		ReceiveCommand =
+			ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -222,27 +239,30 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
-		WalletStatsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+		WalletStatsCommand =
+			ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
+		WalletCoinsCommand =
+			ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
+		CoinJoinSettingsCommand =
+			ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings),
+				Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
 
 		Tiles = GetTiles().ToList();
-
 	}
 
-	public static WalletViewModel Create(Wallet wallet)
+	public static WalletViewModel Create(NavBarWalletStateViewModel parent)
 	{
-		return wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletViewModel(wallet)
-			: wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(wallet)
-				: new WalletViewModel(wallet);
+		return parent.Wallet.KeyManager.IsHardwareWallet
+			? new HardwareWalletViewModel(parent)
+			: parent.Wallet.KeyManager.IsWatchOnly
+				? new WatchOnlyWalletViewModel(parent)
+				: new WalletViewModel(parent);
 	}
 
 	public override string Title

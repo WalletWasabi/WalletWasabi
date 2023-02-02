@@ -80,7 +80,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 					return;
 				}
 
-				if (TryGetWalletViewModel(wallet, out var walletViewModel) &&  walletViewModel?.WalletViewModel is WalletViewModel wvm)
+				if (TryGetWalletViewModel(wallet, out var walletViewModel) &&  walletViewModel?.WalletViewModel is { } wvm)
 				{
 					if (!e.IsOwnCoinJoin)
 					{
@@ -123,38 +123,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		throw new Exception("Wallet not found, invalid api usage");
 	}
-
-	// private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
-	// {
-	// 	IsLoadingWallet = true;
-	//
-	// 	closedWalletViewModel.StopLoading();
-	//
-	// 	RemoveWallet(closedWalletViewModel);
-	//
-	// 	var walletViewModelItem = OpenWallet(closedWalletViewModel.Wallet);
-	//
-	// 	if (closedWalletViewModel.IsSelected && walletViewModelItem.OpenCommand.CanExecute(default))
-	// 	{
-	// 		walletViewModelItem.OpenCommand.Execute(default);
-	// 	}
-	//
-	// 	IsLoadingWallet = false;
-	// }
-	//
-	// private WalletViewModel OpenWallet(Wallet wallet)
-	// {
-	// 	if (Wallets.Any(x => x.Title == wallet.WalletName))
-	// 	{
-	// 		throw new Exception("Wallet already opened.");
-	// 	}
-	//
-	// 	var walletViewModel = WalletViewModel.Create(wallet);
-	//
-	// 	InsertWallet(walletViewModel);
-	//
-	// 	return walletViewModel;
-	// }
 
 	private void InsertWallet(NavBarWalletStateViewModel wallet)
 	{

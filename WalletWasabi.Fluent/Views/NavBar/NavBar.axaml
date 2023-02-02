@@ -140,7 +140,10 @@
              SelectedItem="{Binding SelectedWallet}">
       <ListBox.DataTemplates>
         <DataTemplate DataType="vmw:NavBarWalletStateViewModel">
-          <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
+          <StackPanel>
+            <c:FadeOutTextBlock Classes="h9" Text="{Binding IsSelected, Mode=OneWay}" />
+            <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
+          </StackPanel>
         </DataTemplate>
       </ListBox.DataTemplates>
     </ListBox>

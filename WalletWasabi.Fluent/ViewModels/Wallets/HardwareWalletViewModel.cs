@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class HardwareWalletViewModel : WalletViewModel
 {
-	internal HardwareWalletViewModel(Wallet wallet) : base(wallet)
+	internal HardwareWalletViewModel(NavBarWalletStateViewModel parent) : base(parent)
 	{
 		BroadcastPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -18,8 +18,8 @@ public class HardwareWalletViewModel : WalletViewModel
 				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
 				if (path is { })
 				{
-					var txn = await TransactionHelpers.ParseTransactionAsync(path, wallet.Network);
-					Navigate(NavigationTarget.DialogScreen).To(new BroadcastTransactionViewModel(wallet.Network, txn));
+					var txn = await TransactionHelpers.ParseTransactionAsync(path, parent.Wallet.Network);
+					Navigate(NavigationTarget.DialogScreen).To(new BroadcastTransactionViewModel(parent.Wallet.Network, txn));
 				}
 			}
 			catch (Exception ex)

@@ -48,7 +48,8 @@ public partial class LoadingViewModel : RoutableViewModel
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
-			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
+			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true)
+				.ConfigureAwait(false))
 			.DisposeWith(disposables);
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer,
@@ -118,7 +119,7 @@ public partial class LoadingViewModel : RoutableViewModel
 		{
 			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_nbwsvm.Wallet));
 
-			_nbwsvm.WalletViewModel = WalletViewModel.Create(_nbwsvm.Wallet);
+			_nbwsvm.WalletViewModel = WalletViewModel.Create(_nbwsvm);
 			_nbwsvm.CurrentPage = _nbwsvm.WalletViewModel;
 		}
 		catch (OperationCanceledException ex)
