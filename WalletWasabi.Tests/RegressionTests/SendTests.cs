@@ -60,11 +60,7 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		var cache = new MemoryCache(new MemoryCacheOptions
-		{
-			SizeLimit = 1_000,
-			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-		});
+		using MemoryCache cache = CreateMemoryCache();
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
@@ -546,11 +542,7 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		var cache = new MemoryCache(new MemoryCacheOptions
-		{
-			SizeLimit = 1_000,
-			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-		});
+		using MemoryCache cache = CreateMemoryCache();
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
@@ -728,11 +720,7 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		var cache = new MemoryCache(new MemoryCacheOptions
-		{
-			SizeLimit = 1_000,
-			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-		});
+		using MemoryCache cache = CreateMemoryCache();
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
@@ -806,5 +794,14 @@ public class SendTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }
