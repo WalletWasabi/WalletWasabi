@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Cache;
@@ -17,16 +18,28 @@ public class SmartBlockProvider : IBlockProvider
 		SlidingExpiration = TimeSpan.FromSeconds(5)
 	};
 
+	[SuppressMessage("Style", "IDE0004:Remove Unnecessary Cast", Justification = "The cast is necessary to call the other constructor.")]
 	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, LocalBlockProvider localBlockProvider, P2pBlockProvider p2PBlockProvider, IMemoryCache cache)
+		: this(blockRepository, (IBlockProvider)localBlockProvider, (IBlockProvider)p2PBlockProvider, cache)
+	{
+	}
+
+	/// <summary>
+	/// For testing.
+	/// </summary>
+	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider localBlockProvider, IBlockProvider p2PBlockProvider, IMemoryCache cache)
 	{
 		BlockRepository = blockRepository;
-		P2PBlockProvider = p2PBlockProvider;
-		LocalBlockProvider = localBlockProvider;
+		P2PProvider = p2PBlockProvider;
+		LocalProvider = localBlockProvider;
 		Cache = new(cache);
 	}
 
-	private LocalBlockProvider LocalBlockProvider { get; }
-	private P2pBlockProvider P2PBlockProvider { get; }
+	/// <seealso cref="LocalBlockProvider"/>
+	private IBlockProvider LocalProvider { get; }
+
+	/// <seealso cref="P2pBlockProvider"/>
+	private IBlockProvider P2PProvider { get; }
 	private IdempotencyRequestCache Cache { get; }
 	private IRepository<uint256, Block> BlockRepository { get; }
 
@@ -68,8 +81,8 @@ public class SmartBlockProvider : IBlockProvider
 	/// <remarks>First ask the local block provider (which may or may not be set up) and use the P2P block provider as a fallback.</remarks>
 	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		return await LocalBlockProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
-			?? await P2PBlockProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		return await LocalProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
+			?? await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
