@@ -244,25 +244,23 @@ public class Global
 		{
 			if (Config.StartLocalBitcoinCoreOnStartup)
 			{
-				CoreNode coreNode = await CoreNode
-					.CreateAsync(
-						new CoreNodeParams(
-							Network,
-							BitcoinStore.MempoolService,
-							Config.LocalBitcoinCoreDataDir,
-							tryRestart: false,
-							tryDeleteDataDir: false,
-							EndPointStrategy.Default(Network, EndPointType.P2p),
-							EndPointStrategy.Default(Network, EndPointType.Rpc),
-							txIndex: null,
-							prune: null,
-							disableWallet: 1,
-							mempoolReplacement: "fee,optin",
-							userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
-							fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
-							Cache),
-						cancel)
-					.ConfigureAwait(false);
+				CoreNodeParams coreNodeParams = new(
+					Network,
+					BitcoinStore.MempoolService,
+					Config.LocalBitcoinCoreDataDir,
+					tryRestart: false,
+					tryDeleteDataDir: false,
+					EndPointStrategy.Default(Network, EndPointType.P2p),
+					EndPointStrategy.Default(Network, EndPointType.Rpc),
+					txIndex: null,
+					prune: null,
+					disableWallet: 1,
+					mempoolReplacement: "fee,optin",
+					userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+					fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
+					Cache);
+
+				CoreNode coreNode = await CoreNode.CreateAsync(coreNodeParams,cancel).ConfigureAwait(false);
 
 				RegisterLocalNodeDependentComponents(coreNode);
 				BitcoinCoreNode = coreNode;
