@@ -264,7 +264,7 @@ public class Global
 						cancel)
 					.ConfigureAwait(false);
 
-				RegisterLocalNodeDependantComponents(coreNode);
+				RegisterLocalNodeDependentComponents(coreNode);
 				BitcoinCoreNode = coreNode;
 			}
 		}
@@ -274,7 +274,7 @@ public class Global
 		}
 	}
 
-	private void RegisterLocalNodeDependantComponents(CoreNode coreNode)
+	private void RegisterLocalNodeDependentComponents(CoreNode coreNode)
 	{
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
