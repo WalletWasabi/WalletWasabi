@@ -25,15 +25,43 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public WalletManagerViewModel()
 	{
-		Observable.Return(Unit.Default)
+		// Observable.Return(Unit.Default)
+		// 	.Merge(
+		// 		Observable
+		// 			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+		// 			.Select(_ => Unit.Default))
+		// 	.ObserveOn(RxApp.MainThreadScheduler)
+		// 	.SelectMany(_ => Services.WalletManager.GetWallets())
+		// 	.ToObservableChangeSet(x => x)
+		// 	.TransformWithInlineUpdate(newWallet => new NavBarWalletStateViewModel(newWallet),
+		// 		(x, y) =>
+		// 	{
+		//
+		// 	})
+		// 	.AutoRefresh(x => x.IsLoggedIn)
+		// 	.Sort(SortExpressionComparer<NavBarWalletStateViewModel>.Descending(i => i.IsLoggedIn)
+		// 		.ThenByAscending(x => x.Title))
+		// 	.Bind(out _wallets)
+		// 	.Subscribe();
+
+		// SourceCache<NavBarWalletStateViewModel, string> _walletSourceCache = new (model => model.Title);
+
+		var walletsObservable = Observable.Return(Unit.Default)
 			.Merge(
 				Observable
 					.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
 					.Select(_ => Unit.Default))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.SelectMany(_ => Services.WalletManager.GetWallets())
-			.ToObservableChangeSet(x => x)
-			.TransformWithInlineUpdate(newModel => new NavBarWalletStateViewModel(newModel))
+			.SelectMany(_ => Services.WalletManager.GetWallets());
+
+		walletsObservable
+			.ToObservableChangeSet(x => x.WalletName) // Important to keep this key property so DynamicData knows.
+			.TransformWithInlineUpdate(newWallet => new NavBarWalletStateViewModel(newWallet),
+				(e, wallet) => e.Wallet = wallet)
+			.AutoRefresh(x => x.IsLoggedIn)
+			.Sort(SortExpressionComparer<NavBarWalletStateViewModel>
+				.Descending(i => i.IsLoggedIn)
+				.ThenByAscending(x => x.Title))
 			.Bind(out _wallets)
 			.Subscribe();
 

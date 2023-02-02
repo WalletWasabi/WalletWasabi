@@ -139,7 +139,6 @@
       <c:FadeOutTextBlock DockPanel.Dock="Bottom" Classes="h9" Text="{Binding SelectedWallet.Title}" />
       <ListBox Items="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
-               VirtualizationMode="None"
                SelectedItem="{Binding SelectedWallet}">
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:NavBarWalletStateViewModel">

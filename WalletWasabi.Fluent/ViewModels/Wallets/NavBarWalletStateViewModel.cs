@@ -8,9 +8,11 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class NavBarWalletStateViewModel : ViewModelBase, IEquatable<NavBarWalletStateViewModel>, IComparable<NavBarWalletStateViewModel>
+public partial class NavBarWalletStateViewModel : ViewModelBase,
+	IEquatable<NavBarWalletStateViewModel>,
+	IComparable<NavBarWalletStateViewModel>
 {
-	public Wallet Wallet { get; }
+	public Wallet Wallet { get; set; }
 
 	public string Title => Wallet.WalletName;
 
