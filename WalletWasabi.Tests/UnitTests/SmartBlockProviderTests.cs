@@ -60,19 +60,19 @@ public class SmartBlockProviderTests
 
 		Assert.NotSame(blocks[0], result[1]);
 	}
-}
 
-public class TestBlockProvider : IBlockProvider
-{
-	public TestBlockProvider(Dictionary<uint256, Block> blocks)
+	public class TestBlockProvider : IBlockProvider
 	{
-		Blocks = blocks;
-	}
+		public TestBlockProvider(Dictionary<uint256, Block> blocks)
+		{
+			Blocks = blocks;
+		}
 
-	private Dictionary<uint256, Block> Blocks { get; }
+		private Dictionary<uint256, Block> Blocks { get; }
 
-	public Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel)
-	{
-		return Task.FromResult<Block?>(Blocks[hash]);
+		public Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel)
+		{
+			return Task.FromResult<Block?>(Blocks[hash]);
+		}
 	}
 }

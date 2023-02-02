@@ -8,9 +8,6 @@ namespace WalletWasabi.Wallets;
 
 public class P2PNodesManager
 {
-	private Network Network { get; }
-	private NodesGroup Nodes { get; }
-	private bool IsTorEnabled { get; }
 	
 	public P2PNodesManager(Network network, NodesGroup nodes, bool isTorEnabled)
 	{
@@ -18,7 +15,10 @@ public class P2PNodesManager
 		Nodes = nodes;
 		IsTorEnabled = isTorEnabled;
 	}
-
+	
+	private Network Network { get; }
+	private NodesGroup Nodes { get; }
+	private bool IsTorEnabled { get; }
 	private int NodeTimeouts { get; set; }
 	
 	public void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
