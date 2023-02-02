@@ -3,7 +3,6 @@ using NBitcoin.Protocol;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -19,13 +18,13 @@ public class P2pBlockProvider : IBlockProvider
 		Network = network;
 		Nodes = nodes;
 		HttpClientFactory = httpClientFactory;
+		P2pNodesManager = new P2pNodesManager(network, Nodes, HttpClientFactory.IsTorEnabled);
 	}
 
 	private Network Network { get; }
 	private NodesGroup Nodes { get; }
 	private HttpClientFactory HttpClientFactory { get; }
-
-	private int NodeTimeouts { get; set; }
+	private P2pNodesManager P2pNodesManager { get; }
 
 	/// <summary>
 	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
@@ -60,11 +59,7 @@ public class P2pBlockProvider : IBlockProvider
 				// Download block from selected node.
 				try
 				{
-					// More permissive timeout if few nodes are connected to avoid exhaustion
-					var timeout = Nodes.ConnectedNodes.Count < 3
-						? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
-						: RuntimeParams.Instance.NetworkNodeTimeout;
-
+					var timeout = P2pNodesManager.GetCurrentTimeout();
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 					{
 						using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
@@ -74,25 +69,25 @@ public class P2pBlockProvider : IBlockProvider
 					// Validate block
 					if (!block.Check())
 					{
-						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
+						P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 						continue;
 					}
 
-					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+					P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
-					await NodeTimeoutsAsync(increaseDecrease: false).ConfigureAwait(false);
+					await P2pNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
-					await NodeTimeoutsAsync(increaseDecrease: true).ConfigureAwait(false);
+					await P2pNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 
-					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+					P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 					continue;
 				}
 				catch (Exception ex)
 				{
 					Logger.LogDebug(ex);
-					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+					P2pNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
 					continue;
 				}
 
@@ -105,66 +100,5 @@ public class P2pBlockProvider : IBlockProvider
 		}
 
 		return block;
-	}
-
-	private void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
-	{
-		if (Nodes.ConnectedNodes.Count > 3 || force)
-		{
-			Logger.LogInfo(logIfDisconnect);
-			node.DisconnectAsync(logIfDisconnect);
-		}
-	}
-
-	/// <summary>
-	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
-	/// </summary>
-	private async Task NodeTimeoutsAsync(bool increaseDecrease)
-	{
-		if (increaseDecrease)
-		{
-			NodeTimeouts++;
-		}
-		else
-		{
-			NodeTimeouts--;
-		}
-
-		var timeout = RuntimeParams.Instance.NetworkNodeTimeout;
-
-		// If it times out 2 times in a row then increase the timeout.
-		if (NodeTimeouts >= 2)
-		{
-			NodeTimeouts = 0;
-			timeout = (int)Math.Round(timeout * 1.5);
-		}
-		else if (NodeTimeouts <= -3) // If it does not time out 3 times in a row, lower the timeout.
-		{
-			NodeTimeouts = 0;
-			timeout = (int)Math.Round(timeout * 0.7);
-		}
-
-		// Sanity check
-		var minTimeout = Network == Network.Main ? 3 : 2;
-		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout * 1.5) : minTimeout;
-
-		if (timeout < minTimeout)
-		{
-			timeout = minTimeout;
-		}
-		else if (timeout > 600)
-		{
-			timeout = 600;
-		}
-
-		if (timeout == RuntimeParams.Instance.NetworkNodeTimeout)
-		{
-			return;
-		}
-
-		RuntimeParams.Instance.NetworkNodeTimeout = timeout;
-		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
-
-		Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 	}
 }
