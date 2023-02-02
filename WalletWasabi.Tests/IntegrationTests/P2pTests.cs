@@ -111,7 +111,7 @@ public class P2pTests
 		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
 		IBlockProvider blockProvider = new SmartBlockProvider(
 			blockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfig, network),
+			new LocalBlockProvider(network, serviceConfig, null, httpClientFactory),
 			new P2pBlockProvider(nodes, httpClientFactory, network),
 			cache);
 

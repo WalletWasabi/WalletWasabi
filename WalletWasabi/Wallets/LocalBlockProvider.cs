@@ -16,7 +16,7 @@ namespace WalletWasabi.Wallets;
 public class LocalBlockProvider : IBlockProvider
 {
 
-	public LocalBlockProvider(CoreNode? coreNode, HttpClientFactory httpClientFactory, ServiceConfiguration serviceConfiguration, Network network)
+	public LocalBlockProvider(Network network, ServiceConfiguration serviceConfiguration, CoreNode? coreNode, HttpClientFactory httpClientFactory)
 	{
 		CoreNode = coreNode;
 		Network = network;
@@ -144,6 +144,7 @@ public class LocalBlockProvider : IBlockProvider
 		}
 		return null;
 	}
+
 	private void DisconnectDisposeNullLocalBitcoinCoreNode()
 	{
 		if (LocalBitcoinCoreNode is { })

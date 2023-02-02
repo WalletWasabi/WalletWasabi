@@ -258,7 +258,7 @@ public class WalletTests
 
 		SmartBlockProvider blockProvider = new(
 			blockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
+			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
 			new P2pBlockProvider(nodes, httpClientFactory, network),
 			cache);
 

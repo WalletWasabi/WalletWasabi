@@ -64,7 +64,7 @@ public class SendTests
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
+			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
 			new P2pBlockProvider(nodes, httpClientFactory, network),
 			cache);
 
@@ -546,7 +546,7 @@ public class SendTests
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
+			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
 			new P2pBlockProvider(nodes, httpClientFactory, network),
 			cache);
 
@@ -724,7 +724,7 @@ public class SendTests
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			new LocalBlockProvider(null, httpClientFactory, serviceConfiguration, network),
+			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
 			new P2pBlockProvider(nodes, httpClientFactory, network),
 			cache);
 
