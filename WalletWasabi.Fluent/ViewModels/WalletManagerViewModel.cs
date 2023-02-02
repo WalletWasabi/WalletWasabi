@@ -20,7 +20,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 {
 	private readonly ReadOnlyObservableCollection<NavBarWalletStateViewModel> _wallets;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isLoadingWallet;
 
 	public WalletManagerViewModel()
 	{
@@ -31,27 +32,28 @@ public partial class WalletManagerViewModel : ViewModelBase
 					.Select(_ => Unit.Default))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SelectMany(_ => Services.WalletManager.GetWallets())
-			.Select(x => new NavBarWalletStateViewModel(x))
-			.Distinct(x=>x.Wallet)
-			.ToObservableChangeSet()
- 			.Bind(out _wallets)
+			.ToObservableChangeSet(x => x)
+			.TransformWithInlineUpdate(newModel => new NavBarWalletStateViewModel(newModel))
+			.Bind(out _wallets)
 			.Subscribe();
 
 		Observable
-			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
+			.FromEventPattern<ProcessedResult>(Services.WalletManager,
+				nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(async arg =>
 			{
 				var (sender, e) = arg;
 
 				if (Services.UiConfig.PrivacyMode ||
-					!e.IsNews ||
-					sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
+				    !e.IsNews ||
+				    sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 				{
 					return;
 				}
 
-				if (TryGetWalletViewModel(wallet, out var walletViewModel) &&  walletViewModel?.WalletViewModel is { } wvm)
+				if (TryGetWalletViewModel(wallet, out var walletViewModel) &&
+				    walletViewModel?.WalletViewModel is { } wvm)
 				{
 					if (!e.IsOwnCoinJoin)
 					{
@@ -66,7 +68,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 						});
 					}
 
-					if (walletViewModel.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
+					if (walletViewModel.IsSelected &&
+					    (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
 					{
 						await Task.Delay(200);
 						wvm.History.SelectTransaction(e.Transaction.GetHash());
@@ -93,7 +96,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 		throw new Exception("Wallet not found, invalid api usage");
 	}
 
-	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out NavBarWalletStateViewModel? walletViewModel)
+	private bool TryGetWalletViewModel(Wallet wallet,
+		[NotNullWhen(true)] out NavBarWalletStateViewModel? walletViewModel)
 	{
 		walletViewModel = Wallets.FirstOrDefault(x => x.Wallet == wallet);
 		return walletViewModel is { };
