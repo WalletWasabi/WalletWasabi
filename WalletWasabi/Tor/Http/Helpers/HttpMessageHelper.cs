@@ -480,16 +480,11 @@ public static class HttpMessageHelper
 		return null;
 	}
 
-	public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
+	public static void CopyHeaders(HttpHeaders headers, HttpHeaders destination)
 	{
-		if (!source.NotNullAndNotEmpty())
+		foreach ((string name, IEnumerable<string> values) in headers)
 		{
-			return;
-		}
-
-		foreach (var header in source)
-		{
-			destination.TryAddWithoutValidation(header.Key, header.Value);
+			destination.TryAddWithoutValidation(name, values);
 		}
 	}
 }
