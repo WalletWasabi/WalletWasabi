@@ -6,7 +6,7 @@ about: Request a Feature
 
 Ensure you are familiar with the project by reading the documentation and browsing through the already existing feature requests.
 Be prepared to provide additional information or clarification if requested.
-Be patient and understanding if the request is declined.
+Be patient and have understanding if the request is declined.
 
 ### Description
 
