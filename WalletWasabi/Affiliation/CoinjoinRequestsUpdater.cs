@@ -46,7 +46,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 			{
 				try
 				{
-					await Task.WhenAll(Clients.Select(x => UpdateCoinjoinRequestsAsync(finalizedRoundDataWithRoundId.RoundId, finalizedRoundDataWithRoundId.FinalizedRoundData, x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
+					UpdateCoinjoinRequestsAsync(finalizedRoundDataWithRoundId.RoundId, finalizedRoundDataWithRoundId.FinalizedRoundData, cancellationToken);
 				}
 				catch (Exception exception)
 				{
@@ -59,6 +59,15 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		}
 	}
 
+	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, CancellationToken cancellationToken)
+	{
+		if (!CoinjoinRequests.TryAdd(roundId, new ConcurrentDictionary<AffiliationFlag, byte[]>()))
+		{
+			throw new InvalidOperationException();
+		}
+		await Task.WhenAll(Clients.Select(x => UpdateCoinjoinRequestsAsync(roundId, finalizedRoundData, x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
+	}
+
 	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		try
@@ -66,11 +75,17 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 			Body body = finalizedRoundData.GetAffiliationData(affiliationFlag);
 			byte[] result = await GetCoinjoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
 
-			ConcurrentDictionary<AffiliationFlag, byte[]> coinjoinRequests = CoinjoinRequests.GetOrAdd(roundId, new ConcurrentDictionary<AffiliationFlag, byte[]>());
-
-			if (!coinjoinRequests.TryAdd(affiliationFlag, result))
+			if (CoinjoinRequests.TryGetValue(roundId, out ConcurrentDictionary<AffiliationFlag, byte[]> coinjoinRequests))
 			{
-				throw new InvalidOperationException("The coinjoin request is already set.");
+				if (!coinjoinRequests.TryAdd(affiliationFlag, result))
+				{
+					throw new InvalidOperationException("The coinjoin request is already set.");
+				}
+			}
+			else
+			{
+				// This can occur if the round is finished before coinjoin requests are updated.
+				Logging.Logger.LogInfo($"The round ({roundId}) does not exist.");
 			}
 		}
 		catch (Exception exception)
