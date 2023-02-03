@@ -42,7 +42,7 @@ public class AbandonedTasksTests
 		// One task should still be running.
 		Assert.False(waitAllTask.IsCompleted);
 
-		// Try to await but it should not finish before the cancellation so we will get OperationCanceledException.
+		// Try to await but it should not finish before the cancellation so we will get TimeoutException.
 		await Assert.ThrowsAsync<TimeoutException>(async () => await waitAllTask.WaitAsync(TimeSpan.FromMilliseconds(50)));
 
 		// Ok now cancel the last Task.

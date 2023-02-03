@@ -680,13 +680,13 @@ public class CoinJoinClient
 			.ToArray();
 
 		var privateCoins = filteredCoins
-			.Where(x => x.AnonymitySet >= anonScoreTarget)
+			.Where(x => x.IsPrivate(anonScoreTarget))
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= semiPrivateThreshold)
+			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.AnonymitySet < semiPrivateThreshold)
+			.Where(x => x.IsRedCoin(semiPrivateThreshold))
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
