@@ -21,4 +21,25 @@ public static class ApplicationHelper
 					.WhereNotNull())
 			.DistinctUntilChanged();
 	}
+
+	public static IObservable<bool> MainWindowActivated
+	{
+		get
+		{
+			if (MainWindow is not { } mainWindow)
+			{
+				return Observable.Return(true);
+			}
+
+			var activated = Observable
+				.FromEventPattern(mainWindow, nameof(Window.Activated))
+				.Select(_ => true);
+
+			var deactivated = Observable
+				.FromEventPattern(mainWindow, nameof(Window.Deactivated))
+				.Select(_ => false);
+
+			return activated.Merge(deactivated);
+		}
+	}
 }
