@@ -21,6 +21,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+
 namespace WalletWasabi.Tor.Socks5.Pool;
 
 /// <summary>
@@ -167,7 +168,8 @@ public class TorHttpPool : IAsyncDisposable
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
 
-					if (response.StatusCode == HttpStatusCode.Found)
+					// See https://github.com/dotnet/runtime/blob/47071da67320985a10f4b70f50f894ab411f4994/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/RedirectHandler.cs#L91-L96.
+					if (response.StatusCode is HttpStatusCode.Moved or HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect or HttpStatusCode.MultipleChoices or HttpStatusCode.PermanentRedirect)
 					{
 						if (!response.Headers.TryGetValues("location", out IEnumerable<string>? locations))
 						{
@@ -175,6 +177,24 @@ public class TorHttpPool : IAsyncDisposable
 						}
 
 						Uri newRequestUri = new(locations.Last());
+
+						// Ensure the redirect location is an absolute URI.
+						if (!newRequestUri.IsAbsoluteUri)
+						{
+							newRequestUri = new Uri(requestUriOverride, newRequestUri);
+						}
+
+						// Per https://tools.ietf.org/html/rfc7231#section-7.1.2, a redirect location without a
+						// fragment should inherit the fragment from the original URI.
+						string requestFragment = requestUriOverride.Fragment;
+						if (!string.IsNullOrEmpty(requestFragment))
+						{
+							string redirectFragment = newRequestUri.Fragment;
+							if (string.IsNullOrEmpty(redirectFragment))
+							{
+								newRequestUri = new UriBuilder(newRequestUri) { Fragment = requestFragment }.Uri;
+							}
+						}
 
 						string debugMessage = (locations.Count() > 1)
 							? $"Multiple 'location' headers found for '{requestUriOverride}'."
