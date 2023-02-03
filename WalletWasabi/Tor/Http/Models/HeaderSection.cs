@@ -19,6 +19,7 @@ public class HeaderSection
 	public override string ToString()
 	{
 		StringBuilder sb = new();
+
 		foreach (HeaderField field in Fields)
 		{
 			sb.Append(field.ToString(endWithCRLF: true));

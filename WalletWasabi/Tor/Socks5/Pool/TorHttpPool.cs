@@ -23,37 +23,6 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Tor.Socks5.Pool;
 
-public enum TcpConnectionState
-{
-	/// <summary><see cref="TorTcpConnection"/> is in use currently.</summary>
-	InUse,
-
-	/// <summary><see cref="TorTcpConnection"/> can be used for a new HTTP request.</summary>
-	FreeToUse,
-
-	/// <summary><see cref="TorTcpConnection"/> is to be disposed.</summary>
-	ToDispose
-}
-
-public record TorPrebuildCircuitRequest
-{
-	public TorPrebuildCircuitRequest(Uri baseUri, TimeSpan randomDelay)
-	{
-		BaseUri = baseUri;
-		RandomDelay = randomDelay;
-	}
-
-	public Uri BaseUri { get; }
-	public TimeSpan RandomDelay { get; }
-}
-
-/// <summary>Latest Tor stream state update.</summary>
-/// <remarks>
-/// Informs that a Tor stream (corresponds to our <see cref="TorTcpConnection"/>) is currently using
-/// the <paramref name="CircuitId">Tor circuit</paramref> and has a certain <paramref name="Status"/>.
-/// </remarks>
-public record TorStreamInfo(string CircuitId, StreamStatusFlag Status);
-
 /// <summary>
 /// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are
 /// stored in <see cref="TorTcpConnection"/>s.
