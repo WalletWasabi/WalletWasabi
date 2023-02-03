@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Collections.Immutable;
 using System.Collections.Generic;
-using System.Net.Http;
 using WalletWasabi.Affiliation.Models;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,21 +35,6 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 
 	private static async Task<bool> IsAffiliateServerRunningAsync(AffiliateServerHttpApiClient client, CancellationToken cancellationToken)
 	{
-		bool IsCatchableException(Exception exception)
-		{
-			return exception is HttpRequestException || exception is OperationCanceledException;
-		}
-
-		IEnumerable<Exception> UnfoldException(Exception exception)
-		{
-			if (exception is AggregateException)
-			{
-				return ((AggregateException)exception).InnerExceptions;
-			}
-
-			return new[] { exception };
-		}
-
 		try
 		{
 			StatusResponse result = await client.GetStatusAsync(new StatusRequest(), cancellationToken).ConfigureAwait(false);
@@ -58,15 +42,8 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		}
 		catch (Exception exception)
 		{
-			if (UnfoldException(exception).All(IsCatchableException))
-			{
-				Logging.Logger.LogError(exception);
-				return false;
-			}
-			else
-			{
-				throw exception;
-			}
+			Logging.Logger.LogError(exception);
+			return false;
 		}
 	}
 
