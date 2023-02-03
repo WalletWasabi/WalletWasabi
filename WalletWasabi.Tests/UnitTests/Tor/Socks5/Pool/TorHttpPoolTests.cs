@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
@@ -147,7 +146,7 @@ public class TorHttpPoolTests
 
 		Task sendTask = Task.Run(async () =>
 		{
-			Debug.WriteLine("[client] About send HTTP request.");
+			Debug.WriteLine("[client] About to send HTTP request.");
 			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, timeoutCts.Token).ConfigureAwait(false);
 			Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 			Debug.WriteLine("[client] Done sending HTTP request.");
@@ -204,14 +203,14 @@ public class TorHttpPoolTests
 
 		INamedCircuit circuit = DefaultCircuit.Instance;
 
-		// Set up handling for the first request (containing 'location' HTTP header).
+		// Set up server handling for the first HTTP request (containing 'location' HTTP header).
 		await using TransportStream transportStream1 = new($"{nameof(RedirectSupportAsync)}.1");
 		await transportStream1.ConnectAsync(timeoutCts.Token);
 		using StreamReader serverReader1 = new(transportStream1.Server);
 		using StreamWriter serverWriter1 = new(transportStream1.Server);
 		using TorTcpConnection connection1 = new(tcpClient: null!, transportStream1.Client, circuit, allowRecycling: true);
 
-		// Set up handling for the second request.
+		// Set up server handling for the second HTTP request (the final destination).
 		await using TransportStream transportStream2 = new($"{nameof(RedirectSupportAsync)}.2");
 		await transportStream2.ConnectAsync(timeoutCts.Token);
 		using StreamReader serverReader2 = new(transportStream2.Server);
@@ -228,13 +227,13 @@ public class TorHttpPoolTests
 
 		Task sendTask = Task.Run(async () =>
 		{
-			Debug.WriteLine("[client] About send HTTP request.");
+			Debug.WriteLine("[client] About to send HTTP request.");
 			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, timeoutCts.Token).ConfigureAwait(false);
 			Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 			Debug.WriteLine("[client] Done sending HTTP request.");
 		});
 
-		Debug.WriteLine("[server] Handle first request.");
+		Debug.WriteLine("[server] Handle the first request.");
 		{
 			// We expect to get this plaintext HTTP request headers from the client.
 			string[] expectedServerResponse1 = new[]
