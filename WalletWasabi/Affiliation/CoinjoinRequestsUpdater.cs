@@ -23,19 +23,15 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		Clients = clients;
 		Signer = signer;
 
-		CoinjoinRequests = new();
-		RoundData = new();
-		RoundsToUpdate = new();
-
 		AddHandlers();
 	}
 
 	private Arena Arena { get; }
 	private AffiliationMessageSigner Signer { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
-	private ConcurrentDictionary<uint256, ConcurrentDictionary<AffiliationFlag, byte[]>> CoinjoinRequests { get; }
-	private ConcurrentDictionary<uint256, RoundData> RoundData { get; }
-	private AsyncQueue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; }
+	private ConcurrentDictionary<uint256, ConcurrentDictionary<AffiliationFlag, byte[]>> CoinjoinRequests { get; } = new();
+	private ConcurrentDictionary<uint256, RoundData> RoundData { get; } = new();
+	private AsyncQueue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; } = new();
 
 	public ImmutableDictionary<string, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
 	{
