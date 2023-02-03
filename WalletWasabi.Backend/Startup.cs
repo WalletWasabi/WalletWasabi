@@ -117,8 +117,9 @@ public class Startup
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.CoinJoinFeeRateStatStore;
 		});
-		services.AddSingleton((Global global) =>
+		services.AddSingleton(serviceProvider =>
 		{
+			var global = serviceProvider.GetRequiredService<Global>();
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.AffiliationManager;
 		});
