@@ -14,16 +14,13 @@ public class RoundData
 	public RoundData(RoundParameters roundParameters)
 	{
 		RoundParameters = roundParameters;
-		OutpointCoinPairs = new();
-		OutpointAffiliationPairs = new();
-		OutpointFeeExemptionPairs = new();
 	}
 
 	private RoundParameters RoundParameters { get; }
 
-	private ConcurrentBag<Tuple<OutPoint, Coin>> OutpointCoinPairs { get; }
-	private ConcurrentBag<Tuple<OutPoint, AffiliationFlag>> OutpointAffiliationPairs { get; }
-	private ConcurrentBag<Tuple<OutPoint, bool>> OutpointFeeExemptionPairs { get; }
+	private ConcurrentBag<Tuple<OutPoint, Coin>> OutpointCoinPairs { get; } = new();
+	private ConcurrentBag<Tuple<OutPoint, AffiliationFlag>> OutpointAffiliationPairs { get; } = new();
+	private ConcurrentBag<Tuple<OutPoint, bool>> OutpointFeeExemptionPairs { get; } = new();
 
 	public void AddInputCoin(Coin coin)
 	{
