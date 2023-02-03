@@ -53,7 +53,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coins = CreateCoinsObservable(_walletVm.UiTriggers.TransactionsUpdateTrigger);
 
 		var coinChanges = coins
-			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
+			.ToObservableChangeSet(c => c.Outpoint.GetHashCode())
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
