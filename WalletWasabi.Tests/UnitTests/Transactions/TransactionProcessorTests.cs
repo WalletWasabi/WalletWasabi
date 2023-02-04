@@ -831,22 +831,22 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionWithDustForWalletAsync()
 	{
-		static void AssertCoin(ProcessedResult e, bool expectDust)
+		static void AssertCoin(ProcessedResult result, bool expectDust)
 		{
 			if (!expectDust)
 			{
-				Assert.Empty(e.ReceivedDusts);
-				Assert.NotEmpty(e.ReceivedCoins);
-				Assert.NotEmpty(e.NewlyReceivedCoins);
+				Assert.Empty(result.ReceivedDusts);
+				Assert.NotEmpty(result.ReceivedCoins);
+				Assert.NotEmpty(result.NewlyReceivedCoins);
 			}
 			else
 			{
-				Assert.NotEmpty(e.ReceivedDusts);
-				Assert.Empty(e.ReceivedCoins);
-				Assert.Empty(e.NewlyReceivedCoins);
+				Assert.NotEmpty(result.ReceivedDusts);
+				Assert.Empty(result.ReceivedCoins);
+				Assert.Empty(result.NewlyReceivedCoins);
 			}
-			Assert.True(e.IsNews);
-			Assert.Empty(e.NewlyConfirmedReceivedCoins);
+			Assert.True(result.IsNews);
+			Assert.Empty(result.NewlyConfirmedReceivedCoins);
 		}
 
 		await using var txStore = await CreateTransactionStoreAsync();
@@ -858,7 +858,7 @@ public class TransactionProcessorTests
 
 		// It is relevant even when all the coins can be dust.
 		AssertCoin(relevant, expectDust: false);
-		Assert.NotEmpty(transactionProcessor.Coins);
+		Assert.Single(transactionProcessor.Coins);
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -869,10 +869,10 @@ public class TransactionProcessorTests
 
 		var attackTx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
-		relevant = transactionProcessor.Process(attackTx);
+		var result = transactionProcessor.Process(attackTx);
 
 		// It is relevant even when all the coins can be dust.
-		AssertCoin(relevant, expectDust: true);
+		AssertCoin(result, expectDust: true);
 		Assert.Single(transactionProcessor.Coins); // the dust coin used is not added to the coin registry
 	}
 
