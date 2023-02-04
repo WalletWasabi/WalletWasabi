@@ -251,6 +251,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.PlebStopChanged, State.Playing)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
+			.Permit(Trigger.StartError, State.Playing)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
