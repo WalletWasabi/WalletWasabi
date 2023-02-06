@@ -28,7 +28,7 @@ public static class ApplicationHelper
 		{
 			if (MainWindow is not { } mainWindow)
 			{
-				return Observable.Return(true);
+				return Observable.Return(false);
 			}
 
 			var activated = Observable
