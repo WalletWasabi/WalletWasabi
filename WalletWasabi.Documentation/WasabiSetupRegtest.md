@@ -77,9 +77,11 @@ Linux: "/home/{your username}/.walletwasabi/backend"
   "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443"
 }
 ```
-6. Edit one line in `CcjRoundConfig.json` file. With this the Coordinator waits only 2 participants for CoinJoin.
+6. Edit some lines in `WabiSabiConfig.json`. For example, make the `InputRegistrationPhase` faster and allow rounds to have between 2 and 100 inputs:
 ```
-"AnonymitySet": 2,
+"StandardInputRegistrationTimeout": "0d 0h 2m 0s",
+"MaxInputCountByRound": 100,
+"MinInputCountByRoundMultiplier": 0.02,
 ```
 7. Start Bitcoin Knots in RegTest (command to run is explained above).
 8. Go to WalletWasabi folder

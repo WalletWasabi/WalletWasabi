@@ -98,9 +98,9 @@ public class WasabiJsonRpcService : IJsonRpcService
 			walletName = activeWallet.WalletName,
 			walletFile = km.FilePath,
 			State = activeWallet.State.ToString(),
-			extendedAccountPublicKey = km.ExtPubKey.ToString(Global.Network),
-			extendedAccountZpub = km.ExtPubKey.ToZpub(Global.Network),
-			accountKeyPath = $"m/{km.AccountKeyPath}",
+			extendedAccountPublicKey = km.SegwitExtPubKey.ToString(Global.Network),
+			extendedAccountZpub = km.SegwitExtPubKey.ToZpub(Global.Network),
+			accountKeyPath = $"m/{km.SegwitAccountKeyPath}",
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
@@ -115,8 +115,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdkey = activeWallet.KeyManager
-			.GenerateNewPersistentKey(new SmartLabel(label), KeyState.Clean, isInternal: false);
+		var hdkey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
+
 		return new
 		{
 			address = hdkey.GetP2wpkhAddress(Global.Network).ToString(),

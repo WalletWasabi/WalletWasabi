@@ -173,8 +173,8 @@ public class HwiKatas
 		// ColdCard doesn't support it.
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -253,8 +253,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -336,8 +336,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -419,8 +419,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);

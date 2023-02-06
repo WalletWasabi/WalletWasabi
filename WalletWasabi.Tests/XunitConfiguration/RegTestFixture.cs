@@ -60,7 +60,7 @@ public class RegTestFixture : IDisposable
 			.Build();
 		BackendEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
 		BackendEndPointUri = new Uri(BackendEndPoint);
-		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"/api/v{Constants.BackendMajorVersion}/");
+		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"api/v{Constants.BackendMajorVersion}/");
 
 		BackendHost = Host.CreateDefaultBuilder()
 				.ConfigureWebHostDefaults(webBuilder => webBuilder

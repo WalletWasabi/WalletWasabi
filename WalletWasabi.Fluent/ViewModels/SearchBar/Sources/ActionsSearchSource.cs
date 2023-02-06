@@ -15,7 +15,7 @@ public class ActionsSearchSource : ISearchSource
 	public ActionsSearchSource(IObservable<string> query)
 	{
 		var filter = query.Select(SearchSource.DefaultFilter);
-		
+
 		Changes = GetItemsFromMetadata()
 			.ToObservable()
 			.ToObservableChangeSet(x => x.Key)
@@ -23,7 +23,7 @@ public class ActionsSearchSource : ISearchSource
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
-	
+
 	private static IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{
 		return NavigationManager.MetaData

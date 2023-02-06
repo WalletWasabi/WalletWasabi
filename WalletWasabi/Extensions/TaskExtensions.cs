@@ -1,4 +1,7 @@
-namespace System.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace WalletWasabi.Extensions;
 
 /// <remarks>The class implements methods for backward compatibility.</remarks>
 public static class TaskExtensions

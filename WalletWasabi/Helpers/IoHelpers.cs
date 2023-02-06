@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace System.IO;
+namespace WalletWasabi.Helpers;
 
 public static class IoHelpers
 {

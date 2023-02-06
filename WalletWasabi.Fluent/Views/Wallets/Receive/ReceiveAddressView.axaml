@@ -30,11 +30,11 @@
                               ClickIcon="{StaticResource copy_confirmed}"
                               ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
-          <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38">
+          <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
             <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
           </c:PrivacyContentControl>
         </DockPanel>
-        <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalContentAlignment="Center">
+        <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
           <c:LabelsItemsPresenter Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>

@@ -4,14 +4,13 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public record CoinJoinResult(
-	bool GoForBlameRound,
-	bool SuccessfulBroadcast,
-	ImmutableList<SmartCoin> RegisteredCoins,
-	ImmutableList<Script> RegisteredOutputs)
-{
-	public CoinJoinResult(bool goForBlameRound) :
-		this(goForBlameRound, false, ImmutableList<SmartCoin>.Empty, ImmutableList<Script>.Empty)
-	{
-	}
-}
+public abstract record CoinJoinResult;
+
+public record SuccessfulCoinJoinResult(
+	ImmutableList<SmartCoin> Coins,
+	ImmutableList<Script> OutputScripts,
+	Transaction UnsignedCoinJoin) : CoinJoinResult;
+
+public record FailedCoinJoinResult : CoinJoinResult;
+
+public record DisruptedCoinJoinResult(ImmutableList<SmartCoin> SignedCoins) : CoinJoinResult; 

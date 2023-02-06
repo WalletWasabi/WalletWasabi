@@ -10,6 +10,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;

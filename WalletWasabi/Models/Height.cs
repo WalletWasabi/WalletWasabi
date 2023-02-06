@@ -2,7 +2,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models;
 
-public struct Height : IEquatable<Height>, IEquatable<int>, IComparable<Height>, IComparable<int>
+public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable<Height>, IComparable<int>
 {
 	public Height(uint height) : this((int)height)
 	{

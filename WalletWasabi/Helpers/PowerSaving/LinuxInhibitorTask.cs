@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
@@ -10,21 +9,12 @@ namespace WalletWasabi.Helpers.PowerSaving;
 /// <summary><c>systemd-inhibitor</c> API wrapper.</summary>
 /// <remarks>Only works on Linux machines that use systemd.</remarks>
 /// <seealso href="https://www.freedesktop.org/wiki/Software/systemd/inhibit/"/>
-public class LinuxInhibitorTask : IPowerSavingInhibitorTask
+public class LinuxInhibitorTask : BaseInhibitorTask
 {
-	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
-	private bool _isDone;
-
-	/// <remarks>Use the constructor only in tests.</remarks>
-	internal LinuxInhibitorTask(InhibitWhat what, TimeSpan period, string reason, ProcessAsync process)
+	private LinuxInhibitorTask(InhibitWhat what, TimeSpan period, string reason, ProcessAsync process)
+		: base(period, reason, process)
 	{
 		What = what;
-		BasePeriod = period;
-		Reason = reason;
-		Process = process;
-		Cts = new CancellationTokenSource(period);
-
-		_ = WaitAsync();
 	}
 
 	/// <summary>Linux GUI environments.</summary>
@@ -53,117 +43,7 @@ public class LinuxInhibitorTask : IPowerSavingInhibitorTask
 		All = Idle | Sleep | Shutdown
 	}
 
-	/// <remarks>Guards <see cref="_isDone"/>.</remarks>
-	private object StateLock { get; } = new();
-
 	public InhibitWhat What { get; }
-
-	/// <remarks>It holds: inhibitorEndTime = now + BasePeriod + ProlongInterval.</remarks>
-	public TimeSpan BasePeriod { get; }
-
-	/// <summary>Reason why the power saving is inhibited.</summary>
-	public string Reason { get; }
-	private ProcessAsync Process { get; }
-	private CancellationTokenSource Cts { get; }
-	private TaskCompletionSource StoppedTcs { get; } = new();
-
-	/// <inheritdoc/>
-	public bool IsDone
-	{
-		get
-		{
-			lock (StateLock)
-			{
-				return _isDone;
-			}
-		}
-	}
-
-	private async Task WaitAsync()
-	{
-		try
-		{
-			await Process.WaitForExitAsync(Cts.Token).ConfigureAwait(false);
-
-			// This should be hit only when somebody externally kills the systemd-inhibit process.
-			Logger.LogError("Linux inhibit process ended prematurely.");
-		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogTrace("Elapsed time limit for the inhibitor task to live.");
-		}
-		finally
-		{
-			if (!Process.HasExited)
-			{
-				// Process cannot stop on its own so we know it is actually running.
-				try
-				{
-					Process.Kill();
-					Logger.LogTrace("Inhibit task was killed.");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace($"Failed to kill the process. It might have finished already.", ex);
-				}
-			}
-
-			lock (StateLock)
-			{
-				Cts.Cancel();
-				Cts.Dispose();
-				_isDone = true;
-				StoppedTcs.SetResult();
-			}
-
-			Logger.LogTrace("Inhibit task is finished.");
-		}
-	}
-
-	/// <inheritdoc/>
-	public bool Prolong(TimeSpan period)
-	{
-		string logMessage = "N/A";
-
-		try
-		{
-			lock (StateLock)
-			{
-				if (!_isDone && !Cts.IsCancellationRequested)
-				{
-					// This does nothing when cancellation of CTS is already requested.
-					Cts.CancelAfter(period);
-					logMessage = $"Power saving task was prolonged to: {DateTime.UtcNow.Add(period)}";
-					return !Cts.IsCancellationRequested;
-				}
-
-				logMessage = "Power saving task is already finished.";
-				return false;
-			}
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-			return false;
-		}
-		finally
-		{
-			Logger.LogTrace(logMessage);
-		}
-	}
-
-	public Task StopAsync()
-	{
-		lock (StateLock)
-		{
-			if (!_isDone)
-			{
-				Cts.Cancel();
-			}
-		}
-
-		return StoppedTcs.Task;
-	}
 
 	public static Task<bool> IsSystemdInhibitSupportedAsync()
 	{
@@ -178,29 +58,6 @@ public class LinuxInhibitorTask : IPowerSavingInhibitorTask
 	public static Task<bool> IsMateSessionInhibitSupportedAsync()
 	{
 		return IsCommandSupportedAsync("mate-session-inhibit");
-	}
-
-	private static async Task<bool> IsCommandSupportedAsync(string command)
-	{
-		try
-		{
-			using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
-			ProcessStartInfo processStartInfo = GetProcessStartInfo(command, "--help");
-			Process process = System.Diagnostics.Process.Start(processStartInfo)!;
-
-			await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
-			bool success = process.ExitCode == 0;
-			Logger.LogDebug($"{command} is {(success ? "supported" : "NOT supported")}.");
-
-			return success;
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug($"Failed to find out whether {command} is supported or not.");
-			Logger.LogTrace(ex);
-		}
-
-		return false;
 	}
 
 	/// <remarks><paramref name="reason"/> cannot contain apostrophe characters.</remarks>
@@ -290,18 +147,5 @@ public class LinuxInhibitorTask : IPowerSavingInhibitorTask
 
 		string whatArgument = string.Join(':', whatList);
 		return whatArgument;
-	}
-
-	private static ProcessStartInfo GetProcessStartInfo(string command, string arguments)
-	{
-		return new()
-		{
-			FileName = command,
-			Arguments = arguments,
-			RedirectStandardOutput = true,
-			UseShellExecute = false,
-			CreateNoWindow = true,
-			WindowStyle = ProcessWindowStyle.Hidden
-		};
 	}
 }

@@ -53,6 +53,11 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
 			.Subscribe(_ => Save());
+
+		this.WhenAnyValue(x => x.StartLocalBitcoinCoreOnStartup)
+			.Skip(1)
+			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
+			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
 	}
 
 	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;

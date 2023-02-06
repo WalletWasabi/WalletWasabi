@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -77,27 +78,9 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 	/// </summary>
-	public static bool PossiblyP2WPKHInvolved(this Transaction me)
-	{
-		// We omit Guard, because it's performance critical in Wasabi.
-		// We start with the inputs, because, this check is faster.
-		// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
-		foreach (TxIn input in me.Inputs)
-		{
-			if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
-			{
-				return true;
-			}
-		}
-		foreach (TxOut output in me.Outputs)
-		{
-			if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+	public static bool SegWitInvolved(this Transaction me) =>
+		me.Inputs.Any(i => Script.IsNullOrEmpty(i.ScriptSig)) ||
+		me.Outputs.Any(o => o.ScriptPubKey.IsScriptType(ScriptType.Witness));
 
 	public static bool HasIndistinguishableOutputs(this Transaction me)
 	{
@@ -540,5 +523,43 @@ public static class NBitcoinExtensions
 		}
 
 		return null;
+	}
+
+	public static BitcoinSecret GetBitcoinSecret(this ExtKey hdKey, Network network, Script scriptPubKey)
+		=> GetBitcoinSecret(network, hdKey.PrivateKey, scriptPubKey);
+
+	public static BitcoinSecret GetBitcoinSecret(Network network, Key privateKey, Script scriptPubKey)
+	{
+		var derivedScriptPubKeyType = scriptPubKey switch
+		{
+			_ when scriptPubKey.IsScriptType(ScriptType.P2WPKH) => ScriptPubKeyType.Segwit,
+			_ when scriptPubKey.IsScriptType(ScriptType.Taproot) => ScriptPubKeyType.TaprootBIP86,
+			_ => throw new NotSupportedException("Not supported script type.")
+		};
+
+		if (privateKey.PubKey.GetScriptPubKey(derivedScriptPubKeyType) != scriptPubKey)
+		{
+			throw new InvalidOperationException("The key cannot generate the utxo scriptPubKey. This could happen if the wallet password is not the correct one.");
+		}
+
+		return privateKey.GetBitcoinSecret(network);
+	}
+
+	public static OwnershipProof GetOwnershipProof(Key masterKey, BitcoinSecret secret, Script scriptPubKey, CoinJoinInputCommitmentData commitmentData)
+	{
+		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
+		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019")
+			.DeriveChild("Ownership identification key").Key;
+
+		var signingKey = secret.PrivateKey;
+		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+			signingKey,
+			new OwnershipIdentifier(identificationKey, scriptPubKey),
+			commitmentData,
+			scriptPubKey.IsScriptType(ScriptType.P2WPKH)
+				? ScriptPubKeyType.Segwit
+				: ScriptPubKeyType.TaprootBIP86);
+
+		return ownershipProof;
 	}
 }

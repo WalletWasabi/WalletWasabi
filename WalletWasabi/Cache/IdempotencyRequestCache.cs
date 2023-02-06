@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Cache;
 
@@ -18,8 +19,6 @@ public class IdempotencyRequestCache
 	{
 		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
 	};
-
-	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
 
 	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
@@ -49,7 +48,7 @@ public class IdempotencyRequestCache
 		where TRequest : notnull
 	{
 		bool callAction = false;
-		TaskCompletionSource<TResponse> responseTcs;
+		TaskCompletionSource<TResponse>? responseTcs;
 
 		lock (ResponseCacheLock)
 		{
@@ -63,13 +62,10 @@ public class IdempotencyRequestCache
 
 		if (callAction)
 		{
-			using CancellationTokenSource timeoutCts = new(RequestTimeout);
 			try
 			{
-				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-				var result = await action(request, cancellationToken).WithAwaitCancellationAsync(linkedCts.Token).ConfigureAwait(false);
-				responseTcs.SetResult(result);
+				TResponse? result = await action(request, cancellationToken).WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
+				responseTcs!.SetResult(result);
 				return result;
 			}
 			catch (Exception e)
@@ -79,15 +75,13 @@ public class IdempotencyRequestCache
 					ResponseCache.Remove(request);
 				}
 
-				responseTcs.SetException(!timeoutCts.IsCancellationRequested
-					? e
-					: new InvalidOperationException("DeadLock prevention timeout kicked in!", e));
+				responseTcs!.SetException(e);
 
 				// The exception will be thrown below at 'await' to avoid unobserved exception.
 			}
 		}
 
-		return await responseTcs.Task.ConfigureAwait(false);
+		return await responseTcs!.Task.ConfigureAwait(false);
 	}
 
 	/// <remarks>

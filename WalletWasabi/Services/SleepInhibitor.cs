@@ -54,6 +54,10 @@ public class SleepInhibitor : PeriodicRunner
 
 			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
 		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(MacOsInhibitorTask.Create(Timeout, Reason));
+		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			// Windows 7 does not support the API we use.
@@ -91,26 +95,19 @@ public class SleepInhibitor : PeriodicRunner
 	{
 		IPowerSavingInhibitorTask? task = _powerSavingTask;
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		if (task is not null)
 		{
-			if (task is not null)
+			if (!task.Prolong(Timeout))
 			{
-				if (!task.Prolong(Timeout))
-				{
-					Logger.LogTrace("Failed to prolong the power saving task.");
-					task = null;
-				}
-			}
-
-			if (task is null)
-			{
-				Logger.LogTrace("Create new power saving prevention task.");
-				_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
+				Logger.LogTrace("Failed to prolong the power saving task.");
+				task = null;
 			}
 		}
-		else
+
+		if (task is null)
 		{
-			await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
+			Logger.LogTrace("Create new power saving prevention task.");
+			_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
 		}
 	}
 

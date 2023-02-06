@@ -7,10 +7,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+[NavigationMetaData(
+	Title = "Wallet Settings",
+	Caption = "Displays wallet settings",
+	IconName = "nav_wallet_24_regular",
+	Order = 2,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Settings", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
@@ -20,8 +28,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
-							 KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -44,8 +50,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
-
-	public override sealed string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
 }

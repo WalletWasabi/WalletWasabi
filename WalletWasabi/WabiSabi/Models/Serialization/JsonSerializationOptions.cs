@@ -31,6 +31,7 @@ public class JsonSerializationOptions
 				new CoinJoinEventJsonConverter(),
 			}
 	};
+
 	public static readonly JsonSerializationOptions Default = new();
 
 	private JsonSerializationOptions()

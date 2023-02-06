@@ -79,7 +79,7 @@ public static class NotificationHelpers
 				}
 				else if (incoming > Money.Zero)
 				{
-					message = $"{amountString} BTC received";
+					message = $"{amountString} BTC incoming";
 				}
 				else if (incoming < Money.Zero)
 				{
