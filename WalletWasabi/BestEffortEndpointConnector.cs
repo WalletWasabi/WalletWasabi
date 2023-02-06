@@ -82,7 +82,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 	// attempt using the original connector.
 	public class EffortState
 	{
-		private bool _allowAnyConnetionType;
+		private bool _allowAnyConnectionType;
 
 		public EffortState(long maxNonOnionConnectionCount)
 		{
@@ -95,15 +95,15 @@ public class BestEffortEndpointConnector : IEnpointConnector
 		{
 			get
 			{
-				var allowAnyConnetionType = ConnectedNodesCount <= MaxNonOnionConnectionCount;
+				var allowAnyConnectionType = ConnectedNodesCount <= MaxNonOnionConnectionCount;
 
-				if (_allowAnyConnetionType != allowAnyConnetionType)
+				if (_allowAnyConnectionType != allowAnyConnectionType)
 				{
-					_allowAnyConnetionType = allowAnyConnetionType;
+					_allowAnyConnectionType = allowAnyConnectionType;
 					Logger.LogDebug(ToString());
 				}
 
-				return !_allowAnyConnetionType;
+				return !_allowAnyConnectionType;
 			}
 		}
 
@@ -111,7 +111,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 
 		public override string ToString()
 		{
-			return $"Connections: {ConnectedNodesCount}, Currently allow only onions: {!_allowAnyConnetionType}.";
+			return $"Connections: {ConnectedNodesCount}, Currently allow only onions: {!_allowAnyConnectionType}.";
 		}
 	}
 }
