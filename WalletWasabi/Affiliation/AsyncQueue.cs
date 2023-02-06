@@ -19,7 +19,7 @@ public class AsyncQueue<T>
 
 	public async Task<T> DequeueAsync(CancellationToken cancellationToken)
 	{
-		return await _channel.Reader.ReadAsync(cancellationToken);
+		return await _channel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public IAsyncEnumerable<T> GetAsyncIterator(CancellationToken cancellationToken)
