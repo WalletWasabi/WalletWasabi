@@ -46,7 +46,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 			{
 				try
 				{
-					UpdateCoinjoinRequestsAsync(finalizedRoundDataWithRoundId.RoundId, finalizedRoundDataWithRoundId.FinalizedRoundData, cancellationToken);
+					await UpdateCoinjoinRequestsAsync(finalizedRoundDataWithRoundId.RoundId, finalizedRoundDataWithRoundId.FinalizedRoundData, cancellationToken).ConfigureAwait(false);
 				}
 				catch (Exception exception)
 				{
@@ -75,7 +75,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 			Body body = finalizedRoundData.GetAffiliationData(affiliationFlag);
 			byte[] result = await GetCoinjoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
 
-			if (CoinjoinRequests.TryGetValue(roundId, out ConcurrentDictionary<AffiliationFlag, byte[]> coinjoinRequests))
+			if (CoinjoinRequests.TryGetValue(roundId, out ConcurrentDictionary<AffiliationFlag, byte[]>? coinjoinRequests))
 			{
 				if (!coinjoinRequests.TryAdd(affiliationFlag, result))
 				{
