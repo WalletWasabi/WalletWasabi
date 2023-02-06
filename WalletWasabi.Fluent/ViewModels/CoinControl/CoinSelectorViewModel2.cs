@@ -1,38 +1,44 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
-public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
+public partial class CoinSelectorViewModel2 : ViewModelBase, IDisposable
 {
+	private readonly Wallet _wallet;
+	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
+	private readonly ObservableCollection<CoinControlItemViewModelBase> _source;
 
-	public CoinSelectorViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
+	public CoinSelectorViewModel2(WalletViewModel walletViewModel, IList<SmartCoin> initialCoinSelection)
 	{
-		var pockets = walletViewModel.Wallet.GetPockets();
-		var pocketItems = CreatePocketItems(pockets);
+		_wallet = walletViewModel.Wallet;
+		_source = new ObservableCollection<CoinControlItemViewModelBase>();
+		Refresh(_source, initialCoinSelection);
 
-		SyncSelectedItems(pocketItems, initialCoinSelection);
-		CollapseUnselectedPockets(pocketItems);
+		walletViewModel.UiTriggers.TransactionsUpdateTrigger
+			.Do(_ => Refresh())
+			.Subscribe()
+			.DisposeWith(_disposables);
 
-		TreeDataGridSource = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
+		TreeDataGridSource = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(_source)
 		{
 			Columns =
 			{
@@ -40,56 +46,37 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				IndicatorsColumn(),
 				AmountColumn(),
 				AnonymityScoreColumn(),
-				PocketColumn(),
+				PocketColumn()
 			}
 		};
 
-		var coins = GetAllCoinItems(pocketItems);
-
-		coins
-			.AsObservableChangeSet(x => x.SmartCoin)
-			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(100), scheduler: RxApp.MainThreadScheduler)
-			.ToCollection()
-			.Select(x => x.Where(m => m.IsSelected == true))
-			.Select(models => models.Select(x => x.SmartCoin).ToImmutableList())
-			.BindTo(this, model => model.SelectedCoins);
+		TreeDataGridSource.DisposeWith(_disposables);
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
 
 	public void Dispose()
 	{
-		foreach (var pocket in TreeDataGridSource.Items.OfType<PocketCoinControlItemViewModel>())
-		{
-			pocket.Dispose();
-		}
-
-		TreeDataGridSource.Dispose();
+		_disposables.Dispose();
+		Dispose(_source);
 	}
 
-	private static IList<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
+	private IList<SmartCoin> GetSelectedCoins()
 	{
-		return pockets
-			.SelectMany(x => x.Children)
-			.OfType<CoinCoinControlItemViewModel>()
+		return _source
+			.SelectMany(model => model.Children)
+			.Cast<CoinCoinControlItemViewModel>()
+			.Where(x => x.IsSelected == true)
+			.Select(x => x.SmartCoin)
 			.ToList();
 	}
 
-	private static void SyncSelectedItems(IEnumerable<PocketCoinControlItemViewModel> items, IEnumerable<SmartCoin> selectedCoins)
+	private void SyncSelectedItems(IList<SmartCoin> selectedCoins)
 	{
-		var allCoins = GetAllCoinItems(items);
-		var selected = allCoins.Where(x => selectedCoins.Any(other => other == x.SmartCoin));
-		foreach (var viewModel in selected)
+		var coinItems = _source.SelectMany(x => x.Children).Cast<CoinCoinControlItemViewModel>();
+		foreach (var coinItem in coinItems)
 		{
-			viewModel.IsSelected = true;
-		}
-	}
-
-	private static void CollapseUnselectedPockets(IReadOnlyCollection<PocketCoinControlItemViewModel> pocketItems)
-	{
-		foreach (var pocket in pocketItems.Where(x => x.IsSelected == false))
-		{
-			pocket.IsExpanded = false;
+			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
 		}
 	}
 
@@ -126,13 +113,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		}
 
 		return 0;
-	}
-
-	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreatePocketItems(IEnumerable<Pocket> pockets)
-	{
-		return pockets
-			.Select(pocket => new PocketCoinControlItemViewModel(pocket))
-			.ToList();
 	}
 
 	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
@@ -214,5 +194,36 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetLabelPriority),
 				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetLabelPriority)
 			});
+	}
+
+	private void Refresh()
+	{
+		Refresh(_source, GetSelectedCoins());
+	}
+
+	private void Refresh(IList<CoinControlItemViewModelBase> collection, IList<SmartCoin> selectedItems)
+	{
+		Populate(collection, _wallet);
+		SyncSelectedItems(selectedItems);
+	}
+
+	private static void Populate(IList<CoinControlItemViewModelBase> pocketItems, Wallet wallet)
+	{
+		var newItems = wallet
+			.GetPockets()
+			.Select(pocket => new PocketCoinControlItemViewModel(pocket));
+
+		Dispose(pocketItems);
+
+		pocketItems.Clear();
+		pocketItems.AddRange(newItems);
+	}
+
+	private static void Dispose(IEnumerable<CoinControlItemViewModelBase> items)
+	{
+		foreach (var pocket in items.OfType<PocketCoinControlItemViewModel>())
+		{
+			pocket.Dispose();
+		}
 	}
 }
