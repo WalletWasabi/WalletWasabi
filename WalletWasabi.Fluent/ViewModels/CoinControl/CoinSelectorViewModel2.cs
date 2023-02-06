@@ -32,6 +32,7 @@ public partial class CoinSelectorViewModel2 : ViewModelBase, IDisposable
 		_wallet = walletViewModel.Wallet;
 		_source = new ObservableCollection<CoinControlItemViewModelBase>();
 		Refresh(_source, initialCoinSelection);
+		CollapseUnselectedPockets();
 
 		walletViewModel.UiTriggers.TransactionsUpdateTrigger
 			.Do(_ => Refresh())
@@ -51,6 +52,14 @@ public partial class CoinSelectorViewModel2 : ViewModelBase, IDisposable
 		};
 
 		TreeDataGridSource.DisposeWith(_disposables);
+	}
+
+	private void CollapseUnselectedPockets()
+	{
+		foreach (var pocket in _source.Where(x => x.IsSelected == false))
+		{
+			pocket.IsExpanded = false;
+		}
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
