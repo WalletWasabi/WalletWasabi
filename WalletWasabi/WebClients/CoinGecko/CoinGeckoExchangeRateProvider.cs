@@ -16,7 +16,7 @@ public class CoinGeckoExchangeRateProvider : IExchangeRateProvider
 		{
 			BaseAddress = new Uri("https://api.coingecko.com")
 		};
-		using var response = await httpClient.GetAsync("/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", cancellationToken).ConfigureAwait(false);
+		using var response = await httpClient.GetAsync("api/v3/coins/markets?vs_currency=usd&ids=bitcoin", cancellationToken).ConfigureAwait(false);
 		using var content = response.Content;
 		var rates = await content.ReadAsJsonAsync<CoinGeckoExchangeRate[]>().ConfigureAwait(false);
 
