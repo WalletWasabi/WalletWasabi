@@ -26,7 +26,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		_walletViewModel = walletViewModel;
 		_transactionInfo = transactionInfo;
 
-		CoinSelector = new CoinSelectorViewModel2(walletViewModel, selectedCoins);
+		CoinSelector = new CoinSelectorViewModel(walletViewModel, selectedCoins);
 
 		var coinsChanged = CoinSelector.WhenAnyValue(x => x.SelectedCoins);
 
@@ -37,7 +37,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SetupCancel(false, true, false);
 	}
 
-	public CoinSelectorViewModel2 CoinSelector { get; }
+	public CoinSelectorViewModel CoinSelector { get; }
 
 	public IObservable<bool> EnoughSelected { get; }
 
