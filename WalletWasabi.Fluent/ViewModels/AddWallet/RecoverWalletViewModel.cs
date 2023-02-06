@@ -25,6 +25,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
+	[AutoNotify] private bool _isMnemonicsValid;
 
 	public RecoverWalletViewModel(string walletName)
 	{
@@ -35,6 +36,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			.Subscribe(x =>
 			{
 				CurrentMnemonics = x;
+				IsMnemonicsValid = x is { IsValidChecksum: true };
 				this.RaisePropertyChanged(nameof(Mnemonics));
 			});
 
@@ -42,63 +44,67 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommandCanExecute =
-			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Select(_ => IsMnemonicsValid);
-
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnNextAsync(walletName),
-			NextCommandCanExecute);
+			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnAdvancedRecoveryOptionsDialogAsync());
 	}
 
-	private async Task OnNextAsync(string? walletName)
+	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+
+	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
+
+	private int MinGapLimit { get; set; } = 114;
+
+	public ObservableCollection<string> Mnemonics { get; } = new();
+
+	private async Task OnNextAsync(string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", "Type the password of the wallet if there is one")
-			, NavigationTarget.CompactDialogScreen);
+			new CreatePasswordDialogViewModel("Add Password", "Type the password of the wallet if there is one"),
+			NavigationTarget.CompactDialogScreen);
 
-		if (dialogResult.Result is { } password)
+		if (dialogResult.Result is not { } password || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
 		{
-			IsBusy = true;
-
-			try
-			{
-				var keyManager = await Task.Run(
-					() =>
-					{
-						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-						   .walletFilePath;
-
-						var result = KeyManager.Recover(
-							CurrentMnemonics!,
-							password!,
-							Services.WalletManager.Network,
-							AccountKeyPath,
-							null,
-							"", // Make sure it is not saved into a file yet.
-							MinGapLimit);
-
-						result.AutoCoinJoin = true;
-
-						// Set the filepath but we will only write the file later when the Ui workflow is done.
-						result.SetFilePath(walletFilePath);
-
-						return result;
-					});
-
-				await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
-			}
-			catch (Exception ex)
-			{
-				// TODO navigate to error dialog.
-				Logger.LogError(ex);
-			}
-
-			IsBusy = false;
+			return;
 		}
+
+		IsBusy = true;
+
+		try
+		{
+			var keyManager = await Task.Run(() =>
+				{
+					var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+
+					var result = KeyManager.Recover(
+						currentMnemonics,
+						password,
+						Services.WalletManager.Network,
+						AccountKeyPath,
+						null,
+						"", // Make sure it is not saved into a file yet.
+						MinGapLimit);
+
+					result.AutoCoinJoin = true;
+
+					// Set the filepath but we will only write the file later when the Ui workflow is done.
+					result.SetFilePath(walletFilePath);
+
+					return result;
+				});
+
+			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync(Title, ex.Message, "Wasabi was unable to recover the wallet.");
+		}
+
+		IsBusy = false;
 	}
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
@@ -111,18 +117,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			MinGapLimit = minGapLimit;
 		}
 	}
-
-	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
-
-	public IObservable<bool> NextCommandCanExecute { get; }
-
-	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
-
-	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
-
-	private int MinGapLimit { get; set; } = 114;
-
-	public ObservableCollection<string> Mnemonics { get; } = new();
 
 	private void ValidateMnemonics(IValidationErrors errors)
 	{
