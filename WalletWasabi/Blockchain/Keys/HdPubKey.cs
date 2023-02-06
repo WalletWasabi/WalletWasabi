@@ -84,6 +84,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
+	
+	[JsonProperty(Order = 5)]
+	public int FirstUsedHeight { get; set; }
 
 	public Script P2pkScript { get; }
 	public Script P2pkhScript { get; }

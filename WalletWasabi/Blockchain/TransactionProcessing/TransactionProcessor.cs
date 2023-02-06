@@ -220,6 +220,10 @@ public class TransactionProcessor
 				}
 
 				KeyManager.SetKeyState(KeyState.Used, foundKey);
+				if (foundKey.FirstUsedHeight > tx.Height || foundKey.FirstUsedHeight == 0)
+				{
+					KeyManager.SetFirstSeenKeyHeight(tx.Height, foundKey);
+				}
 				var areWeSending = myInputs.Any();
 				if (output.Value <= DustThreshold && !areWeSending)
 				{

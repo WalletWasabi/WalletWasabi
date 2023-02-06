@@ -523,6 +523,10 @@ public class KeyManager
 			}
 		}
 	}
+	public void SetFirstSeenKeyHeight(int height, HdPubKey hdPubKey)
+	{
+		hdPubKey.FirstUsedHeight = height;
+	}
 
 	private HdPubKeyGenerator? GetHdPubKeyGenerator(bool isInternal, ScriptPubKeyType scriptPubKeyType) =>
 		(isInternal, scriptPubKeyType) switch

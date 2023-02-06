@@ -485,13 +485,81 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
+	private Dictionary<HdPubKey, byte[]> DEBUGPubKeyScriptBytesCleanKeys = new();
+
+	private void  DEBUGUpdatepubKeyScriptBytesCleanKeys(Height height)
+	{
+		// group by internal and script type
+		var taprootKeys = KeyManager.GetKeys().Where(x => x.IsInternal && x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86);
+		var segwitKeys = KeyManager.GetKeys().Where(x => x.IsInternal && x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit);
+		var result = new Dictionary<HdPubKey, byte[]>();
+		foreach (var sameScriptTypeKeys in new List<IEnumerable<HdPubKey>>(){taprootKeys, segwitKeys})
+		{
+			// Find the closest key to the current height without going over.
+			var referenceKey = sameScriptTypeKeys
+				.GroupBy(x => height - x.FirstUsedHeight)
+				.Where(x => x.Key >= 0)
+				.OrderBy(x => x.Key)
+				.First()
+				.OrderBy(x => Convert.ToInt32(x.FullKeyPath.ToString().Split('/').Last()))
+				.First();
+			
+			List<HdPubKey> toAddKeys;
+			// We have no information on this group, we need to test all keys.
+			if (referenceKey.FirstUsedHeight == 0)
+			{
+				toAddKeys = sameScriptTypeKeys.ToList();
+			}
+			else
+			{
+				var orderedListKeys = sameScriptTypeKeys.OrderBy(x => x.Index).ToList();
+				var referenceKeyIndex = orderedListKeys.IndexOf(referenceKey);
+				// Extract a range of 21 keys around the last used key for the height
+				toAddKeys = orderedListKeys.GetRange(Math.Max(0, referenceKeyIndex - 22), Math.Min(orderedListKeys.Count - 1, referenceKeyIndex + 22) - Math.Max(0, referenceKeyIndex - 22) + 1);
+			}
+
+			foreach (var hdPubKey in toAddKeys)
+			{
+				if (DEBUGPubKeyScriptBytesCleanKeys.TryGetValue(hdPubKey, out var cachedBytes))
+				{
+					result.Add(hdPubKey, cachedBytes);
+				}
+				else
+				{
+					result.Add(hdPubKey, hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes());
+				}
+			}
+			
+			//Logger.LogWarning($"Height: {height} - First Key: {toAddKeys.OrderBy(x => Convert.ToInt32(x.FullKeyPath.ToString().Split('/').Last())).First().FullKeyPath.ToString()} - Last Key: {toAddKeys.OrderBy(x => Convert.ToInt32(x.FullKeyPath.ToString().Split('/').Last())).Last().FullKeyPath.ToString()} - Reference: {referenceKey.FullKeyPath.ToString()} ({referenceKey.FirstUsedHeight})");
+		}
+
+		foreach (var extKey in KeyManager.GetKeys().Where(x => !x.IsInternal))
+		{
+			if (DEBUGPubKeyScriptBytesCleanKeys.TryGetValue(extKey, out var cachedBytes))
+			{
+				result.Add(extKey, cachedBytes);
+			}
+			else
+			{
+				result.Add(extKey, extKey.PubKey.GetScriptPubKey(extKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes());
+			}
+		}
+
+		DEBUGPubKeyScriptBytesCleanKeys = result;
+	}
+
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 	{
-		var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
+		
+		var height = new Height(filterModel.Header.Height);
+		if (DEBUGPubKeyScriptBytesCleanKeys.Count == 0)
+		{
+			DEBUGUpdatepubKeyScriptBytesCleanKeys(height);
+		}
+		var matchFound = filterModel.Filter.MatchAny(DEBUGPubKeyScriptBytesCleanKeys.Values, filterModel.FilterKey);
 		if (matchFound)
 		{
 			Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
-			var height = new Height(filterModel.Header.Height);
 
 			var txsToProcess = new List<SmartTransaction>();
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
@@ -504,6 +572,8 @@ public class Wallet : BackgroundService, IWallet
 			KeyManager.SetBestHeight(height);
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
+			
+			DEBUGUpdatepubKeyScriptBytesCleanKeys(height + 1);
 		}
 
 		LastProcessedFilter = filterModel;
