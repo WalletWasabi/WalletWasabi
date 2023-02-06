@@ -38,6 +38,11 @@ public static class CanonicalJsonSerializationOptions
 
 			foreach (JsonProperty property in properties)
 			{
+				if (property.PropertyName is null)
+				{
+					throw new JsonSerializationException("Property name is not set");
+				}
+
 				if (!IsValidPropertyName(property.PropertyName))
 				{
 					throw new JsonSerializationException("Object property contains an invalid character.");
