@@ -11,7 +11,7 @@ public class AffiliationMessageSignerTests
 	/// <summary>The method shows how to generate affiliation message signer key</summary>
 	public (string, string) GenerateKey()
 	{
-		var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+		using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
 		var privateKeyBytes = ecdsa.ExportECPrivateKey();
 		var publicKeyBytes = ecdsa.ExportSubjectPublicKeyInfo();
 		var privateKeyHex = Encoders.Hex.EncodeData(privateKeyBytes);
