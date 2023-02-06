@@ -579,6 +579,107 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
+	public void TransactionSizeExceptionFailingTest()
+	{
+		Money paymentAmount = Money.Coins(0.5m);
+
+		using Key key = new();
+
+		var coins = new[]
+		{
+			("", 0, 0.00118098m, true, 1),
+			("", 1, 0.02000000m, true, 1),
+			("", 2, 0.00008192m, true, 1),
+			("", 3, 0.00005000m, true, 2),
+			("", 4, 0.02000000m, true, 1),
+			("", 5, 0.02000000m, true, 1),
+			("", 6, 0.00531441m, true, 1),
+			("", 7, 0.02000000m, true, 1),
+			("", 8, 0.02000000m, true, 1),
+			("", 9, 0.02000000m, true, 1),
+			("", 10, 0.00531441m, true, 1),
+			("", 11, 0.02000000m, true, 1),
+			("", 12, 0.00006561m, true, 1),
+			("", 13, 0.00354294m, true, 1),
+			("", 14, 0.00020000m, true, 1),
+			("", 15, 0.00354294m, true, 1),
+			("", 16, 0.02097152m, true, 2),
+			("", 17, 0.00006561m, true, 1),
+			("", 18, 0.02097152m, true, 3),
+			("", 19, 0.00006561m, true, 1),
+			("", 20, 0.00006561m, true, 1),
+			("", 21, 0.04782969m, true, 5),
+			("", 22, 0.00005000m, true, 6),
+			("", 23, 0.00006561m, true, 1),
+			("", 24, 0.02097152m, true, 4),
+			("", 25, 0.02097152m, true, 5),
+			("", 26, 0.04782847m, true, 1),
+			("", 27, 0.00158637m, true, 1),
+			("", 28, 0.00100000m, true, 4),
+			("", 29, 0.00008192m, true, 1),
+			("", 30, 0.00006561m, true, 1),
+			("", 31, 0.02097152m, true, 1),
+			("", 32, 0.00006561m, true, 5),
+			("", 33, 0.00005000m, true, 2),
+			("", 34, 0.00354294m, true, 1),
+			("", 35, 0.00006561m, true, 4),
+			("", 36, 0.00065536m, true, 3),
+			("", 37, 0.00005000m, true, 2),
+			("", 38, 0.02000000m, true, 1),
+			("", 39, 0.00006561m, true, 1),
+			("", 40, 0.00006561m, true, 1),
+			("", 41, 0.00005000m, true, 1),
+			("", 42, 0.02097152m, true, 5),
+			("", 43, 0.02097152m, true, 3),
+			("", 44, 0.00065536m, true, 1),
+			("", 45, 0.02097152m, true, 1),
+			("", 46, 0.00006561m, true, 1),
+			("", 47, 0.00531441m, true, 1),
+			("", 48, 0.00006561m, true, 1),
+			("", 49, 0.02097152m, true, 5),
+			("", 50, 0.00013122m, true, 1),
+			("", 51, 0.00006561m, true, 1),
+			("", 52, 0.02000000m, true, 1),
+			("", 53, 0.02000000m, true, 1),
+			("", 54, 0.00050000m, true, 1),
+			("", 55, 0.00005648m, true, 1),
+			("", 56, 0.00020000m, true, 4),
+			("", 57, 0.00006561m, true, 1),
+			("", 58, 0.02097152m, true, 1),
+			("", 59, 0.02000000m, true, 1),
+			("", 60, 0.00006561m, true, 1),
+			("", 61, 0.02097152m, true, 5),
+			("", 62, 0.02000000m, true, 5),
+			("", 63, 0.00008192m, true, 1),
+			("", 64, 0.02097152m, true, 4),
+			("", 65, 0.00006561m, true, 1),
+			("", 66, 0.00005000m, true, 2),
+			("", 67, 0.04782969m, true, 5),
+			("", 68, 0.02000000m, true, 1),
+			("", 69, 0.00006019m, true, 2),
+			("", 70, 0.00006561m, true, 5),
+			("", 71, 0.02000000m, true, 5),
+			("", 72, 0.02097152m, true, 5),
+			("", 73, 0.02000000m, true, 1),
+			("", 74, 0.00006561m, true, 1),
+			("", 75, 0.00354294m, true, 1),
+			("", 76, 0.15804864m, true, 1),
+			("", 77, 0.02097152m, true, 2),
+			("", 78, 0.00006561m, true, 5),
+			("", 79, 0.00200000m, true, 2),
+			("", 80, 0.00005892m, true, 1),
+			("", 81, 0.00006292m, true, 1)
+		};
+
+		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(coins);
+
+		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
+		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
+
+		transactionFactory.BuildTransaction(payment, new FeeRate(7703m));
+	}
+
+	[Fact]
 	public void SelectLockTimeForTransaction()
 	{
 		var lockTimeZero = uint.MaxValue;
