@@ -67,7 +67,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		coinChanges.WhenPropertyChanged(x => x.IsExcludedFromCoinJoin, false)
-			.Subscribe(x => _walletVm.Wallet.UpdateExcludedCoinFromCoinJoin());
+			.Subscribe(_ => _walletVm.Wallet.UpdateExcludedCoinFromCoinJoin())
+			.DisposeWith(disposables);
 
 		coinChanges
 			.DisposeMany()
