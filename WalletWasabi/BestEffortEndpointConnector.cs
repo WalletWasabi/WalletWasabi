@@ -19,12 +19,15 @@ public class BestEffortEndpointConnector : IEnpointConnector
 	{
 	}
 
-	private BestEffortEndpointConnector(EffortState state)
+	private BestEffortEndpointConnector(EffortState state, NetworkCredential? networkCredential = null)
 	{
 		State = state;
+		NetworkCredential = networkCredential ?? GenerateCredentials();
 	}
 
 	public EffortState State { get; private set; }
+
+	private NetworkCredential NetworkCredential { get; }
 
 	public void UpdateConnectedNodesCounter(int connectedNodes)
 	{
@@ -33,7 +36,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 
 	public IEnpointConnector Clone()
 	{
-		return new BestEffortEndpointConnector(State);
+		return new BestEffortEndpointConnector(State, NetworkCredential);
 	}
 
 	public virtual async Task ConnectSocket(Socket socket, EndPoint endpoint, NodeConnectionParameters nodeConnectionParameters, CancellationToken cancellationToken)
@@ -65,7 +68,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 
 		if (useSocks)
 		{
-			await SocksHelper.Handshake(socket, endpoint, GenerateCredentials(), cancellationToken).ConfigureAwait(false);
+			await SocksHelper.Handshake(socket, endpoint, NetworkCredential, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
