@@ -53,7 +53,7 @@ public class RoundData
 			Logging.Logger.LogWarning($"Missing {name} for outpoint {Convert.ToHexString(outpoint.ToBytes())}.");
 		}
 
-		foreach (OutPoint outpoint in pairsOutpoints.Except((IEnumerable<OutPoint>)outpoints))
+		foreach (OutPoint outpoint in pairsOutpoints.Except(outpoints))
 		{
 			Logging.Logger.LogInfo($"Unnecessary {name} for outpoint {Convert.ToHexString(outpoint.ToBytes())}.");
 		}
