@@ -2,6 +2,10 @@ root = true
 
 [*.cs]
 
+# use hard tabs for indentation
+indent_style = tab
+indent_size = 4
+
 # Disable all .NET analyzers
 dotnet_analyzer_diagnostic.severity = none
 
