@@ -214,6 +214,13 @@ public class Config : ConfigBase
 		}
 	}
 
+	public override void LoadOrCreateDefaultFile()
+	{
+		base.LoadOrCreateDefaultFile();
+
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
+	}
+
 	/// <inheritdoc />
 	public override void LoadFile()
 	{
