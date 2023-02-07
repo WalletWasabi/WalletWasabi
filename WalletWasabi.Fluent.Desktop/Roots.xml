@@ -2,4 +2,5 @@
   <assembly fullname="WalletWasabi" preserve="All" />
   <assembly fullname="WalletWasabi.Fluent" preserve="All" />
   <assembly fullname="WalletWasabi.Fluent.Desktop" preserve="All" />
+  <assembly fullname="Avalonia.Themes.Fluent" preserve="All" />
 </linker>
