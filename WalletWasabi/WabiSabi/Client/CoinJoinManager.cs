@@ -107,7 +107,6 @@ public class CoinJoinManager : BackgroundService
 			var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
-				////closedWallet.Cancel();
 				NotifyMixableWalletUnloaded(closedWallet);
 				trackedWallets.Remove(closedWallet.WalletName);
 			}
