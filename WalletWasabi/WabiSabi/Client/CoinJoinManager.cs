@@ -481,18 +481,19 @@ public class CoinJoinManager : BackgroundService
 	private void NotifyMixableWalletLoaded(IWallet openedWallet) =>
 		StatusChanged.SafeInvoke(this, new LoadedEventArgs(openedWallet));
 
-	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
-		StatusChanged.SafeInvoke(
-			this,
-			new CompletedEventArgs(
-				finishedCoinJoin.Wallet,
-				finishedCoinJoin.CoinJoinTask.Status switch
-				{
-					TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result is SuccessfulCoinJoinResult => CompletionStatus.Success,
-					TaskStatus.Canceled => CompletionStatus.Canceled,
-					TaskStatus.Faulted => CompletionStatus.Failed,
-					_ => CompletionStatus.Unknown,
-				}));
+	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin)
+	{
+		CompletionStatus status = finishedCoinJoin.CoinJoinTask.Status switch
+		{
+			TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result is SuccessfulCoinJoinResult => CompletionStatus.Success,
+			TaskStatus.Canceled => CompletionStatus.Canceled,
+			TaskStatus.Faulted => CompletionStatus.Failed,
+			_ => CompletionStatus.Unknown
+		};
+
+		CompletedEventArgs e = new(finishedCoinJoin.Wallet, status);
+		StatusChanged.SafeInvoke(this, e);
+	}
 
 	private void NotifyCoinJoinStatusChanged(IWallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) =>
 		StatusChanged.SafeInvoke(
