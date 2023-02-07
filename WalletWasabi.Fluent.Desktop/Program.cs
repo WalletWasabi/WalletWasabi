@@ -35,6 +35,9 @@ public class Program
 	// yet and stuff might break.
 	public static int Main(string[] args)
 	{
+		var theme = typeof(Avalonia.Themes.Fluent.FluentTheme);
+		Console.WriteLine(theme.Name);
+
 		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.

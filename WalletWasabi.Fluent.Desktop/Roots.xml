@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="WalletWasabi" preserve="All" />
+  <assembly fullname="WalletWasabi.Fluent" preserve="All" />
+  <assembly fullname="WalletWasabi.Fluent.Desktop" preserve="All" />
+</linker>
