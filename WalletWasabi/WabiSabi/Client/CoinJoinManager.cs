@@ -31,6 +31,8 @@ public class CoinJoinManager : BackgroundService
 		CoordinatorIdentifier = coordinatorIdentifier;
 	}
 
+	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
+
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
 	public IWalletProvider WalletProvider { get; }
@@ -44,8 +46,6 @@ public class CoinJoinManager : BackgroundService
 	/// There is no thread-safe list so the Value of the item in the dictionary is a not used dummy value.
 	/// </summary>
 	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
-
-	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
 	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
 
