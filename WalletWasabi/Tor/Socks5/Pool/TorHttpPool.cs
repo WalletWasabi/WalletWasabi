@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -32,6 +33,8 @@ public class TorHttpPool : IAsyncDisposable
 	/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 	/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
 	public const int MaxConnectionsPerHost = 1000;
+
+	private static readonly StringWithQualityHeaderValue GzipEncoding = new("gzip");
 
 	private static readonly UnboundedChannelOptions Options = new()
 	{
@@ -146,7 +149,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				try
 				{
-					connection = await ObtainFreeConnectionAsync(request, namedCircuit, cancellationToken).ConfigureAwait(false);
+					connection = await ObtainFreeConnectionAsync(request.RequestUri!, namedCircuit, cancellationToken).ConfigureAwait(false);
 					connectionToDispose = connection;
 
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
@@ -267,12 +270,12 @@ public class TorHttpPool : IAsyncDisposable
 		throw new NotImplementedException("This should never happen.");
 	}
 
-	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
+	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken token)
 	{
-		Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
+		Logger.LogTrace($"> request='{requestUri}', circuit={circuit}");
 
 		DateTime start = DateTime.UtcNow;
-		string host = GetRequestHost(request.RequestUri!);
+		string host = GetRequestHost(requestUri);
 
 		do
 		{
@@ -285,7 +288,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				if (connection is not null)
 				{
-					Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
+					Logger.LogTrace($"[OLD {connection}]['{requestUri}'] Re-use existing Tor SOCKS5 connection.");
 					return connection;
 				}
 			}
@@ -314,7 +317,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				if (canBeAdded)
 				{
-					connection = await CreateNewConnectionAsync(request.RequestUri!, namedCircuit, token).ConfigureAwait(false);
+					connection = await CreateNewConnectionAsync(requestUri, namedCircuit, token).ConfigureAwait(false);
 
 					// Do not dispose.
 					oneOffCircuitToDispose = null;
@@ -322,7 +325,7 @@ public class TorHttpPool : IAsyncDisposable
 					if (connection is not null)
 					{
 						DateTime end = DateTime.UtcNow;
-						Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
+						Logger.LogTrace($"[NEW {connection}]['{requestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
 						return connection;
 					}
 				}
@@ -416,7 +419,12 @@ public class TorHttpPool : IAsyncDisposable
 		// other than those acting as tunnels) MUST send their own HTTP - version
 		// in forwarded messages.
 		request.Version = HttpProtocol.HTTP11.Version;
-		request.Headers.AcceptEncoding.Add(new("gzip"));
+
+		// Do not re-add the header if it is already present.
+		if (!request.Headers.AcceptEncoding.Contains(GzipEncoding))
+		{
+			request.Headers.AcceptEncoding.Add(GzipEncoding);
+		}
 
 		string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
 		byte[] bytes = Encoding.UTF8.GetBytes(requestString);
