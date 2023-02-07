@@ -29,4 +29,7 @@
   <assembly fullname="Avalonia.Xaml.Interactions" preserve="All" />
   <assembly fullname="Avalonia.Xaml.Interactivity" preserve="All" />
 
+  <assembly fullname="NBitcoin" preserve="All" />
+  <assembly fullname="NBitcoin.Secp256k1" preserve="All" />
+
 </linker>
