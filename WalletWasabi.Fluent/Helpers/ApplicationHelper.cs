@@ -12,16 +12,6 @@ public static class ApplicationHelper
 {
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
-	public static IObservable<string> ClipboardTextChanged(IScheduler? scheduler = default)
-	{
-		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
-			.SelectMany(
-				_ => Application.Current?.Clipboard?.GetTextAsync()
-					.ToObservable() ?? Observable.Return<string?>(null)
-					.WhereNotNull())
-			.DistinctUntilChanged();
-	}
-
 	public static IObservable<bool> MainWindowActivated
 	{
 		get
@@ -41,5 +31,15 @@ public static class ApplicationHelper
 
 			return activated.Merge(deactivated);
 		}
+	}
+
+	public static IObservable<string> ClipboardTextChanged(IScheduler? scheduler = default)
+	{
+		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
+			.SelectMany(
+				_ => Application.Current?.Clipboard?.GetTextAsync()
+					.ToObservable() ?? Observable.Return<string?>(null)
+					.WhereNotNull())
+			.DistinctUntilChanged();
 	}
 }
