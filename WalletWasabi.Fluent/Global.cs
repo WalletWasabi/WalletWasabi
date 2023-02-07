@@ -190,7 +190,8 @@ public class Global
 
 				var blockProvider = new SmartBlockProvider(
 					BitcoinStore.BlockRepository,
-					new LocalBlockProvider(Network, Config.ServiceConfiguration, BitcoinCoreNode, HttpClientFactory),
+					new RpcBlockProvider(BitcoinCoreNode),
+					new LocalBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory),
 					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory),
 					Cache);
 

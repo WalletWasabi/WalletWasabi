@@ -16,53 +16,19 @@ namespace WalletWasabi.Wallets;
 public class LocalBlockProvider : IBlockProvider
 {
 
-	public LocalBlockProvider(Network network, ServiceConfiguration serviceConfiguration, CoreNode? coreNode, HttpClientFactory httpClientFactory)
+	public LocalBlockProvider(Network network, ServiceConfiguration serviceConfiguration, HttpClientFactory httpClientFactory)
 	{
 		Network = network;
 		ServiceConfiguration = serviceConfiguration;
-		CoreNode = coreNode;
 		HttpClientFactory = httpClientFactory;
 	}
 
 	private Network Network { get; }
-	private CoreNode? CoreNode { get; }
 	private Node? LocalBitcoinCoreNode { get; set; }
 	private ServiceConfiguration ServiceConfiguration { get; }
 	private HttpClientFactory HttpClientFactory { get; }
 
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
-	{
-		Block? rpcResult = null;
-
-		if (CoreNode?.RpcClient is not null)
-		{
-			try
-			{
-				rpcResult = await GetBlockFromRpcAsync(hash, cancellationToken).ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-		}
-
-		return rpcResult ?? await GetBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
-	}
-
-	private async Task<Block?> GetBlockFromRpcAsync(uint256 hash, CancellationToken cancellationToken)
-	{
-		try
-		{
-			return await CoreNode!.RpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug(ex);
-			return null;
-		}
-	}
-
-	private async Task<Block?> GetBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		try
 		{

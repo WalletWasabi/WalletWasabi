@@ -19,21 +19,25 @@ public class SmartBlockProvider : IBlockProvider
 	};
 
 	[SuppressMessage("Style", "IDE0004:Remove Unnecessary Cast", Justification = "The cast is necessary to call the other constructor.")]
-	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, LocalBlockProvider localBlockProvider, P2PBlockProvider p2PBlockProvider, IMemoryCache cache)
-		: this(blockRepository, (IBlockProvider)localBlockProvider, (IBlockProvider)p2PBlockProvider, cache)
+	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, RpcBlockProvider rpcBlockProvider, LocalBlockProvider localBlockProvider, P2PBlockProvider p2PBlockProvider, IMemoryCache cache)
+		: this(blockRepository, (IBlockProvider)rpcBlockProvider, (IBlockProvider)localBlockProvider, (IBlockProvider)p2PBlockProvider, cache)
 	{
 	}
 
 	/// <summary>
 	/// For testing.
 	/// </summary>
-	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider localBlockProvider, IBlockProvider p2PBlockProvider, IMemoryCache cache)
+	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider rpcBlockProvider, IBlockProvider localBlockProvider, IBlockProvider p2PBlockProvider, IMemoryCache cache)
 	{
 		BlockRepository = blockRepository;
-		P2PProvider = p2PBlockProvider;
+		RpcProvider = localBlockProvider;
 		LocalProvider = localBlockProvider;
+		P2PProvider = p2PBlockProvider;
 		Cache = new(cache);
 	}
+	
+	/// <seealso cref="RpcProvider"/>
+	private IBlockProvider RpcProvider { get; }
 
 	/// <seealso cref="LocalBlockProvider"/>
 	private IBlockProvider LocalProvider { get; }
@@ -81,8 +85,9 @@ public class SmartBlockProvider : IBlockProvider
 	/// <remarks>First ask the local block provider (which may or may not be set up) and use the P2P block provider as a fallback.</remarks>
 	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		return await LocalProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
-			?? await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		return await RpcProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
+		       ?? await LocalProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
+		       ?? await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>

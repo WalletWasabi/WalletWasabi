@@ -256,9 +256,10 @@ public class WalletTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		SmartBlockProvider blockProvider = new(
-			blockRepository,
-			new LocalBlockProvider(network, serviceConfiguration, null, httpClientFactory),
+		SmartBlockProvider blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			new RpcBlockProvider(null),
+			new LocalBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 

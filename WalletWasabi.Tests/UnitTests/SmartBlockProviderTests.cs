@@ -26,6 +26,11 @@ public class SmartBlockProviderTests
 		_ = mockBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
+		// Rpc block provider returns nothing. Simulate that it's not enabled.
+		Mock<IBlockProvider> mockRpcBlockProvider = new(MockBehavior.Strict);
+		_ = mockRpcBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync((Block?)null);
+
 		// Local block provider returns nothing. Simulate that it's not enabled.
 		Mock<IBlockProvider> mockLocalBlockProvider = new(MockBehavior.Strict);
 		_ = mockLocalBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
@@ -43,6 +48,7 @@ public class SmartBlockProviderTests
 		using MemoryCache cache = new(new MemoryCacheOptions());
 		IBlockProvider smartBlockProvider = new SmartBlockProvider(
 			mockBlockRepository.Object,
+			rpcBlockProvider: mockRpcBlockProvider.Object,
 			localBlockProvider: mockLocalBlockProvider.Object,
 			p2PBlockProvider: p2PBlockProvider,
 			cache);
