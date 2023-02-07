@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -40,7 +41,7 @@ public class AmountDecomposer
 	public Money MinAllowedOutputAmount { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
-	public IOrderedEnumerable<Denomination> Denominations { get; }
+	public IOrderedEnumerable<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private Random Random { get; }
@@ -55,14 +56,14 @@ public class AmountDecomposer
 		return Random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
 	}
 
-	private IOrderedEnumerable<Denomination> CreateDenominations()
+	private IOrderedEnumerable<Output> CreateDenominations()
 	{
-		var denominations = new HashSet<Denomination>();
+		var denominations = new HashSet<Output>();
 
-		Denomination CreateDenom(double sats)
+		Output CreateDenom(double sats)
 		{
 			var scriptType = GetNextScriptType();
-			return new Denomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
+			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
 		}
 
 		// Powers of 2
@@ -176,7 +177,7 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x.EffectiveAmount);
 	}
 
-	public IEnumerable<Denomination> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
+	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
 	{
 		var histogram = GetDenominationFrequencies(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 
@@ -192,7 +193,7 @@ public class AmountDecomposer
 		// because in smaller denom levels larger users are expected to participate,
 		// but on larger denom levels there's little chance of finding each other.
 		var increment = 0.5 / preFilteredDenoms.Length;
-		List<Denomination> denoms = new();
+		List<Output> denoms = new();
 		var currentLength = preFilteredDenoms.Length;
 		foreach (var denom in preFilteredDenoms)
 		{
@@ -209,13 +210,13 @@ public class AmountDecomposer
 		var remaining = myInputSum;
 		var remainingVsize = AvailableVsize;
 
-		var setCandidates = new Dictionary<int, (IEnumerable<Denomination> Decomp, Money Cost)>();
+		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
 		// How many times can we participate with the same denomination.
 		var maxDenomUsage = Random.Next(2, 8);
 
 		// Create the most naive decomposition for starter.
-		List<Denomination> naiveSet = new();
+		List<Output> naiveSet = new();
 		bool end = false;
 		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
 		{
@@ -251,7 +252,7 @@ public class AmountDecomposer
 		var loss = 0UL;
 		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
-			naiveSet.Add(new Denomination(remaining, ChangeScriptType, FeeRate));
+			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
 		else
 		{
@@ -262,7 +263,7 @@ public class AmountDecomposer
 		// This can happen when smallest denom is larger than the input sum.
 		if (naiveSet.Count == 0)
 		{
-			naiveSet.Add(new Denomination(remaining, ChangeScriptType, FeeRate));
+			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
 
 		HashCode hash = new();
@@ -294,7 +295,7 @@ public class AmountDecomposer
 					stdDenoms).Select(Money.Satoshis).ToList();
 
 				// Translate back to denominations.
-				List<Denomination> finalDenoms = new();
+				List<Output> finalDenoms = new();
 				foreach (var outputPlusFee in currentSet)
 				{
 					finalDenoms.Add(denoms.First(d => d.EffectiveCost == outputPlusFee));
@@ -318,7 +319,7 @@ public class AmountDecomposer
 
 		var orderedCandidates = preCandidates
 			.OrderBy(x => x.Cost) // Less cost is better.
-			.ThenBy(x => x.Decomp.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+			.ThenBy(x => x.Decomposition.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
 			.Select(x => x).ToList();
 
 		// We want to introduce randomness between the best selections.
@@ -328,10 +329,10 @@ public class AmountDecomposer
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
-		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
-		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
+		var largestAmount = finalCandidates.Select(x => x.Decomposition.First()).ToHashSet().RandomElement();
+		var finalCandidate = finalCandidates.Where(x => x.Decomposition.First() == largestAmount).RandomElement().Decomposition;
 
-		var totalOutputAmount = finalCandidate.Sum(x => x.EffectiveCost);
+		var totalOutputAmount = Money.Satoshis(finalCandidate.Sum(x => x.EffectiveCost));
 		if (totalOutputAmount > myInputSum)
 		{
 			throw new InvalidOperationException("The decomposer is creating money. Aborting.");
@@ -350,12 +351,12 @@ public class AmountDecomposer
 	}
 
 	/// <returns>Pair of denomination and the number of times we found it in a breakdown.</returns>
-	private Dictionary<Denomination, long> GetDenominationFrequencies(IEnumerable<Money> inputEffectiveValues)
+	private Dictionary<Output, long> GetDenominationFrequencies(IEnumerable<Money> inputEffectiveValues)
 	{
 		var secondLargestInput = inputEffectiveValues.OrderByDescending(x => x).Skip(1).First();
 		var demonsForBreakDown = Denominations.Where(x => x.EffectiveCost <= (ulong)secondLargestInput.Satoshi);
 
-		Dictionary<Denomination, long> denomFrequencies = new();
+		Dictionary<Output, long> denomFrequencies = new();
 		foreach (var input in inputEffectiveValues)
 		{
 			var denominations = BreakDown(input, demonsForBreakDown);
@@ -375,11 +376,11 @@ public class AmountDecomposer
 	/// <summary>
 	/// Greedily decomposes an amount to the given denominations.
 	/// </summary>
-	private IEnumerable<Denomination> BreakDown(Money coininputEffectiveValue, IEnumerable<Denomination> denominations)
+	private IEnumerable<Output> BreakDown(Money coininputEffectiveValue, IEnumerable<Output> denominations)
 	{
 		var remaining = coininputEffectiveValue;
 
-		List<Denomination> denoms = new();
+		List<Output> denoms = new();
 
 		foreach (var denom in denominations)
 		{
@@ -397,27 +398,37 @@ public class AmountDecomposer
 
 		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
-			denoms.Add(new Denomination(remaining, ChangeScriptType, FeeRate));
+			denoms.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
 
 		return denoms;
 	}
 
-	public class Denomination
+	public class Output
 	{
-		public Denomination(Money amount, ScriptType scriptType, FeeRate feeRate)
+		public static Output FromDenomination(Money amount, ScriptType scriptType, FeeRate feeRate)
 		{
-			Amount = amount;
+			return new Output(amount, scriptType, feeRate, false);
+		}
+
+		public static Output FromAmount(Money amount, ScriptType scriptType, FeeRate feeRate)
+		{
+			return new Output(amount, scriptType, feeRate, true);
+		}
+
+		private Output(Money amount, ScriptType scriptType, FeeRate feeRate, bool isEffectiveCost)
+		{
 			ScriptType = scriptType;
 			Fee = feeRate.GetFee(scriptType.EstimateOutputVsize());
-			EffectiveAmount = Amount - Fee;
-			EffectiveCost = Amount + Fee;
+
+			// The value of amount is defined as the effective cost or a denomination amount.
+			Amount = isEffectiveCost ? amount - Fee : amount;
 		}
 
 		public Money Amount { get; }
 		public ScriptType ScriptType { get; }
-		public Money EffectiveAmount { get; }
-		public Money EffectiveCost { get; }
+		public Money EffectiveAmount => Amount - Fee;
+		public Money EffectiveCost => Amount + Fee;
 
 		public Money Fee { get; }
 	}
