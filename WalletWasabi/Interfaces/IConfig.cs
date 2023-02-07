@@ -14,11 +14,9 @@ public interface IConfig
 	/// <summary>Serialize the config if the file path of the config file is set, otherwise throw exception.</summary>
 	void ToFile();
 
-	/// <summary>Load or create the config if the file path of the config file is set, otherwise throw exception.</summary>
+	/// <summary>Load config from configuration file.</summary>
+	/// <param name="createDefaultFile"><c>true</c> if the config file should be created if it does not exist, <c>false</c> otherwise.</param>
 	void LoadFile(bool createDefaultFile = false);
-
-	/// <summary>Load config if the file path of the config file is set, otherwise throw exception.</summary>
-	void LoadFile();
 
 	bool AreDeepEqual(object otherConfig);
 
