@@ -23,7 +23,7 @@ public class ConfigWatcher : PeriodicRunner
 		if (Config.CheckFileChange())
 		{
 			cancel.ThrowIfCancellationRequested();
-			Config.LoadOrCreateDefaultFile(createDefaultFile: true);
+			Config.LoadFile(createDefaultFile: true);
 
 			ExecuteWhenChanged();
 		}

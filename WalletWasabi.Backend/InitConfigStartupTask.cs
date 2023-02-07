@@ -25,7 +25,7 @@ public class InitConfigStartupTask : IStartupTask
 
 		var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
 		var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-		roundConfig.LoadOrCreateDefaultFile(createDefaultFile: true);
+		roundConfig.LoadFile(createDefaultFile: true);
 		Logger.LogInfo("RoundConfig is successfully initialized.");
 
 		await Global.InitializeAsync(roundConfig, cancellationToken);
