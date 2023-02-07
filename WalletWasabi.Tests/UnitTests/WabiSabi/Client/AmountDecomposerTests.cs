@@ -28,22 +28,44 @@ public class AmountDecomposerTests
 	[InlineData(100, 0, 2)]
 	[InlineData(500, 0, 3)]
 	[InlineData(5000, 0, 8)]
-	public void DecompositionsInvariantTest(decimal feeRateDecimal, long minOutputAmount, int maxAvailableOutputs)
+	[InlineData(0, 0, 8, true)]
+	[InlineData(0, 0, 1, true)]
+	[InlineData(0, 0, 2, true)]
+	[InlineData(0, 0, 3, true)]
+	[InlineData(0, 1_000, 1, true)]
+	[InlineData(0, 100_000, 2, true)]
+	[InlineData(0, 1_000_000, 3, true)]
+	[InlineData(0, 10_000_000, 8, true)]
+	[InlineData(20, 0, 1, true)]
+	[InlineData(100, 0, 2, true)]
+	[InlineData(500, 0, 3, true)]
+	[InlineData(5000, 0, 8, true)]
+	public void DecompositionsInvariantTest(decimal feeRateDecimal, long minOutputAmount, int maxAvailableOutputs, bool isTaprootEnabled = false)
 	{
-		var availableVsize = maxAvailableOutputs * Constants.P2wpkhOutputVirtualSize;
+		var outputVirtualSize = isTaprootEnabled ? Constants.P2trOutputVirtualSize : Constants.P2wpkhOutputVirtualSize;
+		var availableVsize = maxAvailableOutputs * outputVirtualSize;
 		var feeRate = new FeeRate(feeRateDecimal);
-		var feePerOutput = feeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
+		var feePerOutput = feeRate.GetFee(outputVirtualSize);
 		var registeredCoinEffectiveValues = GenerateRandomCoins().Take(3).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var theirCoinEffectiveValues = GenerateRandomCoins().Take(30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 
-		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, availableVsize, false);
+		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, availableVsize, isTaprootEnabled, Random);
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
 		var totalEffectiveValue = registeredCoinEffectiveValues.Sum(x => x);
-		var totalEffectiveCost = outputValues.Count() * feePerOutput;
+		var totalEffectiveCost = outputValues.Sum(x => x.EffectiveCost);
 
-		Assert.InRange(outputValues.Count(), 1, maxAvailableOutputs);
+		if (!isTaprootEnabled)
+		{
+			Assert.InRange(outputValues.Count(), 1, maxAvailableOutputs);
+		}
+		else
+		{
+			// The number of outputs cannot be ensure bacause of random scriptype generation. Instead we verify the total.
+			Assert.InRange(outputValues.Sum(x => x.ScriptType.EstimateOutputVsize()), 1, availableVsize);
+		}
+
 		Assert.True(totalEffectiveValue - totalEffectiveCost - minOutputAmount <= outputValues.Sum(x => x.EffectiveCost));
 		Assert.All(outputValues, v => Assert.InRange(v.EffectiveCost.Satoshi, minOutputAmount, totalEffectiveValue));
 	}
