@@ -113,7 +113,7 @@ public class P2pTests
 			blockRepository,
 
 			new RpcBlockProvider(null),
-			new LocalBlockProvider(network, serviceConfig, httpClientFactory),
+			new SpecificNodeBlockProvider(network, serviceConfig, httpClientFactory),
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 

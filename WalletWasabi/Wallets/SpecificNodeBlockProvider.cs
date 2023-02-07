@@ -13,10 +13,11 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
-public class LocalBlockProvider : IBlockProvider
+public class SpecificNodeBlockProvider : IBlockProvider
 {
 
-	public LocalBlockProvider(Network network, ServiceConfiguration serviceConfiguration, HttpClientFactory httpClientFactory)
+	// This provider uses <Network>BitcoinP2pEndPoint from Config to provide blocks from a local or remote node.
+	public SpecificNodeBlockProvider(Network network, ServiceConfiguration serviceConfiguration, HttpClientFactory httpClientFactory)
 	{
 		Network = network;
 		ServiceConfiguration = serviceConfiguration;
@@ -24,17 +25,18 @@ public class LocalBlockProvider : IBlockProvider
 	}
 
 	private Network Network { get; }
-	private Node? LocalBitcoinCoreNode { get; set; }
+	private Node? SpecificBitcoinCoreNode { get; set; }
 	private ServiceConfiguration ServiceConfiguration { get; }
 	private HttpClientFactory HttpClientFactory { get; }
 
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
+		var specificNodeEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
 		try
 		{
-			if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
+			if (SpecificBitcoinCoreNode is null || (!SpecificBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
 			{
-				DisconnectDisposeNullLocalBitcoinCoreNode();
+				DisconnectDisposeNulSpecificBitcoinCoreNode();
 				using var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
 				var nodeConnectionParameters = new NodeConnectionParameters()
@@ -51,56 +53,55 @@ public class LocalBlockProvider : IBlockProvider
 					nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 				}
 
-				var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-				var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+				var node = await Node.ConnectAsync(Network, specificNodeEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				try
 				{
 					Logger.LogInfo("TCP Connection succeeded, handshaking...");
-					localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-					var peerServices = localNode.PeerVersion.Services;
+					node.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+					var peerServices = node.PeerVersion.Services;
 
 					Logger.LogInfo("Handshake completed successfully.");
 
-					if (!localNode.IsConnected)
+					if (!node.IsConnected)
 					{
-						throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+						throw new InvalidOperationException($"Wasabi could not complete the handshake with the node at {specificNodeEndPoint} and dropped the connection.{Environment.NewLine}" +
 							"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 					}
-					LocalBitcoinCoreNode = localNode;
+					SpecificBitcoinCoreNode = node;
 				}
 				catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
 				{
-					Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+					Logger.LogWarning($"Wasabi could not complete the handshake with the node at {specificNodeEndPoint}. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
 						"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
 					throw;
 				}
 			}
 
-			// Get block from local node.
-			Block blockFromLocalNode;
+			// Get block from specific node.
+			Block blockFromSpecificNode;
 			// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
 			{
-				blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
+				blockFromSpecificNode = await SpecificBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
 			}
 
 			// Validate retrieved block.
-			if (!blockFromLocalNode.Check())
+			if (!blockFromSpecificNode.Check())
 			{
 				throw new InvalidOperationException("Disconnected node, because invalid block received!");
 			}
 
-			// Retrieved block from local node and block is valid.
-			Logger.LogInfo($"Block acquired from local P2P connection: {hash}.");
-			return blockFromLocalNode;
+			// Retrieved block from specific node and block is valid.
+			Logger.LogInfo($"Block {hash} acquired from node at {specificNodeEndPoint}.");
+			return blockFromSpecificNode;
 		}
 		catch (Exception ex)
 		{
-			DisconnectDisposeNullLocalBitcoinCoreNode();
+			DisconnectDisposeNulSpecificBitcoinCoreNode();
 
 			if (ex is SocketException)
 			{
-				Logger.LogTrace("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
+				Logger.LogTrace($"Did not find a full node instance running and listening at {specificNodeEndPoint}");
 			}
 			else
 			{
@@ -110,13 +111,13 @@ public class LocalBlockProvider : IBlockProvider
 		return null;
 	}
 
-	private void DisconnectDisposeNullLocalBitcoinCoreNode()
+	private void DisconnectDisposeNulSpecificBitcoinCoreNode()
 	{
-		if (LocalBitcoinCoreNode is { })
+		if (SpecificBitcoinCoreNode is { })
 		{
 			try
 			{
-				LocalBitcoinCoreNode?.Disconnect();
+				SpecificBitcoinCoreNode?.Disconnect();
 			}
 			catch (Exception ex)
 			{
@@ -126,7 +127,7 @@ public class LocalBlockProvider : IBlockProvider
 			{
 				try
 				{
-					LocalBitcoinCoreNode?.Dispose();
+					SpecificBitcoinCoreNode?.Dispose();
 				}
 				catch (Exception ex)
 				{
@@ -134,8 +135,8 @@ public class LocalBlockProvider : IBlockProvider
 				}
 				finally
 				{
-					LocalBitcoinCoreNode = null;
-					Logger.LogInfo($"Local {Constants.BuiltinBitcoinNodeName} node disconnected.");
+					SpecificBitcoinCoreNode = null;
+					Logger.LogInfo($"Node specified in config was disconnected.");
 				}
 			}
 		}

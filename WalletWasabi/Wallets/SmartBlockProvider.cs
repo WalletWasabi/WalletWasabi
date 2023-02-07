@@ -19,8 +19,8 @@ public class SmartBlockProvider : IBlockProvider
 	};
 
 	[SuppressMessage("Style", "IDE0004:Remove Unnecessary Cast", Justification = "The cast is necessary to call the other constructor.")]
-	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, RpcBlockProvider rpcBlockProvider, LocalBlockProvider localBlockProvider, P2PBlockProvider p2PBlockProvider, IMemoryCache cache)
-		: this(blockRepository, (IBlockProvider)rpcBlockProvider, (IBlockProvider)localBlockProvider, (IBlockProvider)p2PBlockProvider, cache)
+	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, RpcBlockProvider rpcBlockProvider, SpecificNodeBlockProvider specificNodeBlockProvider, P2PBlockProvider p2PBlockProvider, IMemoryCache cache)
+		: this(blockRepository, (IBlockProvider)rpcBlockProvider, (IBlockProvider)specificNodeBlockProvider, (IBlockProvider)p2PBlockProvider, cache)
 	{
 	}
 
@@ -39,7 +39,7 @@ public class SmartBlockProvider : IBlockProvider
 	/// <seealso cref="RpcProvider"/>
 	private IBlockProvider RpcProvider { get; }
 
-	/// <seealso cref="LocalBlockProvider"/>
+	/// <seealso cref="SpecificNodeBlockProvider"/>
 	private IBlockProvider LocalProvider { get; }
 
 	/// <seealso cref="P2PBlockProvider"/>
