@@ -15,8 +15,8 @@ public interface IConfig
 	void ToFile();
 
 	/// <summary>Load config from configuration file.</summary>
-	/// <param name="createDefaultFile"><c>true</c> if the config file should be created if it does not exist, <c>false</c> otherwise.</param>
-	void LoadFile(bool createDefaultFile = false);
+	/// <param name="createIfMissing"><c>true</c> if the config file should be created if it does not exist, <c>false</c> otherwise.</param>
+	void LoadFile(bool createIfMissing = false);
 
 	bool AreDeepEqual(object otherConfig);
 

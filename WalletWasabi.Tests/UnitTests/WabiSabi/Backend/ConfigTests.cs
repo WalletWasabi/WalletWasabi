@@ -48,7 +48,7 @@ public class ConfigTests
 		// Change the file.
 		var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 		WabiSabiConfig configChanger = new(configPath);
-		configChanger.LoadFile(createDefaultFile: true);
+		configChanger.LoadFile(createIfMissing: true);
 		var newTarget = 729u;
 		configChanger.ConfirmationTarget = newTarget;
 		Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
@@ -98,7 +98,7 @@ public class ConfigTests
 	public void LoadConfigFile()
 	{
 		WabiSabiConfig configChanger = new("./conf.txt");
-		configChanger.LoadFile(createDefaultFile: true);
+		configChanger.LoadFile(createIfMissing: true);
 		configChanger.LoadFile();
 	}
 
@@ -114,7 +114,7 @@ public class ConfigTests
 
 		var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 		WabiSabiConfig configChanger = new(configPath);
-		configChanger.LoadFile(createDefaultFile: true);
+		configChanger.LoadFile(createIfMissing: true);
 		var newTarget = 729u;
 		configChanger.ConfirmationTarget = newTarget;
 		Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);

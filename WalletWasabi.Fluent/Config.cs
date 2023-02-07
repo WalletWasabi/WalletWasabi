@@ -214,9 +214,10 @@ public class Config : ConfigBase
 		}
 	}
 
-	public override void LoadFile(bool createDefaultFile = false)
+	/// <inheritdoc/>
+	public override void LoadFile(bool createIfMissing = false)
 	{
-		base.LoadFile(createDefaultFile);
+		base.LoadFile(createIfMissing);
 
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}

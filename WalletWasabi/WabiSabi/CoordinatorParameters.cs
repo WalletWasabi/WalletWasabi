@@ -13,7 +13,7 @@ public class CoordinatorParameters
 
 		var runtimeConfigurationFilePath = Path.Combine(ApplicationDataDir, "WabiSabiConfig.json");
 		RuntimeCoordinatorConfig = new(runtimeConfigurationFilePath);
-		RuntimeCoordinatorConfig.LoadFile(createDefaultFile: true);
+		RuntimeCoordinatorConfig.LoadFile(createIfMissing: true);
 	}
 
 	/// <summary>

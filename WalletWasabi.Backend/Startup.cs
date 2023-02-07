@@ -77,7 +77,7 @@ public class Startup
 		{
 			string configFilePath = Path.Combine(dataDir, "Config.json");
 			Config config = new(configFilePath);
-			config.LoadFile(createDefaultFile: true);
+			config.LoadFile(createIfMissing: true);
 			return config;
 		});
 
