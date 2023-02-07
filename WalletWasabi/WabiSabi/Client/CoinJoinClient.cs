@@ -529,8 +529,8 @@ public class CoinJoinClient
 					x => x.ScriptPubKey,
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
-				.All(x => x >= 0);
-
+				.All(x => x >= 0L);
+		
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 

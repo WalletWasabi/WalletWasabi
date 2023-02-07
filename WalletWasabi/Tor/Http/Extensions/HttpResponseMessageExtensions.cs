@@ -52,10 +52,12 @@ public static class HttpResponseMessageExtensions
 		response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 		HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
+
 		if (response.Content is { })
 		{
 			HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 		}
+
 		return response;
 	}
 
