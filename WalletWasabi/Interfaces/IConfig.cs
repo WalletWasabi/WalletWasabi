@@ -15,7 +15,7 @@ public interface IConfig
 	void ToFile();
 
 	/// <summary>Load or create the config if the file path of the config file is set, otherwise throw exception.</summary>
-	void LoadOrCreateDefaultFile();
+	void LoadOrCreateDefaultFile(bool createDefaultFile = false);
 
 	/// <summary>Load config if the file path of the config file is set, otherwise throw exception.</summary>
 	void LoadFile();

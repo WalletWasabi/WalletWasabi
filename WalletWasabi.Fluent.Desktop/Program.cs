@@ -183,10 +183,10 @@ public class Program
 		Directory.CreateDirectory(dataDir);
 
 		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadOrCreateDefaultFile();
+		uiConfig.LoadOrCreateDefaultFile(createDefaultFile: true);
 
 		Config config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadOrCreateDefaultFile();
+		config.LoadOrCreateDefaultFile(createDefaultFile: true);
 
 		return (uiConfig, config);
 	}

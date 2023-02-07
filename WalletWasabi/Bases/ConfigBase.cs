@@ -59,7 +59,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	}
 
 	/// <inheritdoc />
-	public virtual void LoadOrCreateDefaultFile()
+	public virtual void LoadOrCreateDefaultFile(bool createDefaultFile = false)
 	{
 		AssertFilePathSet();
 

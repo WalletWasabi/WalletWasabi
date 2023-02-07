@@ -61,7 +61,7 @@ public class StartWasabiOnSystemStartupTests
 	{
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadOrCreateDefaultFile();
+		uiConfig.LoadOrCreateDefaultFile(createDefaultFile: true);
 
 		return uiConfig;
 	}
