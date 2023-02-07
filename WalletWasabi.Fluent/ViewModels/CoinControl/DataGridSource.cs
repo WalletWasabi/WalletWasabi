@@ -130,7 +130,7 @@ public static class DataGridSource
 			});
 	}
 
-	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> CreateSource(IEnumerable<CoinControlItemViewModelBase> source)
+	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Create(IEnumerable<CoinControlItemViewModelBase> source)
 	{
 		return new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(source)
 		{

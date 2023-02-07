@@ -63,7 +63,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.BindTo(this, x => x.SelectedCoins)
 			.DisposeWith(_disposables);
 
-		TreeDataGridSource = DataGridSource.CreateSource(_itemsCollection);
+		TreeDataGridSource = DataGridSource.Create(_itemsCollection);
 
 		TreeDataGridSource.DisposeWith(_disposables);
 
