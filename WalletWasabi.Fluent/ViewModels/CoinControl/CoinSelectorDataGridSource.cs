@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
@@ -12,7 +11,7 @@ using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
-public static class DataGridSource
+public static class CoinSelectorDataGridSource
 {
 	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
