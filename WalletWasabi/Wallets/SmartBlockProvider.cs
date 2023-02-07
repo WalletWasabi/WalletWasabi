@@ -14,7 +14,7 @@ public class SmartBlockProvider : IBlockProvider
 {
 	private static MemoryCacheEntryOptions CacheOptions = new()
 	{
-		Size = 1000,
+		Size = 10, // Unit size of an item (CacheSize/Size = number of possible items in cache)
 		SlidingExpiration = TimeSpan.FromSeconds(5)
 	};
 
