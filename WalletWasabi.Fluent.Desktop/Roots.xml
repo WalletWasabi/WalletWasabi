@@ -32,4 +32,8 @@
   <assembly fullname="NBitcoin" preserve="All" />
   <assembly fullname="NBitcoin.Secp256k1" preserve="All" />
 
+  <assembly fullname="Newtonsoft.Json" preserve="All" />
+
+  <assembly fullname="System.Collections.Immutable" preserve="All" />
+
 </linker>
