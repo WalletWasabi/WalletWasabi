@@ -4,4 +4,5 @@
   <assembly fullname="WalletWasabi.Fluent.Desktop" preserve="All" />
   <assembly fullname="Avalonia.Themes.Fluent" preserve="All" />
   <assembly fullname="Avalonia.Controls.TreeDataGrid" preserve="All" />
+  <assembly fullname="Avalonia.Xaml.Interactions" preserve="All" />
 </linker>
