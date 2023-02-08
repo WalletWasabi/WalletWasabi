@@ -17,9 +17,9 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<CoinControlItemViewModelBase> _itemsCollection;
 	private readonly Wallet _wallet;
-	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
 
@@ -46,20 +46,25 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
+		var selectedCoins = coinItems
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(GetSelectedCoins);
+
 		walletViewModel.UiTriggers.TransactionsUpdateTrigger
-			.Do(_ =>
-			{
-				var previousSelection = SelectedCoins.ToList();
-				RefreshFromPockets(sourceItems);
-				UpdateSelection(coinItemsCollection, previousSelection);
-			})
+			.WithLatestFrom(selectedCoins, (_, sc) => sc)
+			.Do(
+				sl =>
+				{
+					RefreshFromPockets(sourceItems);
+					UpdateSelection(coinItemsCollection, sl.ToList());
+				})
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		coinItems
-			.AutoRefresh(x => x.IsSelected, TimeSpan.FromSeconds(0.1), scheduler: RxApp.MainThreadScheduler)
-			.ToCollection()
-			.Select(GetSelectedCoins)
+		// Project selected coins to public property. Throttle for improved UI performance
+		selectedCoins
+			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
 			.BindTo(this, x => x.SelectedCoins)
 			.DisposeWith(_disposables);
 
@@ -84,6 +89,14 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		return new ReadOnlyCollection<SmartCoin>(list.Where(item => item.IsSelected == true).Select(x => x.SmartCoin).ToList());
 	}
 
+	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
+	{
+		foreach (var coinItem in coinItems)
+		{
+			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
+		}
+	}
+
 	private void RefreshFromPockets(ISourceList<CoinControlItemViewModelBase> source)
 	{
 		var newItems = _wallet
@@ -103,14 +116,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		foreach (var pocket in _itemsCollection.Where(x => x.IsSelected == false))
 		{
 			pocket.IsExpanded = false;
-		}
-	}
-
-	private void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
-	{
-		foreach (var coinItem in coinItems)
-		{
-			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
 		}
 	}
 }
