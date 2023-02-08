@@ -214,6 +214,43 @@ public static class LinqExtensions
 		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).Sum();
 	}
 
+	public static double GeneralizedWeightedMean<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight, double p)
+	{
+		// See https://en.wikipedia.org/wiki/Generalized_mean
+		// Basic properties:
+		//   * GeneralizedWeightedAverage(source, value, weight, 1) = WeightedAverage(source, value, weight)
+		//   * GeneralizedWeightedAverage(source, value, weight, p) goes to Max(source, value) as p goes to the infinity
+		//   * GeneralizedWeightedAverage(source, value, weight, p) goes to Min(source, value) as p goes to the minus infinity
+		//   * GeneralizedWeightedAverage(source, value, weight, p) <= GeneralizedWeightedAverage(source, value, weight, q) provided p < q
+
+		if (!source.Any())
+		{
+			throw new ArgumentException("Cannot be empty.", nameof(source));
+		}
+
+		if (source.Any(x => value(x) < 0))
+		{
+			throw new ArgumentException("Cannot be negative.", nameof(value));
+		}
+
+		if (source.Any(x => weight(x) < 0))
+		{
+			throw new ArgumentException("Cannot be negative.", nameof(weight));
+		}
+
+		if (source.All(x => weight(x) == 0))
+		{
+			throw new ArgumentException("Cannot be all zero.", nameof(weight));
+		}
+
+		if (p == 0)
+		{
+			throw new ArgumentException("Cannot be zero.", nameof(p));
+		}
+
+		return Math.Pow(source.Select(x => Math.Pow(value(x), p) * weight(x)).Sum() / source.Select(weight).Sum(), 1 / p);
+	}
+
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
 		me.DefaultIfEmpty(defaultValue).Max();
 }
