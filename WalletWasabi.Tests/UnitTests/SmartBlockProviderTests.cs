@@ -49,7 +49,7 @@ public class SmartBlockProviderTests
 		IBlockProvider smartBlockProvider = new SmartBlockProvider(
 			mockBlockRepository.Object,
 			rpcBlockProvider: mockRpcBlockProvider.Object,
-			localBlockProvider: mockLocalBlockProvider.Object,
+			specificNodeBlockProvider: mockLocalBlockProvider.Object,
 			p2PBlockProvider: p2PBlockProvider,
 			cache);
 
