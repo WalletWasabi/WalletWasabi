@@ -187,7 +187,7 @@ public class CoinJoinClient
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					coins = info.SignedCoins;
-				
+
 					currentRoundState.LogInfo("Waiting for the blame round.");
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 					break;
@@ -197,7 +197,7 @@ public class CoinJoinClient
 
 				case FailedCoinJoinResult failure:
 					return failure;
-			
+
 				default:
 					throw new InvalidOperationException("The coinjoin result type was not handled.");
 			}
@@ -263,10 +263,10 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
-			
+
 			roundState.LogInfo(msg);
 			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
-			
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
@@ -530,7 +530,7 @@ public class CoinJoinClient
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
 				.All(x => x >= 0L);
-		
+
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
@@ -947,8 +947,16 @@ public class CoinJoinClient
 	private static double GetAnonLoss<TCoin>(IEnumerable<TCoin> coins)
 		where TCoin : ISmartCoin
 	{
+		if (coins.Count() <= 1)
+		{
+			return 0;
+		}
+
+		double p = 10;
+		double q = 0.8;
+
 		double minimumAnonScore = coins.Min(x => x.AnonymitySet);
-		return coins.Sum(x => (x.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
+		return coins.GeneralizedWeightedAverage(x => x.AnonymitySet - minimumAnonScore, x => Math.Pow(x.Amount.Satoshi, q), p);
 	}
 
 	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
