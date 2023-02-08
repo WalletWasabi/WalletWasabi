@@ -2,6 +2,8 @@ root = true
 
 [*.cs]
 
+charset = utf-8
+
 # Use hard tabs for indentation
 indent_style = tab
 indent_size = 4
