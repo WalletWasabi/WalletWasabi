@@ -53,7 +53,7 @@ public class CoinJoinManager : BackgroundService
 
 	#region Public API (Start | Stop | )
 
-	public async Task StartAsync(IWallet wallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken, bool wasRestartedAutomatically = false)
+	public async Task StartAsync(IWallet wallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken)
 	{
 		if (overridePlebStop && !wallet.IsUnderPlebStop)
 		{
@@ -317,7 +317,7 @@ public class CoinJoinManager : BackgroundService
 
 				if (trackedAutoStarts.TryRemove(walletToStart, out _))
 				{
-					await StartAsync(walletToStart, stopWhenAllMixed, overridePlebStop, stoppingToken, true).ConfigureAwait(false);
+					await StartAsync(walletToStart, stopWhenAllMixed, overridePlebStop, stoppingToken).ConfigureAwait(false);
 				}
 				else
 				{
