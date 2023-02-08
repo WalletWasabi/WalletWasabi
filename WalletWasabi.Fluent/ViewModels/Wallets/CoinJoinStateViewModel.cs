@@ -103,7 +103,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		var stopPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
+		var stopPauseCommandCanExecute = this.WhenAnyValue(
+			x => x.IsInCriticalPhase, x => x.PauseSpreading,
 			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
 		StopPauseCommand = ReactiveCommand.CreateFromTask(
