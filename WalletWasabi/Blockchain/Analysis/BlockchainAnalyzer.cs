@@ -135,10 +135,11 @@ public class BlockchainAnalyzer
 			// Picking randomly an output would make our anonset: total/ours.
 			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First()), foreignInputCount);
 
-			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			double startingOutputAnonset;
 			double startingOutputAnonsetSanctioned;
-			if (anonymityGain < 1)
+
+			// If the virtual output has a nonempty anonymity set
+			if (!tx.ForeignVirtualOutputs.Any(x => x.Amount == virtualOutput.Amount))
 			{
 				// When WW2 denom output isn't too large, then it's not change.
 				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
