@@ -8,13 +8,14 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.LabelsColumnView">
-  <c:PrivacyContentControl
-                           HorizontalAlignment="Stretch"
+  <c:PrivacyContentControl PrivacyReplacementMode="Text" FontSize="15"
+                           HorizontalAlignment="Left"
                            VerticalAlignment="Stretch"
-                           VerticalContentAlignment="Center"
                            HorizontalContentAlignment="Left"
-                           Margin="0 0 7 0"
-                           UseOpacity="False">
-    <c:LabelsItemsPresenter Items="{Binding SmartLabel}" />
+                           Classes="monoSpacedPrivacyReplacement"
+                           UseOpacity="False"
+                           MinWidth="140"
+                           Margin="0 0 7 0">
+    <c:LabelsItemsPresenter Items="{Binding SmartLabel}" Margin="0 -4 0 0" />
   </c:PrivacyContentControl>
 </UserControl>

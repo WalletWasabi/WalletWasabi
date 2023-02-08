@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
+namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar;
 
-public partial class AmountColumnView : UserControl
+public partial class PrivacyBarView : UserControl
 {
-	public AmountColumnView()
+	public PrivacyBarView()
 	{
 		InitializeComponent();
 	}

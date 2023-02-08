@@ -338,42 +338,36 @@ public class CoordinatorRound
 						switch (phase)
 						{
 							case RoundPhase.InputRegistration:
+								// Only abort if less than two one Alice is registered.
+								// Do not ban anyone, it's ok if they lost connection.
+								await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
+								int aliceCountAfterInputRegistrationTimeout = CountAlices();
+								if (aliceCountAfterInputRegistrationTimeout < 2)
 								{
-									// Only abort if less than two one Alice is registered.
-									// Do not ban anyone, it's ok if they lost connection.
-									await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
-									int aliceCountAfterInputRegistrationTimeout = CountAlices();
-									if (aliceCountAfterInputRegistrationTimeout < 2)
-									{
-										Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
-									}
-									else
-									{
-										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
-									}
+									Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+								}
+								else
+								{
+									UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+									// Progress to the next phase, which will be ConnectionConfirmation
+									await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
 								}
 								break;
 
 							case RoundPhase.ConnectionConfirmation:
+								using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
 								{
-									using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
-									{
-										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
+									IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
-									}
+									await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
 								}
 								break;
 
 							case RoundPhase.OutputRegistration:
-								{
-									// Output registration never aborts.
-									// We do not know which Alice to ban.
-									// Therefore proceed to signing, and whichever Alice does not sign, ban her.
-									await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
-								}
+								// Output registration never aborts.
+								// We do not know which Alice to ban.
+								// Therefore proceed to signing, and whichever Alice does not sign, ban her.
+								await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
 								break;
 
 							case RoundPhase.Signing:
@@ -415,10 +409,8 @@ public class CoordinatorRound
 		switch (phase)
 		{
 			case RoundPhase.InputRegistration:
-				{
-					SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
-					timeout = InputRegistrationTimeout;
-				}
+				SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
+				timeout = InputRegistrationTimeout;
 				break;
 
 			case RoundPhase.ConnectionConfirmation:
@@ -643,30 +635,38 @@ public class CoordinatorRound
 		{
 			return;
 		}
-		List<OutPoint> inputsToBan = new();
+
 		try
 		{
-			var coinsToCheck = Alices.SelectMany(a => a.Inputs);
-			await foreach (var info in CoinVerifier.VerifyCoinsAsync(coinsToCheck, CancellationToken.None, RoundId.ToString()))
+			Dictionary<Coin, Alice> coinDictionary = new();
+			foreach (var alice in Alices)
 			{
-				if (info.ShouldBan)
+				foreach (var coin in alice.Inputs)
 				{
-					inputsToBan.Add(info.Coin.Outpoint);
+					if (!coinDictionary.TryAdd(coin, alice))
+					{
+						Logger.LogWarning($"Duplicated coins were found during the build of {nameof(coinDictionary)}.");
+					}
+				}
+			}
+
+			foreach (var info in await CoinVerifier.VerifyCoinsAsync(coinDictionary.Keys, CancellationToken.None).ConfigureAwait(false))
+			{
+				if (info.ShouldRemove)
+				{
+					var aliceToRemove = coinDictionary[info.Coin];
+					Alices.Remove(aliceToRemove);
+					CoinVerifier.VerifierAuditArchiver.LogRoundEvent(new uint256((ulong)RoundId), $"{info.Coin.Outpoint} got removed from round");
 				}
 			}
 		}
 		catch (Exception exc)
 		{
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
+			CoinVerifier.VerifierAuditArchiver.LogException(new uint256((ulong)RoundId), exc);
+			// Fail hard as VerifyCoinsAsync should handle all exceptions.
+			throw;
 		}
-
-		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
-		Logger.LogInfo($"Alices({alicesToRemove.Length}) was force banned in round '{RoundId}'.");
-		foreach (var alice in alicesToRemove)
-		{
-			Alices.Remove(alice);
-		}
-		await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: true, inputsToBan.ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task MoveToInputRegistrationAsync()

@@ -12,6 +12,10 @@
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
 
+  <UserControl.Resources>
+    <converters:IndentConverter x:Key="IndentConverter" Multiplier="10" />
+  </UserControl.Resources>
+
   <controls:ContentArea
     Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
@@ -71,7 +75,7 @@
       <Style Selector="TreeDataGridExpanderCell">
         <Setter Property="Template">
           <ControlTemplate>
-            <Border Background="{TemplateBinding Background}">
+            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Indent, Converter={StaticResource IndentConverter}}">
               <DockPanel>
                 <Border DockPanel.Dock="Left"
                         Margin="4 0"
@@ -91,11 +95,11 @@
 
     </controls:ContentArea.Styles>
 
-    <TreeDataGrid Source="{Binding Source}" CanUserSortColumns="True">
-      <TreeDataGrid.ElementFactory>
-        <treeDataGrid:PlainTextElementFactory />
-      </TreeDataGrid.ElementFactory>
-    </TreeDataGrid>
+      <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}" CanUserSortColumns="True">
+        <TreeDataGrid.ElementFactory>
+          <treeDataGrid:PlainTextElementFactory />
+        </TreeDataGrid.ElementFactory>
+      </TreeDataGrid>
 
   </controls:ContentArea>
 </UserControl>

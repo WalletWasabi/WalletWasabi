@@ -112,8 +112,8 @@ public class Wallet : BackgroundService, IWallet
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
-		var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+		var privateAmount = coins.FilterBy(x => x.IsPrivate(privateThreshold)).TotalAmount();
+		var normalAmount = coins.FilterBy(x => !x.IsPrivate(privateThreshold)).TotalAmount();
 
 		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
 		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
@@ -224,6 +224,7 @@ public class Wallet : BackgroundService, IWallet
 				{
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
+					LoadExcludedCoins();
 				}
 			}
 
@@ -235,6 +236,27 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Initialized;
 			throw;
+		}
+	}
+
+	private void LoadExcludedCoins()
+	{
+		bool isUpdateRequired = false;
+		foreach (var excludedCoin in KeyManager.ExcludedCoinsFromCoinJoin)
+		{
+			var coin = Coins.SingleOrDefault(c => c.Outpoint == excludedCoin);
+			if (coin != null)
+			{
+				coin.IsExcludedFromCoinJoin = true;
+			}
+			else
+			{
+				isUpdateRequired = true;
+			}
+		}
+		if (isUpdateRequired)
+		{
+			UpdateExcludedCoinFromCoinJoin();
 		}
 	}
 
@@ -502,6 +524,12 @@ public class Wallet : BackgroundService, IWallet
 		var wallet = new Wallet(dataDir, network, keyManager);
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 		return wallet;
+	}
+
+	public void UpdateExcludedCoinFromCoinJoin()
+	{
+		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
+		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
 	}
 
 	public bool IsMixable =>

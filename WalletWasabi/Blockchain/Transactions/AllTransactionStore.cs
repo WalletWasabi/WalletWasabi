@@ -36,17 +36,16 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			var initTasks = new[]
-			{
-				MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
-				ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
-			};
+		using IDisposable _ = BenchmarkLogger.Measure();
 
-			await Task.WhenAll(initTasks).ConfigureAwait(false);
-			EnsureConsistency();
-		}
+		var initTasks = new[]
+		{
+			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
+			ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
+		};
+
+		await Task.WhenAll(initTasks).ConfigureAwait(false);
+		EnsureConsistency();
 	}
 
 	#endregion Initializers
