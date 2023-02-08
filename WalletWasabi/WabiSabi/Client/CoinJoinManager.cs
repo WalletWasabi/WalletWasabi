@@ -203,7 +203,6 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			Logger.LogWarning($"Override: {startCommand.OverridePlebStop}");
 			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 			NotifyWalletStartedCoinJoin(walletToStart);
 
