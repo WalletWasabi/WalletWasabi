@@ -7,5 +7,5 @@ public record InputRegistrationResponse(
 	Guid AliceId,
 	CredentialsResponse AmountCredentials,
 	CredentialsResponse VsizeCredentials,
-	[property: JsonProperty("IsPayingZeroCoordinationFee")] bool IsFeeExempted
+	[property: JsonProperty("isPayingZeroCoordinationFee")] bool IsFeeExempted
 );
