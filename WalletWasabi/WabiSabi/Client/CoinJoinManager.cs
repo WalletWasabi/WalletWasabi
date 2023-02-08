@@ -203,8 +203,8 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			// Use IsUnderPlebStop to enable PlebStop after a CoinJoin if and only if a Wallet went below threshold during the CoinJoin.
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, walletToStart.IsUnderPlebStop).ConfigureAwait(false);
+			Logger.LogWarning($"Override: {startCommand.OverridePlebStop}");
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 			NotifyWalletStartedCoinJoin(walletToStart);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
