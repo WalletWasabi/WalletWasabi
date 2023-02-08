@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -174,7 +175,7 @@ public class AmountDecomposer
 			denominations.Add(denom);
 		}
 
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return denominations.Distinct().OrderByDescending(x => x.EffectiveAmount);
 	}
 
 	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
@@ -423,7 +424,7 @@ public class AmountDecomposer
 		return outputCost + inputCost;
 	}
 
-	public class Output
+	public class Output : IEqualityComparer<Output>
 	{
 		public static Output FromDenomination(Money amount, ScriptType scriptType, FeeRate feeRate)
 		{
@@ -449,7 +450,32 @@ public class AmountDecomposer
 		public Money EffectiveAmount => Amount - Fee;
 		public Money EffectiveCost => Amount + Fee;
 		public Money InputFee { get; }
-
 		public Money Fee { get; }
+
+		public bool Equals(Output? x, Output? y)
+		{
+			if (x is null || y is null)
+			{
+				if (x is null && y is null)
+				{
+					return true;
+				}
+				return false;
+			}
+
+			if (ReferenceEquals(x, y))
+			{
+				return true;
+			}
+
+			if (GetHashCode(x) == GetHashCode(y))
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		public int GetHashCode([DisallowNull] Output obj) => HashCode.Combine(Amount, ScriptType, Fee);
 	}
 }
