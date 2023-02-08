@@ -10,10 +10,10 @@ public class InputAddedEventArgs : EventArgs
 	{
 		RoundId = roundId;
 		Coin = coin;
-		IsFeeExempted = isCoordinationFeeExempted;
+		IsCoordinationFeeExempted = isCoordinationFeeExempted;
 	}
 
 	public uint256 RoundId { get; }
 	public Coin Coin { get; }
-	public bool IsFeeExempted { get; }
+	public bool IsCoordinationFeeExempted { get; }
 }

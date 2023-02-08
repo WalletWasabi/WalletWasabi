@@ -177,7 +177,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 	{
 		uint256 roundId = inputAddedEventArgs.RoundId;
 		Coin coin = inputAddedEventArgs.Coin;
-		bool isCoordinationFeeExempted = inputAddedEventArgs.IsFeeExempted;
+		bool isCoordinationFeeExempted = inputAddedEventArgs.IsCoordinationFeeExempted;
 
 		AddCoin(roundId, coin, isCoordinationFeeExempted);
 	}
