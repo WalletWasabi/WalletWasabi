@@ -274,11 +274,12 @@ public class AmountDecomposer
 
 		setCandidates.Add(
 			hash.ToHashCode(), // Create hash to ensure uniqueness.
-			(naiveSet, loss + Money.Satoshis(naiveSet.Sum(d => d.Fee)))); // The cost is the remaining + output cost.
+			(naiveSet, loss + CalculateCostMetrics(naiveSet)));
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Where(x => x.Amount <= myInputSum).Select(d => d.EffectiveCost.Satoshi).ToArray();
-		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / ScriptType.Taproot.EstimateOutputVsize(), 8); // TODO: this is incorrect
+		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 		var tolerance = (long)Math.Max(loss, 0.5 * (ulong)(MinAllowedOutputAmount + ChangeFee).Satoshi); // Taking the changefee here, might be incorrect however it is just a tolerance.
 
 		if (maxNumberOfOutputsAllowed > 1)
@@ -301,13 +302,20 @@ public class AmountDecomposer
 					finalDenoms.Add(denoms.First(d => d.EffectiveCost == outputPlusFee));
 				}
 
+				// The decomposer won't take vsize into account for different script types, checking it back here if too much, disregard the decomposition.
+				var totalVSize = finalDenoms.Sum(d => d.ScriptType.EstimateOutputVsize());
+				if (totalVSize > AvailableVsize)
+				{
+					continue;
+				}
+
 				hash = new();
 				foreach (var item in finalDenoms.OrderBy(x => x.EffectiveCost))
 				{
 					hash.Add(item.Amount);
 				}
 
-				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + Money.Satoshis(finalDenoms.Sum(d => d.Fee)); // The cost is the remaining + output cost.
+				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCostMetrics(finalDenoms);
 
 				setCandidates.TryAdd(hash.ToHashCode(), (finalDenoms, deficit));
 			}
@@ -404,6 +412,17 @@ public class AmountDecomposer
 		return denoms;
 	}
 
+	public Money CalculateCostMetrics(IEnumerable<Output> outputs)
+	{
+		// The cost of the outputs. The more the worst.
+		var outputCost = outputs.Sum(o => o.Fee);
+
+		// The cost of sending further or remix these coins.
+		var inputCost = outputs.Sum(o => o.InputFee);
+
+		return outputCost + inputCost;
+	}
+
 	public class Output
 	{
 		public static Output FromDenomination(Money amount, ScriptType scriptType, FeeRate feeRate)
@@ -420,7 +439,7 @@ public class AmountDecomposer
 		{
 			ScriptType = scriptType;
 			Fee = feeRate.GetFee(scriptType.EstimateOutputVsize());
-
+			InputFee = feeRate.GetFee(scriptType.EstimateInputVsize());
 			// The value of amount is defined as the effective cost or a denomination amount.
 			Amount = isEffectiveCost ? amount - Fee : amount;
 		}
@@ -429,6 +448,7 @@ public class AmountDecomposer
 		public ScriptType ScriptType { get; }
 		public Money EffectiveAmount => Amount - Fee;
 		public Money EffectiveCost => Amount + Fee;
+		public Money InputFee { get; }
 
 		public Money Fee { get; }
 	}
