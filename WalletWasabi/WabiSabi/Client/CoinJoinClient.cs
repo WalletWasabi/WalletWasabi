@@ -530,7 +530,7 @@ public class CoinJoinClient
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
 				.All(x => x >= 0L);
-		
+
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
@@ -1103,13 +1103,7 @@ public class CoinJoinClient
 		{
 			var needTaprootOutput = output.ScriptType is ScriptType.Taproot;
 			var dest = DestinationProvider.GetNextDestinations(1, needTaprootOutput).First();
-
 			var txOut = new TxOut(output.Amount, dest.ScriptPubKey);
-			if (!txOut.ScriptPubKey.IsScriptType(needTaprootOutput ? ScriptType.Taproot : ScriptType.P2WPKH))
-			{
-				throw new InvalidOperationException("ScriptType mismatch.");
-			}
-
 			outputTxOuts.Add(txOut);
 		}
 
