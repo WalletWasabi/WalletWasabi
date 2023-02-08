@@ -151,6 +151,35 @@ public class CoinJoinCoinSelectionTests
 		Assert.Equal(2, coins.Count);
 	}
 
+	[Fact]
+	public void DoNotSelectCoinsWithBigAnonymityLoss()
+	{
+		// This test ensures that we do not select coins whose anonymity could be lowered a lot
+		const int AnonymitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var bigCoinWithSmallAnonymity1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: 1);
+		var bigCoinWithSmallAnonymity2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: 2);
+		var smallCoinWithBigAnonymity = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.1m), anonymitySet: 6);
+		var coinsToSelectFrom = Enumerable
+			.Empty<SmartCoin>()
+			.Append(bigCoinWithSmallAnonymity1)
+			.Append(bigCoinWithSmallAnonymity2)
+			.Append(smallCoinWithBigAnonymity)
+			.ToList();
+
+		var coins = CoinJoinClient.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
+			consolidationMode: true,
+			anonScoreTarget: AnonymitySet,
+			semiPrivateThreshold: 0,
+			liquidityClue: Money.Coins(0.5m),
+			ConfigureRng(1));
+
+		Assert.False(coins.Contains(bigCoinWithSmallAnonymity1) && coins.Contains(smallCoinWithBigAnonymity));
+		Assert.False(coins.Contains(bigCoinWithSmallAnonymity2) && coins.Contains(smallCoinWithBigAnonymity));
+	}
+
 	private static WasabiRandom ConfigureRng(int returnValue)
 	{
 		var mockWasabiRandom = new Mock<WasabiRandom>();
