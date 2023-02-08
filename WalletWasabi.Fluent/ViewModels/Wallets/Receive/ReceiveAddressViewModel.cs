@@ -122,7 +122,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			{
 				if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
 				{
-					Navigate().Back();
+					Navigate().Clear();
 				}
 			})
 			.DisposeWith(disposables);
