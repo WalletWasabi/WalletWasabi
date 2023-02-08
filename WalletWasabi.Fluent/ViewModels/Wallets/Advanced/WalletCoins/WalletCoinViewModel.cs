@@ -40,8 +40,10 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").DisposeWith(_disposables);
 
-		// Remove selection when coin participates in a coinjoin.
-		this.WhenAnyValue(x => x.CoinJoinInProgress).Where(x => x).Subscribe(_ => IsSelected = false);
+		// Temporarily enable the selection no matter what.
+		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
+		// this.WhenAnyValue(x => x.CoinJoinInProgress).Where(x => x).Subscribe(_ => IsSelected = false); // Remove selection when coin participates in a coinjoin.
+		// ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected/*, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x)*/);
 	}
 
 	public ICommand ToggleExcludeCommand { get; }

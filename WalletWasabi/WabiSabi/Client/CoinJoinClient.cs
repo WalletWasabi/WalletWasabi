@@ -26,9 +26,10 @@ public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
-	private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
-	private TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
-	private TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
+
+	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
+	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(2);
+	private static readonly TimeSpan ExtraRoundTimeoutMargin = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
 	// timings only depends on the input-reg timeout.
@@ -187,7 +188,7 @@ public class CoinJoinClient
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					coins = info.SignedCoins;
-				
+
 					currentRoundState.LogInfo("Waiting for the blame round.");
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 					break;
@@ -197,7 +198,7 @@ public class CoinJoinClient
 
 				case FailedCoinJoinResult failure:
 					return failure;
-			
+
 				default:
 					throw new InvalidOperationException("The coinjoin result type was not handled.");
 			}
@@ -263,10 +264,10 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
-			
+
 			roundState.LogInfo(msg);
 			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
-			
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
@@ -529,8 +530,8 @@ public class CoinJoinClient
 					x => x.ScriptPubKey,
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
-				.All(x => x >= 0);
-		
+				.All(x => x >= 0L);
+
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
@@ -680,13 +681,13 @@ public class CoinJoinClient
 			.ToArray();
 
 		var privateCoins = filteredCoins
-			.Where(x => x.AnonymitySet >= anonScoreTarget)
+			.Where(x => x.IsPrivate(anonScoreTarget))
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= semiPrivateThreshold)
+			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.AnonymitySet < semiPrivateThreshold)
+			.Where(x => x.IsRedCoin(semiPrivateThreshold))
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)

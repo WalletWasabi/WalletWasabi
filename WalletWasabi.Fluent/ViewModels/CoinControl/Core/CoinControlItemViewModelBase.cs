@@ -12,7 +12,10 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	protected CoinControlItemViewModelBase()
 	{
-		CanBeSelected = !IsCoinjoining;
+		// Temporarily enable the selection no matter what.
+		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
+		// CanBeSelected = !IsCoinjoining;
+		CanBeSelected = true;
 	}
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;

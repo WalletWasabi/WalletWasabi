@@ -112,8 +112,8 @@ public class Wallet : BackgroundService, IWallet
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
-		var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+		var privateAmount = coins.FilterBy(x => x.IsPrivate(privateThreshold)).TotalAmount();
+		var normalAmount = coins.FilterBy(x => !x.IsPrivate(privateThreshold)).TotalAmount();
 
 		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
 		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
