@@ -2,7 +2,7 @@ root = true
 
 [*.cs]
 
-# use hard tabs for indentation
+# Use hard tabs for indentation
 indent_style = tab
 indent_size = 4
 
