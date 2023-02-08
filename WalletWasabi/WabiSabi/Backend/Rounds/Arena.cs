@@ -131,7 +131,7 @@ public partial class Arena : PeriodicRunner
 					try
 					{
 						int banCounter = 0;
-						var aliceDictionary = round.Alices.Where(x => !x.IsFeeExempted).ToDictionary(a => a.Coin, a => a);
+						var aliceDictionary = round.Alices.Where(x => !x.IsCoordinationFeeExempted).ToDictionary(a => a.Coin, a => a);
 						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
 						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
 						{
@@ -244,7 +244,7 @@ public partial class Arena : PeriodicRunner
 				{
 					foreach (Alice alice in round.Alices)
 					{
-						NotifyInput(round.Id, alice.Coin, alice.IsFeeExempted);
+						NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
 					}
 
 					var coinjoin = round.Assert<ConstructionState>();
@@ -608,7 +608,7 @@ public partial class Arena : PeriodicRunner
 
 	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
 	{
-		var coordinationFee = round.Alices.Where(a => !a.IsFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		var coordinationFee = round.Alices.Where(a => !a.IsCoordinationFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		if (coordinationFee == 0)
 		{
 			round.LogInfo($"Coordination fee wasn't taken, because it was free for everyone. Hurray!");

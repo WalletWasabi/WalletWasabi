@@ -41,7 +41,7 @@ public class AliceClient
 		IssuedVsizeCredentials = issuedVsizeCredentials;
 		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
 		ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
-		IsFeeExempted = isCoordinationFeeExempted;
+		IsCoordinationFeeExempted = isCoordinationFeeExempted;
 	}
 
 	public Guid AliceId { get; }
@@ -55,7 +55,7 @@ public class AliceClient
 	public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 	private long MaxVsizeAllocationPerAlice { get; }
 	private TimeSpan ConfirmationTimeout { get; }
-	public bool IsFeeExempted { get; }
+	public bool IsCoordinationFeeExempted { get; }
 
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
@@ -260,5 +260,5 @@ public class AliceClient
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 	}
 
-	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate, IsFeeExempted ? CoordinationFeeRate.Zero : CoordinationFeeRate);
+	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate, IsCoordinationFeeExempted ? CoordinationFeeRate.Zero : CoordinationFeeRate);
 }

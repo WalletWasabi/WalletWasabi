@@ -96,7 +96,7 @@ public class RegisterInputSuccessTests
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 		var myAlice = Assert.Single(round.Alices);
-		Assert.True(myAlice.IsFeeExempted);
+		Assert.True(myAlice.IsCoordinationFeeExempted);
 
 		await arena.StopAsync(CancellationToken.None);
 	}

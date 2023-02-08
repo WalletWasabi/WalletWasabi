@@ -120,7 +120,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			return new(alice.Id,
 				commitAmountCredentialResponse,
 				commitVsizeCredentialResponse,
-				alice.IsFeeExempted);
+				alice.IsCoordinationFeeExempted);
 		}
 	}
 
