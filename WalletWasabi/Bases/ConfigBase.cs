@@ -59,41 +59,42 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	}
 
 	/// <inheritdoc />
-	public virtual void LoadOrCreateDefaultFile()
+	public virtual void LoadFile(bool createIfMissing = false)
 	{
-		AssertFilePathSet();
-
-		lock (FileLock)
+		if (createIfMissing)
 		{
-			JsonConvert.PopulateObject("{}", this);
+			AssertFilePathSet();
 
-			if (!File.Exists(FilePath))
+			lock (FileLock)
 			{
-				Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				try
-				{
-					LoadFileNoLock();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
-					Logger.LogWarning(ex);
-				}
-			}
+				JsonConvert.PopulateObject("{}", this);
 
-			ToFileNoLock();
+				if (!File.Exists(FilePath))
+				{
+					Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+				}
+				else
+				{
+					try
+					{
+						LoadFileNoLock();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
+						Logger.LogWarning(ex);
+					}
+				}
+
+				ToFileNoLock();
+			}
 		}
-	}
-
-	/// <inheritdoc />
-	public virtual void LoadFile()
-	{
-		lock (FileLock)
+		else
 		{
-			LoadFileNoLock();
+			lock (FileLock)
+			{
+				LoadFileNoLock();
+			}
 		}
 	}
 

@@ -482,14 +482,9 @@ public static class HttpMessageHelper
 
 	public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 	{
-		if (!source.NotNullAndNotEmpty())
+		foreach ((string name, IEnumerable<string> values) in source)
 		{
-			return;
-		}
-
-		foreach (var header in source)
-		{
-			destination.TryAddWithoutValidation(header.Key, header.Value);
+			destination.TryAddWithoutValidation(name, values);
 		}
 	}
 }
