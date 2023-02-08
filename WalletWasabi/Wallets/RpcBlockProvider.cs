@@ -8,12 +8,12 @@ namespace WalletWasabi.Wallets;
 
 public class RpcBlockProvider : IBlockProvider
 {
-	private CoreNode? CoreNode { get; }
-	
 	public RpcBlockProvider(CoreNode? coreNode)
 	{
 		CoreNode = coreNode;
 	}
+	
+	private CoreNode? CoreNode { get; }
 
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
     {

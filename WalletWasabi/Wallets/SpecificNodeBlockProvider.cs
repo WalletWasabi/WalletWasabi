@@ -15,7 +15,6 @@ namespace WalletWasabi.Wallets;
 
 public class SpecificNodeBlockProvider : IBlockProvider
 {
-
 	// This provider uses <Network>BitcoinP2pEndPoint from Config to provide blocks from a local or remote node.
 	public SpecificNodeBlockProvider(Network network, ServiceConfiguration serviceConfiguration, HttpClientFactory httpClientFactory)
 	{
@@ -79,6 +78,7 @@ public class SpecificNodeBlockProvider : IBlockProvider
 
 			// Get block from specific node.
 			Block blockFromSpecificNode;
+			
 			// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
 			{

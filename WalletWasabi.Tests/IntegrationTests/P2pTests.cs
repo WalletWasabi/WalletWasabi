@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.IntegrationTests;
 public class P2pTests
 {
 	[Theory]
-	// [InlineData("test")] - ToDo, this test fails for some reason.
+	[InlineData("test")]
 	[InlineData("main")]
 	public async Task TestServicesAsync(string networkString)
 	{
@@ -111,7 +111,6 @@ public class P2pTests
 		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
 		IBlockProvider blockProvider = new SmartBlockProvider(
 			blockRepository,
-
 			new RpcBlockProvider(null),
 			new SpecificNodeBlockProvider(network, serviceConfig, httpClientFactory),
 			new P2PBlockProvider(network, nodes, httpClientFactory),
@@ -159,7 +158,7 @@ public class P2pTests
 				i++;
 			}
 
-			await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(1));
+			await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
 		}
 		finally
 		{

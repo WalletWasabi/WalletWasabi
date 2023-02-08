@@ -67,7 +67,7 @@ public class SmartBlockProviderTests
 		Assert.NotSame(blocks[0], result[1]);
 	}
 
-	public class TestBlockProvider : IBlockProvider
+	private class TestBlockProvider : IBlockProvider
 	{
 		public TestBlockProvider(Dictionary<uint256, Block> blocks)
 		{
