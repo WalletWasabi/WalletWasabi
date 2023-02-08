@@ -382,8 +382,17 @@ public class CoinJoinCoinSelector
 	private static double GetAnonLoss<TCoin>(IEnumerable<TCoin> coins)
 		where TCoin : ISmartCoin
 	{
+		if (coins.Count() <= 1)
+		{
+			return 0;
+		}
+
+		// Parameters were picked experimentally to model anonymity loss that matches real-world experience: https://github.com/zkSNACKs/WalletWasabi/pull/10096
+		double p = 10;
+		double q = 0.8;
+
 		double minimumAnonScore = coins.Min(x => x.AnonymitySet);
-		return coins.Sum(x => (x.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
+		return coins.GeneralizedWeightedMean(value: x => x.AnonymitySet - minimumAnonScore, weight: x => Math.Pow(x.Amount.Satoshi, q), p);
 	}
 
 	private static int GetReps<TCoin>(IEnumerable<TCoin> group)
