@@ -17,10 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly DispatcherTimer _countdownTimer;
-	private readonly DispatcherTimer _autoCoinJoinStartTimer;
-
 	private const string CountDownMessage = "Waiting to auto-start coinjoin";
 	private const string WaitingMessage = "Waiting for coinjoin";
 	private const string PauseMessage = "Coinjoin is paused";
@@ -38,6 +34,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string UserInSendWorkflowMessage = "Waiting for closed send dialog";
 	private const string AllPrivateMessage = "Hurray! Your funds are private";
 	private const string GeneralErrorMessage = "Waiting for valid conditions";
+
+	private readonly StateMachine<State, Trigger> _stateMachine;
+	private readonly DispatcherTimer _countdownTimer;
+	private readonly DispatcherTimer _autoCoinJoinStartTimer;
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible;
