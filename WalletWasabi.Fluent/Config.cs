@@ -21,6 +21,7 @@ public class Config : ConfigBase
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 	private Uri? _backendUri;
+	private Uri? _coordinatorUri;
 
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
@@ -50,6 +51,15 @@ public class Config : ConfigBase
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string RegTestBackendUri { get; private set; } = "http://localhost:37127/";
+
+	[JsonProperty(PropertyName = "MainNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? MainNetCoordinatorUri { get; private set; }
+
+	[JsonProperty(PropertyName = "TestNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? TestNetCoordinatorUri { get; private set; }
+
+	[JsonProperty(PropertyName = "RegTestCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? RegTestCoordinatorUri { get; private set; }
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -145,6 +155,25 @@ public class Config : ConfigBase
 		return _backendUri;
 	}
 
+	public Uri GetCoordinatorUri()
+	{
+		if (_coordinatorUri is { })
+		{
+			return _coordinatorUri;
+		}
+
+		var result = Network switch
+		{
+			{ } n when n == Network.Main => MainNetCoordinatorUri,
+			{ } n when n == Network.TestNet => TestNetCoordinatorUri,
+			{ } n when n == Network.RegTest => RegTestCoordinatorUri,
+			_ => throw new NotSupportedNetworkException(Network)
+		};
+
+		_coordinatorUri = result is null ? GetBackendUri() : new Uri(result);
+		return _coordinatorUri;
+	}
+
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)
@@ -183,6 +212,13 @@ public class Config : ConfigBase
 		{
 			throw new NotSupportedNetworkException(Network);
 		}
+	}
+
+	public override void LoadOrCreateDefaultFile()
+	{
+		base.LoadOrCreateDefaultFile();
+
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
 	/// <inheritdoc />

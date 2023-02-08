@@ -46,8 +46,6 @@ public class CoinVerifierApiClient
 
 		using CancellationTokenSource timeoutTokenSource = new(ApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
-		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
-		content.Headers.Authorization = new("Bearer", ApiToken);
 
 		int tries = 3;
 
@@ -56,6 +54,10 @@ public class CoinVerifierApiClient
 		do
 		{
 			tries--;
+
+			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
+			content.Headers.Authorization = new("Bearer", ApiToken);
+
 			response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
 
 			if (response.StatusCode == HttpStatusCode.OK)
