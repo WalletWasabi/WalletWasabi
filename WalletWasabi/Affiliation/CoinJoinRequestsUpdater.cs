@@ -112,7 +112,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	private async Task<byte[]> GetCoinJoinRequestAsync(AffiliateServerHttpApiClient client, Body body, CancellationToken cancellationToken)
 	{
-		Payload payload = new(new Header(), body);
+		Payload payload = new(Header.Instance, body);
 		byte[] signature = Signer.Sign(payload.GetCanonicalSerialization());
 		GetCoinjoinRequestRequest coinjoinRequestRequest = new(body, signature);
 		return await GetCoinJoinRequestAsync(client, coinjoinRequestRequest, cancellationToken).ConfigureAwait(false);
@@ -123,7 +123,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		using CancellationTokenSource linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
 		
 		GetCoinJoinRequestResponse getCoinJoinRequestResponse = await client.GetCoinJoinRequestAsync(getCoinjoinRequestRequest, linkedCts.Token).ConfigureAwait(false);
-		return getCoinJoinRequestResponse.CoinJoinRequest;
+		return getCoinJoinRequestResponse.CoinjoinRequest;
 	}
 
 	private void AddCoin(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)

@@ -12,7 +12,10 @@ public static class CanonicalJsonSerializationOptions
 	/// </summary>
 	public static readonly JsonSerializerSettings Settings = new()
 	{
-		ContractResolver = new OrderedContractResolver(),
+		ContractResolver = new OrderedContractResolver
+		{
+			NamingStrategy = new SnakeCaseNamingStrategy()
+		},
 		Converters = AffiliationJsonSerializationOptions.Converters,
 
 		// Intentionally enforced default value.
@@ -22,15 +25,11 @@ public static class CanonicalJsonSerializationOptions
 	/// <seealso href="https://stackoverflow.com/a/11309106/3744182"/>
 	private class OrderedContractResolver : DefaultContractResolver
 	{
-		private static bool IsValidCharacter(char c)
-		{
-			return char.IsAscii(c) && ((char.IsLetter(c) && char.IsLower(c)) || char.IsDigit(c) || c == '_');
-		}
+		private static bool IsValidCharacter(char c) =>
+			char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c == '_';
 
-		private static bool IsValidPropertyName(string name)
-		{
-			return name.All(IsValidCharacter);
-		}
+		private static bool IsValidPropertyName(string name) =>
+			name.All(IsValidCharacter);
 
 		protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
 		{

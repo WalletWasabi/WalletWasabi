@@ -1,12 +1,6 @@
-using Newtonsoft.Json;
-
 namespace WalletWasabi.Affiliation.Models.CoinjoinRequest;
 
-public record Header
+public record Header(string Title, int Version)
 {
-	[JsonProperty(PropertyName = "title")]
-	public static readonly string Title = "payment request";
-
-	[JsonProperty(PropertyName = "version")]
-	public static readonly int Version = 1;
+	public static readonly Header Instance = new("payment request", 1);
 }

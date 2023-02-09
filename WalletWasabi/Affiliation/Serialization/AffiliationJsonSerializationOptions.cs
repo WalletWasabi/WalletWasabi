@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
@@ -11,5 +12,12 @@ public static class AffiliationJsonSerializationOptions
 		new AffiliationFeeRateJsonConverter()
 	};
 
-	public static readonly JsonSerializerSettings Settings = new() { Converters = Converters };
+	public static readonly JsonSerializerSettings Settings = new()
+	{
+		Converters = Converters,
+		ContractResolver = new DefaultContractResolver
+		{
+			NamingStrategy = new SnakeCaseNamingStrategy()
+		}
+	};
 }
