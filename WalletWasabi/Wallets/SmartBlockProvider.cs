@@ -19,12 +19,12 @@ public class SmartBlockProvider : IBlockProvider
 	};
 
 	[SuppressMessage("Style", "IDE0004:Remove Unnecessary Cast", Justification = "The cast is necessary to call the other constructor.")]
-	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, RpcBlockProvider rpcBlockProvider, SpecificNodeBlockProvider specificNodeBlockProvider, P2PBlockProvider p2PBlockProvider, IMemoryCache cache)
-		: this(blockRepository, (IBlockProvider)rpcBlockProvider, (IBlockProvider)specificNodeBlockProvider, (IBlockProvider)p2PBlockProvider, cache)
+	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, RpcBlockProvider? rpcBlockProvider, SpecificNodeBlockProvider? specificNodeBlockProvider, P2PBlockProvider? p2PBlockProvider, IMemoryCache cache)
+		: this(blockRepository, (IBlockProvider?)rpcBlockProvider, (IBlockProvider?)specificNodeBlockProvider, (IBlockProvider?)p2PBlockProvider, cache)
 	{
 	}
 
-	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider rpcBlockProvider, IBlockProvider specificNodeBlockProvider, IBlockProvider p2PBlockProvider, IMemoryCache cache)
+	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider? rpcBlockProvider, IBlockProvider? specificNodeBlockProvider, IBlockProvider? p2PBlockProvider, IMemoryCache cache)
 	{
 		BlockRepository = blockRepository;
 		RpcProvider = rpcBlockProvider;
@@ -34,13 +34,13 @@ public class SmartBlockProvider : IBlockProvider
 	}
 	
 	/// <seealso cref="RpcProvider"/>
-	private IBlockProvider RpcProvider { get; }
+	private IBlockProvider? RpcProvider { get; }
 
 	/// <seealso cref="SpecificNodeProvider"/>
-	private IBlockProvider SpecificNodeProvider { get; }
+	private IBlockProvider? SpecificNodeProvider { get; }
 
 	/// <seealso cref="P2PProvider"/>
-	private IBlockProvider P2PProvider { get; }
+	private IBlockProvider? P2PProvider { get; }
 	private IdempotencyRequestCache Cache { get; }
 	private IRepository<uint256, Block> BlockRepository { get; }
 
@@ -82,9 +82,22 @@ public class SmartBlockProvider : IBlockProvider
 	/// <remarks>First ask the rpc, then the specific node block provider (both may or may not be set up) and use the P2P block provider as a fallback.</remarks>
 	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		return await RpcProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
-		       ?? await SpecificNodeProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
-		       ?? await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		Block? result = null;
+		
+		if (RpcProvider is not null)
+		{
+			result = await RpcProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		}
+		if (result is null && SpecificNodeProvider is not null)
+		{
+			result = await SpecificNodeProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		}
+		if (result is null && P2PProvider is not null)
+		{
+			result = await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		}
+
+		return result;
 	}
 
 	/// <summary>

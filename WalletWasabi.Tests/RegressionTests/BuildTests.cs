@@ -66,7 +66,7 @@ public class BuildTests
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			rpcBlockProvider: new RpcBlockProvider(null),
+			rpcBlockProvider: null,
 			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
 			p2PBlockProvider: new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
@@ -224,7 +224,7 @@ public class BuildTests
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			new RpcBlockProvider(null),
+			null,
 			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
