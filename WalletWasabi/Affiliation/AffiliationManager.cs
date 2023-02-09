@@ -44,8 +44,8 @@ public class AffiliationManager : BackgroundService
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		await AffiliateServerStatusUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		await CoinjoinRequestsUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+		await AffiliateServerStatusUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override void Dispose()
