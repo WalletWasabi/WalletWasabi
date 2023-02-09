@@ -24,9 +24,6 @@ public class SmartBlockProvider : IBlockProvider
 	{
 	}
 
-	/// <summary>
-	/// For testing.
-	/// </summary>
 	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider rpcBlockProvider, IBlockProvider specificNodeBlockProvider, IBlockProvider p2PBlockProvider, IMemoryCache cache)
 	{
 		BlockRepository = blockRepository;

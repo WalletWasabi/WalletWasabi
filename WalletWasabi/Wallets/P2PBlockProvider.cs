@@ -42,14 +42,8 @@ public class P2PBlockProvider : IBlockProvider
 			cancellationToken.ThrowIfCancellationRequested();
 			try
 			{
-				// If no connection, wait, then continue.
-				while (Nodes.ConnectedNodes.Count == 0)
-				{
-					await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-				}
-
-				// Select a random node we are connected to.
-				Node? node = Nodes.ConnectedNodes.RandomElement();
+				Node? node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+				
 				if (node is null || !node.IsConnected)
 				{
 					await Task.Delay(100, cancellationToken).ConfigureAwait(false);

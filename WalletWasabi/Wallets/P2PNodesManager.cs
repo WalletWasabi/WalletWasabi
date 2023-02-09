@@ -1,6 +1,8 @@
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -19,6 +21,17 @@ public class P2PNodesManager
 	private NodesGroup Nodes { get; }
 	private bool IsTorEnabled { get; }
 	private int NodeTimeouts { get; set; }
+	
+	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
+	{
+		while (Nodes.ConnectedNodes.Count == 0)
+		{
+			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+		}
+
+		// Select a random node we are connected to.
+		return Nodes.ConnectedNodes.RandomElement();
+	}
 	
 	public void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
 	{
