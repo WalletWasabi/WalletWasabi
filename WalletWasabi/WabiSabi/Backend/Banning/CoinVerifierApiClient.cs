@@ -70,12 +70,12 @@ public class CoinVerifierApiClient
 				}
 				else
 				{
-					Logger.LogWarning($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
+					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"API request failed for script: {script}. Remaining tries: {tries}.", ex);
+				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {tries}. Exception: {ex}.");
 				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 			}
 		}
