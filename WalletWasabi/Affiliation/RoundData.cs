@@ -71,7 +71,9 @@ public class RoundData
 
 		Func<Money, bool> isNoFee = amount => RoundParameters.CoordinationFeeRate.GetFee(amount) == Money.Zero;
 
-		IEnumerable<AffiliateInput> inputs = transaction.Inputs.Select(x => new AffiliateInput(coinByOutpoints[x.PrevOut], affiliationFlagsByOutpoints.GetValueOrDefault(x.PrevOut, AffiliationFlag.Default), feeExemptionsByOutpoints.GetValueOrDefault(x.PrevOut, false) || isNoFee(coinByOutpoints[x.PrevOut].Amount)));
+		IEnumerable<AffiliateInput> inputs = transaction.Inputs
+			.Select(x => coinByOutpoints[x.PrevOut])
+			.Select(x => new AffiliateInput(x.Outpoint, x.ScriptPubKey, affiliationFlagsByOutpoints.GetValueOrDefault(x.Outpoint, AffiliationFlag.Default), feeExemptionsByOutpoints.GetValueOrDefault(x.Outpoint, false) || isNoFee(x.Amount)));
 
 		return new FinalizedRoundData(inputs, transaction.Outputs, RoundParameters.Network, RoundParameters.CoordinationFeeRate, RoundParameters.AllowedInputAmounts.Min);
 	}
