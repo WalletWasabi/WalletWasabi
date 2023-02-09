@@ -15,15 +15,9 @@ public class P2PBlockProvider : IBlockProvider
 {
 	public P2PBlockProvider(Network network, NodesGroup nodes, HttpClientFactory httpClientFactory)
 	{
-		Network = network;
-		Nodes = nodes;
-		HttpClientFactory = httpClientFactory;
-		P2PNodesManager = new P2PNodesManager(network, Nodes, HttpClientFactory.IsTorEnabled);
+		P2PNodesManager = new P2PNodesManager(network, nodes, httpClientFactory.IsTorEnabled);
 	}
-
-	private Network Network { get; }
-	private NodesGroup Nodes { get; }
-	private HttpClientFactory HttpClientFactory { get; }
+	
 	private P2PNodesManager P2PNodesManager { get; }
 
 	/// <summary>
