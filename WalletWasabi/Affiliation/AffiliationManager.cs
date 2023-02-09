@@ -7,12 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
 using Microsoft.Extensions.Hosting;
-using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.Affiliation;
 
-public class AffiliationManager : BackgroundService, IDisposable
+public class AffiliationManager : BackgroundService
 {
 	public AffiliationManager(Arena arena, WabiSabiConfig wabiSabiConfig, IHttpClientFactory httpClientFactory)
 	{
