@@ -112,19 +112,4 @@ public class Strobe128Tests
 			yield return new object[] { vector };
 		}
 	}
-
-	[Fact]
-	public void xxxx()
-	{
-		var hasher = StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain);
-		hasher.Append("si", Encoding.UTF8.GetBytes("no"));
-		hasher.Append("si", Encoding.UTF8.GetBytes("no"));
-		var hashes = Enumerable.Range(0, 1_000_000)
-			.Select(_ => hasher.GetHash())
-			.Select(x => x.ToString())
-			.SkipWhile(x => x!.StartsWith("00000"))
-			.Take(1)
-			.ToArray();
-
-	}
 }
