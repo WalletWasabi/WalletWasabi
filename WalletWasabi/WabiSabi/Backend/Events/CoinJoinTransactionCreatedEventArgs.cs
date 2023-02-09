@@ -3,9 +3,9 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Events;
 
-public class CoinjoinTransactionCreatedEventArgs : EventArgs
+public class CoinJoinTransactionCreatedEventArgs : EventArgs
 {
-	public CoinjoinTransactionCreatedEventArgs(uint256 roundId, Transaction transaction) : base()
+	public CoinJoinTransactionCreatedEventArgs(uint256 roundId, Transaction transaction) : base()
 	{
 		RoundId = roundId;
 		Transaction = transaction;

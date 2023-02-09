@@ -55,7 +55,7 @@ public partial class Arena : PeriodicRunner
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
-	public event EventHandler<CoinjoinTransactionCreatedEventArgs>? CoinjoinTransactionCreated;
+	public event EventHandler<CoinJoinTransactionCreatedEventArgs>? CoinJoinTransactionCreated;
 	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
 	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
 	public event EventHandler<InputAddedEventArgs>? InputAdded;
@@ -697,7 +697,7 @@ public partial class Arena : PeriodicRunner
 	private SigningState FinalizeTransaction(uint256 roundId, ConstructionState constructionState)
 	{
 		SigningState signingState = constructionState.Finalize();
-		CoinjoinTransactionCreated?.SafeInvoke(this, new CoinjoinTransactionCreatedEventArgs(roundId, signingState.CreateTransaction()));
+		CoinJoinTransactionCreated?.SafeInvoke(this, new CoinJoinTransactionCreatedEventArgs(roundId, signingState.CreateTransaction()));
 		return signingState;
 	}
 

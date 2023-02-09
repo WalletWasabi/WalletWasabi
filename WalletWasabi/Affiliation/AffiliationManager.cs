@@ -27,35 +27,35 @@ public class AffiliationManager : BackgroundService
 				  return new AffiliateServerHttpApiClient(client);
 			  }).ToImmutableDictionary();
 		AffiliateServerStatusUpdater = new(Clients);
-		CoinjoinRequestsUpdater = new(Arena, Clients, Signer);
+		CoinJoinRequestsUpdater = new(Arena, Clients, Signer);
 	}
 
 	private AffiliationMessageSigner Signer { get; }
 	private Arena Arena { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
 	private AffiliateServerStatusUpdater AffiliateServerStatusUpdater { get; }
-	private CoinjoinRequestsUpdater CoinjoinRequestsUpdater { get; }
+	private CoinJoinRequestsUpdater CoinJoinRequestsUpdater { get; }
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		await AffiliateServerStatusUpdater.StartAsync(stoppingToken).ConfigureAwait(false);
-		await CoinjoinRequestsUpdater.StartAsync(stoppingToken).ConfigureAwait(false);
+		await CoinJoinRequestsUpdater.StartAsync(stoppingToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		await CoinjoinRequestsUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+		await CoinJoinRequestsUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		await AffiliateServerStatusUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override void Dispose()
 	{
-		CoinjoinRequestsUpdater.Dispose();
+		CoinJoinRequestsUpdater.Dispose();
 		Signer.Dispose();
 	}
 
 	public AffiliateInformation GetAffiliateInformation()
 	{
-		return new AffiliateInformation(AffiliateServerStatusUpdater.GetRunningAffiliateServers(), CoinjoinRequestsUpdater.GetCoinjoinRequests());
+		return new AffiliateInformation(AffiliateServerStatusUpdater.GetRunningAffiliateServers(), CoinJoinRequestsUpdater.GetCoinjoinRequests());
 	}
 }
