@@ -52,7 +52,10 @@ public class CoinVerifier : IAsyncDisposable
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
 		// Booting up the results with the default value - ban: no, remove: yes.
-		Dictionary<OutPoint, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin.Outpoint, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(
+			coin => coin, 
+			coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true),
+			CoinEqualityComparer.Default);
 
 		// Building up the task list.
 		List<Task<CoinVerifyResult>> tasks = new();
@@ -90,7 +93,7 @@ public class CoinVerifier : IAsyncDisposable
 				}
 
 				// Update the default value with the real result.
-				coinVerifyItems[result.Coin.Outpoint] = result;
+				coinVerifyItems[result.Coin] = result;
 			}
 		}
 		catch (OperationCanceledException ex)
