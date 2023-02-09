@@ -24,6 +24,8 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private float[] _data;
 
+	private bool _isGenerating;
+
 	private readonly SKPaint _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
@@ -84,7 +86,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private void OnGeneratingDataStateChanged(object? sender, bool isGenerating)
 	{
-		if (isGenerating)
+		_isGenerating = isGenerating;
+
+		if (_isGenerating)
 		{
 			_invalidationTimer.Start();
 		}
@@ -92,11 +96,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private void OnIsActiveChanged()
 	{
-		_auraSpectrumDataSource.IsActive = IsActive;
-
 		if (IsActive)
 		{
 			_auraSpectrumDataSource.Start();
+		}
+		else
+		{
+			_auraSpectrumDataSource.Stop();
 		}
 	}
 
@@ -140,7 +146,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			source.Render(ref _data);
 		}
 
-		if (_data.All(f => f <= 0)) // there is nothing to render.
+		if (!_isGenerating && _data.All(f => f <= 0)) // there is nothing to render.
 		{
 			_invalidationTimer.Stop();
 		}

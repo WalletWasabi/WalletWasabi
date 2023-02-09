@@ -32,6 +32,8 @@ public abstract class SpectrumDataSource
 
 	protected int MidPointBins => NumBins / 2;
 
+	private bool IsGenerating => _timer.IsEnabled;
+
 	private void TimerOnTick(object? sender, EventArgs e)
 	{
 		OnMixData();
@@ -43,10 +45,17 @@ public abstract class SpectrumDataSource
 	{
 		for (int i = 0; i < NumBins; i++)
 		{
-			_averaged[i] -= _averaged[i] / NumAverages;
-			_averaged[i] += Bins[i] / NumAverages;
+			if (IsGenerating)
+			{
+				_averaged[i] -= _averaged[i] / NumAverages;
+				_averaged[i] += Bins[i] / NumAverages;
+			}
+			else
+			{
+				_averaged[i] -= 0.03f;
+			}
 
-			data[i] = Math.Max(data[i], (float)Math.Round(_averaged[i], 3));
+			data[i] = Math.Max(data[i], _averaged[i]);
 		}
 	}
 
