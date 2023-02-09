@@ -61,6 +61,7 @@ public abstract class SpectrumDataSource
 
 	public void Start()
 	{
+		_averaged = new float[_averaged.Length];
 		_timer.Start();
 		OnGeneratingDataStateChanged(isGenerating: true);
 	}
