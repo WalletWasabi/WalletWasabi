@@ -8,6 +8,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.Extensions;
 using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -43,7 +44,7 @@ public class CoinVerifier : IAsyncDisposable
 	public CoinVerifierLogger VerifierAuditArchiver { get; }
 
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
-	private ConcurrentDictionary<Coin, CoinVerifyItem> CoinVerifyItems { get; } = new();
+	private ConcurrentDictionary<Coin, CoinVerifyItem> CoinVerifyItems { get; } = new(CoinEqualityComparer.Default);
 
 	public async Task<IEnumerable<CoinVerifyResult>> VerifyCoinsAsync(IEnumerable<Coin> coinsToCheck, CancellationToken cancellationToken)
 	{
@@ -51,7 +52,7 @@ public class CoinVerifier : IAsyncDisposable
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
 		// Booting up the results with the default value - ban: no, remove: yes.
-		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+		Dictionary<OutPoint, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin.Outpoint, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 
 		// Building up the task list.
 		List<Task<CoinVerifyResult>> tasks = new();
@@ -89,7 +90,7 @@ public class CoinVerifier : IAsyncDisposable
 				}
 
 				// Update the default value with the real result.
-				coinVerifyItems[result.Coin] = result;
+				coinVerifyItems[result.Coin.Outpoint] = result;
 			}
 		}
 		catch (OperationCanceledException ex)
