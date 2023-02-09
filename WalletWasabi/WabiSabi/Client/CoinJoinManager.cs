@@ -287,7 +287,7 @@ public class CoinJoinManager : BackgroundService
 		var delayRestart = 30;
 		if (trackedAutoStarts.ContainsKey(walletToStart))
 		{
-			walletToStart.LogDebug($"AutoStart was already scheduled, cancel the last task and do not wait.");
+			walletToStart.LogDebug("AutoStart was already scheduled, cancel the last task and do not wait.");
 			TryRemoveTrackedAutoStart(trackedAutoStarts, walletToStart);
 			delayRestart = 0;
 		}
