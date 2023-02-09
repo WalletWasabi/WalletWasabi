@@ -238,6 +238,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	public override void Dispose()
 	{
 		RemoveHandlers();
+		Signer.Dispose();
 		base.Dispose();
 	}
 
