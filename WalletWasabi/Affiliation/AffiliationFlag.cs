@@ -15,37 +15,19 @@ public record AffiliationFlag
 
 	public AffiliationFlag(string name)
 	{
-		if (!IsValidName(name))
-		{
-			throw new ArgumentException("The name is too long, too short or contains non-alphanumeric characters.", nameof(name));
-		}
-		Name = name;
+		Name = IsValidName(name) 
+			? name
+			: throw new ArgumentException("The name is too long, too short or contains non-alphanumeric characters.", nameof(name)); 
 	}
 
 	public string Name { get; }
 
-	public override string ToString()
-	{
-		return Name;
-	}
-
-	private static bool IsAlphanumeric(string text)
-	{
-		return text.All(x => char.IsAscii(x) && char.IsLetterOrDigit(x));
-	}
+	public override string ToString() => Name;
 
 	private static bool IsValidName(string name)
 	{
-		if (!IsAlphanumeric(name))
-		{
-			return false;
-		}
-
-		if (name.Length < MinimumNameLength || name.Length > MaximumNameLength)
-		{
-			return false;
-		}
-
-		return true;
+		static bool IsValidLength(string text) => text.Length is >= MinimumNameLength and <= MaximumNameLength;
+		static bool IsAlphanumeric(string text) => text.All(x => char.IsAscii(x) && char.IsLetterOrDigit(x));
+		return IsValidLength(name) && IsAlphanumeric(name);
 	}
 }
