@@ -1,3 +1,4 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
@@ -23,9 +24,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private float[] _data;
 
-	private bool _isAuraActive;
-	private bool _isSplashActive;
-
 	private readonly SKPaint _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
@@ -50,8 +48,8 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
 
-		_auraSpectrumDataSource.GeneratingDataStateChanged += OnAuraGeneratingDataStateChanged;
-		_splashEffectDataSource.GeneratingDataStateChanged += OnSplashGeneratingDataStateChanged;
+		_auraSpectrumDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
+		_splashEffectDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
@@ -84,29 +82,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
-	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
+	private void OnGeneratingDataStateChanged(object? sender, bool isGenerating)
 	{
-		_isSplashActive = e;
-		EvaluateInvalidationTimer();
-	}
-
-	private void OnAuraGeneratingDataStateChanged(object? sender, bool e)
-	{
-		_isAuraActive = e;
-		EvaluateInvalidationTimer();
-	}
-
-	private void EvaluateInvalidationTimer()
-	{
-		var startInvalidation = _isSplashActive || _isAuraActive;
-
-		if (startInvalidation)
+		if (isGenerating)
 		{
 			_invalidationTimer.Start();
-		}
-		else
-		{
-			_invalidationTimer.Stop();
 		}
 	}
 
@@ -158,6 +138,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		foreach (var source in _sources)
 		{
 			source.Render(ref _data);
+		}
+
+		if (_data.All(f => f <= 0)) // there is nothing to render.
+		{
+			_invalidationTimer.Stop();
 		}
 
 		context.Custom(this);

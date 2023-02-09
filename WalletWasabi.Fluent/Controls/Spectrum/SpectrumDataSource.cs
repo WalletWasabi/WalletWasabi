@@ -46,7 +46,7 @@ public abstract class SpectrumDataSource
 			_averaged[i] -= _averaged[i] / NumAverages;
 			_averaged[i] += Bins[i] / NumAverages;
 
-			data[i] = Math.Max(data[i], _averaged[i]);
+			data[i] = Math.Max(data[i], (float)Math.Round(_averaged[i], 3));
 		}
 	}
 
