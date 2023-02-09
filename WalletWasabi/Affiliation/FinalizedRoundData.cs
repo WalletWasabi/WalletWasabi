@@ -9,7 +9,12 @@ namespace WalletWasabi.Affiliation;
 
 public class FinalizedRoundData
 {
-	public FinalizedRoundData(IEnumerable<AffiliateInput> inputs, IEnumerable<TxOut> outputs, Network network, CoordinationFeeRate coordinationFeeRate, Money minRegistrableAmount)
+	public FinalizedRoundData(
+		IEnumerable<AffiliateInput> inputs,
+		IEnumerable<TxOut> outputs,
+		Network network,
+		CoordinationFeeRate coordinationFeeRate,
+		Money minRegistrableAmount)
 	{
 		Inputs = inputs;
 		Outputs = outputs;

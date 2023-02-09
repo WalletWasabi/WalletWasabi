@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Events;
 using System.Collections.Concurrent;
+using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 
 namespace WalletWasabi.Affiliation;
@@ -119,10 +120,10 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	private async Task<byte[]> GetCoinJoinRequestAsync(AffiliateServerHttpApiClient client, GetCoinjoinRequestRequest getCoinjoinRequestRequest, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(AffiliateServerTimeout);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-		GetCoinjoinRequestResponse getCoinJoinRequestResponse = await client.GetCoinjoinRequestAsync(getCoinjoinRequestRequest, linkedCts.Token).ConfigureAwait(false);
-		return getCoinJoinRequestResponse.CoinjoinRequest;
+		using CancellationTokenSource linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
+		
+		GetCoinJoinRequestResponse getCoinJoinRequestResponse = await client.GetCoinJoinRequestAsync(getCoinjoinRequestRequest, linkedCts.Token).ConfigureAwait(false);
+		return getCoinJoinRequestResponse.CoinJoinRequest;
 	}
 
 	private void AddCoin(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)

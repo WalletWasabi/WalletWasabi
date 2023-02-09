@@ -21,6 +21,6 @@ public record Outpoint
 
 	public static Outpoint FromOutPoint(OutPoint outPoint)
 	{
-		return new Outpoint(outPoint.Hash.ToBytes(lendian: true), outPoint.N);
+		return new Outpoint(outPoint.Hash.ToBytes(), outPoint.N);
 	}
 }

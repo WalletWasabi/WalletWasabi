@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Collections.Immutable;
 using System.Collections.Generic;
-using WalletWasabi.Affiliation.Models;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Bases;
 
 namespace WalletWasabi.Affiliation;
@@ -37,7 +37,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	{
 		try
 		{
-			StatusResponse result = await client.GetStatusAsync(new StatusRequest(), cancellationToken).ConfigureAwait(false);
+			await client.GetStatusAsync(cancellationToken).ConfigureAwait(false);
 			return true;
 		}
 		catch (Exception exception)
@@ -49,9 +49,9 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 
 	private async Task UpdateRunningAffiliateServersAsync(AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCTS = new(AffiliateServerTimeout);
-		using CancellationTokenSource linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCTS.Token);
-		if (await IsAffiliateServerRunningAsync(affiliateServerHttpApiClient, linkedCTS.Token).ConfigureAwait(false))
+		using var linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
+		
+		if (await IsAffiliateServerRunningAsync(affiliateServerHttpApiClient, linkedCts.Token).ConfigureAwait(false))
 		{
 			if (!RunningAffiliateServers.Contains(affiliationFlag))
 			{
