@@ -56,8 +56,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
-
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;
@@ -108,8 +106,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var stopPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
 			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
-		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
-			await coinJoinManager.StopAsync(wallet, CancellationToken.None), stopPauseCommandCanExecute);
+		StopPauseCommand = ReactiveCommand.CreateFromTask(
+			async () => await coinJoinManager.StopAsync(wallet, CancellationToken.None),
+			stopPauseCommandCanExecute);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
@@ -170,6 +169,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		WalletStoppedCoinJoin,
 		AutoCoinJoinOff
 	}
+
+	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
 
