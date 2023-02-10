@@ -284,12 +284,18 @@ public class CoinJoinManager : BackgroundService
 	
 	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken stoppingToken)
 	{
-		var delayRestart = 30;
+		var skipDelay = false;
 		if (trackedAutoStarts.ContainsKey(walletToStart))
 		{
-			walletToStart.LogDebug("AutoStart was already scheduled, cancel the last task and do not wait.");
+			if (stopWhenAllMixed == trackedAutoStarts[walletToStart].StopWhenAllMixed && overridePlebStop == trackedAutoStarts[walletToStart].OverridePlebStop)
+			{
+				walletToStart.LogDebug("AutoStart was already scheduled");
+				return;
+			}
+			
+			walletToStart.LogDebug("AutoStart was already scheduled with different parameters, cancel the last task and do not wait.");
 			TryRemoveTrackedAutoStart(trackedAutoStarts, walletToStart);
-			delayRestart = 0;
+			skipDelay = true;
 		}
 		
 		NotifyWalletStartedCoinJoin(walletToStart);
@@ -303,7 +309,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				try
 				{
-					await Task.Delay(TimeSpan.FromSeconds(delayRestart), linkedCts.Token).ConfigureAwait(false);
+					await Task.Delay(TimeSpan.FromSeconds(skipDelay ? 0 : 30), linkedCts.Token).ConfigureAwait(false);
 				}
 				catch (OperationCanceledException)
 				{
@@ -325,7 +331,7 @@ public class CoinJoinManager : BackgroundService
 			},
 			linkedCts.Token);
 
-		if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
+		if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, linkedCts)))
 		{
 			walletToStart.LogInfo($"AutoCoinJoin task was already added.");
 		}
@@ -555,5 +561,5 @@ public class CoinJoinManager : BackgroundService
 	private record StartCoinJoinCommand(IWallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(IWallet Wallet) : CoinJoinCommand(Wallet);
 
-	private record TrackedAutoStart(Task Task, CancellationTokenSource CancellationTokenSource);
+	private record TrackedAutoStart(Task Task, bool StopWhenAllMixed, bool OverridePlebStop, CancellationTokenSource CancellationTokenSource);
 }
