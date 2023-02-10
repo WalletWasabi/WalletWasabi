@@ -15,9 +15,9 @@ public record AffiliationFlag
 
 	public AffiliationFlag(string name)
 	{
-		Name = IsValidName(name) 
+		Name = IsValidName(name)
 			? name
-			: throw new ArgumentException("The name is too long, too short or contains non-alphanumeric characters.", nameof(name)); 
+			: throw new ArgumentException("The name is too long, too short or contains non-alphanumeric characters.", nameof(name));
 	}
 
 	public string Name { get; }
