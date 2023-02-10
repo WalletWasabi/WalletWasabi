@@ -7,7 +7,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
-public class SerializationTests
+public class AffiliationSerializationTests
 {
 	[Fact]
 	public void AffiliationFlagSerialization()
