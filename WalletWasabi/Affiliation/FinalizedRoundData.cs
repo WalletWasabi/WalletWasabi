@@ -29,7 +29,7 @@ public class FinalizedRoundData
 	public CoordinationFeeRate CoordinationFeeRate { get; }
 	public Money MinRegistrableAmount { get; }
 
-	public Body GetAffiliationData(AffiliationFlag affiliationFlag)
+	public Body GetAffiliationData(string affiliationFlag)
 	{
 		IEnumerable<Input> inputs = Inputs.Select(x => Input.FromAffiliateInput(x, affiliationFlag));
 		IEnumerable<Output> outputs = Outputs.Select(x => Output.FromTxOut(x));

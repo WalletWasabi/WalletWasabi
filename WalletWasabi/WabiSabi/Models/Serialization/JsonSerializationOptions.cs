@@ -30,7 +30,6 @@ public class JsonSerializationOptions
 				new TimeSpanJsonConverter(),
 				new CoinJsonConverter(),
 				new CoinJoinEventJsonConverter(),
-				new AffiliationFlagJsonConverter(),
 			}
 	};
 

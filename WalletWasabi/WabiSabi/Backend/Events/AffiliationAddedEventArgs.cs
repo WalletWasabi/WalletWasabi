@@ -1,12 +1,10 @@
 using NBitcoin;
-using WalletWasabi.Affiliation;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Events;
 
 public class AffiliationAddedEventArgs : EventArgs
 {
-	public AffiliationAddedEventArgs(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag) : base()
+	public AffiliationAddedEventArgs(uint256 roundId, Coin coin, string affiliationFlag) : base()
 	{
 		RoundId = roundId;
 		Coin = coin;
@@ -15,5 +13,5 @@ public class AffiliationAddedEventArgs : EventArgs
 
 	public uint256 RoundId { get; }
 	public Coin Coin { get; }
-	public AffiliationFlag AffiliationFlag { get; }
+	public string AffiliationFlag { get; }
 }

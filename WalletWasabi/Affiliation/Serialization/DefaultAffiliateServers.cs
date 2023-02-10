@@ -5,7 +5,7 @@ namespace WalletWasabi.Affiliation.Serialization;
 
 public class DefaultAffiliateServersAttribute : DefaultValueAttribute
 {
-	public DefaultAffiliateServersAttribute() : base(ImmutableDictionary<AffiliationFlag, string>.Empty)
+	public DefaultAffiliateServersAttribute() : base(ImmutableDictionary<string, string>.Empty)
 	{
 	}
 }

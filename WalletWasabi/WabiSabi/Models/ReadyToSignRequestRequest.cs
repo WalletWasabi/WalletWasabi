@@ -1,12 +1,34 @@
+using System.Linq;
 using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.Affiliation;
-using WalletWasabi.Affiliation.Serialization;
 
 namespace WalletWasabi.WabiSabi.Models;
 
-public record ReadyToSignRequestRequest(
-	uint256 RoundId,
-	Guid AliceId,
-	[property: JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate), DefaultAffiliationFlag()] AffiliationFlag AffiliationFlag
-);
+public record ReadyToSignRequestRequest
+{
+	[JsonConstructor]
+	public ReadyToSignRequestRequest(
+		uint256 roundId,
+		Guid aliceId,
+		string? affiliationFlag = null)
+	{
+		RoundId = roundId;
+		AliceId = aliceId;
+		AffiliationFlag = affiliationFlag is { } nonNullAffilitiationFlag && IsValidAffiliationName(nonNullAffilitiationFlag)
+				? nonNullAffilitiationFlag 
+				: AffiliationFlagConstants.Default;
+	}
+	public uint256 RoundId { get; }
+	public Guid AliceId { get; }
+	public string AffiliationFlag { get; }
+	
+	private static bool IsValidAffiliationName(string name)
+	{
+		const int MinimumNameLength = 1;
+		const int MaximumNameLength = 20;
+		static bool IsValidLength(string text) => text.Length is >= MinimumNameLength and <= MaximumNameLength;
+		static bool IsAlphanumeric(string text) => text.All(x => char.IsAscii(x) && char.IsLetterOrDigit(x));
+		return IsValidLength(name) && IsAlphanumeric(name);
+	}
+}

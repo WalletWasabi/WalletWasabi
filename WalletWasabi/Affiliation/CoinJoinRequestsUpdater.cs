@@ -17,7 +17,7 @@ namespace WalletWasabi.Affiliation;
 public class CoinJoinRequestsUpdater : BackgroundService
 {
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
-	public CoinJoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
+	public CoinJoinRequestsUpdater(Arena arena, ImmutableDictionary<string, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
 	{
 		Arena = arena;
 		Clients = clients;
@@ -28,12 +28,12 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	private Arena Arena { get; }
 	private AffiliationMessageSigner Signer { get; }
-	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
-	private ConcurrentDictionary<uint256, ConcurrentDictionary<AffiliationFlag, byte[]>> CoinJoinRequests { get; } = new();
+	private ImmutableDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
+	private ConcurrentDictionary<uint256, ConcurrentDictionary<string, byte[]>> CoinJoinRequests { get; } = new();
 	private ConcurrentDictionary<uint256, RoundData> RoundData { get; } = new();
 	private AsyncQueue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; } = new();
 
-	public ImmutableDictionary<string, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
+	public ImmutableDictionary<string, ImmutableDictionary<string, byte[]>> GetCoinjoinRequests()
 	{
 		return CoinJoinRequests.ToDictionary(
 			x => x.Key.ToString(),
@@ -64,21 +64,21 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	private async Task UpdateCoinJoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, CancellationToken cancellationToken)
 	{
-		if (!CoinJoinRequests.TryAdd(roundId, new ConcurrentDictionary<AffiliationFlag, byte[]>()))
+		if (!CoinJoinRequests.TryAdd(roundId, new ConcurrentDictionary<string, byte[]>()))
 		{
 			throw new InvalidOperationException();
 		}
 		await Task.WhenAll(Clients.Select(x => UpdateCoinJoinRequestsAsync(roundId, finalizedRoundData, x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
 	}
 
-	private async Task UpdateCoinJoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
+	private async Task UpdateCoinJoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, string affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		try
 		{
 			Body body = finalizedRoundData.GetAffiliationData(affiliationFlag);
 			byte[] result = await GetCoinJoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
 
-			if (CoinJoinRequests.TryGetValue(roundId, out ConcurrentDictionary<AffiliationFlag, byte[]>? coinjoinRequests))
+			if (CoinJoinRequests.TryGetValue(roundId, out ConcurrentDictionary<string, byte[]>? coinjoinRequests))
 			{
 				if (!coinjoinRequests.TryAdd(affiliationFlag, result))
 				{
@@ -138,7 +138,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		roundData.AddInputFeeExemption(coin, isCoordinationFeeExempted);
 	}
 
-	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag)
+	private void AddAffiliation(uint256 roundId, Coin coin, string affiliationFlag)
 	{
 		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
 		{
@@ -189,7 +189,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	{
 		uint256 roundId = affiliationAddedEventArgs.RoundId;
 		Coin coin = affiliationAddedEventArgs.Coin;
-		AffiliationFlag affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
+		string affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
 
 		AddAffiliation(roundId, coin, affiliationFlag);
 	}

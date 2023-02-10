@@ -31,7 +31,7 @@ public class AffiliationManager : BackgroundService
 
 	private AffiliationMessageSigner Signer { get; }
 	private Arena Arena { get; }
-	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
+	private ImmutableDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
 	private AffiliateServerStatusUpdater AffiliateServerStatusUpdater { get; }
 	private CoinJoinRequestsUpdater CoinJoinRequestsUpdater { get; }
 

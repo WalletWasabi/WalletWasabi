@@ -185,7 +185,7 @@ public class WabiSabiConfig : ConfigBase
 
 	[DefaultAffiliateServers]
 	[JsonProperty(PropertyName = "AffiliateServers", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public ImmutableDictionary<AffiliationFlag, string> AffiliateServers { get; set; } = ImmutableDictionary<AffiliationFlag, string>.Empty;
+	public ImmutableDictionary<string, string> AffiliateServers { get; set; } = ImmutableDictionary<string, string>.Empty;
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
 

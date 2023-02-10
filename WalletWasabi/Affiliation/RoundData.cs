@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -17,7 +16,7 @@ public class RoundData
 	private RoundParameters RoundParameters { get; }
 
 	private ConcurrentBag<Tuple<OutPoint, Coin>> OutpointCoinPairs { get; } = new();
-	private ConcurrentBag<Tuple<OutPoint, AffiliationFlag>> OutpointAffiliationPairs { get; } = new();
+	private ConcurrentBag<Tuple<OutPoint, string>> OutpointAffiliationPairs { get; } = new();
 	private ConcurrentBag<Tuple<OutPoint, bool>> OutpointFeeExemptionPairs { get; } = new();
 
 	public void AddInputCoin(Coin coin)
@@ -25,9 +24,9 @@ public class RoundData
 		OutpointCoinPairs.Add(new Tuple<OutPoint, Coin>(coin.Outpoint, coin));
 	}
 
-	public void AddInputAffiliationFlag(Coin coin, AffiliationFlag affiliationFlag)
+	public void AddInputAffiliationFlag(Coin coin, string affiliationFlag)
 	{
-		OutpointAffiliationPairs.Add(new Tuple<OutPoint, AffiliationFlag>(coin.Outpoint, affiliationFlag));
+		OutpointAffiliationPairs.Add(new Tuple<OutPoint, string>(coin.Outpoint, affiliationFlag));
 	}
 
 	public void AddInputFeeExemption(Coin coin, bool isCoordinationFeeExempted)
@@ -63,7 +62,7 @@ public class RoundData
 	public FinalizedRoundData FinalizeRoundData(Transaction transaction)
 	{
 		HashSet<OutPoint> transactionOutpoints = transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
-		Dictionary<OutPoint, AffiliationFlag> affiliationFlagsByOutpoints = GetDictionary(OutpointAffiliationPairs, transactionOutpoints, "affiliation flag");
+		Dictionary<OutPoint, string> affiliationFlagsByOutpoints = GetDictionary(OutpointAffiliationPairs, transactionOutpoints, "affiliation flag");
 		Dictionary<OutPoint, bool> feeExemptionsByOutpoints = GetDictionary(OutpointFeeExemptionPairs, transactionOutpoints, "fee exemptions");
 		Dictionary<OutPoint, Coin> coinByOutpoints = GetDictionary(OutpointCoinPairs, transactionOutpoints, "coin");
 
@@ -71,7 +70,7 @@ public class RoundData
 
 		IEnumerable<AffiliateInput> inputs = transaction.Inputs
 			.Select(x => coinByOutpoints[x.PrevOut])
-			.Select(x => new AffiliateInput(x.Outpoint, x.ScriptPubKey, affiliationFlagsByOutpoints.GetValueOrDefault(x.Outpoint, AffiliationFlag.Default), feeExemptionsByOutpoints.GetValueOrDefault(x.Outpoint, false) || isNoFee(x.Amount)));
+			.Select(x => new AffiliateInput(x.Outpoint, x.ScriptPubKey, affiliationFlagsByOutpoints.GetValueOrDefault(x.Outpoint, AffiliationFlagConstants.Default), feeExemptionsByOutpoints.GetValueOrDefault(x.Outpoint, false) || isNoFee(x.Amount)));
 
 		return new FinalizedRoundData(inputs, transaction.Outputs, RoundParameters.Network, RoundParameters.CoordinationFeeRate, RoundParameters.AllowedInputAmounts.Min);
 	}

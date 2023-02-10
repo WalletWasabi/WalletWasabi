@@ -13,17 +13,17 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(20);
 	private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
 
-	public AffiliateServerStatusUpdater(IDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients)
+	public AffiliateServerStatusUpdater(IDictionary<string, AffiliateServerHttpApiClient> clients)
 		  : base(Interval)
 	{
 		Clients = clients;
-		RunningAffiliateServers = ImmutableList<AffiliationFlag>.Empty;
+		RunningAffiliateServers = ImmutableList<string>.Empty;
 	}
 
-	private IDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
-	private ImmutableList<AffiliationFlag> RunningAffiliateServers { get; set; }
+	private IDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
+	private ImmutableList<string> RunningAffiliateServers { get; set; }
 
-	public ImmutableArray<AffiliationFlag> GetRunningAffiliateServers()
+	public ImmutableArray<string> GetRunningAffiliateServers()
 	{
 		return RunningAffiliateServers.ToImmutableArray();
 	}
@@ -47,7 +47,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		}
 	}
 
-	private async Task UpdateRunningAffiliateServersAsync(AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
+	private async Task UpdateRunningAffiliateServersAsync(string affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		using var linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
 		

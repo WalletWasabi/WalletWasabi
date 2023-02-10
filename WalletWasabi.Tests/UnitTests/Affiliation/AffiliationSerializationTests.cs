@@ -10,20 +10,6 @@ namespace WalletWasabi.Tests.UnitTests.Affiliation;
 public class AffiliationSerializationTests
 {
 	[Fact]
-	public void AffiliationFlagSerialization()
-	{
-		AssertSerialization(AffiliationFlag.Default);
-		AssertSerialization(AffiliationFlag.Trezor);
-	}
-
-	[Fact]
-	public void AffiliateServersSerialization()
-	{
-		AssertSerialization(new Dictionary<AffiliationFlag, string> { { AffiliationFlag.Trezor, "www.test.io" } }.ToImmutableDictionary());
-		AssertSerialization(new Dictionary<AffiliationFlag, string> { }.ToImmutableDictionary());
-	}
-
-	[Fact]
 	public void FeeRateSerialization()
 	{
 		AssertSerialization(new Fee(0.003m));

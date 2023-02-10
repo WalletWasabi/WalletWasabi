@@ -2,7 +2,7 @@ namespace WalletWasabi.Affiliation.Models.CoinjoinRequest;
 
 public record Input(Outpoint Prevout, byte[] ScriptPubkey, bool IsAffiliated, bool IsNoFee)
 {
-	public static Input FromAffiliateInput(AffiliateInput affiliateInput, AffiliationFlag affiliationFlag)
+	public static Input FromAffiliateInput(AffiliateInput affiliateInput, string affiliationFlag)
 	{
 		var isAffiliated = affiliateInput.AffiliationFlag == affiliationFlag; 
 		if (affiliateInput.IsNoFee && isAffiliated)
