@@ -1,11 +1,9 @@
+using NBitcoin;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.Affiliation.Models.CoinjoinRequest;
-using WalletWasabi.Affiliation.Extensions;
-using System.Collections.Generic;
 
 namespace WalletWasabi.Affiliation;
 
@@ -62,7 +60,7 @@ public class RoundData
 		return valuesByOutpoints;
 	}
 
-	public FinalizedRoundData FinalizeRoundData(NBitcoin.Transaction transaction)
+	public FinalizedRoundData FinalizeRoundData(Transaction transaction)
 	{
 		HashSet<OutPoint> transactionOutpoints = transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 		Dictionary<OutPoint, AffiliationFlag> affiliationFlagsByOutpoints = GetDictionary(OutpointAffiliationPairs, transactionOutpoints, "affiliation flag");
