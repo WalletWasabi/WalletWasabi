@@ -10,6 +10,7 @@ using WalletWasabi.WabiSabi.Backend.Events;
 using System.Collections.Concurrent;
 using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Affiliation;
 
@@ -52,7 +53,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 				}
 				catch (Exception exception)
 				{
-					Logging.Logger.LogError(exception);
+					Logger.LogError(exception);
 				}
 			}
 		}
@@ -87,12 +88,12 @@ public class CoinJoinRequestsUpdater : BackgroundService
 			else
 			{
 				// This can occur if the round is finished before coinjoin requests are updated.
-				Logging.Logger.LogInfo($"The round ({roundId}) does not exist.");
+				Logger.LogInfo($"The round ({roundId}) does not exist.");
 			}
 		}
 		catch (Exception exception)
 		{
-			Logging.Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception}");
+			Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception}");
 		}
 	}
 
@@ -106,7 +107,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		if (!CoinJoinRequests.TryRemove(roundId, out _))
 		{
 			// This can occur if the round is finished before coinjoin requests are updated.
-			Logging.Logger.LogInfo($"The round ({roundId}) does not exist.");
+			Logger.LogInfo($"The round ({roundId}) does not exist.");
 		}
 	}
 
