@@ -27,6 +27,7 @@ public class AffiliationFeeRateJsonConverter : JsonConverter<decimal>
 		{
 			return DecodeDecimal(number);
 		}
+
 		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 
@@ -34,8 +35,9 @@ public class AffiliationFeeRateJsonConverter : JsonConverter<decimal>
 	{
 		if (!IsEncodable(value))
 		{
-			throw new ArgumentException("Decimal cannot be unambiguously encodable.", nameof(value));
+			throw new ArgumentException("Decimal cannot be unambiguously encoded.", nameof(value));
 		}
+
 		writer.WriteValue(EncodeDecimal(value));
 	}
 }

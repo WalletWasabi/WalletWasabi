@@ -1,4 +1,3 @@
-using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using WalletWasabi.Helpers;
 
@@ -12,6 +11,7 @@ public class AffiliationByteArrayJsonConverter : JsonConverter<byte[]>
 		{
 			return Convert.FromHexString(serialized);
 		}
+
 		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 

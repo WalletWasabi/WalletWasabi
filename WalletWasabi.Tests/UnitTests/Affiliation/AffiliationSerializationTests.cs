@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using Newtonsoft.Json;
-using WalletWasabi.Affiliation;
 using WalletWasabi.Affiliation.Serialization;
 using Xunit;
 

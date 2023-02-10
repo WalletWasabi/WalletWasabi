@@ -10,6 +10,7 @@ using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Affiliation.Serialization;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Affiliation;
 
@@ -45,7 +46,7 @@ public class AffiliateServerHttpApiClient
 
 	private async Task<HttpResponseMessage> SendAsync(RemoteAction action, string jsonString, TimeSpan requestTimeout, int requestNumber, CancellationToken cancellationToken)
 	{
-		Exception GetFinalException(IEnumerable<Exception> exceptions) =>
+		static Exception GetFinalException(IEnumerable<Exception> exceptions) =>
 			(exceptions.Count()) switch
 			{
 				0 => throw new InvalidOperationException(),
@@ -111,7 +112,7 @@ public class AffiliateServerHttpApiClient
 		}
 		catch
 		{
-			Logging.Logger.LogDebug($"Failed to deserialize {typeof(TResponse)} from JSON '{jsonString}'");
+			Logger.LogDebug($"Failed to deserialize {typeof(TResponse)} from JSON '{jsonString}'");
 			throw;
 		}
 	}
