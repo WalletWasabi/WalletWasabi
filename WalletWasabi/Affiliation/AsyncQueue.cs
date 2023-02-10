@@ -1,25 +1,22 @@
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Threading.Channels;
+
+namespace WalletWasabi.Affiliation;
 
 public class AsyncQueue<T>
 {
-	private Channel<T> _channel;
+	private readonly Channel<T> _channel;
 
 	public AsyncQueue()
 	{
-		UnboundedChannelOptions unboundedChannelOptions = new()
+		UnboundedChannelOptions options = new()
 		{
 			SingleReader = false,
 			SingleWriter = false
 		};
-		_channel = Channel.CreateUnbounded<T>(unboundedChannelOptions);
-	}
 
-	public async Task<T> DequeueAsync(CancellationToken cancellationToken)
-	{
-		return await _channel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+		_channel = Channel.CreateUnbounded<T>(options);
 	}
 
 	public IAsyncEnumerable<T> GetAsyncIterator(CancellationToken cancellationToken)
@@ -31,7 +28,7 @@ public class AsyncQueue<T>
 	{
 		if (!_channel.Writer.TryWrite(item))
 		{
-			throw new InvalidOperationException($"Cannot write to channel.");
+			throw new InvalidOperationException("Cannot write to channel.");
 		}
 	}
 }
