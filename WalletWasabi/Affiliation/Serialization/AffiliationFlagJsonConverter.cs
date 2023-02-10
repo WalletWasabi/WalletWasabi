@@ -11,6 +11,7 @@ public class AffiliationFlagJsonConverter : JsonConverter<AffiliationFlag>
 		{
 			return new AffiliationFlag(serialized);
 		}
+
 		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 
