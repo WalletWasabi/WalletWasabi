@@ -9,5 +9,12 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public interface IBlockProvider
 {
-	Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel);
+	Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken);
+
+	/// <exception cref="InvalidOperationException">If the block cannot be obtained.</exception>
+	async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
+	{
+		return await TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false)
+			?? throw new InvalidOperationException($"Failed to get block {blockHash}.");
+	}
 }

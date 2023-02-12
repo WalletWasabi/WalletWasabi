@@ -59,7 +59,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			// Turn off overriding if we went above the threshold meanwhile.
 			overridePlebStop = false;
-			wallet.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
+			wallet.LogDebug("Do not override PlebStop anymore we are above the threshold.");
 		}
 
 		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
@@ -237,7 +237,7 @@ public class CoinJoinManager : BackgroundService
 				coinJoinTrackerToStop.Stop();
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
-					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped - it won't restart later.");
+					walletToStop.LogWarning("Coinjoin is in critical phase, it cannot be stopped - it won't restart later.");
 				}
 			}
 			else if (autoStartRemoved)
@@ -326,14 +326,14 @@ public class CoinJoinManager : BackgroundService
 				}
 				else
 				{
-					walletToStart.LogInfo($"AutoStart was already handled.");
+					walletToStart.LogInfo("AutoStart was already handled.");
 				}
 			},
 			linkedCts.Token);
 
 		if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, linkedCts)))
 		{
-			walletToStart.LogInfo($"AutoCoinJoin task was already added.");
+			walletToStart.LogInfo("AutoCoinJoin task was already added.");
 		}
 	}
 
@@ -436,7 +436,7 @@ public class CoinJoinManager : BackgroundService
 
 		if (!trackedCoinJoins.TryRemove(wallet.WalletName, out _))
 		{
-			wallet.LogWarning($"Was not removed from tracked wallet list. Will retry in a few seconds.");
+			wallet.LogWarning("Was not removed from tracked wallet list. Will retry in a few seconds.");
 		}
 		else
 		{

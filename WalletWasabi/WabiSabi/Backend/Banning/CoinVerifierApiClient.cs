@@ -48,6 +48,7 @@ public class CoinVerifierApiClient
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 
 		int tries = 3;
+		var delay = TimeSpan.FromSeconds(2);
 
 		HttpResponseMessage? response = null;
 
@@ -58,28 +59,36 @@ public class CoinVerifierApiClient
 			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 			content.Headers.Authorization = new("Bearer", ApiToken);
 
-			response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+			try
+			{
+				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
 
-			if (response.StatusCode == HttpStatusCode.OK)
-			{
-				// Successful request, break the iteration.
-				break;
+				if (response is { } && response.StatusCode == HttpStatusCode.OK)
+				{
+					// Successful request, break the iteration.
+					break;
+				}
+				else
+				{
+					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+				}
 			}
-			else
+			catch (Exception ex)
 			{
-				Logger.LogWarning($"API request failed. {nameof(HttpStatusCode)} was {response.StatusCode}.");
+				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {tries}. Exception: {ex}.");
+				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 			}
 		}
 		while (tries > 0);
 
 		// Throw proper exceptions - if needed - according to the latest response.
-		if (response.StatusCode == HttpStatusCode.Forbidden)
+		if (response?.StatusCode == HttpStatusCode.Forbidden)
 		{
 			throw new UnauthorizedAccessException("User roles access forbidden.");
 		}
-		else if (response.StatusCode != HttpStatusCode.OK)
+		else if (response?.StatusCode != HttpStatusCode.OK)
 		{
-			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response.StatusCode}.");
+			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
 		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
