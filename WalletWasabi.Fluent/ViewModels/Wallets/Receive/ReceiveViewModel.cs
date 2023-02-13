@@ -1,11 +1,11 @@
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -37,8 +37,8 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		var nextCommandCanExecute =
 			SuggestionLabels
-				.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default)
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
+				.WhenAnyValue(x => x.Labels.Count).ToSignal()
+				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).ToSignal())
 				.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
 
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);

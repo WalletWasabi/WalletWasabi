@@ -14,7 +14,7 @@ public static class StreamExtensions
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns><c>-1</c> when no byte could be read, otherwise valid byte value (cast <see cref="int"/> result to <see cref="byte"/>).</returns>
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
-	public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken cancellationToken = default)
+	public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken cancellationToken)
 	{
 		ArrayPool<byte> pool = ArrayPool<byte>.Shared;
 		byte[] buffer = pool.Rent(1);
@@ -49,7 +49,7 @@ public static class StreamExtensions
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns>Number of read bytes. At most <paramref name="count"/>.</returns>
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
-	public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken = default)
+	public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken)
 	{
 		int remaining = count;
 		while (remaining != 0)

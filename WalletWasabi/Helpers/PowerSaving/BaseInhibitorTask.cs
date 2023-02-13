@@ -41,6 +41,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 
 	/// <summary>Reason why the power saving is inhibited.</summary>
 	public string Reason { get; }
+
 	private ProcessAsync Process { get; }
 	private CancellationTokenSource Cts { get; }
 	private TaskCompletionSource StoppedTcs { get; } = new();

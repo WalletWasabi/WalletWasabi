@@ -120,7 +120,7 @@ public class TorControlClientTests
 
 		Logger.LogTrace("Client: Receive msg #1 (async).");
 		{
-			await firstReplyTask.AsTask().WithAwaitCancellationAsync(timeoutCts.Token);
+			await firstReplyTask.AsTask().WaitAsync(timeoutCts.Token);
 			TorControlReply receivedEvent1 = eventsEnumerator.Current;
 			Assert.Equal(StatusCode.AsynchronousEventNotify, receivedEvent1.StatusCode);
 			string line = Assert.Single(receivedEvent1.ResponseLines);

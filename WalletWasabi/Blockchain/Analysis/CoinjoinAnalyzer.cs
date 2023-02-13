@@ -39,9 +39,9 @@ public class CoinjoinAnalyzer
 			}
 
 			// If we already analyzed the sanction for this output, then return the cached result.
-			if (CachedInputSanctions.ContainsKey(transactionOutput))
+			if (CachedInputSanctions.TryGetValue(transactionOutput, out double value))
 			{
-				return CachedInputSanctions[transactionOutput];
+				return value;
 			}
 
 			// Look at the transaction containing transactionOutput.

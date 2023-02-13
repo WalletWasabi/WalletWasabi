@@ -13,17 +13,20 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 
 	public PocketCoinControlItemViewModel(Pocket pocket)
 	{
-		var unconfirmedCount = pocket.Coins.Count(x => !x.Confirmed);
+		var pocketCoins = pocket.Coins.ToList();
+
+		var unconfirmedCount = pocketCoins.Count(x => !x.Confirmed);
 		IsConfirmed = unconfirmedCount == 0;
 		ConfirmationStatus = IsConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
-		IsBanned = pocket.Coins.Any(x => x.IsBanned);
+		IsBanned = pocketCoins.Any(x => x.IsBanned);
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
-		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
-		AnonymityScore = (int)pocket.Coins.Max(x => x.HdPubKey.AnonymitySet);
+		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
+		AnonymityScore = pocketCoins.Count == 1 ? (int)pocketCoins[0].HdPubKey.AnonymitySet : null;
 		Labels = pocket.Labels;
-		Children = pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
+		Children = pocketCoins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
+		ScriptType = pocketCoins.Count == 1 ? ScriptType.FromEnum(pocketCoins[0].ScriptType) : null;
 
 		Children
 			.AsObservableChangeSet()

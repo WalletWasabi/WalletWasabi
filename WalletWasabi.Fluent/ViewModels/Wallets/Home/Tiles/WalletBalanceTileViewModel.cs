@@ -11,16 +11,15 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 	{
 		var wallet = walletVm.Wallet;
 
-		var balance = walletVm.UiTriggers.BalanceUpdateTrigger
+		var balanceBtc = walletVm.UiTriggers.BalanceUpdateTrigger
 			.Select(_ => wallet.Coins.TotalAmount());
 
-		BalanceBtc = balance
-			.Select(money => $"{money.ToFormattedString()} BTC");
+		BalanceBtc = balanceBtc;
 
-		BalanceFiat = balance
+		BalanceFiat = balanceBtc
 			.Select(money => money.BtcToUsd(wallet.Synchronizer.UsdExchangeRate));
 
-		HasBalance = balance
+		HasBalance = balanceBtc
 			.Select(money => money > Money.Zero);
 	}
 
@@ -28,5 +27,5 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 
 	public IObservable<decimal> BalanceFiat { get; }
 
-	public IObservable<string> BalanceBtc { get; }
+	public IObservable<Money> BalanceBtc { get; }
 }
