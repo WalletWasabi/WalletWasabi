@@ -229,11 +229,10 @@ public class Dialog : ContentControl
 
 			PseudoClasses.Set(":open", isOpen);
 
-			// TODO:
-			// if (!isOpen)
-			// {
-			// 	PseudoClasses.Set(":alert", false);
-			// }
+			if (!isOpen)
+			{
+				PseudoClasses.Set(":alert", false);
+			}
 		}
 
 		if (change.Property == IsBusyProperty)
