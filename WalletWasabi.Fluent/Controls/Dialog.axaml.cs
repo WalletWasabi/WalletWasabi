@@ -288,6 +288,11 @@ public class Dialog : ContentControl
 
 	private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
+		if (IsDialogOpen && ShowAlert)
+		{
+			ShowAlert = false;
+		}
+
 		if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
@@ -303,6 +308,11 @@ public class Dialog : ContentControl
 
 	private void CancelKeyDown(object? sender, KeyEventArgs e)
 	{
+		if (IsDialogOpen && ShowAlert)
+		{
+			ShowAlert = false;
+		}
+
 		if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsActive)
 		{
 			e.Handled = true;
