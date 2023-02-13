@@ -221,6 +221,7 @@ public class CoreNode
 		}
 
 		var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
+
 		// If the comment is not already present.
 		// And there would be new config entries added.
 		var throwAwayConfig = new CoreConfig(coreNode.Config);
