@@ -266,7 +266,7 @@ public class CoinVerifier : IAsyncDisposable
 					item.SetResult(result);
 					VerifierAuditArchiver.LogVerificationResult(result, Reason.Exception, apiResponseItem: null, exception: ex);
 
-					Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
+					Logger.LogError($"Coin verification has failed for coin '{coin.Outpoint}' with '{ex}'.");
 
 					// Do not throw an exception here - unobserverved exception prevention.
 				}
