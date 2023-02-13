@@ -65,6 +65,7 @@ public class CoinJoinTracker : IDisposable
 			case LeavingCriticalPhase:
 				InCriticalCoinJoinState = false;
 				break;
+
 			case RoundEnded roundEnded:
 				roundEnded.IsStopped = IsStopped;
 				break;

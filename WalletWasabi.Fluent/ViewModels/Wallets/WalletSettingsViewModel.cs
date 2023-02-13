@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
@@ -29,8 +28,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
-							 KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

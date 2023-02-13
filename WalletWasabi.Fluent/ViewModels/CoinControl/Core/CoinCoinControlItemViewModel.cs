@@ -19,7 +19,7 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
 		IsSelected = false;
-		CanBeSelected = !IsCoinjoining;
+		ScriptType = ScriptType.FromEnum(smartCoin.ScriptType);
 	}
 
 	public SmartCoin SmartCoin { get; }

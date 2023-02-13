@@ -24,12 +24,14 @@ public class CoinVerifierApiClient
 	{
 	}
 
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
+
 	private string ApiToken { get; set; }
 	private Network Network { get; set; }
 
 	private HttpClient HttpClient { get; set; }
 
-	public virtual async Task<(ApiResponseItem ApiResponseItem, Script Script)> SendRequestAsync(Script script, CancellationToken cancellationToken)
+	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
 		if (HttpClient.BaseAddress is null)
 		{
@@ -42,59 +44,57 @@ public class CoinVerifierApiClient
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource timeoutTokenSource = new(ApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
-		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
-		content.Headers.Authorization = new("Bearer", ApiToken);
 
-		var response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+		int tries = 3;
+		var delay = TimeSpan.FromSeconds(2);
 
-		if (response.StatusCode == HttpStatusCode.Forbidden)
+		HttpResponseMessage? response = null;
+
+		do
+		{
+			tries--;
+
+			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
+			content.Headers.Authorization = new("Bearer", ApiToken);
+
+			try
+			{
+				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+
+				if (response is { } && response.StatusCode == HttpStatusCode.OK)
+				{
+					// Successful request, break the iteration.
+					break;
+				}
+				else
+				{
+					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {tries}. Exception: {ex}.");
+				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+			}
+		}
+		while (tries > 0);
+
+		// Throw proper exceptions - if needed - according to the latest response.
+		if (response?.StatusCode == HttpStatusCode.Forbidden)
 		{
 			throw new UnauthorizedAccessException("User roles access forbidden.");
 		}
-		else if (response.StatusCode != HttpStatusCode.OK)
+		else if (response?.StatusCode != HttpStatusCode.OK)
 		{
-			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response.StatusCode}.");
+			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
 		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return (deserializedRecord, script);
-	}
-
-	public async IAsyncEnumerable<(ApiResponseItem ApiResponseItem, Script ScriptPubKey)> VerifyScriptsAsync(IEnumerable<Script> scripts, [EnumeratorCancellation] CancellationToken cancellationToken)
-	{
-		IEnumerable<IEnumerable<Script>> chunks = scripts.Chunk(100);
-
-		foreach (var chunk in chunks)
-		{
-			var tasks = chunk.Select(script => SendRequestAsync(script, cancellationToken)).ToList();
-
-			foreach (var task in tasks)
-			{
-				(ApiResponseItem ApiResponseItem, Script ScriptPubKey) response;
-				try
-				{
-					var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
-
-					response = await completedTask.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					continue;
-				}
-
-				yield return response;
-			}
-		}
+		return deserializedRecord;
 	}
 }

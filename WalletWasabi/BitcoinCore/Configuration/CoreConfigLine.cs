@@ -5,11 +5,6 @@ namespace WalletWasabi.BitcoinCore.Configuration;
 
 public class CoreConfigLine
 {
-	public CoreConfigLine(string key, string value)
-		: this($"{Guard.NotNullOrEmptyOrWhitespace(key, value, true)} = {Guard.NotNullOrEmptyOrWhitespace(key, value, true)}")
-	{
-	}
-
 	public CoreConfigLine(string line)
 	{
 		// The point of having the line would be to not modify the original config file, but oh well, nobody would be against by removing whitespaces.

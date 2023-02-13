@@ -33,10 +33,10 @@ public class P2pNode
 
 	private Node? Node { get; set; }
 	private TrustedP2pBehavior? TrustedP2pBehavior { get; set; }
-	public Network Network { get; }
-	public EndPoint EndPoint { get; }
+	private Network Network { get; }
+	private EndPoint EndPoint { get; }
 	public MempoolService MempoolService { get; }
-	public string UserAgent { get; }
+	private string UserAgent { get; }
 
 	private bool NodeEventsSubscribed { get; set; }
 	private object SubscriptionLock { get; }

@@ -26,15 +26,14 @@ public class WalletManager : IWalletProvider
 
 	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-			Directory.CreateDirectory(WorkDir);
-			WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		using IDisposable _ = BenchmarkLogger.Measure();
 
-			RefreshWalletList();
-		}
+		Network = Guard.NotNull(nameof(network), network);
+		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		Directory.CreateDirectory(WorkDir);
+		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+
+		RefreshWalletList();
 	}
 
 	/// <summary>

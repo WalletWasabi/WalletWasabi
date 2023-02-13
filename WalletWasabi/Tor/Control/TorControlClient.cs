@@ -206,7 +206,7 @@ public class TorControlClient : IAsyncDisposable
 	/// {
 	///    Console.WriteLine(reply.ToString());
 	/// }
-	/// </code> 
+	/// </code>
 	/// </example>
 	public async IAsyncEnumerable<TorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
 	{

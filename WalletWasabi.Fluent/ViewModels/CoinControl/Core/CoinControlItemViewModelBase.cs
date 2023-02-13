@@ -12,7 +12,10 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	protected CoinControlItemViewModelBase()
 	{
-		CanBeSelected = !IsCoinjoining;
+		// Temporarily enable the selection no matter what.
+		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
+		// CanBeSelected = !IsCoinjoining;
+		CanBeSelected = true;
 	}
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
@@ -35,7 +38,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	public string? BannedUntilUtcToolTip { get; protected set; }
 
-	public int AnonymityScore { get; protected set; }
+	public int? AnonymityScore { get; protected set; }
 
 	public SmartLabel Labels { get; protected set; } = SmartLabel.Empty;
 
@@ -58,4 +61,6 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 			this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 	}
+
+	public ScriptType? ScriptType { get; protected set; }
 }

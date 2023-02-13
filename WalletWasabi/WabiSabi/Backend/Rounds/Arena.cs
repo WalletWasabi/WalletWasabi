@@ -44,6 +44,11 @@ public partial class Arena : PeriodicRunner
 		RoundParameterFactory = roundParameterFactory;
 		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
+
+		if (CoinVerifier is not null)
+		{
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklisted;
+		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -123,24 +128,23 @@ public partial class Arena : PeriodicRunner
 				{
 					try
 					{
-						int banCounter = 0;
-						var aliceDictionary = round.Alices.Where(x => !x.IsPayingZeroCoordinationFee).ToDictionary(a => a.Coin, a => a);
-						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
-						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
+						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice);
+						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
 						{
-							if (coinVerifyInfo.ShouldBan)
+							if (coinVerifyInfo.ShouldRemove)
 							{
-								banCounter++;
-								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
-								Prison.Ban(aliceToPunish, round.Id, isLongBan: true);
-								round.Alices.Remove(aliceToPunish);
+								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
+								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from round");
 							}
 						}
-						Logger.LogInfo($"{banCounter} utxos were banned from round {round.Id}.");
 					}
 					catch (Exception exc)
 					{
+						// This should never happen.
+
 						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
+						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
+						round.EndRound(EndRoundState.AbortedWithError);
 					}
 				}
 
@@ -541,7 +545,14 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 		{
-			var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
+			var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
+			foreach (var alice in alicesToRemove)
+			{
+				round.Alices.Remove(alice);
+				CoinVerifier?.CancelSchedule(alice.Coin);
+			}
+
+			var removedAliceCount = alicesToRemove.Length;
 			if (removedAliceCount > 0)
 			{
 				round.LogInfo($"{removedAliceCount} alices timed out and removed.");
@@ -631,5 +642,24 @@ public partial class Arena : PeriodicRunner
 		}
 
 		return coordinatorScriptPubKey;
+	}
+
+	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
+	{
+		// For logging reason Prison needs the roundId.
+		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
+
+		// Cound be a coin from WW1.
+		var roundId = roundState?.Id ?? uint256.Zero;
+		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
+	}
+
+	public override void Dispose()
+	{
+		if (CoinVerifier is not null)
+		{
+			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
+		}
+		base.Dispose();
 	}
 }
