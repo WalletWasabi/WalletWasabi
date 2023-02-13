@@ -258,11 +258,31 @@ public class Dialog : ContentControl
 			topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Tunnel);
 			topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
 		}
+
+		AddHandler(PointerPressedEvent, HandlePointerPressed, RoutingStrategies.Tunnel);
+		AddHandler(KeyDownEvent, HandleKeyDown, RoutingStrategies.Tunnel);
+	}
+
+	private void HandlePointerPressed(object? sender, PointerPressedEventArgs e)
+	{
+		if (ShowAlert)
+		{
+			ShowAlert = false;
+		}
+	}
+
+	private void HandleKeyDown(object? sender, KeyEventArgs e)
+	{
+		if (ShowAlert)
+		{
+			ShowAlert = false;
+		}
 	}
 
 	private void Close()
 	{
 		IsDialogOpen = false;
+		ShowAlert = false;
 	}
 
 	private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
