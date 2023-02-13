@@ -94,9 +94,7 @@ public static class DirectShow
 			}
 
 			Guid guid = DsGuid.IID_IBaseFilter;
-#pragma warning disable CS8625 // The intention of using null is clear and is working.
 			moniker.BindToObject(null, null, ref guid, out object value);
-#pragma warning restore CS8625
 			result = value as IBaseFilter;
 			return true;
 		});
@@ -136,9 +134,7 @@ public static class DirectShow
 				var moniker = monikers[0];
 
 				Guid guid = DsGuid.IID_IPropertyBag;
-#pragma warning disable CS8625 // The intention of using null is clear and is working.
 				moniker.BindToStorage(null, null, ref guid, out object value);
-#pragma warning restore CS8625
 				var prop = (IPropertyBag)value;
 
 				try
@@ -683,7 +679,6 @@ public static class DirectShow
 	[StructLayout(LayoutKind.Sequential), ComVisible(false)]
 	public class AM_MEDIA_TYPE
 	{
-#pragma warning disable IDE1006 // Naming Styles
 		public Guid MajorType;
 		public Guid SubType;
 		[MarshalAs(UnmanagedType.Bool)] public bool bFixedSizeSamples;
@@ -830,8 +825,6 @@ public static class DirectShow
 			return $"{{{Left}, {Top}, {Right}, {Bottom}}}";
 		} // for debugging.
 	}
-
-#pragma warning restore IDE1006 // Naming Styles
 
 	[ComVisible(false)]
 	public enum PIN_DIRECTION

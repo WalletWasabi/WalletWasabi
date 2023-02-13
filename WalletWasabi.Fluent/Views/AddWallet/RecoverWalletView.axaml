@@ -24,7 +24,7 @@
                   Classes="checkMark"
                   VerticalAlignment="Center"
                   DockPanel.Dock="Right"
-                  Opacity="{Binding NextCommandCanExecute^}" />
+                  Opacity="{Binding IsMnemonicsValid}" />
         <c:TagsBox DockPanel.Dock="Left"
                    ItemCountLimit="24"
                    SuggestionsAreCaseSensitive="False"
