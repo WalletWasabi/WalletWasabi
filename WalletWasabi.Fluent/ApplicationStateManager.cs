@@ -17,6 +17,13 @@ namespace WalletWasabi.Fluent;
 
 public class ApplicationStateManager : IMainWindowService
 {
+	private readonly StateMachine<State, Trigger> _stateMachine;
+	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
+	private CompositeDisposable? _compositeDisposable;
+	private bool _hideRequest;
+	private bool _isShuttingDown;
+	private bool _restartRequest;
+
 	private enum Trigger
 	{
 		Invalid = 0,
@@ -35,13 +42,6 @@ public class ApplicationStateManager : IMainWindowService
 		Closed,
 		Open,
 	}
-
-	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
-	private CompositeDisposable? _compositeDisposable;
-	private bool _hideRequest;
-	private bool _isShuttingDown;
-	private bool _restartRequest;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
