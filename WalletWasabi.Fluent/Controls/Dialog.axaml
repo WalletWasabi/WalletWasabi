@@ -56,12 +56,28 @@
     </Setter>
     <Setter Property="Opacity" Value="0" />
   </Style>
+
   <Style Selector="c|Dialog /template/ Border#PART_Border">
     <Setter Property="Margin" Value="40" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="4" />
     <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}" />
   </Style>
+
+  <Style Selector="c|Dialog:alert /template/ Border#PART_Border">
+    <Setter Property="BoxShadow" Value="0 0 10 10 Red"/>
+    <Style.Animations>
+      <Animation Duration="0:0:0.5" PlaybackDirection="AlternateReverse" IterationCount="Infinite">
+        <KeyFrame Cue="0%">
+          <Setter Property="BoxShadow" Value="0 0 10 0 Red"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="0 0 10 10 Red"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
   <Style Selector="c|Dialog /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="MinWidth" Value="382" />
     <Setter Property="MinHeight" Value="284" />
