@@ -142,6 +142,26 @@ public partial class MainViewModel : ViewModelBase
 		       || CompactDialogScreen.IsDialogOpen;
 	}
 
+	public void ShowDialogAlert()
+	{
+		if (CompactDialogScreen.IsDialogOpen)
+		{
+			CompactDialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (DialogScreen.IsDialogOpen)
+		{
+			DialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (FullScreen.IsDialogOpen)
+		{
+			FullScreen.ShowAlert = true;
+		}
+	}
+
 	public void ClearStacks()
 	{
 		MainScreen.Clear();
