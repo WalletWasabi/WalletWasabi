@@ -70,7 +70,7 @@ public class RoundData
 
 		IEnumerable<AffiliateInput> inputs = transaction.Inputs
 			.Select(x => coinByOutpoints[x.PrevOut])
-			.Select(x => new AffiliateInput(x.Outpoint, x.ScriptPubKey, affiliationFlagsByOutpoints.GetValueOrDefault(x.Outpoint, AffiliationFlagConstants.Default), feeExemptionsByOutpoints.GetValueOrDefault(x.Outpoint, false) || isNoFee(x.Amount)));
+			.Select(x => new AffiliateInput(x.Outpoint, x.ScriptPubKey, affiliationFlagsByOutpoints.GetValueOrDefault(x.Outpoint, AffiliationConstants.DefaultAffiliationFlag), feeExemptionsByOutpoints.GetValueOrDefault(x.Outpoint, false) || isNoFee(x.Amount)));
 
 		return new FinalizedRoundData(inputs, transaction.Outputs, RoundParameters.Network, RoundParameters.CoordinationFeeRate, RoundParameters.AllowedInputAmounts.Min);
 	}

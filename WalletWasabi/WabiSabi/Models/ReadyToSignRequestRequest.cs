@@ -17,7 +17,7 @@ public record ReadyToSignRequestRequest
 		AliceId = aliceId;
 		AffiliationFlag = affiliationFlag is { } nonNullAffilitiationFlag && IsValidAffiliationName(nonNullAffilitiationFlag)
 				? nonNullAffilitiationFlag 
-				: AffiliationFlagConstants.Default;
+				: AffiliationConstants.DefaultAffiliationFlag;
 	}
 	public uint256 RoundId { get; }
 	public Guid AliceId { get; }

@@ -23,7 +23,7 @@ public class ReadyToSingRequestRequestCompatibilityTests
 		var deserializedReadyToSignRequestRequestWithoutAffilliation =
 			JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters)!;
 
-		Assert.Equal(AffiliationFlagConstants.Default, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
+		Assert.Equal(AffiliationConstants.DefaultAffiliationFlag, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
 	}
 
 	[Theory]
@@ -40,7 +40,7 @@ public class ReadyToSingRequestRequestCompatibilityTests
 		var deserializedReadyToSignRequestRequestWithoutAffilliation =
 			JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters)!;
 
-		Assert.Equal(AffiliationFlagConstants.Default, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
+		Assert.Equal(AffiliationConstants.DefaultAffiliationFlag, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
 	}
 
 	[Theory]

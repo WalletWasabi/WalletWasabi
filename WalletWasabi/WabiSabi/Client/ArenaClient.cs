@@ -224,7 +224,7 @@ public class ArenaClient
 			new ReadyToSignRequestRequest(
 				roundId,
 				aliceId,
-				AffiliationFlagConstants.Default),
+				AffiliationConstants.DefaultAffiliationFlag),
 			cancellationToken).ConfigureAwait(false);
 	}
 }

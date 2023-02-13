@@ -21,7 +21,7 @@ public class AffiliationManager : BackgroundService
 			 x => x.Key,
 			  x =>
 			  {
-				  HttpClient httpClient = httpClientFactory.CreateClient("AffiliateHttpClient");
+				  HttpClient httpClient = httpClientFactory.CreateClient(AffiliationConstants.LogicalHttpClientName);
 				  ClearnetHttpClient client = new(httpClient, baseUriGetter: () => new Uri(x.Value));
 				  return new AffiliateServerHttpApiClient(client);
 			  }).ToImmutableDictionary();
@@ -51,6 +51,7 @@ public class AffiliationManager : BackgroundService
 	{
 		CoinJoinRequestsUpdater.Dispose();
 		Signer.Dispose();
+		base.Dispose();
 	}
 
 	public AffiliateInformation GetAffiliateInformation()
