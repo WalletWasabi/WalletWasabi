@@ -145,7 +145,7 @@ public class ApplicationStateManager : IMainWindowService
 				_isShuttingDown = !preventShutdown;
 				e.Cancel = preventShutdown;
 
-				if (mainViewCanClose)
+				//TODO: if (mainViewCanClose)
 				{
 					_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 				}
