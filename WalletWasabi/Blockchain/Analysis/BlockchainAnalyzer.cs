@@ -131,10 +131,6 @@ public class BlockchainAnalyzer
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
-			// Anonset gain cannot be larger than others' input count.
-			// Picking randomly an output would make our anonset: total/ours.
-			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First()), foreignInputCount);
-
 			double startingOutputAnonset;
 			double startingOutputAnonsetSanctioned;
 
@@ -158,6 +154,10 @@ public class BlockchainAnalyzer
 				startingOutputAnonset = startingMixedOutputAnonset;
 				startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
 			}
+
+			// Anonset gain cannot be larger than others' input count.
+			// Picking randomly an output would make our anonset: total/ours.
+			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First()), foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
