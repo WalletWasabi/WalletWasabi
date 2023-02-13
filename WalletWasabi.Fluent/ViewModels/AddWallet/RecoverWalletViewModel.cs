@@ -109,7 +109,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel(MinGapLimit),
+		var result = await NavigateDialogAsync(
+			new AdvancedRecoveryOptionsViewModel(MinGapLimit),
 			NavigationTarget.CompactDialogScreen);
 
 		if (result.Kind == DialogResultKind.Normal && result.Result is { } minGapLimit)
