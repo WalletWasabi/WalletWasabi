@@ -225,12 +225,24 @@ public class Dialog : ContentControl
 
 		if (change.Property == IsDialogOpenProperty)
 		{
-			PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+			var isOpen = change.NewValue.GetValueOrDefault<bool>();
+
+			PseudoClasses.Set(":open", isOpen);
+
+			if (!isOpen)
+			{
+				PseudoClasses.Set(":alert", false);
+			}
 		}
 
 		if (change.Property == IsBusyProperty)
 		{
 			PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+		}
+
+		if (change.Property == ShowAlertProperty)
+		{
+			PseudoClasses.Set(":alert", change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 
