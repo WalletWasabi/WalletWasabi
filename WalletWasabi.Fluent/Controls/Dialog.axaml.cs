@@ -193,8 +193,8 @@ public class Dialog : ContentControl
 
 	private bool ShowAlert
 	{
-		get => GetValue(IncreasedSizeEnabledProperty);
-		set => SetValue(IncreasedSizeEnabledProperty, value);
+		get => GetValue(ShowAlertProperty);
+		set => SetValue(ShowAlertProperty, value);
 	}
 
 	private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
