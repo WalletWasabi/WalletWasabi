@@ -67,6 +67,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented(bool restartRequest)
 	{
+		if (!MainViewCanShutdown())
+		{
+			MainViewModel.Instance.ShowDialogAlert();
+			return;
+		}
+
 		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
 		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
