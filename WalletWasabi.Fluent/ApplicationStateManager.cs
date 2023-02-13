@@ -56,20 +56,24 @@ public class ApplicationStateManager : IMainWindowService
 
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)
-			.OnTrigger(Trigger.ShutdownRequested, () =>
-			{
-				if (_restartRequest)
+			.OnTrigger(
+				Trigger.ShutdownRequested,
+				() =>
 				{
-					AppLifetimeHelper.StartAppWithArgs();
-				}
+					if (_restartRequest)
+					{
+						AppLifetimeHelper.StartAppWithArgs();
+					}
 
-				lifetime.Shutdown();
-			})
-			.OnTrigger(Trigger.ShutdownPrevented, () =>
-			{
-				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
-				_restartRequest = false; // reset the value.
-			});
+					lifetime.Shutdown();
+				})
+			.OnTrigger(
+				Trigger.ShutdownPrevented,
+				() =>
+				{
+					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
+					_restartRequest = false; // reset the value.
+				});
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)
