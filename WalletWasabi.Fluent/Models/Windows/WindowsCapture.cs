@@ -596,8 +596,6 @@ public class WindowsCapture
 	[StructLayout(LayoutKind.Explicit)]
 	public readonly struct BgraColor
 	{
-#pragma warning disable IDE1006 // Naming Styles
-
 		[FieldOffset(3)] public readonly byte A;
 
 		[FieldOffset(2)] public readonly byte R;
@@ -605,7 +603,6 @@ public class WindowsCapture
 		[FieldOffset(1)] public readonly byte G;
 
 		[FieldOffset(0)] public readonly byte B;
-#pragma warning restore IDE1006 // Naming Styles
 
 		public BgraColor(byte r, byte g, byte b, byte a = byte.MaxValue)
 		{
