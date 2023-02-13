@@ -67,6 +67,9 @@ public class Dialog : ContentControl
 	public static readonly StyledProperty<bool> IncreasedSizeEnabledProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedSizeEnabled));
 
+	public static readonly StyledProperty<bool> ShowAlertProperty =
+		AvaloniaProperty.Register<Dialog, bool>(nameof(ShowAlert));
+
 	public Dialog()
 	{
 		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
@@ -183,6 +186,12 @@ public class Dialog : ContentControl
 	}
 
 	private bool IncreasedSizeEnabled
+	{
+		get => GetValue(IncreasedSizeEnabledProperty);
+		set => SetValue(IncreasedSizeEnabledProperty, value);
+	}
+
+	private bool ShowAlert
 	{
 		get => GetValue(IncreasedSizeEnabledProperty);
 		set => SetValue(IncreasedSizeEnabledProperty, value);
