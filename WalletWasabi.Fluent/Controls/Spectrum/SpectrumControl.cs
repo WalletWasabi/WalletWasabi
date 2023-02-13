@@ -85,9 +85,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
-	private void OnGeneratingDataStateChanged(object? sender, bool isGenerating)
+	private void OnGeneratingDataStateChanged(object? sender, EventArgs e)
 	{
-		_isGenerating = isGenerating;
+		_isGenerating = _auraSpectrumDataSource.IsGenerating || _splashEffectDataSource.IsGenerating;
 
 		if (_isGenerating)
 		{
@@ -147,7 +147,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			source.Render(ref _data);
 		}
 
-		if (!_isGenerating && _data.All(f => f <= 0)) // there is nothing to render.
+		// Even if the data generation is finished, let's wait until the animation finishes to disappear.
+		// Only stop the rendering once it fully disappeared. (== there is nothing to render)
+		if (!_isGenerating && _data.All(f => f <= 0))
 		{
 			_invalidationTimer.Stop();
 		}
