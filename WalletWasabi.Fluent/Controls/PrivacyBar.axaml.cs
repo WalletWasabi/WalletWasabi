@@ -1,7 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Generators;
-using Avalonia.Controls.Presenters;
 using Avalonia.VisualTree;
 using System.Linq;
 
@@ -22,13 +20,31 @@ public class PrivacyBar : ItemsControl
 		set => SetValue(TotalAmountProperty, value);
 	}
 
-	// TODO: Fix ItemsPresenter
-	/*
-	protected override IItemContainerGenerator CreateItemContainerGenerator()
+	protected override Control CreateContainerForItemOverride()
 	{
-		return new PrivacyBarItemContainerGenerator(this);
+		return new PrivacyBarSegment();
 	}
-*/
+
+	protected override void PrepareContainerForItemOverride(Control element, object? item, int index)
+	{
+		base.PrepareContainerForItemOverride(element, item, index);
+
+		if (element is PrivacyBarSegment privacyBarSegment)
+		{
+			privacyBarSegment.DataContext = item;
+		}
+	}
+
+	protected override void ClearContainerForItemOverride(Control element)
+	{
+		base.ClearContainerForItemOverride(element);
+
+		if (element is PrivacyBarSegment privacyBarSegment)
+		{
+			privacyBarSegment.DataContext = null;
+		}
+	}
+
 	protected override Size ArrangeOverride(Size finalSize)
 	{
 		var children =
@@ -75,21 +91,4 @@ public class PrivacyBar : ItemsControl
 
 		return base.ArrangeOverride(finalSize);
 	}
-
-	// TODO: Fix ItemsPresenter
-	/*
-	private class PrivacyBarItemContainerGenerator : ItemContainerGenerator
-	{
-		public PrivacyBarItemContainerGenerator(IControl owner) : base(owner)
-		{
-		}
-
-		protected override IControl CreateContainer(object item)
-		{
-			return new PrivacyBarSegment
-			{
-				DataContext = item,
-			};
-		}
-	}*/
 }
