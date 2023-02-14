@@ -6,32 +6,30 @@ using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Backend.Events;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Affiliation;
 
+public record FinalizedRoundDataWithRoundId(uint256 RoundId, FinalizedRoundData FinalizedRoundData);
+
 public class CoinJoinRequestsUpdater : BackgroundService
 {
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
 	public CoinJoinRequestsUpdater(Arena arena, ImmutableDictionary<string, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
 	{
-		Arena = arena;
+		AffiliateDataCollector = new(arena);
 		Clients = clients;
 		Signer = signer;
-
-		AddHandlers();
 	}
 
-	private Arena Arena { get; }
+	private AffiliateDataCollector AffiliateDataCollector { get; }
 	private AffiliationMessageSigner Signer { get; }
 	private ImmutableDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
 	private ConcurrentDictionary<uint256, ConcurrentDictionary<string, byte[]>> CoinJoinRequests { get; } = new();
-	private ConcurrentDictionary<uint256, RoundData> RoundData { get; } = new();
-	private AsyncQueue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; } = new();
 
 	public ImmutableDictionary<string, ImmutableDictionary<string, byte[]>> GetCoinjoinRequests()
 	{
@@ -45,7 +43,8 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	{
 		try
 		{
-			await foreach (FinalizedRoundDataWithRoundId finalizedRoundDataWithRoundId in RoundsToUpdate.GetAsyncIterator(cancellationToken).ConfigureAwait(false))
+			IAsyncEnumerable<FinalizedRoundDataWithRoundId> finalizedRounds = AffiliateDataCollector.GetFinalizedRounds(cancellationToken);
+			await foreach (FinalizedRoundDataWithRoundId finalizedRoundDataWithRoundId in finalizedRounds.ConfigureAwait(false))
 			{
 				try
 				{
@@ -97,20 +96,6 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		}
 	}
 
-	private void RemoveRound(uint256 roundId)
-	{
-		if (!RoundData.TryRemove(roundId, out _))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
-		}
-
-		if (!CoinJoinRequests.TryRemove(roundId, out _))
-		{
-			// This can occur if the round is finished before coinjoin requests are updated.
-			Logger.LogInfo($"The round ({roundId}) does not exist.");
-		}
-	}
-
 	private async Task<byte[]> GetCoinJoinRequestAsync(AffiliateServerHttpApiClient client, Body body, CancellationToken cancellationToken)
 	{
 		Payload payload = new(Header.Instance, body);
@@ -127,81 +112,10 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		return getCoinJoinRequestResponse.CoinjoinRequest;
 	}
 
-	private void CreateRound(uint256 roundId, RoundParameters roundParameters)
-	{
-		RoundData roundData = new(roundParameters);
-
-		if (!RoundData.TryAdd(roundId, roundData))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) already exist.");
-		}
-	}
-
-	private void Arena_InputAdded(object? sender, InputAddedEventArgs args)
-	{
-		GetRoundDataOrFail(args.RoundId)
-			.AddInputCoin(args.Coin, args.IsCoordinationFeeExempted);
-	}
-
-	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs args)
-	{
-		GetRoundDataOrFail(args.RoundId)
-			.AddInputAffiliationFlag(args.Coin, args.AffiliationFlag);
-	}
-
-	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs args)
-	{
-		CreateRound(args.RoundId, args.RoundParameters);
-	}
-
-	private void ArenaCoinJoinTransactionAdded(object? sender, CoinJoinTransactionCreatedEventArgs args)
-	{
-		RoundData roundData = GetRoundDataOrFail(args.RoundId);
-		RoundsToUpdate.Enqueue(new FinalizedRoundDataWithRoundId(args.RoundId, roundData.FinalizeRoundData(args.Transaction)));
-	}
-
-	private void Arena_RoundPhaseChanged(object? sender, RoundPhaseChangedEventArgs args)
-	{
-		if (args.Phase == Phase.Ended)
-		{
-			RemoveRound(args.RoundId);
-		}
-	}
-
-	private RoundData GetRoundDataOrFail(uint256 roundId)
-	{
-		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
-		}
-
-		return roundData;
-	}
-	
-	private void AddHandlers()
-	{
-		Arena.RoundCreated += Arena_RoundCreated;
-		Arena.AffiliationAdded += Arena_AffiliationAdded;
-		Arena.InputAdded += Arena_InputAdded;
-		Arena.CoinJoinTransactionCreated += ArenaCoinJoinTransactionAdded;
-		Arena.RoundPhaseChanged += Arena_RoundPhaseChanged;
-	}
-
-	private void RemoveHandlers()
-	{
-		Arena.RoundCreated -= Arena_RoundCreated;
-		Arena.AffiliationAdded -= Arena_AffiliationAdded;
-		Arena.InputAdded -= Arena_InputAdded;
-		Arena.CoinJoinTransactionCreated -= ArenaCoinJoinTransactionAdded;
-		Arena.RoundPhaseChanged -= Arena_RoundPhaseChanged;
-	}
-
 	public override void Dispose()
 	{
-		RemoveHandlers();
+		AffiliateDataCollector.Dispose();
 		Signer.Dispose();
 		base.Dispose();
 	}
-
-	private record FinalizedRoundDataWithRoundId(uint256 RoundId, FinalizedRoundData FinalizedRoundData);
 }
