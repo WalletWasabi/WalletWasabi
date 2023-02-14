@@ -97,7 +97,7 @@ public class CoinVerifierApiClient
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
+		string responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
