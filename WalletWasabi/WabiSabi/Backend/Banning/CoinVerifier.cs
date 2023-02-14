@@ -244,6 +244,7 @@ public class CoinVerifier : IAsyncDisposable
 					item.ThrowIfCancellationRequested();
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
+
 					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem);
 
 					// We got a definitive answer.
