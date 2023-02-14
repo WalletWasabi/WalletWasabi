@@ -56,11 +56,11 @@ public class RegTestFixture : IDisposable
 		roundConfig.ToFile();
 
 		var conf = new ConfigurationBuilder()
-			.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
+			.AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("datadir", testnetBackendDir) })
 			.Build();
 		BackendEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
 		BackendEndPointUri = new Uri(BackendEndPoint);
-		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"/api/v{Constants.BackendMajorVersion}/");
+		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"api/v{Constants.BackendMajorVersion}/");
 
 		BackendHost = Host.CreateDefaultBuilder()
 				.ConfigureWebHostDefaults(webBuilder => webBuilder

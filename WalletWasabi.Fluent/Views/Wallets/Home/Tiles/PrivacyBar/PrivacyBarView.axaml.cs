@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar;
 
-public partial class PrivacyBar : UserControl
+public partial class PrivacyBarView : UserControl
 {
-	public PrivacyBar()
+	public PrivacyBarView()
 	{
 		InitializeComponent();
 	}

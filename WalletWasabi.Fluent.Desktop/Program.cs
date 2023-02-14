@@ -18,11 +18,11 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
-using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
+using LogLevel = WalletWasabi.Logging.LogLevel;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -188,10 +188,10 @@ public class Program
 		Directory.CreateDirectory(dataDir);
 
 		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadOrCreateDefaultFile();
+		uiConfig.LoadFile(createIfMissing: true);
 
 		Config config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadOrCreateDefaultFile();
+		config.LoadFile(createIfMissing: true);
 
 		return (uiConfig, config);
 	}
@@ -256,9 +256,7 @@ public class Program
 	/// <summary>
 	/// Sets up and initializes the crash reporting UI.
 	/// </summary>
-	/// <param name="serializableException"></param>
-	/// <param name="logPath"></param>
-	/// <returns></returns>
+	/// <param name="serializableException">The serializable exception</param>
 	private static AppBuilder BuildCrashReporterApp(SerializableException serializableException)
 	{
 		var result = AppBuilder

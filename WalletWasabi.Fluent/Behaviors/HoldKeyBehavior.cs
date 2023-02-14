@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -38,6 +39,7 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 
 		var ups = ie.OnEvent(InputElement.KeyDownEvent);
 		var downs = ie.OnEvent(InputElement.KeyUpEvent);
+		var windowDeactivated = ApplicationHelper.MainWindowActivated.Where(isActivated => isActivated == false);
 
 		var keyEvents = ups
 			.Select(x => new { x.EventArgs.Key, IsPressed = true })
@@ -45,13 +47,16 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 
 		var targetKeys = this.WhenAnyValue(x => x.Key);
 
-		keyEvents
+		var targetKeyIsPressed = keyEvents
 			.WithLatestFrom(targetKeys)
 			.Select(x => (PressedKey: x.First.Key, x.First.IsPressed, TargetKey: x.Second))
 			.Where(x => x.PressedKey == x.TargetKey)
 			.Select(x => x.IsPressed)
-			.StartWith(false)
-			.Do(b => IsKeyPressed = b)
+			.StartWith(false);
+
+		targetKeyIsPressed
+			.Merge(windowDeactivated)
+			.Do(isPressed => IsKeyPressed = isPressed)
 			.Subscribe()
 			.DisposeWith(disposable);
 	}

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -60,9 +61,15 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+
+		using MemoryCache cache = CreateMemoryCache();
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			p2PBlockProvider: new P2PBlockProvider(network, nodes, httpClientFactory),
+			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -213,9 +220,15 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			null,
+			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
+			cache);
+
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
@@ -314,7 +327,7 @@ public class BuildTests
 				{
 					throw;
 				}
-				return; // Occassionally this fails on Linux or OSX, I have no idea why.
+				return; // Occasionally this fails on Linux or OSX, I have no idea why.
 			}
 			// Spend the inputs of the tx so we know
 			var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
@@ -403,5 +416,14 @@ public class BuildTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }

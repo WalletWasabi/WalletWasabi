@@ -204,8 +204,8 @@ public class ChaumianCoinJoinController : ControllerBase
 				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.BlindedOutput.ToBytes()));
 				uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blindedOutputScriptHashesByte));
 
-				var inputs = new HashSet<Coin>();
-				var coinAndTxOutResponses = new Dictionary<Coin, GetTxOutResponse>();
+				var inputs = new HashSet<Coin>(CoinEqualityComparer.Default);
+				var coinAndTxOutResponses = new Dictionary<Coin, GetTxOutResponse>(CoinEqualityComparer.Default);
 
 				var allInputsConfirmed = true;
 				foreach (var responses in getTxOutResponses)

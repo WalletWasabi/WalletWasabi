@@ -10,11 +10,11 @@ namespace WalletWasabi.Fluent.Controls;
 public class FadeOutTextBlock : TextBlock, IStyleable
 {
 	private TextLayout? _trimmedLayout;
-	private Size _constraint;
 	private bool _cutOff;
 
 	public FadeOutTextBlock()
 	{
+		AffectsMeasure<FadeOutTextBlock>(TextProperty);
 		TextWrapping = TextWrapping.NoWrap;
 	}
 
@@ -114,10 +114,9 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 		availableSize = availableSize.Deflate(padding);
 
-		if (_constraint != availableSize)
+		if (availableSize != _noTrimLayout?.Size)
 		{
-			_constraint = availableSize;
-			NewCreateTextLayout(_constraint, Text);
+			NewCreateTextLayout(availableSize, Text);
 		}
 
 		return (_trimmedLayout?.Bounds.Size ?? Size.Empty).Inflate(padding);
