@@ -6,8 +6,6 @@
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
       <c:LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
-        <!-- TODO: Fix LabelsItemsPresenter Items -->
-        <!--
         <c:LabelsItemsPresenter.Items>
           <g:List x:TypeArguments="x:String">
             <x:String>Label 1</x:String>
@@ -16,7 +14,6 @@
             <x:String>Label 4</x:String>
           </g:List>
         </c:LabelsItemsPresenter.Items>
-        -->
       </c:LabelsItemsPresenter>
     </Border>
   </Design.PreviewWith>
@@ -41,8 +38,6 @@
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="MaxLabelWidth" Value="120" />
-    <!-- TODO: Fix LabelsItemsPresenter ItemTemplate -->
-    <!--
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
@@ -56,7 +51,6 @@
         </Panel>
       </DataTemplate>
     </Setter>
-    -->
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
         <!-- TODO: Spacing="2" -->

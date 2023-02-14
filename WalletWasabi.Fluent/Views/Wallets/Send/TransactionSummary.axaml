@@ -37,8 +37,7 @@
     <c:PreviewItem Icon="{StaticResource person_regular}"
                    Label="will be sent to"
                    TextValue="{Binding Recipient}">
-                   <!-- TODO: Items="{Binding Recipient}" -->
-      <c:LabelsItemsPresenter 
+      <c:LabelsItemsPresenter Items="{Binding Recipient}"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
     </c:PreviewItem>
@@ -73,8 +72,7 @@
       <c:PreviewItem Icon="{StaticResource nav_incognito_24_regular}"
                      Label="other people or companies could know about this"
                      TextValue="{Binding Labels}">
-                      <!-- TODO: Items="{Binding Labels}" -->
-        <c:LabelsItemsPresenter 
+        <c:LabelsItemsPresenter Items="{Binding Labels}"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center" />
       </c:PreviewItem>
