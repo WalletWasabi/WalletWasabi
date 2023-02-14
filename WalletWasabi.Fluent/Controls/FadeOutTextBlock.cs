@@ -32,6 +32,8 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		}
 	}.ToImmutable();
 
+	// TODO: Render methods got sealed on master Avalonia
+	/*
 	public override void Render(DrawingContext context)
 	{
 		var background = Background;
@@ -64,7 +66,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
 		base.Render(context);
 	}
-
+	*/
 	private void NewCreateTextLayout(Size constraint, string? text)
 	{
 		if (constraint == Size.Empty)

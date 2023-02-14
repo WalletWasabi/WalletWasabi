@@ -95,7 +95,7 @@ public class PreviewItem : ContentControl
 			.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b))
 			.CombineLatest(hasBeenJustCopied, (over, justCopied) => over || justCopied);
 
-		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+		Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 
 		base.OnApplyTemplate(e);
 	}

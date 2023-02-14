@@ -186,12 +186,12 @@
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
+    <!-- TODO: VirtualizationMode="None" -->
     <ListBox Items="{Binding Wallets}"
              Background="Transparent"
              SelectedItem="{Binding SelectedWallet}"
              extensions:SelectingItemsControlExtension.EnableSelectionAnimation="True"
-             ItemContainerTheme="{StaticResource NavBarListBoxItemTheme}"
-             VirtualizationMode="None">
+             ItemContainerTheme="{StaticResource NavBarListBoxItemTheme}">
       <Interaction.Behaviors>
         <behaviors:NavBarWalletListBoxBehavior/>
       </Interaction.Behaviors>

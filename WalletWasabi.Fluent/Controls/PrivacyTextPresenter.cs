@@ -44,11 +44,12 @@ public class PrivacyTextPresenter : UserControl
 			return null;
 		}
 
-		var advances = new ReadOnlySlice<double>(new ReadOnlyMemory<double>(Enumerable.Repeat(advance, count).ToArray()));
-		var characters = new ReadOnlySlice<char>(new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray()));
-		var glyphs = new ReadOnlySlice<ushort>(new ReadOnlyMemory<ushort>(Enumerable.Repeat(glyph, count).ToArray()));
+		// TODO: advances ?
+		//var advances = new ReadOnlyMemory<double>(Enumerable.Repeat(advance, count).ToArray());
+		var characters = new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray());
+		var glyphs = Enumerable.Repeat(glyph, count).ToArray();
 
-		return new GlyphRun(glyphTypeface, FontSize, characters, glyphs, advances);
+		return new GlyphRun(glyphTypeface, FontSize, characters, glyphs);
 	}
 
 	protected override Size MeasureOverride(Size availableSize)

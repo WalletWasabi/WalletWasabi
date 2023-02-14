@@ -35,7 +35,8 @@
           </c:PrivacyContentControl>
         </DockPanel>
         <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+          <!-- TODO:  Items="{Binding Labels}" -->
+          <c:LabelsItemsPresenter />
         </c:PrivacyContentControl>
       </StackPanel>
 

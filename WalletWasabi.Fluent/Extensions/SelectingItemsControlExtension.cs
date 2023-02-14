@@ -82,8 +82,8 @@ public class SelectingItemsControlExtension
 			return;
 		}
 
-		var tmpPrevPos = prevInd.GetVisualRoot()?.TransformToVisual(prevInd)?.Transform(new Point(0, 0));
-		var tmpNextPos = nextInd.GetVisualRoot()?.TransformToVisual(nextInd)?.Transform(new Point(0, 0));
+		var tmpPrevPos = (prevInd.GetVisualRoot() as TopLevel)?.TransformToVisual(prevInd)?.Transform(new Point(0, 0));
+		var tmpNextPos = (nextInd.GetVisualRoot() as TopLevel)?.TransformToVisual(nextInd)?.Transform(new Point(0, 0));
 		var tmpDelta = tmpPrevPos - tmpNextPos;
 
 		if (tmpDelta is not { } deltaPos ||

@@ -81,7 +81,8 @@
                      Label="Labels"
                      TextValue="{Binding Labels}">
         <c:PrivacyContentControl VerticalContentAlignment="Center">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+          <!-- TODO: Items="{Binding Labels}" -->
+          <c:LabelsItemsPresenter />
         </c:PrivacyContentControl>
       </c:PreviewItem>
     </StackPanel>

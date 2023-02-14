@@ -156,7 +156,8 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <Carousel Items="{Binding TransactionSummaries}" IsVirtualized="False"
+    <!-- TODO: IsVirtualized="False" -->
+    <Carousel Items="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
         <CrossFade Duration="0.75" />

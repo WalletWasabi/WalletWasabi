@@ -31,9 +31,9 @@
     </Style>
   </UserControl.Styles>
 
+  <!-- TODO:  Items="{Binding Labels}" -->
   <controls:LabelsItemsPresenter
     Classes.NonPrivate="{Binding IsNonPrivate}"
     Classes.SemiPrivate="{Binding IsSemiPrivate}"
-    Classes.Private="{Binding IsPrivate}"
-    Items="{Binding Labels}" />
+    Classes.Private="{Binding IsPrivate}" />
 </UserControl>

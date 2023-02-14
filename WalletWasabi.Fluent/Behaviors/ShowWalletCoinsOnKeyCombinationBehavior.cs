@@ -52,7 +52,7 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : AttachedToVisualTreeBehav
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject?.GetVisualRoot() is not IInputElement inputRoot)
+		if (AssociatedObject?.GetVisualRoot() is not InputElement inputRoot)
 		{
 			return;
 		}

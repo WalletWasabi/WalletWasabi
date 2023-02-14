@@ -101,11 +101,11 @@
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
   </Styles.Resources>
-  <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
+  <FluentTheme />
 
   <!-- Needs to be here because of dependency reason -->
   <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
 
-  <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
+  <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>

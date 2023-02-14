@@ -40,6 +40,8 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 	Type IStyleable.StyleKey => typeof(LabelsItemsPresenter);
 
+	// TODO: Breaking change PanelCreated ?
+	/*
 	protected override void PanelCreated(IPanel panel)
 	{
 		base.PanelCreated(panel);
@@ -60,4 +62,5 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 				});
 		}
 	}
+	*/
 }

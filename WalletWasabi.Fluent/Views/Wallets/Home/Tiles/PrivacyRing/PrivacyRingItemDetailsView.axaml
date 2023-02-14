@@ -5,7 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingItemDetailsView">
   <UserControl.Styles>
@@ -47,7 +47,8 @@
 
       <StackPanel IsVisible="{Binding IsNonPrivate}" MinHeight="42">
         <Separator IsVisible="{Binding !Coin.SmartLabel.IsEmpty}" Margin="0 3 0 9" />
-        <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+        <!-- TODO:  Items="{Binding Coin.SmartLabel}" -->
+        <c:LabelsItemsPresenter DockPanel.Dock="Top" HorizontalAlignment="Center" />
       </StackPanel>
     </StackPanel>
   </StackPanel>

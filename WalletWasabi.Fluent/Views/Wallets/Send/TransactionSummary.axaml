@@ -35,7 +35,8 @@
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
                    Label="will be sent to">
-      <c:LabelsItemsPresenter Items="{Binding Recipient}"
+      <!-- TODO: Items="{Binding Recipient}" -->
+      <c:LabelsItemsPresenter
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
     </c:PreviewItem>
@@ -68,8 +69,8 @@
       </Button>
       <c:PreviewItem Icon="{StaticResource nav_incognito_24_regular}"
                      Label="other people or companies could know about this">
-        <c:LabelsItemsPresenter Items="{Binding Labels}"
-                                HorizontalAlignment="Left"
+        <!-- TODO: Items="{Binding Labels}" -->
+        <c:LabelsItemsPresenter HorizontalAlignment="Left"
                                 VerticalAlignment="Center" />
       </c:PreviewItem>
     </DockPanel>

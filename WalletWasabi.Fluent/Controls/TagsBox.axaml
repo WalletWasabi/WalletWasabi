@@ -68,9 +68,9 @@
                            Padding="15 0"
                            VerticalAlignment="Center"
                            Text="{TemplateBinding Watermark}" />
+                <!-- TODO: Items="{TemplateBinding Items}" -->
                 <ItemsPresenter Name="PART_ItemsPresenter"
-                                Focusable="False"
-                                Items="{TemplateBinding Items}">
+                                Focusable="False">
                   <ItemsPresenter.ItemsPanel>
                     <ItemsPanelTemplate>
                       <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
@@ -82,6 +82,8 @@
                       </c:ConcatenatingWrapPanel>
                     </ItemsPanelTemplate>
                   </ItemsPresenter.ItemsPanel>
+                  <!-- TODO: ItemsPresenter.ItemTemplate -->
+                  <!--
                   <ItemsPresenter.ItemTemplate>
                     <DataTemplate>
                       <c:TagControl Content="{Binding .}"
@@ -89,6 +91,7 @@
                                     EnableDelete="{Binding #PART_DockPanel.TemplatedParent.EnableDelete}" />
                     </DataTemplate>
                   </ItemsPresenter.ItemTemplate>
+                -->
                 </ItemsPresenter>
               </Panel>
             </Border>
@@ -115,20 +118,21 @@
                          Padding="15 0"
                          VerticalAlignment="Center"
                          Text="{TemplateBinding Watermark}" />
+              <!-- TODO: Items="{TemplateBinding Items}" -->
               <ItemsPresenter Name="PART_ItemsPresenter"
-                              Focusable="False"
-                              Items="{TemplateBinding Items}">
+                              Focusable="False">
                 <ItemsPresenter.ItemsPanel>
                   <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
                   </ItemsPanelTemplate>
                 </ItemsPresenter.ItemsPanel>
-                <ItemsPresenter.ItemTemplate>
+                <!-- TODO: ItemsPresenter.ItemTemplate -->
+                <!--<ItemsPresenter.ItemTemplate>
                   <DataTemplate>
                     <c:TagControl Content="{Binding .}"
                                   EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}" />
                   </DataTemplate>
-                </ItemsPresenter.ItemTemplate>
+                </ItemsPresenter.ItemTemplate>-->
               </ItemsPresenter>
             </Panel>
           </Border>

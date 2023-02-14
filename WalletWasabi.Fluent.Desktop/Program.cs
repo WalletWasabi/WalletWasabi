@@ -116,11 +116,13 @@ public class Program
 				.SetupAppBuilder()
 				.AfterSetup(_ =>
 					{
+						// TODO: IPlatformOpenGlInterface
+						/*
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
 						Logger.LogInfo(glInterface is { }
 							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
 							: "Renderer: Avalonia Software");
-
+						*/
 						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(args);
@@ -275,9 +277,9 @@ public class Program
 		}
 
 		return result
-			.With(new Win32PlatformOptions { AllowEglInitialization = false, UseCompositor = true})
-			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting", UseCompositor = true})
-			.With(new AvaloniaNativePlatformOptions { UseCompositor = true, UseGpu = false })
+			.With(new Win32PlatformOptions { AllowEglInitialization = false })
+			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
+			.With(new AvaloniaNativePlatformOptions { UseGpu = false })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 	}

@@ -35,6 +35,8 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 			return;
 		}
 
+		// TODO: ItemContainerGenerator was totally refactored, there are no events I think, might need to subclass to get callbacks
+		/*
 		Observable
 			.FromEventPattern<ItemContainerEventArgs>(AssociatedObject.ItemContainerGenerator, nameof(ItemContainerGenerator.Materialized))
 			.Select(x => x.EventArgs)
@@ -85,5 +87,6 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 				}
 			})
 			.DisposeWith(disposable);
+			*/
 	}
 }

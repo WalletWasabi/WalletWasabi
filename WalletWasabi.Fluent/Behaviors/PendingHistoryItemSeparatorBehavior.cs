@@ -32,7 +32,7 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		foreach (var child in ((IPanel)AssociatedObject).Children)
+		foreach (var child in ((Panel)AssociatedObject).Children)
 		{
 			if (child is { })
 			{

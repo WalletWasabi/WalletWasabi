@@ -31,7 +31,7 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject.GetVisualRoot() is not IInputElement ie)
+		if (AssociatedObject.GetVisualRoot() is not InputElement ie)
 		{
 			return;
 		}

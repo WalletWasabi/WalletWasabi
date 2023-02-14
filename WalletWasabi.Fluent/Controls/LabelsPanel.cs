@@ -68,7 +68,9 @@ public class LabelsPanel : VirtualizingStackPanel
 
 	protected override Size ArrangeOverride(Size finalSize)
 	{
-		var spacing = Spacing;
+		// TODO: Spacing property missing in master Avalonia
+		//var spacing = Spacing;
+		var spacing = 0.0;
 		var ellipsisWidth = 0.0;
 		var width = 0.0;
 		var height = 0.0;

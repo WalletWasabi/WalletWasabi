@@ -18,6 +18,8 @@ public static class ThemeHelper
 	{
 		if (Application.Current is { })
 		{
+			// TODO: Rework themes using theme variants
+			/*
 			var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x)
 				.FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
@@ -32,7 +34,7 @@ public static class ThemeHelper
 
 				CurrentTheme = theme;
 				Application.Current.Styles[themeIndex] = newTheme;
-			}
+			}*/
 		}
 	}
 }

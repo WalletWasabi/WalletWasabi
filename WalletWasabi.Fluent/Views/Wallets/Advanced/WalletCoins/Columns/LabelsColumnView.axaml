@@ -16,6 +16,7 @@
                            UseOpacity="False"
                            MinWidth="140"
                            Margin="0 0 7 0">
-    <c:LabelsItemsPresenter Items="{Binding SmartLabel}" Margin="0 -4 0 0" />
+    <!-- TODO: Items="{Binding SmartLabel}"  -->
+    <c:LabelsItemsPresenter Margin="0 -4 0 0" />
   </c:PrivacyContentControl>
 </UserControl>
