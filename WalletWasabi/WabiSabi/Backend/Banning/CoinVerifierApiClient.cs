@@ -25,7 +25,7 @@ public class CoinVerifierApiClient
 	{
 	}
 
-	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
+	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	private string ApiToken { get; set; }
 	private Network Network { get; set; }
@@ -45,6 +45,9 @@ public class CoinVerifierApiClient
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
+		using CancellationTokenSource timeoutTokenSource = new(TotalApiRequestTimeout);
+		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
+
 		int tries = 3;
 		var delay = TimeSpan.FromSeconds(2);
 
@@ -53,9 +56,6 @@ public class CoinVerifierApiClient
 		do
 		{
 			tries--;
-
-			using CancellationTokenSource timeoutTokenSource = new(ApiRequestTimeout);
-			using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 
 			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 			content.Headers.Authorization = new("Bearer", ApiToken);
@@ -97,7 +97,7 @@ public class CoinVerifierApiClient
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
