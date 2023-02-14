@@ -2,18 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
   <Styles.Resources>
-    <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary>
-          <SolidColorBrush x:Key="RegionBrush"
-                           Color="{DynamicResource RegionColor}" />
-          <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
-                           Color="{DynamicResource SystemChromeMediumLowColor}" />
-          <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
-                           Color="{DynamicResource SystemBaseLowColor}" />
-        </ResourceDictionary>
-      </ResourceDictionary.MergedDictionaries>
-    </ResourceDictionary>
+
+        <SolidColorBrush x:Key="RegionBrush"
+                         Color="{DynamicResource RegionColor}" />
+        <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
+                         Color="{DynamicResource SystemChromeMediumLowColor}" />
+        <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
+                         Color="{DynamicResource SystemBaseLowColor}" />
 
     <Color x:Key="OrangeCoinColor">#F2994A</Color>
     <Color x:Key="CoinjoinActiveColor">Orange</Color>

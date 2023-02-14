@@ -21,9 +21,14 @@ public partial class ThemeChangeViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
+		ChangeTheme();
+	}
+
+	public void ChangeTheme()
+	{
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			await Task.Delay(500);
+			//await Task.Delay(500);
 			ThemeHelper.ApplyTheme(_newTheme);
 			Navigate().Clear();
 		});

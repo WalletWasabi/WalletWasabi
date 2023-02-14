@@ -6,7 +6,8 @@
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.App">
+             x:Class="WalletWasabi.Fluent.App"
+             RequestedThemeVariant="Dark">
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
@@ -15,12 +16,24 @@
   </Application.DataTemplates>
 
   <Application.Resources>
-    <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
-    <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
+
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
+      <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
+    </ResourceDictionary>
+
   </Application.Resources>
 
   <Application.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.axaml" />
+
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
+    <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
+
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />

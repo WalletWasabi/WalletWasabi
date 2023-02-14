@@ -54,7 +54,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				x =>
 				{
 					Services.UiConfig.DarkModeEnabled = x;
-					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
+					new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light).ChangeTheme();
+					//Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
 				});
 
 		this.WhenAnyValue(x => x.AutoCopy)
