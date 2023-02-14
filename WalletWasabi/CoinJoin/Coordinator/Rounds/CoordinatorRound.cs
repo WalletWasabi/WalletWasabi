@@ -638,7 +638,7 @@ public class CoordinatorRound
 
 		try
 		{
-			Dictionary<Coin, Alice> coinDictionary = new();
+			Dictionary<Coin, Alice> coinDictionary = new(CoinEqualityComparer.Default);
 			foreach (var alice in Alices)
 			{
 				foreach (var coin in alice.Inputs)
