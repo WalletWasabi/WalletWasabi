@@ -14,29 +14,28 @@ public class RoundData
 	}
 
 	private RoundParameters RoundParameters { get; }
-
-	private ConcurrentBag<Tuple<OutPoint, Coin>> OutpointCoinPairs { get; } = new();
-	private ConcurrentBag<Tuple<OutPoint, string>> OutpointAffiliationPairs { get; } = new();
-	private ConcurrentBag<Tuple<OutPoint, bool>> OutpointFeeExemptionPairs { get; } = new();
+	private ConcurrentBag<(OutPoint, Coin)> OutpointCoinPairs { get; } = new();
+	private ConcurrentBag<(OutPoint, string)> OutpointAffiliationPairs { get; } = new();
+	private ConcurrentBag<(OutPoint, bool)> OutpointFeeExemptionPairs { get; } = new();
 
 	public void AddInputCoin(Coin coin)
 	{
-		OutpointCoinPairs.Add(new Tuple<OutPoint, Coin>(coin.Outpoint, coin));
+		OutpointCoinPairs.Add((coin.Outpoint, coin));
 	}
 
 	public void AddInputAffiliationFlag(Coin coin, string affiliationFlag)
 	{
-		OutpointAffiliationPairs.Add(new Tuple<OutPoint, string>(coin.Outpoint, affiliationFlag));
+		OutpointAffiliationPairs.Add((coin.Outpoint, affiliationFlag));
 	}
 
 	public void AddInputFeeExemption(Coin coin, bool isCoordinationFeeExempted)
 	{
-		OutpointFeeExemptionPairs.Add(new Tuple<OutPoint, bool>(coin.Outpoint, isCoordinationFeeExempted));
+		OutpointFeeExemptionPairs.Add((coin.Outpoint, isCoordinationFeeExempted));
 	}
 
-	private Dictionary<OutPoint, TValue> GetDictionary<TValue>(IEnumerable<Tuple<OutPoint, TValue>> pairs, IEnumerable<OutPoint> outpoints, string name)
+	private Dictionary<OutPoint, TValue> GetDictionary<TValue>(IEnumerable<(OutPoint, TValue)> pairs, IEnumerable<OutPoint> outpoints, string name)
 	{
-		IEnumerable<IGrouping<OutPoint, Tuple<OutPoint, TValue>>> pairsGroupedByOutpoints = pairs.GroupBy(x => x.Item1);
+		IEnumerable<IGrouping<OutPoint, (OutPoint, TValue)>> pairsGroupedByOutpoints = pairs.GroupBy(x => x.Item1);
 
 		foreach (IGrouping<OutPoint, Tuple<OutPoint, TValue>> pairGroup in pairsGroupedByOutpoints.Where(g => g.Count() > 1))
 		{
