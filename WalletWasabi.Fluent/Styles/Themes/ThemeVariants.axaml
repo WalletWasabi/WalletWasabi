@@ -51,21 +51,21 @@
       <Color x:Key="ActionColorLight2">#FF50C48C</Color>
       <Color x:Key="ActionColorLight3">#FF6ACF9F</Color>
 
-      <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
-      <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
-      <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemAccentColor" />
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="{DynamicResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{DynamicResource SystemAccentColor}" />
 
-      <StaticResource x:Key="TextControlBackground" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeWhiteColor" />
-      <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="SystemChromeMediumColor" />
+      <SolidColorBrush x:Key="TextControlBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{DynamicResource SystemChromeWhiteColor}" />
+      <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{DynamicResource SystemChromeMediumColor}" />
 
-      <StaticResource x:Key="ComboBoxItemBackground" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="ComboBoxItemBackgroundPressed" ResourceKey="SystemChromeHighColor" />
-      <StaticResource x:Key="ComboBoxItemBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+      <SolidColorBrush x:Key="ComboBoxItemBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{DynamicResource SystemChromeHighColor}" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{DynamicResource SystemChromeLowColor}" />
 
-      <StaticResource x:Key="ComboBoxBackground" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="SystemChromeHighColor" />
-      <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+      <SolidColorBrush x:Key="ComboBoxBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{DynamicResource SystemChromeHighColor}" />
+      <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{DynamicResource SystemChromeLowColor}" />
 
       <Color x:Key="TileRegionColor">White</Color>
       <Color x:Key="TileBorderColor">#14000000</Color>
@@ -148,21 +148,21 @@
       <Color x:Key="ActionColorLight3">#FF159148</Color>
       <Color x:Key="ActionColor">#34D286</Color>
 
-      <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
-      <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
-      <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemAccentColor" />
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="{DynamicResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{DynamicResource SystemAccentColor}" />
 
-      <StaticResource x:Key="TextControlBackground" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="SystemChromeMediumColor" />
+      <SolidColorBrush x:Key="TextControlBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{DynamicResource SystemChromeMediumColor}" />
 
-      <StaticResource x:Key="ComboBoxItemBackground" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="ComboBoxItemBackgroundPressed" ResourceKey="SystemChromeHighColor" />
-      <StaticResource x:Key="ComboBoxItemBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+      <SolidColorBrush x:Key="ComboBoxItemBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{DynamicResource SystemChromeHighColor}" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{DynamicResource SystemChromeLowColor}" />
 
-      <StaticResource x:Key="ComboBoxBackground" ResourceKey="SystemChromeMediumColor" />
-      <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="SystemChromeHighColor" />
-      <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+      <SolidColorBrush x:Key="ComboBoxBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+      <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{DynamicResource SystemChromeHighColor}" />
+      <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{DynamicResource SystemChromeLowColor}" />
 
       <Color x:Key="TileRegionColor">#21252D</Color>
       <Color x:Key="TileBorderColor">#66757575</Color>
