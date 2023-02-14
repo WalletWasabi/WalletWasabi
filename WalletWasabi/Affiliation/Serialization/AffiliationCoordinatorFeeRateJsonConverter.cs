@@ -1,8 +1,9 @@
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
-public class AffiliationFeeRateJsonConverter : JsonConverter<decimal>
+public class AffiliationCoordinatorFeeRateJsonConverter : JsonConverter<CoordinatorFeeRate>
 {
 	public static readonly decimal Base = 1e-8m;
 
@@ -21,7 +22,7 @@ public class AffiliationFeeRateJsonConverter : JsonConverter<decimal>
 		return DecodeDecimal(EncodeDecimal(value)) == value;
 	}
 
-	public override decimal ReadJson(JsonReader reader, Type objectType, decimal existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override CoordinatorFeeRate ReadJson(JsonReader reader, Type objectType, CoordinatorFeeRate? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		if (reader.Value is long number)
 		{
@@ -31,13 +32,13 @@ public class AffiliationFeeRateJsonConverter : JsonConverter<decimal>
 		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 
-	public override void WriteJson(JsonWriter writer, decimal value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, CoordinatorFeeRate? value, JsonSerializer serializer)
 	{
-		if (!IsEncodable(value))
+		if (!IsEncodable(value.FeeRate))
 		{
 			throw new ArgumentException("Decimal cannot be unambiguously encoded.", nameof(value));
 		}
 
-		writer.WriteValue(EncodeDecimal(value));
+		writer.WriteValue(EncodeDecimal(value.FeeRate));
 	}
 }

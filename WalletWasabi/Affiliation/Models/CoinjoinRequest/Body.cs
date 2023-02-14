@@ -6,7 +6,7 @@ public record Body(
 	IEnumerable<Input> Inputs,
 	IEnumerable<Output> Outputs,
 	long Slip44CoinType,
-	decimal FeeRate,
+	CoordinatorFeeRate FeeRate,
 	long NoFeeThreshold,
 	long MinRegistrableAmount,
 	long Timestamp);

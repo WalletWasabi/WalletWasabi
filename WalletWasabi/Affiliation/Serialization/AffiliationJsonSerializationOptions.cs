@@ -9,7 +9,7 @@ public static class AffiliationJsonSerializationOptions
 	public static readonly List<JsonConverter> Converters = new()
 	{
 		new AffiliationByteArrayJsonConverter(),
-		new AffiliationFeeRateJsonConverter()
+		new AffiliationCoordinatorFeeRateJsonConverter()
 	};
 
 	public static readonly JsonSerializerSettings Settings = new()

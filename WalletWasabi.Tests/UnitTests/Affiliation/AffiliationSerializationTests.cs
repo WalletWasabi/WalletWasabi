@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 using WalletWasabi.Affiliation.Serialization;
 using Xunit;
 
@@ -9,13 +10,13 @@ public class AffiliationSerializationTests
 	[Fact]
 	public void FeeRateSerialization()
 	{
-		AssertSerialization(new Fee(0.003m));
+		AssertSerialization(new CoordinatorFeeRate(0.003m));
 	}
 
 	[Fact]
 	public void AmbiguousFeeRateSerialization()
 	{
-		Assert.Throws<ArgumentException>(() => AssertSerialization(new Fee(1e-9m)));
+		Assert.Throws<ArgumentException>(() => AssertSerialization(new CoordinatorFeeRate(1e-9m)));
 	}
 
 	private static void AssertSerialization<T>(T message)
@@ -26,6 +27,4 @@ public class AffiliationSerializationTests
 
 		Assert.Equal(serializedMessage, reserializedMessage);
 	}
-
-	private record Fee([JsonConverter(typeof(AffiliationFeeRateJsonConverter))] decimal FeeRate);
 }

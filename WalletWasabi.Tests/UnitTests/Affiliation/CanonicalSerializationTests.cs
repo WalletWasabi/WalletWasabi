@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using NBitcoin;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 using WalletWasabi.Affiliation.Serialization;
 using Xunit;
@@ -49,7 +51,7 @@ public class CanonicalSerializationTests
 						new Output(49010, Encoders.Hex.DecodeData("512062fdf14323b9ccda6f5b03c5c2c28e35839a3909a2e14d32b595c63d53c7b88f")),
 						new Output(36945, Encoders.Hex.DecodeData("76a914a579388225827d9f2fe9014add644487808c695d88ac"))
 					},
-					Slip44CoinType: 1,
+					Slip44CoinType: Network.TestNet.ToSlip44CoinType(),
 					FeeRate: 0.003m,
 					NoFeeThreshold: 1000000,
 					MinRegistrableAmount: 5000,
