@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -61,7 +62,12 @@ public class CoinVerifierApiClient
 
 			try
 			{
+				var before = DateTimeOffset.UtcNow;
+
 				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+
+				var duration = DateTimeOffset.UtcNow - before;
+				RequestTimeStatista.Instance.Add("verifier-request", duration);
 
 				if (response is { } && response.StatusCode == HttpStatusCode.OK)
 				{

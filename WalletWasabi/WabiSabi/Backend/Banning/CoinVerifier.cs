@@ -240,12 +240,7 @@ public class CoinVerifier : IAsyncDisposable
 					// This is the last chance to abort with abortCts.
 					item.ThrowIfCancellationRequested();
 
-					var before = DateTimeOffset.UtcNow;
-
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
-
-					var duration = DateTimeOffset.UtcNow - before;
-					RequestTimeStatista.Instance.Add("verifier-request", duration);
 
 					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem);
 
