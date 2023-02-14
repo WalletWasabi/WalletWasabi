@@ -134,8 +134,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
-		roundData.AddInputCoin(coin);
-		roundData.AddInputFeeExemption(coin, isCoordinationFeeExempted);
+		roundData.AddInputCoin(coin, isCoordinationFeeExempted);
 	}
 
 	private void AddAffiliation(uint256 roundId, Coin coin, string affiliationFlag)
