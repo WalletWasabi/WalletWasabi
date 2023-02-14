@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class PrivacyBar : ItemsPresenter
+public class PrivacyBar : ItemsControl
 {
 	private const double GapBetweenSegments = 1.5;
 	private const double EnlargeThreshold = 2;
@@ -22,11 +22,13 @@ public class PrivacyBar : ItemsPresenter
 		set => SetValue(TotalAmountProperty, value);
 	}
 
+	// TODO: Fix ItemsPresenter
+	/*
 	protected override IItemContainerGenerator CreateItemContainerGenerator()
 	{
 		return new PrivacyBarItemContainerGenerator(this);
 	}
-
+*/
 	protected override Size ArrangeOverride(Size finalSize)
 	{
 		var children =
@@ -74,6 +76,8 @@ public class PrivacyBar : ItemsPresenter
 		return base.ArrangeOverride(finalSize);
 	}
 
+	// TODO: Fix ItemsPresenter
+	/*
 	private class PrivacyBarItemContainerGenerator : ItemContainerGenerator
 	{
 		public PrivacyBarItemContainerGenerator(IControl owner) : base(owner)
@@ -87,5 +91,5 @@ public class PrivacyBar : ItemsPresenter
 				DataContext = item,
 			};
 		}
-	}
+	}*/
 }
