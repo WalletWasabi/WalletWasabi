@@ -127,36 +127,6 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		return getCoinJoinRequestResponse.CoinjoinRequest;
 	}
 
-	private void AddCoin(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)
-	{
-		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
-		}
-
-		roundData.AddInputCoin(coin, isCoordinationFeeExempted);
-	}
-
-	private void AddAffiliation(uint256 roundId, Coin coin, string affiliationFlag)
-	{
-		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
-		}
-
-		roundData.AddInputAffiliationFlag(coin, affiliationFlag);
-	}
-
-	private void AddCoinjoinTransaction(uint256 roundId, Transaction transaction)
-	{
-		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
-		}
-
-		RoundsToUpdate.Enqueue(new FinalizedRoundDataWithRoundId(roundId, roundData.FinalizeRoundData(transaction)));
-	}
-
 	private void CreateRound(uint256 roundId, RoundParameters roundParameters)
 	{
 		RoundData roundData = new(roundParameters);
@@ -167,56 +137,47 @@ public class CoinJoinRequestsUpdater : BackgroundService
 		}
 	}
 
-	private void ChangePhase(uint256 roundId, Phase phase)
+	private void Arena_InputAdded(object? sender, InputAddedEventArgs args)
 	{
-		if (phase == Phase.Ended)
+		GetRoundDataOrFail(args.RoundId)
+			.AddInputCoin(args.Coin, args.IsCoordinationFeeExempted);
+	}
+
+	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs args)
+	{
+		GetRoundDataOrFail(args.RoundId)
+			.AddInputAffiliationFlag(args.Coin, args.AffiliationFlag);
+	}
+
+	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs args)
+	{
+		CreateRound(args.RoundId, args.RoundParameters);
+	}
+
+	private void ArenaCoinJoinTransactionAdded(object? sender, CoinJoinTransactionCreatedEventArgs args)
+	{
+		RoundData roundData = GetRoundDataOrFail(args.RoundId);
+		RoundsToUpdate.Enqueue(new FinalizedRoundDataWithRoundId(args.RoundId, roundData.FinalizeRoundData(args.Transaction)));
+	}
+
+	private void Arena_RoundPhaseChanged(object? sender, RoundPhaseChangedEventArgs args)
+	{
+		if (args.Phase == Phase.Ended)
 		{
-			RemoveRound(roundId);
+			RemoveRound(args.RoundId);
 		}
 	}
 
-	private void Arena_InputAdded(object? sender, InputAddedEventArgs inputAddedEventArgs)
+	private RoundData GetRoundDataOrFail(uint256 roundId)
 	{
-		uint256 roundId = inputAddedEventArgs.RoundId;
-		Coin coin = inputAddedEventArgs.Coin;
-		bool isCoordinationFeeExempted = inputAddedEventArgs.IsCoordinationFeeExempted;
+		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
+		{
+			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
+		}
 
-		AddCoin(roundId, coin, isCoordinationFeeExempted);
+		return roundData;
 	}
-
-	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs affiliationAddedEventArgs)
-	{
-		uint256 roundId = affiliationAddedEventArgs.RoundId;
-		Coin coin = affiliationAddedEventArgs.Coin;
-		string affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
-
-		AddAffiliation(roundId, coin, affiliationFlag);
-	}
-
-	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs roundCreatedEventArgs)
-	{
-		uint256 roundId = roundCreatedEventArgs.RoundId;
-		RoundParameters roundParameters = roundCreatedEventArgs.RoundParameters;
-
-		CreateRound(roundId, roundParameters);
-	}
-
-	private void ArenaCoinJoinTransactionAdded(object? sender, CoinJoinTransactionCreatedEventArgs coinJoinTransactionCreatedEventArgs)
-	{
-		uint256 roundId = coinJoinTransactionCreatedEventArgs.RoundId;
-		Transaction transaction = coinJoinTransactionCreatedEventArgs.Transaction;
-
-		AddCoinjoinTransaction(roundId, transaction);
-	}
-
-	private void Arena_RoundPhaseChanged(object? sender, RoundPhaseChangedEventArgs roundPhaseChangedEventArgs)
-	{
-		uint256 roundId = roundPhaseChangedEventArgs.RoundId;
-		Phase phase = roundPhaseChangedEventArgs.Phase;
-
-		ChangePhase(roundId, phase);
-	}
-
+	
 	private void AddHandlers()
 	{
 		Arena.RoundCreated += Arena_RoundCreated;
