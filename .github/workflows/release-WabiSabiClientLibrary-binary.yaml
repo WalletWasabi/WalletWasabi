@@ -1,0 +1,63 @@
+name: "[Release] WabiSabiClientLibrary binary"
+
+on:
+  push:
+    branches:
+      - "release/**"
+
+jobs:
+  build_WabiSabiClientLibrary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build linux-x64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Release --runtime linux-x64 /p:Version=${GITHUB_REF_NAME##*/v}
+      - name: Build linux-arm64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Release --runtime linux-arm64 /p:Version=${GITHUB_REF_NAME##*/v}
+      - name: Build osx-x64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Release --runtime osx-x64 /p:Version=${GITHUB_REF_NAME##*/v}
+      - name: Build osx-arm64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Release --runtime osx-arm64 /p:Version=${GITHUB_REF_NAME##*/v}
+      - name: Build win-x64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Release --runtime win-x64 /p:Version=${GITHUB_REF_NAME##*/v}
+
+      - name: Rename release binary files
+        run: |
+          mkdir release-bin/
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Release/linux-x64/publish/WalletWasabi.WabiSabiClientLibrary ./release-bin/WabiSabiClientLibrary-linux-x64
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Release/linux-arm64/publish/WalletWasabi.WabiSabiClientLibrary ./release-bin/WabiSabiClientLibrary-linux-arm64
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Release/osx-x64/publish/WalletWasabi.WabiSabiClientLibrary ./release-bin/WabiSabiClientLibrary-osx-x64
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Release/osx-arm64/publish/WalletWasabi.WabiSabiClientLibrary ./release-bin/WabiSabiClientLibrary-osx-arm64
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Release/win-x64/publish/WalletWasabi.WabiSabiClientLibrary.exe ./release-bin/WabiSabiClientLibrary-win-x64.exe
+
+      ## Build linux DEBUG binaries for coinjoin-backend docker image
+      - name: Build DEBUG linux-x64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Debug --runtime linux-x64 /p:Version=${GITHUB_REF_NAME##*/v}
+      - name: Build DEBUG linux-arm64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Debug --runtime linux-arm64 /p:Version=${GITHUB_REF_NAME##*/v}
+
+      - name: Rename release DEBUG binary files
+        run: |
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Debug/linux-x64/publish/WalletWasabi.WabiSabiClientLibrary ./release-bin/WabiSabiClientLibrary-linux-x64-debug
+          mv ./WalletWasabi.WabiSabiClientLibrary/bin/Debug/linux-arm64/publish/WalletWasabi.WabiSabiClientLibrary ./release-bin/WabiSabiClientLibrary-linux-arm64-debug
+
+      - name: Create GitHub release
+        run: |
+           gh release create ${GITHUB_REF_NAME} --target ${GITHUB_REF_NAME} --repo ${GITHUB_REPOSITORY} --title "WabiSabiClientLibrary-${GITHUB_REF_NAME##*/}" ./release-bin/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
