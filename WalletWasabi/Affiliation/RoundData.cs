@@ -31,13 +31,13 @@ public class RoundData
 		AffiliateInputsByOutpoint[coin.Outpoint] = inputData with { AffiliationFlag = affiliationFlag };
 	}
 
-	public FinalizedRoundData FinalizeRoundData(Transaction transaction)
+	public BuiltTransactionData FinalizeRoundData(Transaction transaction)
 	{
 		IEnumerable<AffiliateInput> inputs = transaction.Inputs
 			.Select(x => AffiliateInputsByOutpoint[x.PrevOut])
 			.ToArray();
 
-		return new FinalizedRoundData(inputs, transaction.Outputs, RoundParameters.Network, RoundParameters.CoordinationFeeRate, RoundParameters.AllowedInputAmounts.Min);
+		return new BuiltTransactionData(inputs, transaction.Outputs, RoundParameters.Network, RoundParameters.CoordinationFeeRate, RoundParameters.AllowedInputAmounts.Min);
 	}
 
 	private bool IsNoFee(Money amount) => RoundParameters.CoordinationFeeRate.GetFee(amount) == Money.Zero;

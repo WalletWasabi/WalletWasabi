@@ -7,9 +7,9 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Affiliation;
 
-public class FinalizedRoundData
+public class BuiltTransactionData
 {
-	public FinalizedRoundData(
+	public BuiltTransactionData(
 		IEnumerable<AffiliateInput> inputs,
 		IEnumerable<TxOut> outputs,
 		Network network,
