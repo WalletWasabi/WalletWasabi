@@ -176,6 +176,7 @@ public static class HttpMessageHelper
 		{
 			return GetDummyOrNullContentBytes(headerStruct.ContentHeaders);
 		}
+
 		// https://tools.ietf.org/html/rfc7230#section-3.3.3
 		// 2.Any 2xx(Successful) response to a CONNECT request implies that
 		// the connection will become a tunnel immediately after the empty
@@ -214,6 +215,7 @@ public static class HttpMessageHelper
 			// status code and then close the connection.
 			return await GetBytesTillEndAsync(stream, cancellationToken).ConfigureAwait(false);
 		}
+
 		// https://tools.ietf.org/html/rfc7230#section-3.3.3
 		// 5.If a valid Content-Length header field is present without
 		// Transfer-Encoding, its decimal value defines the expected message
@@ -278,6 +280,7 @@ public static class HttpMessageHelper
 		long length = 0;
 		var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, cancellationToken: cancellationToken).ConfigureAwait(false);
 		ParseFirstChunkLine(firstChunkLine, out long chunkSize, out _);
+
 		// We will not do anything with the chunk extensions, because:
 		// https://tools.ietf.org/html/rfc7230#section-4.1.1
 		// A recipient MUST ignore unrecognized chunk extensions.
@@ -318,6 +321,7 @@ public static class HttpMessageHelper
 		{
 			var trailerHeaderStruct = trailerHeaderSection.ToHttpResponseHeaders();
 			AssertValidHeaders(trailerHeaderStruct.ResponseHeaders, trailerHeaderStruct.ContentHeaders);
+
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// When a chunked message containing a non-empty trailer is received,
 			// the recipient MAY process the fields(aside from those forbidden
@@ -332,6 +336,7 @@ public static class HttpMessageHelper
 		{
 			var trailerHeaderStruct = trailerHeaderSection.ToHttpRequestHeaders();
 			AssertValidHeaders(trailerHeaderStruct.RequestHeaders, trailerHeaderStruct.ContentHeaders);
+
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// When a chunked message containing a non-empty trailer is received,
 			// the recipient MAY process the fields(aside from those forbidden
@@ -353,6 +358,7 @@ public static class HttpMessageHelper
 		// for message framing (e.g., Transfer-Encoding and Content-Length),
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Transfer-Encoding"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Content-Length"));
+
 		// routing (e.g., Host)
 		// request modifiers(e.g., controls and
 		// https://tools.ietf.org/html/rfc7231#section-5.1
@@ -363,6 +369,7 @@ public static class HttpMessageHelper
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Pragma"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Range"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("TE"));
+
 		// conditionals in Section 5 of[RFC7231]),
 		// https://tools.ietf.org/html/rfc7231#section-5.2
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Match"));
@@ -370,16 +377,19 @@ public static class HttpMessageHelper
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Modified-Since"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Unmodified-Since"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Range"));
+
 		// authentication(e.g., see [RFC7235]
 		// https://tools.ietf.org/html/rfc7235#section-5.3
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Authorization"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Proxy-Authenticate"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Proxy-Authorization"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("WWW-Authenticate"));
+
 		// and[RFC6265]),
 		// https://tools.ietf.org/html/rfc6265
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Set-Cookie"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Cookie"));
+
 		// response control data(e.g., see Section 7.1 of[RFC7231]),
 		// https://tools.ietf.org/html/rfc7231#section-7.1
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Age"));
@@ -390,6 +400,7 @@ public static class HttpMessageHelper
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Retry-After"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Vary"));
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Warning"));
+
 		// or determining how to process the payload(e.g.,
 		// Content - Encoding, Content - Type, Content - Range, and Trailer).
 		trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Content-Encoding"));
@@ -461,6 +472,7 @@ public static class HttpMessageHelper
 				contentHeaders.Remove("Content-Length");
 			}
 		}
+
 		// Any Content-Length field value greater than or equal to zero is valid.
 		if (contentHeaders is { } && contentHeaders.Contains("Content-Length"))
 		{

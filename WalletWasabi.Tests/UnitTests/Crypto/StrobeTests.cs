@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto;
@@ -13,7 +14,7 @@ public class Strobe128Tests
 {
 	[Fact]
 	[Trait("UnitTest", "UnitTest")]
-	public void BehaiorIsDeterministic()
+	public void BehaviorIsDeterministic()
 	{
 		static byte[] ToBytes(string s) => Encoding.UTF8.GetBytes(s);
 
