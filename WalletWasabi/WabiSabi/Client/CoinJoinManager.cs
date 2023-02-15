@@ -309,7 +309,10 @@ public class CoinJoinManager : BackgroundService
 			{
 				try
 				{
-					await Task.Delay(TimeSpan.FromSeconds(skipDelay ? 0 : 30), linkedCts.Token).ConfigureAwait(false);
+					if (!skipDelay)
+					{
+						await Task.Delay(TimeSpan.FromSeconds(30), linkedCts.Token).ConfigureAwait(false);
+					}
 				}
 				catch (OperationCanceledException)
 				{
