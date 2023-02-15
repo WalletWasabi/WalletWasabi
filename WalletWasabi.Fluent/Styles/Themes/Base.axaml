@@ -1,7 +1,9 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:system="clr-namespace:System;assembly=System.Runtime">
-  <Styles.Resources>
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+  <ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary x:Key='Default'>
 
         <SolidColorBrush x:Key="RegionBrush"
                          Color="{DynamicResource RegionColor}" />
@@ -90,13 +92,17 @@
                     ResourceKey="DataGridRowSelectedBackgroundColor" />
     <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{DynamicResource TileRegionColor}" />
 
-     <!-- TODO: TileRegionColor is in theme variant, we can remove it from here -->
+     <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
     <!-- <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" /> -->
     <!-- TODO: Investigate why below line causes stack overflow exception (after lazy resource loading was added) ? -->
     <!--<StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />-->
+
+        <!-- TODO: Remove already included in ThemeVariants file -->
+        <!--
     <SolidColorBrush x:Key="TextControlBorderBrush" Color="{DynamicResource SystemBaseLowColor}" />
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumLowColor}" />
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{DynamicResource SystemBaseMediumHighColor}" />
+-->
 
     <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
@@ -125,5 +131,8 @@
     <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
     <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
     <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
-  </Styles.Resources>
-</Styles>
+
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>
