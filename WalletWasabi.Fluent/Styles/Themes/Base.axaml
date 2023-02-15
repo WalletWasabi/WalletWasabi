@@ -44,7 +44,7 @@
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBackgroundBrush">#19FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPressedBrush">#FFFFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="NavBarItemSelectedBrush">#1AFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemSelectedBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemSelectedUnfocusedBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemSelectedPointerOverBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemSelectedPressedBrush">#FFFFFFFF</SolidColorBrush>

@@ -50,6 +50,12 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 
 	private async Task OnOpenCommandExecutedAsync(bool enableReSelection = false)
 	{
+		if (!enableReSelection && IsSelected)
+		{
+			return;
+		}
+
+		IsSelected = true;
 		await OnOpen(_defaultNavigationMode);
 	}
 
