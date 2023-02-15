@@ -2,10 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
   <Styles.Resources>
-    <SolidColorBrush x:Key="ProgressRingForeground" Color="{StaticResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="ProgressRingForeground" Color="{DynamicResource SystemAccentColor}" />
   </Styles.Resources>
   <Style Selector="c|ProgressRing">
-    <Setter Property="Foreground" Value="{StaticResource ProgressRingForeground}" />
+    <Setter Property="Foreground" Value="{DynamicResource ProgressRingForeground}" />
     <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
     <Setter Property="Template">
       <ControlTemplate>

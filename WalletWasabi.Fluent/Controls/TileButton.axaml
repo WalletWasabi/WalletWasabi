@@ -36,7 +36,7 @@
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Margin" Value="0 0 0 15" />
-    <Setter Property="Foreground" Value="{StaticResource SystemAccentColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
   </Style>
 
   <Style Selector="c|TileButton /template/ ContentPresenter#PART_ContentPresenter">

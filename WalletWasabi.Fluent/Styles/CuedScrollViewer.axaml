@@ -201,7 +201,7 @@
   </Style>
 
   <Style Selector="Path.ScrollViewerCuePath">
-    <Setter Property="Fill" Value="{StaticResource AcrylicTrimForeground}" />
+    <Setter Property="Fill" Value="{DynamicResource AcrylicTrimForeground}" />
     <Setter Property="Opacity" Value="0.9" />
   </Style>
 

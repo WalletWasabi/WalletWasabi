@@ -51,7 +51,7 @@
     <!-- Banned -->
     <PathIcon IsVisible="{Binding IsBanned}"
               Data="{StaticResource warning_filled}"
-              Foreground="{StaticResource SystemControlErrorTextForegroundBrush}"
+              Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
               Height="14"
               ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
 
