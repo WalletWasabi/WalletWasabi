@@ -64,6 +64,8 @@ public partial class MainViewModel : ViewModelBase
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
 
+		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
+
 		this.WhenAnyValue(x => x.WindowState)
 			.Where(state => state != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)

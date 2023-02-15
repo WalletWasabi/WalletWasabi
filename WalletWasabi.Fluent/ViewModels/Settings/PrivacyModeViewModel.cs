@@ -1,18 +1,19 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
-[NavigationMetaData(Title = "Discreet Mode", Searchable = false)]
-public partial class PrivacyModeViewModel : RoutableViewModel
+[NavigationMetaData(Title = "Discreet Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
+public partial class PrivacyModeViewModel : NavBarItemViewModel
 {
 	[AutoNotify] private bool _privacyMode;
 
 	public PrivacyModeViewModel()
 	{
 		_privacyMode = Services.UiConfig.PrivacyMode;
+
+		SelectionMode = NavBarItemSelectionMode.Toggle;
 
 		ToggleTitle();
 
@@ -30,7 +31,7 @@ public partial class PrivacyModeViewModel : RoutableViewModel
 
 	public override string IconName => _privacyMode ? "nav_incognito_24_filled" : "nav_incognito_24_regular";
 
-	public void Toggle()
+	public override void Toggle()
 	{
 		PrivacyMode = !PrivacyMode;
 	}

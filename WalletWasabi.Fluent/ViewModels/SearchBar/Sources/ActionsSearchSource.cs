@@ -7,7 +7,6 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
@@ -51,9 +50,9 @@ public class ActionsSearchSource : ISearchSource
 				return;
 			}
 
-			if (vm is WalletViewModelBase item )
+			if (vm is NavBarItemViewModel item && item.OpenCommand.CanExecute(default))
 			{
-				item.Navigate().To(item);
+				item.OpenCommand.Execute(default);
 			}
 			else if (vm is TriggerCommandViewModel triggerCommandViewModel && triggerCommandViewModel.TargetCommand.CanExecute(default))
 			{

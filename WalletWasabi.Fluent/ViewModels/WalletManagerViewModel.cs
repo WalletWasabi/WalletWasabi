@@ -157,9 +157,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		var walletViewModelItem = OpenWallet(closedWalletViewModel.Wallet);
 
-		if (closedWalletViewModel.IsSelected)
+		if (closedWalletViewModel.IsSelected && walletViewModelItem.OpenCommand.CanExecute(default))
 		{
-			closedWalletViewModel.Navigate().To(walletViewModelItem);
+			walletViewModelItem.OpenCommand.Execute(default);
 		}
 
 		IsLoadingWallet = false;

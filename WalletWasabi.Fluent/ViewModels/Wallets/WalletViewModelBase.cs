@@ -9,16 +9,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public abstract partial class WalletViewModelBase : RoutableViewModel, IComparable<WalletViewModelBase>, IEquatable<WalletViewModelBase>
+public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
 {
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 
 	private string _title;
-
-	public bool IsSelected =>
-		NavigationState.Instance.HomeScreenNavigation.CurrentPage is WalletViewModelBase other && other == this;
 
 	protected WalletViewModelBase(Wallet wallet)
 	{
@@ -89,16 +86,6 @@ public abstract partial class WalletViewModelBase : RoutableViewModel, IComparab
 		}
 
 		return result;
-	}
-
-	public bool Equals(WalletViewModelBase? other)
-	{
-		if (other is null)
-		{
-			return false;
-		}
-
-		return other.Title.Equals(Title, StringComparison.Ordinal);
 	}
 
 	public override string ToString() => WalletName;
