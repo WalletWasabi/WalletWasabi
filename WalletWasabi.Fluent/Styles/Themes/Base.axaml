@@ -63,10 +63,10 @@
     <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
 
     <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
-    <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
+    <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{DynamicResource SystemErrorTextColor}" />
     <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
 
-    <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="{StaticResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="{DynamicResource SystemAccentColor}" />
     <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent" />
     <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush" Color="Transparent" />
     <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent" />
@@ -82,19 +82,21 @@
 
     <x:String x:Key="LabelsWatermarkText">Person or Company i.e. Alice, Bob, Pizza Inc</x:String>
 
-    <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
-    <StaticResource x:Key="TextControlForeground" ResourceKey="SystemBaseHighColor" />
-    <StaticResource x:Key="TextForegroundColor" ResourceKey="SystemBaseHighColor" />
+    <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="{DynamicResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="TextControlForeground" Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush x:Key="TextForegroundColor" Color="{DynamicResource SystemBaseHighColor}" />
+        <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
     <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
                     ResourceKey="DataGridRowSelectedBackgroundColor" />
-    <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
+    <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{DynamicResource TileRegionColor}" />
 
-    <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
+     <!-- TODO: TileRegionColor is in theme variant, we can remove it from here -->
+    <!-- <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" /> -->
     <!-- TODO: Investigate why below line causes stack overflow exception (after lazy resource loading was added) ? -->
     <!--<StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />-->
-    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
-    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
-    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+    <SolidColorBrush x:Key="TextControlBorderBrush" Color="{DynamicResource SystemBaseLowColor}" />
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumLowColor}" />
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{DynamicResource SystemBaseMediumHighColor}" />
 
     <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
