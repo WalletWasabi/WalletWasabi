@@ -40,19 +40,19 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	{
 		try
 		{
-			IAsyncEnumerable<RoundNotification> notifications = AffiliateDataCollector.GetFinalizedRounds(cancellationToken);
-			await foreach (RoundNotification notification in notifications.ConfigureAwait(false))
+			IAsyncEnumerable<RoundNotification> roundNotifications = AffiliateDataCollector.GetFinalizedRounds(cancellationToken);
+			await foreach (RoundNotification roundNotification in roundNotifications.ConfigureAwait(false))
 			{
 				try
 				{
-					switch (notification)
+					switch (roundNotification)
 					{
-						case RoundBuiltTransactionNotification builtTransactionNotification:
-							AddCoinJoinRequestFor(builtTransactionNotification.RoundId);
-							await UpdateCoinJoinRequestsAsync(builtTransactionNotification.RoundId, builtTransactionNotification.builtTransactionData, cancellationToken).ConfigureAwait(false);
+						case RoundBuiltTransactionNotification notification:
+							AddCoinJoinRequestFor(notification.RoundId);
+							await UpdateCoinJoinRequestsAsync(notification.RoundId, notification.BuiltTransactionData, cancellationToken).ConfigureAwait(false);
 							break;
-						case RoundEndedNotification roundEndedNotification:
-							RemoveCoinJoinRequestForRound(roundEndedNotification.RoundId);
+						case RoundEndedNotification notification:
+							RemoveCoinJoinRequestForRound(notification.RoundId);
 							break;
 					}
 				}

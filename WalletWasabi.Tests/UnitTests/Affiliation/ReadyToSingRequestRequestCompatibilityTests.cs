@@ -7,9 +7,9 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
-public class ReadyToSingRequestRequestCompatibilityTests
+public class ReadyToSignRequestRequestCompatibilityTests
 {
-	private static JsonConverter[] Converters =
+	private static readonly JsonConverter[] Converters =
 	{
 		new ScalarJsonConverter(),
 		new GroupElementJsonConverter(),

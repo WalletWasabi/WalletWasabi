@@ -7,7 +7,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 namespace WalletWasabi.Affiliation;
 
 public abstract record RoundNotification(uint256 RoundId);
-public record RoundBuiltTransactionNotification(uint256 RoundId, BuiltTransactionData builtTransactionData) : RoundNotification(RoundId);
+public record RoundBuiltTransactionNotification(uint256 RoundId, BuiltTransactionData BuiltTransactionData) : RoundNotification(RoundId);
 public record RoundEndedNotification(uint256 RoundId) : RoundNotification(RoundId);
 
 // This is an extension of Arena. The internal state is updated as result of an event raised by Arena
@@ -28,24 +28,6 @@ public class AffiliateDataCollector : IDisposable
 	public IAsyncEnumerable<RoundNotification> GetFinalizedRounds(CancellationToken cancellationToken) => 
 		RoundsToUpdate.GetAsyncIterator(cancellationToken);
 	
-	private void CreateRound(uint256 roundId, RoundParameters roundParameters)
-	{
-		RoundData roundData = new(roundParameters);
-
-		if (!RoundData.TryAdd(roundId, roundData))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) already exist.");
-		}
-	}
-
-	private void RemoveRound(uint256 roundId)
-	{
-		if (!RoundData.Remove(roundId, out _))
-		{
-			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
-		}
-	}
-	
 	private void Arena_InputAdded(object? sender, InputAddedEventArgs args) =>
 		GetRoundDataOrFail(args.RoundId)
 			.AddInputCoin(args.Coin, args.IsCoordinationFeeExempted);
@@ -54,8 +36,13 @@ public class AffiliateDataCollector : IDisposable
 		GetRoundDataOrFail(args.RoundId)
 			.AddInputAffiliationFlag(args.Coin, args.AffiliationFlag);
 
-	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs args) =>
-		CreateRound(args.RoundId, args.RoundParameters);
+	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs args)
+	{
+		if (!RoundData.TryAdd(args.RoundId, new(args.RoundParameters)))
+		{
+			throw new InvalidOperationException($"The round ({args.RoundId}) already exist.");
+		}
+	}
 
 	private void ArenaCoinJoinTransactionAdded(object? sender, CoinJoinTransactionCreatedEventArgs args) =>
 		RoundsToUpdate.Enqueue(
@@ -65,7 +52,11 @@ public class AffiliateDataCollector : IDisposable
 	{
 		if (args.Phase == Phase.Ended)
 		{
-			RemoveRound(args.RoundId);
+			if (!RoundData.Remove(args.RoundId, out _))
+			{
+				throw new InvalidOperationException($"The round ({args.RoundId}) does not exist.");
+			}
+
 			RoundsToUpdate.Enqueue(new RoundEndedNotification(args.RoundId));
 		}
 	}

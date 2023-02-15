@@ -13,7 +13,7 @@ public class RoundData
 	}
 
 	private RoundParameters RoundParameters { get; }
-	private Dictionary<OutPoint, AffiliateInput> AffiliateInputsByOutpoint = new();
+	private Dictionary<OutPoint, AffiliateInput> AffiliateInputsByOutpoint { get; } = new();
 
 	public void AddInputCoin(Coin coin, bool isCoordinationFeeExempted)
 	{
