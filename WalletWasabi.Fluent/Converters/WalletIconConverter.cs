@@ -1,7 +1,8 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
-using Avalonia.Media.Imaging;
+using Avalonia.Media;
+using Avalonia.Styling;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -11,7 +12,7 @@ public class WalletIconConverter : IValueConverter
 {
 	public static readonly IValueConverter WalletTypeToImage = new WalletIconConverter();
 
-	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is WalletType type)
 		{
@@ -33,30 +34,13 @@ public class WalletIconConverter : IValueConverter
 		throw new NotImplementedException();
 	}
 
-	private static Bitmap GetBitmap(WalletType type)
+	private static IImage? GetBitmap(WalletType type)
 	{
-		Uri uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/generic.png");
-
-		switch (type)
+		if (Application.Current!.Styles.TryGetResource($"WalletIcon_{type}", ThemeHelper.CurrentTheme == Theme.Dark ? ThemeVariant.Dark : ThemeVariant.Light, out var v) && v is DrawingGroup g)
 		{
-			case WalletType.Coldcard:
-				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/coldcard.png");
-				break;
-
-			case WalletType.Trezor:
-				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/trezor.png");
-				break;
-
-			case WalletType.Ledger:
-				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
-				break;
-
-			case WalletType.Normal:
-			case WalletType.Unknown:
-				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
-				break;
+			return new DrawingImage(g);
 		}
 
-		return AssetHelpers.GetBitmapAsset(uri);
+		return null;
 	}
 }
