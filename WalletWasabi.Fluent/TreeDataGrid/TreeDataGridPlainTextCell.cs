@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
@@ -11,6 +12,16 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 {
 	private FormattedText? _formattedText;
 	private string? _text;
+
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == ForegroundProperty)
+		{
+			InvalidateVisual();
+		}
+	}
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
@@ -31,6 +42,10 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 		if (_formattedText is not null)
 		{
 			var r = Bounds.CenterRect(new Rect(new Size(_formattedText.Width, _formattedText.Height)));
+			if (Foreground is { })
+			{
+				_formattedText.SetForegroundBrush(Foreground);
+			}
 			context.DrawText(_formattedText, new Point(0, r.Position.Y));
 		}
 	}

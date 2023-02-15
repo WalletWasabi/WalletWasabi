@@ -21,6 +21,16 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
 
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == ForegroundProperty)
+		{
+			InvalidateVisual();
+		}
+	}
+
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell)model;
@@ -42,7 +52,10 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		if (_formattedText is not null)
 		{
 			var r = Bounds.CenterRect(new Rect(new Point(0,0), new Size(_formattedText.Width, _formattedText.Height)));
-			_formattedText.SetForegroundBrush(Foreground);
+			if (Foreground is { })
+			{
+				_formattedText.SetForegroundBrush(Foreground);
+			}
 			context.DrawText(_formattedText, new Point(0, r.Position.Y));
 		}
 	}
