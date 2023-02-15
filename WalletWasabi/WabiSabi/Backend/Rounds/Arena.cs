@@ -142,7 +142,6 @@ public partial class Arena : PeriodicRunner
 					{
 						// This should never happen.
 
-						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}) for Round({round.Id}).", exc);
 						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
 						throw;
 					}
