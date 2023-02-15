@@ -118,6 +118,7 @@
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />
           <Setter Property="Background" Value="Transparent" />
+          <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
         </Style>
         <Style Selector="TreeDataGridRow /template/ Rectangle#PART_Separator">
           <Setter Property="Fill" Value="Transparent" />
