@@ -3,18 +3,16 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Styling;
-using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public class FadeOutTextBlock : TextBlock, IStyleable
 {
 	private TextLayout? _trimmedLayout;
-	private bool _cutOff;
+ 	private bool _cutOff;
 
 	public FadeOutTextBlock()
 	{
-		AffectsMeasure<FadeOutTextBlock>(TextProperty);
 		TextWrapping = TextWrapping.NoWrap;
 	}
 
@@ -32,44 +30,9 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		}
 	}.ToImmutable();
 
-	// TODO: Render methods got sealed on master Avalonia
-	/*
-	public override void Render(DrawingContext context)
-	{
-		var background = Background;
-
-		var bounds = Bounds;
-
-		if (background != null)
-		{
-			context.FillRectangle(background, Bounds);
-		}
-
-		if (_trimmedLayout is null)
-		{
-			return;
-		}
-
-		var width = bounds.Size.Width;
-
-		var centerOffset = TextAlignment switch
-		{
-			TextAlignment.Center => (width - _trimmedLayout.MaxWidth) / 2.0,
-			TextAlignment.Right => width - _trimmedLayout.MaxWidth,
-			_ => 0.0
-		};
-
-		var (left, yPosition, _, _) = Padding;
-
-		using var a =
-			context.PushPostTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
-		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
-		base.Render(context);
-	}
-	*/
 	private void NewCreateTextLayout(Size constraint, string? text)
 	{
-		if (constraint == Size.Empty)
+		if (constraint == default)
 		{
 			_trimmedLayout = null;
 		}
@@ -113,13 +76,17 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var padding = Padding;
 
 		availableSize = availableSize.Deflate(padding);
-		// TODO: _noTrimLayout ?
-/*
-		if (availableSize != _noTrimLayout?.Size)
+
+		if (_constraint != availableSize)
 		{
-			NewCreateTextLayout(availableSize, Text);
+			_constraint = availableSize;
+			NewCreateTextLayout(_constraint, Text);
 		}
-*/
-		return (_trimmedLayout?.Bounds.Size ?? Size.Empty).Inflate(padding);
+
+		var size = _trimmedLayout?.Bounds.Size ?? default;
+
+		OpacityMask = _cutOff ? FadeoutOpacityMask : Brushes.White;
+
+		return size.Inflate(padding);
 	}
 }
