@@ -50,7 +50,8 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task ShowErrorAsync()
 	{
-		await ShowErrorAsync("Error",
+		await ShowErrorAsync(
+			"Error",
 			"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.",
 			"The Recovery Words you entered were incorrect.");
 	}
@@ -69,7 +70,10 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 			var saltSoup = wallet.Kitchen.SaltSoup();
 
-			var recovered = KeyManager.Recover(currentMnemonics, saltSoup, wallet.Network,
+			var recovered = KeyManager.Recover(
+				currentMnemonics,
+				saltSoup,
+				wallet.Network,
 				wallet.KeyManager.SegwitAccountKeyPath,
 				null,
 				null,
@@ -77,8 +81,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 			if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
 			{
-				Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
-					NavigationMode.Clear);
+				Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."), NavigationMode.Clear);
 			}
 			else
 			{

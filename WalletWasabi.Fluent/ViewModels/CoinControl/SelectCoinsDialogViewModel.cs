@@ -21,7 +21,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly TransactionInfo _transactionInfo;
 	private readonly WalletViewModel _walletViewModel;
 
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IList<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
 	{
 		_walletViewModel = walletViewModel;
 		_transactionInfo = transactionInfo;

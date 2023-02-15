@@ -17,10 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly DispatcherTimer _countdownTimer;
-	private readonly DispatcherTimer _autoCoinJoinStartTimer;
-
 	private const string CountDownMessage = "Waiting to auto-start coinjoin";
 	private const string WaitingMessage = "Waiting for coinjoin";
 	private const string PauseMessage = "Coinjoin is paused";
@@ -39,6 +35,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string AllPrivateMessage = "Hurray! Your funds are private";
 	private const string GeneralErrorMessage = "Waiting for valid conditions";
 
+	private readonly StateMachine<State, Trigger> _stateMachine;
+	private readonly DispatcherTimer _countdownTimer;
+	private readonly DispatcherTimer _autoCoinJoinStartTimer;
+
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible;
 	[AutoNotify] private bool _pauseVisible;
@@ -55,8 +55,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
-
-	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
@@ -105,11 +103,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		var stopPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
+		var stopPauseCommandCanExecute = this.WhenAnyValue(
+			x => x.IsInCriticalPhase,
+			x => x.PauseSpreading,
 			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
-		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
-			await coinJoinManager.StopAsync(wallet, CancellationToken.None), stopPauseCommandCanExecute);
+		StopPauseCommand = ReactiveCommand.CreateFromTask(
+			async () => await coinJoinManager.StopAsync(wallet, CancellationToken.None),
+			stopPauseCommandCanExecute);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
@@ -170,6 +171,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		WalletStoppedCoinJoin,
 		AutoCoinJoinOff
 	}
+
+	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
 
@@ -308,7 +311,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					_ => GeneralErrorMessage
 				};
-
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:

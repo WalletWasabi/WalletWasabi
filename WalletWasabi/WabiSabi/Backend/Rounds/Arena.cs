@@ -21,6 +21,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Events;
 using WalletWasabi.Affiliation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -135,7 +136,7 @@ public partial class Arena : PeriodicRunner
 				{
 					try
 					{
-						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice);
+						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice, CoinEqualityComparer.Default);
 						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
 						{
 							if (coinVerifyInfo.ShouldRemove)

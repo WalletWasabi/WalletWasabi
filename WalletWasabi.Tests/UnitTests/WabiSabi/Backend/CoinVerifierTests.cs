@@ -66,6 +66,8 @@ public class CoinVerifierTests
 			.ReturnsAsync(cleanResponse)
 			.ReturnsAsync(cleanResponse)
 			.ThrowsAsync(new InvalidOperationException())
+			.ThrowsAsync(new InvalidOperationException())   // Because of the retry mechanism, we need to fail 3 times to kick out the coin.
+			.ThrowsAsync(new InvalidOperationException())
 			.ReturnsAsync(cleanResponse)
 			.ReturnsAsync(cleanResponse)
 			.ReturnsAsync(cleanResponse)
@@ -94,7 +96,7 @@ public class CoinVerifierTests
 			{
 				naughtyCoins.Add(item.Coin);
 			}
-			else if (item.ShouldRemove)
+			if (item.ShouldRemove)
 			{
 				removedCoins.Add(item.Coin);
 			}

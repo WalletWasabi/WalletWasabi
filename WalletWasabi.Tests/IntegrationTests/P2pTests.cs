@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -27,13 +28,14 @@ namespace WalletWasabi.Tests.IntegrationTests;
 public class P2pTests
 {
 	[Theory]
-	// [InlineData("test")] - ToDo, this test fails for some reason.
+	[InlineData("test")]
 	[InlineData("main")]
 	public async Task TestServicesAsync(string networkString)
 	{
 		await RuntimeParams.LoadAsync();
 		var network = Network.GetNetwork(networkString);
 		var blocksToDownload = new List<uint256>();
+
 		if (network == Network.Main)
 		{
 			blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
@@ -64,6 +66,7 @@ public class P2pTests
 		var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 		var connectionParameters = new NodeConnectionParameters();
 		AddressManager addressManager;
+
 		try
 		{
 			addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
@@ -99,9 +102,19 @@ public class P2pTests
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = new(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
+
+		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		IBlockProvider blockProvider = new SmartBlockProvider(
+			blockRepository,
+			null,
+			new SpecificNodeBlockProvider(network, serviceConfig, httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
+			cache);
 
 		using Wallet wallet = Wallet.CreateAndRegisterServices(
 			network,
@@ -145,15 +158,16 @@ public class P2pTests
 				i++;
 			}
 
-			await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(1));
+			await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
 		}
 		finally
 		{
 			// So next test will download the block.
 			foreach (var hash in blocksToDownload)
 			{
-				await blockProvider.BlockRepository.RemoveAsync(hash, CancellationToken.None);
+				await blockRepository.RemoveAsync(hash, CancellationToken.None);
 			}
+
 			if (wallet is { })
 			{
 				await wallet.StopAsync(CancellationToken.None);
@@ -167,6 +181,7 @@ public class P2pTests
 			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 			addressManager?.SavePeerFile(addressManagerFilePath, network);
 			Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
+			cache.Dispose();
 		}
 	}
 }
