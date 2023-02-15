@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Immutable;
 using System.Net.Http;
@@ -16,7 +17,6 @@ public class AffiliationManager : BackgroundService
 	public AffiliationManager(Arena arena, WabiSabiConfig wabiSabiConfig, IHttpClientFactory httpClientFactory)
 	{
 		Signer = new(wabiSabiConfig.AffiliationMessageSignerKey);
-		Arena = arena;
 		Clients = wabiSabiConfig.AffiliateServers.ToDictionary(
 			 x => x.Key,
 			  x =>
@@ -26,11 +26,12 @@ public class AffiliationManager : BackgroundService
 				  return new AffiliateServerHttpApiClient(client);
 			  }).ToImmutableDictionary();
 		AffiliateServerStatusUpdater = new(Clients);
-		CoinJoinRequestsUpdater = new(Arena, Clients, Signer);
+		AffiliateDataCollector = new AffiliateDataCollector(arena);
+		CoinJoinRequestsUpdater = new(AffiliateDataCollector, Clients, Signer);
 	}
 
 	private AffiliationMessageSigner Signer { get; }
-	private Arena Arena { get; }
+	private AffiliateDataCollector AffiliateDataCollector { get; }
 	private ImmutableDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
 	private AffiliateServerStatusUpdater AffiliateServerStatusUpdater { get; }
 	private CoinJoinRequestsUpdater CoinJoinRequestsUpdater { get; }
@@ -49,6 +50,7 @@ public class AffiliationManager : BackgroundService
 
 	public override void Dispose()
 	{
+		AffiliateDataCollector.Dispose();
 		CoinJoinRequestsUpdater.Dispose();
 		Signer.Dispose();
 		base.Dispose();

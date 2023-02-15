@@ -10,10 +10,15 @@ public abstract record RoundNotification(uint256 RoundId);
 public record RoundBuiltTransactionNotification(uint256 RoundId, BuiltTransactionData BuiltTransactionData) : RoundNotification(RoundId);
 public record RoundEndedNotification(uint256 RoundId) : RoundNotification(RoundId);
 
+public interface IRoundNotifier : IDisposable
+{
+	IAsyncEnumerable<RoundNotification> GetRoundNotifications(CancellationToken cancellationToken);
+}
+
 // This is an extension of Arena. The internal state is updated as result of an event raised by Arena
 // what means it's ALWAYS protected by the Arena lock and there is not possible concurrency conflicts.
 // Additionally, all operations are synchronous
-public class AffiliateDataCollector : IDisposable
+public class AffiliateDataCollector : IRoundNotifier
 {
 	public AffiliateDataCollector(Arena arena)
 	{
@@ -25,7 +30,7 @@ public class AffiliateDataCollector : IDisposable
 	private Dictionary<uint256, RoundData> RoundData { get; } = new();
 	private AsyncQueue<RoundNotification> RoundsToUpdate { get; } = new();
 
-	public IAsyncEnumerable<RoundNotification> GetFinalizedRounds(CancellationToken cancellationToken) => 
+	public IAsyncEnumerable<RoundNotification> GetRoundNotifications(CancellationToken cancellationToken) => 
 		RoundsToUpdate.GetAsyncIterator(cancellationToken);
 	
 	private void Arena_InputAdded(object? sender, InputAddedEventArgs args) =>

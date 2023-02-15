@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Affiliation.Models;
 using NBitcoin;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
@@ -17,14 +16,14 @@ namespace WalletWasabi.Affiliation;
 public class CoinJoinRequestsUpdater : BackgroundService
 {
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
-	public CoinJoinRequestsUpdater(Arena arena, ImmutableDictionary<string, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
+	public CoinJoinRequestsUpdater(IRoundNotifier roundNotificationSource, ImmutableDictionary<string, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
 	{
-		AffiliateDataCollector = new(arena);
+		RoundNotificationSource = roundNotificationSource;
 		Clients = clients;
 		Signer = signer;
 	}
 
-	private AffiliateDataCollector AffiliateDataCollector { get; }
+	private IRoundNotifier RoundNotificationSource { get; }
 	private AffiliationMessageSigner Signer { get; }
 	private ImmutableDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
 	private ConcurrentDictionary<uint256, ConcurrentDictionary<string, byte[]>> CoinJoinRequests { get; } = new();
@@ -40,7 +39,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	{
 		try
 		{
-			IAsyncEnumerable<RoundNotification> roundNotifications = AffiliateDataCollector.GetFinalizedRounds(cancellationToken);
+			IAsyncEnumerable<RoundNotification> roundNotifications = RoundNotificationSource.GetRoundNotifications(cancellationToken);
 			await foreach (RoundNotification roundNotification in roundNotifications.ConfigureAwait(false))
 			{
 				try
@@ -135,7 +134,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	public override void Dispose()
 	{
-		AffiliateDataCollector.Dispose();
+		RoundNotificationSource.Dispose();
 		Signer.Dispose();
 		base.Dispose();
 	}
