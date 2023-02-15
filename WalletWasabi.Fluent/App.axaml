@@ -20,11 +20,8 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
-
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
-
       </ResourceDictionary.MergedDictionaries>
       <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
       <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
