@@ -304,7 +304,7 @@ public class CoinJoinManager : BackgroundService
 		var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-		var restartTask = Task.Run(
+		var restartTask = new Task(
 			async () =>
 			{
 				try
@@ -333,8 +333,12 @@ public class CoinJoinManager : BackgroundService
 				}
 			},
 			linkedCts.Token);
-
-		if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, linkedCts)))
+		
+		if (trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, linkedCts)))
+		{
+			restartTask.Start();
+		}
+		else
 		{
 			walletToStart.LogInfo("AutoCoinJoin task was already added.");
 		}
