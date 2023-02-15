@@ -382,6 +382,7 @@ public static class NBitcoinExtensions
 		if (keyManager.MasterFingerprint.HasValue)
 		{
 			var fp = keyManager.MasterFingerprint.Value;
+
 			// Add input keypaths.
 			foreach (var script in psbt.Inputs.Select(x => x.WitnessUtxo?.ScriptPubKey).ToArray())
 			{

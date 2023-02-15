@@ -427,16 +427,6 @@ public class AmountDecomposer
 
 	public class Output : IEqualityComparer<Output>
 	{
-		public static Output FromDenomination(Money amount, ScriptType scriptType, FeeRate feeRate)
-		{
-			return new Output(amount, scriptType, feeRate, false);
-		}
-
-		public static Output FromAmount(Money amount, ScriptType scriptType, FeeRate feeRate)
-		{
-			return new Output(amount, scriptType, feeRate, true);
-		}
-
 		private Output(Money amount, ScriptType scriptType, FeeRate feeRate, bool isEffectiveCost)
 		{
 			ScriptType = scriptType;
@@ -452,6 +442,16 @@ public class AmountDecomposer
 		public Money EffectiveCost => Amount + Fee;
 		public Money InputFee { get; }
 		public Money Fee { get; }
+
+		public static Output FromDenomination(Money amount, ScriptType scriptType, FeeRate feeRate)
+		{
+			return new Output(amount, scriptType, feeRate, false);
+		}
+
+		public static Output FromAmount(Money amount, ScriptType scriptType, FeeRate feeRate)
+		{
+			return new Output(amount, scriptType, feeRate, true);
+		}
 
 		public bool Equals(Output? x, Output? y)
 		{
