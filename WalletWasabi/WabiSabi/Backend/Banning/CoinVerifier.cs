@@ -53,7 +53,7 @@ public class CoinVerifier : IAsyncDisposable
 
 		// Booting up the results with the default value - ban: no, remove: yes.
 		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(
-			coin => coin, 
+			coin => coin,
 			coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true),
 			CoinEqualityComparer.Default);
 
@@ -125,7 +125,7 @@ public class CoinVerifier : IAsyncDisposable
 		var now = DateTimeOffset.UtcNow;
 		foreach (var (coin, item) in CoinVerifyItems)
 		{
-			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout)
+			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout || item.Task.IsCompleted)
 			{
 				CoinVerifyItems.TryRemove(coin, out var _);
 
