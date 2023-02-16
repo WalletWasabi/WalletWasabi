@@ -109,6 +109,18 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 
 **Renewal**
 
+**New method**
+
+1. Create new CSR file with DigiCert® Certificate Utility application.
+2. Save file to hard disk and upload CSR file to DigiCert.
+3. Wait for DigiCert to issue our new `zksnacks_limited.p7b` file.
+4. Download and import `zksnacks_limited.p7b` file to DigiCert® Certificate Utility.
+5. Choose friendly name for the certificate and apply the default password to it.
+6. Export the `zksnacks_limited.pfx` to `C:\zksnacks_limited.pfx`.
+7. Rename `zksnacks_limited.pfx` to `digicert.pfx`, so the Packager can find it!!
+
+**Obsolete method**
+
 1. Issue a renewal on digicert website with the CSR file: `secret-ssl/mainnet/wasabiserver.csr`.
 2. Wait for `zksnacks_limited.p7b` file put it into `c:\temp`.
 3. Copy `secret-ssl/mainnet/wasabiserver.key` to `c:\temp`.
