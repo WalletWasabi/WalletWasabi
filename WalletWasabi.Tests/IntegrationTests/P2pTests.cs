@@ -115,7 +115,7 @@ public class P2pTests
 			blockRepository,
 			rpcBlockProvider: null,
 			specificNodeBlockProvider,
-			new P2PBlockProvider(network, nodes, httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
 		using Wallet wallet = Wallet.CreateAndRegisterServices(

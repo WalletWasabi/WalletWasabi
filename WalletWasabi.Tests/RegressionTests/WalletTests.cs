@@ -262,7 +262,7 @@ public class WalletTests
 			bitcoinStore.BlockRepository,
 			rpcBlockProvider: null,
 			specificNodeBlockProvider,
-			new P2PBlockProvider(network, nodes, httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
