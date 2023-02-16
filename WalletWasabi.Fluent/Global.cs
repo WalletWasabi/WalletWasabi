@@ -97,7 +97,7 @@ public class Global
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
-	private SpecificNodeBlockProvider? SpecificNodeBlockProvider{ get; set; }
+	private SpecificNodeBlockProvider? SpecificNodeBlockProvider { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
