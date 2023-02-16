@@ -42,11 +42,13 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
+	private bool _startInBg;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
+		_startInBg = startInBg;
 		ApplicationViewModel = new ApplicationViewModel(this);
 
 		Observable
@@ -93,11 +95,6 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
-
-		if (!startInBg)
-		{
-			_stateMachine.Fire(Trigger.Loaded);
-		}
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }
@@ -167,9 +164,12 @@ public class ApplicationStateManager : IMainWindowService
 
 		ObserveWindowSize(result, _compositeDisposable);
 
-		result.Show();
+		if (!_startInBg)
+		{
+			result.Show();
+		}
 
-		ApplicationViewModel.IsMainWindowShown = true;
+		ApplicationViewModel.IsMainWindowShown = !_startInBg;
 	}
 
 	private void SetWindowSize(Window window)
