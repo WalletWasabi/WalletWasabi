@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -142,7 +143,7 @@ public static class EnvironmentHelpers
 	/// Executes a command with Bourne shell.
 	/// https://stackoverflow.com/a/47918132/2061103
 	/// </summary>
-	public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
+	public static async Task ShellExecAsync(string cmd, bool waitForExit = true, bool getResult = false)
 	{
 		var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -172,6 +173,42 @@ public static class EnvironmentHelpers
 		{
 			using var process = Process.Start(startInfo);
 		}
+	}
+
+	/// <summary>
+	/// Executes a command with Bourne shell and returns Standard Output.
+	/// </summary>
+	public static async Task<List<string>> ShellExecAndGetResultAsync(string cmd)
+	{
+		var escapedArgs = cmd.Replace("\"", "\\\"");
+
+		var startInfo = new ProcessStartInfo
+		{
+			FileName = "/usr/bin/env",
+			Arguments = $"sh -c \"{escapedArgs}\"",
+			RedirectStandardOutput = true,
+			RedirectStandardError = true,
+			UseShellExecute = false,
+			CreateNoWindow = true,
+			WindowStyle = ProcessWindowStyle.Hidden
+		};
+
+		List<string> result = new();
+		using var process = new ProcessAsync(startInfo);
+		process.Start();
+
+		await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+
+		if (process.ExitCode != 0)
+		{
+			Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
+		}
+		while (!process.StandardOutput.EndOfStream)
+		{
+			string? line = process.StandardOutput.ReadLine() ?? string.Empty;
+			result.Add(line);
+		}
+		return result;
 	}
 
 	public static bool IsFileTypeAssociated(string fileExtension)
