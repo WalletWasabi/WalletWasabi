@@ -141,7 +141,6 @@ public partial class Arena : PeriodicRunner
 					catch (Exception exc)
 					{
 						// This should never happen.
-
 						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
 						throw;
 					}
