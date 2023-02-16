@@ -42,13 +42,13 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
-	private bool _startInBg;
+	private bool _openInBg;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
+	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool openInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
-		_startInBg = startInBg;
+		_openInBg = openInBg;
 		ApplicationViewModel = new ApplicationViewModel(this);
 
 		Observable
@@ -92,9 +92,14 @@ public class ApplicationStateManager : IMainWindowService
 			.Permit(Trigger.MainWindowClosed, State.Closed)
 			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowSate);
 
-		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
-
 		_stateMachine.Start();
+		if (_openInBg)
+		{
+			_hideRequest = true;
+			_stateMachine.Fire(Trigger.Hide);
+			_openInBg = false;
+		}
+		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }
@@ -163,13 +168,13 @@ public class ApplicationStateManager : IMainWindowService
 		}
 
 		ObserveWindowSize(result, _compositeDisposable);
+		ApplicationViewModel.IsMainWindowShown = false;
 
-		if (!_startInBg)
+		if (!_openInBg)
 		{
 			result.Show();
+			ApplicationViewModel.IsMainWindowShown = true;
 		}
-
-		ApplicationViewModel.IsMainWindowShown = !_startInBg;
 	}
 
 	private void SetWindowSize(Window window)
