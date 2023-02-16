@@ -140,8 +140,11 @@
       <ListBox Items="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
                SelectedItem="{Binding SelectedWallet}">
+        <Interaction.Behaviors>
+          <behaviors:ListBoxReselectingBehavior/>
+        </Interaction.Behaviors>
         <ListBox.DataTemplates>
-          <DataTemplate DataType="vmw:NavBarWalletStateViewModel">
+          <DataTemplate DataType="vmw:WalletPageViewModel">
             <StackPanel>
               <c:FadeOutTextBlock Classes="h9" Text="{Binding IsSelected}" />
               <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
