@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto.Randomness;
 

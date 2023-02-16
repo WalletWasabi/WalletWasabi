@@ -29,11 +29,14 @@
           "Newtonsoft.Json": "13.0.1"
         }
       },
-      "NBitcoin.Secp256k1": {
+      "WabiSabi": {
         "type": "Direct",
-        "requested": "[3.0.1, )",
-        "resolved": "3.0.1",
-        "contentHash": "n/OaEKIVvgcJ9qwde8g2IZdJMn3oAdEHAKV0gFg3JcrjxfbFCiziZ3WGOJSFPXldhuLy/E9jEIcXdRRG+Q6iUg=="
+        "requested": "[1.0.1, )",
+        "resolved": "1.0.1",
+        "contentHash": "ftmFoDQ2xHW7jpSgyo/txoOtuVvaKn5DzqrinlWq8glj5DVxtPbh0+PpeCUHTehODIrlQp8Ka2NV32dJ3CxoRg==",
+        "dependencies": {
+          "NBitcoin.Secp256k1": "3.1.0"
+        }
       },
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
@@ -74,6 +77,11 @@
         "type": "Transitive",
         "resolved": "1.0.1",
         "contentHash": "rkn+fKobF/cbWfnnfBOQHKVKIOpxMZBvlSHkqDWgBpwGDcLRduvs3D9OLGeV6GWGvVwNlVi2CBbTjuPmtHvyNw=="
+      },
+      "NBitcoin.Secp256k1": {
+        "type": "Transitive",
+        "resolved": "3.1.0",
+        "contentHash": "DVJbhT1plnBqPNnl5MNW1Aw5DCdfQ7MwlcL6PKcBIWPlQUO4T1FZRC4g2Axp9fd40eDKkyhq9MHlN9EeO09sGw=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
