@@ -18,8 +18,8 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 {
-	private static TimeSpan MinTimeout = TimeSpan.FromSeconds(1);
-	private static TimeSpan MaxTimeout = TimeSpan.FromSeconds(30);
+	private static TimeSpan MinReconnectDelay = TimeSpan.FromSeconds(1);
+	private static TimeSpan MaxReconnectDelay = TimeSpan.FromSeconds(30);
 
 	private volatile ConnectedNode? _specificBitcoinCoreNode;
 
@@ -75,7 +75,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	private async Task ReconnectingLoopAsync()
 	{
 		CancellationToken shutdownToken = LoopCts.Token;
-		TimeSpan timeout = MinTimeout;
+		TimeSpan reconnectDelay = MinReconnectDelay;
 
 		while (!shutdownToken.IsCancellationRequested)
 		{
@@ -127,8 +127,8 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 					throw;
 				}
 
-				// Reset timeout as we actually connected the local node.
-				timeout = MinTimeout;
+				// Reset reconnect delay as we actually connected the local node.
+				reconnectDelay = MinReconnectDelay;
 
 				using ConnectedNode connectedNode = new(localNode);
 				_specificBitcoinCoreNode = connectedNode;
@@ -145,11 +145,11 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 				Logger.LogTrace("Failed to establish connection to the local Bitcoin Core node.", ex);
 
 				// Failing to connect leads to exponential slowdown.
-				timeout *= 2;
+				reconnectDelay *= 2;
 
-				if (timeout > MaxTimeout)
+				if (reconnectDelay > MaxReconnectDelay)
 				{
-					timeout = MaxTimeout;
+					reconnectDelay = MaxReconnectDelay;
 				}
 			}
 			catch (Exception) when (shutdownToken.IsCancellationRequested)
@@ -165,7 +165,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			// Wait for the next attempt to connect.
 			try
 			{
-				await Task.Delay(timeout, shutdownToken).ConfigureAwait(false);
+				await Task.Delay(reconnectDelay, shutdownToken).ConfigureAwait(false);
 			}
 			catch
 			{
