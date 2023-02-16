@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class HardwareWalletViewModel : WalletViewModel
 {
-	internal HardwareWalletViewModel(NavBarWalletStateViewModel parent) : base(parent)
+	internal HardwareWalletViewModel(WalletPageViewModel parent) : base(parent)
 	{
 		BroadcastPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
 		{

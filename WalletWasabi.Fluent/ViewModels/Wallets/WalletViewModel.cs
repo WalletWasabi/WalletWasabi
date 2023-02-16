@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletViewModel : RoutableViewModel, IComparable<WalletViewModel>
 {
-	private readonly NavBarWalletStateViewModel _parent;
+	private readonly WalletPageViewModel _parent;
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
 	[AutoNotify] private bool _isPointerOver;
@@ -79,7 +79,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 	public override string ToString() => WalletName;
 
-	protected WalletViewModel(NavBarWalletStateViewModel parent)
+	protected WalletViewModel(WalletPageViewModel parent)
 	{
 		_parent = parent;
 
@@ -256,7 +256,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		Tiles = GetTiles().ToList();
 	}
 
-	public static WalletViewModel Create(NavBarWalletStateViewModel parent)
+	public static WalletViewModel Create(WalletPageViewModel parent)
 	{
 		return parent.Wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletViewModel(parent)

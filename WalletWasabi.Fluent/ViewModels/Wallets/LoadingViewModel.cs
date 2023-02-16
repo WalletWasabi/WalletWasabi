@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [NavigationMetaData(Title = null)]
 public partial class LoadingViewModel : RoutableViewModel
 {
-	private readonly NavBarWalletStateViewModel _nbwsvm;
+	private readonly WalletPageViewModel _nbwsvm;
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
@@ -28,7 +28,7 @@ public partial class LoadingViewModel : RoutableViewModel
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
 
-	public LoadingViewModel(NavBarWalletStateViewModel nbwsvm)
+	public LoadingViewModel(WalletPageViewModel nbwsvm)
 	{
 		_nbwsvm = nbwsvm;
 		_percent = 0;

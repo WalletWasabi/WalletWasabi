@@ -18,34 +18,14 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class WalletManagerViewModel : ViewModelBase
 {
-	private readonly ReadOnlyObservableCollection<NavBarWalletStateViewModel> _wallets;
+	private readonly ReadOnlyObservableCollection<WalletPageViewModel> _wallets;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isLoadingWallet;
 
 	public WalletManagerViewModel()
 	{
-		// Observable.Return(Unit.Default)
-		// 	.Merge(
-		// 		Observable
-		// 			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
-		// 			.Select(_ => Unit.Default))
-		// 	.ObserveOn(RxApp.MainThreadScheduler)
-		// 	.SelectMany(_ => Services.WalletManager.GetWallets())
-		// 	.ToObservableChangeSet(x => x)
-		// 	.TransformWithInlineUpdate(newWallet => new NavBarWalletStateViewModel(newWallet),
-		// 		(x, y) =>
-		// 	{
-		//
-		// 	})
-		// 	.AutoRefresh(x => x.IsLoggedIn)
-		// 	.Sort(SortExpressionComparer<NavBarWalletStateViewModel>.Descending(i => i.IsLoggedIn)
-		// 		.ThenByAscending(x => x.Title))
-		// 	.Bind(out _wallets)
-		// 	.Subscribe();
-
-		// SourceCache<NavBarWalletStateViewModel, string> _walletSourceCache = new (model => model.Title);
-
+		// Convert the Wallet Manager's contents into an observable stream.
 		var walletsObservable = Observable.Return(Unit.Default)
 			.Merge(
 				Observable
@@ -55,11 +35,15 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.SelectMany(_ => Services.WalletManager.GetWallets());
 
 		walletsObservable
-			.ToObservableChangeSet(x => x.WalletName) // Important to keep this key property so DynamicData knows.
-			.TransformWithInlineUpdate(newWallet => new NavBarWalletStateViewModel(newWallet),
+			// Important to keep this key property so DynamicData knows.
+			.ToObservableChangeSet(x => x.WalletName)
+			// This converts the Wallet objects into WalletPageViewModel.
+			.TransformWithInlineUpdate(newWallet => new WalletPageViewModel(newWallet),
 				(e, wallet) => e.Wallet = wallet)
+			// Refresh the collection when logged in.
 			.AutoRefresh(x => x.IsLoggedIn)
-			.Sort(SortExpressionComparer<NavBarWalletStateViewModel>
+			// Sort the list to put the most recently logged in wallet to the top.
+			.Sort(SortExpressionComparer<WalletPageViewModel>
 				.Descending(i => i.IsLoggedIn)
 				.ThenByAscending(x => x.Title))
 			.Bind(out _wallets)
@@ -106,7 +90,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			});
 	}
 
-	public ReadOnlyObservableCollection<NavBarWalletStateViewModel> Wallets => _wallets;
+	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets => _wallets;
 
 	public bool TryGetSelectedAndLoggedInWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
 	{
@@ -125,7 +109,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 	}
 
 	private bool TryGetWalletViewModel(Wallet wallet,
-		[NotNullWhen(true)] out NavBarWalletStateViewModel? walletViewModel)
+		[NotNullWhen(true)] out WalletPageViewModel? walletViewModel)
 	{
 		walletViewModel = Wallets.FirstOrDefault(x => x.Wallet == wallet);
 		return walletViewModel is { };
