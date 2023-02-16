@@ -81,7 +81,7 @@ public class ServerStatusUpdaterTests
 		try
 		{
 			await serverStatusUpdater.StartAsync(CancellationToken.None);
-
+			await Task.Delay(200);
 			var runningServersFirstIter = serverStatusUpdater.GetRunningAffiliateServers();
 			Assert.Equal(new[] { "server-1", "server-2" }, runningServersFirstIter);
 

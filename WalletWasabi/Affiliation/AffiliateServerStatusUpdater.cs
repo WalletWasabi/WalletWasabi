@@ -17,15 +17,18 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		  : base(Interval)
 	{
 		Clients = clients;
-		RunningAffiliateServers = ImmutableList<string>.Empty;
 	}
 
 	private IDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
-	private ImmutableList<string> RunningAffiliateServers { get; set; }
-
+	private List<string> RunningAffiliateServers { get; } = new();
+	private object RunningAffiliateServersLock { get; } = new();
+	
 	public ImmutableArray<string> GetRunningAffiliateServers()
 	{
-		return RunningAffiliateServers.ToImmutableArray();
+		lock (RunningAffiliateServersLock)
+		{
+			return RunningAffiliateServers.ToImmutableArray();
+		}
 	}
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
@@ -53,32 +56,41 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		
 		if (await IsAffiliateServerRunningAsync(affiliateServerHttpApiClient, linkedCts.Token).ConfigureAwait(false))
 		{
-			if (!RunningAffiliateServers.Contains(affiliationFlag))
+			lock (RunningAffiliateServersLock)
 			{
-				RunningAffiliateServers = RunningAffiliateServers.Add(affiliationFlag);
-				Logging.Logger.LogInfo($"Affiliate server '{affiliationFlag}' went up.");
-			}
-			else
-			{
-				Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is running.");
+				if (!RunningAffiliateServers.Contains(affiliationFlag))
+				{
+					RunningAffiliateServers.Add(affiliationFlag);
+					Logging.Logger.LogInfo($"Affiliate server '{affiliationFlag}' went up.");
+				}
+				else
+				{
+					Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is running.");
+				}
 			}
 		}
 		else
 		{
-			if (RunningAffiliateServers.Contains(affiliationFlag))
+			lock (RunningAffiliateServersLock)
 			{
-				RunningAffiliateServers = RunningAffiliateServers.Remove(affiliationFlag);
-				Logging.Logger.LogWarning($"Affiliate server '{affiliationFlag}' went down.");
-			}
-			else
-			{
-				Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is not running.");
+				if (RunningAffiliateServers.Contains(affiliationFlag))
+				{
+					RunningAffiliateServers.Remove(affiliationFlag);
+					Logging.Logger.LogWarning($"Affiliate server '{affiliationFlag}' went down.");
+				}
+				else
+				{
+					Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is not running.");
+				}
 			}
 		}
 	}
 
 	private async Task UpdateRunningAffiliateServersAsync(CancellationToken cancellationToken)
 	{
-		await Task.WhenAll(Clients.Select(x => UpdateRunningAffiliateServersAsync(x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
+		var updateTasks = Clients
+			.Select(x => (affiliationTag: x.Key, cffiliationClient: x.Value))
+			.Select(x => UpdateRunningAffiliateServersAsync(x.affiliationTag, x.cffiliationClient, cancellationToken));
+		await Task.WhenAll(updateTasks).ConfigureAwait(false);
 	}
 }
