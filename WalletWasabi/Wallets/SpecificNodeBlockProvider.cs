@@ -57,6 +57,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			{
 				// Disconnected node, because an invalid block was received!
 				node.Disconnect();
+				return null;
 			}
 
 			// Retrieved block from specific node and block is valid.
