@@ -3,14 +3,14 @@ using System.Threading;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
-using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Groups;
+using WabiSabi;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
@@ -56,7 +56,8 @@ public class SerializationTests
 	{
 		var converters = new JsonConverter[]
 		{
-				new GroupElementJsonConverter()
+			new GroupElementJsonConverter(),
+			new GroupElementVectorJsonConverter()
 		};
 
 		// Serialization collection test.
@@ -77,7 +78,8 @@ public class SerializationTests
 	{
 		var converters = new JsonConverter[]
 		{
-				new GroupElementJsonConverter()
+			new GroupElementJsonConverter(),
+			new IssuanceRequestJsonConverter()
 		};
 
 		// Serialization round test.
@@ -151,7 +153,8 @@ public class SerializationTests
 	{
 		var converters = new JsonConverter[]
 		{
-				new ScalarJsonConverter()
+			new ScalarJsonConverter(),
+			new ScalarVectorJsonConverter()
 		};
 
 		// Serialization collection test.
@@ -209,8 +212,14 @@ public class SerializationTests
 		var converters = new JsonConverter[]
 		{
 				new ScalarJsonConverter(),
+				new ScalarVectorJsonConverter(),
 				new GroupElementJsonConverter(),
-				new MoneySatoshiJsonConverter()
+				new GroupElementVectorJsonConverter(),
+				new MoneySatoshiJsonConverter(),
+				new CredentialPresentationJsonConverter(),
+				new IssuanceRequestJsonConverter(),
+				new ProofJsonConverter(),
+				new MacJsonConverter()
 		};
 
 		SecureRandom rnd = SecureRandom.Instance;
