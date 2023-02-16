@@ -169,8 +169,15 @@ public class CoinVerifier : IAsyncDisposable
 
 	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
 	{
-		var item = new CoinVerifyItem();
 		coinVerifyItem = null;
+
+		if (CoinVerifyItems.TryGetValue(coin, out coinVerifyItem))
+		{
+			// Coin was already scheduled. It's OK.
+			return true;
+		}
+
+		var item = new CoinVerifyItem();
 
 		if (!CoinVerifyItems.TryAdd(coin, item))
 		{
