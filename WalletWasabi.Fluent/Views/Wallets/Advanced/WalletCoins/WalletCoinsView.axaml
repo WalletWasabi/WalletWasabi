@@ -34,7 +34,7 @@
                          Background="Transparent"
                          x:CompileBindings="True" x:DataType="walletcoins:WalletCoinViewModel">
                 <i:Interaction.Behaviors>
-                  <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ToggleExcludeCommand, Mode=OneWay}" />
+                  <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ToggleSelectCommand, Mode=OneWay}" />
                 </i:Interaction.Behaviors>
                 <Border Name="PART_SelectionIndicator"
                         BorderThickness="2 0 0 0"
