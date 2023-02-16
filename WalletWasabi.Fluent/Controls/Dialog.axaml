@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|Dialog">
@@ -37,10 +38,12 @@
     </Setter>
   </Style>
   <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
-      </Transitions>
+    <Setter Property="(Interaction.Behaviors)">
+      <BehaviorCollectionTemplate>
+        <BehaviorCollection>
+          <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.25" EnableScale="False" />
+        </BehaviorCollection>
+      </BehaviorCollectionTemplate>
     </Setter>
     <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}" />
     <Setter Property="IsHitTestVisible" Value="False" />
@@ -48,13 +51,13 @@
   </Style>
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
     <Setter Property="Margin" Value="20,30,20,20" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
-      </Transitions>
+    <Setter Property="(Interaction.Behaviors)">
+      <BehaviorCollectionTemplate>
+        <BehaviorCollection>
+          <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.35" />
+        </BehaviorCollection>
+      </BehaviorCollectionTemplate>
     </Setter>
-    <Setter Property="Opacity" Value="0" />
   </Style>
   <Style Selector="c|Dialog /template/ Border#PART_Border">
     <Setter Property="Margin" Value="40" />
@@ -70,7 +73,6 @@
 
   <!-- Dialog Opened State -->
   <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
-    <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
     <Setter Property="Opacity" Value="1" />
     <Setter Property="IsHitTestVisible" Value="True" />
   </Style>
@@ -80,7 +82,6 @@
 
   <!-- Dialog Unopened State -->
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_DialogHost">
-    <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
     <Setter Property="Opacity" Value="0" />
     <Setter Property="IsHitTestVisible" Value="False" />
   </Style>
