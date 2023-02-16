@@ -101,7 +101,9 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			try
 			{
 				// Connect to the node.
-				Node localNode = await Node.ConnectAsync(Network, BitcoinCoreEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+				Node localNode = await Node.ConnectAsync(Network, BitcoinCoreEndPoint, nodeConnectionParameters)
+					.WaitAsync(connectCts.Token)
+					.ConfigureAwait(false);
 				Logger.LogInfo("TCP Connection succeeded, handshaking…");
 
 				try
