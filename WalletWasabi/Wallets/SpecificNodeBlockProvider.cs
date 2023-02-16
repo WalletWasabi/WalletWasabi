@@ -55,8 +55,8 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			// Validate retrieved block.
 			if (!block.Check())
 			{
-				// Disconnected node, because an invalid block was received!
-				node.Disconnect();
+				// Block is invalid. There is not much we can do.
+				Logger.LogInfo($"Block {hash} provided by node '{node.Node}' is invalid. Is the node trusted?");
 				return null;
 			}
 
@@ -80,12 +80,13 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 		while (!shutdownToken.IsCancellationRequested)
 		{
 			using CancellationTokenSource connectCts = new(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(connectCts.Token, shutdownToken);
 
 			_specificBitcoinCoreNode = null;
 
 			NodeConnectionParameters nodeConnectionParameters = new()
 			{
-				ConnectCancellation = connectCts.Token,
+				ConnectCancellation = linkedCts.Token,
 				IsRelay = false,
 				UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
 			};
@@ -106,7 +107,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 				try
 				{
-					localNode.VersionHandshake(Constants.LocalNodeRequirements, connectCts.Token);
+					localNode.VersionHandshake(Constants.LocalNodeRequirements, linkedCts.Token);
 					Logger.LogInfo("Handshake completed successfully.");
 
 					if (!localNode.IsConnected)
@@ -124,7 +125,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 					Logger.LogWarning(message);
 					throw;
-				}				
+				}
 
 				// Reset timeout as we actually connected the local node.
 				timeout = MinTimeout;
@@ -139,7 +140,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 					break;
 				}
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!shutdownToken.IsCancellationRequested)
 			{
 				Logger.LogTrace("Failed to establish connection to the local Bitcoin Core node.", ex);
 
@@ -150,6 +151,11 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 				{
 					timeout = MaxTimeout;
 				}
+			}
+			catch (Exception) when (shutdownToken.IsCancellationRequested)
+			{
+				Logger.LogTrace("Operation stopped by user.");
+				break;
 			}
 			finally
 			{
