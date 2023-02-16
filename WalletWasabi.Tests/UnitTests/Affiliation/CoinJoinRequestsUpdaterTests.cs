@@ -98,7 +98,7 @@ public class CoinJoinRequestsUpdaterTests
 			Assert.Equal(uint256.One, uint256.Parse(coinjoinRequests.Key));
 			var coinjoinRequest = Assert.Single(coinjoinRequests.Value);
 			Assert.Equal("affiliate", coinjoinRequest.Key);
-			Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6 } , coinjoinRequest.Value);
+			Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6 }, coinjoinRequest.Value);
 
 			testCts.Cancel();
 		}

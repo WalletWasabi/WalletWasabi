@@ -20,7 +20,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	}
 
 	private IDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
-	private List<string> RunningAffiliateServers { get; } = new();
+	private HashSet<string> RunningAffiliateServers { get; } = new();
 	private object RunningAffiliateServersLock { get; } = new();
 	
 	public ImmutableArray<string> GetRunningAffiliateServers()
@@ -58,9 +58,8 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		{
 			lock (RunningAffiliateServersLock)
 			{
-				if (!RunningAffiliateServers.Contains(affiliationFlag))
+				if (!RunningAffiliateServers.Add(affiliationFlag))
 				{
-					RunningAffiliateServers.Add(affiliationFlag);
 					Logging.Logger.LogInfo($"Affiliate server '{affiliationFlag}' went up.");
 				}
 				else
@@ -73,9 +72,8 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		{
 			lock (RunningAffiliateServersLock)
 			{
-				if (RunningAffiliateServers.Contains(affiliationFlag))
+				if (RunningAffiliateServers.Remove(affiliationFlag))
 				{
-					RunningAffiliateServers.Remove(affiliationFlag);
 					Logging.Logger.LogWarning($"Affiliate server '{affiliationFlag}' went down.");
 				}
 				else

@@ -20,10 +20,10 @@ public class ReadyToSignRequestRequestCompatibilityTests
 	public void MissingAffiliationFlag()
 	{
 		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23"}""";
-		var deserializedReadyToSignRequestRequestWithoutAffilliation =
-			JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters)!;
+		var request = JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters);
 
-		Assert.Equal(AffiliationConstants.DefaultAffiliationFlag, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
+		Assert.NotNull(request);
+		Assert.Equal(AffiliationConstants.DefaultAffiliationFlag, request.AffiliationFlag);
 	}
 
 	[Theory]
