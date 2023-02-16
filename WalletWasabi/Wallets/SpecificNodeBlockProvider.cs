@@ -142,7 +142,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			}
 			catch (Exception ex) when (!shutdownToken.IsCancellationRequested)
 			{
-				Logger.LogTrace("Failed to establish connection to the local Bitcoin Core node.", ex);
+				Logger.LogTrace($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'.", ex);
 
 				// Failing to connect leads to exponential slowdown.
 				reconnectDelay *= 2;
