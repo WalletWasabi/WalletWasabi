@@ -61,11 +61,12 @@ public class SendTests
 		var workDir = Helpers.Common.GetWorkDir();
 
 		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
 			rpcBlockProvider: null,
-			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			specificNodeBlockProvider,
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
@@ -544,11 +545,12 @@ public class SendTests
 		var workDir = Helpers.Common.GetWorkDir();
 
 		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
 			rpcBlockProvider: null,
-			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			specificNodeBlockProvider,
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
@@ -723,11 +725,12 @@ public class SendTests
 		var workDir = Helpers.Common.GetWorkDir();
 
 		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			null,
-			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 

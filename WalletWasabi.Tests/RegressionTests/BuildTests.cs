@@ -63,11 +63,12 @@ public class BuildTests
 		var workDir = Helpers.Common.GetWorkDir();
 
 		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
 			rpcBlockProvider: null,
-			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			specificNodeBlockProvider,
 			p2PBlockProvider: new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 
@@ -220,12 +221,14 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
+
 		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
 		var blockProvider = new SmartBlockProvider(
 			bitcoinStore.BlockRepository,
-			null,
-			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 

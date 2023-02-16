@@ -193,7 +193,7 @@ public class Global
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				// TODO: Should this be null for RegTest?
-				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory);
+				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
 
 				var blockProvider = new SmartBlockProvider(
 					BitcoinStore.BlockRepository,

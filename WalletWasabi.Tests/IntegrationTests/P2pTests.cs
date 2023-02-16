@@ -109,10 +109,12 @@ public class P2pTests
 		});
 
 		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfig, httpClientFactory.TorEndpoint);
+
 		IBlockProvider blockProvider = new SmartBlockProvider(
 			blockRepository,
-			null,
-			new SpecificNodeBlockProvider(network, serviceConfig, httpClientFactory),
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
 			new P2PBlockProvider(network, nodes, httpClientFactory),
 			cache);
 

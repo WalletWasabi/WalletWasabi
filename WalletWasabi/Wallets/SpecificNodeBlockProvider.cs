@@ -23,11 +23,11 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 	private volatile ConnectedNode? _specificBitcoinCoreNode;
 
-	public SpecificNodeBlockProvider(Network network, ServiceConfiguration serviceConfiguration, HttpClientFactory httpClientFactory)
+	public SpecificNodeBlockProvider(Network network, ServiceConfiguration serviceConfiguration, EndPoint? torEndPoint)
 	{
 		Network = network;
 		BitcoinCoreEndPoint = serviceConfiguration.BitcoinCoreEndPoint;
-		HttpClientFactory = httpClientFactory;
+		TorEndPoint = torEndPoint;
 
 		// Start the task now.
 		LoopTask = Task.Run(ReconnectingLoopAsync);
@@ -38,7 +38,9 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	private Task LoopTask { get; }
 	private Network Network { get; }
 	private EndPoint BitcoinCoreEndPoint { get; }
-	private HttpClientFactory HttpClientFactory { get; }
+
+	/// <summary>Tor endpoint to use or <c>null</c> if no Tor proxy should be used.</summary>
+	private EndPoint? TorEndPoint { get; }
 
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
@@ -93,9 +95,9 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 			// If an onion was added must try to use Tor.
 			// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-			if (HttpClientFactory.IsTorEnabled)
+			if (TorEndPoint is not null)
 			{
-				SocksSettingsBehavior behavior = new(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false);
+				SocksSettingsBehavior behavior = new(TorEndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false);
 				nodeConnectionParameters.TemplateBehaviors.Add(behavior);
 			}
 
@@ -140,22 +142,25 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 					break;
 				}
 			}
-			catch (Exception ex) when (!shutdownToken.IsCancellationRequested)
+			catch (Exception ex)
 			{
-				Logger.LogTrace($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'.", ex);
-
-				// Failing to connect leads to exponential slowdown.
-				reconnectDelay *= 2;
-
-				if (reconnectDelay > MaxReconnectDelay)
+				if (!shutdownToken.IsCancellationRequested)
 				{
-					reconnectDelay = MaxReconnectDelay;
+					Logger.LogTrace($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'.", ex);
+
+					// Failing to connect leads to exponential slowdown.
+					reconnectDelay *= 2;
+
+					if (reconnectDelay > MaxReconnectDelay)
+					{
+						reconnectDelay = MaxReconnectDelay;
+					}
 				}
-			}
-			catch (Exception) when (shutdownToken.IsCancellationRequested)
-			{
-				Logger.LogTrace("Operation stopped by user.");
-				break;
+				else
+				{
+					Logger.LogTrace("Operation stopped by user.");
+					break;
+				}
 			}
 			finally
 			{
