@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -13,6 +14,10 @@ public static class MacOsStartupHelper
 	public static async Task AddOrRemoveLoginItemAsync(bool runOnSystemStartup)
 	{
 		List<string> result = await EnvironmentHelpers.ShellExecAndGetResultAsync(ListCmd).ConfigureAwait(false);
+		foreach (var line in result)
+		{
+			Logger.LogInfo(line);
+		}
 		if (!result.Contains(Constants.AppName) && runOnSystemStartup)
 		{
 			await EnvironmentHelpers.ShellExecAsync(AddCmd).ConfigureAwait(false);
