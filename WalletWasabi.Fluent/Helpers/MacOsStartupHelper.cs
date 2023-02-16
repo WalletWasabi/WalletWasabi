@@ -16,17 +16,6 @@ public static class MacOsStartupHelper
 	{
 		List<string> result = await EnvironmentHelpers.ShellExecAndGetResultAsync(ListCmd).ConfigureAwait(false);
 		bool loginItemExists = result.Any(line => line.Contains(Constants.AppName));
-		string loginItemsLine = result.Where(line => line.Contains(Constants.AppName)).FirstOrDefault();
-		bool loginItemsSingle = result.Where(line => line.Contains(Constants.AppName)).Any();
-		bool exists = result.Contains(Constants.AppName);
-		Logger.LogInfo(loginItemsLine);
-		Logger.LogInfo(loginItemExists.ToString());
-		Logger.LogInfo(loginItemsSingle.ToString());
-		Logger.LogInfo(exists.ToString());
-		bool shouldAdd = !loginItemExists && runOnSystemStartup;
-		bool shouldDelete = loginItemExists && !runOnSystemStartup;
-		Logger.LogInfo(shouldAdd.ToString());
-		Logger.LogInfo(shouldDelete.ToString());
 
 		if (!loginItemExists && runOnSystemStartup)
 		{
