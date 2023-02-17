@@ -50,19 +50,19 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
 			using (CancellationTokenSource cts = new(TimeSpan.FromSeconds(64)))
 			{
-				block = await node.Node.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
+				block = await node.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
 			}
 
 			// Validate retrieved block.
 			if (!block.Check())
 			{
 				// Block is invalid. There is not much we can do.
-				Logger.LogInfo($"Block {hash} provided by node '{node.Node}' is invalid. Is the node trusted?");
+				Logger.LogInfo($"Block {hash} provided by node '{node}' is invalid. Is the node trusted?");
 				return null;
 			}
 
 			// Retrieved block from specific node and block is valid.
-			Logger.LogInfo($"Block {hash} acquired from node '{node.Node}'.");
+			Logger.LogInfo($"Block {hash} acquired from node '{node}'.");
 
 			return block;
 		}
@@ -87,12 +87,10 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 			try
 			{
-				Node node = await ConnectAsync(linkedCts.Token).ConfigureAwait(false);
+				using ConnectedNode connectedNode = await ConnectAsync(linkedCts.Token).ConfigureAwait(false);
 
 				// Reset reconnect delay as we actually connected the local node.
 				reconnectDelay = MinReconnectDelay;
-
-				using ConnectedNode connectedNode = new(node);
 				_specificBitcoinCoreNode = connectedNode;
 
 				_ = await connectedNode.WaitUntilDisconnectedAsync(shutdownToken).ConfigureAwait(false);
@@ -150,7 +148,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 		}
 	}
 
-	internal virtual async Task<Node> ConnectAsync(CancellationToken cancellationToken)
+	internal virtual async Task<ConnectedNode> ConnectAsync(CancellationToken cancellationToken)
 	{
 		NodeConnectionParameters nodeConnectionParameters = new()
 		{
@@ -180,7 +178,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 				"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 		}
 
-		return node;
+		return new ConnectedNode(node);
 	}
 
 	/// <inheritdoc/>
