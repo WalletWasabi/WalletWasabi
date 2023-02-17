@@ -32,6 +32,12 @@ public class CoinVerifierApiClient
 
 	private HttpClient HttpClient { get; set; }
 
+	private int MaxParallelRequestCount { get; } = 30;
+
+	private int CurrentParallelRequestCount { get; set; } = 0;
+
+	private object ParallelRequestCounterLock { get; } = new();
+
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
 		if (HttpClient.BaseAddress is null)
@@ -52,6 +58,16 @@ public class CoinVerifierApiClient
 		var delay = TimeSpan.FromSeconds(2);
 
 		HttpResponseMessage? response = null;
+
+		lock (ParallelRequestCounterLock)
+		{
+			CurrentParallelRequestCount++;
+		}
+
+		while (CurrentParallelRequestCount >= MaxParallelRequestCount)
+		{
+			await Task.Delay(delay, linkedTokenSource.Token).ConfigureAwait(false);
+		}
 
 		do
 		{
@@ -86,6 +102,11 @@ public class CoinVerifierApiClient
 			}
 		}
 		while (tries > 0);
+
+		lock (ParallelRequestCounterLock)
+		{
+			CurrentParallelRequestCount--;
+		}
 
 		// Throw proper exceptions - if needed - according to the latest response.
 		if (response?.StatusCode == HttpStatusCode.Forbidden)
