@@ -21,7 +21,7 @@ public class ConnectedNode : IDisposable
 	{
 		Name = "Test node";
 		Node = null!;
-		DisconnectedCts = disconnectedCts;		
+		DisconnectedCts = disconnectedCts;
 	}
 
 	public string Name { get; }
