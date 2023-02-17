@@ -125,7 +125,7 @@ public class CoinVerifier : IAsyncDisposable
 		var now = DateTimeOffset.UtcNow;
 		foreach (var (coin, item) in CoinVerifyItems)
 		{
-			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout || item.Task.IsCompleted)
+			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout)
 			{
 				CoinVerifyItems.TryRemove(coin, out var _);
 
