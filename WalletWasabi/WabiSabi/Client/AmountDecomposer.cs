@@ -429,6 +429,7 @@ public class AmountDecomposer
 			ScriptType = scriptType;
 			Fee = feeRate.GetFee(scriptType.EstimateOutputVsize());
 			InputFee = feeRate.GetFee(scriptType.EstimateInputVsize());
+
 			// The value of amount is defined as the effective cost or a denomination amount.
 			Amount = isEffectiveCost ? amount - Fee : amount;
 		}
