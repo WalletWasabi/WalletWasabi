@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
@@ -77,12 +76,12 @@ public class IndexBuilderService
 
 	private IRPCClient RpcClient { get; }
 	private BlockNotifier BlockNotifier { get; }
-	public string IndexFilePath { get; }
+	private string IndexFilePath { get; }
 	private List<FilterModel> Index { get; }
 	private AsyncLock IndexLock { get; }
 	private uint StartingHeight { get; }
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
-	public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
+	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
 	private IndexType IndexType { get; }
 
