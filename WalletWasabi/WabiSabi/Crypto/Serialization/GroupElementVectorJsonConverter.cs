@@ -24,7 +24,7 @@ public class GroupElementVectorJsonConverter : JsonConverter<GroupElementVector>
 	/// <inheritdoc />
 	public override void WriteJson(JsonWriter writer, GroupElementVector? value, JsonSerializer serializer)
 	{
-		if (value is GroupElementVector ges)
+		if (value is { } ges)
 		{
 			writer.WriteStartArray();
 			foreach (var ge in value)

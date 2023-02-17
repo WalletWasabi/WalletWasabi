@@ -24,7 +24,7 @@ public class ScalarVectorJsonConverter : JsonConverter<ScalarVector>
 	/// <inheritdoc />
 	public override void WriteJson(JsonWriter writer, ScalarVector? value, JsonSerializer serializer)
 	{
-		if (value is ScalarVector scalars)
+		if (value is { } scalars)
 		{
 			writer.WriteStartArray();
 			foreach (var scalar in scalars)
