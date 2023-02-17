@@ -1,3 +1,4 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
@@ -13,18 +14,13 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
 	private const int NumBins = 64;
+	private const double TextureHeight = 32;
+	private const double TextureWidth = 32;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
 
 	private readonly SpectrumDataSource[] _sources;
-
-	private IBrush? _lineBrush;
-
-	private float[] _data;
-
-	private bool _isAuraActive;
-	private bool _isSplashActive;
 
 	private readonly SKPaint _blur = new()
 	{
@@ -32,11 +28,16 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		FilterQuality = SKFilterQuality.Low
 	};
 
+	private readonly DispatcherTimer _invalidationTimer;
+
+	private IBrush? _lineBrush;
+
+	private float[] _data;
+
+	private bool _isGenerating;
+
 	private SKColor _lineColor;
 	private SKSurface? _surface;
-	private readonly DispatcherTimer _invalidationTimer;
-	private const double TextureHeight = 32;
-	private const double TextureWidth = 32;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
@@ -46,13 +47,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	public SpectrumControl()
 	{
-		SetVisibility();
 		_data = new float[NumBins];
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
 
-		_auraSpectrumDataSource.GeneratingDataStateChanged += OnAuraGeneratingDataStateChanged;
-		_splashEffectDataSource.GeneratingDataStateChanged += OnSplashGeneratingDataStateChanged;
+		_auraSpectrumDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
+		_splashEffectDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
@@ -85,35 +85,25 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
-	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
+	private void OnGeneratingDataStateChanged(object? sender, EventArgs e)
 	{
-		_isSplashActive = e;
-		SetVisibility();
-	}
+		_isGenerating = _auraSpectrumDataSource.IsGenerating || _splashEffectDataSource.IsGenerating;
 
-	private void OnAuraGeneratingDataStateChanged(object? sender, bool e)
-	{
-		_isAuraActive = e;
-		SetVisibility();
-	}
-
-	private void SetVisibility()
-	{
-		IsVisible = _isSplashActive || _isAuraActive;
+		if (_isGenerating)
+		{
+			_invalidationTimer.Start();
+		}
 	}
 
 	private void OnIsActiveChanged()
 	{
-		_auraSpectrumDataSource.IsActive = IsActive;
-
 		if (IsActive)
 		{
 			_auraSpectrumDataSource.Start();
-			_invalidationTimer.Start();
 		}
 		else
 		{
-			_invalidationTimer.Stop();
+			_auraSpectrumDataSource.Stop();
 		}
 	}
 
@@ -155,6 +145,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		foreach (var source in _sources)
 		{
 			source.Render(ref _data);
+		}
+
+		// Even if the data generation is finished, let's wait until the animation finishes to disappear.
+		// Only stop the rendering once it fully disappeared. (== there is nothing to render)
+		if (!_isGenerating && _data.All(f => f <= 0))
+		{
+			_invalidationTimer.Stop();
 		}
 
 		context.Custom(this);
@@ -237,7 +234,8 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		skia.SkCanvas.DrawImage(
 			snapshot,
 			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
-			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height), _blur);
+			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height),
+			_blur);
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;
