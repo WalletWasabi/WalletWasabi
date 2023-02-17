@@ -68,6 +68,13 @@ public class AmountDecomposerTests
 
 		Assert.True(totalEffectiveValue - totalEffectiveCost - minOutputAmount <= outputValues.Sum(x => x.EffectiveCost));
 		Assert.All(outputValues, v => Assert.InRange(v.EffectiveCost.Satoshi, minOutputAmount, totalEffectiveValue));
+
+		var containsTaproot = outputValues.Any(o => o.ScriptType == ScriptType.Taproot);
+
+		if (!isTaprootEnabled)
+		{
+			Assert.False(containsTaproot);
+		}
 	}
 
 	private static IEnumerable<Coin> GenerateRandomCoins()
