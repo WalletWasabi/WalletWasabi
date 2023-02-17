@@ -11,17 +11,17 @@ public record ReadyToSignRequestRequest
 	public ReadyToSignRequestRequest(
 		uint256 roundId,
 		Guid aliceId,
-		string? affiliationFlag = null)
+		string? affiliationId = null)
 	{
 		RoundId = roundId;
 		AliceId = aliceId;
-		AffiliationFlag = affiliationFlag is { } nonNullAffilitiationFlag && IsValidAffiliationName(nonNullAffilitiationFlag)
+		AffiliationId = affiliationId is { } nonNullAffilitiationFlag && IsValidAffiliationName(nonNullAffilitiationFlag)
 				? nonNullAffilitiationFlag 
-				: AffiliationConstants.DefaultAffiliationFlag;
+				: AffiliationConstants.DefaultAffiliationId;
 	}
 	public uint256 RoundId { get; }
 	public Guid AliceId { get; }
-	public string AffiliationFlag { get; }
+	public string AffiliationId { get; }
 	
 	private static bool IsValidAffiliationName(string name)
 	{

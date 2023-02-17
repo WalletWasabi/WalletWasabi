@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using WalletWasabi.Affiliation.Models.CoinjoinRequest;
+using WalletWasabi.Affiliation.Models.CoinJoinNotification;
 using WalletWasabi.Affiliation.Serialization;
 using Xunit;
 

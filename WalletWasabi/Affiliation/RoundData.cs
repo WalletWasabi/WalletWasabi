@@ -21,14 +21,14 @@ public class RoundData
 			new AffiliateInput(
 				coin.Outpoint,
 				coin.ScriptPubKey,
-				AffiliationConstants.DefaultAffiliationFlag,
+				AffiliationConstants.DefaultAffiliationId,
 				isCoordinationFeeExempted || IsNoFee(coin.Amount));
 	}
 
-	public void AddInputAffiliationFlag(Coin coin, string affiliationFlag)
+	public void AddInputAffiliationId(Coin coin, string affiliationId)
 	{
 		var inputData = AffiliateInputsByOutpoint[coin.Outpoint];
-		AffiliateInputsByOutpoint[coin.Outpoint] = inputData with { AffiliationFlag = affiliationFlag };
+		AffiliateInputsByOutpoint[coin.Outpoint] = inputData with { AffiliationId = affiliationId };
 	}
 
 	public BuiltTransactionData FinalizeRoundData(Transaction transaction)

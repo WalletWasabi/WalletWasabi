@@ -6,10 +6,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Affiliation.Serialization;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Affiliation;
@@ -25,12 +25,12 @@ public class AffiliateServerHttpApiClient
 
 	private enum RemoteAction
 	{
-		GetCoinJoinRequest,
+		NotifyCoinJoin,
 		GetStatus
 	}
 
-	public Task<GetCoinJoinRequestResponse> GetCoinJoinRequestAsync(GetCoinjoinRequestRequest request, CancellationToken cancellationToken) =>
-		SendAsync<GetCoinjoinRequestRequest, GetCoinJoinRequestResponse>(RemoteAction.GetCoinJoinRequest, request, TimeSpan.FromSeconds(10), 6, cancellationToken);
+	public Task<CoinJoinNotificationResponse> NotifyCoinJoinAsync(CoinJoinNotificationRequest request, CancellationToken cancellationToken) =>
+		SendAsync<CoinJoinNotificationRequest, CoinJoinNotificationResponse>(RemoteAction.NotifyCoinJoin, request, TimeSpan.FromSeconds(10), 6, cancellationToken);
 
 	public Task<Unit> GetStatusAsync(CancellationToken cancellationToken) =>
 		SendAsync<Unit, Unit>(RemoteAction.GetStatus, Unit.Instance, TimeSpan.FromSeconds(10), 2, cancellationToken);
@@ -120,7 +120,7 @@ public class AffiliateServerHttpApiClient
 	private static string GetUriEndPoint(RemoteAction action) =>
 		action switch
 		{
-			RemoteAction.GetCoinJoinRequest => "get_coinjoin_request",
+			RemoteAction.NotifyCoinJoin => "notify_coinjoin",
 			RemoteAction.GetStatus => "get_status",
 			_ => throw new NotSupportedException($"Action '{action}' is not supported.")
 		};

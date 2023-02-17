@@ -16,7 +16,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
-public class CoinJoinRequestsUpdaterTests
+public class AffiliateDataUpdaterTests
 {
 	public (Mock<IHttpClient> mockHttpClient, ISetupSequentialResult<Task<HttpResponseMessage>> setup) CreateMockHttpClient()
 	{
@@ -24,7 +24,7 @@ public class CoinJoinRequestsUpdaterTests
 		var setup = mockHttpClient.SetupSequence(
 			httpClient => httpClient.SendAsync(
 				HttpMethod.Post,
-				"get_coinjoin_request",
+				"notify_coinjoin",
 				It.IsAny<HttpContent>(),
 				It.IsAny<CancellationToken>()));
 		return (mockHttpClient, setup);
@@ -36,7 +36,7 @@ public class CoinJoinRequestsUpdaterTests
 		static HttpResponseMessage Ok()
 		{
 			HttpResponseMessage okResponse = new(HttpStatusCode.OK);
-			okResponse.Content = new StringContent("{ \"coinjoin_request\":\"010203040506\" }");
+			okResponse.Content = new StringContent("{ \"affiliate_data\":\"010203040506\" }");
 			return okResponse;
 		}
 
@@ -60,14 +60,14 @@ public class CoinJoinRequestsUpdaterTests
 			.Setup(x => x.GetRoundNotifications(It.IsAny<CancellationToken>()))
 			.Returns(notifications.GetAsyncIterator(testCts.Token));
 
-		using CoinJoinRequestsUpdater requestsUpdater = new (notifier.Object, servers.ToImmutableDictionary(), signer);
+		using AffiliateDataUpdater requestsUpdater = new (notifier.Object, servers.ToImmutableDictionary(), signer);
 		try
 		{
 			await requestsUpdater.StartAsync(testCts.Token);
 
 			// Remove an non-existing round. Expected result: nothing happens
 			notifications.Enqueue(new RoundEndedNotification(uint256.One));
-			Assert.Empty(requestsUpdater.GetCoinjoinRequests());
+			Assert.Empty(requestsUpdater.GetAffiliateData());
 
 			// Notify about a new built coinjoin
 			var wasabiCoin = WabiSabiFactory.CreateCoin();
@@ -79,7 +79,7 @@ public class CoinJoinRequestsUpdaterTests
 					new AffiliateInput(
 						wasabiCoin.Outpoint,
 						wasabiCoin.ScriptPubKey,
-						AffiliationConstants.DefaultAffiliationFlag,
+						AffiliationConstants.DefaultAffiliationId,
 						false),
 					new AffiliateInput(affiliateCoin.Outpoint, affiliateCoin.ScriptPubKey, "affiliate", false)
 				},
@@ -93,7 +93,7 @@ public class CoinJoinRequestsUpdaterTests
 
 			notifications.Enqueue(new RoundBuiltTransactionNotification(uint256.One, coinjoinData));
 			await Task.Delay(500); // this is to give time to the notification to be consumed.
-			var coinjoinRequests = Assert.Single(requestsUpdater.GetCoinjoinRequests());
+			var coinjoinRequests = Assert.Single(requestsUpdater.GetAffiliateData());
 
 			Assert.Equal(uint256.One, uint256.Parse(coinjoinRequests.Key));
 			var coinjoinRequest = Assert.Single(coinjoinRequests.Value);

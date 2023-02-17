@@ -1,6 +1,6 @@
 using NBitcoin;
 
-namespace WalletWasabi.Affiliation.Models.CoinjoinRequest;
+namespace WalletWasabi.Affiliation.Models.CoinJoinNotification;
 
 public record Outpoint(byte[] Hash, long Index)
 {

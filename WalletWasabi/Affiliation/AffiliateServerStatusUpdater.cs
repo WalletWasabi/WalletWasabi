@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Bases;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Affiliation;
 
@@ -50,7 +51,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		}
 	}
 
-	private async Task UpdateRunningAffiliateServersAsync(string affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
+	private async Task UpdateRunningAffiliateServersAsync(string affiliationId, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		using var linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
 		
@@ -58,13 +59,13 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		{
 			lock (RunningAffiliateServersLock)
 			{
-				if (!RunningAffiliateServers.Add(affiliationFlag))
+				if (!RunningAffiliateServers.Add(affiliationId))
 				{
-					Logging.Logger.LogInfo($"Affiliate server '{affiliationFlag}' went up.");
+					Logging.Logger.LogInfo($"Affiliate server '{affiliationId}' went up.");
 				}
 				else
 				{
-					Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is running.");
+					Logging.Logger.LogDebug($"Affiliate server '{affiliationId}' is running.");
 				}
 			}
 		}
@@ -72,13 +73,13 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		{
 			lock (RunningAffiliateServersLock)
 			{
-				if (RunningAffiliateServers.Remove(affiliationFlag))
+				if (RunningAffiliateServers.Remove(affiliationId))
 				{
-					Logging.Logger.LogWarning($"Affiliate server '{affiliationFlag}' went down.");
+					Logging.Logger.LogWarning($"Affiliate server '{affiliationId}' went down.");
 				}
 				else
 				{
-					Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is not running.");
+					Logging.Logger.LogDebug($"Affiliate server '{affiliationId}' is not running.");
 				}
 			}
 		}

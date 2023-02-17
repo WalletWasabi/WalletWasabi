@@ -39,7 +39,7 @@ public class AffiliateDataCollector : IRoundNotifier
 
 	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs args) =>
 		GetRoundDataOrFail(args.RoundId)
-			.AddInputAffiliationFlag(args.Coin, args.AffiliationFlag);
+			.AddInputAffiliationId(args.Coin, args.AffiliationId);
 
 	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs args)
 	{

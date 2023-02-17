@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace WalletWasabi.Affiliation.Models.CoinjoinRequest;
+namespace WalletWasabi.Affiliation.Models.CoinJoinNotification;
 
 public record Body(
 	IEnumerable<Input> Inputs,

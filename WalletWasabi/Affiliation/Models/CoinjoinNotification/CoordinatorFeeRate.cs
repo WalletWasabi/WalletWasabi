@@ -1,4 +1,4 @@
-namespace WalletWasabi.Affiliation.Models.CoinjoinRequest;
+namespace WalletWasabi.Affiliation.Models.CoinJoinNotification;
 
 public record CoordinatorFeeRate(decimal FeeRate)
 {

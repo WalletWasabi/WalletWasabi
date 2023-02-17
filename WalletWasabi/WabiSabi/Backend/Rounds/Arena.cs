@@ -690,9 +690,9 @@ public partial class Arena : PeriodicRunner
 		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isCoordinationFeeExempted));
 	}
 
-	private void NotifyAffiliation(uint256 roundId, Coin coin, string affiliationFlag)
+	private void NotifyAffiliation(uint256 roundId, Coin coin, string affiliationId)
 	{
-		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationFlag));
+		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationId));
 	}
 
 	private SigningState FinalizeTransaction(uint256 roundId, ConstructionState constructionState)

@@ -7,16 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using WalletWasabi.Affiliation.Extensions;
-using WalletWasabi.Affiliation.Models.CoinjoinRequest;
+using WalletWasabi.Affiliation.Models.CoinJoinNotification;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Affiliation;
 
-public class CoinJoinRequestsUpdater : BackgroundService
+public class AffiliateDataUpdater : BackgroundService
 {
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
-	public CoinJoinRequestsUpdater(IRoundNotifier roundNotificationSource, ImmutableDictionary<string, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
+	public AffiliateDataUpdater(IRoundNotifier roundNotificationSource, ImmutableDictionary<string, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
 	{
 		RoundNotificationSource = roundNotificationSource;
 		Clients = clients;
@@ -26,11 +26,11 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	private IRoundNotifier RoundNotificationSource { get; }
 	private AffiliationMessageSigner Signer { get; }
 	private ImmutableDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
-	private ConcurrentDictionary<uint256, ConcurrentDictionary<string, byte[]>> CoinJoinRequests { get; } = new();
+	private ConcurrentDictionary<uint256, ConcurrentDictionary<string, byte[]>> AffiliateData { get; } = new();
 
-	public ImmutableDictionary<string, ImmutableDictionary<string, byte[]>> GetCoinjoinRequests()
+	public ImmutableDictionary<string, ImmutableDictionary<string, byte[]>> GetAffiliateData()
 	{
-		return CoinJoinRequests.ToImmutableDictionary(
+		return AffiliateData.ToImmutableDictionary(
 			x => x.Key.ToString(),
 			x => x.Value.ToImmutableDictionary());
 	}
@@ -48,7 +48,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 					{
 						case RoundBuiltTransactionNotification notification:
 							AddCoinJoinRequestFor(notification.RoundId);
-							await UpdateCoinJoinRequestsAsync(notification.RoundId, notification.BuiltTransactionData, cancellationToken).ConfigureAwait(false);
+							await UpdateAffiliateDataAsync(notification.RoundId, notification.BuiltTransactionData, cancellationToken).ConfigureAwait(false);
 							break;
 						case RoundEndedNotification notification:
 							RemoveCoinJoinRequestForRound(notification.RoundId);
@@ -68,7 +68,7 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	private void AddCoinJoinRequestFor(uint256 roundId)
 	{
-		if (!CoinJoinRequests.TryAdd(roundId, new ConcurrentDictionary<string, byte[]>()))
+		if (!AffiliateData.TryAdd(roundId, new ConcurrentDictionary<string, byte[]>()))
 		{
 			throw new InvalidOperationException();
 		}
@@ -76,40 +76,40 @@ public class CoinJoinRequestsUpdater : BackgroundService
 
 	private void RemoveCoinJoinRequestForRound(uint256 roundId)
 	{
-		if (!CoinJoinRequests.Remove(roundId, out _))
+		if (!AffiliateData.Remove(roundId, out _))
 		{
 			// This can occur if the round is finished before coinjoin requests are updated.
 			Logger.LogInfo($"The round ({roundId}) does not exist.");
 		}
 	}
 
-	private async Task UpdateCoinJoinRequestsAsync(uint256 roundId, BuiltTransactionData builtTransactionData, CancellationToken cancellationToken)
+	private async Task UpdateAffiliateDataAsync(uint256 roundId, BuiltTransactionData builtTransactionData, CancellationToken cancellationToken)
 	{
 		var updateTasks = Clients.Select(
-			x => UpdateCoinJoinRequestsAsync(roundId, builtTransactionData, x.Key, x.Value, cancellationToken));
+			x => UpdateAffiliateDataAsync(roundId, builtTransactionData, x.Key, x.Value, cancellationToken));
 		await Task.WhenAll(updateTasks).ConfigureAwait(false);
 	}
 
-	private async Task UpdateCoinJoinRequestsAsync(uint256 roundId, BuiltTransactionData builtTransactionData, string affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
+	private async Task UpdateAffiliateDataAsync(uint256 roundId, BuiltTransactionData builtTransactionData, string affiliationId, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		try
 		{
-			Body body = builtTransactionData.GetAffiliationData(affiliationFlag);
+			Body body = builtTransactionData.GetAffiliationData(affiliationId);
 			byte[] result = await GetCoinJoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
 
-			RegisterReceivedCoinJoinRequest(roundId, affiliationFlag, result);
+			RegisterReceivedCoinJoinRequest(roundId, affiliationId, result);
 		}
 		catch (Exception exception)
 		{
-			Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception}");
+			Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationId}': {exception}");
 		}
 	}
 
-	private void RegisterReceivedCoinJoinRequest(uint256 roundId, string affiliationFlag, byte[] coinjoinRequestResponse)
+	private void RegisterReceivedCoinJoinRequest(uint256 roundId, string affiliationId, byte[] coinjoinRequestResponse)
 	{
-		if (CoinJoinRequests.TryGetValue(roundId, out ConcurrentDictionary<string, byte[]>? coinjoinRequests))
+		if (AffiliateData.TryGetValue(roundId, out ConcurrentDictionary<string, byte[]>? coinjoinRequests))
 		{
-			if (!coinjoinRequests.TryAdd(affiliationFlag, coinjoinRequestResponse))
+			if (!coinjoinRequests.TryAdd(affiliationId, coinjoinRequestResponse))
 			{
 				throw new InvalidOperationException("The coinjoin request is already set.");
 			}
@@ -125,11 +125,11 @@ public class CoinJoinRequestsUpdater : BackgroundService
 	{
 		Payload payload = new(Header.Instance, body);
 		byte[] signature = Signer.Sign(payload.GetCanonicalSerialization());
-		GetCoinjoinRequestRequest coinjoinRequestRequest = new(body, signature);
+		CoinJoinNotificationRequest coinJoinRequestRequest = new(body, signature);
 		
 		using CancellationTokenSource linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
-		GetCoinJoinRequestResponse getCoinJoinRequestResponse = await client.GetCoinJoinRequestAsync(coinjoinRequestRequest, linkedCts.Token).ConfigureAwait(false);
-		return getCoinJoinRequestResponse.CoinjoinRequest;
+		CoinJoinNotificationResponse coinJoinNotificationResponse = await client.NotifyCoinJoinAsync(coinJoinRequestRequest, linkedCts.Token).ConfigureAwait(false);
+		return coinJoinNotificationResponse.AffiliateData;
 	}
 
 	public override void Dispose()

@@ -17,13 +17,13 @@ public class ReadyToSignRequestRequestCompatibilityTests
 	};
 
 	[Fact]
-	public void MissingAffiliationFlag()
+	public void MissingAffiliationId()
 	{
 		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23"}""";
 		var request = JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters);
 
 		Assert.NotNull(request);
-		Assert.Equal(AffiliationConstants.DefaultAffiliationFlag, request.AffiliationFlag);
+		Assert.Equal(AffiliationConstants.DefaultAffiliationId, request.AffiliationId);
 	}
 
 	[Theory]
@@ -32,31 +32,31 @@ public class ReadyToSignRequestRequestCompatibilityTests
  	[InlineData("MÜLLER")] // non-ASCII character.
  	[InlineData("?")]
  	[InlineData("$")]
-	public void InvalidAffiliationFlag(string affiliationFlag)
+	public void InvalidAffiliationId(string affiliationId)
 	{
-		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23","AffiliationFlag":"%af%"}"""
-			.Replace("%af%", affiliationFlag);
+		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23","AffiliationId":"%af%"}"""
+			.Replace("%af%", affiliationId);
 
 		var deserializedReadyToSignRequestRequestWithoutAffilliation =
 			JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters)!;
 
-		Assert.Equal(AffiliationConstants.DefaultAffiliationFlag, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
+		Assert.Equal(AffiliationConstants.DefaultAffiliationId, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationId);
 	}
 
 	[Theory]
  	[InlineData("1")]
  	[InlineData("a")]
- 	[InlineData("A")]
  	[InlineData("a1")]
+	[InlineData("A")]
  	[InlineData("A1")]
-	public void ValidAffiliationFlag(string affiliationFlag)
+	public void ValidAffiliationId(string affiliationId)
 	{
-		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23","AffiliationFlag":"%af%"}"""
-			.Replace("%af%", affiliationFlag);
+		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23","AffiliationId":"%af%"}"""
+			.Replace("%af%", affiliationId);
 
 		var deserializedReadyToSignRequestRequestWithoutAffilliation =
 			JsonConvert.DeserializeObject<ReadyToSignRequestRequest>(requestWithOutAffiliation, Converters)!;
 
-		Assert.Equal(affiliationFlag, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationFlag);
+		Assert.Equal(affiliationId, deserializedReadyToSignRequestRequestWithoutAffilliation.AffiliationId);
 	}
 }
