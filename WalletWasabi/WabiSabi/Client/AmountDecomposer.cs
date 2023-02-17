@@ -1,11 +1,8 @@
 using NBitcoin;
-using NBitcoin.Secp256k1;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -278,10 +275,10 @@ public class AmountDecomposer
 			(naiveSet, loss + CalculateCostMetrics(naiveSet)));
 
 		// Create many decompositions for optimization.
-		var stdDenoms = denoms.Where(x => x.Amount <= myInputSum).Select(d => d.EffectiveCost.Satoshi).ToArray();
+		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
-		var tolerance = (long)Math.Max(loss, 0.5 * (ulong)(MinAllowedOutputAmount + ChangeFee).Satoshi); // Taking the changefee here, might be incorrect however it is just a tolerance.
+		var tolerance = (long)Math.Max(loss, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
 
 		if (maxNumberOfOutputsAllowed > 1)
 		{
@@ -469,7 +466,7 @@ public class AmountDecomposer
 				return true;
 			}
 
-			if (GetHashCode(x) == GetHashCode(y))
+			if (x.Amount == y.Amount && x.ScriptType == y.ScriptType && x.Fee == y.Fee)
 			{
 				return true;
 			}
