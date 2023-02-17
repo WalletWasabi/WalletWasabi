@@ -42,14 +42,13 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
-	private bool _openInBg;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool openInBg)
+	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
-		_openInBg = openInBg;
 		ApplicationViewModel = new ApplicationViewModel(this);
+		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
 			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
@@ -57,7 +56,7 @@ public class ApplicationStateManager : IMainWindowService
 			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
 
 		_stateMachine.Configure(State.InitialState)
-			.InitialTransition(State.Open)
+			.InitialTransition(initTransitionState)
 			.OnTrigger(Trigger.ShutdownRequested, () =>
 			{
 				if (_restartRequest)
@@ -77,7 +76,7 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow.Close();
+				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
@@ -92,14 +91,9 @@ public class ApplicationStateManager : IMainWindowService
 			.Permit(Trigger.MainWindowClosed, State.Closed)
 			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowSate);
 
-		_stateMachine.Start();
-		if (_openInBg)
-		{
-			_hideRequest = true;
-			_stateMachine.Fire(Trigger.Hide);
-			_openInBg = false;
-		}
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
+
+		_stateMachine.Start();
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }
@@ -168,13 +162,10 @@ public class ApplicationStateManager : IMainWindowService
 		}
 
 		ObserveWindowSize(result, _compositeDisposable);
-		ApplicationViewModel.IsMainWindowShown = false;
 
-		if (!_openInBg)
-		{
-			result.Show();
-			ApplicationViewModel.IsMainWindowShown = true;
-		}
+		result.Show();
+
+		ApplicationViewModel.IsMainWindowShown = true;
 	}
 
 	private void SetWindowSize(Window window)
