@@ -35,7 +35,7 @@ public class SpecificNodeBlockProviderTests
 	}
 
 	[Fact]
-	public async Task ConnectTimeoutAsync()
+	public async Task GetValidBlockAsync()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
