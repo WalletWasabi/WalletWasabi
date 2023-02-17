@@ -8,60 +8,26 @@
  
  public class IssuanceRequestJsonConverter : JsonConverter<IssuanceRequest>
  {
- 	public override IssuanceRequest? ReadJson(JsonReader reader, Type objectType, IssuanceRequest? existingValue, bool hasExistingValue, JsonSerializer serializer)
- 	{
-	    if (reader.TokenType != JsonToken.StartObject)
-	    {
-		    throw new JsonException();
-	    }
+	public override IssuanceRequest? ReadJson(JsonReader reader, Type objectType, IssuanceRequest? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	{
+		reader.Expect(JsonToken.StartObject);
+		var ma = reader.ReadProperty<GroupElement>(serializer, "Ma");
+		var bitCommitments = reader.ReadProperty<IEnumerable<GroupElement>>(serializer, "BitCommitments");
+		reader.Read();
+		reader.Expect(JsonToken.EndObject);
+		return ReflectionUtils.CreateInstance<IssuanceRequest>(new object[]{ ma, bitCommitments });
+	}
 
-	    var ma = ReadProperty<GroupElement>(reader, serializer, "Ma");
-	    var bitCommitments = ReadProperty<IEnumerable<GroupElement>>(reader, serializer, "BitCommitments");
-	    reader.Read();
-	    if (reader.TokenType == JsonToken.EndObject)
-	    {
-		    return ReflectionUtils.CreateInstance<IssuanceRequest>(new object[]{ ma, bitCommitments });
-	    }
-
- 		throw new ArgumentException($"No valid serialized {nameof(IssuanceRequest)} passed.");
- 	}
-
-    private T? ReadProperty<T>(JsonReader reader, JsonSerializer serializer, string name)
-    {
-	    if (!reader.Read())
-	    {
-		    throw new JsonException($"Property '{name}' was expected.");
-	    }
-
-	    if (reader.TokenType == JsonToken.PropertyName)
-	    {
-		    var propertyName = reader.Value.ToString();
-		    if (propertyName != name)
-		    {
-			    throw new JsonException($"Property '{name}' was expected.");
-		    }
-
-		    
-		    reader.Read();
-		    return serializer.Deserialize<T>(reader);
-	    }
-		throw new JsonException($"Property '{name}' was expected.");
-    }
-
-    /// <inheritdoc />
- 	public override void WriteJson(JsonWriter writer, IssuanceRequest? value, JsonSerializer serializer)
- 	{
- 		if (value is { } ir)
- 		{
- 			writer.WriteStartObject();
-	        writer.WritePropertyName("Ma");
-	        serializer.Serialize(writer, ir.Ma);
-	        writer.WritePropertyName("BitCommitments");
-	        serializer.Serialize(writer, ir.BitCommitments);
-	        writer.WriteEndObject();
- 			return;
- 		}
- 		throw new ArgumentException($"No valid {nameof(IssuanceRequest)}.", nameof(value));
- 	}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, IssuanceRequest? ir, JsonSerializer serializer)
+	{
+		if (ir is null)
+		{
+			throw new ArgumentException($"No valid {nameof(IssuanceRequest)}.", nameof(ir));
+		}
+		writer.WriteStartObject();
+		writer.WriteProperty("Ma", ir.Ma, serializer);
+		writer.WriteProperty("BitCommitments", ir.BitCommitments, serializer);
+		writer.WriteEndObject();
+	}
  }
- 
