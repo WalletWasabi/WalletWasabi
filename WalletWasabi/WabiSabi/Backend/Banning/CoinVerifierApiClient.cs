@@ -25,7 +25,7 @@ public class CoinVerifierApiClient
 	{
 	}
 
-	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromSeconds(300);
 
 	private string ApiToken { get; set; }
 	private Network Network { get; set; }
