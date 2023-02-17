@@ -9,7 +9,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets.BlockProvider;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
@@ -86,53 +85,14 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 			_specificBitcoinCoreNode = null;
 
-			NodeConnectionParameters nodeConnectionParameters = new()
-			{
-				ConnectCancellation = linkedCts.Token,
-				IsRelay = false,
-				UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
-			};
-
-			// If an onion was added must try to use Tor.
-			// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-			if (TorEndPoint is not null)
-			{
-				SocksSettingsBehavior behavior = new(TorEndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false);
-				nodeConnectionParameters.TemplateBehaviors.Add(behavior);
-			}
-
 			try
 			{
-				// Connect to the node.
-				Node localNode = await Node.ConnectAsync(Network, BitcoinCoreEndPoint, nodeConnectionParameters).ConfigureAwait(false);
-				Logger.LogInfo("TCP Connection succeeded, handshaking…");
-
-				try
-				{
-					localNode.VersionHandshake(Constants.LocalNodeRequirements, linkedCts.Token);
-					Logger.LogInfo("Handshake completed successfully.");
-
-					if (!localNode.IsConnected)
-					{
-						throw new InvalidOperationException($"Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}' and dropped the connection.{Environment.NewLine}" +
-							"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
-					}
-				}
-				catch (OperationCanceledException) when (connectCts.Token.IsCancellationRequested)
-				{
-					string message = $"""
-						Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}'. Probably Wasabi is not whitelisted by the node.
-						Use "whitebind" in the node configuration. Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.
-						""";
-
-					Logger.LogWarning(message);
-					throw;
-				}
+				Node node = await ConnectAsync(linkedCts.Token).ConfigureAwait(false);
 
 				// Reset reconnect delay as we actually connected the local node.
 				reconnectDelay = MinReconnectDelay;
 
-				using ConnectedNode connectedNode = new(localNode);
+				using ConnectedNode connectedNode = new(node);
 				_specificBitcoinCoreNode = connectedNode;
 
 				_ = await connectedNode.WaitUntilDisconnectedAsync(shutdownToken).ConfigureAwait(false);
@@ -144,6 +104,16 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			}
 			catch (Exception ex)
 			{
+				if (ex is OperationCanceledException && connectCts.Token.IsCancellationRequested)
+				{
+					string message = $"""
+						Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}'. Probably Wasabi is not whitelisted by the node.
+						Use "whitebind" in the node configuration. Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.
+						""";
+
+					Logger.LogWarning(message);
+				}
+
 				if (!shutdownToken.IsCancellationRequested)
 				{
 					Logger.LogTrace($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'.", ex);
@@ -178,6 +148,39 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 				break;
 			}
 		}
+	}
+
+	internal virtual async Task<Node> ConnectAsync(CancellationToken cancellationToken)
+	{
+		NodeConnectionParameters nodeConnectionParameters = new()
+		{
+			ConnectCancellation = cancellationToken,
+			IsRelay = false,
+			UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
+		};
+
+		// If an onion was added must try to use Tor.
+		// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
+		if (TorEndPoint is not null)
+		{
+			SocksSettingsBehavior behavior = new(TorEndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false);
+			nodeConnectionParameters.TemplateBehaviors.Add(behavior);
+		}
+
+		// Connect to the node.
+		Node node = await Node.ConnectAsync(Network, BitcoinCoreEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+		Logger.LogInfo("TCP Connection succeeded, handshaking…");
+
+		node.VersionHandshake(Constants.LocalNodeRequirements, cancellationToken);
+		Logger.LogInfo("Handshake completed successfully.");
+
+		if (!node.IsConnected)
+		{
+			throw new InvalidOperationException($"Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}' and dropped the connection.{Environment.NewLine}" +
+				"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+		}
+
+		return node;
 	}
 
 	/// <inheritdoc/>
