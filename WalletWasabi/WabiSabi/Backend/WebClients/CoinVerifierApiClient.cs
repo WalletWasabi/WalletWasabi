@@ -1,16 +1,14 @@
-using NBitcoin;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public class CoinVerifierApiClient
 {

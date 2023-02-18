@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 

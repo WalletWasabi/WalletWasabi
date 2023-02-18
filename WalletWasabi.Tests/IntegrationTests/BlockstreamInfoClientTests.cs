@@ -1,9 +1,11 @@
+using System.Net.Http;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -43,6 +45,25 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 		AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 		Assert.NotNull(estimates);
 		Assert.NotEmpty(estimates.Estimations);
+	}
+
+	[Fact]
+	public async Task GetTransactionStatusClearnetMainnetBackendAsync()
+	{
+		HttpClient httpClient = new();
+		BlockstreamApiClient client = new(Network.Main, httpClient);
+
+		// This TX exists
+		uint256 txid = uint256.Parse("8a6edaae0ed93cf1a84fe727450be383ce53133df1a4438f9b9201b563ea9880");
+		var status = await client.GetTransactionStatusAsync(txid, CancellationToken.None);
+		Assert.NotNull(status);
+		Assert.True(status);
+
+		// This TX does not exist
+		txid = uint256.Parse("8a6edaae0ed93cf1a84fe737450be383ce53133df1a4438f9b9201aaaaaaaaaa");
+		status = await client.GetTransactionStatusAsync(txid, CancellationToken.None);
+		Assert.Null(status);
+		httpClient.Dispose();
 	}
 
 	[Fact]

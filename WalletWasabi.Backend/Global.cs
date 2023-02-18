@@ -20,6 +20,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 
 namespace WalletWasabi.Backend;
 
@@ -67,6 +68,7 @@ public class Global : IDisposable
 
 	public Coordinator? Coordinator { get; private set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
+	public BlockstreamApiClient? BlockstreamApiClient { get; private set; }
 
 	public Config Config { get; }
 
@@ -127,6 +129,11 @@ public class Global : IDisposable
 			}
 		}
 
+		if (wabiSabiConfig.IsTxPropagationVerifierEnabled && RpcClient.Network != Network.RegTest)
+		{
+			BlockstreamApiClient = new(RpcClient.Network, HttpClient);
+		}
+
 		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? coinVerifier : null);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
@@ -155,7 +162,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null, BlockstreamApiClient);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");

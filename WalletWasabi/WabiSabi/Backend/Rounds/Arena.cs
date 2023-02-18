@@ -20,6 +20,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -34,7 +35,8 @@ public partial class Arena : PeriodicRunner
 		RoundParameterFactory roundParameterFactory,
 		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null,
-		CoinVerifier? coinVerifier = null) : base(period)
+		CoinVerifier? coinVerifier = null,
+		BlockstreamApiClient? blockstreamApiClient = null) : base(period)
 	{
 		Config = config;
 		Rpc = rpc;
@@ -44,6 +46,7 @@ public partial class Arena : PeriodicRunner
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
 		CoinVerifier = coinVerifier;
+		BlockstreamApiClient = blockstreamApiClient;
 		MaxSuggestedAmountProvider = new(Config);
 
 		if (CoinVerifier is not null)
@@ -63,6 +66,7 @@ public partial class Arena : PeriodicRunner
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	public CoinVerifier? CoinVerifier { get; private set; }
+	public BlockstreamApiClient? BlockstreamApiClient { get; private set; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
@@ -335,6 +339,9 @@ public partial class Arena : PeriodicRunner
 
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
+					
+					// Start task to verify if the transaction was accepted by well known nodes
+					BlockstreamApiClient?.LogTxAcceptedByBlockstreamAsync(coinjoin.GetHash(), cancellationToken);
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{

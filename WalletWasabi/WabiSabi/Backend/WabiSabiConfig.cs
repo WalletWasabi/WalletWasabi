@@ -114,6 +114,10 @@ public class WabiSabiConfig : ConfigBase
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool IsCoinVerifierEnabled { get; set; } = false;
+	
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "IsTxPropagationVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsTxPropagationVerifierEnabled { get; set; } = false;
 
 	[DefaultValueIntegerArray("")]
 	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
