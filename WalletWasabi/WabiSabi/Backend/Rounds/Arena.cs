@@ -189,6 +189,11 @@ public partial class Arena : PeriodicRunner
 			{
 				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
+					foreach (Alice alice in round.Alices)
+					{
+						NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
+					}
+
 					SetRoundPhase(round, Phase.OutputRegistration);
 				}
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
@@ -247,11 +252,6 @@ public partial class Arena : PeriodicRunner
 
 				if (allReady || phaseExpired)
 				{
-					foreach (Alice alice in round.Alices)
-					{
-						NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
-					}
-
 					var coinjoin = round.Assert<ConstructionState>();
 
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
