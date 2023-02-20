@@ -17,25 +17,6 @@ namespace WalletWasabi.Fluent;
 
 public class ApplicationStateManager : IMainWindowService
 {
-	private enum Trigger
-	{
-		Invalid = 0,
-		Hide,
-		Show,
-		Loaded,
-		ShutdownPrevented,
-		ShutdownRequested,
-		MainWindowClosed,
-	}
-
-	private enum State
-	{
-		Invalid = 0,
-		InitialState,
-		Closed,
-		Open,
-	}
-
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
@@ -56,7 +37,9 @@ public class ApplicationStateManager : IMainWindowService
 
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)
-			.OnTrigger(Trigger.ShutdownRequested, () =>
+			.OnTrigger(
+			Trigger.ShutdownRequested,
+			() =>
 			{
 				if (_restartRequest)
 				{
@@ -65,7 +48,9 @@ public class ApplicationStateManager : IMainWindowService
 
 				lifetime.Shutdown();
 			})
-			.OnTrigger(Trigger.ShutdownPrevented, () =>
+			.OnTrigger(
+			Trigger.ShutdownPrevented,
+			() =>
 			{
 				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 				_restartRequest = false; // reset the value.
@@ -98,6 +83,25 @@ public class ApplicationStateManager : IMainWindowService
 		{
 			_stateMachine.Fire(Trigger.Loaded);
 		}
+	}
+
+	private enum Trigger
+	{
+		Invalid = 0,
+		Hide,
+		Show,
+		Loaded,
+		ShutdownPrevented,
+		ShutdownRequested,
+		MainWindowClosed,
+	}
+
+	private enum State
+	{
+		Invalid = 0,
+		InitialState,
+		Closed,
+		Open,
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }

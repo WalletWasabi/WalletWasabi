@@ -204,6 +204,7 @@ public static class HttpMessageHelper
 			{
 				return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, cancellationToken).ConfigureAwait(false);
 			}
+
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// If a Transfer-Encoding header field is present in a response and
 			// the chunked transfer coding is not the final encoding, the
@@ -286,6 +287,7 @@ public static class HttpMessageHelper
 		// A recipient MUST ignore unrecognized chunk extensions.
 
 		var decodedBody = new List<byte>();
+
 		// https://tools.ietf.org/html/rfc7230#section-4.1
 		// The chunked transfer coding is complete
 		// when a chunk with a chunk-size of zero is received, possibly followed
