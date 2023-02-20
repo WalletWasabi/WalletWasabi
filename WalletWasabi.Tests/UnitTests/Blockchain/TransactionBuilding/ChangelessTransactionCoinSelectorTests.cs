@@ -72,10 +72,10 @@ public class ChangelessTransactionCoinSelectorTests
 		Assert.Equal(new long[] { 50_000, 8_192, 6_561 }, solution);
 	}
 
-    /// <summary>
-    /// Tests that solutions respect <see cref="MoreSelectionStrategy.MaxExtraPayment"/> restriction.
-    /// </summary>
-    [Fact]
+	/// <summary>
+	/// Tests that solutions respect <see cref="MoreSelectionStrategy.MaxExtraPayment"/> restriction.
+	/// </summary>
+	[Fact]
 	public void TooExpensiveSolution()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
