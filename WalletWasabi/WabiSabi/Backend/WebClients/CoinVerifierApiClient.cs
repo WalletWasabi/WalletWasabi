@@ -10,13 +10,15 @@ namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public class CoinVerifierApiClient : BaseApiClient
 {
-	public CoinVerifierApiClient(string token, HttpClient httpClient) : base(httpClient)
+	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient) : base(httpClient)
 	{
 		ApiToken = token;
+		Network = network;
 	}
 
 	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 	private string ApiToken { get; }
+	private Network Network { get; }
 
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{

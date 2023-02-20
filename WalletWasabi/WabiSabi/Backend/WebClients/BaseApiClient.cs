@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -35,8 +36,16 @@ public class BaseApiClient
 	protected async Task<T> DeserializeResponseAsync<T>(HttpResponseMessage response, CancellationToken cancel = default)
 	{
 		var responseString = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
-
+		
 		return JsonConvert.DeserializeObject<T>(responseString) 
+		       ?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
+	}
+	
+	protected async Task<JsonDocument> ParseResponseAsync(HttpResponseMessage response, CancellationToken cancel = default)
+	{
+		var responseString = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
+		
+		return JsonDocument.Parse(responseString) 
 		       ?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
 	}
 }
