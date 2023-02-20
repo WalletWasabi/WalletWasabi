@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, CoinVerifier? coinVerifier = null, BlockstreamApiClient? blockstreamApiClient = null)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, CoinVerifier? coinVerifier = null, TxPropagationVerifier? txPropagationVerifier = null)
 	{
 		Parameters = parameters;
 
@@ -28,7 +28,7 @@ public class WabiSabiCoordinator : BackgroundService
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifier = coinVerifier;
-		BlockstreamApiClient = blockstreamApiClient;
+		TxPropagationVerifier = txPropagationVerifier;
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
@@ -48,7 +48,7 @@ public class WabiSabiCoordinator : BackgroundService
 			transactionArchiver,
 			coinJoinScriptStore,
 			coinVerifier,
-			blockstreamApiClient);
+			txPropagationVerifier);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
@@ -57,7 +57,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public ConfigWatcher ConfigWatcher { get; }
 	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
-	public BlockstreamApiClient? BlockstreamApiClient { get; private set; }
+	public TxPropagationVerifier? TxPropagationVerifier { get; private set; }
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }

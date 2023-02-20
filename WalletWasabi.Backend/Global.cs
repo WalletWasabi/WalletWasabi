@@ -68,7 +68,7 @@ public class Global : IDisposable
 
 	public Coordinator? Coordinator { get; private set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
-	public BlockstreamApiClient? BlockstreamApiClient { get; private set; }
+	public TxPropagationVerifier? TxPropagationVerifier { get; private set; }
 
 	public Config Config { get; }
 
@@ -131,7 +131,7 @@ public class Global : IDisposable
 
 		if (wabiSabiConfig.IsTxPropagationVerifierEnabled && RpcClient.Network != Network.RegTest)
 		{
-			BlockstreamApiClient = new(RpcClient.Network, HttpClient);
+			TxPropagationVerifier = new(RpcClient.Network, HttpClient);
 		}
 
 		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? coinVerifier : null);
@@ -162,7 +162,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null, BlockstreamApiClient);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null, TxPropagationVerifier);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
