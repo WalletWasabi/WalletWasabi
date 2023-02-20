@@ -39,6 +39,7 @@ public class SendTests
 	{
 		(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 		bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
+
 		// Create the services.
 		// 1. Create connection service.
 		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -331,7 +332,10 @@ public class SendTests
 
 			var inputCountBefore = res.SpentCoins.Count();
 
-			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
+			res = wallet.BuildTransaction(
+				password,
+				new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"),
+				FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
 				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1));
 
@@ -351,7 +355,10 @@ public class SendTests
 
 			Assert.Single(res.Transaction.Transaction.Outputs);
 
-			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
+			res = wallet.BuildTransaction(
+				password,
+				new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"),
+				FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
 				allowedInputs: new[] { res.SpentCoins.Select(x => x.Outpoint).First() });
 
@@ -500,6 +507,7 @@ public class SendTests
 	{
 		(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 		bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
+
 		// Create the services.
 		// 1. Create connection service.
 		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
