@@ -92,7 +92,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoin, testDeadlineCts.Token);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins, testDeadlineCts.Token);
 		Assert.False(found);
 	}
 
