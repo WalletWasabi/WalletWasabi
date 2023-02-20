@@ -68,6 +68,25 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 	}
 
 	[Fact]
+	public async Task MempoolSpaceGetTransactionStatusClearnetMainnetBackendAsync()
+	{
+		HttpClient httpClient = new();
+		TxPropagationVerifier verifier = new(Network.Main, httpClient);
+
+		// This TX exists
+		uint256 txid = uint256.Parse("8a6edaae0ed93cf1a84fe727450be383ce53133df1a4438f9b9201b563ea9880");
+		var status = await verifier.MempoolSpaceApiClient.GetTransactionStatusAsync(txid, CancellationToken.None);
+		Assert.NotNull(status);
+		Assert.True(status);
+
+		// This TX does not exist
+		txid = uint256.Parse("8a6edaae0ed93cf1a84fe737450be383ce53133df1a4438f9b9201aaaaaaaaaa");
+		status = await verifier.MempoolSpaceApiClient.GetTransactionStatusAsync(txid, CancellationToken.None);
+		Assert.Null(status);
+		httpClient.Dispose();
+	}
+
+	[Fact]
 	public async Task GetFeeEstimatesTorMainnetAsync()
 	{
 		BlockstreamInfoClient client = new(Network.Main, TorHttpClientFactory);
