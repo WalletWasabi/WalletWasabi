@@ -14,29 +14,29 @@ public class TxPropagationVerifier
 {
 	public TxPropagationVerifier(Network network, HttpClient httpClient)
 	{
-		HttpClient = httpClient;
 		Network = network;
-		BlockstreamApiClient = new BlockstreamApiClient(Network, HttpClient);
-		MempoolSpaceApiClient = new MempoolSpaceApiClient(Network, HttpClient);
+		Verifiers = new List<ITxPropagationVerifier>()
+		{
+			new BlockstreamApiClient(Network, httpClient),
+			new MempoolSpaceApiClient(Network, httpClient)
+		};
 	}
-	private HttpClient HttpClient { get; }
 	private Network Network { get; }
-	public BlockstreamApiClient BlockstreamApiClient { get; }
-	public MempoolSpaceApiClient MempoolSpaceApiClient { get; }
+	public List<ITxPropagationVerifier> Verifiers { get; }
 	
 	// Don't throw as this task is not awaited
-	public async Task LogTxAcceptedByBlockstreamAsync(uint256 txid, CancellationToken cancel, int delay = 30, int attempts = 10)
+	public async Task LogTxAcceptedByThirdPartyAsync(uint256 txid, CancellationToken cancel, int delay = 30, int attempts = 10)
 	{
 		for (int i = 0; i < attempts; i++)
 		{
 			try
 			{
 				await Task.Delay(delay, cancel).ConfigureAwait(false);
-				List<Task<bool?>> tasks = new List<Task<bool?>>()
+				List<Task<bool?>> tasks = new List<Task<bool?>>();
+				foreach (var txPropagationVerifier in Verifiers)
 				{
-					BlockstreamApiClient.GetTransactionStatusAsync(txid, cancel),
-					MempoolSpaceApiClient.GetTransactionStatusAsync(txid, cancel),
-				};
+					tasks.Add(txPropagationVerifier.GetTransactionStatusAsync(txid, cancel));
+				}
 				var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 				
 				if (results.Any(result => result is not null))

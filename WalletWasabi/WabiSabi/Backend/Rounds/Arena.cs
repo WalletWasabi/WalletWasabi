@@ -341,7 +341,7 @@ public partial class Arena : PeriodicRunner
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
 					
 					// Start task to verify if the transaction was accepted by well known nodes
-					TxPropagationVerifier?.LogTxAcceptedByBlockstreamAsync(coinjoin.GetHash(), cancellationToken);
+					TxPropagationVerifier?.LogTxAcceptedByThirdPartyAsync(coinjoin.GetHash(), cancellationToken);
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{

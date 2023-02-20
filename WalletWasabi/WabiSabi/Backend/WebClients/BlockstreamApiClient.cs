@@ -7,7 +7,7 @@ using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
-public class BlockstreamApiClient : BaseApiClient
+public class BlockstreamApiClient : BaseApiClient, ITxPropagationVerifier
 {
 	private static HttpClient SetBaseAddress(Network network, HttpClient httpClient)
 	{

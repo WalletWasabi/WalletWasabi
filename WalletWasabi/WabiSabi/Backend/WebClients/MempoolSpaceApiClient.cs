@@ -7,7 +7,7 @@ using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
-public class MempoolSpaceApiClient : BaseApiClient
+public class MempoolSpaceApiClient : BaseApiClient, ITxPropagationVerifier
 {
 	private static HttpClient SetBaseAddress(Network network, HttpClient httpClient)
 	{
