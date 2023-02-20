@@ -18,8 +18,8 @@ public static class ChangelessTransactionCoinSelector
 		IEnumerable<SmartCoin> availableCoins,
 		FeeRate feeRate,
 		TxOut txOut,
-		int maxInputCount = int.MaxValue,
-		[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		int maxInputCount,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		// target = target amount + output cost
 		long target = txOut.Value.Satoshi + feeRate.GetFee(txOut.ScriptPubKey.EstimateOutputVsize()).Satoshi;
@@ -70,7 +70,7 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="strategy">The strategy determines what the algorithm is looking for.</param>
 	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
 	{
 		selectedCoins = null;
 
