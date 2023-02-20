@@ -3,42 +3,30 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using Newtonsoft.Json;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
-public class CoinVerifierApiClient
+public class CoinVerifierApiClient : BaseApiClient
 {
-	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
+	public CoinVerifierApiClient(string token, HttpClient httpClient) : base(httpClient)
 	{
 		ApiToken = token;
-		Network = network;
-		HttpClient = httpClient;
-	}
-
-	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
-	{
 	}
 
 	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
-	private string ApiToken { get; set; }
-	private Network Network { get; set; }
-
-	private HttpClient HttpClient { get; set; }
+	private string ApiToken { get; }
 
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
-		if (HttpClient.BaseAddress is null)
+		if (BaseAddress is null)
 		{
-			throw new HttpRequestException($"{nameof(HttpClient.BaseAddress)} was null.");
+			throw new HttpRequestException($"{nameof(BaseAddress)} was null.");
 		}
-		if (HttpClient.BaseAddress.Scheme != "https")
+		if (BaseAddress.Scheme != "https")
 		{
-			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
+			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {BaseAddress.Scheme}.");
 		}
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
@@ -55,27 +43,20 @@ public class CoinVerifierApiClient
 		{
 			tries--;
 
-			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
+			using var content = new HttpRequestMessage(HttpMethod.Get, $"{BaseAddress}{address}");
 			content.Headers.Authorization = new("Bearer", ApiToken);
 
 			try
 			{
-				var before = DateTimeOffset.UtcNow;
+				response = await base.SendRequestAsync(content, "verifier-request", linkedTokenSource.Token).ConfigureAwait(false);
 
-				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
-
-				var duration = DateTimeOffset.UtcNow - before;
-				RequestTimeStatista.Instance.Add("verifier-request", duration);
-
-				if (response is { } && response.StatusCode == HttpStatusCode.OK)
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					// Successful request, break the iteration.
 					break;
 				}
-				else
-				{
-					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
-				}
+				
+				throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 			}
 			catch (Exception ex)
 			{
@@ -90,15 +71,11 @@ public class CoinVerifierApiClient
 		{
 			throw new UnauthorizedAccessException("User roles access forbidden.");
 		}
-		else if (response?.StatusCode != HttpStatusCode.OK)
+		if (response?.StatusCode != HttpStatusCode.OK)
 		{
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
-
-		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
-			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return deserializedRecord;
+		return await DeserializeResponseAsync<ApiResponseItem>(response, linkedTokenSource.Token).ConfigureAwait(false);
 	}
 }
