@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -17,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
-	private const int SignificantFiguresForFiatAmount = 3;
 	[AutoNotify] private string _amount;
 	[AutoNotify] private decimal _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
