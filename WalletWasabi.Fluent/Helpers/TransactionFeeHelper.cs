@@ -11,8 +11,6 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionFeeHelper
 {
-	public const decimal FeePercentageThreshold = 125;
-
 	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 	{
 		[1] = 17,

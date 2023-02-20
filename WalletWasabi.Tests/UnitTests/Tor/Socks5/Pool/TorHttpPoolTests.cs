@@ -6,9 +6,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
-using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
@@ -113,7 +113,7 @@ public class TorHttpPoolTests
 		// Verify IsolationId bumping for the Alice circuit.
 		Assert.Equal(0, aliceCircuit.IsolationId);
 
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await pool.SendAsync(request, aliceCircuit, timeoutCts.Token).ConfigureAwait(false));
+		await Assert.ThrowsAsync<OperationCanceledException>(() => pool.SendAsync(request, aliceCircuit, timeoutCts.Token));
 
 		Assert.True(aliceCircuit.IsolationId > 0);
 		mockTcpConnectionFactory.VerifyAll();
@@ -147,7 +147,7 @@ public class TorHttpPoolTests
 
 		Task sendTask = Task.Run(async () =>
 		{
-			Debug.WriteLine("[client] About send HTTP request.");
+			Debug.WriteLine("[client] About to send HTTP request.");
 			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, timeoutCts.Token).ConfigureAwait(false);
 			Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 			Debug.WriteLine("[client] Done sending HTTP request.");
@@ -168,26 +168,25 @@ public class TorHttpPoolTests
 		// Assert replies line by line.
 		foreach (string expectedLine in expectedResponse)
 		{
-			Assert.Equal(expectedLine, await serverReader.ReadLineAsync().WithAwaitCancellationAsync(timeoutCts.Token));
+			Assert.Equal(expectedLine, await serverReader.ReadLineAsync(timeoutCts.Token));
 		}
 
 		// We respond to the client with the following content.
 		Debug.WriteLine("[server] Send response for the request.");
-		await serverWriter.WriteAsync(
-			string.Join(
-			"\r\n",
-			"HTTP/1.1 200 OK",
-			"Date: Wed, 02 Dec 2020 18:20:54 GMT",
-			"Content-Type: application/json; charset=utf-8",
-			"Content-Length: 389",
-			"Connection: keep-alive",
-			"ETag: W/\"185-ck4yLFUDHZl9lYSDUF6oMrTCEss\"",
-			"Vary: Accept-Encoding",
-			"set-cookie: sails.sid=s%3AMPaQCDY1u1swPgAI5RhbPg2extVNNhjI.oby40NpOE2CpyzIdRlGhD7Uja%2BGX1WbBaFV13T0f4eA; Path=/; HttpOnly",
-			"",
-			"{\"args\":{},\"data\":\"This is expected to be sent back as part of response body.\",\"files\":{},\"form\":{},\"headers\":{\"x-forwarded-proto\":\"http\",\"x-forwarded-port\":\"80\",\"host\":\"postman-echo.com\",\"x-amzn-trace-id\":\"Root=1-5fc7db06-24adc2a91c86c14f2d63ea61\",\"content-length\":\"58\",\"accept-encoding\":\"gzip\",\"content-type\":\"text/plain; charset=utf-8\"},\"json\":null,\"url\":\"http://postman-echo.com/post\"}").AsMemory(),
+		await serverWriter.WriteAsync("""
+			HTTP/1.1 200 OK
+			Date: Wed, 02 Dec 2020 18:20:54 GMT
+			Content-Type: application/json; charset=utf-8
+			Content-Length: 389
+			Connection: keep-alive
+			ETag: W/\"185-ck4yLFUDHZl9lYSDUF6oMrTCEss\"
+			Vary: Accept-Encoding
+			set-cookie: sails.sid=s%3AMPaQCDY1u1swPgAI5RhbPg2extVNNhjI.oby40NpOE2CpyzIdRlGhD7Uja%2BGX1WbBaFV13T0f4eA; Path=/; HttpOnly
+			
+			{"args":{},"data":"This is expected to be sent back as part of response body.","files":{},"form":{},"headers":{"x-forwarded-proto":"http","x-forwarded-port":"80","host":"postman-echo.com","x-amzn-trace-id":"Root=1-5fc7db06-24adc2a91c86c14f2d63ea61","content-length":"58","accept-encoding":"gzip","content-type":"text/plain; charset=utf-8"},"json":null,"url":"http://postman-echo.com/post"}
+			""".ReplaceLineEndings("\r\n").AsMemory(),
 			timeoutCts.Token);
-		await serverWriter.FlushAsync().WithAwaitCancellationAsync(timeoutCts.Token);
+		await serverWriter.FlushAsync().WaitAsync(timeoutCts.Token);
 
 		Debug.WriteLine("[server] Wait for the sendTask to finish.");
 		await sendTask;
@@ -286,7 +285,7 @@ public class TorHttpPoolTests
 		{
 			Task connectClientTask = Server.WaitForConnectionAsync(cancellationToken);
 			await Client.ConnectAsync(cancellationToken).ConfigureAwait(false);
-			await connectClientTask.ConfigureAwait(false);
+			await connectClientTask.WaitAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public async ValueTask DisposeAsync()

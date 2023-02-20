@@ -66,11 +66,11 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 2, 0);
+	public static readonly Version ClientVersion = new(2, 0, 2, 1);
 
 	public static readonly Version HwiVersion = new("2.1.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
-	public static readonly Version Ww1LegalDocumentsVersion = new(2, 0);
+	public static readonly Version Ww1LegalDocumentsVersion = new(3, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);
 
 	// Defined in hours. Do not modify these values or the order!
@@ -96,8 +96,11 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
-		"/Satoshi:0.23.0/",
-		"/Satoshi:0.22.0/",
+		"/Satoshi:24.0.1/",
+		"/Satoshi:23.1.0/",
+		"/Satoshi:23.0.0/",
+		"/Satoshi:22.1.0/",
+		"/Satoshi:22.0.0/",
 		"/Satoshi:0.21.1/",
 		"/Satoshi:0.21.0/",
 		"/Satoshi:0.20.1/",

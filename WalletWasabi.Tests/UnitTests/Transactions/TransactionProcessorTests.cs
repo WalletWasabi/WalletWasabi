@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -830,24 +831,34 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionWithDustForWalletAsync()
 	{
+		static void AssertCoin(ProcessedResult result, bool expectDust)
+		{
+			if (!expectDust)
+			{
+				Assert.Empty(result.ReceivedDusts);
+				Assert.NotEmpty(result.ReceivedCoins);
+				Assert.NotEmpty(result.NewlyReceivedCoins);
+			}
+			else
+			{
+				Assert.NotEmpty(result.ReceivedDusts);
+				Assert.Empty(result.ReceivedCoins);
+				Assert.Empty(result.NewlyReceivedCoins);
+			}
+			Assert.True(result.IsNews);
+			Assert.Empty(result.NewlyConfirmedReceivedCoins);
+		}
+
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
-		{
-			// The dust coin should raise an event, but it shouldn't be fully processed.
-			Assert.NotEmpty(e.ReceivedDusts);
-			Assert.Empty(e.ReceivedCoins);
-			Assert.Empty(e.NewlyReceivedCoins);
-			Assert.Empty(e.NewlyConfirmedReceivedCoins);
-		};
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
 		var relevant = transactionProcessor.Process(tx);
 
 		// It is relevant even when all the coins can be dust.
-		Assert.True(relevant.IsNews);
-		Assert.Empty(transactionProcessor.Coins);
+		AssertCoin(relevant, expectDust: false);
+		Assert.Single(transactionProcessor.Coins);
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -855,6 +866,14 @@ public class TransactionProcessorTests
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
+
+		var attackTx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
+
+		var result = transactionProcessor.Process(attackTx);
+
+		// It is relevant even when all the coins can be dust.
+		AssertCoin(result, expectDust: true);
+		Assert.Single(transactionProcessor.Coins); // the dust coin used is not added to the coin registry
 	}
 
 	[Fact]
@@ -894,7 +913,7 @@ public class TransactionProcessorTests
 		var spendingTx = CreateSpendingTransaction(
 			Enumerable.Repeat(receivedCoin.Coin, 1),
 			destinationKey.GetScriptPubKey(ScriptPubKeyType.Legacy),
-			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone"), out _).P2wpkhScript);
+			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone")).P2wpkhScript);
 		relevant = transactionProcessor.Process(spendingTx);
 		Assert.True(relevant.IsNews);
 

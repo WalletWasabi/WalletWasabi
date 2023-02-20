@@ -25,6 +25,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	private bool _confirmed;
 	private bool _isBanned;
+	private bool _isExcludedFromCoinJoin;
 
 	private Lazy<uint256> _transactionId;
 	private Lazy<OutPoint> _outPoint;
@@ -141,6 +142,12 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	{
 		get => RefreshAndGetIsBanned();
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
+	}
+
+	public bool IsExcludedFromCoinJoin
+	{
+		get => _isExcludedFromCoinJoin;
+		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
 
 	public bool IsImmature(int bestHeight)

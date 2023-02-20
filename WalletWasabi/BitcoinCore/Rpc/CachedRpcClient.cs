@@ -204,7 +204,7 @@ public class CachedRpcClient : RpcClientBase
 			Size = size,
 			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(expireInSeconds)
 		};
-		
+
 		return cacheOptions;
 	}
 }

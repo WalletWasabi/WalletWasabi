@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -59,16 +60,21 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
+			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
-		var key2 = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
+		var key2 = keyManager.GetNextReceiveKey("foo label");
 		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 		Assert.NotNull(txId);
 		await rpc.GenerateAsync(1);
@@ -125,7 +131,7 @@ public class SendTests
 
 			#region Basic
 
-			Script receive = keyManager.GetNextReceiveKey("Basic", out _).P2wpkhScript;
+			Script receive = keyManager.GetNextReceiveKey("Basic").P2wpkhScript;
 			Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 			var res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -173,7 +179,7 @@ public class SendTests
 
 			#region SubtractFeeFromAmount
 
-			receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, subtractFee: true, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -312,7 +318,7 @@ public class SendTests
 
 			#region MaxAmount
 
-			receive = keyManager.GetNextReceiveKey("MaxAmount", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("MaxAmount").P2wpkhScript;
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -333,7 +339,7 @@ public class SendTests
 
 			#region InputSelection
 
-			receive = keyManager.GetNextReceiveKey("InputSelection", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("InputSelection").P2wpkhScript;
 
 			var inputCountBefore = res.SpentCoins.Count();
 
@@ -373,7 +379,7 @@ public class SendTests
 
 			#region Labeling
 
-			Script receive2 = keyManager.GetNextReceiveKey("foo", out _).P2wpkhScript;
+			Script receive2 = keyManager.GetNextReceiveKey("foo").P2wpkhScript;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			Assert.Single(res.InnerWalletOutputs);
@@ -422,7 +428,7 @@ public class SendTests
 
 			inputCountBefore = res.SpentCoins.Count();
 
-			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed").P2wpkhScript;
 
 			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1);
 			PaymentIntent toSend = new(receive, MoneyRequest.CreateAllRemaining(), "fizz");
@@ -537,15 +543,20 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider: new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
+			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 
 		try
 		{
@@ -663,7 +674,7 @@ public class SendTests
 			// Test coin basic count.
 			ICoinsView GetAllCoins() => wallet.TransactionProcessor.Coins.AsAllCoinsView();
 			var coinCount = GetAllCoins().Count();
-			var to = keyManager.GetNextReceiveKey("foo", out _);
+			var to = keyManager.GetNextReceiveKey("foo");
 			var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: "bar"), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 			await broadcaster.SendTransactionAsync(res.Transaction);
 			Assert.Equal(coinCount + 2, GetAllCoins().Count());
@@ -711,9 +722,14 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			null,
+			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
+			new P2PBlockProvider(network, nodes, httpClientFactory),
+			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -721,7 +737,7 @@ public class SendTests
 		Assert.Empty(wallet.Coins);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 
 		try
 		{
@@ -781,5 +797,14 @@ public class SendTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }

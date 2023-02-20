@@ -1,6 +1,5 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Net;
 using WalletWasabi.Bases;
@@ -8,9 +7,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent;
 
@@ -21,6 +18,7 @@ public class Config : ConfigBase
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 	private Uri? _backendUri;
+	private Uri? _coordinatorUri;
 
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
@@ -50,6 +48,15 @@ public class Config : ConfigBase
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string RegTestBackendUri { get; private set; } = "http://localhost:37127/";
+
+	[JsonProperty(PropertyName = "MainNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? MainNetCoordinatorUri { get; private set; }
+
+	[JsonProperty(PropertyName = "TestNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? TestNetCoordinatorUri { get; private set; }
+
+	[JsonProperty(PropertyName = "RegTestCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? RegTestCoordinatorUri { get; private set; }
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -145,6 +152,25 @@ public class Config : ConfigBase
 		return _backendUri;
 	}
 
+	public Uri GetCoordinatorUri()
+	{
+		if (_coordinatorUri is { })
+		{
+			return _coordinatorUri;
+		}
+
+		var result = Network switch
+		{
+			{ } n when n == Network.Main => MainNetCoordinatorUri,
+			{ } n when n == Network.TestNet => TestNetCoordinatorUri,
+			{ } n when n == Network.RegTest => RegTestCoordinatorUri,
+			_ => throw new NotSupportedNetworkException(Network)
+		};
+
+		_coordinatorUri = result is null ? GetBackendUri() : new Uri(result);
+		return _coordinatorUri;
+	}
+
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)
@@ -185,77 +211,11 @@ public class Config : ConfigBase
 		}
 	}
 
-	/// <inheritdoc />
-	public override void LoadFile()
+	/// <inheritdoc/>
+	public override void LoadFile(bool createIfMissing = false)
 	{
-		base.LoadFile();
+		base.LoadFile(createIfMissing);
 
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
-	}
-
-	protected override bool TryEnsureBackwardsCompatibility(string jsonString)
-	{
-		try
-		{
-			var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
-
-			if (jsObject is null)
-			{
-				Logger.LogWarning("Failed to parse config JSON.");
-				return false;
-			}
-
-			bool saveIt = false;
-
-			var torHost = jsObject.Value<string>("TorHost");
-			var torSocks5Port = jsObject.Value<int?>("TorSocks5Port");
-			var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
-			var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
-			var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
-			var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
-			var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
-			var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
-
-			if (mainNetBitcoinCoreHost is { })
-			{
-				int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
-
-				if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint? ep))
-				{
-					MainNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			if (testNetBitcoinCoreHost is { })
-			{
-				int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
-
-				if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint? ep))
-				{
-					TestNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			if (regTestBitcoinCoreHost is { })
-			{
-				int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
-
-				if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint? ep))
-				{
-					RegTestBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			return saveIt;
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning("Backwards compatibility couldn't be ensured.");
-			Logger.LogInfo(ex);
-			return false;
-		}
 	}
 }

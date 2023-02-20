@@ -21,13 +21,19 @@ If applicable, add screenshots to help explain your problem.
 
 ### Operating System
 
-Please consider your privacy, before completing this section.  
+*Please consider your privacy, before completing this section.*
+
 Example: Ubuntu 16.04
 
 ### Logs
 
-Please consider your privacy, before completing this section.  
-You can find the `Logs` file in the dropdown menu of the search bar or inside your Wasabi data folder.
+*Please consider your privacy, before completing this section.*
+
+```
+Insert Your Logs Here
+```
+
+You can find the `Logs.txt` file in the dropdown menu of the search bar or inside your Wasabi data folder or find `%PROFILE_PATH%/WalletWasabi/Client/Logs.txt` file.
 
 ### Wasabi Version
 

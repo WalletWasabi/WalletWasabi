@@ -20,12 +20,16 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		SetFilePath(filePath);
 	}
 
-	/// <inheritdoc />
+	/// <remarks>
+	/// Guards both storing to <see cref="FilePath"/> and retrieving contents of <see cref="FilePath"/>.
+	/// <para>Otherwise, we risk concurrent read and write operations on <see cref="FilePath"/>.</para>
+	/// </remarks>
+	protected object FileLock { get; } = new();
+
+	/// <inheritdoc/>
 	public string FilePath { get; private set; } = "";
 
-	private object FileLocker { get; } = new();
-
-	/// <inheritdoc />
+	/// <inheritdoc/>
 	public void AssertFilePathSet()
 	{
 		if (string.IsNullOrWhiteSpace(FilePath))
@@ -34,7 +38,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		}
 	}
 
-	/// <inheritdoc />
+	/// <inheritdoc/>
 	public bool CheckFileChange()
 	{
 		AssertFilePathSet();
@@ -44,58 +48,53 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
 		}
 
-		string jsonString;
-		lock (FileLocker)
+		lock (FileLock)
 		{
-			jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
-		}
+			string jsonString = ReadFileNoLock();
+			object newConfigObject = Activator.CreateInstance(GetType())!;
+			JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
-		var newConfigObject = Activator.CreateInstance(GetType())!;
-		JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
-
-		return !AreDeepEqual(newConfigObject);
+			return !AreDeepEqual(newConfigObject);
+		}		
 	}
 
 	/// <inheritdoc />
-	public virtual void LoadOrCreateDefaultFile()
+	public virtual void LoadFile(bool createIfMissing = false)
 	{
-		AssertFilePathSet();
-		JsonConvert.PopulateObject("{}", this);
-
-		if (!File.Exists(FilePath))
+		if (createIfMissing)
 		{
-			Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+			AssertFilePathSet();
+
+			lock (FileLock)
+			{
+				JsonConvert.PopulateObject("{}", this);
+
+				if (!File.Exists(FilePath))
+				{
+					Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+				}
+				else
+				{
+					try
+					{
+						LoadFileNoLock();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
+						Logger.LogWarning(ex);
+					}
+				}
+
+				ToFileNoLock();
+			}
 		}
 		else
 		{
-			try
+			lock (FileLock)
 			{
-				LoadFile();
+				LoadFileNoLock();
 			}
-			catch (Exception ex)
-			{
-				Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
-				Logger.LogWarning(ex);
-			}
-		}
-
-		ToFile();
-	}
-
-	/// <inheritdoc />
-	public virtual void LoadFile()
-	{
-		string jsonString;
-		lock (FileLocker)
-		{
-			jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
-		}
-
-		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
-
-		if (TryEnsureBackwardsCompatibility(jsonString))
-		{
-			ToFile();
 		}
 	}
 
@@ -117,14 +116,34 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public void ToFile()
 	{
-		AssertFilePathSet();
-
-		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSerializationOptions.Default.Settings);
-		lock (FileLocker)
+		lock (FileLock)
 		{
-			File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
+			ToFileNoLock();
 		}
 	}
 
-	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
+	protected void LoadFileNoLock()
+	{
+		string jsonString = ReadFileNoLock();
+
+		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
+	}
+
+	protected void ToFileNoLock()
+	{
+		AssertFilePathSet();
+
+		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSerializationOptions.Default.Settings);
+		WriteFileNoLock(jsonString);
+	}
+
+	protected void WriteFileNoLock(string contents)
+	{
+		File.WriteAllText(FilePath, contents, Encoding.UTF8);
+	}
+
+	protected string ReadFileNoLock()
+	{
+		return File.ReadAllText(FilePath, Encoding.UTF8);
+	}
 }

@@ -32,7 +32,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
+		var (coin, confirmations) = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
@@ -67,19 +67,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// only that the probability of duplicates is very low).
 			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
-			var isPayingZeroCoordinationFee = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			var comingFromCoinJoin = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			bool oneHop = false;
 
-			if (!isPayingZeroCoordinationFee)
+			if (!comingFromCoinJoin)
 			{
 				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
 				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
 
 				if (tx.Inputs.All(input => CoinJoinIdStore.Contains(input.PrevOut.Hash)))
 				{
-					isPayingZeroCoordinationFee = true;
+					oneHop = true;
 				}
 			}
 
+			var isPayingZeroCoordinationFee = comingFromCoinJoin || oneHop;
 			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
@@ -114,6 +116,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
+
+			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, out _, cancellationToken, oneHop, confirmations);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,
@@ -206,33 +210,29 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			switch (round.Phase)
 			{
 				case Phase.InputRegistration:
-					{
-						var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
-						var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
-						alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
-						return new(
-							commitAmountZeroCredentialResponse,
-							commitVsizeZeroCredentialResponse);
-					}
+					var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
+					var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
+					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
+					return new(
+						commitAmountZeroCredentialResponse,
+						commitVsizeZeroCredentialResponse);
 
 				case Phase.ConnectionConfirmation:
-					{
-						// If the phase was InputRegistration before then we did not pre-calculate real credentials.
-						amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
-						vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
+					// If the phase was InputRegistration before then we did not pre-calculate real credentials.
+					amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
+					vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 
-						ConnectionConfirmationResponse response = new(
-							await amountZeroCredentialTask.ConfigureAwait(false),
-							await vsizeZeroCredentialTask.ConfigureAwait(false),
-							await amountRealCredentialTask.ConfigureAwait(false),
-							await vsizeRealCredentialTask.ConfigureAwait(false));
+					ConnectionConfirmationResponse response = new(
+						await amountZeroCredentialTask.ConfigureAwait(false),
+						await vsizeZeroCredentialTask.ConfigureAwait(false),
+						await amountRealCredentialTask.ConfigureAwait(false),
+						await vsizeRealCredentialTask.ConfigureAwait(false));
 
-						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
-						alice.ConfirmedConnection = true;
+					// Update the coinjoin state, adding the confirmed input.
+					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
+					alice.ConfirmedConnection = true;
 
-						return response;
-					}
+					return response;
 
 				default:
 					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);
@@ -355,7 +355,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			await zeroVsizeTask.ConfigureAwait(false));
 	}
 
-	public async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	public async Task<(Coin coin, int Confirmations)> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
 
@@ -380,16 +380,18 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		}
+
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 		}
+
 		if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 		}
 
-		return new Coin(input, txOutResponse.TxOut);
+		return (new Coin(input, txOutResponse.TxOut), txOutResponse.Confirmations);
 	}
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)

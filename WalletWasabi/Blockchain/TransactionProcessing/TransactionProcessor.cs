@@ -219,9 +219,9 @@ public class TransactionProcessor
 					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
 				}
 
+				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
 				KeyManager.SetKeyState(KeyState.Used, foundKey);
-				var areWeSending = myInputs.Any();
-				if (output.Value <= DustThreshold && !areWeSending)
+				if (couldBeDustAttack)
 				{
 					result.ReceivedDusts.Add(output);
 					continue;
@@ -278,6 +278,11 @@ public class TransactionProcessor
 		return result;
 	}
 
+	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
+		output.Value <= DustThreshold // the value received is under the dust threshold
+		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
+		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
+	
 	public void UndoBlock(Height blockHeight)
 	{
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);

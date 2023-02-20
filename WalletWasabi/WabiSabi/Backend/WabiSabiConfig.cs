@@ -44,10 +44,10 @@ public class WabiSabiConfig : ConfigBase
 	/// <summary>
 	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
-	[DefaultValueMoneyBtc("1343.75")]
+	[DefaultValueMoneyBtc("43000")]
 	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MaxRegistrableAmount { get; set; } = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
+	public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -127,6 +127,19 @@ public class WabiSabiConfig : ConfigBase
 	[DefaultValue("")]
 	[JsonProperty(PropertyName = "CoinVerifierApiAuthToken", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoinVerifierApiAuthToken { get; set; } = "";
+
+	[DefaultValueTimeSpan("0d 0h 2m 0s")]
+	[JsonProperty(PropertyName = "CoinVerifierStartBefore", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan CoinVerifierStartBefore { get; set; } = TimeSpan.FromMinutes(2);
+
+	[DefaultValue(3)]
+	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmations", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int CoinVerifierRequiredConfirmations { get; set; } = 3;
+
+	[DefaultValueMoneyBtc("1")]
+	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmationAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money CoinVerifierRequiredConfirmationAmount { get; set; } = Money.Coins(1m);
 
 	[DefaultValueTimeSpan("31d 0h 0m 0s")]
 	[JsonProperty(PropertyName = "ReleaseFromWhitelistAfter", DefaultValueHandling = DefaultValueHandling.Populate)]

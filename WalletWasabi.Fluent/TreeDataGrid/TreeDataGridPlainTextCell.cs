@@ -9,18 +9,16 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 internal class TreeDataGridPlainTextCell : TreeDataGridCell
 {
 	private FormattedText? _formattedText;
-	private string? _value;
-
-	private string? Text => _value;
+	private string? _text;
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var plainTextCell = (PlainTextCell) model;
+		var plainTextCell = (PlainTextCell)model;
 		var text = plainTextCell.Value;
 
-		if (text != _value)
+		if (text != _text)
 		{
-			_value = text;
+			_text = text;
 			_formattedText = null;
 		}
 
@@ -38,7 +36,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (string.IsNullOrWhiteSpace(Text))
+		if (string.IsNullOrWhiteSpace(_text))
 		{
 			return default;
 		}
@@ -46,7 +44,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 		if (availableSize != _formattedText?.Constraint)
 		{
 			_formattedText = new FormattedText(
-				Text,
+				_text,
 				new Typeface(FontFamily, FontStyle, FontWeight),
 				FontSize,
 				TextAlignment.Left,
