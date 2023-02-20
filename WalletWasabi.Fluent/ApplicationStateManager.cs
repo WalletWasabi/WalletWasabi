@@ -66,8 +66,7 @@ public class ApplicationStateManager : IMainWindowService
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
-			.Permit(Trigger.ShutdownPrevented, State.Open)
-			.Permit(Trigger.Loaded, State.Open);
+			.Permit(Trigger.ShutdownPrevented, State.Open);
 
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.InitialState)
@@ -86,7 +85,6 @@ public class ApplicationStateManager : IMainWindowService
 		Invalid = 0,
 		Hide,
 		Show,
-		Loaded,
 		ShutdownPrevented,
 		ShutdownRequested,
 		MainWindowClosed,
