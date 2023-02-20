@@ -104,6 +104,25 @@ public class ApplicationStateManager : IMainWindowService
 		}
 	}
 
+	private enum Trigger
+	{
+		Invalid = 0,
+		Hide,
+		Show,
+		Loaded,
+		ShutdownPrevented,
+		ShutdownRequested,
+		MainWindowClosed,
+	}
+
+	private enum State
+	{
+		Invalid = 0,
+		InitialState,
+		Closed,
+		Open,
+	}
+
 	internal ApplicationViewModel ApplicationViewModel { get; }
 
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)

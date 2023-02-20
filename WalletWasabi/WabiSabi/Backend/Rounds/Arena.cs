@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -128,7 +129,7 @@ public partial class Arena : PeriodicRunner
 				{
 					try
 					{
-						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice);
+						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice, CoinEqualityComparer.Default);
 						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
 						{
 							if (coinVerifyInfo.ShouldRemove)
@@ -141,10 +142,8 @@ public partial class Arena : PeriodicRunner
 					catch (Exception exc)
 					{
 						// This should never happen.
-
-						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
 						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
-						round.EndRound(EndRoundState.AbortedWithError);
+						throw;
 					}
 				}
 

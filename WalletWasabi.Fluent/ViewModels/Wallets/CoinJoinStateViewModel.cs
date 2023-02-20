@@ -17,10 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly DispatcherTimer _countdownTimer;
-	private readonly DispatcherTimer _autoCoinJoinStartTimer;
-
 	private const string CountDownMessage = "Waiting to auto-start coinjoin";
 	private const string WaitingMessage = "Waiting for coinjoin";
 	private const string PauseMessage = "Coinjoin is paused";
@@ -38,6 +34,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string UserInSendWorkflowMessage = "Waiting for closed send dialog";
 	private const string AllPrivateMessage = "Hurray! Your funds are private";
 	private const string GeneralErrorMessage = "Waiting for valid conditions";
+
+	private readonly StateMachine<State, Trigger> _stateMachine;
+	private readonly DispatcherTimer _countdownTimer;
+	private readonly DispatcherTimer _autoCoinJoinStartTimer;
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible;
@@ -103,7 +103,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		var stopPauseCommandCanExecute = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
+		var stopPauseCommandCanExecute = this.WhenAnyValue(
+			x => x.IsInCriticalPhase,
+			x => x.PauseSpreading,
 			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
 		StopPauseCommand = ReactiveCommand.CreateFromTask(
@@ -162,6 +164,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		PlebStopActivated,
+		StartError,
 		BalanceChanged,
 		Tick,
 		PlebStopChanged,
@@ -192,6 +195,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.AutoCoinJoinOff, State.StoppedOrPaused)
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
+			.Permit(Trigger.StartError, State.Playing)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -246,6 +250,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.PlebStopChanged, State.Playing)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
+			.Permit(Trigger.StartError, State.Playing)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -297,11 +302,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.WalletStoppedCoinJoin);
 				break;
 
-			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
-				_stateMachine.Fire(Trigger.PlebStopActivated);
-				break;
-
 			case StartErrorEventArgs start:
+				if (start.Error is CoinjoinError.NotEnoughUnprivateBalance)
+				{
+					_stateMachine.Fire(Trigger.PlebStopActivated);
+					break;
+				}
+
+				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsToMix => WaitingForConfirmedFundsMessage,
@@ -309,7 +317,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					_ => GeneralErrorMessage
 				};
-
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:

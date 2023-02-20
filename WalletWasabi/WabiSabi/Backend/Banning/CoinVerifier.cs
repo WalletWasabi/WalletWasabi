@@ -53,7 +53,7 @@ public class CoinVerifier : IAsyncDisposable
 
 		// Booting up the results with the default value - ban: no, remove: yes.
 		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(
-			coin => coin, 
+			coin => coin,
 			coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true),
 			CoinEqualityComparer.Default);
 
@@ -169,8 +169,15 @@ public class CoinVerifier : IAsyncDisposable
 
 	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
 	{
-		var item = new CoinVerifyItem();
 		coinVerifyItem = null;
+
+		if (CoinVerifyItems.TryGetValue(coin, out coinVerifyItem))
+		{
+			// Coin was already scheduled. It's OK.
+			return true;
+		}
+
+		var item = new CoinVerifyItem();
 
 		if (!CoinVerifyItems.TryAdd(coin, item))
 		{
@@ -244,6 +251,7 @@ public class CoinVerifier : IAsyncDisposable
 					item.ThrowIfCancellationRequested();
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
+
 					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem);
 
 					// We got a definitive answer.
@@ -266,7 +274,7 @@ public class CoinVerifier : IAsyncDisposable
 					item.SetResult(result);
 					VerifierAuditArchiver.LogVerificationResult(result, Reason.Exception, apiResponseItem: null, exception: ex);
 
-					Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
+					Logger.LogError($"Coin verification has failed for coin '{coin.Outpoint}' with '{ex}'.");
 
 					// Do not throw an exception here - unobserverved exception prevention.
 				}

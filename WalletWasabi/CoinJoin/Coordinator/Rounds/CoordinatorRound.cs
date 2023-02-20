@@ -349,6 +349,7 @@ public class CoordinatorRound
 								else
 								{
 									UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+
 									// Progress to the next phase, which will be ConnectionConfirmation
 									await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
 								}
@@ -554,6 +555,7 @@ public class CoordinatorRound
 		}
 
 		var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
+
 		// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 		if (coordinatorFee > Money.Coins(0.0003m))
 		{
@@ -570,6 +572,7 @@ public class CoordinatorRound
 		// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
 		transaction.Inputs.SortByAmount(spentCoins);
 		transaction.Outputs.SortByAmount();
+
 		// Note: We shuffle then sort because inputs and outputs could have equal values
 
 		if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
@@ -664,6 +667,7 @@ public class CoordinatorRound
 		{
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
 			CoinVerifier.VerifierAuditArchiver.LogException(new uint256((ulong)RoundId), exc);
+
 			// Fail hard as VerifyCoinsAsync should handle all exceptions.
 			throw;
 		}
@@ -728,6 +732,7 @@ public class CoordinatorRound
 				// Adjust anonymity set.
 				UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 			}
+
 			// Progress to the next phase, which will be OutputRegistration
 			await ExecuteNextPhaseAsync(RoundPhase.OutputRegistration).ConfigureAwait(false);
 		}
@@ -1385,8 +1390,10 @@ public class CoordinatorRound
 	{
 		// Check if mempool would accept a fake transaction created with all the registered inputs.
 		var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
+
 		// Add the outputs by denomination level. Add 1 as estimation could be sometimes off by 1.
 		var outputCount = Alices.Sum(alice => EstimateBestMixingLevel(alice) + 1);
+
 		// Add the change outputs.
 		outputCount += Alices.Count;
 

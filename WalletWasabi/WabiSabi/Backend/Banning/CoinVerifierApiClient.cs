@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -24,7 +25,7 @@ public class CoinVerifierApiClient
 	{
 	}
 
-	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
+	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	private string ApiToken { get; set; }
 	private Network Network { get; set; }
@@ -44,7 +45,7 @@ public class CoinVerifierApiClient
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(ApiRequestTimeout);
+		using CancellationTokenSource timeoutTokenSource = new(TotalApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 
 		int tries = 3;
@@ -61,7 +62,12 @@ public class CoinVerifierApiClient
 
 			try
 			{
+				var before = DateTimeOffset.UtcNow;
+
 				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+
+				var duration = DateTimeOffset.UtcNow - before;
+				RequestTimeStatista.Instance.Add("verifier-request", duration);
 
 				if (response is { } && response.StatusCode == HttpStatusCode.OK)
 				{
