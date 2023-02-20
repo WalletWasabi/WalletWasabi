@@ -1,9 +1,8 @@
-
 using System.Collections.Specialized;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using DynamicData.Binding;
 using ReactiveUI;
 
@@ -13,30 +12,37 @@ public class ListBoxReselectingBehavior : DisposingBehavior<ListBox>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		if (AssociatedObject is not { } listBox)
+		if (AssociatedObject is null)
 		{
 			return;
 		}
 
-		listBox.WhenAnyValue(x => x.Items)
-			.Where(x => x is INotifyCollectionChanged)
-			.Select(x => x as INotifyCollectionChanged)
-			.Do(x => RegisterItemListener(listBox, x, disposables))
+		ItemsCollectionChanged()
+			.Where(IsSelectionMoving)
+			.Select(x => x.EventArgs.NewStartingIndex)
+			.Do(SetSelectedIndex)
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
 
-	private static void RegisterItemListener(SelectingItemsControl listBox,
-		INotifyCollectionChanged? walletCollection,
-		CompositeDisposable disposables)
+	private IObservable<EventPattern<NotifyCollectionChangedEventArgs>> ItemsCollectionChanged()
 	{
-		walletCollection?.ObserveCollectionChanges()
-			.Where(x => x.EventArgs.Action == NotifyCollectionChangedAction.Move)
-			.Do(x =>
-			{
-				listBox.SelectedIndex = x.EventArgs.NewStartingIndex;
-			})
-			.Subscribe()
-			.DisposeWith(disposables);
+		return this
+			.WhenAnyValue(x => x.AssociatedObject.Items)
+			.OfType<INotifyCollectionChanged>()
+			.Select(x => x.ObserveCollectionChanges())
+			.Switch();
+	}
+
+	private void SetSelectedIndex(int newIndex)
+	{
+		AssociatedObject.SelectedIndex = newIndex;
+	}
+
+	private bool IsSelectionMoving(EventPattern<NotifyCollectionChangedEventArgs> x)
+	{
+		var isMove = x.EventArgs.Action == NotifyCollectionChangedAction.Move;
+		var isSelectedMoving = AssociatedObject.SelectedIndex == x.EventArgs.OldStartingIndex;
+		return isMove && isSelectedMoving;
 	}
 }
