@@ -201,6 +201,7 @@ public class BuildTests
 	{
 		(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 		bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
+
 		// Create the services.
 		// 1. Create connection service.
 		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -329,6 +330,7 @@ public class BuildTests
 				}
 				return; // Occasionally this fails on Linux or OSX, I have no idea why.
 			}
+
 			// Spend the inputs of the tx so we know
 			var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
 			Assert.True(success);
