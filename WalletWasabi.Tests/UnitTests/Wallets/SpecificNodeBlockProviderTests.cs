@@ -34,6 +34,9 @@ public class SpecificNodeBlockProviderTests
 		Assert.Null(block);
 	}
 
+	/// <summary>
+	/// Simulates successful connection to a block providing node, obtaining a block and then simulating that the node got disconnected.
+	/// </summary>
 	[Fact]
 	public async Task GetValidBlockAsync()
 	{
@@ -56,8 +59,9 @@ public class SpecificNodeBlockProviderTests
 		_ = mockNode.Setup(c => c.ToString())
 			.CallBase();
 
-		_ = mockNode.Setup(c => c.DownloadBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(validBlock);
+		_ = mockNode.SetupSequence(c => c.DownloadBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(validBlock)
+			.Throws(new OperationCanceledException("Got disconnected"));
 
 		// Mock the provider.
 		Mock<SpecificNodeBlockProvider> mockProvider = new(MockBehavior.Strict, network, serviceConfiguration, /* torEndPoint */ null) { CallBase = true };
@@ -74,6 +78,10 @@ public class SpecificNodeBlockProviderTests
 		Block? actualBlock = await provider.TryGetBlockAsync(uint256.One, testDeadlineCts.Token);
 		Assert.NotNull(actualBlock);
 		Assert.Same(validBlock, actualBlock);
+
+		// Now the peer should be disconnected so an exception should be thrown.
+		OperationCanceledException ex = await Assert.ThrowsAsync<OperationCanceledException>(() => provider.TryGetBlockAsync(uint256.One, testDeadlineCts.Token));
+		Assert.Equal("Got disconnected", ex.Message);
 	}
 
 	private static string GetRawBlock()

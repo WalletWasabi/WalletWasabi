@@ -4,7 +4,6 @@ using NBitcoin.Protocol.Behaviors;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -41,6 +40,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	/// <summary>Tor endpoint to use or <c>null</c> if no Tor proxy should be used.</summary>
 	private EndPoint? TorEndPoint { get; }
 
+	/// <inheritdoc/>
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		if (_specificBitcoinCoreNode is { } node)
