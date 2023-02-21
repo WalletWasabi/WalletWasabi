@@ -565,6 +565,19 @@ public partial class Arena : PeriodicRunner
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
 		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
+
+		while (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
+		{
+			var testcoinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
+			if (testcoinjoin.EffectiveFeeRate < round.Parameters.MiningFeeRate)
+			{
+				diffMoney -= Money.Satoshis(1);
+				continue;
+			}
+
+			break;
+		}
+
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
