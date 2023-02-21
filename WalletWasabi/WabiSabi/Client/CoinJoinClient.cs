@@ -686,6 +686,8 @@ public class CoinJoinClient
 		var semiPrivateCoins = filteredCoins
 			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
 			.ToArray();
+
+		// redCoins will only fill up if redCoinIsolaton is turned on. Otherwise the coin will be in semiPrivateCoins.
 		var redCoins = filteredCoins
 			.Where(x => x.IsRedCoin(semiPrivateThreshold))
 			.ToArray();
