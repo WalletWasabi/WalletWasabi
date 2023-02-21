@@ -45,26 +45,33 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	{
 		if (_specificBitcoinCoreNode is { } node)
 		{
-			Block block;
-
-			// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-			using (CancellationTokenSource cts = new(TimeSpan.FromSeconds(64)))
+			try
 			{
-				block = await node.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
-			}
+				Block block;
 
-			// Validate retrieved block.
-			if (!block.Check())
+				// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+				using (CancellationTokenSource cts = new(TimeSpan.FromSeconds(64)))
+				{
+					block = await node.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
+				}
+
+				// Validate retrieved block.
+				if (!block.Check())
+				{
+					// Block is invalid. There is not much we can do.
+					Logger.LogInfo($"Block {hash} provided by node '{node}' is invalid. Is the node trusted?");
+					return null;
+				}
+
+				// Retrieved block from specific node and block is valid.
+				Logger.LogInfo($"Block {hash} acquired from node '{node}'.");
+
+				return block;
+			}
+			catch (Exception ex)
 			{
-				// Block is invalid. There is not much we can do.
-				Logger.LogInfo($"Block {hash} provided by node '{node}' is invalid. Is the node trusted?");
-				return null;
+				Logger.LogDebug($"Failed to get block from '{node}'.", ex);
 			}
-
-			// Retrieved block from specific node and block is valid.
-			Logger.LogInfo($"Block {hash} acquired from node '{node}'.");
-
-			return block;
 		}
 
 		return null;
