@@ -24,25 +24,6 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 
-	private enum Trigger
-	{
-		Invalid = 0,
-		Hide,
-		Show,
-		Loaded,
-		ShutdownPrevented,
-		ShutdownRequested,
-		MainWindowClosed,
-	}
-
-	private enum State
-	{
-		Invalid = 0,
-		InitialState,
-		Closed,
-		Open,
-	}
-
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
 		_lifetime = lifetime;
