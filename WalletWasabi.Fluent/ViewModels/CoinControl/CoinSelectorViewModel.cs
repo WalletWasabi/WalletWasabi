@@ -31,8 +31,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		var coinItems = sourceItems
 			.Connect()
-			.TransformMany(x => x.Children)
-			.Cast(x => (CoinCoinControlItemViewModel) x);
+			.TransformMany(x => x.Children);
 
 		sourceItems
 			.Connect()
