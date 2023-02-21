@@ -568,6 +568,7 @@ public partial class Arena : PeriodicRunner
 
 		while (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
+			// Fine-tune diffMoney by simulating the addition of an output and checking back the EffectiveFeeRate.
 			var testcoinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
 			if (testcoinjoin.EffectiveFeeRate < round.Parameters.MiningFeeRate)
 			{
