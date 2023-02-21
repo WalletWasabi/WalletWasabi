@@ -1,7 +1,6 @@
 using Moq;
 using NBitcoin;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
@@ -79,9 +78,9 @@ public class SpecificNodeBlockProviderTests
 		Assert.NotNull(actualBlock);
 		Assert.Same(validBlock, actualBlock);
 
-		// Now the peer should be disconnected so an exception should be thrown.
-		OperationCanceledException ex = await Assert.ThrowsAsync<OperationCanceledException>(() => provider.TryGetBlockAsync(uint256.One, testDeadlineCts.Token));
-		Assert.Equal("Got disconnected", ex.Message);
+		// Now the peer should be disconnected but even as such the return value should be null.
+		actualBlock = await provider.TryGetBlockAsync(uint256.One, testDeadlineCts.Token);
+		Assert.Null(actualBlock);
 	}
 
 	private static string GetRawBlock()
