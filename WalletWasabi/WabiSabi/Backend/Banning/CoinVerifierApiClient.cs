@@ -59,14 +59,14 @@ public class CoinVerifierApiClient
 
 		HttpResponseMessage? response = null;
 
-		lock (ParallelRequestCounterLock)
-		{
-			CurrentParallelRequestCount++;
-		}
-
 		while (CurrentParallelRequestCount >= MaxParallelRequestCount)
 		{
 			await Task.Delay(delay, linkedTokenSource.Token).ConfigureAwait(false);
+		}
+
+		lock (ParallelRequestCounterLock)
+		{
+			CurrentParallelRequestCount++;
 		}
 
 		do
