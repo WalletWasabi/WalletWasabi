@@ -28,7 +28,7 @@ public class ListBoxReselectingBehavior : DisposingBehavior<ListBox>
 	private IObservable<EventPattern<NotifyCollectionChangedEventArgs>> ItemsCollectionChanged()
 	{
 		return this
-			.WhenAnyValue(x => x.AssociatedObject.Items)
+			.WhenAnyValue(x => x.AssociatedObject!.Items)
 			.OfType<INotifyCollectionChanged>()
 			.Select(x => x.ObserveCollectionChanges())
 			.Switch();
@@ -36,13 +36,13 @@ public class ListBoxReselectingBehavior : DisposingBehavior<ListBox>
 
 	private void SetSelectedIndex(int newIndex)
 	{
-		AssociatedObject.SelectedIndex = newIndex;
+		AssociatedObject!.SelectedIndex = newIndex;
 	}
 
 	private bool IsSelectionMoving(EventPattern<NotifyCollectionChangedEventArgs> x)
 	{
 		var isMove = x.EventArgs.Action == NotifyCollectionChangedAction.Move;
-		var isSelectedMoving = AssociatedObject.SelectedIndex == x.EventArgs.OldStartingIndex;
+		var isSelectedMoving = AssociatedObject!.SelectedIndex == x.EventArgs.OldStartingIndex;
 		return isMove && isSelectedMoving;
 	}
 }
