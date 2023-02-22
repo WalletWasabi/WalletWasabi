@@ -14,17 +14,15 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierApiClient
 {
-	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
+	public CoinVerifierApiClient(string token, HttpClient httpClient)
 	{
 		ApiToken = token;
-		Network = network;
 		HttpClient = httpClient;
 	}
 
 	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	private string ApiToken { get; }
-	private Network Network { get; }
 
 	private HttpClient HttpClient { get; }
 
