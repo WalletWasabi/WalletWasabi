@@ -85,6 +85,7 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 
 					Dispatcher.UIThread.InvokeAsync(async () =>
 					{
+						v.Opacity = 0;
 						await animation.RunAsync(v, null);
 						v.Opacity = 1;
 					});
