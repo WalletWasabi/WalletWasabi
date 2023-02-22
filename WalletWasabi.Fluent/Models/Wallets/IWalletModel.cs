@@ -16,11 +16,11 @@ public interface IWalletModel
 
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
-	IAddress CreateReceiveAddress(IEnumerable<string> destinationLabels);
-
 	IObservable<Money> Balance { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+
+	IAddress CreateReceiveAddress(IEnumerable<string> destinationLabels);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
