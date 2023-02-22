@@ -9,14 +9,27 @@ namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public class BaseApiClient
 {
-	protected BaseApiClient(HttpClient httpClient)
+	protected BaseApiClient(HttpClient httpClient, Uri baseAddress, string token, TimeSpan? timeout = null)
 	{
-		HttpClient = httpClient;
+		HttpClient = ConfigureHttpClient(httpClient, baseAddress, token, timeout);
 	}
 	
 	private HttpClient HttpClient { get; }
 	protected Uri? BaseAddress => HttpClient.BaseAddress;
+	
+	private static HttpClient ConfigureHttpClient(HttpClient httpClient, Uri baseAddress, string token, TimeSpan? timeout = null)
+	{
+		httpClient.BaseAddress = baseAddress;
+		httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
+		
+		if (timeout is not null)
+		{
+			httpClient.Timeout = timeout.Value;
+		}
 
+		return httpClient;
+	}
+	
 	protected async Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage request, string? statistaName = null, CancellationToken cancel = default)
 	{
 		var stopWatch = new Stopwatch();

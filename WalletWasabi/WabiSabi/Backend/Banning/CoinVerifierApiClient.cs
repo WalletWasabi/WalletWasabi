@@ -4,24 +4,17 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 
-namespace WalletWasabi.WabiSabi.Backend.WebClients;
+namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierApiClient : BaseApiClient
 {
-	public CoinVerifierApiClient(Uri baseAddress, string token, HttpClient httpClient) : base(ConfigureHttpClient(baseAddress, token, httpClient))
+	public CoinVerifierApiClient(HttpClient httpClient, Uri baseAddress, string token, TimeSpan? timeout = null) : base(httpClient, baseAddress, token, timeout)
 	{
 	}
 
 	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
-	private static HttpClient ConfigureHttpClient(Uri baseAddress, string token, HttpClient httpClient)
-	{
-		httpClient.BaseAddress = baseAddress;
-		httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-		return httpClient;
-	}
 	
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
@@ -52,7 +45,7 @@ public class CoinVerifierApiClient : BaseApiClient
 
 			try
 			{
-				response = await base.SendRequestAsync(content, "verifier-request", linkedTokenSource.Token).ConfigureAwait(false);
+				response = await SendRequestAsync(content, "verifier-request", linkedTokenSource.Token).ConfigureAwait(false);
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
