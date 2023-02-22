@@ -10,6 +10,12 @@ namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public class CoinVerifierApiClient : BaseApiClient
 {
+	public CoinVerifierApiClient(Uri baseAddress, string token, HttpClient httpClient) : base(ConfigureHttpClient(baseAddress, token, httpClient))
+	{
+	}
+
+	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+
 	private static HttpClient ConfigureHttpClient(Uri baseAddress, string token, HttpClient httpClient)
 	{
 		httpClient.BaseAddress = baseAddress;
@@ -17,12 +23,6 @@ public class CoinVerifierApiClient : BaseApiClient
 		return httpClient;
 	}
 	
-	public CoinVerifierApiClient(Uri baseAddress, string token, HttpClient httpClient) : base(ConfigureHttpClient(baseAddress, token, httpClient))
-	{
-	}
-
-	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
 		if (BaseAddress is null)
