@@ -1,10 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -12,66 +9,53 @@ using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
-public class CoinVerifierApiClient
+public class CoinVerifierApiClient : IAsyncDisposable
 {
-	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
+	/// <summary>Maximum number of actual HTTP requests that might be served concurrently by the CoinVerifier webserver.</summary>
+	public const int MaxParallelRequestCount = 30;
+
+	/// <summary>Maximum re-tries for a single API request.</summary>
+	private const int MaxRetries = 3;
+
+	/// <summary>Timeout for a single <see cref="SendRequestAsync(Script, CancellationToken)"/> invocation (including retries).</summary>
+	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+
+	public CoinVerifierApiClient(string apiToken, HttpClient httpClient)
 	{
-		ApiToken = token;
-		Network = network;
+		ApiToken = apiToken;
 		HttpClient = httpClient;
-	}
 
-	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
-	{
-	}
-
-	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
-	private string ApiToken { get; set; }
-	private Network Network { get; set; }
-
-	private HttpClient HttpClient { get; set; }
-
-	private int MaxParallelRequestCount { get; } = 30;
-
-	private int CurrentParallelRequestCount { get; set; } = 0;
-
-	private object ParallelRequestCounterLock { get; } = new();
-
-	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
-	{
 		if (HttpClient.BaseAddress is null)
 		{
 			throw new HttpRequestException($"{nameof(HttpClient.BaseAddress)} was null.");
 		}
+
 		if (HttpClient.BaseAddress.Scheme != "https")
 		{
 			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
 		}
+	}
 
-		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
+	private string ApiToken { get; }
+
+	private HttpClient HttpClient { get; }
+
+	private SemaphoreSlim ThrottlingSemaphore { get; } = new(initialCount: MaxParallelRequestCount);
+
+	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
+	{
+		var address = script.GetDestinationAddress(Network.Main); // API provider doesn't accept testnet/regtest addresses.
 
 		using CancellationTokenSource timeoutTokenSource = new(TotalApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 
-		int tries = 3;
-		var delay = TimeSpan.FromSeconds(2);
-
 		HttpResponseMessage? response = null;
 
-		while (CurrentParallelRequestCount >= MaxParallelRequestCount)
+		for (int i = 0; i < MaxRetries; i++)
 		{
-			await Task.Delay(delay, linkedTokenSource.Token).ConfigureAwait(false);
-		}
-
-		lock (ParallelRequestCounterLock)
-		{
-			CurrentParallelRequestCount++;
-		}
-
-		do
-		{
-			tries--;
+			// Makes sure that there are no more than MaxParallelRequestCount requests in-flight at a time.
+			// Re-tries are not an exception to the max throttling limit.
+			await ThrottlingSemaphore.WaitAsync(linkedTokenSource.Token).ConfigureAwait(false);
 
 			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 			content.Headers.Authorization = new("Bearer", ApiToken);
@@ -97,15 +81,13 @@ public class CoinVerifierApiClient
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {tries}. Exception: {ex}.");
-				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {i}. Exception: {ex}.");
+				await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
 			}
-		}
-		while (tries > 0);
-
-		lock (ParallelRequestCounterLock)
-		{
-			CurrentParallelRequestCount--;
+			finally
+			{
+				ThrottlingSemaphore.Release();
+			}
 		}
 
 		// Throw proper exceptions - if needed - according to the latest response.
@@ -123,5 +105,13 @@ public class CoinVerifierApiClient
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
 		return deserializedRecord;
+	}
+
+	/// <inheritdoc/>
+	public ValueTask DisposeAsync()
+	{
+		ThrottlingSemaphore.Dispose();
+
+		return ValueTask.CompletedTask;
 	}
 }
