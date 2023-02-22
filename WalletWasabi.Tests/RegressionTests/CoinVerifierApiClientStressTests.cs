@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
+namespace WalletWasabi.Tests.RegressionTests;
 
-public class CoinVerifierApiClientTests
+/// <summary>
+/// Tests <see cref="CoinVerifierApiClient"/>.
+/// </summary>
+public class CoinVerifierApiClientStressTests
 {
 	/// <summary>
 	/// Stress test that we respect the maximum concurrency limit given by <see cref="CoinVerifierApiClient.MaxParallelRequestCount"/>.
