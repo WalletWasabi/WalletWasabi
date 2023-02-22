@@ -17,9 +17,6 @@ public class CoinVerifierApiClient : IAsyncDisposable
 	/// <summary>Maximum re-tries for a single API request.</summary>
 	private const int MaxRetries = 3;
 
-	/// <summary>Timeout for a single <see cref="SendRequestAsync(Script, CancellationToken)"/> invocation (including retries).</summary>
-	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
 	public CoinVerifierApiClient(string apiToken, HttpClient httpClient)
 	{
 		ApiToken = apiToken;
@@ -35,6 +32,9 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
 		}
 	}
+
+	/// <summary>Timeout for a single <see cref="SendRequestAsync(Script, CancellationToken)"/> invocation (including retries).</summary>
+	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	private string ApiToken { get; }
 
