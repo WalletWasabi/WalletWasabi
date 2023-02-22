@@ -1,6 +1,11 @@
+using Moq;
 using NBitcoin;
+using NBitcoin.RPC;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -340,7 +345,7 @@ public class MultipartyTransactionTests
 	}
 
 	[Fact]
-	public void FeeTests()
+	public async Task FeeTestsAsync()
 	{
 		var inputCount = 100;
 		var outputCount = 100;
@@ -395,11 +400,12 @@ public class MultipartyTransactionTests
 
 			var blameScript = BitcoinFactory.CreateScript();
 
-			var estimatedBlameScriptCost = feeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
-			var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
-			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
+			var round = WabiSabiFactory.CreateRound(parameters);
 
-			var totalInputSum2 = coinjoin.Balance;
+			// Make sure the the highest fee rate is low, so blame script will be added.
+			var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
+			coinjoin = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
+
 			coinjoin.Finalize();
 		}
 	}
