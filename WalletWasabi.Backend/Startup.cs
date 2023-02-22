@@ -12,6 +12,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net.Http;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
@@ -81,6 +82,8 @@ public class Startup
 			return config;
 		});
 
+		services.AddHttpClient();
+
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton(serviceProvider =>
 		{
@@ -95,7 +98,7 @@ public class Startup
 			IMemoryCache memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
 			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
 
-			return new Global(dataDir, cachedRpc, config);
+			return new Global(serviceProvider.GetRequiredService<IHttpClientFactory>(), dataDir, cachedRpc, config);
 		});
 		services.AddSingleton(serviceProvider =>
 		{

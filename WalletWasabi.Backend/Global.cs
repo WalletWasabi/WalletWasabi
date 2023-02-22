@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -20,20 +20,22 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 
 namespace WalletWasabi.Backend;
 
 public class Global : IDisposable
 {
 	private bool _disposedValue;
+	private readonly IHttpClientFactory _httpClientFactory;
 
-	public Global(string dataDir, IRPCClient rpcClient, Config config)
+	public Global(IHttpClientFactory httpClientFactory, string dataDir, IRPCClient rpcClient, Config config)
 	{
+		_httpClientFactory = httpClientFactory;
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
-		HttpClient = new();
 
 		CoordinatorParameters = new(DataDir);
 		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), CoordinatorParameters.CoinJoinIdStoreFilePath);
@@ -60,10 +62,9 @@ public class Global : IDisposable
 
 	public HostedServices HostedServices { get; }
 
+	public List<HttpClient> HttpClients { get; } = new();
 	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
 	public IndexBuilderService TaprootIndexBuilderService { get; }
-
-	private HttpClient HttpClient { get; }
 
 	public Coordinator? Coordinator { get; private set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
@@ -111,10 +112,7 @@ public class Global : IDisposable
 				{
 					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
 				}
-
-				HttpClient.BaseAddress = url;
-
-				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
+				var coinVerifierApiClient = new CoinVerifierApiClient(url, wabiSabiConfig.CoinVerifierApiAuthToken, CreateHttpClient());
 				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
 				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
 				CoinVerifier = coinVerifier;
@@ -171,6 +169,13 @@ public class Global : IDisposable
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
 	{
 		CoinJoinIdStore!.TryAdd(transaction.GetHash());
+	}
+
+	private HttpClient CreateHttpClient()
+	{
+		var coinVerifierHttpClient = _httpClientFactory.CreateClient();
+		HttpClients.Add(coinVerifierHttpClient);
+		return coinVerifierHttpClient;
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
@@ -234,7 +239,7 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
-				HttpClient.Dispose();
+				HttpClients.ForEach(x => x.Dispose());
 
 				if (Coordinator is { } coordinator)
 				{
