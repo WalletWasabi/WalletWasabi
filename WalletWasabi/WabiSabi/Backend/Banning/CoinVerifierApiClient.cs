@@ -21,16 +21,12 @@ public class CoinVerifierApiClient
 		HttpClient = httpClient;
 	}
 
-	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
-	{
-	}
+	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
-	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+	private string ApiToken { get; }
+	private Network Network { get; }
 
-	private string ApiToken { get; set; }
-	private Network Network { get; set; }
-
-	private HttpClient HttpClient { get; set; }
+	private HttpClient HttpClient { get; }
 
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
