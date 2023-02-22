@@ -59,7 +59,7 @@ public class LessSelectionStrategy : SelectionStrategy
 
 		if (sum > BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
 		{
-			BestSelection.Update(sum, totalCost, IncludedCoinsCount, selection[0..depth]);
+			BestSelection.Update(paymentAmount: sum, totalCost, IncludedCoinsCount, selection[0..depth]);
 		}
 
 		if (depth == selection.Length)

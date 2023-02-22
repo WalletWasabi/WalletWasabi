@@ -4,6 +4,7 @@ using System.Linq;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -177,7 +178,7 @@ public class SerializationTests
 		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
 		var roundState = RoundState.FromRound(round);
 		CoinJoinFeeRateMedian median = new(TimeSpan.FromHours(24), new FeeRate(120m));
-		RoundStateResponse response = new(new[] { roundState }, new[] { median });
+		RoundStateResponse response = new(new[] { roundState }, new[] { median }, AffiliateInformation.Empty);
 
 		AssertSerialization(response);
 	}
