@@ -106,6 +106,13 @@
         <ListBox Items="{Binding Items}" ClipToBounds="False"
                  SelectedItem="{Binding SelectedItem}"
                  x:Name="Ring" Margin="{Binding Margin}">
+          <ListBox.Styles>
+            <!-- Initial opacity should be 0 to avoid UI glitch. -->
+            <!-- ItemsControlAnimationBehavior will set it to 1 once the animation finished.  -->
+            <Style Selector="ListBoxItem">
+              <Setter Property="Opacity" Value="0"/>
+            </Style>
+          </ListBox.Styles>
           <i:Interaction.Behaviors>
             <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="250" />
             <behaviors:ItemsControlAnimationBehavior />
