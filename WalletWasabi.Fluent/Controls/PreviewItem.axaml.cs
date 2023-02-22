@@ -86,8 +86,8 @@ public class PreviewItem : ContentControl
 	{
 		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
 
-		var isCopyButtonVisible = button
-			.WhenAnyValue(x => x.CopyCommand.IsExecuting).Switch()
+		var isCopyButtonVisible =
+			button.CopyCommand.IsExecuting
 			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b)))
 			.Select(x => x.First || x.Second);
 
