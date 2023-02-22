@@ -35,6 +35,8 @@ public class Address : ReactiveObject, IAddress
 	public string Text => BitcoinAddress.ToString();
 	public IEnumerable<string> Labels => Label;
 
+	private bool IsUnused => !Label.IsEmpty && !HdPubKey.IsInternal && HdPubKey.KeyState == KeyState.Clean;
+
 	public bool IsUsed => !IsUnused;
 
 	public void Hide()
@@ -72,8 +74,6 @@ public class Address : ReactiveObject, IAddress
 			Logger.LogError(ex);
 			var exMessage = cts.IsCancellationRequested ? "User response didn't arrive in time." : ex.ToUserFriendlyString();
 			throw;
-		};
+		}
 	}
-
-	private bool IsUnused => !Label.IsEmpty && !HdPubKey.IsInternal && HdPubKey.KeyState == KeyState.Clean;
 }
