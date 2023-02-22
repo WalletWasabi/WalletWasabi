@@ -59,7 +59,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		{
 			lock (RunningAffiliateServersLock)
 			{
-				if (!RunningAffiliateServers.Add(affiliationId))
+				if (RunningAffiliateServers.Add(affiliationId))
 				{
 					Logging.Logger.LogInfo($"Affiliate server '{affiliationId}' went up.");
 				}
