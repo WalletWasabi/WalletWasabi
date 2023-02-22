@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -96,23 +97,23 @@ public class Wallet : BackgroundService, IWallet
 	public bool IsLoggedIn { get; private set; }
 
 	public Kitchen Kitchen { get; } = new();
-	
+
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
-	
+
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
-	
+
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
 		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
 		&& Kitchen.HasIngredients;
-	
+
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
-	
+
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
@@ -122,7 +123,7 @@ public class Wallet : BackgroundService, IWallet
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
-	
+
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
@@ -137,7 +138,18 @@ public class Wallet : BackgroundService, IWallet
 		}
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
-	
+
+	public HdPubKey CreateReceiveAddress(IEnumerable<string> destinationLabels)
+	{
+		if (KeyManager.MasterFingerprint == null)
+		{
+			throw new InvalidOperationException("Master fingerprint should not be null");
+		}
+
+		var hdPubKey = KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
+		return hdPubKey;
+	}
+
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
 		var privateAmount = coins.FilterBy(x => x.IsPrivate(privateThreshold)).TotalAmount();
@@ -449,9 +461,9 @@ public class Wallet : BackgroundService, IWallet
 
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
-			async (filterModel) => 
-				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false), 
-			new Height(bestKeyManagerHeight.Value + 1), 
+			async (filterModel) =>
+				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
+			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
 	}
 
