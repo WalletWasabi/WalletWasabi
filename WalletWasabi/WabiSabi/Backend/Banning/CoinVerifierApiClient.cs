@@ -46,16 +46,13 @@ public class CoinVerifierApiClient : IAsyncDisposable
 	{
 		var address = script.GetDestinationAddress(Network.Main); // API provider doesn't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(TotalApiRequestTimeout);
-		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
-
 		HttpResponseMessage? response = null;
 
 		for (int i = 0; i < MaxRetries; i++)
 		{
 			// Makes sure that there are no more than MaxParallelRequestCount requests in-flight at a time.
 			// Re-tries are not an exception to the max throttling limit.
-			await ThrottlingSemaphore.WaitAsync(linkedTokenSource.Token).ConfigureAwait(false);
+			await ThrottlingSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 			content.Headers.Authorization = new("Bearer", ApiToken);
@@ -64,7 +61,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			{
 				var before = DateTimeOffset.UtcNow;
 
-				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+				response = await HttpClient.SendAsync(content, cancellationToken).ConfigureAwait(false);
 
 				var duration = DateTimeOffset.UtcNow - before;
 				RequestTimeStatista.Instance.Add("verifier-request", duration);
@@ -100,7 +97,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
+		string responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
