@@ -17,11 +17,18 @@ public class BaseApiClient
 	private HttpClient HttpClient { get; }
 	protected Uri? BaseAddress => HttpClient.BaseAddress;
 	
-	private static HttpClient ConfigureHttpClient(HttpClient httpClient, Uri baseAddress, string token, TimeSpan? timeout = null)
+	private static HttpClient ConfigureHttpClient(HttpClient httpClient, Uri? baseAddress, string? token, TimeSpan? timeout)
 	{
-		httpClient.BaseAddress = baseAddress;
-		httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
-		
+		if (baseAddress is not null)
+		{
+			httpClient.BaseAddress = baseAddress;
+		}
+
+		if (token is not null)
+		{
+			httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
+		}
+
 		if (timeout is not null)
 		{
 			httpClient.Timeout = timeout.Value;
