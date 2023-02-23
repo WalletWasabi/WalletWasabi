@@ -11,9 +11,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -33,7 +31,7 @@ public static class TransactionHelpers
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			coins.Select(coin => coin.Outpoint),
+			allowedInputs: coins.Select(coin => coin.Outpoint),
 			tryToSign: tryToSign);
 
 		return txRes;

@@ -20,22 +20,20 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
-using WalletWasabi.WabiSabi.Backend.WebClients;
 
 namespace WalletWasabi.Backend;
 
 public class Global : IDisposable
 {
 	private bool _disposedValue;
-	private readonly IHttpClientFactory _httpClientFactory;
 
-	public Global(IHttpClientFactory httpClientFactory, string dataDir, IRPCClient rpcClient, Config config)
+	public Global(string dataDir, IRPCClient rpcClient, Config config, IHttpClientFactory httpClientFactory)
 	{
-		_httpClientFactory = httpClientFactory;
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
+		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
 		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), CoordinatorParameters.CoinJoinIdStoreFilePath);
@@ -65,6 +63,8 @@ public class Global : IDisposable
 	public List<HttpClient> HttpClients { get; } = new();
 	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
 	public IndexBuilderService TaprootIndexBuilderService { get; }
+
+	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Coordinator? Coordinator { get; private set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
@@ -153,7 +153,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
@@ -173,7 +173,7 @@ public class Global : IDisposable
 
 	private HttpClient CreateHttpClient()
 	{
-		var httpClient = _httpClientFactory.CreateClient();
+		var httpClient = HttpClientFactory.CreateClient();
 		HttpClients.Add(httpClient);
 		return httpClient;
 	}

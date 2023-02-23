@@ -9,6 +9,11 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
+using WalletWasabi.Affiliation.Models;
+using System.Linq;
+using System.Collections.Immutable;
+using WalletWasabi.Affiliation;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
@@ -29,11 +34,11 @@ public class RoundStateUpdaterTests
 		// Each line represents a response for each request.
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState2 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState2 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), mockApiClient.Object);
 
@@ -105,13 +110,13 @@ public class RoundStateUpdaterTests
 		// Exceptions, Problems, Errors everywhere!!!
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
 			.ThrowsAsync(new Exception())
 			.ThrowsAsync(new OperationCanceledException())
 			.ThrowsAsync(new InvalidOperationException())
 			.ThrowsAsync(new HttpRequestException())
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), mockApiClient.Object);
 
@@ -153,13 +158,13 @@ public class RoundStateUpdaterTests
 		// Exceptions, Problems, Errors everywhere!!!
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
 			.ThrowsAsync(new Exception())
 			.ThrowsAsync(new OperationCanceledException())
 			.ThrowsAsync(new InvalidOperationException())
 			.ThrowsAsync(new HttpRequestException())
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.Ended } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.Ended } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), mockApiClient.Object);
 
@@ -198,7 +203,8 @@ public class RoundStateUpdaterTests
 			.ReturnsAsync(
 				() => new RoundStateResponse(
 					new[] { roundState with { Phase = Phase.InputRegistration } },
-					Array.Empty<CoinJoinFeeRateMedian>()));
+					Array.Empty<CoinJoinFeeRateMedian>(),
+					AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), mockApiClient.Object);
 		try

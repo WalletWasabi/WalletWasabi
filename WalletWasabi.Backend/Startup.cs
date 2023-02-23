@@ -13,6 +13,7 @@ using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
@@ -82,13 +83,22 @@ public class Startup
 			return config;
 		});
 
+		services.AddSingleton<IdempotencyRequestCache>();
+
+		// Generic clients used for third party APIs
 		services.AddHttpClient();
 
-		services.AddSingleton<IdempotencyRequestCache>();
+		// Client used for affiliate server
+		services.AddHttpClient(AffiliationConstants.LogicalHttpClientName).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+		{
+			// See https://github.com/dotnet/runtime/issues/18348#issuecomment-415845645
+			PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+		});
 		services.AddSingleton(serviceProvider =>
 		{
 			Config config = serviceProvider.GetRequiredService<Config>();
 			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
+			IHttpClientFactory httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
 			RPCClient rpcClient = new(
 					authenticationString: config.BitcoinRpcConnectionString,
@@ -98,7 +108,7 @@ public class Startup
 			IMemoryCache memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
 			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
 
-			return new Global(serviceProvider.GetRequiredService<IHttpClientFactory>(), dataDir, cachedRpc, config);
+			return new Global(dataDir, cachedRpc, config, httpClientFactory);
 		});
 		services.AddSingleton(serviceProvider =>
 		{
@@ -111,6 +121,12 @@ public class Startup
 			var global = serviceProvider.GetRequiredService<Global>();
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.CoinJoinFeeRateStatStore;
+		});
+		services.AddSingleton(serviceProvider =>
+		{
+			var global = serviceProvider.GetRequiredService<Global>();
+			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
+			return coordinator.AffiliationManager;
 		});
 		services.AddStartupTask<InitConfigStartupTask>();
 
