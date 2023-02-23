@@ -344,69 +344,74 @@ public class MultipartyTransactionTests
 		Assert.Equal(output, Assert.Single(updated.Outputs));
 	}
 
-	[Fact]
-	public async Task FeeTestsAsync()
+	[Theory]
+	[InlineData("0.2")]
+	[InlineData("0.8")]
+	[InlineData("1.675")]
+	[InlineData("2.7")]
+	[InlineData("4.9")]
+	[InlineData("10.6")]
+	[InlineData("20.7")]
+	[InlineData("100")]
+	[InlineData("0")]
+	public async Task FeeTestsAsync(string feeRateString)
 	{
 		var inputCount = 100;
 		var outputCount = 100;
 		Random random = new(12345);
 
-		for (int u = 0; u < 100; u++)
+		FeeRate feeRate = new(decimal.Parse(feeRateString));
+		CoordinationFeeRate coordinatorFeeRate = new(0m, Money.Zero);
+
+		var parameters = WabiSabiFactory.CreateRoundParameters(new()
 		{
-			var feemult = random.NextDouble();
-			FeeRate feeRate = new(Money.Satoshis((decimal)(50 * feemult)));
-			CoordinationFeeRate coordinatorFeeRate = new(0m, Money.Zero);
+			MinRegistrableAmount = DefaultAllowedAmounts.Min,
+			MaxRegistrableAmount = Money.Coins(43000m),
+			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
+		}) with
+		{
+			MiningFeeRate = feeRate
+		};
 
-			var parameters = WabiSabiFactory.CreateRoundParameters(new()
-			{
-				MinRegistrableAmount = DefaultAllowedAmounts.Min,
-				MaxRegistrableAmount = Money.Coins(43000m),
-				MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
-			}) with
-			{
-				MiningFeeRate = feeRate
-			};
+		var state = new ConstructionState(parameters);
 
-			var state = new ConstructionState(parameters);
+		for (int i = 0; i < inputCount; i++)
+		{
+			using Key key = new();
+			(var aliceCoin, var aliceOwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key);
 
-			for (int i = 0; i < inputCount; i++)
-			{
-				using Key key = new();
-				(var aliceCoin, var aliceOwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key);
-
-				state = state.AddInput(aliceCoin, aliceOwnershipProof, CommitmentData);
-				var effectiveInput = aliceCoin.EffectiveValue(feeRate, coordinatorFeeRate);
-			}
-
-			var totalInputEffSum = Money.Satoshis(state.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
-
-			var tenPercent = Money.Satoshis((long)(totalInputEffSum.Satoshi * 0.1));
-
-			var outputCoinNominal = Money.Satoshis(totalInputEffSum.Satoshi / outputCount);
-
-			do
-			{
-				var min = (int)(outputCoinNominal.Satoshi * 0.7);
-				var max = (int)(outputCoinNominal.Satoshi * 1.3);
-				var amount = Money.Satoshis(random.Next(min, max));
-				var p2wpkh = BitcoinFactory.CreateScript();
-				state = state.AddOutput(new TxOut(amount, p2wpkh));
-			}
-			while (state.Balance > tenPercent);
-
-			var totalInputSum = state.Balance;
-
-			var coinjoin = state;
-
-			var blameScript = BitcoinFactory.CreateScript();
-
-			var round = WabiSabiFactory.CreateRound(parameters);
-
-			// Make sure the the highest fee rate is low, so blame script will be added.
-			var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
-			coinjoin = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
-
-			coinjoin.Finalize();
+			state = state.AddInput(aliceCoin, aliceOwnershipProof, CommitmentData);
+			var effectiveInput = aliceCoin.EffectiveValue(feeRate, coordinatorFeeRate);
 		}
+
+		var totalInputEffSum = Money.Satoshis(state.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
+
+		var tenPercent = Money.Satoshis((long)(totalInputEffSum.Satoshi * 0.1));
+
+		var outputCoinNominal = Money.Satoshis(totalInputEffSum.Satoshi / outputCount);
+
+		do
+		{
+			var min = (int)(outputCoinNominal.Satoshi * 0.7);
+			var max = (int)(outputCoinNominal.Satoshi * 1.3);
+			var amount = Money.Satoshis(random.Next(min, max));
+			var p2wpkh = BitcoinFactory.CreateScript();
+			state = state.AddOutput(new TxOut(amount, p2wpkh));
+		}
+		while (state.Balance > tenPercent);
+
+		var totalInputSum = state.Balance;
+
+		var coinjoin = state;
+
+		var blameScript = BitcoinFactory.CreateScript();
+
+		var round = WabiSabiFactory.CreateRound(parameters);
+
+		// Make sure the the highest fee rate is low, so blame script will be added.
+		var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
+		coinjoin = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
+
+		coinjoin.Finalize();
 	}
 }

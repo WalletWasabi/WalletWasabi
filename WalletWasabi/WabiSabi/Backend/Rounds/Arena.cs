@@ -563,9 +563,14 @@ public partial class Arena : PeriodicRunner
 
 	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod, CancellationToken cancellationToken)
 	{
-		// If timeout we must fill up the outputs to build a reasonable transaction.
-		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var diffMoney = Money.Satoshis(round.Parameters.MiningFeeRate.SatoshiPerByte * (coinjoin.EstimatedVsize - coinjoin.UnpaidSharedOverhead - blameScript.EstimateOutputVsize()));
+		// SharedOverhead calculated into EstimatedVsize.
+		var sizeToPayFor = coinjoin.EstimatedVsize + blameScript.EstimateOutputVsize();
+		var miningFee = sizeToPayFor == 0
+			? Money.Zero
+			: round.Parameters.MiningFeeRate.GetFee(sizeToPayFor);
+
+		// Sub 1 sat to avoid off-by-one error coming from roundings.
+		var diffMoney = coinjoin.Balance - miningFee - Money.Satoshis(1);
 
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
