@@ -21,7 +21,6 @@ public class CoinVerifierApiClient
 	}
 
 	private string ApiToken { get; set; }
-	private Network Network { get; set; }
 
 	private HttpClient HttpClient { get; }
 
