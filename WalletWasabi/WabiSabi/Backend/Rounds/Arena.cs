@@ -19,6 +19,8 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Events;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
@@ -53,6 +55,11 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
+	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
+	public event EventHandler<CoinJoinTransactionCreatedEventArgs>? CoinJoinTransactionCreated;
+	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
+	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
+	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
@@ -155,18 +162,18 @@ public partial class Arena : PeriodicRunner
 					}
 
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
-					round.EndRound(EndRoundState.AbortedNotEnoughAlices);
+					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, true);
-					round.SetPhase(Phase.ConnectionConfirmation);
+					SetRoundPhase(round, Phase.ConnectionConfirmation);
 				}
 			}
 			catch (Exception ex)
 			{
-				round.EndRound(EndRoundState.AbortedWithError);
+				EndRound(round, EndRoundState.AbortedWithError);
 				round.LogError(ex.Message);
 			}
 		}
@@ -180,7 +187,7 @@ public partial class Arena : PeriodicRunner
 			{
 				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
-					round.SetPhase(Phase.OutputRegistration);
+					SetRoundPhase(round, Phase.OutputRegistration);
 				}
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
@@ -209,19 +216,19 @@ public partial class Arena : PeriodicRunner
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
-						round.EndRound(EndRoundState.AbortedNotEnoughAlices);
+						EndRound(round, EndRoundState.AbortedNotEnoughAlices);
 						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
 					}
 					else
 					{
 						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
-						round.SetPhase(Phase.OutputRegistration);
+						SetRoundPhase(round, Phase.OutputRegistration);
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				round.EndRound(EndRoundState.AbortedWithError);
+				EndRound(round, EndRoundState.AbortedWithError);
 				round.LogError(ex.Message);
 			}
 		}
@@ -248,19 +255,19 @@ public partial class Arena : PeriodicRunner
 
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
 
-					round.CoinjoinState = coinjoin.Finalize();
+					round.CoinjoinState = FinalizeTransaction(round.Id, coinjoin);
 
 					if (!allReady && phaseExpired)
 					{
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
 					}
 
-					round.SetPhase(Phase.TransactionSigning);
+					SetRoundPhase(round, Phase.TransactionSigning);
 				}
 			}
 			catch (Exception ex)
 			{
-				round.EndRound(EndRoundState.AbortedWithError);
+				EndRound(round, EndRoundState.AbortedWithError);
 				round.LogError(ex.Message);
 			}
 		}
@@ -330,7 +337,7 @@ public partial class Arena : PeriodicRunner
 						}
 					}
 
-					round.EndRound(EndRoundState.TransactionBroadcasted);
+					EndRound(round, EndRoundState.TransactionBroadcasted);
 					round.LogInfo($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.");
 
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
@@ -345,12 +352,12 @@ public partial class Arena : PeriodicRunner
 			catch (RPCException ex)
 			{
 				round.LogWarning($"Transaction broadcasting failed: '{ex}'.");
-				round.EndRound(EndRoundState.TransactionBroadcastFailed);
+				EndRound(round, EndRoundState.TransactionBroadcastFailed);
 			}
 			catch (Exception ex)
 			{
 				round.LogWarning($"Signing phase failed, reason: '{ex}'.");
-				round.EndRound(EndRoundState.AbortedWithError);
+				EndRound(round, EndRoundState.AbortedWithError);
 			}
 		}
 	}
@@ -394,12 +401,12 @@ public partial class Arena : PeriodicRunner
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
-			round.EndRound(EndRoundState.NotAllAlicesSign);
+			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
-			round.EndRound(EndRoundState.AbortedNotEnoughAlicesSigned);
+			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
 		}
 	}
 
@@ -413,7 +420,7 @@ public partial class Arena : PeriodicRunner
 
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
-		Rounds.Add(blameRound);
+		AddRound(blameRound);
 		blameRound.LogInfo($"Blame round created from round '{round.Id}'.");
 	}
 
@@ -461,8 +468,8 @@ public partial class Arena : PeriodicRunner
 					// If creation is successful destory round only.
 					if (smallRound is not null)
 					{
-						Rounds.Add(largeRound);
-						Rounds.Add(smallRound);
+						AddRound(largeRound);
+						AddRound(smallRound);
 
 						if (foundLargeRound is null)
 						{
@@ -471,7 +478,7 @@ public partial class Arena : PeriodicRunner
 						smallRound.LogInfo($"Mined round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
 
 						// If it can't create the large round, then don't abort.
-						round.EndRound(EndRoundState.AbortedLoadBalancing);
+						EndRound(round, EndRoundState.AbortedLoadBalancing);
 						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
 					}
 				}
@@ -487,7 +494,7 @@ public partial class Arena : PeriodicRunner
 			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
-			Rounds.Add(r);
+			AddRound(r);
 			r.LogInfo($"Created round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 		}
 	}
@@ -606,7 +613,7 @@ public partial class Arena : PeriodicRunner
 
 	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
 	{
-		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		var coordinationFee = round.Alices.Where(a => !a.IsCoordinationFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		if (coordinationFee == 0)
 		{
 			round.LogInfo($"Coordination fee wasn't taken, because it was free for everyone. Hurray!");
@@ -651,6 +658,50 @@ public partial class Arena : PeriodicRunner
 		// Cound be a coin from WW1.
 		var roundId = roundState?.Id ?? uint256.Zero;
 		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
+	}
+
+	private void AddRound(Round round)
+	{
+		Rounds.Add(round);
+		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
+	}
+
+	private void SetRoundPhase(Round round, Phase phase)
+	{
+		round.SetPhase(phase);
+
+		if (phase == Phase.OutputRegistration)
+		{
+			foreach (Alice alice in round.Alices)
+			{
+				NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
+			}
+		}
+
+		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
+	}
+
+	private void EndRound(Round round, EndRoundState endRoundState)
+	{
+		round.EndRound(endRoundState);
+		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
+	}
+
+	private void NotifyInput(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)
+	{
+		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isCoordinationFeeExempted));
+	}
+
+	private void NotifyAffiliation(uint256 roundId, Coin coin, string affiliationId)
+	{
+		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationId));
+	}
+
+	private SigningState FinalizeTransaction(uint256 roundId, ConstructionState constructionState)
+	{
+		SigningState signingState = constructionState.Finalize();
+		CoinJoinTransactionCreated?.SafeInvoke(this, new CoinJoinTransactionCreatedEventArgs(roundId, signingState.CreateTransaction()));
+		return signingState;
 	}
 
 	public override void Dispose()
