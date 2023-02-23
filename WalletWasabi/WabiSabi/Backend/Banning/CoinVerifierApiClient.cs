@@ -14,23 +14,17 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierApiClient
 {
-	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
+	public CoinVerifierApiClient(string token, HttpClient httpClient)
 	{
 		ApiToken = token;
-		Network = network;
 		HttpClient = httpClient;
 	}
 
-	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
-	{
-	}
+	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
-	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+	private string ApiToken { get; }
 
-	private string ApiToken { get; set; }
-	private Network Network { get; set; }
-
-	private HttpClient HttpClient { get; set; }
+	private HttpClient HttpClient { get; }
 
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
@@ -43,7 +37,7 @@ public class CoinVerifierApiClient
 			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
 		}
 
-		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
+		var address = script.GetDestinationAddress(Network.Main); // API provider doesn't accept testnet/regtest addresses.
 
 		using CancellationTokenSource timeoutTokenSource = new(TotalApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
