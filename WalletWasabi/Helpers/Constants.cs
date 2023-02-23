@@ -61,6 +61,7 @@ public static class Constants
 	public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	public const string ExecutableName = "wassabee";
+	public const string SilentExecutableName = "wassabeehidden.command";
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
