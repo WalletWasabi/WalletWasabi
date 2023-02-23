@@ -20,6 +20,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Backend.WebClients;
 
 namespace WalletWasabi.Backend;
 
@@ -171,9 +172,9 @@ public class Global : IDisposable
 		CoinJoinIdStore!.TryAdd(transaction.GetHash());
 	}
 
-	private HttpClient CreateHttpClient()
+	private HttpClient CreateHttpClient(string name = "")
 	{
-		var httpClient = HttpClientFactory.CreateClient();
+		var httpClient = HttpClientFactory.CreateClient(name);
 		HttpClients.Add(httpClient);
 		return httpClient;
 	}

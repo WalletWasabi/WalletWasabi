@@ -4,9 +4,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.WebClients;
+using WalletWasabi.WabiSabi.Backend.Banning;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public class CoinVerifierApiClient : BaseApiClient
 {
