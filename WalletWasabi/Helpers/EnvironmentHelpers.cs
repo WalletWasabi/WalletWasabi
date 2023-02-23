@@ -144,6 +144,15 @@ public static class EnvironmentHelpers
 	/// https://stackoverflow.com/a/47918132/2061103
 	/// </summary>
 	public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
+		=> await ShellExecAndGetResultAsync(cmd, waitForExit, false).ConfigureAwait(false);
+
+	public static async Task<List<string>> ShellExecAndGetResultAsync(string cmd)
+		=> await ShellExecAndGetResultAsync(cmd, true, true).ConfigureAwait(false);
+
+	/// <summary>
+	/// Executes a command with Bourne shell and returns Standard Output.
+	/// </summary>
+	private static async Task<List<string>> ShellExecAndGetResultAsync(string cmd, bool waitForExit = true, bool readResult = false)
 	{
 		var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -152,11 +161,18 @@ public static class EnvironmentHelpers
 			FileName = "/usr/bin/env",
 			Arguments = $"sh -c \"{escapedArgs}\"",
 			RedirectStandardOutput = true,
+			RedirectStandardError = readResult,
 			UseShellExecute = false,
 			CreateNoWindow = true,
 			WindowStyle = ProcessWindowStyle.Hidden
 		};
 
+		if (readResult)
+		{
+			waitForExit = true;
+		}
+
+		List<string> result = new();
 		if (waitForExit)
 		{
 			using var process = new ProcessAsync(startInfo);
@@ -168,46 +184,21 @@ public static class EnvironmentHelpers
 			{
 				Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 			}
+
+			if (readResult)
+			{
+				while (!process.StandardOutput.EndOfStream)
+				{
+					string? line = process.StandardOutput.ReadLine() ?? string.Empty;
+					result.Add(line);
+				}
+			}
 		}
 		else
 		{
 			using var process = Process.Start(startInfo);
 		}
-	}
 
-	/// <summary>
-	/// Executes a command with Bourne shell and returns Standard Output.
-	/// </summary>
-	public static async Task<List<string>> ShellExecAndGetResultAsync(string cmd)
-	{
-		var escapedArgs = cmd.Replace("\"", "\\\"");
-
-		var startInfo = new ProcessStartInfo
-		{
-			FileName = "/usr/bin/env",
-			Arguments = $"sh -c \"{escapedArgs}\"",
-			RedirectStandardOutput = true,
-			RedirectStandardError = true,
-			UseShellExecute = false,
-			CreateNoWindow = true,
-			WindowStyle = ProcessWindowStyle.Hidden
-		};
-
-		List<string> result = new();
-		using var process = new ProcessAsync(startInfo);
-		process.Start();
-
-		await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-
-		if (process.ExitCode != 0)
-		{
-			Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
-		}
-		while (!process.StandardOutput.EndOfStream)
-		{
-			string? line = process.StandardOutput.ReadLine() ?? string.Empty;
-			result.Add(line);
-		}
 		return result;
 	}
 
