@@ -14,7 +14,7 @@ public class BaseApiClient
 		HttpClient = ConfigureHttpClient(httpClient, baseAddress, token, timeout);
 	}
 	
-	private HttpClient HttpClient { get; }
+	protected HttpClient HttpClient { get; }
 	protected Uri? BaseAddress => HttpClient.BaseAddress;
 	
 	private static HttpClient ConfigureHttpClient(HttpClient httpClient, Uri? baseAddress, string? token, TimeSpan? timeout)
