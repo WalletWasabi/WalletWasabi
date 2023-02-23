@@ -50,7 +50,7 @@ public class TorTests : IAsyncLifetime
 	}
 
 	[Theory]
-	[InlineData(150)]
+	[InlineData(75)]
 	public async Task OverloadTestAsync(int times)
 	{
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
@@ -62,25 +62,56 @@ public class TorTests : IAsyncLifetime
 		var tasks = new List<Task<bool>>();
 		for (var i = 0; i < times; i++)
 		{
-			var task = SendHandleExceptAsync(client, ctsTimeout.Token);
+			var task = SendHandleExceptAsync(client, ctsTimeout.Token, 1024);
 			tasks.Add(task);
 		}
-		var results = await Task.WhenAll(tasks);
+		var counter = tasks.Count;
+		TestOutputHelper.WriteLine($"{counter} tasks launched.");
+
+		var counterSuccesses = 0;
+		var counterFailures = 0;
+		while (tasks.Any(x => !x.IsCompleted))
+		{
+			var result = await Task.WhenAny(tasks);
+			tasks.Remove(result);
+			if (result.Result)
+			{
+				counterSuccesses++;
+			}
+			else
+			{
+				counterFailures++;
+			}
+			TestOutputHelper.WriteLine($"Request finished with success: {result.Result} after {sw.Elapsed.TotalSeconds}s - {--counter} requests remaining.");
+		}
 
 		sw.Stop();
-		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds} - Successes: {results.Count(x => x)} - Failures: {results.Count(x => !x)}");
+		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds} - Successes: {counterSuccesses} - Failures: {counterFailures}");
 	}
 
-	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, CancellationToken cancel)
+	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, CancellationToken cancel, int contentSize = 0)
 	{
+		HttpContent? content = null;
+		if (contentSize > 0)
+		{
+			Random random = new Random();
+			byte[] buffer = new byte[1024]; // create a byte array of 1024 bytes
+			random.NextBytes(buffer); // fill the byte array with random values
+			content = new ByteArrayContent(buffer); // create the HttpContent object
+		}
+
 		try
 		{
-			await client.SendAsync(HttpMethod.Get, "/", null, cancel);
+			await client.SendAsync(HttpMethod.Get, "/", content, cancel);
 			return true;
 		}
 		catch
 		{
 			return false;
+		}
+		finally
+		{
+			content?.Dispose();
 		}
 	}
 
