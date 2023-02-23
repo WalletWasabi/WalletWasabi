@@ -228,9 +228,8 @@ public class CoinVerifier : IAsyncDisposable
 		_ = Task.Run(
 			async () =>
 			{
-				using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
 				using CancellationTokenSource requestTimeoutCts = new(ApiRequestTimeout);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, absoluteTimeoutCts.Token, item.Token, requestTimeoutCts.Token);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token, requestTimeoutCts.Token);
 
 				try
 				{
