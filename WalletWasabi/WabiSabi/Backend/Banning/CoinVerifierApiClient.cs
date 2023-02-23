@@ -20,7 +20,7 @@ public class CoinVerifierApiClient
 		HttpClient = httpClient;
 	}
 
-	private string ApiToken { get; set; }
+	private string ApiToken { get; }
 
 	private HttpClient HttpClient { get; }
 
