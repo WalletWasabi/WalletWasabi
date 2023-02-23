@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -59,9 +60,15 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
@@ -537,9 +544,15 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
@@ -711,9 +724,15 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -781,5 +800,14 @@ public class SendTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }

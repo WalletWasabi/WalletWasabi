@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -85,6 +86,34 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
+	public Network Network { get; }
+	public TransactionProcessor TransactionProcessor { get; private set; }
+
+	public HybridFeeProvider FeeProvider { get; private set; }
+	public FilterModel LastProcessedFilter { get; private set; }
+	public IBlockProvider BlockProvider { get; private set; }
+	private AsyncLock HandleFiltersLock { get; }
+
+	public bool IsLoggedIn { get; private set; }
+
+	public Kitchen Kitchen { get; } = new();
+
+	public IKeyChain? KeyChain { get; }
+
+	public IDestinationProvider DestinationProvider { get; }
+
+	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
+	public bool ConsolidationMode => false;
+
+	public bool IsMixable =>
+		State == WalletState.Started // Only running wallets
+		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
+		&& Kitchen.HasIngredients;
+
+	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
+
+	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
+
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
@@ -92,6 +121,8 @@ public class Wallet : BackgroundService, IWallet
 	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
+
+	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
@@ -108,12 +139,15 @@ public class Wallet : BackgroundService, IWallet
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
 
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
+	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
+	{
+		return KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
+	}
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
-		var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+		var privateAmount = coins.FilterBy(x => x.IsPrivate(privateThreshold)).TotalAmount();
+		var normalAmount = coins.FilterBy(x => !x.IsPrivate(privateThreshold)).TotalAmount();
 
 		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
 		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
@@ -122,20 +156,6 @@ public class Wallet : BackgroundService, IWallet
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
 	}
-
-	public Network Network { get; }
-	public TransactionProcessor TransactionProcessor { get; private set; }
-
-	public HybridFeeProvider FeeProvider { get; private set; }
-	public FilterModel LastProcessedFilter { get; private set; }
-	public IBlockProvider BlockProvider { get; private set; }
-	private AsyncLock HandleFiltersLock { get; }
-
-	public bool IsLoggedIn { get; private set; }
-
-	public Kitchen Kitchen { get; } = new();
-
-	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
@@ -224,6 +244,7 @@ public class Wallet : BackgroundService, IWallet
 				{
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
+					LoadExcludedCoins();
 				}
 			}
 
@@ -235,6 +256,27 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Initialized;
 			throw;
+		}
+	}
+
+	private void LoadExcludedCoins()
+	{
+		bool isUpdateRequired = false;
+		foreach (var excludedCoin in KeyManager.ExcludedCoinsFromCoinJoin)
+		{
+			var coin = Coins.SingleOrDefault(c => c.Outpoint == excludedCoin);
+			if (coin != null)
+			{
+				coin.IsExcludedFromCoinJoin = true;
+			}
+			else
+			{
+				isUpdateRequired = true;
+			}
+		}
+		if (isUpdateRequired)
+		{
+			UpdateExcludedCoinFromCoinJoin();
 		}
 	}
 
@@ -344,9 +386,10 @@ public class Wallet : BackgroundService, IWallet
 			using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 			{
 				uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
-				if (BlockProvider is CachedBlockProvider blockCache)
+
+				if (BlockProvider is SmartBlockProvider smartBlockProvider)
 				{
-					await blockCache.InvalidateAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
+					await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
 				}
 
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
@@ -411,8 +454,11 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		// Go through the filters and queue to download the matches.
-		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
-			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
+		await BitcoinStore.IndexStore.ForeachFiltersAsync(
+			async (filterModel) =>
+				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
+			new Height(bestKeyManagerHeight.Value + 1),
+			cancel).ConfigureAwait(false);
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -504,15 +550,9 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public bool IsMixable =>
-		State == WalletState.Started // Only running wallets
-		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
-		&& Kitchen.HasIngredients;
-
-	public IKeyChain? KeyChain { get; }
-
-	public IDestinationProvider DestinationProvider { get; }
-	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
-	public bool ConsolidationMode => false;
-	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
+	public void UpdateExcludedCoinFromCoinJoin()
+	{
+		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
+		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
+	}
 }

@@ -79,11 +79,8 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		var navBar = NavigationManager.Get<NavBarViewModel>();
-
-		if (ExistingWallet is { } && navBar is { })
+		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
 		{
-			navBar.SelectedItem = ExistingWallet;
 			Navigate().Clear();
 			ExistingWallet.OpenCommand.Execute(default);
 		}
@@ -109,10 +106,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		try
 		{
-			using CancellationTokenSource cts = new();
-			AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
 			var result = await HardwareWalletOperationHelpers.DetectAsync(Services.WalletManager.Network, cancel);
-			cts.Cancel();
 			EvaluateDetectionResult(result, cancel);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -122,19 +116,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		finally
 		{
 			IsSearching = false;
-		}
-	}
-
-	private async Task CheckForPassphraseAsync(CancellationToken cancellationToken)
-	{
-		try
-		{
-			await Task.Delay(7000, cancellationToken);
-			Message = "Check your device and enter your passphrase, then click Rescan.";
-		}
-		catch (OperationCanceledException)
-		{
-			// ignored
 		}
 	}
 

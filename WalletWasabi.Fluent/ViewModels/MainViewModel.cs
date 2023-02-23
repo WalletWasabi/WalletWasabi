@@ -2,11 +2,13 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -42,7 +44,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public MainViewModel()
 	{
-		ApplyUiConfigWindowSate();
+		ApplyUiConfigWindowState();
 
 		_dialogScreen = new DialogScreenViewModel();
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -57,7 +59,7 @@ public partial class MainViewModel : ViewModelBase
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
 		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel(MainScreen);
+		_navBar = new NavBarViewModel();
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
@@ -133,6 +135,36 @@ public partial class MainViewModel : ViewModelBase
 		FullScreen.CurrentPage is { IsBusy: true } ||
 		CompactDialogScreen.CurrentPage is { IsBusy: true };
 
+	public bool IsDialogOpen()
+	{
+		return DialogScreen.IsDialogOpen
+		       || FullScreen.IsDialogOpen
+		       || CompactDialogScreen.IsDialogOpen;
+	}
+
+	public void ShowDialogAlert()
+	{
+		if (CompactDialogScreen.IsDialogOpen)
+		{
+			CompactDialogScreen.ShowAlert = false;
+			CompactDialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (DialogScreen.IsDialogOpen)
+		{
+			DialogScreen.ShowAlert = false;
+			DialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (FullScreen.IsDialogOpen)
+		{
+			FullScreen.ShowAlert = false;
+			FullScreen.ShowAlert = true;
+		}
+	}
+
 	public void ClearStacks()
 	{
 		MainScreen.Clear();
@@ -194,7 +226,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletCoinsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
 				return new WalletCoinsViewModel(walletViewModel);
 			}
@@ -204,7 +236,7 @@ public partial class MainViewModel : ViewModelBase
 
 		CoinJoinSettingsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel && !walletViewModel.IsWatchOnly)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel) && !walletViewModel.IsWatchOnly)
 			{
 				return walletViewModel.CoinJoinSettings;
 			}
@@ -214,7 +246,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletSettingsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
 				return walletViewModel.Settings;
 			}
@@ -224,7 +256,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletStatsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
 				return new WalletStatsViewModel(walletViewModel);
 			}
@@ -232,20 +264,37 @@ public partial class MainViewModel : ViewModelBase
 			return null;
 		});
 
-		WalletInfoViewModel.RegisterLazy(() =>
+		WalletInfoViewModel.RegisterAsyncLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				// TODO: Display password dialog if needed, see WalletInfoCommand execute action.
-				return new WalletInfoViewModel(walletViewModel);
+				async Task<RoutableViewModel?> AuthorizeWalletInfo()
+				{
+					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
+					{
+						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
+						var dialogResult = await RoutableViewModel.NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+
+						if (!dialogResult.Result)
+						{
+							return null;
+						}
+					}
+
+					return new WalletInfoViewModel(walletViewModel);
+				}
+
+				return AuthorizeWalletInfo();
 			}
 
-			return null;
+			Task<RoutableViewModel?> NoWalletInfo() => Task.FromResult<RoutableViewModel?>(null);
+
+			return NoWalletInfo();
 		});
 
 		SendViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
 				// TODO: Check if we can send?
 				return new SendViewModel(walletViewModel);
@@ -256,7 +305,7 @@ public partial class MainViewModel : ViewModelBase
 
 		ReceiveViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
 				return new ReceiveViewModel(walletViewModel.Wallet);
 			}
@@ -265,7 +314,7 @@ public partial class MainViewModel : ViewModelBase
 		});
 	}
 
-	public void ApplyUiConfigWindowSate()
+	public void ApplyUiConfigWindowState()
 	{
 		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}

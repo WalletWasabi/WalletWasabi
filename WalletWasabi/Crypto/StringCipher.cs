@@ -10,6 +10,7 @@ public static class StringCipher
 	// This code is strongly inspired by https://tomrucki.com/posts/aes-encryption-in-csharp/ and
 	// https://netnix.org/2015/04/19/aes-encryption-with-hmac-integrity-in-java/
 	private const int KeyByteSize = 128 / 8;
+
 	private const int AesBlockByteSize = 128 / 8;
 	private const int PasswordSaltByteSize = 128 / 8;
 	private const int SignatureByteSize = 256 / 8;

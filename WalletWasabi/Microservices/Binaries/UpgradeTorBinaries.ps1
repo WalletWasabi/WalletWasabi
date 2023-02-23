@@ -45,7 +45,7 @@ if ($IsWindows) {
   $sevenZip = '7zz'
 }
 
-$windowsInstaller = "torbrowser-install-${version}_ALL.exe"
+$windowsInstaller = "torbrowser-install-win64-${version}_ALL.exe"
 $macDmg = "TorBrowser-${version}-macos_ALL.dmg"
 $linuxTarball = "tor-browser-linux64-${version}_ALL.tar"
 $linuxCompressedTarball = "$linuxTarball.xz"
@@ -114,7 +114,7 @@ try {
 
     Write-Output "# Extract Tor binary for macOs."
     mkdir -p "Tor/osx64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
+    Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
 
     Write-Output "# Extract Tor binary for linux."
     mkdir -p "Tor/lin64/"
