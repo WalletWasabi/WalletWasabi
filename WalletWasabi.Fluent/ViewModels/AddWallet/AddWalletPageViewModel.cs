@@ -30,8 +30,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
 	public AddWalletPageViewModel()
 	{
-		// SelectionMode = NavBarItemSelectionMode.Button;
-
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
@@ -93,14 +91,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 	{
 		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
 	}
-
-	// TODO: fix this.
-	// protected override async Task OnOpen(NavigationMode defaultNavigationMode)
-	// {
-	// 	MainViewModel.Instance.IsOobeBackgroundVisible = true;
-	// 	await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-	// 	MainViewModel.Instance.IsOobeBackgroundVisible = false;
-	// }
 
 	private async Task ImportWalletAsync()
 	{
