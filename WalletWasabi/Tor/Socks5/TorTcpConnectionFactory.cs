@@ -24,6 +24,8 @@ public class TorTcpConnectionFactory
 {
 	private static readonly VersionMethodRequest VersionMethodNoAuthRequired = new(methods: new MethodsField(MethodField.NoAuthenticationRequired));
 	private static readonly VersionMethodRequest VersionMethodUsernamePassword = new(methods: new MethodsField(MethodField.UsernamePassword));
+	
+	private static readonly SemaphoreSlim SemaphoreSlim = new(10);
 
 	/// <param name="endPoint">Tor SOCKS5 endpoint.</param>
 	public TorTcpConnectionFactory(EndPoint endPoint)
@@ -277,6 +279,7 @@ public class TorTcpConnectionFactory
 	/// <exception cref="TorConnectionException">When we receive no response from Tor or the response is invalid.</exception>
 	private async Task<byte[]> SendRequestAsync(TcpClient tcpClient, ByteArraySerializableBase request, CancellationToken cancellationToken)
 	{
+		await SemaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
 			NetworkStream stream = tcpClient.GetStream();
@@ -308,6 +311,10 @@ public class TorTcpConnectionFactory
 		catch (IOException ex)
 		{
 			throw new TorConnectionException($"{nameof(TorTcpConnectionFactory)} is not connected to the remote endpoint.", ex);
+		}
+		finally
+		{
+			SemaphoreSlim.Release();
 		}
 	}
 
