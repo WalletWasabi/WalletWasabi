@@ -70,7 +70,9 @@ public class Program
 
 		try
 		{
+#pragma warning disable VSTHRD002
 			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
 		}
 		catch (OperationCanceledException)
 		{
