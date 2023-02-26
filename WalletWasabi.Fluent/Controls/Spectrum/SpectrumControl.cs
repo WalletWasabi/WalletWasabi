@@ -198,9 +198,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		// nothing to do.
 	}
 
-	bool IDrawOperation.HitTest(Point p) => Bounds.Contains(p);
+	bool ICustomDrawOperation.HitTest(Point p) => Bounds.Contains(p);
 
-	void IDrawOperation.Render(IDrawingContextImpl context)
+	void ICustomDrawOperation.Render(IDrawingContextImpl context)
 	{
 		var bounds = Bounds;
 
