@@ -38,6 +38,8 @@ public class CoinVerifier : IAsyncDisposable
 	// This should be much bigger than the possible input-reg period.
 	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
 
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+
 	private Whitelist Whitelist { get; }
 	private WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
@@ -226,8 +228,8 @@ public class CoinVerifier : IAsyncDisposable
 		_ = Task.Run(
 			async () =>
 			{
-				using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, absoluteTimeoutCts.Token, item.Token);
+				using CancellationTokenSource requestTimeoutCts = new(ApiRequestTimeout);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token, requestTimeoutCts.Token);
 
 				try
 				{
