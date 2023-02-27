@@ -13,11 +13,10 @@ public class SplashEffectDataSource : SpectrumDataSource
 		Bins[MidPointBins - _currentEffectIndex] = 1;
 		Bins[MidPointBins + _currentEffectIndex] = 1;
 
-		if (_currentEffectIndex >= 8)
+		for (int i = _currentEffectIndex; i > 0; i--)
 		{
-			var index = _currentEffectIndex - 8;
-			Bins[MidPointBins - index] = 0;
-			Bins[MidPointBins + index] = 0;
+			Bins[MidPointBins - i] -= 0.1f;
+			Bins[MidPointBins + i] -= 0.1f;
 		}
 
 		_currentEffectIndex++;

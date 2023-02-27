@@ -12,7 +12,7 @@
   <c:TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
-      <privacyBar:PrivacyBar DockPanel.Dock="Bottom" />
+      <privacyBar:PrivacyBarView DockPanel.Dock="Bottom" />
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -33,9 +33,11 @@
           <TextBlock
             Text="PRIVATE" Classes="bold" Margin="4 2" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>
-        <c:PrivacyContentControl Classes="bold"
-                                        VerticalAlignment="Center"
-                                        Content="{Binding BalancePrivateBtc}" />
+        <c:CopyableItem ContentToCopy="{Binding BalancePrivateBtc}">
+          <c:PrivacyContentControl Classes="bold"
+                                   VerticalAlignment="Center"
+                                   Content="{Binding BalancePrivateBtc}" />
+        </c:CopyableItem>
       </StackPanel>
     </c:TileControl.BottomContent>
   </c:TileControl>

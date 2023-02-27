@@ -64,13 +64,15 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
+	public const string FallbackAffiliationMessageSignerKey = "30770201010420686710a86f0cdf425e3bc9781f51e45b9440aec1215002402d5cdee713066623a00a06082a8648ce3d030107a14403420004f267804052bd863a1644233b8bfb5b8652ab99bcbfa0fb9c36113a571eb5c0cb7c733dbcf1777c2745c782f96e218bb71d67d15da1a77d37fa3cb96f423e53ba";
+
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
 	public static readonly Version ClientVersion = new(2, 0, 2, 1);
 
 	public static readonly Version HwiVersion = new("2.1.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
-	public static readonly Version Ww1LegalDocumentsVersion = new(2, 0);
+	public static readonly Version Ww1LegalDocumentsVersion = new(3, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);
 
 	// Defined in hours. Do not modify these values or the order!
@@ -96,8 +98,11 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
-		"/Satoshi:0.23.0/",
-		"/Satoshi:0.22.0/",
+		"/Satoshi:24.0.1/",
+		"/Satoshi:23.1.0/",
+		"/Satoshi:23.0.0/",
+		"/Satoshi:22.1.0/",
+		"/Satoshi:22.0.0/",
 		"/Satoshi:0.21.1/",
 		"/Satoshi:0.21.0/",
 		"/Satoshi:0.20.1/",

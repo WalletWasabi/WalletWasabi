@@ -1,7 +1,7 @@
 namespace WalletWasabi.Tor.Control.Messages.StreamStatus;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public enum StreamStatusFlag
 {

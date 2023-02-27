@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -9,6 +8,7 @@ using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.AppServices.Tor;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
@@ -163,9 +163,9 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 		Peers = TorStatus == TorStatus.NotRunning ? 0 : nodes.Count;
 		Observable
-			.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).Select(_ => Unit.Default)
-			.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(_ => Unit.Default)
-			.Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).Select(_ => Unit.Default))))
+			.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).ToSignal()
+			.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
+			.Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).ToSignal())))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => Peers = synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 			.DisposeWith(Disposables);

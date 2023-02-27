@@ -12,7 +12,7 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Wallets;
 
 /// <summary>
-/// FileSystemBlockRepository is a blocks repository that keeps the blocks in the file system.
+/// File-system block repository is a blocks repository that keeps the blocks in the file system.
 /// </summary>
 public class FileSystemBlockRepository : IRepository<uint256, Block>
 {
@@ -20,13 +20,12 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 
 	public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			BlocksFolderPath = blocksFolderPath;
-			Network = network;
-			CreateFolders();
-			Prune(targetBlocksFolderSizeMb);
-		}
+		using IDisposable _ = BenchmarkLogger.Measure();
+
+		BlocksFolderPath = blocksFolderPath;
+		Network = network;
+		CreateFolders();
+		Prune(targetBlocksFolderSizeMb);
 	}
 
 	public string BlocksFolderPath { get; }
@@ -179,7 +178,7 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 	/// Returns the number of blocks available in the file system. (for testing only)
 	/// </summary>
 	/// <param name="cancellationToken">The cancellation token.</param>
-	/// <returns>The requested bitcoin block.</returns>
+	/// <returns>Number of stored blocks.</returns>
 	public async Task<int> CountAsync(CancellationToken cancellationToken)
 	{
 		using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))

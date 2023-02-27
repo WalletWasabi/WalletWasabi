@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -193,6 +194,31 @@ public class KeyManagementTests
 			Assert.Equal(keyState, generatedKey.KeyState);
 			Assert.StartsWith(KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).ToString(), generatedKey.FullKeyPath.ToString());
 		}
+	}
+
+	[Fact]
+	public void AlternatesScriptTypeForChange()
+	{
+		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
+		var keysForChange = Enumerable
+			.Range(0, 10)
+			.Select(_ =>
+			{
+				var key = keyManager.GetNextChangeKey();
+				keyManager.SetKeyState(KeyState.Used, key);
+				return key;
+			})
+			.ToList();
+
+		static bool IsScriptType(HdPubKey key, ScriptPubKeyType scriptType) =>
+			key.FullKeyPath.GetScriptTypeFromKeyPath() == scriptType;
+
+		static bool IsTaproot(HdPubKey key) => IsScriptType(key, ScriptPubKeyType.TaprootBIP86);
+		static bool IsSegwit(HdPubKey key) => IsScriptType(key, ScriptPubKeyType.Segwit);
+
+		Assert.Contains(keysForChange, IsTaproot);
+		Assert.Contains(keysForChange, IsSegwit);
+		Assert.Equal(keysForChange.Count(IsTaproot), keysForChange.Count(IsSegwit));
 	}
 
 	private static void DeleteFileAndDirectoryIfExists(string filePath)

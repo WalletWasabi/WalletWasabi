@@ -27,13 +27,14 @@ public class Global : IDisposable
 {
 	private bool _disposedValue;
 
-	public Global(string dataDir, IRPCClient rpcClient, Config config)
+	public Global(string dataDir, IRPCClient rpcClient, Config config, IHttpClientFactory httpClientFactory)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
 		HttpClient = new();
+		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
 		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), CoordinatorParameters.CoinJoinIdStoreFilePath);
@@ -64,8 +65,10 @@ public class Global : IDisposable
 	public IndexBuilderService TaprootIndexBuilderService { get; }
 
 	private HttpClient HttpClient { get; }
+	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Coordinator? Coordinator { get; private set; }
+	public CoinVerifier? CoinVerifier { get; private set; }
 
 	public Config Config { get; }
 
@@ -75,6 +78,7 @@ public class Global : IDisposable
 
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
+	private Whitelist? WhiteList { get; set; }
 
 	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
 	{
@@ -90,35 +94,38 @@ public class Global : IDisposable
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		bool coinVerifierEnabled = CoordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
+		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
+		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
 		CoinVerifier? coinVerifier = null;
 		if (coinVerifierEnabled)
 		{
 			try
 			{
-				if (!Uri.TryCreate(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
+				if (!Uri.TryCreate(wabiSabiConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
 				{
 					throw new ArgumentException($"Blacklist API URL is invalid in {nameof(WabiSabiConfig)}.");
 				}
-				if (string.IsNullOrEmpty(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken))
+				if (string.IsNullOrEmpty(wabiSabiConfig.CoinVerifierApiAuthToken))
 				{
 					throw new ArgumentException($"Blacklist API token was not provided in {nameof(WabiSabiConfig)}.");
 				}
-				if (CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags is null)
+				if (wabiSabiConfig.RiskFlags is null)
 				{
 					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
 				}
 
 				HttpClient.BaseAddress = url;
 
-				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
-				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig);
+				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
+				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
+				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
+				CoinVerifier = coinVerifier;
+				WhiteList = whitelist;
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
 			{
-				Logger.LogCritical($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'");
+				throw new InvalidOperationException($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'", exc);
 			}
 		}
 
@@ -150,7 +157,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, CoordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
@@ -238,26 +245,41 @@ public class Global : IDisposable
 					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
 				}
 
-				var stoppingTask = Task.Run(async () =>
-				{
-					await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
-
-					await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
-
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-					HostedServices.Dispose();
-
-					await P2pNode.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
-				});
+				var stoppingTask = Task.Run(DisposeAsync);
 
 				stoppingTask.GetAwaiter().GetResult();
 			}
 
 			_disposedValue = true;
+		}
+	}
+
+	private async Task DisposeAsync()
+	{
+		await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
+
+		await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+		await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+		HostedServices.Dispose();
+
+		await P2pNode.DisposeAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
+
+		if (WhiteList is { } whiteList)
+		{
+			if (await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false))
+			{
+				Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
+			}
+		}
+
+		if (CoinVerifier is { } coinVerifier)
+		{
+			await coinVerifier.DisposeAsync().ConfigureAwait(false);
 		}
 	}
 

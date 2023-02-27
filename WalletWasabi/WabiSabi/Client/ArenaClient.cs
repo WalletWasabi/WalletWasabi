@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
@@ -32,7 +33,7 @@ public class ArenaClient
 	public string CoordinatorIdentifier { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
 
-	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
+	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsCoordinationFeeExempted)> RegisterInputAsync(
 		uint256 roundId,
 		OutPoint outPoint,
 		OwnershipProof ownershipProof,
@@ -53,7 +54,7 @@ public class ArenaClient
 		var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 		var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-		return (new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials), inputRegistrationResponse.IsPayingZeroCoordinationFee);
+		return (new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials), inputRegistrationResponse.IsCoordinationFeeExempted);
 	}
 
 	public async Task RemoveInputAsync(uint256 roundId, Guid aliceId, CancellationToken cancellationToken)
@@ -222,7 +223,8 @@ public class ArenaClient
 		await RequestHandler.ReadyToSignAsync(
 			new ReadyToSignRequestRequest(
 				roundId,
-				aliceId),
+				aliceId,
+				AffiliationConstants.DefaultAffiliationId),
 			cancellationToken).ConfigureAwait(false);
 	}
 }

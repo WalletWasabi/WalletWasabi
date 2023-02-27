@@ -161,7 +161,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 				? NavigationTarget.CompactDialogScreen
 				: NavigationTarget.DialogScreen;
 
-
 		await NavigateDialogAsync(dialog, navigationTarget);
 	}
 
