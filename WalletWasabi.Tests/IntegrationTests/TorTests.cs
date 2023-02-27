@@ -49,21 +49,16 @@ public class TorTests : IAsyncLifetime
 	}
 
 	[Theory]
-	[InlineData(50)]
+	[InlineData(75)]
 	public async Task OverloadTestAsync(int times)
 	{
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
 
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(10));
-		var sw = new Stopwatch();
-		sw.Start();
-
-		var tasks = new List<Task<bool>>();
-		for (var i = 0; i < times; i++)
-		{
-			var task = SendHandleExceptAsync(client, ctsTimeout.Token, 1024);
-			tasks.Add(task);
-		}
+		var sw = Stopwatch.StartNew();
+		List<Task<bool>> tasks = Enumerable.Range(0, times)
+			.Select(x => SendHandleExceptAsync(client, ctsTimeout.Token, contentSize: 1024))
+			.ToList();
 		var counter = tasks.Count;
 		TestOutputHelper.WriteLine($"{counter} tasks launched.");
 
@@ -97,9 +92,9 @@ public class TorTests : IAsyncLifetime
 		HttpContent? content = null;
 		if (contentSize > 0)
 		{
-			byte[] buffer = new byte[1024]; // create a byte array of 1024 bytes
-			Random.Shared.NextBytes(buffer); // fill the byte array with random values
-			content = new ByteArrayContent(buffer); // create the HttpContent object
+			byte[] buffer = new byte[1024];
+			Random.Shared.NextBytes(buffer); // Fill the byte array with random values
+			content = new ByteArrayContent(buffer);
 		}
 
 		try
