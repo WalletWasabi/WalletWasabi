@@ -41,15 +41,13 @@ public class TorTests : IAsyncLifetime
 		await TorManager.DisposeAsync();
 	}
 
-	[Fact]
-	public async Task CanDoRequestManyDifferentAsync()
-	{
-		TorHttpClient client = MakeTorHttpClient(new("http://api.qbit.ninja"));
-		await QBitTestAsync(client, 10, alterRequests: true);
-	}
-
+	/// <summary>
+	/// Test to analyze behavior when lot of relatively big requests are sent at the same time.
+	/// If requests are not throttled elsewhere, it should create important delays and huge CPU usage by the tor instance.
+	/// </summary>
 	[Theory]
-	[InlineData(75)]
+	[InlineData(100)]
+	[InlineData(20)]
 	public async Task OverloadTestAsync(int totalRequests)
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(10));
@@ -90,31 +88,13 @@ public class TorTests : IAsyncLifetime
 
 		sw.Stop();
 		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds:0.##}; {totalRequests} requests ({counterSuccesses} passed, {counterFailures} failed)");
+	}
 
-		static async Task<bool> SendHandleExceptAsync(TorHttpClient client, int contentSize, CancellationToken cancellationToken)
-		{
-			HttpContent? content = null;
-			if (contentSize > 0)
-			{
-				byte[] buffer = new byte[contentSize];
-				Random.Shared.NextBytes(buffer); // Fill the byte array with random values.
-				content = new ByteArrayContent(buffer);
-			}
-
-			try
-			{
-				await client.SendAsync(HttpMethod.Get, "/", content, cancellationToken).ConfigureAwait(false);
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-			finally
-			{
-				content?.Dispose();
-			}
-		}
+	[Fact]
+	public async Task CanDoRequestManyDifferentAsync()
+	{
+		TorHttpClient client = MakeTorHttpClient(new("http://api.qbit.ninja"));
+		await QBitTestAsync(client, 10, alterRequests: true);
 	}
 
 	[Fact]
@@ -308,5 +288,30 @@ public class TorTests : IAsyncLifetime
 	private TorHttpClient MakeTorHttpClient(Uri uri, Mode mode = Mode.DefaultCircuit)
 	{
 		return new(uri, TorHttpPool, mode);
+	}
+
+	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, int contentSize, CancellationToken cancel)
+	{
+		HttpContent? content = null;
+		if (contentSize > 0)
+		{
+			byte[] buffer = new byte[1024];
+			Random.Shared.NextBytes(buffer); // Fill the byte array with random values
+			content = new ByteArrayContent(buffer);
+		}
+
+		try
+		{
+			await client.SendAsync(HttpMethod.Get, "/", content, cancel).ConfigureAwait(false);
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
+		finally
+		{
+			content?.Dispose();
+		}
 	}
 }
