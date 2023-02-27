@@ -86,7 +86,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						NotificationHelpers.Show(wallet, e, onClick: () =>
 						{
 							if (MainViewModel.Instance.IsBusy)
 							{
