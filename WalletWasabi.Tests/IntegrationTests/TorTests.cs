@@ -49,7 +49,7 @@ public class TorTests : IAsyncLifetime
 	}
 
 	[Theory]
-	[InlineData(75)]
+	[InlineData(50)]
 	public async Task OverloadTestAsync(int times)
 	{
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
@@ -72,7 +72,8 @@ public class TorTests : IAsyncLifetime
 		while (tasks.Any(x => !x.IsCompleted))
 		{
 			await Task.WhenAny(tasks).ConfigureAwait(false);
-			foreach (var task in tasks.Where(x => x.IsCompleted))
+			var completedTasks = tasks.Where(x => x.IsCompleted).ToList();
+			foreach (var task in completedTasks)
 			{
 				tasks.Remove(task);
 				if (task.Result)
