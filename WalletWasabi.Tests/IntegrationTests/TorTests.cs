@@ -53,22 +53,27 @@ public class TorTests : IAsyncLifetime
 	public async Task OverloadTestAsync(int times)
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(10));
+
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
 		Stopwatch sw = Stopwatch.StartNew();
 		List<Task<bool>> tasks = Enumerable.Range(0, times)
-			.Select(x => SendHandleExceptAsync(client, testDeadlineCts.Token, contentSize: 1024))
+			.Select(x => SendHandleExceptAsync(client, contentSize: 1024, testDeadlineCts.Token))
 			.ToList();
 		TestOutputHelper.WriteLine($"{tasks.Count} tasks launched.");
+
 		int requestNumber = 0;
 		int counterSuccesses = 0;
 		int counterFailures = 0;
+
 		while (tasks.Any(x => !x.IsCompleted))
 		{
 			await Task.WhenAny(tasks);
-			var completedTasks = tasks.Where(x => x.IsCompleted).ToList();
-			foreach (var task in completedTasks)
+
+			// Process finished tasks.
+			foreach (Task<bool> task in tasks.Where(x => x.IsCompleted).ToList())
 			{
 				tasks.Remove(task);
+
 				if (task.Result)
 				{
 					counterSuccesses++;
@@ -77,36 +82,38 @@ public class TorTests : IAsyncLifetime
 				{
 					counterFailures++;
 				}
+
 				requestNumber++;
 				TestOutputHelper.WriteLine($"[Request #{requestNumber}] Result: {task.Result} after {sw.Elapsed.TotalSeconds:0.##}s");
 			}
 		}
+
 		sw.Stop();
 		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds:0.##}; {times} requests ({counterSuccesses} passed, {counterFailures} failed)");
-	}
 
-	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, CancellationToken cancel, int contentSize = 0)
-	{
-		HttpContent? content = null;
-		if (contentSize > 0)
+		static async Task<bool> SendHandleExceptAsync(TorHttpClient client, int contentSize, CancellationToken cancellationToken)
 		{
-			byte[] buffer = new byte[1024];
-			Random.Shared.NextBytes(buffer); // Fill the byte array with random values
-			content = new ByteArrayContent(buffer);
-		}
+			HttpContent? content = null;
+			if (contentSize > 0)
+			{
+				byte[] buffer = new byte[contentSize];
+				Random.Shared.NextBytes(buffer); // Fill the byte array with random values.
+				content = new ByteArrayContent(buffer);
+			}
 
-		try
-		{
-			await client.SendAsync(HttpMethod.Get, "/", content, cancel).ConfigureAwait(false);
-			return true;
-		}
-		catch
-		{
-			return false;
-		}
-		finally
-		{
-			content?.Dispose();
+			try
+			{
+				await client.SendAsync(HttpMethod.Get, "/", content, cancellationToken).ConfigureAwait(false);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+			finally
+			{
+				content?.Dispose();
+			}
 		}
 	}
 
