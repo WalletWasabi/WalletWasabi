@@ -569,7 +569,7 @@ public partial class Arena : PeriodicRunner
 			? Money.Zero
 			: round.Parameters.MiningFeeRate.GetFee(sizeToPayFor);
 
-		// Sub 1 sat to avoid off-by-one error coming from roundings.
+		// Subtract 1 sat to avoid off-by-one error coming from roundings.
 		var diffMoney = coinjoin.Balance - miningFee - Money.Satoshis(1);
 
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)

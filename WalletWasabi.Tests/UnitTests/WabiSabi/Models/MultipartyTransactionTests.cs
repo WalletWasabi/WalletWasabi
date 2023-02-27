@@ -342,27 +342,25 @@ public class MultipartyTransactionTests
 	}
 
 	[Theory]
-	[InlineData("0.2")]
-	[InlineData("0.8")]
-	[InlineData("1.675")]
-	[InlineData("2.7")]
-	[InlineData("4.9")]
-	[InlineData("10.6")]
-	[InlineData("20.7")]
-	[InlineData("100")]
-	[InlineData("0")]
-	public async Task FeeTestsAsync(string feeRateString)
+	[InlineData(100, 100, "0.2")]
+	[InlineData(200, 230, "0.8")]
+	[InlineData(150, 170, "1.675")]
+	[InlineData(100, 120, "2.7")]
+	[InlineData(100, 120, "4.9")]
+	[InlineData(300, 330, "10.6")]
+	[InlineData(100, 120, "20.7")]
+	[InlineData(100, 140, "100")]
+	[InlineData(100, 105, "0")]
+	public async Task FeeTestsAsync(int inputCount, int outputCount, string feeRateString)
 	{
-		var inputCount = 100;
-		var outputCount = 100;
 		Random random = new(12345);
 
-		FeeRate feeRate = new(decimal.Parse(feeRateString));
+		FeeRate feeRate = new(satoshiPerByte: decimal.Parse(feeRateString));
 		CoordinationFeeRate coordinatorFeeRate = new(0m, Money.Zero);
 
 		var parameters = WabiSabiFactory.CreateRoundParameters(new()
 		{
-			MinRegistrableAmount = DefaultAllowedAmounts.Min,
+			MinRegistrableAmount = Money.Zero,
 			MaxRegistrableAmount = Money.Coins(43000m),
 			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 		}) with
@@ -370,18 +368,16 @@ public class MultipartyTransactionTests
 			MiningFeeRate = feeRate
 		};
 
-		var state = new ConstructionState(parameters);
+		var coinjoin = new ConstructionState(parameters);
 
 		for (int i = 0; i < inputCount; i++)
 		{
 			using Key key = new();
 			(var aliceCoin, var aliceOwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key);
-
-			state = state.AddInput(aliceCoin, aliceOwnershipProof, CommitmentData);
-			var effectiveInput = aliceCoin.EffectiveValue(feeRate, coordinatorFeeRate);
+			coinjoin = coinjoin.AddInput(aliceCoin, aliceOwnershipProof, CommitmentData);
 		}
 
-		var totalInputEffSum = Money.Satoshis(state.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
+		var totalInputEffSum = Money.Satoshis(coinjoin.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
 
 		var tenPercent = Money.Satoshis((long)(totalInputEffSum.Satoshi * 0.1));
 
@@ -393,13 +389,9 @@ public class MultipartyTransactionTests
 			var max = (int)(outputCoinNominal.Satoshi * 1.3);
 			var amount = Money.Satoshis(random.Next(min, max));
 			var p2wpkh = BitcoinFactory.CreateScript();
-			state = state.AddOutput(new TxOut(amount, p2wpkh));
+			coinjoin = coinjoin.AddOutput(new TxOut(amount, p2wpkh));
 		}
-		while (state.Balance > tenPercent);
-
-		var totalInputSum = state.Balance;
-
-		var coinjoin = state;
+		while (coinjoin.Balance > tenPercent);
 
 		var blameScript = BitcoinFactory.CreateScript();
 
@@ -407,8 +399,8 @@ public class MultipartyTransactionTests
 
 		// Make sure the the highest fee rate is low, so blame script will be added.
 		var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
-		coinjoin = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
-
-		coinjoin.Finalize();
+		var coinjoinWithBlame = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
+		coinjoinWithBlame.Finalize();
+		Assert.NotSame(coinjoinWithBlame, coinjoin);
 	}
 }
