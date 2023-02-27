@@ -52,21 +52,19 @@ public class TorTests : IAsyncLifetime
 	[InlineData(75)]
 	public async Task OverloadTestAsync(int times)
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(10));
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
-
-		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(10));
-		var sw = Stopwatch.StartNew();
+		Stopwatch sw = Stopwatch.StartNew();
 		List<Task<bool>> tasks = Enumerable.Range(0, times)
-			.Select(x => SendHandleExceptAsync(client, ctsTimeout.Token, contentSize: 1024))
+			.Select(x => SendHandleExceptAsync(client, testDeadlineCts.Token, contentSize: 1024))
 			.ToList();
-		var counter = tasks.Count;
-		TestOutputHelper.WriteLine($"{counter} tasks launched.");
-
-		var counterSuccesses = 0;
-		var counterFailures = 0;
+		TestOutputHelper.WriteLine($"{tasks.Count} tasks launched.");
+		int requestNumber = 0;
+		int counterSuccesses = 0;
+		int counterFailures = 0;
 		while (tasks.Any(x => !x.IsCompleted))
 		{
-			await Task.WhenAny(tasks).ConfigureAwait(false);
+			await Task.WhenAny(tasks);
 			var completedTasks = tasks.Where(x => x.IsCompleted).ToList();
 			foreach (var task in completedTasks)
 			{
@@ -79,12 +77,12 @@ public class TorTests : IAsyncLifetime
 				{
 					counterFailures++;
 				}
-				TestOutputHelper.WriteLine($"Request finished with success: {task.Result} after {sw.Elapsed.TotalSeconds}s - {--counter} requests remaining.");
+				requestNumber++;
+				TestOutputHelper.WriteLine($"[Request #{requestNumber}] Result: {task.Result} after {sw.Elapsed.TotalSeconds:0.##}s");
 			}
 		}
-
 		sw.Stop();
-		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds}; {times} requests ({counterSuccesses} passed, {counterFailures} failed)");
+		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds:0.##}; {times} requests ({counterSuccesses} passed, {counterFailures} failed)");
 	}
 
 	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, CancellationToken cancel, int contentSize = 0)
