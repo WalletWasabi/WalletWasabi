@@ -11,6 +11,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public interface IAddress : IReactiveObject
 {
 	string Text { get; }
+
 	IEnumerable<string> Labels { get; }
 
 	bool IsUsed { get; }
