@@ -146,18 +146,21 @@ public partial class MainViewModel : ViewModelBase
 	{
 		if (CompactDialogScreen.IsDialogOpen)
 		{
+			CompactDialogScreen.ShowAlert = false;
 			CompactDialogScreen.ShowAlert = true;
 			return;
 		}
 
 		if (DialogScreen.IsDialogOpen)
 		{
+			DialogScreen.ShowAlert = false;
 			DialogScreen.ShowAlert = true;
 			return;
 		}
 
 		if (FullScreen.IsDialogOpen)
 		{
+			DialogScreen.ShowAlert = false;
 			FullScreen.ShowAlert = true;
 		}
 	}

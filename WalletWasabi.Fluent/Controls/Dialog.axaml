@@ -65,14 +65,20 @@
   </Style>
 
   <Style Selector="c|Dialog:alert /template/ Border#PART_Border">
-    <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertEndBoxShadow}"/>
+    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
     <Style.Animations>
-      <Animation Duration="0:0:0.5" PlaybackDirection="AlternateReverse" IterationCount="Infinite">
+      <Animation Duration="0:0:0.8" PlaybackDirection="AlternateReverse" IterationCount="1">
         <KeyFrame Cue="0%">
           <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
         </KeyFrame>
-        <KeyFrame Cue="100%">
+        <KeyFrame Cue="25%">
           <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertEndBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="75%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
         </KeyFrame>
       </Animation>
     </Style.Animations>
