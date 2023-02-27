@@ -1,6 +1,8 @@
 using NBitcoin;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -337,5 +339,68 @@ public class MultipartyTransactionTests
 		var output = new TxOut(new Money(294L), p2wpkh);
 		var updated = state.AddOutput(output);
 		Assert.Equal(output, Assert.Single(updated.Outputs));
+	}
+
+	[Theory]
+	[InlineData(100, 100, "0.2")]
+	[InlineData(200, 230, "0.8")]
+	[InlineData(150, 170, "1.675")]
+	[InlineData(100, 120, "2.7")]
+	[InlineData(100, 120, "4.9")]
+	[InlineData(300, 330, "10.6")]
+	[InlineData(100, 120, "20.7")]
+	[InlineData(100, 140, "100")]
+	[InlineData(100, 105, "0")]
+	public async Task FeeTestsAsync(int inputCount, int outputCount, string feeRateString)
+	{
+		Random random = new(12345);
+
+		FeeRate feeRate = new(satoshiPerByte: decimal.Parse(feeRateString));
+		CoordinationFeeRate coordinatorFeeRate = new(0m, Money.Zero);
+
+		var parameters = WabiSabiFactory.CreateRoundParameters(new()
+		{
+			MinRegistrableAmount = Money.Zero,
+			MaxRegistrableAmount = Money.Coins(43000m),
+			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
+		}) with
+		{
+			MiningFeeRate = feeRate
+		};
+
+		var coinjoin = new ConstructionState(parameters);
+
+		for (int i = 0; i < inputCount; i++)
+		{
+			using Key key = new();
+			(var aliceCoin, var aliceOwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key);
+			coinjoin = coinjoin.AddInput(aliceCoin, aliceOwnershipProof, CommitmentData);
+		}
+
+		var totalInputEffSum = Money.Satoshis(coinjoin.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
+
+		// Threshold for stop adding outputs. This will emulate missing outputs in the CJ so blame script will be added.
+		var tenPercent = Money.Satoshis((long)(totalInputEffSum.Satoshi * 0.1));
+
+		var outputCoinNominal = Money.Satoshis(totalInputEffSum.Satoshi / outputCount);
+
+		do
+		{
+			var min = (int)(outputCoinNominal.Satoshi * 0.7);
+			var max = (int)(outputCoinNominal.Satoshi * 1.3);
+			var amount = Money.Satoshis(random.Next(min, max));
+			var p2wpkh = BitcoinFactory.CreateScript();
+			coinjoin = coinjoin.AddOutput(new TxOut(amount, p2wpkh));
+		}
+		while (coinjoin.Balance > tenPercent);
+
+		var blameScript = BitcoinFactory.CreateScript();
+		var round = WabiSabiFactory.CreateRound(parameters);
+
+		// Make sure the the highest fee rate is low, so blame script will be added.
+		var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
+		var coinjoinWithBlame = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
+		coinjoinWithBlame.Finalize();
+		Assert.NotSame(coinjoinWithBlame, coinjoin);
 	}
 }
