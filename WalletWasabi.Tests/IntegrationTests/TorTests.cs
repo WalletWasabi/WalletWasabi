@@ -50,13 +50,13 @@ public class TorTests : IAsyncLifetime
 
 	[Theory]
 	[InlineData(75)]
-	public async Task OverloadTestAsync(int times)
+	public async Task OverloadTestAsync(int totalRequests)
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(10));
 
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
 		Stopwatch sw = Stopwatch.StartNew();
-		List<Task<bool>> tasks = Enumerable.Range(0, times)
+		List<Task<bool>> tasks = Enumerable.Range(0, totalRequests)
 			.Select(x => SendHandleExceptAsync(client, contentSize: 1024, testDeadlineCts.Token))
 			.ToList();
 		TestOutputHelper.WriteLine($"{tasks.Count} tasks launched.");
@@ -89,7 +89,7 @@ public class TorTests : IAsyncLifetime
 		}
 
 		sw.Stop();
-		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds:0.##}; {times} requests ({counterSuccesses} passed, {counterFailures} failed)");
+		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds:0.##}; {totalRequests} requests ({counterSuccesses} passed, {counterFailures} failed)");
 
 		static async Task<bool> SendHandleExceptAsync(TorHttpClient client, int contentSize, CancellationToken cancellationToken)
 		{
