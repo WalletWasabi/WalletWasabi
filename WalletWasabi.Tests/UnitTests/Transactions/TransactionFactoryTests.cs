@@ -349,7 +349,7 @@ public class TransactionFactoryTests
 				new DestinationRequest(key3, Money.Coins(0.3m))
 			});
 		var feeRate = new FeeRate(20m);
-		var ex = Assert.Throws<NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, feeRate));
+		var ex = Assert.Throws<OutputTooSmallException>(() => transactionFactory.BuildTransaction(payment, feeRate));
 
 		Assert.Equal(Money.Satoshis(3240), ex.Missing);
 	}
