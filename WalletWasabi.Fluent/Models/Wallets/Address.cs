@@ -9,22 +9,21 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Extensions;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class Address : ReactiveObject, IAddress
 {
-	public Address(Wallet wallet, HdPubKey hdPubKey)
+	public Address(KeyManager keyManager, HdPubKey hdPubKey)
 	{
-		Wallet = wallet;
+		KeyManager = keyManager;
 		HdPubKey = hdPubKey;
-		Network = wallet.Network;
-		HdFingerprint = Wallet.KeyManager.MasterFingerprint;
-		BitcoinAddress = HdPubKey.GetAddress(wallet.Network);
+		Network = keyManager.GetNetwork();
+		HdFingerprint = KeyManager.MasterFingerprint;
+		BitcoinAddress = HdPubKey.GetAddress(Network);
 	}
 
-	public Wallet Wallet { get; }
+	public KeyManager KeyManager { get; }
 	public HdPubKey HdPubKey { get; }
 	public Network Network { get; }
 	public HDFingerprint? HdFingerprint { get; }
@@ -41,13 +40,14 @@ public class Address : ReactiveObject, IAddress
 
 	public void Hide()
 	{
-		Wallet.KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
+		// Code commented out due to https://github.com/zkSNACKs/WalletWasabi/issues/10177
+		//KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
 		this.RaisePropertyChanged(nameof(IsUsed));
 	}
 
 	public void SetLabels(IEnumerable<string> labels)
 	{
-		HdPubKey.SetLabel(new SmartLabel(labels.ToList()), Wallet.KeyManager);
+		HdPubKey.SetLabel(new SmartLabel(labels.ToList()), KeyManager);
 		this.RaisePropertyChanged(nameof(Labels));
 	}
 
