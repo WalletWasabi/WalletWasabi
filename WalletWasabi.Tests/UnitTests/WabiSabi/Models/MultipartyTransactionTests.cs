@@ -379,6 +379,7 @@ public class MultipartyTransactionTests
 
 		var totalInputEffSum = Money.Satoshis(coinjoin.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
 
+		// Threshold for stop adding outputs. This will emulate missing outputs in the CJ so blame script will be added.
 		var tenPercent = Money.Satoshis((long)(totalInputEffSum.Satoshi * 0.1));
 
 		var outputCoinNominal = Money.Satoshis(totalInputEffSum.Satoshi / outputCount);
@@ -394,7 +395,6 @@ public class MultipartyTransactionTests
 		while (coinjoin.Balance > tenPercent);
 
 		var blameScript = BitcoinFactory.CreateScript();
-
 		var round = WabiSabiFactory.CreateRound(parameters);
 
 		// Make sure the the highest fee rate is low, so blame script will be added.
