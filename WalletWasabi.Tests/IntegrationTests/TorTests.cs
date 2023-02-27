@@ -18,7 +18,6 @@ namespace WalletWasabi.Tests.IntegrationTests;
 
 public class TorTests : IAsyncLifetime
 {
-
 	private ITestOutputHelper TestOutputHelper { get; }
 
 	public TorTests(ITestOutputHelper testOutputHelper)
@@ -72,17 +71,20 @@ public class TorTests : IAsyncLifetime
 		var counterFailures = 0;
 		while (tasks.Any(x => !x.IsCompleted))
 		{
-			var result = await Task.WhenAny(tasks);
-			tasks.Remove(result);
-			if (result.Result)
+			await Task.WhenAny(tasks).ConfigureAwait(false);
+			foreach (var task in tasks.Where(x => x.IsCompleted))
 			{
-				counterSuccesses++;
+				tasks.Remove(task);
+				if (task.Result)
+				{
+					counterSuccesses++;
+				}
+				else
+				{
+					counterFailures++;
+				}
+				TestOutputHelper.WriteLine($"Request finished with success: {task.Result} after {sw.Elapsed.TotalSeconds}s - {--counter} requests remaining.");
 			}
-			else
-			{
-				counterFailures++;
-			}
-			TestOutputHelper.WriteLine($"Request finished with success: {result.Result} after {sw.Elapsed.TotalSeconds}s - {--counter} requests remaining.");
 		}
 
 		sw.Stop();
@@ -94,15 +96,14 @@ public class TorTests : IAsyncLifetime
 		HttpContent? content = null;
 		if (contentSize > 0)
 		{
-			Random random = new Random();
 			byte[] buffer = new byte[1024]; // create a byte array of 1024 bytes
-			random.NextBytes(buffer); // fill the byte array with random values
+			Random.Shared.NextBytes(buffer); // fill the byte array with random values
 			content = new ByteArrayContent(buffer); // create the HttpContent object
 		}
 
 		try
 		{
-			await client.SendAsync(HttpMethod.Get, "/", content, cancel);
+			await client.SendAsync(HttpMethod.Get, "/", content, cancel).ConfigureAwait(false);
 			return true;
 		}
 		catch
