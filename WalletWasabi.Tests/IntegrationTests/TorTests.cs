@@ -84,7 +84,7 @@ public class TorTests : IAsyncLifetime
 		}
 
 		sw.Stop();
-		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds} - Successes: {counterSuccesses} - Failures: {counterFailures}");
+		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds}; {times} requests ({counterSuccesses} passed, {counterFailures} failed)");
 	}
 
 	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, CancellationToken cancel, int contentSize = 0)
