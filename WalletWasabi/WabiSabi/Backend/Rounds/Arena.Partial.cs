@@ -12,6 +12,8 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Events;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -81,8 +83,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				}
 			}
 
-			var isPayingZeroCoordinationFee = comingFromCoinJoin || oneHop;
-			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
+			var isCoordinationFeeExempted = comingFromCoinJoin || oneHop;
+			var alice = new Alice(coin, request.OwnershipProof, round, id, isCoordinationFeeExempted);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
 			{
@@ -122,7 +124,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			return new(alice.Id,
 				commitAmountCredentialResponse,
 				commitVsizeCredentialResponse,
-				alice.IsPayingZeroCoordinationFee);
+				alice.IsCoordinationFeeExempted);
 		}
 	}
 
@@ -133,6 +135,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
+			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationId);
 		}
 	}
 
@@ -406,8 +409,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			return x;
 		}).ToArray();
-
-		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
+		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
 	}
 
 	private Round GetRound(uint256 roundId) =>
