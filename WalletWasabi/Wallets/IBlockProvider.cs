@@ -9,6 +9,7 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public interface IBlockProvider
 {
+	/// <remarks>The implementations are not supposed to throw exceptions.</remarks>
 	Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken);
 
 	/// <exception cref="InvalidOperationException">If the block cannot be obtained.</exception>

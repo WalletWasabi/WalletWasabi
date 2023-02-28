@@ -76,6 +76,11 @@ public class CoinVerifierApiClient : IAsyncDisposable
 					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 				}
 			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning($"API request timed out for script: {script}.");
+				throw;
+			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {i}. Exception: {ex}.");
