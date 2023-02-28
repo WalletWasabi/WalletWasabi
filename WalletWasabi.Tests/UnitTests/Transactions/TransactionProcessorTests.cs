@@ -1318,7 +1318,7 @@ public class TransactionProcessorTests
 		}
 		for (var i = 0; i < 100; i++)
 		{
-			cjtx.Outputs.Add(Money.Coins(0.1m), new Key());
+			cjtx.Outputs.Add(Money.Coins(0.1m), new Key().GetScriptPubKey(ScriptPubKeyType.Segwit));
 		}
 		cjtx.Inputs.Add(receivedCoin.Outpoint, Script.Empty, WitScript.Empty);
 		cjtx.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("").P2wpkhScript);
