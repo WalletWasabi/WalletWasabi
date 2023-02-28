@@ -12,7 +12,7 @@ using WalletWasabi.Wallets.BlockProvider;
 namespace WalletWasabi.Wallets;
 
 /// <summary>
-/// This block provider uses <c>&lt;Network&gt;BitcoinP2pEndPoint</c> from Wasabi Wallet config to provide blocks from a local or remote node.
+/// This block provider uses <c>NetworkBitcoinP2pEndPoint</c> from Wasabi Wallet config to provide blocks from a local or remote node.
 /// </summary>
 public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 {
