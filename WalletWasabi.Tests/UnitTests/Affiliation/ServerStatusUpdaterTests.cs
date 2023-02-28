@@ -11,6 +11,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class AffiliateServerStatusUpdaterTests
 {
 	private (Mock<IHttpClient> mockHttpClient, ISetupSequentialResult<Task<HttpResponseMessage>> setup) CreateMockHttpClient(string jsonContent)
@@ -41,12 +43,14 @@ public class AffiliateServerStatusUpdaterTests
 			response.Content = new StringContent("{}");
 			return response;
 		}
+
 		static HttpResponseMessage Error(HttpStatusCode statusCode)
 		{
 			HttpResponseMessage response = new(statusCode);
 			response.Content = new StringContent("{}");
 			return response;
 		}
+
 		using HttpResponseMessage ok10 = Ok();
 		using HttpResponseMessage ok11 = Ok();
 		using HttpResponseMessage error10 = Error(HttpStatusCode.InternalServerError);
@@ -57,6 +61,7 @@ public class AffiliateServerStatusUpdaterTests
 			.ReturnsAsync(ok11)
 			.ReturnsAsync(error10)
 			.ReturnsAsync(ok12);
+
 		using HttpResponseMessage ok20 = Ok();
 		using HttpResponseMessage error20 = Error(HttpStatusCode.NotFound);
 		using HttpResponseMessage error21 = Error(HttpStatusCode.Forbidden);
@@ -67,12 +72,15 @@ public class AffiliateServerStatusUpdaterTests
 			.ReturnsAsync(error20)
 			.ReturnsAsync(error21)
 			.ReturnsAsync(ok22);
+
 		Dictionary<string, AffiliateServerHttpApiClient> servers = new()
 		{
 			["server-1"] = new AffiliateServerHttpApiClient(client1Mock.Object),
 			["server-2"] = new AffiliateServerHttpApiClient(client2Mock.Object)
 		};
+
 		using AffiliateServerStatusUpdater serverStatusUpdater = new(servers);
+
 		try
 		{
 			await serverStatusUpdater.StartAsync(CancellationToken.None);
