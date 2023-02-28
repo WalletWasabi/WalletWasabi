@@ -137,6 +137,7 @@ public class Global
 
 			try
 			{
+				// Make sure that config changes done by hand are recognized too.
 				await StartupHelper.ModifyStartupSettingAsync(UiConfig.RunOnSystemStartup).ConfigureAwait(false);
 
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
