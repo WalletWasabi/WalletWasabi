@@ -38,6 +38,8 @@ public class CoinVerifier : IAsyncDisposable
 	// This should be much bigger than the possible input-reg period.
 	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
 
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+
 	private Whitelist Whitelist { get; }
 	private WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
@@ -226,9 +228,6 @@ public class CoinVerifier : IAsyncDisposable
 		_ = Task.Run(
 			async () =>
 			{
-				using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, absoluteTimeoutCts.Token, item.Token);
-
 				try
 				{
 					var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
@@ -243,12 +242,15 @@ public class CoinVerifier : IAsyncDisposable
 					if (delay > TimeSpan.Zero)
 					{
 						// We only abort and throw from the delay. If the API request already started, we will go with it.
-						using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, item.Token);
+						using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token);
 						await Task.Delay(delay, delayCts.Token).ConfigureAwait(false);
 					}
 
 					// This is the last chance to abort with abortCts.
 					item.ThrowIfCancellationRequested();
+
+					using CancellationTokenSource requestTimeoutCts = new(ApiRequestTimeout);
+					using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token, requestTimeoutCts.Token);
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 

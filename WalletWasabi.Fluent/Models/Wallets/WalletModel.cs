@@ -45,14 +45,12 @@ internal class WalletModel : IWalletModel
 
 	public string Name => _wallet.WalletName;
 
-	public IObservable<Money> Balance => throw new NotImplementedException();
-
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
-	public IAddress CreateReceiveAddress(IEnumerable<string> destinationLabels)
+	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
-		var pubKey = _wallet.CreateReceiveAddress(destinationLabels);
-		return new Address(_wallet, pubKey);
+		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
+		return new Address(_wallet.KeyManager, pubKey);
 	}
 
 	public bool IsHardwareWallet() => _wallet.KeyManager.IsHardwareWallet;
@@ -70,6 +68,6 @@ internal class WalletModel : IWalletModel
 		return _wallet.KeyManager
 					  .GetKeys()
 					  .Reverse()
-					  .Select(x => new Address(_wallet, x));
+					  .Select(x => new Address(_wallet.KeyManager, x));
 	}
 }

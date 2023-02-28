@@ -13,9 +13,9 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public class P2PBlockProvider : IBlockProvider
 {
-	public P2PBlockProvider(Network network, NodesGroup nodes, HttpClientFactory httpClientFactory)
+	public P2PBlockProvider(Network network, NodesGroup nodes, bool isTorEnabled)
 	{
-		P2PNodesManager = new P2PNodesManager(network, nodes, httpClientFactory.IsTorEnabled);
+		P2PNodesManager = new P2PNodesManager(network, nodes, isTorEnabled);
 	}
 	
 	private P2PNodesManager P2PNodesManager { get; }

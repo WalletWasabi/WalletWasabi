@@ -44,7 +44,7 @@ public class P2PNodesManager
 
 	public double GetCurrentTimeout()
 	{
-		// More permissive timeout if few nodes are connected to avoid exhaustion
+		// More permissive timeout if few nodes are connected to avoid exhaustion.
 		return Nodes.ConnectedNodes.Count < 3
 			? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
 			: RuntimeParams.Instance.NetworkNodeTimeout;
