@@ -139,15 +139,9 @@ public class Wallet : BackgroundService, IWallet
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
 
-	public HdPubKey CreateReceiveAddress(IEnumerable<string> destinationLabels)
+	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
-		if (KeyManager.MasterFingerprint == null)
-		{
-			throw new InvalidOperationException("Master fingerprint should not be null");
-		}
-
-		var hdPubKey = KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
-		return hdPubKey;
+		return KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
 	}
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
