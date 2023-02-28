@@ -45,8 +45,6 @@ internal class WalletModel : IWalletModel
 
 	public string Name => _wallet.WalletName;
 
-	public IObservable<Money> Balance => throw new NotImplementedException();
-
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)

@@ -16,8 +16,6 @@ public interface IWalletModel
 
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
-	IObservable<Money> Balance { get; }
-
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
