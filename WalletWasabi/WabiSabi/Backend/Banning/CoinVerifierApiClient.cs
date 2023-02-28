@@ -53,12 +53,11 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			// Makes sure that there are no more than MaxParallelRequestCount requests in-flight at a time.
 			// Re-tries are not an exception to the max throttling limit.
 			await ThrottlingSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-			using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
-			content.Headers.Authorization = new("Bearer", ApiToken);
-
 			try
 			{
+				using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
+				content.Headers.Authorization = new("Bearer", ApiToken);
+
 				var before = DateTimeOffset.UtcNow;
 
 				response = await HttpClient.SendAsync(content, cancellationToken).ConfigureAwait(false);
