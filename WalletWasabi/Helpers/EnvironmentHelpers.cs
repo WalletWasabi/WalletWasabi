@@ -146,13 +146,13 @@ public static class EnvironmentHelpers
 	public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
 		=> await ShellExecAndGetResultAsync(cmd, waitForExit, false).ConfigureAwait(false);
 
-	public static async Task<List<string>> ShellExecAndGetResultAsync(string cmd)
+	public static async Task<string> ShellExecAndGetResultAsync(string cmd)
 		=> await ShellExecAndGetResultAsync(cmd, true, true).ConfigureAwait(false);
 
 	/// <summary>
 	/// Executes a command with Bourne shell and returns Standard Output.
 	/// </summary>
-	private static async Task<List<string>> ShellExecAndGetResultAsync(string cmd, bool waitForExit = true, bool readResult = false)
+	private static async Task<string> ShellExecAndGetResultAsync(string cmd, bool waitForExit = true, bool readResult = false)
 	{
 		var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -171,27 +171,22 @@ public static class EnvironmentHelpers
 		{
 			waitForExit = true;
 		}
+		string output = "";
 
-		List<string> result = new();
 		if (waitForExit)
 		{
 			using var process = new ProcessAsync(startInfo);
 			process.Start();
 
-			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+			if (readResult)
+			{
+				output = process.StandardOutput.ReadToEnd();
+			}
 
+			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 			if (process.ExitCode != 0)
 			{
 				Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
-			}
-
-			if (readResult)
-			{
-				while (!process.StandardOutput.EndOfStream)
-				{
-					string? line = process.StandardOutput.ReadLine() ?? string.Empty;
-					result.Add(line);
-				}
 			}
 		}
 		else
@@ -199,7 +194,7 @@ public static class EnvironmentHelpers
 			using var process = Process.Start(startInfo);
 		}
 
-		return result;
+		return output;
 	}
 
 	public static bool IsFileTypeAssociated(string fileExtension)

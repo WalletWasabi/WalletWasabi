@@ -14,8 +14,8 @@ public static class MacOsStartupHelper
 
 	public static async Task AddOrRemoveLoginItemAsync(bool runOnSystemStartup)
 	{
-		List<string> result = await EnvironmentHelpers.ShellExecAndGetResultAsync(ListCmd).ConfigureAwait(false);
-		bool loginItemExists = result.Any(line => line.Contains(Constants.AppName));
+		string result = await EnvironmentHelpers.ShellExecAndGetResultAsync(ListCmd).ConfigureAwait(false);
+		bool loginItemExists = result.Contains(Constants.AppName);
 
 		if (!loginItemExists && runOnSystemStartup)
 		{
