@@ -231,7 +231,7 @@ public class PubKeyReuseAnonScoreTests
 		var reusedTxOut = new TxOut(equalOutputAmount, destination);
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			othersInputCount: 9,
-			Common.Repeat(() => new TxOut(equalOutputAmount, new Key()), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
+			Common.Repeat(() => new TxOut(equalOutputAmount, new Key().GetScriptPubKey(ScriptPubKeyType.Segwit)), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
 			new[] { (Money.Coins(1.1m), 1, BitcoinFactory.CreateHdPubKey(km)) },
 			new[] { (equalOutputAmount, HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) },
 			orderByAmount: false);

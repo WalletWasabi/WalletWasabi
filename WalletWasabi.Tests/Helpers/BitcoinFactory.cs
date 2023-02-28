@@ -24,7 +24,7 @@ public static class BitcoinFactory
 	}
 
 	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount = false)
-		=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key())), ownInputs, ownOutputs, orderByAmount);
+		=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key().GetScriptPubKey(ScriptPubKeyType.Segwit))), ownInputs, ownOutputs, orderByAmount);
 
 	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<TxOut> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount)
 	{
