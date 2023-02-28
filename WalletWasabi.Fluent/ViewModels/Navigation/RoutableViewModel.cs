@@ -131,17 +131,9 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
 		=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-	public static async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
+	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialogTask = dialog.GetDialogResultAsync();
-
-		Navigate(target).To(dialog, navigationMode);
-
-		var result = await dialogTask;
-
-		Navigate(target).Back();
-
-		return result;
+		return await UIContext.Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
 
 	protected async Task ShowErrorAsync(string title, string message, string caption, NavigationTarget target = NavigationTarget.Default)
