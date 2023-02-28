@@ -185,15 +185,10 @@ public static class EnvironmentHelpers
 
 		fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
 
-		using (var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
-		{
-			// Read the (Default) value.
-			if (key?.GetValue(null) is not null)
-			{
-				return true;
-			}
-		}
-		return false;
+		using var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}");
+
+		// Read the (Default) value.
+		return key?.GetValue(null) is not null;
 	}
 
 	public static string GetFullBaseDirectory()
