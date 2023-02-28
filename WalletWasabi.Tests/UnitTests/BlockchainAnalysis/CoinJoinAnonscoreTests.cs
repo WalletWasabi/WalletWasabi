@@ -409,6 +409,26 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(3, tx.WalletOutputs.First(x => x.Amount == Money.Coins(50m)).AnonymitySet, precision: 0);
 	}
 
+	public void DifferentScriptTypeDoesntContributeToAnonScore()
+	{
+		var tx1 = new AnalyzedTransaction();
+		tx1.AddForeignInput();
+		tx1.AddForeignInput();
+		tx1.AddForeignInput();
+		tx1.AddWalletInput();
+		tx1.AddForeignOutput();
+		tx1.AddForeignOutput();
+		tx1.AddForeignOutput();
+		tx1.AddForeignOutput();
+		tx1.AddForeignOutput(scriptPubKeyType: ScriptPubKeyType.Legacy);
+		tx1.AddWalletOutput();
+		var a = tx1.AddWalletOutput();
+
+		tx1.AnalyzeRecursively();
+
+		Assert.Equal(3, a.Anonymity);
+	}
+
 	[Fact]
 	public void SiblingCoinjoinDoesntContributeToAnonScore()
 	{

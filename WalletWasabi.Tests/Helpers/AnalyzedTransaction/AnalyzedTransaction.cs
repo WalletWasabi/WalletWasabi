@@ -29,10 +29,10 @@ public class AnalyzedTransaction : SmartTransaction
 		}
 	}
 
-	private static Script CreateScript(string? label = null)
+	private static Script CreateScript(string? label = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		using var k = CreateKey(label);
-		return k.PubKey.WitHash.ScriptPubKey;
+		return k.PubKey.GetScriptPubKey(scriptPubKeyType);
 	}
 
 	private static HdPubKey CreateHdPubKey(string? label = null)
@@ -82,14 +82,14 @@ public class AnalyzedTransaction : SmartTransaction
 		return walletOutput;
 	}
 
-	public ForeignOutput AddForeignOutput(decimal amount = 1, string? label = null)
+	public ForeignOutput AddForeignOutput(decimal amount = 1, string? label = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		uint index = (uint)Transaction.Outputs.Count;
-		Transaction.Outputs.Add(new Money(amount, MoneyUnit.BTC), CreateScript(label));
+		Transaction.Outputs.Add(new Money(amount, MoneyUnit.BTC), CreateScript(label, scriptPubKeyType));
 		return new ForeignOutput(Transaction, index);
 	}
 
-	public WalletOutput AddWalletOutput(decimal amount = 1, string? label = null)
+	public WalletOutput AddWalletOutput(decimal amount = 1, string? label = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		ForeignOutput foreignOutput = AddForeignOutput(amount, label);
 		SmartCoin smartCoin = new(this, foreignOutput.Index, CreateHdPubKey(label));
