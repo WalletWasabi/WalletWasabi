@@ -228,9 +228,6 @@ public class CoinVerifier : IAsyncDisposable
 		_ = Task.Run(
 			async () =>
 			{
-				using CancellationTokenSource requestTimeoutCts = new(ApiRequestTimeout);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token, requestTimeoutCts.Token);
-
 				try
 				{
 					var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
@@ -245,12 +242,15 @@ public class CoinVerifier : IAsyncDisposable
 					if (delay > TimeSpan.Zero)
 					{
 						// We only abort and throw from the delay. If the API request already started, we will go with it.
-						using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, item.Token);
+						using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token);
 						await Task.Delay(delay, delayCts.Token).ConfigureAwait(false);
 					}
 
 					// This is the last chance to abort with abortCts.
 					item.ThrowIfCancellationRequested();
+
+					using CancellationTokenSource requestTimeoutCts = new(ApiRequestTimeout);
+					using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token, requestTimeoutCts.Token);
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 
