@@ -88,7 +88,8 @@ public static class NotificationHelpers
 				else if (incoming < Money.Zero)
 				{
 					var sentAmount = receiveSpentDiff - miningFee;
-					message = $"{sentAmount.ToFormattedString()} BTC ({fiatString} USD) sent";
+					var fiatSentAmount = sentAmount.ToUsd(fiatExchangeRate).ToUsdAmount();
+					message = $"{sentAmount.ToFormattedString()} BTC ({fiatSentAmount} USD) sent";
 				}
 			}
 			else if (isConfirmedReceive || isConfirmedSpent)
@@ -111,7 +112,8 @@ public static class NotificationHelpers
 				else if (incoming < Money.Zero)
 				{
 					var sentAmount = receiveSpentDiff - miningFee;
-					message = $"{sentAmount.ToFormattedString()} BTC ({fiatString} USD) sent got confirmed";
+					var fiatSentAmount = sentAmount.ToUsd(fiatExchangeRate).ToUsdAmount();
+					message = $"{sentAmount.ToFormattedString()} BTC ({fiatSentAmount} USD) sent got confirmed";
 				}
 			}
 		}
