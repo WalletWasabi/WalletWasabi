@@ -48,9 +48,9 @@ public class BitcoinStore
 
 		var initTasks = new[]
 		{
-				IndexStore.InitializeAsync(cancel),
-				TransactionStore.InitializeAsync(cancel: cancel)
-			};
+			IndexStore.InitializeAsync(cancel),
+			TransactionStore.InitializeAsync(cancel: cancel)
+		};
 
 		await Task.WhenAll(initTasks).ConfigureAwait(false);
 	}

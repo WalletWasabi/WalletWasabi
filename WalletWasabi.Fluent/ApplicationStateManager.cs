@@ -17,25 +17,6 @@ namespace WalletWasabi.Fluent;
 
 public class ApplicationStateManager : IMainWindowService
 {
-	private enum Trigger
-	{
-		Invalid = 0,
-		Hide,
-		Show,
-		Loaded,
-		ShutdownPrevented,
-		ShutdownRequested,
-		MainWindowClosed,
-	}
-
-	private enum State
-	{
-		Invalid = 0,
-		InitialState,
-		Closed,
-		Open,
-	}
-
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
@@ -48,6 +29,7 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 		ApplicationViewModel = new ApplicationViewModel(this);
+		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
 			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
@@ -55,8 +37,10 @@ public class ApplicationStateManager : IMainWindowService
 			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
 
 		_stateMachine.Configure(State.InitialState)
-			.InitialTransition(State.Open)
-			.OnTrigger(Trigger.ShutdownRequested, () =>
+			.InitialTransition(initTransitionState)
+			.OnTrigger(
+			Trigger.ShutdownRequested,
+			() =>
 			{
 				if (_restartRequest)
 				{
@@ -65,7 +49,9 @@ public class ApplicationStateManager : IMainWindowService
 
 				lifetime.Shutdown();
 			})
-			.OnTrigger(Trigger.ShutdownPrevented, () =>
+			.OnTrigger(
+			Trigger.ShutdownPrevented,
+			() =>
 			{
 				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 				_restartRequest = false; // reset the value.
@@ -75,13 +61,12 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow.Close();
+				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
-			.Permit(Trigger.ShutdownPrevented, State.Open)
-			.Permit(Trigger.Loaded, State.Open);
+			.Permit(Trigger.ShutdownPrevented, State.Open);
 
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.InitialState)
@@ -93,11 +78,24 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
+	}
 
-		if (!startInBg)
-		{
-			_stateMachine.Fire(Trigger.Loaded);
-		}
+	private enum Trigger
+	{
+		Invalid = 0,
+		Hide,
+		Show,
+		ShutdownPrevented,
+		ShutdownRequested,
+		MainWindowClosed,
+	}
+
+	private enum State
+	{
+		Invalid = 0,
+		InitialState,
+		Closed,
+		Open,
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }
