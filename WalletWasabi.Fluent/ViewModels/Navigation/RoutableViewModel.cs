@@ -136,14 +136,16 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		return await UIContext.Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
 
-	protected async Task ShowErrorAsync(string title, string message, string caption)
+	protected async Task ShowErrorAsync(string title, string message, string caption, NavigationTarget navigationTarget = NavigationTarget.Default)
 	{
-		var navigationTarget =
-			CurrentTarget == NavigationTarget.CompactDialogScreen
-			? NavigationTarget.CompactDialogScreen
-			: NavigationTarget.DialogScreen;
+		var target =
+			navigationTarget != NavigationTarget.Default
+			? navigationTarget
+			: CurrentTarget == NavigationTarget.CompactDialogScreen
+				? NavigationTarget.CompactDialogScreen
+				: NavigationTarget.DialogScreen;
 
-		await Navigate(navigationTarget).ShowErrorAsync(title, message, caption);
+		await Navigate(target).ShowErrorAsync(title, message, caption);
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)
