@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
@@ -28,6 +29,12 @@ public static class NavigationExtensions
 		navigate.Back();
 
 		return result;
+	}
+
+	public static async Task ShowErrorAsync(this INavigationStack<RoutableViewModel> navigate, string title, string message, string caption)
+	{
+		var dialog = new ShowErrorDialogViewModel(message, title, caption);
+		await navigate.NavigateDialogAsync(dialog);
 	}
 
 	private static NavigationTarget GetTarget(RoutableViewModel viewModel, NavigationTarget target)
