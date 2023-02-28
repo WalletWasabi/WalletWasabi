@@ -41,7 +41,7 @@ public static class NotificationHelpers
 
 	public static void Show(Wallet wallet, ProcessedResult result, Action onClick)
 	{
-		if (TryGetNotificationInputs(wallet, result, out var message))
+		if (TryGetNotificationInputs(wallet.Synchronizer.UsdExchangeRate, result, out var message))
 		{
 			Show(wallet.WalletName, message, onClick);
 		}
@@ -52,7 +52,7 @@ public static class NotificationHelpers
 		NotificationManager?.Show(viewModel);
 	}
 
-	private static bool TryGetNotificationInputs(Wallet wallet, ProcessedResult result, [NotNullWhen(true)] out string? message)
+	private static bool TryGetNotificationInputs(decimal fiatExchangeRate, ProcessedResult result, [NotNullWhen(true)] out string? message)
 	{
 		message = null;
 
@@ -71,7 +71,7 @@ public static class NotificationHelpers
 				Money incoming = receivedSum - spentSum;
 				Money receiveSpentDiff = incoming.Abs();
 				string amountString = receiveSpentDiff.ToFormattedString();
-				string fiatString = receiveSpentDiff.ToUsd(wallet.Synchronizer.UsdExchangeRate).ToUsdAmount();
+				string fiatString = receiveSpentDiff.ToUsd(fiatExchangeRate).ToUsdAmount();
 
 				if (result.Transaction.Transaction.IsCoinBase)
 				{
@@ -98,7 +98,7 @@ public static class NotificationHelpers
 				Money incoming = receivedSum - spentSum;
 				Money receiveSpentDiff = incoming.Abs();
 				string amountString = receiveSpentDiff.ToFormattedString();
-				string fiatString = receiveSpentDiff.ToUsd(wallet.Synchronizer.UsdExchangeRate).ToUsdAmount();
+				string fiatString = receiveSpentDiff.ToUsd(fiatExchangeRate).ToUsdAmount();
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
