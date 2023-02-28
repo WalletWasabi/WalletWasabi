@@ -73,16 +73,9 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		return Navigate(currentTarget);
 	}
 
-	public static INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
+	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 	{
-		return currentTarget switch
-		{
-			NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
-			NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
-			NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
-			NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
-			_ => throw new NotSupportedException(),
-		};
+		return UIContext.Navigate(currentTarget);
 	}
 
 	public void SetActive()

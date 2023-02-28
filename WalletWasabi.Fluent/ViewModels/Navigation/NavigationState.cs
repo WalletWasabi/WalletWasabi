@@ -36,4 +36,16 @@ public class NavigationState
 			fullScreenNavigation,
 			compactDialogScreenNavigation);
 	}
+
+	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
+	{
+		return currentTarget switch
+		{
+			NavigationTarget.HomeScreen => HomeScreenNavigation,
+			NavigationTarget.DialogScreen => DialogScreenNavigation,
+			NavigationTarget.FullScreen => FullScreenNavigation,
+			NavigationTarget.CompactDialogScreen => CompactDialogScreenNavigation,
+			_ => throw new NotSupportedException(),
+		};
+	}
 }
