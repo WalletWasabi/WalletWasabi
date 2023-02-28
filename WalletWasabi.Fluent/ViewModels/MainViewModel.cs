@@ -296,7 +296,7 @@ public partial class MainViewModel : ViewModelBase
 		var filterChanged = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSearchSource(filterChanged),
+			new ActionsSearchSource(UIContext, filterChanged),
 			new SettingsSearchSource(_settingsPage, filterChanged),
 			new TransactionsSearchSource(filterChanged));
 
