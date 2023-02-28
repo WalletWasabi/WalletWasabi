@@ -142,7 +142,7 @@ public class CoinVerifier : IAsyncDisposable
 		}
 	}
 
-	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int? confirmatons, int? blockchainHeight)
+	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int? confirmations, int? blockchainHeight)
 	{
 		if (WabiSabiConfig.RiskFlags is null)
 		{
@@ -160,7 +160,7 @@ public class CoinVerifier : IAsyncDisposable
 		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		// When to remove: if we ban it OR if address_used is false, API provider doesn't know about it OR if the report doesn't include the block in which the script is used to receive the coin.
-		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used || blockchainHeight - (confirmatons - 1) > response.Report_info_section.Report_block_height;
+		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used || blockchainHeight - (confirmations - 1) > response.Report_info_section.Report_block_height;
 		return (shouldBan, shouldRemove);
 	}
 
