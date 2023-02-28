@@ -65,7 +65,7 @@ public class CoinVerifierApiClient
 					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 				}
 			}
-			catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
+			catch (Exception ex) when (ex is OperationCanceledException)
 			{
 				Logger.LogWarning($"API request timed out for script: {script}.");
 				throw;
