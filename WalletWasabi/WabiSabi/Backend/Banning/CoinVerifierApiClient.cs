@@ -34,7 +34,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 	}
 
 	/// <summary>Long timeout for a single API request. No retry after that. </summary>
-	private static TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(5);
+	public static TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(5);
 
 	private string ApiToken { get; }
 

@@ -116,6 +116,7 @@ public class Global : IDisposable
 				}
 
 				HttpClient.BaseAddress = url;
+				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
 				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
 				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
