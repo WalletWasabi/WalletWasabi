@@ -27,7 +27,10 @@
                      Label="Amount"
                      TextValue="{Binding Amount}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="-" IsVisible="{Binding IsOutgoingAmount}" Classes="monoSpaced" />
+            <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+          </StackPanel>
         </c:PrivacyContentControl>
       </c:PreviewItem>
 

@@ -25,32 +25,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private bool? _isOutgoingAmount;
 
 	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-		CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionIdAsync);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
-	}
-
-	public ICommand CopyTransactionIdCommand { get; }
-
-	private async Task OnCopyTransactionIdAsync()
-	{
-		if (TransactionId is null)
-		{
-			return;
-		}
-
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			await clipboard.SetTextAsync(TransactionId);
-		}
 	}
 
 	private void UpdateValues(TransactionSummary transactionSummary)
@@ -61,7 +46,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false);
+		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false).TrimStart('-');
+		IsOutgoingAmount = transactionSummary.Amount < 0;
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
 
