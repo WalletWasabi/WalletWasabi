@@ -33,8 +33,8 @@ public class CoinVerifierApiClient : IAsyncDisposable
 		}
 	}
 
-	/// <summary>Timeout for a single <see cref="SendRequestAsync(Script, CancellationToken)"/> invocation (including retries).</summary>
-	private static TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+	/// <summary>Long timeout for a single API request. No retry after that. </summary>
+	private static TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(5);
 
 	private string ApiToken { get; }
 
@@ -61,7 +61,9 @@ public class CoinVerifierApiClient : IAsyncDisposable
 				var before = DateTimeOffset.UtcNow;
 				try
 				{
-					response = await HttpClient.SendAsync(content, cancellationToken).ConfigureAwait(false);
+					using CancellationTokenSource apiTimeoutCts = new(ApiRequestTimeout);
+					using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(apiTimeoutCts.Token, cancellationToken);
+					response = await HttpClient.SendAsync(content, linkedCts.Token).ConfigureAwait(false);
 				}
 				finally
 				{
