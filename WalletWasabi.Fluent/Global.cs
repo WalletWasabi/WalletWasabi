@@ -115,9 +115,7 @@ public class Global
 	private IndexStore IndexStore { get; }
 
 	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new (
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter);
+		new(torEndPoint: Config.UseTor ? TorSettings.SocksEndpoint : null, backendUriGetter);
 
 	public async Task InitializeNoWalletAsync(TerminateService terminateService)
 	{
