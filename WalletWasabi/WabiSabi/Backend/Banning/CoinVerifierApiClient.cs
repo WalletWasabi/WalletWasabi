@@ -62,7 +62,7 @@ public class CoinVerifierApiClient
 				}
 				else
 				{
-					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode.ToString() ?? "Null"}.");
 				}
 			}
 			catch (OperationCanceledException)
