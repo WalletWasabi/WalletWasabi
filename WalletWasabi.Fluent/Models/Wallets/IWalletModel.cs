@@ -20,7 +20,7 @@ public interface IWalletModel
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
-	IAddress CreateReceiveAddress(IEnumerable<string> destinationLabels);
+	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
