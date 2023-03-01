@@ -10,7 +10,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.Authorization.HardwareWalletAuthDialogView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Connect your hardware wallet, then press Continue to sign your transaction."
+                 Caption="Connect your hardware wallet, then follow the instructions on the device after pressing Continue."
+                 MaxWidth="500"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
