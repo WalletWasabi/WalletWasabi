@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using NBitcoin;
+using System.Collections.Generic;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -57,7 +57,7 @@ public static class CoinSelectorDataGridSource
 
 		return 0;
 	}
-	
+
 	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
 	{
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(

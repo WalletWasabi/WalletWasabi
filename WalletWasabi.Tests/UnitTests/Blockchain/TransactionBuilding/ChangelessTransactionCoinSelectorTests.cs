@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -25,6 +26,7 @@ public class ChangelessTransactionCoinSelectorTests
 	[Fact]
 	public void GoodSuggestion()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 		using Key key = new();
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
@@ -38,7 +40,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins, testDeadlineCts.Token);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
@@ -49,6 +51,7 @@ public class ChangelessTransactionCoinSelectorTests
 	[Fact]
 	public void Good_LesserSuggestion()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 		using Key key = new();
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
@@ -62,7 +65,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins, testDeadlineCts.Token);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
@@ -70,11 +73,12 @@ public class ChangelessTransactionCoinSelectorTests
 	}
 
 	/// <summary>
-	/// Tests that solutions respect <see cref="ChangelessTransactionCoinSelector.MaxExtraPayment"/> restriction.
+	/// Tests that solutions respect <see cref="MoreSelectionStrategy.MaxExtraPayment"/> restriction.
 	/// </summary>
 	[Fact]
 	public void TooExpensiveSolution()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 		using Key key = new();
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 150_000);
@@ -88,7 +92,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins, testDeadlineCts.Token);
 		Assert.False(found);
 	}
 

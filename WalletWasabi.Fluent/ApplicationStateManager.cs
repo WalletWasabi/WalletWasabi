@@ -29,6 +29,7 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 		ApplicationViewModel = new ApplicationViewModel(this);
+		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
 			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
@@ -36,7 +37,7 @@ public class ApplicationStateManager : IMainWindowService
 			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
 
 		_stateMachine.Configure(State.InitialState)
-			.InitialTransition(State.Open)
+			.InitialTransition(initTransitionState)
 			.OnTrigger(
 			Trigger.ShutdownRequested,
 			() =>
@@ -60,13 +61,12 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow.Close();
+				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
-			.Permit(Trigger.ShutdownPrevented, State.Open)
-			.Permit(Trigger.Loaded, State.Open);
+			.Permit(Trigger.ShutdownPrevented, State.Open);
 
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.InitialState)
@@ -78,11 +78,6 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
-
-		if (!startInBg)
-		{
-			_stateMachine.Fire(Trigger.Loaded);
-		}
 	}
 
 	private enum Trigger
@@ -90,7 +85,6 @@ public class ApplicationStateManager : IMainWindowService
 		Invalid = 0,
 		Hide,
 		Show,
-		Loaded,
 		ShutdownPrevented,
 		ShutdownRequested,
 		MainWindowClosed,
