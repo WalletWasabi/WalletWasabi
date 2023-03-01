@@ -1,10 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -14,23 +11,15 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierApiClient
 {
-	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
+	public CoinVerifierApiClient(string token, HttpClient httpClient)
 	{
 		ApiToken = token;
-		Network = network;
 		HttpClient = httpClient;
 	}
 
-	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
-	{
-	}
+	private string ApiToken { get; }
 
-	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
-	private string ApiToken { get; set; }
-	private Network Network { get; set; }
-
-	private HttpClient HttpClient { get; set; }
+	private HttpClient HttpClient { get; }
 
 	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
@@ -43,10 +32,7 @@ public class CoinVerifierApiClient
 			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
 		}
 
-		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
-
-		using CancellationTokenSource timeoutTokenSource = new(TotalApiRequestTimeout);
-		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
+		var address = script.GetDestinationAddress(Network.Main); // API provider doesn't accept testnet/regtest addresses.
 
 		int tries = 3;
 		var delay = TimeSpan.FromSeconds(2);
@@ -64,7 +50,7 @@ public class CoinVerifierApiClient
 			{
 				var before = DateTimeOffset.UtcNow;
 
-				response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+				response = await HttpClient.SendAsync(content, cancellationToken).ConfigureAwait(false);
 
 				var duration = DateTimeOffset.UtcNow - before;
 				RequestTimeStatista.Instance.Add("verifier-request", duration);
@@ -76,8 +62,13 @@ public class CoinVerifierApiClient
 				}
 				else
 				{
-					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode.ToString() ?? "Null"}.");
 				}
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning($"API request timed out for script: {script}.");
+				throw;
 			}
 			catch (Exception ex)
 			{
@@ -97,7 +88,7 @@ public class CoinVerifierApiClient
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
+		string responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
