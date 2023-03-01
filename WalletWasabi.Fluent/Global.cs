@@ -113,7 +113,6 @@ public class Global
 
 	public MemoryCache Cache { get; private set; }
 
-	public JsonRpcServer? RpcServer { get; private set; }
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
@@ -188,8 +187,6 @@ public class Global
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
-				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
-
 				// TODO: Should this be null for RegTest?
 				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
 
@@ -205,25 +202,6 @@ public class Global
 			finally
 			{
 				Logger.LogTrace("Initialization finished.");
-			}
-		}
-	}
-
-	private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
-	{
-		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, Config.JsonRpcServerPrefixes);
-		if (jsonRpcServerConfig.IsEnabled)
-		{
-			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(this, terminateService);
-			RpcServer = new JsonRpcServer(wasabiJsonRpcService, jsonRpcServerConfig);
-			try
-			{
-				await RpcServer.StartAsync(cancel).ConfigureAwait(false);
-			}
-			catch (HttpListenerException e)
-			{
-				Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
-				RpcServer = null;
 			}
 		}
 	}
@@ -334,13 +312,6 @@ public class Global
 				{
 					UpdateManager.Dispose();
 					Logger.LogInfo($"{nameof(UpdateManager)} is stopped.", nameof(Global));
-				}
-
-				if (RpcServer is { } rpcServer)
-				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
 				if (SpecificNodeBlockProvider is { } specificNodeBlockProvider)
