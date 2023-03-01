@@ -218,4 +218,23 @@ public class Config : ConfigBase
 
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
+
+	public bool MigrateOldDefaultBackendUris()
+	{
+		bool hasChanged = false;
+
+		if (MainNetBackendUri == "https://wasabiwallet.io/")
+		{
+			MainNetBackendUri = "https://api.wasabiwallet.io/";
+			hasChanged = true;
+		}
+
+		if (TestNetBackendUri == "https://wasabiwallet.co/")
+		{
+			TestNetBackendUri = "https://api.wasabiwallet.co/";
+			hasChanged = true;
+		}
+
+		return hasChanged;
+	}
 }
