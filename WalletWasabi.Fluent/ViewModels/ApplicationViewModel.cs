@@ -73,7 +73,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return;
 		}
 
-		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
+		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
 		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 

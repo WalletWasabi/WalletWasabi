@@ -1,10 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -65,8 +62,13 @@ public class CoinVerifierApiClient
 				}
 				else
 				{
-					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode.ToString() ?? "Null"}.");
 				}
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning($"API request timed out for script: {script}.");
+				throw;
 			}
 			catch (Exception ex)
 			{

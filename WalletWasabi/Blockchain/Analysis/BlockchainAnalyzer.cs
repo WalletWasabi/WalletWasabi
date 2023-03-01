@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class BlockchainAnalyzer
 {
-	public static long[] StdDenoms = new[]
+	public static readonly long[] StdDenoms = new[]
 	{
 		5000L, 6561L, 8192L, 10000L, 13122L, 16384L, 19683L, 20000L, 32768L, 39366L, 50000L, 59049L, 65536L, 100000L, 118098L,
 		131072L, 177147L, 200000L, 262144L, 354294L, 500000L, 524288L, 531441L, 1000000L, 1048576L, 1062882L, 1594323L, 2000000L,

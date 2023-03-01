@@ -44,7 +44,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public MainViewModel()
 	{
-		ApplyUiConfigWindowSate();
+		ApplyUiConfigWindowState();
 
 		_dialogScreen = new DialogScreenViewModel();
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -314,7 +314,7 @@ public partial class MainViewModel : ViewModelBase
 		});
 	}
 
-	public void ApplyUiConfigWindowSate()
+	public void ApplyUiConfigWindowState()
 	{
 		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}
