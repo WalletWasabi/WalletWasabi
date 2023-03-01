@@ -52,7 +52,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// </summary>
 	/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
 	/// <exception cref="OperationCanceledException">Wasabi is already running and signaled.</exception>
-	public async Task EnsureSingleOrThrowAsync()
+	public async Task<bool> EnsureSingleOrThrowAsync()
 	{
 		if (DisposeCts.IsCancellationRequested)
 		{
@@ -70,7 +70,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			await TaskStartTcpListener.Task.WithAwaitCancellationAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// This is the first instance, nothing else to do.
-			return;
+			return true;
 		}
 		catch (SocketException ex) when (ex.ErrorCode is 10048 or 48 or 98)
 		{
@@ -106,10 +106,10 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		catch (Exception ex)
 		{
 			// Do not log anything here as the first instance is writing the Log at this time.
-			throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled, reason: '{ex}'");
+			throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled", ex);
 		}
 
-		throw new OperationCanceledException($"Wasabi is already running, signaled the first instance.");
+		return false;
 	}
 
 	private static int NetworkToPort(Network network) => network switch
