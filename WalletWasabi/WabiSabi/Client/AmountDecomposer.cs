@@ -171,7 +171,8 @@ public class AmountDecomposer
 			denominations.Add(denom);
 		}
 
-		return denominations.Distinct().OrderByDescending(x => x.EffectiveAmount);
+		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
+		return denominations.OrderByDescending(x => x.EffectiveAmount);
 	}
 
 	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
@@ -360,7 +361,9 @@ public class AmountDecomposer
 	private Dictionary<Output, long> GetDenominationFrequencies(IEnumerable<Money> inputEffectiveValues)
 	{
 		var secondLargestInput = inputEffectiveValues.OrderByDescending(x => x).Skip(1).First();
-		var demonsForBreakDown = Denominations.Where(x => x.EffectiveCost <= (ulong)secondLargestInput.Satoshi);
+		var demonsForBreakDown = Denominations
+			.Where(x => x.EffectiveCost <= secondLargestInput) // Take only affordable denominations.
+			.OrderByDescending(x => x.EffectiveAmount); // If the amount is the same, the cheaper to spend should be the first - so greedy will take that.
 
 		Dictionary<Output, long> denomFrequencies = new();
 		foreach (var input in inputEffectiveValues)
