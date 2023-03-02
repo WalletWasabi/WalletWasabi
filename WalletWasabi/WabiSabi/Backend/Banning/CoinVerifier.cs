@@ -159,19 +159,23 @@ public class CoinVerifier : IAsyncDisposable
 
 		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
-		// When to remove: if we ban it OR if address_used is false, API provider doesn't know about it OR if the report doesn't include the block in which the script is used to receive the coin.
+		/* When to remove:
+		 - if we ban it
+		 - OR if address_used is false (API provider doesn't know about it)
+		 - OR if the report doesn't include the block in which the script is used to receive the coin.
+		 */
 		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used || blockchainHeight - (confirmations - 1) > response.Report_info_section.Report_block_height;
 		return (shouldBan, shouldRemove);
 	}
 
-	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null, int? bestBlockHeight = null)
+	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, bool oneHop = false, int confirmations = 0, int bestBlockHeight = 0)
 	{
 		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
 		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
 		return TryScheduleVerification(coin, out coinVerifyItem, cancellationToken, delayUntilStart, oneHop, confirmations, bestBlockHeight);
 	}
 
-	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null, int? bestBlockHeight = null)
+	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int confirmations = 0, int? bestBlockHeight = null)
 	{
 		coinVerifyItem = null;
 
