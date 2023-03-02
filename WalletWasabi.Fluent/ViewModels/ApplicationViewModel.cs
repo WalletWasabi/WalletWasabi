@@ -89,12 +89,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool MainViewCanShutdown()
 	{
-		if (MainViewModel.Instance.IsDialogOpen())
-		{
-			return false;
-		}
-
-		return true;
+		return !MainViewModel.Instance.IsDialogOpen();
 	}
 
 	public bool CoinJoinCanShutdown()
