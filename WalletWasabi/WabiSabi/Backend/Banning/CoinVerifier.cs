@@ -222,7 +222,7 @@ public class CoinVerifier : IAsyncDisposable
 
 		if (coin.Amount >= WabiSabiConfig.CoinVerifierRequiredConfirmationAmount)
 		{
-			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
+			if (confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
 			{
 				var result = new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true);
 				item.SetResult(result);
