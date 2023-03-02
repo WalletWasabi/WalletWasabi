@@ -160,7 +160,7 @@ public partial class MainViewModel : ViewModelBase
 
 		if (FullScreen.IsDialogOpen)
 		{
-			DialogScreen.ShowAlert = false;
+			FullScreen.ShowAlert = false;
 			FullScreen.ShowAlert = true;
 		}
 	}
