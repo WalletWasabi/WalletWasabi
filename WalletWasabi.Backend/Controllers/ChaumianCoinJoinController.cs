@@ -307,9 +307,11 @@ public class ChaumianCoinJoinController : ControllerBase
 					round.RemoveAlicesBy(aliceToRemove);
 				}
 
+				var currentHeight = await RpcClient.GetBlockCountAsync().ConfigureAwait(false);
+
 				foreach (var coin in alice.Inputs)
 				{
-					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, out _, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations);
+					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, out _, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations, currentHeight);
 				}
 
 				round.AddAlice(alice);
