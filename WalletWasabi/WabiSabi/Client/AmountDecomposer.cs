@@ -264,14 +264,8 @@ public class AmountDecomposer
 			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
 
-		HashCode hash = new();
-		foreach (var item in naiveSet.OrderBy(x => x.EffectiveCost))
-		{
-			hash.Add(item.Amount);
-		}
-
 		setCandidates.Add(
-			hash.ToHashCode(), // Create hash to ensure uniqueness.
+			CalculateHash(naiveSet), // Create hash to ensure uniqueness.
 			(naiveSet, loss + CalculateCostMetrics(naiveSet)));
 
 		// Create many decompositions for optimization.
@@ -307,15 +301,9 @@ public class AmountDecomposer
 					continue;
 				}
 
-				hash = new();
-				foreach (var item in finalDenoms.OrderBy(x => x.EffectiveCost))
-				{
-					hash.Add(item.Amount);
-				}
-
 				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCostMetrics(finalDenoms);
 
-				setCandidates.TryAdd(hash.ToHashCode(), (finalDenoms, deficit));
+				setCandidates.TryAdd(CalculateHash(finalDenoms), (finalDenoms, deficit));
 			}
 		}
 
@@ -413,7 +401,7 @@ public class AmountDecomposer
 		return denoms;
 	}
 
-	public Money CalculateCostMetrics(IEnumerable<Output> outputs)
+	private Money CalculateCostMetrics(IEnumerable<Output> outputs)
 	{
 		// The cost of the outputs. The more the worst.
 		var outputCost = outputs.Sum(o => o.Fee);
@@ -422,5 +410,15 @@ public class AmountDecomposer
 		var inputCost = outputs.Sum(o => o.InputFee);
 
 		return outputCost + inputCost;
+	}
+
+	private int CalculateHash(IEnumerable<Output> outputs)
+	{
+		HashCode hash = new();
+		foreach (var item in outputs.OrderBy(x => x.EffectiveCost))
+		{
+			hash.Add(item.Amount);
+		}
+		return hash.ToHashCode();
 	}
 }
