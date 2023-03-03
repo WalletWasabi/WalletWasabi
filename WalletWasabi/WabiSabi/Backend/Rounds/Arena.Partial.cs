@@ -119,9 +119,18 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-			int currentBlockchainHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+			int currentBlockchainHeight = 0;
 
-			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, out _, cancellationToken, oneHop, confirmations, currentBlockchainHeight);
+			try
+			{
+				currentBlockchainHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Couldn't get current blockchain height. Exception: {ex}");
+			}
+
+			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, out _, confirmations, currentBlockchainHeight, cancellationToken, oneHop);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,

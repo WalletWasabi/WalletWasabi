@@ -20,6 +20,8 @@ public class CoinVerifierTests
 
 	private WabiSabiConfig _wabisabiTestConfig = new() { RiskFlags = new List<int>() { 11 } };
 
+	private int _mockBlockchainHeight = 733947; // Same as the example JSON report block height, otherwise we kick out.
+
 	[Fact]
 	public async Task CanHandleBlacklistedUtxosTestAsync()
 	{
@@ -234,7 +236,7 @@ public class CoinVerifierTests
 	{
 		foreach (Coin coin in coins)
 		{
-			coinVerifier.TryScheduleVerification(coin, out _, CancellationToken.None, delay, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations);
+			coinVerifier.TryScheduleVerification(coin, out _, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations, _mockBlockchainHeight, CancellationToken.None);
 		}
 	}
 }

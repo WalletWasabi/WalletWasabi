@@ -311,7 +311,7 @@ public class ChaumianCoinJoinController : ControllerBase
 
 				foreach (var coin in alice.Inputs)
 				{
-					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, out _, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations, currentHeight);
+					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, out _, coinAndTxOutResponses[coin].Confirmations, currentHeight, CancellationToken.None);
 				}
 
 				round.AddAlice(alice);
