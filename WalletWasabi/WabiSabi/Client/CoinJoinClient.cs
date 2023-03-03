@@ -634,7 +634,7 @@ public class CoinJoinClient
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
 		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => !a.IsPayingZeroCoordinationFee).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => !a.IsCoordinationFeeExempted).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
 		string[] summary = new string[]
 		{
@@ -686,6 +686,8 @@ public class CoinJoinClient
 		var semiPrivateCoins = filteredCoins
 			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
 			.ToArray();
+
+		// redCoins will only fill up if redCoinIsolaton is turned on. Otherwise the coin will be in semiPrivateCoins.
 		var redCoins = filteredCoins
 			.Where(x => x.IsRedCoin(semiPrivateThreshold))
 			.ToArray();

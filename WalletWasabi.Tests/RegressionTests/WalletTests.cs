@@ -256,11 +256,13 @@ public class WalletTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		SmartBlockProvider blockProvider = new SmartBlockProvider(
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		SmartBlockProvider blockProvider = new(
 			bitcoinStore.BlockRepository,
-			null,
-			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
-			new P2PBlockProvider(network, nodes, httpClientFactory),
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
