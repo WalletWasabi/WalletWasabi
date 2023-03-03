@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Extensions;
 
+namespace WalletWasabi.WabiSabi.Client;
+
 public class Output : IEqualityComparer<Output>
 {
 	private Output(Money amount, ScriptType scriptType, FeeRate feeRate, bool isEffectiveCost)
