@@ -15,6 +15,9 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class DependencyGraphTaskScheduler
 {
+	/// <summary>Maximum number of parallel reissuance requests to avoid Tor overloading.</summary>
+	private const int MaxParallelReissuanceRequests = 10;
+
 	public DependencyGraphTaskScheduler(DependencyGraph graph)
 	{
 		Graph = graph;
@@ -31,7 +34,7 @@ public class DependencyGraphTaskScheduler
 	{
 		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
-		List<Task> connectionConfirmationTasks = new();
+		List<Task> tasksChunk = new(capacity: MaxParallelReissuanceRequests);
 
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -68,10 +71,20 @@ public class DependencyGraphTaskScheduler
 					}
 				}, linkedCts.Token);
 
-			connectionConfirmationTasks.Add(task);
+			tasksChunk.Add(task);
+
+			if (tasksChunk.Count == MaxParallelReissuanceRequests)
+			{
+				await Task.WhenAll(tasksChunk).ConfigureAwait(false);
+				tasksChunk.Clear();
+			}
 		}
 
-		await Task.WhenAll(connectionConfirmationTasks).ConfigureAwait(false);
+		if (tasksChunk.Count > 0)
+		{
+			await Task.WhenAll(tasksChunk).ConfigureAwait(false);
+			tasksChunk.Clear();
+		}
 
 		var amountEdges = Graph.Inputs.SelectMany(node => Graph.OutEdges(node, CredentialType.Amount));
 		var vsizeEdges = Graph.Inputs.SelectMany(node => Graph.OutEdges(node, CredentialType.Vsize));
@@ -89,15 +102,15 @@ public class DependencyGraphTaskScheduler
 
 		// Build tasks and link them together.
 		List<SmartRequestNode> smartRequestNodes = new();
-		List<Task> allTasks = new()
-		{
-			// Temporary workaround because we don't yet have a mechanism to
-			// propagate the final amounts to request amounts to AliceClient's
-			// connection confirmation loop even though they are already known
-			// after the final successful input registration, which may be well
-			// before the connection confirmation phase actually starts.
-			CompleteConnectionConfirmationAsync(aliceClients, bobClient, cancellationToken)
-		};
+
+		// Temporary workaround because we don't yet have a mechanism to
+		// propagate the final amounts to request amounts to AliceClient's
+		// connection confirmation loop even though they are already known
+		// after the final successful input registration, which may be well
+		// before the connection confirmation phase actually starts.
+		await CompleteConnectionConfirmationAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+
+		List<Task> tasksChunk = new();
 
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -130,10 +143,22 @@ public class DependencyGraphTaskScheduler
 					throw exception;
 				}
 			}, linkedCts.Token);
-			allTasks.Add(task);
+			tasksChunk.Add(task);
+
+			if (tasksChunk.Count == MaxParallelReissuanceRequests)
+			{
+				await Task.WhenAll(tasksChunk).ConfigureAwait(false);
+				tasksChunk.Clear();
+			}
 		}
 
-		await Task.WhenAll(allTasks).ConfigureAwait(false);
+		if (tasksChunk.Count > 0)
+		{
+			await Task.WhenAll(tasksChunk).ConfigureAwait(false);
+			tasksChunk.Clear();
+		}
+
+		await Task.WhenAll(tasksChunk).ConfigureAwait(false);
 
 		var amountEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Amount));
 		var vsizeEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Vsize));
