@@ -88,7 +88,6 @@ public class DependencyGraphTaskScheduler
 		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
 		// Build tasks and link them together.
-		List<SmartRequestNode> smartRequestNodes = new();
 		List<Task> allTasks = new()
 		{
 			// Temporary workaround because we don't yet have a mechanism to
