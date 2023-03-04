@@ -58,7 +58,8 @@ public class DependencyGraphTaskScheduler
 			// confirmation.
 			var task = smartRequestNode
 				.StartReissuanceAsync(bobClient, amountsToRequest, vsizesToRequest, linkedCts.Token)
-				.ContinueWith((t) =>
+				.ContinueWith(
+				(t) =>
 				{
 					if (t.IsFaulted && t.Exception is { } exception)
 					{
@@ -66,7 +67,8 @@ public class DependencyGraphTaskScheduler
 						ctsOnError.Cancel();
 						throw exception;
 					}
-				}, linkedCts.Token);
+				},
+				linkedCts.Token);
 
 			connectionConfirmationTasks.Add(task);
 		}
@@ -120,15 +122,18 @@ public class DependencyGraphTaskScheduler
 
 			var task = smartRequestNode
 				.StartReissuanceAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
-				.ContinueWith((t) =>
-			{
-				if (t.IsFaulted && t.Exception is { } exception)
+				.ContinueWith(
+				(t) =>
 				{
-					// If one task is failing, cancel all the tasks and throw.
-					ctsOnError.Cancel();
-					throw exception;
-				}
-			}, linkedCts.Token);
+					if (t.IsFaulted && t.Exception is { } exception)
+					{
+						// If one task is failing, cancel all the tasks and throw.
+						ctsOnError.Cancel();
+						throw exception;
+					}
+				},
+				linkedCts.Token);
+
 			allTasks.Add(task);
 		}
 
@@ -162,7 +167,9 @@ public class DependencyGraphTaskScheduler
 			return smartRequestNode;
 		});
 
-		var tasks = txOuts.Zip(nodes, outputRegistrationScheduledDates,
+		var tasks = txOuts.Zip(
+			nodes,
+			outputRegistrationScheduledDates,
 			async (txOut, smartRequestNode, scheduledDate) =>
 			{
 				try
@@ -183,8 +190,8 @@ public class DependencyGraphTaskScheduler
 				{
 					Logger.LogInfo($"Output registration error message:'{ex.Message}'.");
 				}
-			}
-		).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
