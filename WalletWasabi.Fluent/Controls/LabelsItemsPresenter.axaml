@@ -61,7 +61,7 @@
                   <Panel>
                     <c:TagsBox IsReadOnly="True"
                                Margin="4,6,0,0"
-                               Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
+                               Items="{Binding}" />
                   </Panel>
                 </ToolTip.Tip>
                 <TextBlock Text="..."

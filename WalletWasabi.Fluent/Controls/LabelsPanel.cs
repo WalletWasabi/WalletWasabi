@@ -22,6 +22,7 @@ public class LabelsPanel : VirtualizingStackPanel
 
 	private int _visibleItemsCount;
 	private List<string>? _filteredItems;
+	private IDisposable? _disposable;
 
 	public Control? EllipsisControl
 	{
@@ -48,6 +49,7 @@ public class LabelsPanel : VirtualizingStackPanel
 			((ISetLogicalParent)ellipsisControl).SetParent(this);
 			VisualChildren.Add(ellipsisControl);
 			LogicalChildren.Add(ellipsisControl);
+			_disposable = ellipsisControl.Bind(DataContextProperty, this.GetObservable(FilteredItemsProperty));
 		}
 
 		base.OnAttachedToVisualTree(e);
@@ -60,6 +62,7 @@ public class LabelsPanel : VirtualizingStackPanel
 			((ISetLogicalParent)ellipsisControl).SetParent(null);
 			LogicalChildren.Remove(ellipsisControl);
 			VisualChildren.Remove(ellipsisControl);
+			_disposable?.Dispose();
 		}
 
 		base.OnDetachedFromVisualTree(e);
