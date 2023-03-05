@@ -188,6 +188,12 @@ public class Program
 		Config config = new(Path.Combine(dataDir, "Config.json"));
 		config.LoadFile(createIfMissing: true);
 
+		if (config.MigrateOldDefaultBackendUris())
+		{
+			Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
+			config.ToFile();
+		}
+
 		return (uiConfig, config);
 	}
 

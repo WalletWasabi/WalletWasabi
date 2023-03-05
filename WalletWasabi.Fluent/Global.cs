@@ -97,6 +97,7 @@ public class Global
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
+	private SpecificNodeBlockProvider? SpecificNodeBlockProvider { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
@@ -115,9 +116,7 @@ public class Global
 	private IndexStore IndexStore { get; }
 
 	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new (
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter);
+		new(torEndPoint: Config.UseTor ? TorSettings.SocksEndpoint : null, backendUriGetter);
 
 	public async Task InitializeNoWalletAsync(TerminateService terminateService)
 	{
@@ -191,11 +190,14 @@ public class Global
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
+				// TODO: Should this be null for RegTest?
+				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
+
 				var blockProvider = new SmartBlockProvider(
 					BitcoinStore.BlockRepository,
 					BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
-					new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory),
-					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory),
+					SpecificNodeBlockProvider,
+					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 					Cache);
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
@@ -339,6 +341,12 @@ public class Global
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
+
+				if (SpecificNodeBlockProvider is { } specificNodeBlockProvider)
+				{
+					await specificNodeBlockProvider.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(SpecificNodeBlockProvider)} is disposed.");
 				}
 
 				if (CoinJoinProcessor is { } coinJoinProcessor)

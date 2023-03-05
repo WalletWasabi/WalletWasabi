@@ -253,7 +253,9 @@ public partial class Arena : PeriodicRunner
 					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
 					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
-					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
+					var highestFeeRateTask = async () => (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+
+					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask, cancellationToken).ConfigureAwait(false);
 
 					round.CoinjoinState = FinalizeTransaction(round.Id, coinjoin);
 
@@ -566,16 +568,21 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
+	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod, CancellationToken cancellationToken)
 	{
-		// If timeout we must fill up the outputs to build a reasonable transaction.
-		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
-		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
+		// SharedOverhead calculated into EstimatedVsize.
+		var sizeToPayFor = coinjoin.EstimatedVsize + blameScript.EstimateOutputVsize();
+		var miningFee = sizeToPayFor == 0
+			? Money.Zero
+			: round.Parameters.MiningFeeRate.GetFee(sizeToPayFor);
+
+		// Subtract 1 sat to avoid off-by-one error coming from roundings.
+		var diffMoney = coinjoin.Balance - miningFee - Money.Satoshis(1);
+
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
-			var highestFeeRate = (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+			var highestFeeRate = await highestFeeRateAsyncMethod().ConfigureAwait(false);
 
 			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
 			if (coinjoin.EffectiveFeeRate > highestFeeRate)
