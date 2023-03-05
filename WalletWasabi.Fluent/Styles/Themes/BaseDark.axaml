@@ -93,8 +93,8 @@
     <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
 
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
-    <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 0 #FF5E96ED</BoxShadows>
-    <BoxShadows x:Key="DialogAlertEndBoxShadow">0 0 10 10 #FF5E96ED</BoxShadows>
+    <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 5 #FF5E96ED</BoxShadows>
+    <BoxShadows x:Key="DialogAlertEndBoxShadow">0 0 10 1 #FF5E96ED</BoxShadows>
     <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
     <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #121212</BoxShadows>
