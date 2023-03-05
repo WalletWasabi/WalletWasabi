@@ -27,11 +27,11 @@ public class IndexStore : IAsyncDisposable
 
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
-		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-		var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
+		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+		IoHelpers.EnsureDirectoryExists(workFolderPath);
+		var indexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
 		MatureIndexFileManager = new DigestableSafeIoManager(indexFilePath, useLastCharacterDigest: true);
-		var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
+		var immatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
 		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, useLastCharacterDigest: true);
 
 		Network = network;
@@ -45,7 +45,6 @@ public class IndexStore : IAsyncDisposable
 
 	private AbandonedTasks AbandonedTasks { get; } = new();
 
-	private string WorkFolderPath { get; }
 	private Network Network { get; }
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
@@ -102,6 +101,7 @@ public class IndexStore : IAsyncDisposable
 				{
 					int i = 0;
 					using StreamReader sr = MatureIndexFileManager.OpenText();
+
 					if (!sr.EndOfStream)
 					{
 						while (true)
@@ -177,6 +177,7 @@ public class IndexStore : IAsyncDisposable
 			}
 
 			SmartHeaderChain.AppendTip(filter.Header);
+
 			if (enqueue)
 			{
 				ImmatureFilters.Add(filter);
@@ -200,6 +201,7 @@ public class IndexStore : IAsyncDisposable
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancel)
 	{
 		var successAny = false;
+
 		foreach (var filter in filters)
 		{
 			var success = false;
@@ -208,6 +210,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				success = TryProcessFilter(filter, enqueue: true);
 			}
+
 			successAny = successAny || success;
 
 			if (success)
@@ -244,7 +247,7 @@ public class IndexStore : IAsyncDisposable
 		return filter;
 	}
 
-	public async Task<IEnumerable<FilterModel>> RemoveAllImmmatureFiltersAsync(CancellationToken cancel, bool deleteAndCrashIfMature = false)
+	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync(CancellationToken cancel, bool deleteAndCrashIfMature = false)
 	{
 		var removed = new List<FilterModel>();
 		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
@@ -294,6 +297,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				// Increment the throttle ID and remember the incremented value.
 				int incremented = Interlocked.Increment(ref _throttleId);
+
 				if (incremented < 21)
 				{
 					await Task.Delay(throttle, cancel).ConfigureAwait(false);
