@@ -36,7 +36,7 @@ public class CoinVerifierTests
 		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
 
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(98);
@@ -79,7 +79,7 @@ public class CoinVerifierTests
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
@@ -114,7 +114,7 @@ public class CoinVerifierTests
 		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() =>
 			{
-				string content = "{\"error\": \"User roles access forbidden.\" }";
+				string content = """{"error": "User roles access forbidden." }""";
 				HttpResponseMessage response = new(System.Net.HttpStatusCode.Forbidden);
 				response.Content = new StringContent(content);
 				return response;
@@ -123,7 +123,7 @@ public class CoinVerifierTests
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(5);
@@ -161,7 +161,7 @@ public class CoinVerifierTests
 
 		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
@@ -188,7 +188,7 @@ public class CoinVerifierTests
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		Whitelist whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig());
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig, whitelist);
 
