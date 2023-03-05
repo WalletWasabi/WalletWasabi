@@ -20,6 +20,8 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 	public static readonly StyledProperty<double> MaxLabelWidthProperty =
 		AvaloniaProperty.Register<LabelsItemsPresenter, double>("MaxLabelWidth");
 
+	private IDisposable? _disposable;
+
 	public double MaxLabelWidth
 	{
 		get => GetValue(MaxLabelWidthProperty);
@@ -46,18 +48,39 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 		if (panel is LabelsPanel labelsPanel)
 		{
-			labelsPanel.WhenAnyValue(x => x.VisibleItemsCount)
-				.Subscribe(x =>
+			Console.WriteLine($"[PanelCreated] Panel={Panel}, labelsPanel={labelsPanel}");
+			UpdateFilteredItems(labelsPanel);
+		}
+	}
+
+	private void UpdateFilteredItems(LabelsPanel labelsPanel)
+	{
+		_disposable?.Dispose();
+		_disposable = labelsPanel
+			.WhenAnyValue(x => x.VisibleItemsCount)
+			.Subscribe(x =>
+			{
+				if (Items is IEnumerable<string> items)
 				{
-					if (Items is IEnumerable<string> items)
-					{
-						labelsPanel.FilteredItems = items.Skip(x).ToList();
-					}
-					else
-					{
-						labelsPanel.FilteredItems = new List<string>();
-					}
-				});
+					// Console.WriteLine($"[UpdateFilteredItems] VisibleItemsCount={x}");
+					labelsPanel.FilteredItems = items.Skip(x).ToList();
+				}
+				else
+				{
+					// Console.WriteLine($"[UpdateFilteredItems] NO ITEMS {Items}");
+					labelsPanel.FilteredItems = new List<string>();
+				}
+			});
+	}
+
+	protected override void OnDataContextChanged(EventArgs e)
+	{
+		base.OnDataContextChanged(e);
+
+		if (Panel is LabelsPanel labelsPanel)
+		{
+			// Console.WriteLine($"[OnDataContextChanged] Panel={Panel}");
+			UpdateFilteredItems(labelsPanel);
 		}
 	}
 }
