@@ -31,7 +31,7 @@
             <TextBlock Text=" x " Foreground="Red" FontSize="12"/>
             <TextBlock Text="{Binding $parent[Control].Bounds.Height}" Foreground="Red" FontSize="12"/>
             <!--
-            <TextBlock Text="(" Foreground="Red" FontSize="12"/>
+            <TextBlock Text=" (" Foreground="Red" FontSize="12"/>
             <TextBlock Text="{Binding $parent[Control].DataContext}" Foreground="Red" FontSize="12"/>
             <TextBlock Text=")" Foreground="Red" FontSize="12"/>
             -->
