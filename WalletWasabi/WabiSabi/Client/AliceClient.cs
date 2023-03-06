@@ -71,6 +71,18 @@ public class AliceClient
 		try
 		{
 			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
+			//TODO: see if the coin was created in a coinjoin and if so, require IsCoordinationFeeExempted to be true
+			var expectedAmount = aliceClient.IsCoordinationFeeExempted
+				? coin.EffectiveValue(aliceClient.FeeRate)
+				: coin.EffectiveValue(aliceClient.FeeRate, aliceClient.CoordinationFeeRate);
+			
+			var credentialSum = Money.Satoshis(aliceClient.IssuedAmountCredentials.Sum(credential => credential.Value));
+			if (credentialSum < expectedAmount)
+			{
+				await aliceClient.TryToUnregisterAlicesAsync(registrationCancellationToken).ConfigureAwait(false);
+				throw new InvalidOperationException($"The amount of the issued credentials is less than the amount of the coin. Expected: {expectedAmount}, actual: {credentialSum}.");
+			}
+			
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
