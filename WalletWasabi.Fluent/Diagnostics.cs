@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -7,7 +8,7 @@ namespace WalletWasabi.Fluent;
 
 public static class Diagnostics
 {
-	private static DiagnosticsWindow? Window;
+	private static readonly Dictionary<TopLevel, DiagnosticsWindow> Open = new ();
 
 	public static void AttachDiagnostics(this TopLevel root)
 	{
@@ -16,26 +17,30 @@ public static class Diagnostics
 
 	public static void AttachDiagnostics(this TopLevel root, KeyGesture gesture)
 	{
-		async void Handler(object? sender, KeyEventArgs args)
+		void Handler(object? sender, KeyEventArgs args)
 		{
 			if (gesture.Matches(args))
 			{
-				if (Window is { })
+				if (Open.TryGetValue(root, out var window))
 				{
-					Window.Activate();
+					window.Activate();
 				}
 				else
 				{
-					Window = new DiagnosticsWindow(root)
+					window = new DiagnosticsWindow(root)
 					{
+						Root = root,
 						Width = 300,
 						Height = 300,
 						WindowStartupLocation = WindowStartupLocation.Manual,
 						WindowState = WindowState.Normal,
 						Position = new PixelPoint(0, 0)
 					};
-					Window.Show();
-					Window.Closed += WindowOnClosed;
+
+					window.Closed += WindowClosed;
+					Open.Add(root, window);
+
+					window.Show();
 				}
 			}
 		}
@@ -43,12 +48,10 @@ public static class Diagnostics
 		root.AddHandler(InputElement.KeyDownEvent, Handler, RoutingStrategies.Tunnel);
 	}
 
-	private static void WindowOnClosed(object? sender, EventArgs e)
+	private static void WindowClosed(object? sender, EventArgs e)
 	{
-		if (Window is { })
-		{
-			Window.Closed -= WindowOnClosed;
-			Window = null;
-		}
+		var window = (DiagnosticsWindow)sender!;
+		Open.Remove(window.Root!);
+		window.Closed -= WindowClosed;
 	}
 }

@@ -119,6 +119,8 @@ public partial class DiagnosticsWindow : Window
 #endif
 	}
 
+	public TopLevel? Root { get; set; }
+
 	private void InitializeComponent()
 	{
 		AvaloniaXamlLoader.Load(this);
