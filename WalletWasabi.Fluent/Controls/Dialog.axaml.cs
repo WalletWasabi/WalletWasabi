@@ -216,7 +216,14 @@ public class Dialog : ContentControl
 
 		if (change.Property == IsDialogOpenProperty)
 		{
-			PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+			var isOpen = change.NewValue.GetValueOrDefault<bool>();
+
+			PseudoClasses.Set(":open", isOpen);
+
+			if (isOpen)
+			{
+				Focus();
+			}
 		}
 
 		if (change.Property == IsBusyProperty)
