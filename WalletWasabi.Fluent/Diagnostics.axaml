@@ -62,6 +62,36 @@
     </Setter>
   </Style>
 
+  <!-- Pink - :focus-visible -->
+  <Style Selector=":is(Control)[IsVisible=True]:focus-visible:not(:pointerover)">
+    <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Template>
+        <Border Width="{Binding $parent[Control].Bounds.Width}"
+                Height="{Binding $parent[Control].Bounds.Height}"
+                BorderBrush="Pink"
+                BorderThickness="1"
+                Background="Transparent"
+                IsHitTestVisible="False">
+        </Border>
+      </Template>
+    </Setter>
+  </Style>
+
+  <!-- Cyan - :focus -->
+  <Style Selector=":is(Control)[IsVisible=True]:focus:not(:pointerover)">
+    <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Template>
+        <Border Width="{Binding $parent[Control].Bounds.Width}"
+                Height="{Binding $parent[Control].Bounds.Height}"
+                BorderBrush="Cyan"
+                BorderThickness="1"
+                Background="Transparent"
+                IsHitTestVisible="False">
+        </Border>
+      </Template>
+    </Setter>
+  </Style>
+
   <!-- Yellow - IsVisible=false -->
   <Style Selector=":is(Control)[IsVisible=False]">
     <Setter Property="(c:XamlAdornerLayer.Adorner)">
