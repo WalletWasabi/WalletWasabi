@@ -30,11 +30,10 @@ public static class DiagnosticsExtensions
 					window = new DiagnosticsWindow(root)
 					{
 						Root = root,
-						Width = 300,
+						Width = 250,
 						Height = 300,
-						WindowStartupLocation = WindowStartupLocation.Manual,
-						WindowState = WindowState.Normal,
-						Position = new PixelPoint(0, 0)
+						WindowStartupLocation = WindowStartupLocation.CenterScreen,
+						WindowState = WindowState.Normal
 					};
 
 					window.Closed += WindowClosed;
