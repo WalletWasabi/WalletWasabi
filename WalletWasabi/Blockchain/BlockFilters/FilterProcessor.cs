@@ -44,7 +44,7 @@ public class FilterProcessor
 							$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
 							$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
-						await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(CancellationToken.None, deleteAndCrashIfMature: true).ConfigureAwait(false);
+						await BitcoinStore.IndexStore.RemoveAllImmatureFiltersAsync(CancellationToken.None, deleteAndCrashIfMature: true).ConfigureAwait(false);
 					}
 					else
 					{
@@ -74,7 +74,7 @@ public class FilterProcessor
 					if (serverBestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 					{
 						// If still bad delete filters and crash the software?
-						await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(CancellationToken.None, deleteAndCrashIfMature: true).ConfigureAwait(false);
+						await BitcoinStore.IndexStore.RemoveAllImmatureFiltersAsync(CancellationToken.None, deleteAndCrashIfMature: true).ConfigureAwait(false);
 					}
 				}
 			}
