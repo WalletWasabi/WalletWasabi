@@ -2,7 +2,7 @@ using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
-public class NavigationState
+public class NavigationState : INavigate
 {
 	public NavigationState(
 		UIContext uiContext,
@@ -38,5 +38,10 @@ public class NavigationState
 			NavigationTarget.CompactDialogScreen => CompactDialogScreenNavigation,
 			_ => throw new NotSupportedException(),
 		};
+	}
+
+	public FluentNavigate To()
+	{
+		return new FluentNavigate(UIContext);
 	}
 }
