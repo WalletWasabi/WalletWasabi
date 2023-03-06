@@ -247,7 +247,7 @@ public class AmountDecomposer
 			}
 		}
 
-		var loss = 0UL;
+		var loss = Money.Zero;
 		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
 			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
@@ -272,7 +272,7 @@ public class AmountDecomposer
 		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
-		var tolerance = (long)Math.Max(loss, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
+		var tolerance = (long)Math.Max(loss.Satoshi, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
 
 		if (maxNumberOfOutputsAllowed > 1)
 		{
