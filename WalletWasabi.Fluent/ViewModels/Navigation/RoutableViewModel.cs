@@ -9,6 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 {
+	private CompositeDisposable? _currentDisposable;
+
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _enableCancelOnPressed;
 	[AutoNotify] private bool _enableCancelOnEscape;
@@ -16,19 +18,17 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	[AutoNotify] private bool _enableCancel;
 	[AutoNotify] private bool _isActive;
 
-	public abstract string Title { get; protected set; }
-
-	private CompositeDisposable? _currentDisposable;
-
-	public NavigationTarget CurrentTarget { get; internal set; }
-
-	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
-
 	protected RoutableViewModel()
 	{
 		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 	}
+
+	public abstract string Title { get; protected set; }
+
+	public NavigationTarget CurrentTarget { get; internal set; }
+
+	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";
 	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
