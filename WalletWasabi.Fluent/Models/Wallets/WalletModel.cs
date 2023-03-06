@@ -56,7 +56,7 @@ internal class WalletModel : IWalletModel
 	public bool IsHardwareWallet() => _wallet.KeyManager.IsHardwareWallet;
 
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) =>
-		_wallet.GetMostUsedLabels(intent);
+		_wallet.GetLabelsWithRanking(intent);
 
 	private IEnumerable<TransactionSummary> BuildSummary()
 	{
