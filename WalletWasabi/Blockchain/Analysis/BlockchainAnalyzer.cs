@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class BlockchainAnalyzer
 {
-	public static long[] StdDenoms = new[]
+	public static readonly long[] StdDenoms = new[]
 	{
 		5000L, 6561L, 8192L, 10000L, 13122L, 16384L, 19683L, 20000L, 32768L, 39366L, 50000L, 59049L, 65536L, 100000L, 118098L,
 		131072L, 177147L, 200000L, 262144L, 354294L, 500000L, 524288L, 531441L, 1000000L, 1048576L, 1062882L, 1594323L, 2000000L,
@@ -131,14 +131,11 @@ public class BlockchainAnalyzer
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
-			// Anonset gain cannot be larger than others' input count.
-			// Picking randomly an output would make our anonset: total/ours.
-			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First()), foreignInputCount);
-
-			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			double startingOutputAnonset;
 			double startingOutputAnonsetSanctioned;
-			if (anonymityGain < 1)
+
+			// If the virtual output has a nonempty anonymity set
+			if (!tx.ForeignVirtualOutputs.Any(x => x.Amount == virtualOutput.Amount))
 			{
 				// When WW2 denom output isn't too large, then it's not change.
 				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
@@ -157,6 +154,10 @@ public class BlockchainAnalyzer
 				startingOutputAnonset = startingMixedOutputAnonset;
 				startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
 			}
+
+			// Anonset gain cannot be larger than others' input count.
+			// Picking randomly an output would make our anonset: total/ours.
+			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First()), foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.

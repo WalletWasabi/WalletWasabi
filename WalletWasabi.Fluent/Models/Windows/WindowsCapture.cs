@@ -455,15 +455,15 @@ public class WindowsCapture
 						cam_ctrl.GetRange(item, ref min, ref max, ref step, ref def,
 							ref flags);
 
-						Action<CameraControlFlags, int> set = (flag, value) =>
-							cam_ctrl.Set(item, value, (int)flag);
+						void Set(CameraControlFlags flag, int value) => cam_ctrl.Set(item, value, (int)flag);
+
 						var get = () =>
 						{
 							var value = 0;
 							cam_ctrl.Get(item, ref value, ref flags);
 							return value;
 						};
-						prop = new Property(min, max, step, def, flags, set, get);
+						prop = new Property(min, max, step, def, flags, Set, get);
 					}
 					catch (Exception)
 					{
@@ -489,15 +489,15 @@ public class WindowsCapture
 						vid_ctrl.GetRange(item, ref min, ref max, ref step, ref def,
 							ref flags);
 
-						Action<CameraControlFlags, int> set = (flag, value) =>
-						   vid_ctrl.Set(item, value, (int)flag);
+						void Set(CameraControlFlags flag, int value) => vid_ctrl.Set(item, value, (int)flag);
+
 						var get = () =>
 						{
 							var value = 0;
 							vid_ctrl.Get(item, ref value, ref flags);
 							return value;
 						};
-						prop = new Property(min, max, step, def, flags, set, get);
+						prop = new Property(min, max, step, def, flags, Set, get);
 					}
 					catch (Exception)
 					{
@@ -596,8 +596,6 @@ public class WindowsCapture
 	[StructLayout(LayoutKind.Explicit)]
 	public readonly struct BgraColor
 	{
-#pragma warning disable IDE1006 // Naming Styles
-
 		[FieldOffset(3)] public readonly byte A;
 
 		[FieldOffset(2)] public readonly byte R;
@@ -605,7 +603,6 @@ public class WindowsCapture
 		[FieldOffset(1)] public readonly byte G;
 
 		[FieldOffset(0)] public readonly byte B;
-#pragma warning restore IDE1006 // Naming Styles
 
 		public BgraColor(byte r, byte g, byte b, byte a = byte.MaxValue)
 		{

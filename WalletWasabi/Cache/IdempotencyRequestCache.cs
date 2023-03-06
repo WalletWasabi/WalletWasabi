@@ -48,7 +48,7 @@ public class IdempotencyRequestCache
 		where TRequest : notnull
 	{
 		bool callAction = false;
-		TaskCompletionSource<TResponse> responseTcs;
+		TaskCompletionSource<TResponse>? responseTcs;
 
 		lock (ResponseCacheLock)
 		{
@@ -64,8 +64,8 @@ public class IdempotencyRequestCache
 		{
 			try
 			{
-				var result = await action(request, cancellationToken).WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
-				responseTcs.SetResult(result);
+				TResponse? result = await action(request, cancellationToken).WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
+				responseTcs!.SetResult(result);
 				return result;
 			}
 			catch (Exception e)
@@ -75,13 +75,13 @@ public class IdempotencyRequestCache
 					ResponseCache.Remove(request);
 				}
 
-				responseTcs.SetException(e);
+				responseTcs!.SetException(e);
 
 				// The exception will be thrown below at 'await' to avoid unobserved exception.
 			}
 		}
 
-		return await responseTcs.Task.ConfigureAwait(false);
+		return await responseTcs!.Task.ConfigureAwait(false);
 	}
 
 	/// <remarks>
