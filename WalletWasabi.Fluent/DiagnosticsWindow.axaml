@@ -59,22 +59,6 @@
       </Setter>
     </Style>
 
-    <!-- Yellow - IsVisible=false :not(:pointerover) -->
-    <Style Selector=":is(Control)[IsVisible=False]"
-           x:Key="IsVisibleFalseDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
-        <Template>
-          <Border Width="{Binding $parent[Control].Bounds.Width}"
-                  Height="{Binding $parent[Control].Bounds.Height}"
-                  BorderBrush="Yellow"
-                  BorderThickness="1"
-                  Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
-        </Template>
-      </Setter>
-    </Style>
-
     <!-- Orange - :focus-within :not(:pointerover) -->
     <Style Selector=":is(Control)[IsVisible=True]:focus-within"
            x:Key="FocusWithinDiagnosticStyle">
@@ -83,22 +67,6 @@
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"
                   BorderBrush="Orange"
-                  BorderThickness="1"
-                  Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
-        </Template>
-      </Setter>
-    </Style>
-
-    <!-- Pink - :focus-visible :not(:pointerover) -->
-    <Style Selector=":is(Control)[IsVisible=True]:focus-visible"
-           x:Key="FocusVisibleDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
-        <Template>
-          <Border Width="{Binding $parent[Control].Bounds.Width}"
-                  Height="{Binding $parent[Control].Bounds.Height}"
-                  BorderBrush="Pink"
                   BorderThickness="1"
                   Background="Transparent"
                   IsHitTestVisible="False">
@@ -123,27 +91,66 @@
       </Setter>
     </Style>
 
+    <!-- Pink - :focus-visible :not(:pointerover) -->
+    <Style Selector=":is(Control)[IsVisible=True]:focus-visible"
+           x:Key="FocusVisibleDiagnosticStyle">
+      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+        <Template>
+          <Border Width="{Binding $parent[Control].Bounds.Width}"
+                  Height="{Binding $parent[Control].Bounds.Height}"
+                  BorderBrush="Pink"
+                  BorderThickness="1"
+                  Background="Transparent"
+                  IsHitTestVisible="False">
+          </Border>
+        </Template>
+      </Setter>
+    </Style>
+
+    <!-- Yellow - IsVisible=false :not(:pointerover) -->
+    <Style Selector=":is(Control)[IsVisible=False]"
+           x:Key="IsVisibleFalseDiagnosticStyle">
+      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+        <Template>
+          <Border Width="{Binding $parent[Control].Bounds.Width}"
+                  Height="{Binding $parent[Control].Bounds.Height}"
+                  BorderBrush="Yellow"
+                  BorderThickness="1"
+                  Background="Transparent"
+                  IsHitTestVisible="False">
+          </Border>
+        </Template>
+      </Setter>
+    </Style>
+
   </Window.Resources>
 
-  <StackPanel>
-    <CheckBox Name="DisabledCheckBox"
-              Click="DisabledCheckBox_OnClick"
-              Content="Blue - :disabled" />
+  <StackPanel Spacing="4" Margin="6">
+    <TextBlock Text="InputElement" />
     <CheckBox Name="PointerOverCheckBox"
               Click="PointerOverCheckBox_OnClick"
-              Content="Red - :pointerover" />
-    <CheckBox Name="IsVisibleFalseCheckBox"
-              Click="IsVisibleFalseCheckBox_OnClick"
-              Content="Yellow - IsVisible=false" />
+              Content=":pointerover (Red)"
+              Foreground="Red" />
     <CheckBox Name="FocusWithinCheckBox"
               Click="FocusWithinCheckBox_OnClick"
-              Content="Orange - :focus-within" />
-    <CheckBox Name="FocusVisibleCheckBox"
-              Click="FocusVisibleCheckBox_OnClick"
-              Content="Pink - :focus-visible" />
+              Content=":focus-within (Orange)"
+              Foreground="Orange" />
     <CheckBox Name="FocusCheckBox"
               Click="FocusCheckBox_OnClick"
-              Content="Cyan - :focus" />
+              Content=":focus (Cyan)"
+              Foreground="Cyan" />
+    <CheckBox Name="FocusVisibleCheckBox"
+              Click="FocusVisibleCheckBox_OnClick"
+              Content=":focus-visible (Pink)"
+              Foreground="Pink" />
+    <CheckBox Name="IsVisibleFalseCheckBox"
+              Click="IsVisibleFalseCheckBox_OnClick"
+              Content="IsVisible=False (Yellow)"
+              Foreground="Yellow" />
+    <CheckBox Name="DisabledCheckBox"
+              Click="DisabledCheckBox_OnClick"
+              Content=":disabled (Blue)"
+              Foreground="Blue" />
   </StackPanel>
 
 </Window>
