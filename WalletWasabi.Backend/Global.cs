@@ -68,6 +68,7 @@ public class Global : IDisposable
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Coordinator? Coordinator { get; private set; }
+	private CoinVerifierApiClient? CoinVerifierApiClient { get; set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
 
 	public Config Config { get; }
@@ -115,10 +116,11 @@ public class Global : IDisposable
 				}
 
 				HttpClient.BaseAddress = url;
+				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
-				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
+				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
 				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
+				coinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
 				CoinVerifier = coinVerifier;
 				WhiteList = whitelist;
 				Logger.LogInfo("CoinVerifier created successfully.");
@@ -280,6 +282,11 @@ public class Global : IDisposable
 		if (CoinVerifier is { } coinVerifier)
 		{
 			await coinVerifier.DisposeAsync().ConfigureAwait(false);
+		}
+
+		if (CoinVerifierApiClient is { } coinVerifierApiClient)
+		{
+			await coinVerifierApiClient.DisposeAsync().ConfigureAwait(false);
 		}
 	}
 
