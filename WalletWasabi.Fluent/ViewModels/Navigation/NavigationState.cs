@@ -1,18 +1,24 @@
+using WalletWasabi.Fluent.Models.UI;
+
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public class NavigationState
 {
-	private NavigationState(
+	public NavigationState(
+		UIContext uiContext,
 		INavigationStack<RoutableViewModel> homeScreenNavigation,
 		INavigationStack<RoutableViewModel> dialogScreenNavigation,
 		INavigationStack<RoutableViewModel> fullScreenNavigation,
 		INavigationStack<RoutableViewModel> compactDialogScreenNavigation)
 	{
+		UIContext = uiContext;
 		HomeScreenNavigation = homeScreenNavigation;
 		DialogScreenNavigation = dialogScreenNavigation;
 		FullScreenNavigation = fullScreenNavigation;
 		CompactDialogScreenNavigation = compactDialogScreenNavigation;
 	}
+
+	public UIContext UIContext { get; }
 
 	public INavigationStack<RoutableViewModel> HomeScreenNavigation { get; }
 
