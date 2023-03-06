@@ -224,6 +224,13 @@ public class Dialog : ContentControl
 			{
 				Focus();
 			}
+			else
+			{
+				if (this.GetVisualRoot() is TopLevel topLevel)
+				{
+					topLevel.Focus();
+				}
+			}
 		}
 
 		if (change.Property == IsBusyProperty)
