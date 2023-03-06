@@ -52,8 +52,8 @@ public class AffiliateDataUpdaterTests
 			["affiliate"] = new AffiliateServerHttpApiClient(clientMock.Object),
 		};
 
-		using CancellationTokenSource testCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-		using AffiliationMessageSigner signer = new AffiliationMessageSigner(WalletWasabi.Helpers.Constants.FallbackAffiliationMessageSignerKey);
+		using CancellationTokenSource testCts = new(TimeSpan.FromSeconds(10));
+		using AffiliationMessageSigner signer = new(WalletWasabi.Helpers.Constants.FallbackAffiliationMessageSignerKey);
 		var notifications = new AsyncQueue<RoundNotification>();
 		var notifier = new Mock<IRoundNotifier>();
 		notifier
