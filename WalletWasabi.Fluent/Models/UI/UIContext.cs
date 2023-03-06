@@ -17,7 +17,7 @@ public class UIContext
 	public IClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 
-	public static UIContext Default => new(new QrGenerator(), Application.Current?.Clipboard);
+	public static UIContext Default { get; } = new(new QrGenerator(), Application.Current?.Clipboard);
 
 	public void RegisterNavigation(INavigate navigate)
 	{
