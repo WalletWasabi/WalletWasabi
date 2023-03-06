@@ -12,8 +12,11 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Filters;
+namespace WalletWasabi.Tests.UnitTests.Stores;
 
+/// <summary>
+/// Tests for <see cref="IndexStore"/>.
+/// </summary>
 public class IndexStoreTests
 {
 	[Fact]
