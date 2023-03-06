@@ -4,13 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="WalletWasabi.Fluent.DiagnosticsWindow"
-        EnableDisabledDiagnostic="False"
-        EnablePointerOverDiagnostic="False"
-        EnableIsVisibleFalseDiagnostic="False"
-        EnableFocusWithinDiagnostic="False"
-        EnableFocusVisibleDiagnostic="False"
-        EnableFocusDiagnostic="False"
+        x:Class="WalletWasabi.Fluent.Diagnostics.DiagnosticsWindow"
         Title="Diagnostics">
   <Window.Resources>
 
@@ -128,26 +122,32 @@
   <StackPanel Spacing="4" Margin="6">
     <TextBlock Text="InputElement" />
     <CheckBox Name="PointerOverCheckBox"
+              IsChecked="True"
               Click="PointerOverCheckBox_OnClick"
               Content=":pointerover (Red)"
               Foreground="Red" />
     <CheckBox Name="FocusWithinCheckBox"
+              IsChecked="True"
               Click="FocusWithinCheckBox_OnClick"
               Content=":focus-within (Orange)"
               Foreground="Orange" />
     <CheckBox Name="FocusCheckBox"
+              IsChecked="True"
               Click="FocusCheckBox_OnClick"
               Content=":focus (Cyan)"
               Foreground="Cyan" />
     <CheckBox Name="FocusVisibleCheckBox"
+              IsChecked="False"
               Click="FocusVisibleCheckBox_OnClick"
               Content=":focus-visible (Pink)"
               Foreground="Pink" />
     <CheckBox Name="IsVisibleFalseCheckBox"
+              IsChecked="False"
               Click="IsVisibleFalseCheckBox_OnClick"
               Content="IsVisible=False (Yellow)"
               Foreground="Yellow" />
     <CheckBox Name="DisabledCheckBox"
+              IsChecked="False"
               Click="DisabledCheckBox_OnClick"
               Content=":disabled (Blue)"
               Foreground="Blue" />

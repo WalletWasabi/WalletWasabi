@@ -4,9 +4,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.Diagnostics;
 
-public static class Diagnostics
+public static class DiagnosticsExtensions
 {
 	private static readonly Dictionary<TopLevel, DiagnosticsWindow> Open = new ();
 

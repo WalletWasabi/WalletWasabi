@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using WalletWasabi.Fluent.Diagnostics;
 using WalletWasabi.Fluent.Screenshot;
 
 namespace WalletWasabi.Fluent.Views;
