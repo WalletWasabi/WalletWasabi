@@ -319,16 +319,16 @@ public class BranchAndBoundTests
 		// 3 coins coming from the same hdPubKey should be choosen for exact payment.
 		List<SmartCoin> availableCoins = new()
 		{
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1.1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1.1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1.1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1.1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1.1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1.1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
 		};
 
 		FeeRate feeRate = new(1m);
