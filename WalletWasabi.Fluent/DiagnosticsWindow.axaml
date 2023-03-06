@@ -11,7 +11,7 @@
         EnableFocusWithinDiagnostic="False"
         EnableFocusVisibleDiagnostic="False"
         EnableFocusDiagnostic="False"
-        Title="DiagnosticsWindow">
+        Title="Diagnostics">
   <Window.Resources>
 
     <!-- Blue - :disabled :not(:pointerover) -->
