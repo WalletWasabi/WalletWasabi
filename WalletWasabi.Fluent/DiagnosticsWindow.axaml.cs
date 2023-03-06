@@ -8,10 +8,6 @@ namespace WalletWasabi.Fluent;
 
 public partial class DiagnosticsWindow : Window
 {
-	public static readonly AttachedProperty<bool> EnableDisabledDiagnosticProperty =
-		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
-			"EnableDisabledDiagnostic", defaultValue: false, inherits: true);
-
 	public static readonly AttachedProperty<bool> EnablePointerOverDiagnosticProperty =
 		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
 			"EnablePointerOverDiagnostic", defaultValue: false, inherits: true);
@@ -24,31 +20,25 @@ public partial class DiagnosticsWindow : Window
 		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
 			"EnableFocusWithinDiagnostic", defaultValue: false, inherits: true);
 
-	public static readonly AttachedProperty<bool> EnableFocusVisibleDiagnosticProperty =
-		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
-			"EnableFocusVisibleDiagnostic", defaultValue: false, inherits: true);
-
 	public static readonly AttachedProperty<bool> EnableFocusDiagnosticProperty =
 		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
 			"EnableFocusDiagnostic", defaultValue: false, inherits: true);
 
+	public static readonly AttachedProperty<bool> EnableFocusVisibleDiagnosticProperty =
+		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
+			"EnableFocusVisibleDiagnostic", defaultValue: false, inherits: true);
+
+	public static readonly AttachedProperty<bool> EnableDisabledDiagnosticProperty =
+		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
+			"EnableDisabledDiagnostic", defaultValue: false, inherits: true);
+
 	private Window? _window;
-	private Style? _disabledStyle;
 	private Style? _pointerOverStyle;
 	private Style? _isVisibleFalseStyle;
 	private Style? _focusWithinStyle;
-	private Style? _focusVisibleStyle;
 	private Style? _focusStyle;
-
-	public static void SetEnableDisabledDiagnostic(Control element, bool value)
-	{
-		element.SetValue(EnableDisabledDiagnosticProperty, value);
-	}
-
-	public static bool GetEnableDisabledDiagnostic(Control element)
-	{
-		return element.GetValue(EnableDisabledDiagnosticProperty);
-	}
+	private Style? _focusVisibleStyle;
+	private Style? _disabledStyle;
 
 	public static void SetEnablePointerOverDiagnostic(Control element, bool value)
 	{
@@ -80,6 +70,16 @@ public partial class DiagnosticsWindow : Window
 		return element.GetValue(EnableFocusWithinDiagnosticProperty);
 	}
 
+	public static void SetEnableFocusDiagnostic(Control element, bool value)
+	{
+		element.SetValue(EnableFocusDiagnosticProperty, value);
+	}
+
+	public static bool GetEnableFocusDiagnostic(Control element)
+	{
+		return element.GetValue(EnableFocusDiagnosticProperty);
+	}
+
 	public static void SetEnableFocusVisibleDiagnostic(Control element, bool value)
 	{
 		element.SetValue(EnableFocusVisibleDiagnosticProperty, value);
@@ -90,14 +90,14 @@ public partial class DiagnosticsWindow : Window
 		return element.GetValue(EnableFocusVisibleDiagnosticProperty);
 	}
 
-	public static void SetEnableFocusDiagnostic(Control element, bool value)
+	public static void SetEnableDisabledDiagnostic(Control element, bool value)
 	{
-		element.SetValue(EnableFocusDiagnosticProperty, value);
+		element.SetValue(EnableDisabledDiagnosticProperty, value);
 	}
 
-	public static bool GetEnableFocusDiagnostic(Control element)
+	public static bool GetEnableDisabledDiagnostic(Control element)
 	{
-		return element.GetValue(EnableFocusDiagnosticProperty);
+		return element.GetValue(EnableDisabledDiagnosticProperty);
 	}
 
 	public DiagnosticsWindow()
@@ -142,16 +142,6 @@ public partial class DiagnosticsWindow : Window
 		}
 	}
 
-	private void DisabledCheckBox_OnClick(object? sender, RoutedEventArgs e)
-	{
-		if (sender is CheckBox checkBox && _window is { })
-		{
-			var isEnabled = checkBox.IsChecked == true;
-			SetEnableDisabledDiagnostic(_window, isEnabled);
-			ToggleStyle(isEnabled, "DisabledDiagnosticStyle", _window, ref _disabledStyle);
-		}
-	}
-
 	private void PointerOverCheckBox_OnClick(object? sender, RoutedEventArgs e)
 	{
 		if (sender is CheckBox checkBox && _window is { })
@@ -182,6 +172,16 @@ public partial class DiagnosticsWindow : Window
 		}
 	}
 
+	private void FocusCheckBox_OnClick(object? sender, RoutedEventArgs e)
+	{
+		if (sender is CheckBox checkBox && _window is { })
+		{
+			var isEnabled = checkBox.IsChecked == true;
+			SetEnableFocusDiagnostic(_window, isEnabled);
+			ToggleStyle(isEnabled, "FocusDiagnosticStyle", _window, ref _focusStyle);
+		}
+	}
+
 	private void FocusVisibleCheckBox_OnClick(object? sender, RoutedEventArgs e)
 	{
 		if (sender is CheckBox checkBox && _window is { })
@@ -192,13 +192,13 @@ public partial class DiagnosticsWindow : Window
 		}
 	}
 
-	private void FocusCheckBox_OnClick(object? sender, RoutedEventArgs e)
+	private void DisabledCheckBox_OnClick(object? sender, RoutedEventArgs e)
 	{
 		if (sender is CheckBox checkBox && _window is { })
 		{
 			var isEnabled = checkBox.IsChecked == true;
-			SetEnableFocusDiagnostic(_window, isEnabled);
-			ToggleStyle(isEnabled, "FocusDiagnosticStyle", _window, ref _focusStyle);
+			SetEnableDisabledDiagnostic(_window, isEnabled);
+			ToggleStyle(isEnabled, "DisabledDiagnosticStyle", _window, ref _disabledStyle);
 		}
 	}
 }
