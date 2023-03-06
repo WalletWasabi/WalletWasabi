@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class LabelHelpers
 {
-	public static IEnumerable<(string Label, int Score)> GetMostUsedLabels(this Wallet wallet, Intent intent)
+	public static IEnumerable<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent)
 	{
 		var labelPool = new Dictionary<string, int>(); // int: score.
 

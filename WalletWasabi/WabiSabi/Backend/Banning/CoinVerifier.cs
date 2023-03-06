@@ -38,7 +38,8 @@ public class CoinVerifier : IAsyncDisposable
 	// This should be much bigger than the possible input-reg period.
 	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
 
-	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+	// Total API request timeout with retries. Do not forget to set this above CoinVerifierApiClient.ApiRequestTimeout.
+	private TimeSpan TotalApiRequestTimeout { get; } = TimeSpan.FromMinutes(10);
 
 	private Whitelist Whitelist { get; }
 	private WabiSabiConfig WabiSabiConfig { get; }
@@ -249,7 +250,7 @@ public class CoinVerifier : IAsyncDisposable
 					// This is the last chance to abort with abortCts.
 					item.ThrowIfCancellationRequested();
 
-					using CancellationTokenSource requestTimeoutCts = new(ApiRequestTimeout);
+					using CancellationTokenSource requestTimeoutCts = new(TotalApiRequestTimeout);
 					using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, item.Token, requestTimeoutCts.Token);
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
