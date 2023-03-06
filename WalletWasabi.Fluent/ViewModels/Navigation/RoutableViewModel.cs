@@ -77,31 +77,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		return UIContext.Navigate(currentTarget);
 	}
 
-	public void SetActive()
-	{
-		if (NavigationState.Instance.HomeScreenNavigation.CurrentPage is { } homeScreen)
-		{
-			homeScreen.IsActive = false;
-		}
-
-		if (NavigationState.Instance.DialogScreenNavigation.CurrentPage is { } dialogScreen)
-		{
-			dialogScreen.IsActive = false;
-		}
-
-		if (NavigationState.Instance.FullScreenNavigation.CurrentPage is { } fullScreen)
-		{
-			fullScreen.IsActive = false;
-		}
-
-		if (NavigationState.Instance.CompactDialogScreenNavigation.CurrentPage is { } compactDialogScreen)
-		{
-			compactDialogScreen.IsActive = false;
-		}
-
-		IsActive = true;
-	}
-
 	public void OnNavigatedTo(bool isInHistory)
 	{
 		DoNavigateTo(isInHistory);

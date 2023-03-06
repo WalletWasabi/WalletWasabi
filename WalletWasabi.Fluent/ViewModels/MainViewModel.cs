@@ -78,17 +78,6 @@ public partial class MainViewModel : ViewModelBase
 				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		this.WhenAnyValue(
-				x => x.DialogScreen.CurrentPage,
-				x => x.CompactDialogScreen.CurrentPage,
-				x => x.FullScreen.CurrentPage,
-				x => x.MainScreen.CurrentPage,
-				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
-			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(page => page.SetActive())
-			.Subscribe();
-
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
 			.WhereNotNull()

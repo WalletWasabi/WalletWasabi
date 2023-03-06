@@ -1,8 +1,10 @@
+using ReactiveUI;
+using System.Reactive.Linq;
 using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
-public class NavigationState : INavigate
+public class NavigationState : ReactiveObject, INavigate
 {
 	public NavigationState(
 		UIContext uiContext,
@@ -16,6 +18,17 @@ public class NavigationState : INavigate
 		DialogScreenNavigation = dialogScreenNavigation;
 		FullScreenNavigation = fullScreenNavigation;
 		CompactDialogScreenNavigation = compactDialogScreenNavigation;
+
+		this.WhenAnyValue(
+				x => x.DialogScreenNavigation.CurrentPage,
+				x => x.CompactDialogScreenNavigation.CurrentPage,
+				x => x.FullScreenNavigation.CurrentPage,
+				x => x.HomeScreenNavigation.CurrentPage,
+				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
+			.WhereNotNull()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(OnCurrentPageChanged)
+			.Subscribe();
 	}
 
 	public UIContext UIContext { get; }
@@ -43,5 +56,30 @@ public class NavigationState : INavigate
 	public FluentNavigate To()
 	{
 		return new FluentNavigate(UIContext);
+	}
+
+	private void OnCurrentPageChanged(RoutableViewModel page)
+	{
+		if (HomeScreenNavigation.CurrentPage is { } homeScreen)
+		{
+			homeScreen.IsActive = false;
+		}
+
+		if (DialogScreenNavigation.CurrentPage is { } dialogScreen)
+		{
+			dialogScreen.IsActive = false;
+		}
+
+		if (FullScreenNavigation.CurrentPage is { } fullScreen)
+		{
+			fullScreen.IsActive = false;
+		}
+
+		if (CompactDialogScreenNavigation.CurrentPage is { } compactDialogScreen)
+		{
+			compactDialogScreen.IsActive = false;
+		}
+
+		page.IsActive = true;
 	}
 }
