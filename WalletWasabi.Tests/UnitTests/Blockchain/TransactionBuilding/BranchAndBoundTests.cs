@@ -1,8 +1,13 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
@@ -302,5 +307,44 @@ public class BranchAndBoundTests
 
 		long[] result = strategy.GetBestSelectionFound()!;
 		Assert.Null(result);
+	}
+
+	[Fact]
+	public async void BnBChoosesCoinsWithSameScriptPubKeyAsync()
+	{
+		using Key key = new();
+		KeyManager km = ServiceFactory.CreateKeyManager();
+		HdPubKey constantHdPubKey = BitcoinFactory.CreateHdPubKey(km);
+
+		// 3 coins coming from the same hdPubKey should be choosen for exact payment.
+		List<SmartCoin> availableCoins = new()
+		{
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1.1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1.1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1.1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
+		};
+
+		FeeRate feeRate = new(1m);
+
+		Script destination = BitcoinFactory.CreateScript();
+		var targetAmount = Money.Coins(3m);
+		TxOut txOut = new(targetAmount, destination);
+
+		int maxInputCount = 3;
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		var strategys = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
+
+		Script expectedScript = constantHdPubKey.GetAssumedScriptPubKey();
+		await foreach (var coins in strategys)
+		{
+			int coinsWithExpectedScript = coins.Where(coin => coin.ScriptPubKey == expectedScript).Count();
+		}
 	}
 }
