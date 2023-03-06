@@ -5,6 +5,7 @@
   <!-- TOODO: :focus-visible -->
   <!-- TOODO: :focus -->
 
+  <!-- Blue - :disabled (currently commented out as it adds a lot of noise) -->
   <!--
   <Style Selector=":is(Control)[IsVisible=True]:disabled:not(:pointerover)">
     <Setter Property="(c:XamlAdornerLayer.Adorner)">
@@ -21,6 +22,7 @@
   </Style>
   -->
 
+  <!-- Red - :pointerover -->
   <Style Selector=":is(Control)[IsVisible=True]:pointerover">
     <Setter Property="(c:XamlAdornerLayer.Adorner)">
       <Template>
@@ -48,6 +50,7 @@
     </Setter>
   </Style>
 
+  <!-- Orange - :focus-within -->
   <Style Selector=":is(Control)[IsVisible=True]:focus-within:not(:pointerover)">
     <Setter Property="(c:XamlAdornerLayer.Adorner)">
       <Template>
@@ -62,6 +65,7 @@
     </Setter>
   </Style>
 
+  <!-- Yellow - IsVisible=false -->
   <Style Selector=":is(Control)[IsVisible=False]">
     <Setter Property="(c:XamlAdornerLayer.Adorner)">
       <Template>
