@@ -266,7 +266,7 @@ public class AmountDecomposer
 
 		setCandidates.Add(
 			CalculateHash(naiveSet), // Create hash to ensure uniqueness.
-			(naiveSet, loss + CalculateCostMetrics(naiveSet)));
+			(naiveSet, loss + CalculateCost(naiveSet)));
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
@@ -301,7 +301,7 @@ public class AmountDecomposer
 					continue;
 				}
 
-				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCostMetrics(finalDenoms);
+				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCost(finalDenoms);
 
 				setCandidates.TryAdd(CalculateHash(finalDenoms), (finalDenoms, deficit));
 			}
@@ -401,7 +401,7 @@ public class AmountDecomposer
 		return denoms;
 	}
 
-	private Money CalculateCostMetrics(IEnumerable<Output> outputs)
+	private Money CalculateCost(IEnumerable<Output> outputs)
 	{
 		// The cost of the outputs. The more the worst.
 		var outputCost = outputs.Sum(o => o.Fee);
