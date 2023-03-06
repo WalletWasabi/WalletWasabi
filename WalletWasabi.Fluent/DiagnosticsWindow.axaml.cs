@@ -32,6 +32,14 @@ public partial class DiagnosticsWindow : Window
 		AvaloniaProperty.RegisterAttached<DiagnosticsWindow, Control, bool>(
 			"EnableFocusDiagnostic", defaultValue: false, inherits: true);
 
+	private Window? _window;
+	private Style? _disabledStyle;
+	private Style? _pointerOverStyle;
+	private Style? _isVisibleFalseStyle;
+	private Style? _focusWithinStyle;
+	private Style? _focusVisibleStyle;
+	private Style? _focusStyle;
+
 	public static void SetEnableDisabledDiagnostic(Control element, bool value)
 	{
 		element.SetValue(EnableDisabledDiagnosticProperty, value);
@@ -91,14 +99,6 @@ public partial class DiagnosticsWindow : Window
 	{
 		return element.GetValue(EnableFocusDiagnosticProperty);
 	}
-
-	private Window? _window;
-	private Style? _disabledStyle;
-	private Style? _pointerOverStyle;
-	private Style? _isVisibleFalseStyle;
-	private Style? _focusWithinStyle;
-	private Style? _focusVisibleStyle;
-	private Style? _focusStyle;
 
 	public DiagnosticsWindow()
 	{
