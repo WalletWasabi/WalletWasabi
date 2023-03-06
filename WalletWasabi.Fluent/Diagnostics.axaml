@@ -24,13 +24,21 @@
   <Style Selector=":is(Control)[IsVisible=True]:pointerover">
     <Setter Property="(c:XamlAdornerLayer.Adorner)">
       <Template>
-        <Border Width="{Binding $parent[Control].Bounds.Width}"
-                Height="{Binding $parent[Control].Bounds.Height}"
-                BorderBrush="Red"
-                BorderThickness="1"
-                Background="Transparent"
-                IsHitTestVisible="False">
-        </Border>
+        <Panel Width="{Binding $parent[Control].Bounds.Width}"
+               Height="{Binding $parent[Control].Bounds.Height}">
+          <StackPanel Orientation="Horizontal" Margin="0,-14,0,0">
+            <TextBlock Text="{Binding $parent[Control].Bounds.Width}" Foreground="Red" FontSize="12"/>
+            <TextBlock Text=" x " Foreground="Red" FontSize="12"/>
+            <TextBlock Text="{Binding $parent[Control].Bounds.Height}" Foreground="Red" FontSize="12"/>
+          </StackPanel>
+          <Border Width="{Binding $parent[Control].Bounds.Width}"
+                  Height="{Binding $parent[Control].Bounds.Height}"
+                  BorderBrush="Red"
+                  BorderThickness="1"
+                  Background="Transparent"
+                  IsHitTestVisible="False">
+          </Border>
+        </Panel>
       </Template>
     </Setter>
   </Style>
