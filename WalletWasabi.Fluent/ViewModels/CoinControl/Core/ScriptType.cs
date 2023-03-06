@@ -4,8 +4,8 @@ public record ScriptType(string Name, string ShortName)
 {
 	public static readonly ScriptType Unknown = new("Unknown", "?");
 	public static ScriptType SegWit = new("SegWit", "SW");
-	public static ScriptType NativeSegWit = new("Native SegWit", "NS");
-	public static ScriptType Taproot = new("Taproot", "TR");
+	public static ScriptType NativeSegWit = new("Native SegWit (Bech32)", "NS");
+	public static ScriptType Taproot = new("Taproot (Bech32m)", "TR");
 
 	public static ScriptType FromEnum(NBitcoin.ScriptType type)
 	{
