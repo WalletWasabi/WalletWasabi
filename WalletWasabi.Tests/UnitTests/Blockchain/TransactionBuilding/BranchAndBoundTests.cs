@@ -326,6 +326,7 @@ public class BranchAndBoundTests
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1.1m),
 			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey,1m),
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km),1m),
 		};
@@ -345,6 +346,7 @@ public class BranchAndBoundTests
 		await foreach (var coins in strategys)
 		{
 			int coinsWithExpectedScript = coins.Where(coin => coin.ScriptPubKey == expectedScript).Count();
+			Assert.Equal(3, coinsWithExpectedScript);
 		}
 	}
 }
