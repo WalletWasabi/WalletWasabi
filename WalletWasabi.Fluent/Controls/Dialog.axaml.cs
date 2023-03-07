@@ -223,7 +223,12 @@ public class Dialog : ContentControl
 		}
 		else
 		{
-			var previous = Open.Count > 0 ? Open.Pop() : null;
+			if (Open.Count > 0)
+			{
+				Open.Pop();
+			}
+
+			var previous = Open.Count > 0 ? Open.Peek() : null;
 			if (previous is { })
 			{
 				previous.Focus();
