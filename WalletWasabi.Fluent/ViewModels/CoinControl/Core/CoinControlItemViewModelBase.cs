@@ -38,7 +38,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	public string? BannedUntilUtcToolTip { get; protected set; }
 
-	public int? AnonymityScore { get; protected set; }
+	public int AnonymityScore { get; protected set; }
 
 	public SmartLabel Labels { get; protected set; } = SmartLabel.Empty;
 
