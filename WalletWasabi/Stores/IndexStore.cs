@@ -247,7 +247,7 @@ public class IndexStore : IAsyncDisposable
 		return filter;
 	}
 
-	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync(CancellationToken cancel, bool deleteAndCrashIfMature = false)
+	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync(CancellationToken cancel)
 	{
 		var removed = new List<FilterModel>();
 		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
@@ -258,21 +258,16 @@ public class IndexStore : IAsyncDisposable
 			}
 			else
 			{
-				Logger.LogCritical($"Filters got corrupted and have no more immature filters.");
+				Logger.LogCritical($"Filters got corrupted and have no more immature filters. Deleting all filters and crashing the software...");
 
-				if (deleteAndCrashIfMature)
+				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+				using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				{
-					Logger.LogCritical($"Deleting all filters and crashing the software...");
-
-					using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-					using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-					{
-						ImmatureIndexFileManager.DeleteMe();
-						MatureIndexFileManager.DeleteMe();
-					}
-
-					Environment.Exit(2);
+					ImmatureIndexFileManager.DeleteMe();
+					MatureIndexFileManager.DeleteMe();
 				}
+
+				Environment.Exit(2);
 			}
 		}
 
