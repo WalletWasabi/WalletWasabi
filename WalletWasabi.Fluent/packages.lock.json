@@ -594,6 +594,12 @@
           "NBitcoin": "[7.0.24, )",
           "NBitcoin.Secp256k1": "[3.0.1, )"
         }
+      },
+      "Wasabi Wallet Daemon": {
+        "type": "Project",
+        "dependencies": {
+          "WalletWasabi": "[1.0.0, )"
+        }
       }
     },
     "net7.0/linux-arm64": {

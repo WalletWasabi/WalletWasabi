@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
+using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 
 namespace WalletWasabi.Fluent.Desktop;
@@ -92,7 +93,7 @@ public class Program
 		try
 		{
 			Global = CreateGlobal(dataDir, uiConfig, config);
-			Services.Initialize(Global, singleInstanceChecker);
+			Services.Initialize(Global, uiConfig, singleInstanceChecker);
 
 			RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 				{
@@ -118,7 +119,7 @@ public class Program
 							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
 							: "Renderer: Avalonia Software");
 
-						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(args);
 		}
@@ -201,7 +202,7 @@ public class Program
 	{
 		var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
-		return new Global(dataDir, config, uiConfig, walletManager);
+		return new Global(dataDir, config, walletManager);
 	}
 
 	/// <summary>

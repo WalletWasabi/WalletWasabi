@@ -1,4 +1,5 @@
 using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -45,7 +46,7 @@ public static class Services
 	/// </summary>
 	/// <param name="global">The global instance.</param>
 	/// <param name="singleInstanceChecker">The singleInstanceChecker instance.</param>
-	public static void Initialize(Global global, SingleInstanceChecker singleInstanceChecker)
+	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
@@ -56,9 +57,9 @@ public static class Services
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
-		Guard.NotNull(nameof(global.UiConfig), global.UiConfig);
 		Guard.NotNull(nameof(global.TorStatusChecker), global.TorStatusChecker);
 		Guard.NotNull(nameof(global.UpdateManager), global.UpdateManager);
+		Guard.NotNull(nameof(uiConfig), uiConfig);
 
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
@@ -70,7 +71,7 @@ public static class Services
 		WalletManager = global.WalletManager;
 		TransactionBroadcaster = global.TransactionBroadcaster;
 		HostedServices = global.HostedServices;
-		UiConfig = global.UiConfig;
+		UiConfig = uiConfig;
 		SingleInstanceChecker = singleInstanceChecker;
 		TorStatusChecker = global.TorStatusChecker;
 		UpdateManager = global.UpdateManager;

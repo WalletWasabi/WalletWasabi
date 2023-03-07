@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Daemon;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 

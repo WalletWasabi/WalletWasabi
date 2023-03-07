@@ -59,8 +59,10 @@ public class Global
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
-		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
-		LegalChecker = new(DataDir);
+
+		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory);		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
@@ -97,6 +99,7 @@ public class Global
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
+	private SpecificNodeBlockProvider? SpecificNodeBlockProvider { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
@@ -178,22 +181,22 @@ public class Global
 				}
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-
-				Synchronizer.Start(requestInterval, maxFiltSyncCount);
+				Synchronizer.Start();
 				Logger.LogInfo("Start synchronizing filters...");
 
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
+
+				// TODO: Should this be null for RegTest?
+				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				var blockProvider = new SmartBlockProvider(
 					BitcoinStore.BlockRepository,
 					BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
-					new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory),
-					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory),
+					SpecificNodeBlockProvider,
+					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 					Cache);
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
@@ -337,6 +340,12 @@ public class Global
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
+
+				if (SpecificNodeBlockProvider is { } specificNodeBlockProvider)
+				{
+					await specificNodeBlockProvider.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(SpecificNodeBlockProvider)} is disposed.");
 				}
 
 				if (CoinJoinProcessor is { } coinJoinProcessor)
