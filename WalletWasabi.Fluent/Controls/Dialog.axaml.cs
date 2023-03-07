@@ -217,6 +217,12 @@ public class Dialog : ContentControl
 	{
 		if (isOpen)
 		{
+			var previous = Open.Count > 0 ? Open.Peek() : null;
+			if (previous is { })
+			{
+				previous.IsEnabled = false;
+			}
+
 			Open.Push(this);
 
 			Focus();
@@ -231,6 +237,7 @@ public class Dialog : ContentControl
 			var previous = Open.Count > 0 ? Open.Peek() : null;
 			if (previous is { })
 			{
+				previous.IsEnabled = true;
 				previous.Focus();
 			}
 			else
