@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.DataEncoders;
 using System.Text;
 using System.Threading;
 using WalletWasabi.Blockchain.Blocks;
@@ -31,6 +30,12 @@ public class FilterModel
 	// is constructed.This ensures the key is deterministic while still varying from block to block.
 	public byte[] FilterKey => Header.BlockHash.ToBytes()[..16];
 
+	public static FilterModel FromParameters(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
+	{
+		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
+	}
+
 	public static FilterModel FromLine(string line)
 	{
 		try
@@ -52,11 +57,10 @@ public class FilterModel
 			uint256 blockHash = new(Convert.FromHexString(span[(m1 + 1)..m2]), lendian: false);
 			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
 
-			Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
 			uint256 prevBlockHash = new(Convert.FromHexString(span[(m3 + 1)..m4]), lendian: false);
 			long blockTime = long.Parse(span[(m4 + 1)..]);
 
-			return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
+			return FromParameters(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
 		}
 		catch (FormatException ex)
 		{
