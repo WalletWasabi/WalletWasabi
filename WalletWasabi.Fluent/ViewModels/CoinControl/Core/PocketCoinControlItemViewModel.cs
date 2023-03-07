@@ -22,7 +22,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
-		AnonymityScore = pocketCoins.Count == 1 ? (int)pocketCoins[0].HdPubKey.AnonymitySet : null;
+		AnonymityScore = (int)pocketCoins.Min(coin => coin.AnonymitySet);
 		Labels = pocket.Labels;
 		Children = pocketCoins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
