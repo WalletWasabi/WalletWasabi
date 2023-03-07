@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -37,6 +37,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		sourceItems
 			.Connect()
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
@@ -70,7 +71,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.DisposeWith(_disposables);
 
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
-		TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending);
+		// TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending);
 
 		TreeDataGridSource.DisposeWith(_disposables);
 

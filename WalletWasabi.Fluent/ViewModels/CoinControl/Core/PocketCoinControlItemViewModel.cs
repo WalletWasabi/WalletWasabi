@@ -24,7 +24,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
 		AnonymityScore = (int)pocketCoins.Min(coin => coin.AnonymitySet);
 		Labels = pocket.Labels;
-		Children = pocketCoins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
+		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
 		ScriptType = pocketCoins.Count == 1 ? ScriptType.FromEnum(pocketCoins[0].ScriptType) : null;
 
