@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -63,7 +64,7 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		CoinCount = _wallet.Coins.Unspent().Count();
 
 		// Number of taproot coins in the wallet.
-		TaprootCoinCount = _wallet.Coins.Unspent().Where(coin => coin.ScriptType == NBitcoin.ScriptType.Taproot).Count();
+		TaprootCoinCount = _wallet.Coins.Unspent().Where(coin => coin.ScriptType == ScriptType.Taproot).Count();
 
 		// Total amount of money in the wallet.
 		Balance = $"{_wallet.Coins.TotalAmount().ToFormattedString()}";
