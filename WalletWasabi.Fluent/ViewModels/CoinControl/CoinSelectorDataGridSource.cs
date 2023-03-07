@@ -111,7 +111,6 @@ public static class CoinSelectorDataGridSource
 			new GridLength(50, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
-				CanUserResizeColumn = false,
 				CompareAscending = SortAscending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore),
 				CompareDescending = SortDescending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore)
 			});
