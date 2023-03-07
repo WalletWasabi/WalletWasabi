@@ -71,7 +71,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.DisposeWith(_disposables);
 
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
-		// TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending);
 
 		TreeDataGridSource.DisposeWith(_disposables);
 
