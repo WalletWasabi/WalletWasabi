@@ -25,6 +25,7 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	private readonly WalletViewModel _walletViewModel;
 
 	[AutoNotify] private int _coinCount;
+	[AutoNotify] private int _taprootCoinCount;
 	[AutoNotify] private string _balance = "";
 	[AutoNotify] private string _confirmedBalance = "";
 	[AutoNotify] private string _unconfirmedBalance = "";
@@ -60,6 +61,9 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	{
 		// Number of coins in the wallet.
 		CoinCount = _wallet.Coins.Unspent().Count();
+
+		// Number of taproot coins in the wallet.
+		TaprootCoinCount = _wallet.Coins.Unspent().Where(coin => coin.ScriptType == NBitcoin.ScriptType.Taproot).Count();
 
 		// Total amount of money in the wallet.
 		Balance = $"{_wallet.Coins.TotalAmount().ToFormattedString()}";

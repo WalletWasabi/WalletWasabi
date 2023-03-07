@@ -17,6 +17,12 @@
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
+      <c:PreviewItem Label="Number of taproot coins (UTXOs)"
+                     TextValue="{Binding TaprootCoinCount}">
+        <c:PrivacyContentControl Classes="monoSpaced"
+                                 Content="{Binding TaprootCoinCount}" />
+      </c:PreviewItem>
+      <Separator />
       <c:PreviewItem Label="Unconfirmed balance"
                      TextValue="{Binding UnconfirmedBalance}">
         <c:PrivacyContentControl Content="{Binding UnconfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
