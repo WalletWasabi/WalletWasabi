@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -66,6 +67,8 @@ public class Dialog : ContentControl
 
 	public static readonly StyledProperty<bool> IncreasedSizeEnabledProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedSizeEnabled));
+
+	private static readonly Stack<Dialog> Open = new ();
 
 	public Dialog()
 	{
@@ -210,6 +213,31 @@ public class Dialog : ContentControl
 		}
 	}
 
+	private void HandleDialogFocus(bool isOpen)
+	{
+		if (isOpen)
+		{
+			Open.Push(this);
+
+			Focus();
+		}
+		else
+		{
+			var previous = Open.Count > 0 ? Open.Pop() : null;
+			if (previous is { })
+			{
+				previous.Focus();
+			}
+			else
+			{
+				if (this.GetVisualRoot() is TopLevel topLevel)
+				{
+					topLevel.Focus();
+				}
+			}
+		}
+	}
+
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
 		base.OnPropertyChanged(change);
@@ -220,17 +248,7 @@ public class Dialog : ContentControl
 
 			PseudoClasses.Set(":open", isOpen);
 
-			if (isOpen)
-			{
-				Focus();
-			}
-			else
-			{
-				if (this.GetVisualRoot() is TopLevel topLevel)
-				{
-					topLevel.Focus();
-				}
-			}
+			HandleDialogFocus(isOpen);
 		}
 
 		if (change.Property == IsBusyProperty)
