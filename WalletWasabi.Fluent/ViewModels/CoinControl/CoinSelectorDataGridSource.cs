@@ -15,12 +15,12 @@ public static class CoinSelectorDataGridSource
 {
 	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
-		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
+		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
 	}
 
 	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
-		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
+		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
 	}
 
 	private static int GetLabelPriority(CoinControlItemViewModelBase coin)
