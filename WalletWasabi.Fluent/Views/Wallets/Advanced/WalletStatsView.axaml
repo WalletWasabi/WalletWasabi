@@ -17,7 +17,13 @@
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of taproot coins (UTXOs)"
+      <c:PreviewItem Label="Number of segwit v0 (bech32) coins"
+                    TextValue="{Binding Bech32CoinCount}">
+        <c:PrivacyContentControl Classes="monoSpaced"
+                                 Content="{Binding Bech32CoinCount}" />
+      </c:PreviewItem>
+      <Separator />
+      <c:PreviewItem Label="Number of taproot coins"
                      TextValue="{Binding TaprootCoinCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding TaprootCoinCount}" />
