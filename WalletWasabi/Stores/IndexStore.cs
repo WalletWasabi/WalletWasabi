@@ -87,11 +87,12 @@ public class IndexStore : IAsyncDisposable
 
 			cancellationToken.ThrowIfCancellationRequested();
 
-			await InitializeFiltersAsync(cancellationToken).ConfigureAwait(false);
+			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private async Task InitializeFiltersAsync(CancellationToken cancellationToken)
+	/// <remarks>Guarded by <see cref="IndexLock"/>, <see cref="MatureIndexAsyncLock"/> and <see cref="ImmatureIndexAsyncLock"/>.</remarks>
+	private async Task InitializeFiltersNoLockAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -115,7 +116,7 @@ public class IndexStore : IAsyncDisposable
 								break;
 							}
 
-							ProcessLine(line, enqueue: false);
+							ProcessLineNoLock(line, enqueue: false);
 						}
 					}
 
@@ -142,7 +143,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 				{
-					ProcessLine(line, enqueue: true);
+					ProcessLineNoLock(line, enqueue: true);
 					cancellationToken.ThrowIfCancellationRequested();
 				}
 			}
@@ -158,16 +159,18 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	private void ProcessLine(string line, bool enqueue)
+	/// <remarks>Requires <see cref="ImmatureIndexAsyncLock"/> lock acquired.</remarks>
+	private void ProcessLineNoLock(string line, bool enqueue)
 	{
 		var filter = FilterModel.FromLine(line);
-		if (!TryProcessFilter(filter, enqueue))
+		if (!TryProcessFilterNoLock(filter, enqueue))
 		{
 			throw new InvalidOperationException("Index file inconsistency detected.");
 		}
 	}
 
-	private bool TryProcessFilter(FilterModel filter, bool enqueue)
+	/// <remarks>Requires <see cref="ImmatureIndexAsyncLock"/> lock acquired.</remarks>
+	private bool TryProcessFilterNoLock(FilterModel filter, bool enqueue)
 	{
 		try
 		{
@@ -208,7 +211,7 @@ public class IndexStore : IAsyncDisposable
 
 			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				success = TryProcessFilter(filter, enqueue: true);
+				success = TryProcessFilterNoLock(filter, enqueue: true);
 			}
 
 			successAny = successAny || success;
