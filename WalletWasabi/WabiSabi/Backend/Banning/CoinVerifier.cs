@@ -64,21 +64,11 @@ public class CoinVerifier : IAsyncDisposable
 		List<Task<CoinVerifyResult>> tasks = new();
 		foreach (var coin in coinsToCheck)
 		{
-			if (!CoinVerifyItems.TryGetValue(coin, out var item))
+			// This is called in conn-confirmation phase. If the coin is somehow not scheduled yet, kick it out. It can register to the next round.
+			if (CoinVerifyItems.TryGetValue(coin, out var item))
 			{
-				// If the coin was not scheduled try to quickly schedule it - it should not happen.
-				Logger.LogWarning($"Trying to re-schedule coin '{coin.Outpoint}' for verification.");
-
-				// Quickly re-scheduling the missing items - we do not want to cancel the verification after the local timeout, so passing cancellationToken.
-				if (!TryScheduleVerification(coin, out item, cancellationToken, TimeSpan.Zero))
-				{
-					// This should not happen.
-					Logger.LogError($"Coin '{coin.Outpoint}' cannot be re-scheduled for verification. The coin will be removed from the round.");
-					continue;
-				}
+				tasks.Add(item.Task);
 			}
-
-			tasks.Add(item.Task);
 		}
 
 		try
@@ -163,18 +153,16 @@ public class CoinVerifier : IAsyncDisposable
 		return (shouldBan, shouldRemove);
 	}
 
-	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null)
+	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, int confirmations, bool oneHop, CancellationToken cancellationToken)
 	{
 		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
 		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
-		return TryScheduleVerification(coin, out coinVerifyItem, cancellationToken, delayUntilStart, oneHop, confirmations);
+		return TryScheduleVerification(coin, delayUntilStart, confirmations, oneHop, cancellationToken);
 	}
 
-	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
+	public bool TryScheduleVerification(Coin coin, TimeSpan delayedStart, int confirmations, bool oneHop, CancellationToken verificationCancellationToken)
 	{
-		coinVerifyItem = null;
-
-		if (CoinVerifyItems.TryGetValue(coin, out coinVerifyItem))
+		if (CoinVerifyItems.TryGetValue(coin, out _))
 		{
 			// Coin was already scheduled. It's OK.
 			return true;
@@ -188,8 +176,6 @@ public class CoinVerifier : IAsyncDisposable
 			item.Dispose();
 			return false;
 		}
-
-		coinVerifyItem = item;
 
 		if (oneHop)
 		{
@@ -217,7 +203,7 @@ public class CoinVerifier : IAsyncDisposable
 
 		if (coin.Amount >= WabiSabiConfig.CoinVerifierRequiredConfirmationAmount)
 		{
-			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
+			if (confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
 			{
 				var result = new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true);
 				item.SetResult(result);
@@ -231,7 +217,7 @@ public class CoinVerifier : IAsyncDisposable
 			{
 				try
 				{
-					var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
+					var delay = delayedStart;
 
 					// Sanity check.
 					if (delay > AbsoluteScheduleSanityTimeout)
