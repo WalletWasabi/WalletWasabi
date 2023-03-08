@@ -340,7 +340,7 @@ public class BranchAndBoundTests
 		int maxInputCount = 3;
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		var strategys = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
+		var strategies = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
 
 		Script expectedScript = constantHdPubKey.GetAssumedScriptPubKey();
 		await foreach (var coins in strategys)
