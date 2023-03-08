@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -49,6 +50,8 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 		set => SetValue(TargetProperty, value);
 	}
 
+	public StringComparer EqualityComparer { get; set; } = StringComparer.InvariantCulture;
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var targets = this
@@ -83,7 +86,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			.Switch()
 			.Select(x => (TextBox?) x.Sender)
 			.WithLatestFrom(this.WhenAnyValue(x => x.Content))
-			.Where(tuple => !string.IsNullOrWhiteSpace(tuple.Second) && tuple.First?.Text != tuple.Second)
+			.Where(tuple => !string.IsNullOrWhiteSpace(tuple.Second) && !EqualityComparer.Equals(tuple.First?.Text, tuple.Second))
 			.Select(tuple => CreateSuggestion(tuple.First, tuple.Second))
 			.Do(ShowHint)
 			.Subscribe();
