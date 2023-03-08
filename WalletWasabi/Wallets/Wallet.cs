@@ -102,6 +102,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public IDestinationProvider DestinationProvider { get; }
 
+	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; }= new();
+	
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
 
@@ -511,7 +513,26 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 	{
-		var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
+		// Don't test obsolete keys as they should not contain any coins.
+		// GetScriptPubKey is an expansive operation, so result is cached.
+		var allKeys = KeyManager.GetKeys();
+		var toTestKeys = new List<byte[]>();
+		foreach (var hdPubKey in allKeys)
+		{
+			// Compute and save HdPubKey/ScriptPubKey pair for all keys
+			if (!HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out _))
+			{
+				HdPubKeysWithScriptBytes.Add(hdPubKey, hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes());
+			}
+			
+			// Ignore keys that was made Obsolete before the Height
+			if (hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= new Height(filterModel.Header.Height))
+			{
+				toTestKeys.Add(HdPubKeysWithScriptBytes[hdPubKey]);
+			}
+		}
+		
+		var matchFound = filterModel.Filter.MatchAny(toTestKeys, filterModel.FilterKey);
 		if (matchFound)
 		{
 			Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.

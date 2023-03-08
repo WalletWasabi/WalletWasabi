@@ -4,5 +4,6 @@ public enum KeyState
 {
 	Clean,
 	Locked,
-	Used
+	Used,
+	Obsolete
 }

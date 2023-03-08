@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -85,6 +86,8 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
 
+	public Height ObsoleteHeight { get; private set; } = new(0);
+
 	public Script P2pkScript { get; }
 	public Script P2pkhScript { get; }
 	public Script P2wpkhScript { get; }
@@ -134,6 +137,16 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		KeyState = state;
 
 		kmToFile?.ToFile();
+	}
+	
+	public void SetObsoleteHeight(Height height)
+	{
+		if (ObsoleteHeight == height)
+		{
+			return;
+		}
+
+		ObsoleteHeight = height;
 	}
 
 	public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
