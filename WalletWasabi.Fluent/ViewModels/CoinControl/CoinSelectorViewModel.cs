@@ -8,7 +8,6 @@ using Avalonia.Controls;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -45,7 +44,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			})
 			.Cast(x => (CoinCoinControlItemViewModel) x)
 			.AddKey(model => model.SmartCoin.Outpoint);
-			
+
 		changes
 			.DisposeMany()
 			.Bind(out _itemsCollection)
@@ -117,7 +116,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				// When it's single coin pocket, return its unique coin
 				if (pocket.Coins.Count() == 1)
 				{
-					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket.Coins.First());
+					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket);
 				}
 
 				return new PocketCoinControlItemViewModel(pocket);
