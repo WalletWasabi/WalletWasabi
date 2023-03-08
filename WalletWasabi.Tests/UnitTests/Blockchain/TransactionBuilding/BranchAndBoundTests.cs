@@ -343,7 +343,7 @@ public class BranchAndBoundTests
 		var strategies = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
 
 		Script expectedScript = constantHdPubKey.GetAssumedScriptPubKey();
-		await foreach (var coins in strategys)
+		await foreach (var coins in strategies)
 		{
 			int coinsWithExpectedScript = coins.Where(coin => coin.ScriptPubKey == expectedScript).Count();
 			Assert.Equal(3, coinsWithExpectedScript);
