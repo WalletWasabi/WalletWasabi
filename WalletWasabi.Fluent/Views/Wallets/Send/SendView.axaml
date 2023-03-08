@@ -155,10 +155,10 @@
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
-                                                  EqualityComparer="{x:Static helpers:IgnoreWhitespaceComparer.Instance}"
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
-                                                  EqualityComparer="{x:Static helpers:IgnoreWhitespaceComparer.Instance}"
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
             </i:Interaction.Behaviors>
           </c:DualCurrencyEntryBox>
