@@ -258,7 +258,7 @@ public class IndexStore : IAsyncDisposable
 			}
 			else
 			{
-				Logger.LogCritical($"Filters got corrupted and have no more immature filters. Deleting all filters and crashing the software...");
+				Logger.LogCritical("Filters got corrupted and have no more immature filters. Deleting all filters and crashing the software...");
 
 				using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
