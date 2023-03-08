@@ -64,13 +64,13 @@ public class IndexStore : IAsyncDisposable
 	private uint StartingHeight => StartingFilter.Header.Height;
 	private List<FilterModel> ImmatureFilters { get; } = new(150);
 
-	public async Task InitializeAsync(CancellationToken cancel = default)
+	public async Task InitializeAsync(CancellationToken cancellationToken)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
-		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-		using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			if (Network == Network.RegTest)
 			{
@@ -78,20 +78,20 @@ public class IndexStore : IAsyncDisposable
 				ImmatureIndexFileManager.DeleteMe();
 			}
 
-			cancel.ThrowIfCancellationRequested();
+			cancellationToken.ThrowIfCancellationRequested();
 
 			if (!MatureIndexFileManager.Exists())
 			{
 				await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
 			}
 
-			cancel.ThrowIfCancellationRequested();
+			cancellationToken.ThrowIfCancellationRequested();
 
-			await InitializeFiltersAsync(cancel).ConfigureAwait(false);
+			await InitializeFiltersAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private async Task InitializeFiltersAsync(CancellationToken cancel)
+	private async Task InitializeFiltersAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -107,7 +107,7 @@ public class IndexStore : IAsyncDisposable
 						while (true)
 						{
 							i++;
-							cancel.ThrowIfCancellationRequested();
+							cancellationToken.ThrowIfCancellationRequested();
 							string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
 
 							if (line is null)
@@ -134,16 +134,16 @@ public class IndexStore : IAsyncDisposable
 			throw;
 		}
 
-		cancel.ThrowIfCancellationRequested();
+		cancellationToken.ThrowIfCancellationRequested();
 
 		try
 		{
 			if (ImmatureIndexFileManager.Exists())
 			{
-				foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync(cancel).ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
+				foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 				{
 					ProcessLine(line, enqueue: true);
-					cancel.ThrowIfCancellationRequested();
+					cancellationToken.ThrowIfCancellationRequested();
 				}
 			}
 		}
@@ -187,7 +187,7 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancel)
+	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancellationToken)
 	{
 		var successAny = false;
 
@@ -195,7 +195,7 @@ public class IndexStore : IAsyncDisposable
 		{
 			var success = false;
 
-			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				success = TryProcessFilter(filter, enqueue: true);
 			}
@@ -210,15 +210,15 @@ public class IndexStore : IAsyncDisposable
 
 		if (successAny)
 		{
-			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
+			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancellationToken));
 		}
 	}
 
-	public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancel)
+	public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancellationToken)
 	{
 		FilterModel? filter = null;
 
-		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			filter = ImmatureFilters.Last();
 			ImmatureFilters.RemoveLast();
@@ -231,15 +231,15 @@ public class IndexStore : IAsyncDisposable
 
 		Reorged?.Invoke(this, filter);
 
-		AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
+		AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancellationToken));
 
 		return filter;
 	}
 
-	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync(CancellationToken cancel, bool deleteAndCrashIfMature = false)
+	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync(CancellationToken cancellationToken, bool deleteAndCrashIfMature = false)
 	{
 		var removed = new List<FilterModel>();
-		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			if (ImmatureFilters.Any())
 			{
@@ -253,8 +253,8 @@ public class IndexStore : IAsyncDisposable
 				{
 					Logger.LogCritical($"Deleting all filters and crashing the software...");
 
-					using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-					using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+					using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+					using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
 						ImmatureIndexFileManager.DeleteMe();
 						MatureIndexFileManager.DeleteMe();
@@ -267,7 +267,7 @@ public class IndexStore : IAsyncDisposable
 
 		while (ImmatureFilters.Any())
 		{
-			removed.Add(await RemoveLastFilterAsync(cancel).ConfigureAwait(false));
+			removed.Add(await RemoveLastFilterAsync(cancellationToken).ConfigureAwait(false));
 		}
 
 		return removed;
@@ -277,7 +277,7 @@ public class IndexStore : IAsyncDisposable
 	/// It'll LogError the exceptions.
 	/// If cancelled, it'll LogTrace the exception.
 	/// </summary>
-	private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
+	private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -289,7 +289,7 @@ public class IndexStore : IAsyncDisposable
 
 				if (incremented < 21)
 				{
-					await Task.Delay(throttle, cancel).ConfigureAwait(false);
+					await Task.Delay(throttle, cancellationToken).ConfigureAwait(false);
 				}
 
 				// If the _throttleId is still the incremented value, then I am the latest CommitToFileAsync request.
@@ -306,9 +306,9 @@ public class IndexStore : IAsyncDisposable
 				Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 			}
 
-			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
-			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-			using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				// Do not feed the cancellationToken here I always want this to finish running for safety.
 				var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
@@ -342,10 +342,10 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
+	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancellationToken)
 	{
-		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
-		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 			if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
