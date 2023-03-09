@@ -71,7 +71,7 @@ public class CoinVerifier : IAsyncDisposable
 			}
 			else
 			{
-				Logger.LogWarning($"Coin {coin.Outpoint} is missing scheduled verification, but it is inside the round. Removing it.");
+				Logger.LogWarning($"Coin {coin.Outpoint} is missing scheduled verification. Ignoring it.");
 			}
 		}
 
