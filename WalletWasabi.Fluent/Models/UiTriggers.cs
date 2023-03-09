@@ -26,6 +26,7 @@ public class UiTriggers
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal()
 			.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).ToSignal())
+			.Sample(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.StartWith(Unit.Default);
 

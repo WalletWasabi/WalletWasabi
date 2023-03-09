@@ -108,7 +108,7 @@ public static class CoinSelectorDataGridSource
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
 			node => node.AnonymityScore.ToString(),
-			GridLength.Auto,
+			new GridLength(50, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
 				CompareAscending = SortAscending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore),
