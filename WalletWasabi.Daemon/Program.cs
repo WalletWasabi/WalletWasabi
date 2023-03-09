@@ -17,82 +17,20 @@ namespace WalletWasabi.Daemon;
 
 public class Program
 {
-	private static Global? Global;
-
-	// Initialization code. Don't use any Avalonia, third-party APIs or any
-	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-	// yet and stuff might break.
 	public static async Task<int> Main(string[] args)
 	{
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		SetupLogger(dataDir, args);
 
-		Config config = LoadOrCreateConfigs(dataDir);
+		var app = WasabiAppBuilder
+			.Create("Wasabi Daemon")
+			.EnsureSingleInstance()
+			.OnUnhandledExceptions(LogUnhandledException)
+			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
+			.Build();
 
-		Logger.LogDebug($"Wasabi Daemon was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
-
-		var mustExit = await CheckSingleInstanceAsync(config.Network);
-
-		// Now run the GUI application.
-		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-		Exception? exceptionToReport = null;
-		TerminateService terminateService = new(TerminateApplicationAsync, () => { });
-
-		try
-		{
-			Global = CreateGlobal(dataDir, config);
-			await Global.InitializeNoWalletAsync(terminateService);
-			while (true)
-			{
-				Console.Read();
-			}
-		}
-		catch (OperationCanceledException ex)
-		{
-			Logger.LogDebug(ex);
-		}
-		catch (Exception ex)
-		{
-			exceptionToReport = ex;
-			Logger.LogCritical(ex);
-		}
-
-		// Start termination/disposal of the application.
-		terminateService.Terminate();
-
-		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-		TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-		Logger.LogSoftwareStopped("Wasabi");
-
-		return exceptionToReport is { } ? 1 : 0;
-	}
-
-	private static async Task<bool> CheckSingleInstanceAsync(Network network)
-	{
-		// Start single instance checker that is active over the lifetime of the application.
-		await using SingleInstanceChecker singleInstanceChecker = new(network);
-
-		try
-		{
-			await singleInstanceChecker.EnsureSingleOrThrowAsync();
-		}
-		catch (OperationCanceledException)
-		{
-			// We have successfully signalled the other instance and that instance should pop up
-			// so user will think he has just run the application.
-			return true;
-		}
-		catch (Exception ex)
-		{
-			Logger.LogCritical(ex);
-			return true;
-		}
-
-		return false;
+		return await app.RunAsConsoleAsync();
 	}
 
 	/// <summary>
@@ -120,40 +58,9 @@ public class Program
 		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
 	}
 
-	private static Config LoadOrCreateConfigs(string dataDir)
+	private static void LogUnobservedTaskException(object? sender, AggregateException e)
 	{
-		Directory.CreateDirectory(dataDir);
-
-		Config config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadFile(createIfMissing: true);
-
-		return config;
-	}
-
-	private static Global CreateGlobal(string dataDir, Config config)
-	{
-		var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
-
-		return new Global(dataDir, config, walletManager);
-	}
-
-	/// <summary>
-	/// Do not call this method it should only be called by TerminateService.
-	/// </summary>
-	private static async Task TerminateApplicationAsync()
-	{
-		Logger.LogSoftwareStopped("Wasabi GUI");
-
-		if (Global is { } global)
-		{
-			await global.DisposeAsync().ConfigureAwait(false);
-		}
-	}
-
-
-	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-	{
-		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
+		ReadOnlyCollection<Exception> innerExceptions = e.Flatten().InnerExceptions;
 
 		switch (innerExceptions)
 		{
@@ -161,19 +68,14 @@ public class Program
 			// Source of this exception is NBitcoin library.
 			case [OperationCanceledException { Message: "The peer has been disconnected" }]:
 				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
-				Logger.LogTrace(e.Exception);
+				Logger.LogTrace(e);
 				break;
 			default:
-				Logger.LogDebug(e.Exception);
+				Logger.LogDebug(e);
 				break;
 		}
 	}
 
-	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
-	{
-		if (e.ExceptionObject is Exception ex)
-		{
-			Logger.LogWarning(ex);
-		}
-	}
+	private static void LogUnhandledException(object? sender, Exception e) =>
+		Logger.LogWarning(e);
 }

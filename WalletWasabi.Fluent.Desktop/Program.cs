@@ -15,9 +15,6 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
-using WalletWasabi.Services.Terminate;
-using WalletWasabi.Wallets;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
@@ -29,15 +26,11 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
-	private static Global? Global;
-
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
-	public static int Main(string[] args)
+	public static async Task<int> Main(string[] args)
 	{
-		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
-
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		SetupLogger(dataDir, args);
@@ -61,20 +54,24 @@ public class Program
 			return 1;
 		}
 
-		(UiConfig uiConfig, Config config) = LoadOrCreateConfigs(dataDir);
-
-		// Start single instance checker that is active over the lifetime of the application.
-		using SingleInstanceChecker singleInstanceChecker = new(config.Network);
-
 		try
 		{
-			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
-		}
-		catch (OperationCanceledException)
-		{
-			// We have successfully signalled the other instance and that instance should pop up
-			// so user will think he has just run the application.
-			return 1;
+			var app = WasabiAppBuilder
+				.Create("Wasabi GUI")
+				.EnsureSingleInstance()
+				.OnUnhandledExceptions(LogUnhandledException)
+				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
+				.OnTermination(TerminateApplication)
+				.Build();
+
+			var exitCode = await app.RunAsGUIAsync(args);
+
+			if (Services.UpdateManager.DoUpdateOnClose)
+			{
+				Services.UpdateManager.StartInstallingNewVersion();
+			}
+
+			return exitCode;
 		}
 		catch (Exception ex)
 		{
@@ -82,76 +79,6 @@ public class Program
 			Logger.LogCritical(ex);
 			return 1;
 		}
-
-		// Now run the GUI application.
-		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-		Exception? exceptionToReport = null;
-		TerminateService terminateService = new(TerminateApplicationAsync, TerminateApplication);
-
-		try
-		{
-			Global = CreateGlobal(dataDir, uiConfig, config);
-			Services.Initialize(Global, uiConfig, singleInstanceChecker);
-
-			RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-				{
-					if (Debugger.IsAttached)
-					{
-						Debugger.Break();
-					}
-
-					Logger.LogError(ex);
-
-					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
-				});
-
-			Logger.LogSoftwareStarted("Wasabi GUI");
-			AppBuilder
-				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground))
-				.UseReactiveUI()
-				.SetupAppBuilder()
-				.AfterSetup(_ =>
-					{
-						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						Logger.LogInfo(glInterface is { }
-							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
-							: "Renderer: Avalonia Software");
-
-						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-					})
-					.StartWithClassicDesktopLifetime(args);
-		}
-		catch (OperationCanceledException ex)
-		{
-			Logger.LogDebug(ex);
-		}
-		catch (Exception ex)
-		{
-			exceptionToReport = ex;
-			Logger.LogCritical(ex);
-		}
-
-		// Start termination/disposal of the application.
-		terminateService.Terminate();
-
-		if (exceptionToReport is { })
-		{
-			// Trigger the CrashReport process if required.
-			CrashReporter.Invoke(exceptionToReport);
-		}
-		else if (Services.UpdateManager.DoUpdateOnClose)
-		{
-			Services.UpdateManager.StartInstallingNewVersion();
-		}
-
-		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-		TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-		Logger.LogSoftwareStopped("Wasabi");
-
-		return exceptionToReport is { } ? 1 : 0;
 	}
 
 	/// <summary>
@@ -179,78 +106,35 @@ public class Program
 		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
 	}
 
-	private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
-	{
-		Directory.CreateDirectory(dataDir);
-
-		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadFile(createIfMissing: true);
-
-		Config config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadFile(createIfMissing: true);
-
-		if (config.MigrateOldDefaultBackendUris())
-		{
-			Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-			config.ToFile();
-		}
-
-		return (uiConfig, config);
-	}
-
-	private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
-	{
-		var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
-
-		return new Global(dataDir, config, walletManager);
-	}
-
 	/// <summary>
 	/// Do not call this method it should only be called by TerminateService.
 	/// </summary>
-	private static async Task TerminateApplicationAsync()
-	{
-		Logger.LogSoftwareStopped("Wasabi GUI");
-
-		if (Global is { } global)
-		{
-			await global.DisposeAsync().ConfigureAwait(false);
-		}
-	}
-
 	private static void TerminateApplication()
 	{
 		MainViewModel.Instance.ClearStacks();
 		MainViewModel.Instance.StatusIcon.Dispose();
 	}
 
-	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+	private static void LogUnobservedTaskException(object? sender, AggregateException e)
 	{
-		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
+		ReadOnlyCollection<Exception> innerExceptions = e.Flatten().InnerExceptions;
 
-		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException socketException && socketException.SocketErrorCode == SocketError.OperationAborted)
+		switch (innerExceptions)
 		{
-			// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
-			Logger.LogTrace(e.Exception);
-		}
-		else if (innerExceptions.Count == 1 && innerExceptions[0] is OperationCanceledException ex && ex.Message == "The peer has been disconnected")
-		{
+			case [SocketException { SocketErrorCode: SocketError.OperationAborted }]:
 			// Source of this exception is NBitcoin library.
-			Logger.LogTrace(e.Exception);
-		}
-		else
-		{
-			Logger.LogDebug(e.Exception);
+			case [OperationCanceledException { Message: "The peer has been disconnected" }]:
+				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
+				Logger.LogTrace(e);
+				break;
+			default:
+				Logger.LogDebug(e);
+				break;
 		}
 	}
 
-	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
-	{
-		if (e.ExceptionObject is Exception ex)
-		{
-			Logger.LogWarning(ex);
-		}
-	}
+	private static void LogUnhandledException(object? sender, Exception e) =>
+		Logger.LogWarning(e);
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
 	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
@@ -282,5 +166,57 @@ public class Program
 			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
+	}
+}
+
+public static class WasabiAppExtensions
+{
+	public static async Task<int> RunAsGUIAsync(this WApp app, string[] args)
+	{
+		return await app.RunAsync(
+			() =>
+			{
+				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+				{
+					if (Debugger.IsAttached)
+					{
+						Debugger.Break();
+					}
+
+					Logger.LogError(ex);
+
+					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
+				});
+
+				Logger.LogSoftwareStarted("Wasabi GUI");
+				bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
+				UiConfig uiConfig = LoadOrCreateUiConfig(app.DataDir);
+				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
+
+				AppBuilder
+					.Configure(() => new App( async () => await Task.CompletedTask, runGuiInBackground))
+					.UseReactiveUI()
+					.SetupAppBuilder()
+					.AfterSetup(_ =>
+					{
+						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
+						Logger.LogInfo(glInterface is { }
+							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
+							: "Renderer: Avalonia Software");
+
+						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+					})
+					.StartWithClassicDesktopLifetime(args);
+			});
+	}
+
+	private static UiConfig LoadOrCreateUiConfig(string dataDir)
+	{
+		Directory.CreateDirectory(dataDir);
+
+		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
+		uiConfig.LoadFile(createIfMissing: true);
+
+		return uiConfig;
 	}
 }

@@ -11,6 +11,13 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
 
+public enum WasabiInstanceStatus
+{
+	PortIsBeingUser,
+	AnotherInstanceIsRunning,
+	NoOtherInstanceIsRunning,
+}
+
 public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 {
 	private const string WasabiMagicString = "InBitcoinWeTrust";
@@ -45,6 +52,23 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 	public event EventHandler? OtherInstanceStarted;
 
+	public async Task<WasabiInstanceStatus> CheckSingleInstanceAsync()
+	{
+		// Start single instance checker that is active over the lifetime of the application.
+		try
+		{
+			var singleInstanceResult = await EnsureSingleOrThrowAsync().ConfigureAwait(false);
+			return singleInstanceResult
+				? WasabiInstanceStatus.NoOtherInstanceIsRunning
+				: WasabiInstanceStatus.AnotherInstanceIsRunning;
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
+			return WasabiInstanceStatus.PortIsBeingUser;
+		}
+	}
+	
 	/// <summary>
 	/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
 	/// we try to signal the first instance before throwing the exception.
@@ -52,7 +76,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// </summary>
 	/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
 	/// <exception cref="OperationCanceledException">Wasabi is already running and signaled.</exception>
-	public async Task<bool> EnsureSingleOrThrowAsync()
+	private async Task<bool> EnsureSingleOrThrowAsync()
 	{
 		if (DisposeCts.IsCancellationRequested)
 		{
@@ -79,35 +103,27 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			Logger.LogDebug("Another Wasabi instance is already running.");
 		}
 
-		try
+		// Signal to the other instance, that there was an attempt to start the software.
+		using TcpClient client = new()
 		{
-			// Signal to the other instance, that there was an attempt to start the software.
-			using TcpClient client = new()
-			{
-				NoDelay = true
-			};
+			NoDelay = true
+		};
 
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(_timeoutMultiplier * 10));
-			using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(_timeoutMultiplier * 10));
+		using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
 
-			await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
+		await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-			await using NetworkStream networkStream = client.GetStream();
-			networkStream.WriteTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds * 2;
-			await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+		await using NetworkStream networkStream = client.GetStream();
+		networkStream.WriteTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds * 2;
+		await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-			await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
-			await writer.FlushAsync().ConfigureAwait(false);
-			await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
-			// I was able to signal to the other instance successfully so just continue.
-		}
-		catch (Exception ex)
-		{
-			// Do not log anything here as the first instance is writing the Log at this time.
-			throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled", ex);
-		}
+		await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
+		await writer.FlushAsync().ConfigureAwait(false);
+		await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
+		// I was able to signal to the other instance successfully so just continue.
 
 		return false;
 	}
