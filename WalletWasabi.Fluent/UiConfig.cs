@@ -147,7 +147,7 @@ public class UiConfig : ConfigBase
 		set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
 	}
 
-	[DefaultValue(true)]
+	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool RunOnSystemStartup
 	{

@@ -39,7 +39,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_autoCopy = Services.UiConfig.Autocopy;
 		_autoPaste = Services.UiConfig.AutoPaste;
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
-		_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
+		_runOnSystemStartup = StartupHelper.SetCorrectStartup();
 		_hideOnClose = Services.UiConfig.HideOnClose;
 		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
 			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
