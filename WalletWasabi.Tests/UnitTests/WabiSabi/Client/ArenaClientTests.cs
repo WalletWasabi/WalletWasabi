@@ -61,7 +61,7 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		Mock<IHttpClientFactory> mockIHttpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
+		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
@@ -103,7 +103,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		Mock<IHttpClientFactory> mockIHttpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
+		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
@@ -189,7 +189,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		Mock<IHttpClientFactory> mockIHttpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
+		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 

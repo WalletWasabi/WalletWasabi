@@ -51,6 +51,8 @@ public class WalletTests
 	[Fact]
 	public async Task FilterDownloaderTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
@@ -98,7 +100,7 @@ public class WalletTests
 				filterList.Add(x);
 				await Task.CompletedTask;
 			},
-			new Height(0));
+			new Height(0), testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 			for (int i = 0; i < 101; i++)
 			{
@@ -118,6 +120,8 @@ public class WalletTests
 	[Fact]
 	public async Task ReorgTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		(string password, IRPCClient rpc, Network network, _, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -178,7 +182,7 @@ public class WalletTests
 				filterList.Add(x);
 				await Task.CompletedTask;
 			},
-			new Height(0));
+			new Height(0), testDeadlineCts.Token);
 			var filterTip = filterList.Last();
 			Assert.Equal(tip, filterTip.Header.BlockHash);
 
@@ -191,7 +195,7 @@ public class WalletTests
 				filterList.Add(x);
 				await Task.CompletedTask;
 			},
-			new Height(0));
+			new Height(0), testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 			for (int i = 0; i < blockCountIncludingGenesis; i++)
 			{
