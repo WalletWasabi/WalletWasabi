@@ -23,7 +23,7 @@ public static class StartupHelper
 		}
 	}
 
-	public static bool SetCorrectStartup()
+	public static bool SetAndGetCorrectStartup()
 	{
 		if (Services.UiConfig.Oobe && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
