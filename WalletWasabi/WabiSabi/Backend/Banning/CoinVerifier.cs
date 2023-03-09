@@ -55,7 +55,7 @@ public class CoinVerifier : IAsyncDisposable
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
 		// Booting up the results with the default value - ban: no, remove: yes.
-		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(
+		Dictionary<Coin, CoinVerifyResult> coinVerifyResults = coinsToCheck.ToDictionary(
 			coin => coin,
 			coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true),
 			CoinEqualityComparer.Default);
@@ -64,10 +64,14 @@ public class CoinVerifier : IAsyncDisposable
 		List<Task<CoinVerifyResult>> tasks = new();
 		foreach (var coin in coinsToCheck)
 		{
-			// This is called in conn-confirmation phase. If the coin is somehow not scheduled yet, kick it out. It can register to the next round.
+			// If the coin was not scheduled to be verified, then this method will return the default verification result for the coin - ban: no, remove: yes.
 			if (CoinVerifyItems.TryGetValue(coin, out var item))
 			{
 				tasks.Add(item.Task);
+			}
+			else
+			{
+				Logger.LogWarning($"Coin {coin.Outpoint} is missing scheduled verification, but it is inside the round. Removing it.");
 			}
 		}
 
@@ -86,7 +90,7 @@ public class CoinVerifier : IAsyncDisposable
 				}
 
 				// Update the default value with the real result.
-				coinVerifyItems[result.Coin] = result;
+				coinVerifyResults[result.Coin] = result;
 			}
 		}
 		catch (OperationCanceledException ex)
@@ -109,7 +113,7 @@ public class CoinVerifier : IAsyncDisposable
 
 		await VerifierAuditArchiver.SaveAuditsAsync().ConfigureAwait(false);
 
-		return coinVerifyItems.Values.ToArray();
+		return coinVerifyResults.Values.ToArray();
 	}
 
 	private void CleanUp()
