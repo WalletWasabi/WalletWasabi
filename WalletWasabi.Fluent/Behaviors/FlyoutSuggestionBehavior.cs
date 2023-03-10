@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -15,7 +14,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 
 	public static readonly StyledProperty<IDataTemplate> HintTemplateProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, IDataTemplate>(nameof(HintTemplate));
 
-	public static readonly StyledProperty<Control?> TargetProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, Control?>(nameof(Target));
+	public static readonly StyledProperty<TextBox?> TargetProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, TextBox?>(nameof(Target));
 
 	public static readonly StyledProperty<FlyoutPlacementMode> PlacementModeProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, FlyoutPlacementMode>(nameof(PlacementMode));
 
@@ -44,7 +43,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 		set => SetValue(HintTemplateProperty, value);
 	}
 
-	public Control? Target
+	public TextBox? Target
 	{
 		get => GetValue(TargetProperty);
 		set => SetValue(TargetProperty, value);
@@ -59,7 +58,8 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			.WhereNotNull();
 
 		Displayer(targets).DisposeWith(disposable);
-		Hider(targets).DisposeWith(disposable);
+		HideOnLostFocus(targets).DisposeWith(disposable);
+		HideOnTextChange().DisposeWith(disposable);
 
 		Target ??= AssociatedObject as TextBox;
 
@@ -69,12 +69,19 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			.DisposeWith(disposable);
 	}
 
-	private IDisposable Hider(IObservable<Control> targets)
+	private IDisposable HideOnLostFocus(IObservable<Control> targets)
 	{
 		return targets
 			.Select(x => Observable.FromEventPattern(x, nameof(x.LostFocus)))
 			.Switch()
-			.Select(x => (TextBox?) x.Sender)
+			.Do(_ => _flyout.Hide())
+			.Subscribe();
+	}
+
+	private IDisposable HideOnTextChange()
+	{
+		return this.WhenAnyValue(x => x.Target.Text)
+			.WithLatestFrom(this.WhenAnyValue(x => x.Content))
 			.Do(_ => _flyout.Hide())
 			.Subscribe();
 	}
