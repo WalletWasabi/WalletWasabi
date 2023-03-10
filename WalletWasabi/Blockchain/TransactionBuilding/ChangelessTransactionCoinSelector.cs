@@ -24,13 +24,15 @@ public static class ChangelessTransactionCoinSelector
 		// target = target amount + output cost
 		long target = txOut.Value.Satoshi + feeRate.GetFee(txOut.ScriptPubKey.EstimateOutputVsize()).Satoshi;
 
-		// Keys are effective values of smart coins in satoshis.
-		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
+		var coinsByScript = availableCoins
+			.GroupBy(coin => coin.ScriptPubKey.Hash)
+			.OrderByDescending(group => group.Sum(coin => coin.EffectiveValue(feeRate).Satoshi))
+			.ToList();
 
 		// How much it costs to spend each coin.
-		long[] inputCosts = sortedCoins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+		long[] inputCosts = coinsByScript.Select(group => group.Sum(coin => feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()).Satoshi)).ToArray();
 
-		Dictionary<SmartCoin, long> inputEffectiveValues = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 
 		// Pass smart coins' effective values in descending order.
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
@@ -70,7 +72,7 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="strategy">The strategy determines what the algorithm is looking for.</param>
 	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
+	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
 	{
 		selectedCoins = null;
 
@@ -99,13 +101,13 @@ public static class ChangelessTransactionCoinSelector
 			List<SmartCoin> resultCoins = new();
 			int i = 0;
 
-			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputEffectiveValues)
+			foreach ((IEnumerable<SmartCoin> smartCoins, long effectiveSatoshis) in inputEffectiveValues)
 			{
 				// Both arrays are in decreasing order so the first match will be the coin we are looking for.
 				if (effectiveSatoshis == solution[i])
 				{
 					i++;
-					resultCoins.Add(smartCoin);
+					resultCoins.AddRange(smartCoins);
 					if (i == solution.Count)
 					{
 						break;
