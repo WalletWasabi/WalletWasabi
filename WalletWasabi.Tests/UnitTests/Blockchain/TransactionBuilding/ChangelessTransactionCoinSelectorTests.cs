@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -27,16 +28,21 @@ public class ChangelessTransactionCoinSelectorTests
 	public void GoodSuggestion()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
-		using Key key = new();
+		KeyManager km = ServiceFactory.CreateKeyManager();
 
-		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+		IEnumerable<SmartCoin> coins = GenerateDummySmartCoins(km, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+
+		var coinsByScript = coins
+			.GroupBy(coin => coin.ScriptPubKey.Hash)
+			.OrderByDescending(group => group.Sum(coin => coin.Amount))
+			.ToList();
+
 		Money target = Money.Satoshis(150_000);
 		FeeRate feeRate = new(Money.Satoshis(2));
-		TxOut txOut = new(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
 
-		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+		long[] inputCosts = coinsByScript.Select(group => group.Sum(coin => feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()).Satoshi)).ToArray();
 
-		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
 
@@ -52,16 +58,21 @@ public class ChangelessTransactionCoinSelectorTests
 	public void Good_LesserSuggestion()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
-		using Key key = new();
+		KeyManager km = ServiceFactory.CreateKeyManager();
 
-		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+		List<SmartCoin> coins = GenerateDummySmartCoins(km, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+
+		var coinsByScript = coins
+			.GroupBy(coin => coin.ScriptPubKey.Hash)
+			.OrderByDescending(group => group.Sum(coin => coin.Amount))
+			.ToList();
+
 		Money target = Money.Satoshis(65_000);
 		FeeRate feeRate = new(Money.Satoshis(2));
-		TxOut txOut = new(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
 
-		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+		long[] inputCosts = coinsByScript.Select(group => group.Sum(coin => feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()).Satoshi)).ToArray();
 
-		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
@@ -79,16 +90,21 @@ public class ChangelessTransactionCoinSelectorTests
 	public void TooExpensiveSolution()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
-		using Key key = new();
+		KeyManager km = ServiceFactory.CreateKeyManager();
 
-		List<SmartCoin> coins = GenerateDummySmartCoins(key, 150_000);
+		List<SmartCoin> coins = GenerateDummySmartCoins(km, 150_000);
+
+		var coinsByScript = coins
+			.GroupBy(coin => coin.ScriptPubKey.Hash)
+			.OrderByDescending(group => group.Sum(coin => coin.Amount))
+			.ToList();
+
 		Money target = Money.Satoshis(100_000);
 		FeeRate feeRate = new(Money.Satoshis(2));
-		TxOut txOut = new(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
 
 		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
 
-		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 		StrategyParameters parameters = new(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
@@ -96,25 +112,54 @@ public class ChangelessTransactionCoinSelectorTests
 		Assert.False(found);
 	}
 
+	[Fact]
+	public async void BnBChoosesCoinsWithSameScriptPubKeyAsync()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(300));
+
+		KeyManager km = ServiceFactory.CreateKeyManager();
+		HdPubKey constantHdPubKey = BitcoinFactory.CreateHdPubKey(km);
+		HdPubKey constantHdPubKey2 = BitcoinFactory.CreateHdPubKey(km);
+
+		Money target = Money.Satoshis(30000);
+
+		FeeRate feeRate = new(0m);
+		Script destination = BitcoinFactory.CreateScript();
+
+		TxOut txOut = new(target, destination);
+		int maxInputCount = 6;
+
+		// Coins with same ScriptPubKey should be considered one coin, thus be chosen together.
+		List<SmartCoin> availableCoins = new()
+		{
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(5000)),
+		};
+
+		var strategies = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
+
+		await foreach (var coins in strategies)
+		{
+			var selectedScripts = coins.GroupBy(coin => coin.ScriptPubKey.Hash);
+			Assert.Single(selectedScripts); // Single, so we are sending the address reused coins together and we don't mix them with other scripts.
+		}
+	}
+
 	/// <remarks>These smart coins are from an invalid transaction but we are interested only in smart coins' amounts.</remarks>
-	private List<SmartCoin> GenerateDummySmartCoins(Key key, params long[] values)
+	private List<SmartCoin> GenerateDummySmartCoins(KeyManager km, params long[] values)
 	{
 		Network network = Network.Main;
-		Transaction tx = Transaction.Create(network);
-		tx.Inputs.Add(TxIn.CreateCoinbase(200));
 
-		foreach (long satoshis in values)
-		{
-			tx.Outputs.Add(Money.Satoshis(satoshis), BitcoinFactory.CreateBitcoinAddress(network, key));
-		}
-
-		SmartTransaction stx = new(tx, Height.Mempool);
 		List<SmartCoin> result = new(capacity: values.Length);
 
 		for (uint i = 0; i < values.Length; i++)
 		{
-			HdPubKey hdPubKey = new(key.PubKey, new KeyPath($"m/84h/0h/0h/1/{i}"), SmartLabel.Empty, KeyState.Clean);
-			result.Add(new SmartCoin(stx, i, hdPubKey));
+			result.Add(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(values[i])));
 		}
 
 		return result.OrderByDescending(x => x.Amount.Satoshi).ToList();
