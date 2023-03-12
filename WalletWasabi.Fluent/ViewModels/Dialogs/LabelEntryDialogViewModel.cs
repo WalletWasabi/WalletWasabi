@@ -5,6 +5,7 @@ using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -19,7 +20,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 	public LabelEntryDialogViewModel(Wallet wallet, SmartLabel label)
 	{
 		_wallet = wallet;
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
+		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
 		{
 			Labels = { label.Labels }
 		};
