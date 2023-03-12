@@ -27,8 +27,7 @@
             <c:AnimatedButton ToolTip.Tip="Copy"
                               Command="{Binding CopyAddressCommand}"
                               NormalIcon="{StaticResource copy_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"
-                              ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
+                              ClickIcon="{StaticResource copy_confirmed}" />
           </StackPanel>
           <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
             <TextBlock Classes="monoSpaced" Text="{Binding Address}" />

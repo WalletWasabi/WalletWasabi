@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -35,7 +36,7 @@ public partial class AddressViewModel : ViewModelBase
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
+		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(new WalletModel(wallet), new Address(wallet.KeyManager, model), Services.UiConfig.Autocopy)));
 	}
 
 	public ICommand CopyAddressCommand { get; }
