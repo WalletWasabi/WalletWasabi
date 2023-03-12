@@ -6,6 +6,7 @@ using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -17,8 +18,9 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 {
 	private readonly ObservableAsPropertyHelper<bool[,]> _qrCode;
 
-	public ReceiveAddressViewModel(IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
+	public ReceiveAddressViewModel(IWalletModel wallet, IAddress model, bool isAutoCopyEnabled, UIContext uiContext)
 	{
+		UIContext = uiContext;
 		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
