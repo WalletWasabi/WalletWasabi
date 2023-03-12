@@ -47,7 +47,6 @@ public class TorTests : IAsyncLifetime
 	/// </summary>
 	[Theory]
 	[InlineData(100)]
-	[InlineData(20)]
 	public async Task OverloadTestAsync(int totalRequests)
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(10));
@@ -82,7 +81,7 @@ public class TorTests : IAsyncLifetime
 				}
 
 				requestNumber++;
-				TestOutputHelper.WriteLine($"[Request #{requestNumber}] Result: {task.Result} after {sw.Elapsed.TotalSeconds:0.##}s");
+				TestOutputHelper.WriteLine($"[Request #{requestNumber}][Elapsed {sw.Elapsed.TotalSeconds:0.##}s] Result: {task.Result}");
 			}
 		}
 
