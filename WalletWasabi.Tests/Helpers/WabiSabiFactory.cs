@@ -34,7 +34,7 @@ public static class WabiSabiFactory
 		key ??= new();
 		amount ??= Money.Coins(1);
 		return new(
-			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes().Concat(BitConverter.GetBytes(amount)).ToArray() ), 0),
+			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes().Concat(BitConverter.GetBytes(amount)).ToArray()), 0),
 			new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
 	}
 
@@ -295,14 +295,16 @@ public static class WabiSabiFactory
 	public static CoinJoinClient CreateTestCoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		KeyManager keyManager,
-		RoundStateUpdater roundStateUpdater)
+		RoundStateUpdater roundStateUpdater,
+		Random? random = null)
 	{
 		return CreateTestCoinJoinClient(
 			httpClientFactory,
 			new KeyChain(keyManager, new Kitchen("")),
 			new InternalDestinationProvider(keyManager),
 			roundStateUpdater,
-			keyManager.RedCoinIsolation);
+			keyManager.RedCoinIsolation,
+			random);
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(
@@ -310,7 +312,8 @@ public static class WabiSabiFactory
 		IKeyChain keyChain,
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStateUpdater,
-		bool redCoinIsolation)
+		bool redCoinIsolation,
+		Random? random = null)
 	{
 		var mock = new Mock<CoinJoinClient>(
 			httpClientFactory,
@@ -328,6 +331,10 @@ public static class WabiSabiFactory
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
 			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
+
+		var rnd = random ?? Random.Shared;
+
+		mock.SetupGet(m => m.Random).Returns(rnd);
 
 		mock.CallBase = true;
 
