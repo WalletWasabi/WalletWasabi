@@ -142,7 +142,27 @@ public class ChangelessTransactionCoinSelectorTests
 		await foreach (var coins in suggestions)
 		{
 			var selectedScripts = coins.GroupBy(coin => coin.ScriptPubKey);
+
 			Assert.Single(selectedScripts); // Single, so we are sending the address reused coins together and we don't mix them with other scripts.
+
+			var sumOfCoins = coins.Sum(coin => coin.Amount);
+
+			// First case: Lesser strategy
+			if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey.P2wpkhScript))
+			{
+				Assert.Equal(30_000, sumOfCoins);
+				Assert.Equal(3, coins.Count());
+			}
+			// Second case: More strategy
+			else if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey2.P2wpkhScript))
+			{
+				Assert.Equal(35_000, sumOfCoins);
+				Assert.Equal(4, coins.Count());
+			}
+			else
+			{
+				Assert.Fail("Mixed scripts in coin selection!");
+			}
 		}
 	}
 
