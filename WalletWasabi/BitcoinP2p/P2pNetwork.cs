@@ -27,9 +27,7 @@ public class P2pNetwork : BackgroundService
 
 		var userAgent = Constants.UserAgents.RandomElement();
 		var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
-		connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-
+		
 		AddressManagerFilePath = Path.Combine(WorkDir, $"AddressManager{Network}.dat");
 		var needsToDiscoverPeers = true;
 		if (Network == Network.RegTest)

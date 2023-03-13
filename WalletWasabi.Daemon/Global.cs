@@ -163,7 +163,22 @@ public class Global
 					throw;
 				}
 
-				HostedServices.Register<P2pNetwork>(() => new P2pNetwork(Network, Settings.GetBitcoinP2pEndPoint(), Settings.UseTor ? TorSettings.SocksEndpoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
+				HostedServices.Register<P2pNetwork>(() =>
+				{
+					var p2p = new P2pNetwork(
+							Network,
+							Settings.GetBitcoinP2pEndPoint(),
+							Settings.UseTor ? TorSettings.SocksEndpoint : null,
+							Path.Combine(DataDir, "BitcoinP2pNetwork"),
+							BitcoinStore);
+					if (!Settings.BlockOnlyMode)
+					{
+						p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+					}
+
+					return p2p;
+				},"Bitcoin P2P Network");
+
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
@@ -283,7 +298,12 @@ public class Global
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
 		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode), "Full Node Mempool Mirror");
+		if (!Settings.BlockOnlyMode)
+		{
+			HostedServices.Register<MempoolMirror>(
+				() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode),
+				"Full Node Mempool Mirror");
+		}
 	}
 
 	private void RegisterFeeRateProviders()

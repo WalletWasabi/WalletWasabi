@@ -219,6 +219,7 @@ public class Settings
 		throw new ArgumentNullException("DustThreshold", "Not a valid money");
 	});
 
+	public bool BlockOnlyMode => GetEffectiveBool(false, "blockonly");
 	public bool EnableGpu => GetEffectiveBool(Config.EnableGpu);
 	public string CoordinatorIdentifier => GetEffectiveString(Config.CoordinatorIdentifier);
 	public ServiceConfiguration ServiceConfiguration => new (GetBitcoinP2pEndPoint(), DustThreshold);
