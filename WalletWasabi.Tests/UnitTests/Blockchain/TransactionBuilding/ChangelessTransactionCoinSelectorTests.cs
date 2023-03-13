@@ -1,16 +1,12 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -42,7 +38,7 @@ public class ChangelessTransactionCoinSelectorTests
 
 		long[] inputCosts = coinsByScript.Select(group => group.Sum(coin => feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()).Satoshi)).ToArray();
 
-		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
+		Dictionary<SmartCoin[], long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin).ToArray(), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
 
@@ -72,7 +68,7 @@ public class ChangelessTransactionCoinSelectorTests
 
 		long[] inputCosts = coinsByScript.Select(group => group.Sum(coin => feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()).Satoshi)).ToArray();
 
-		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
+		Dictionary<SmartCoin[], long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin).ToArray(), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
@@ -104,7 +100,7 @@ public class ChangelessTransactionCoinSelectorTests
 
 		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
 
-		Dictionary<IEnumerable<SmartCoin>, long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
+		Dictionary<SmartCoin[], long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin).ToArray(), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 		StrategyParameters parameters = new(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
@@ -141,9 +137,9 @@ public class ChangelessTransactionCoinSelectorTests
 			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(5000)),
 		};
 
-		var strategies = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
+		var suggestions = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
 
-		await foreach (var coins in strategies)
+		await foreach (var coins in suggestions)
 		{
 			var selectedScripts = coins.GroupBy(coin => coin.ScriptPubKey.Hash);
 			Assert.Single(selectedScripts); // Single, so we are sending the address reused coins together and we don't mix them with other scripts.
