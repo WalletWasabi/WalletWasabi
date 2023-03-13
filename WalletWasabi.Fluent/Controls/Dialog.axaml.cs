@@ -72,7 +72,9 @@ public class Dialog : ContentControl
 
 	public Dialog()
 	{
-		ApplicationHelper.MainWindowActivated.Where(isActivated => isActivated).Subscribe(UpdateActivatedDelay);
+		_canCancelActivatedOnPointerPressed = true;
+
+		ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
 
 		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateOpenedDelay);
 
@@ -221,16 +223,23 @@ public class Dialog : ContentControl
 		}
 	}
 
-	private void UpdateActivatedDelay(bool isDialogOpen)
+	private void UpdateActivatedDelay(bool isWindowActivated)
 	{
 		try
 		{
-			_canCancelActivatedOnPointerPressed = false;
+			if (!isWindowActivated)
+			{
+				_canCancelActivatedOnPointerPressed = false;
+			}
+
 			CancelPointerActivatedPressedDelay?.Cancel();
 
-			CancelPointerActivatedPressedDelay = new CancellationTokenSource();
+			if (isWindowActivated)
+			{
+				CancelPointerActivatedPressedDelay = new CancellationTokenSource();
 
-			Task.Delay(TimeSpan.FromSeconds(1), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
+				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
+			}
 		}
 		catch (OperationCanceledException)
 		{
