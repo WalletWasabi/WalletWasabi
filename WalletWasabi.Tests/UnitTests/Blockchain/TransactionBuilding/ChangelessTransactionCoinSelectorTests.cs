@@ -141,7 +141,7 @@ public class ChangelessTransactionCoinSelectorTests
 
 		await foreach (var coins in suggestions)
 		{
-			var selectedScripts = coins.GroupBy(coin => coin.ScriptPubKey.Hash);
+			var selectedScripts = coins.GroupBy(coin => coin.ScriptPubKey);
 			Assert.Single(selectedScripts); // Single, so we are sending the address reused coins together and we don't mix them with other scripts.
 		}
 	}
