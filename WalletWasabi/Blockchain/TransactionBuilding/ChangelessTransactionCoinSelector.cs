@@ -26,8 +26,8 @@ public static class ChangelessTransactionCoinSelector
 
 		// Group coins by their script pub key and sort the groups in the descending order. Each coin group is considered to be a single coin for the purposes of the algorithm.
 		// All coins in a single group have the same script pub key so all the coins should be spent together or not spent at all.
-		IOrderedEnumerable<IGrouping<ScriptId, SmartCoin>> coinsByScript = availableCoins
-			.GroupBy(coin => coin.ScriptPubKey.Hash)
+		IOrderedEnumerable<IGrouping<Script, SmartCoin>> coinsByScript = availableCoins
+			.GroupBy(coin => coin.ScriptPubKey)
 			.OrderByDescending(group => group.Sum(coin => coin.EffectiveValue(feeRate).Satoshi));
 
 		// How much it costs to spend each coin group.
