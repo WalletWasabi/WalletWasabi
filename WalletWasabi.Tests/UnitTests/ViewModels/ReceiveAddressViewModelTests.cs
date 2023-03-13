@@ -44,15 +44,15 @@ public class ReceiveAddressViewModelTests
 	[Fact]
 	public void When_address_becomes_used_navigation_goes_back()
 	{
-		var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-		var uiContext = ContextWith(new TestNavigation(ns));
+		var navigationStack = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
+		var uiContext = ContextWith(new TestNavigation(navigationStack));
 		var address = new TestAddress("SomeAddress");
 		var wallet = WalletWithAddresses(address);
 		new ReceiveAddressViewModel(wallet, address, true, uiContext);
 
 		address.IsUsed = true;
 
-		Mock.Get(ns).Verify(x => x.Back(), Times.Once);
+		Mock.Get(navigationStack).Verify(x => x.Back(), Times.Once);
 	}
 
 	private static IWalletModel WalletWithAddresses(TestAddress address)
