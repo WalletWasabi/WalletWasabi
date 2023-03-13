@@ -12,9 +12,9 @@ namespace WalletWasabi.Daemon;
 
 public class WApp
 {
-	private WasabiAppBuilder AppConfig { get; }
+	public WasabiAppBuilder AppConfig { get; }
 	public Global? Global { get; private set; }
-	public Config Config { get; }
+	public Settings Settings { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 
 	public string DataDir { get; } = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -22,8 +22,8 @@ public class WApp
 	public WApp(WasabiAppBuilder wasabiAppBuilder)
 	{
 		AppConfig = wasabiAppBuilder;
-		Config = LoadOrCreateConfigs();
-		SingleInstanceChecker = new(Config.Network);
+		Settings = new Settings(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
+		SingleInstanceChecker = new(Settings.Network);
 	}
 
 	public async Task<int> RunAsync(Action afterStarting)
@@ -82,8 +82,8 @@ public class WApp
 
 	private Global CreateGlobal()
 	{
-		var walletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir));
-		return new Global(DataDir, Config, walletManager);
+		var walletManager = new WalletManager(Settings.Network, DataDir, new WalletDirectories(Settings.Network, DataDir));
+		return new Global(DataDir, Settings, walletManager);
 	}
 
 	private Config LoadOrCreateConfigs()
@@ -127,7 +127,7 @@ public class WApp
 
 }
 
-public record WasabiAppBuilder(string AppName)
+public record WasabiAppBuilder(string AppName, string[] Arguments)
 {
 	internal bool MustCheckSingleInstance { get; init; }
 	internal EventHandler<Exception>? UnhandledExceptionEventHandler { get; init; }
@@ -151,8 +151,8 @@ public record WasabiAppBuilder(string AppName)
 	public WApp Build() =>
 		new(this);
 
-	public static WasabiAppBuilder Create(string appName) =>
-		new(appName);
+	public static WasabiAppBuilder Create(string appName, string[] args) =>
+		new(appName, args);
 }
 
 public static class WasabiAppExtensions

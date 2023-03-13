@@ -24,7 +24,7 @@ public class Program
 		SetupLogger(dataDir, args);
 
 		var app = WasabiAppBuilder
-			.Create("Wasabi Daemon")
+			.Create("Wasabi Daemon", args)
 			.EnsureSingleInstance()
 			.OnUnhandledExceptions(LogUnhandledException)
 			.OnUnobservedTaskExceptions(LogUnobservedTaskException)

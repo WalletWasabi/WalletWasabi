@@ -2,13 +2,16 @@ using System;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Daemon;
 
@@ -18,20 +21,15 @@ public class Config : ConfigBase
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
-	private Uri? _backendUri;
-	private Uri? _coordinatorUri;
-
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
 	/// </summary>
 	public Config() : base()
 	{
-		ServiceConfiguration = null!;
 	}
 
 	public Config(string filePath) : base(filePath)
 	{
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
 	[JsonProperty(PropertyName = "Network")]
@@ -124,74 +122,6 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
-	public ServiceConfiguration ServiceConfiguration { get; private set; }
-
-	public Uri GetBackendUri()
-	{
-		if (_backendUri is { })
-		{
-			return _backendUri;
-		}
-
-		if (Network == Network.Main)
-		{
-			_backendUri = new Uri(MainNetBackendUri);
-		}
-		else if (Network == Network.TestNet)
-		{
-			_backendUri = new Uri(TestNetBackendUri);
-		}
-		else if (Network == Network.RegTest)
-		{
-			_backendUri = new Uri(RegTestBackendUri);
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-
-		return _backendUri;
-	}
-
-	public Uri GetCoordinatorUri()
-	{
-		if (_coordinatorUri is { })
-		{
-			return _coordinatorUri;
-		}
-
-		var result = Network switch
-		{
-			{ } n when n == Network.Main => MainNetCoordinatorUri,
-			{ } n when n == Network.TestNet => TestNetCoordinatorUri,
-			{ } n when n == Network.RegTest => RegTestCoordinatorUri,
-			_ => throw new NotSupportedNetworkException(Network)
-		};
-
-		_coordinatorUri = result is null ? GetBackendUri() : new Uri(result);
-		return _coordinatorUri;
-	}
-
-	public EndPoint GetBitcoinP2pEndPoint()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetBitcoinP2pEndPoint;
-		}
-		else if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinP2pEndPoint;
-		}
-		else if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinP2pEndPoint;
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-	}
-
 	public void SetBitcoinP2pEndpoint(EndPoint endPoint)
 	{
 		if (Network == Network.Main)
@@ -212,12 +142,21 @@ public class Config : ConfigBase
 		}
 	}
 
-	/// <inheritdoc/>
-	public override void LoadFile(bool createIfMissing = false)
+	public EndPoint GetBitcoinP2pEndPoint()
 	{
-		base.LoadFile(createIfMissing);
-
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
+		if (Network == Network.Main)
+		{
+			return MainNetBitcoinP2pEndPoint;
+		}
+		if (Network == Network.TestNet)
+		{
+			return TestNetBitcoinP2pEndPoint;
+		}
+		if (Network == Network.RegTest)
+		{
+			return RegTestBitcoinP2pEndPoint;
+		}
+		throw new NotSupportedNetworkException(Network);
 	}
 
 	public bool MigrateOldDefaultBackendUris()
@@ -237,5 +176,159 @@ public class Config : ConfigBase
 		}
 
 		return hasChanged;
+	}
+}
+
+public class Settings
+{
+	public Config Config { get; }
+	private string[] Args { get; }
+
+	public Settings (Config config, string[] args)
+	{
+		Config = config;
+		Args = args;
+	}
+
+	public Network Network => GetEffectiveValue<Network>(Config.Network, x => Network.GetNetwork(x) ?? throw new ArgumentException("Network", $"Unknown network {x}"));
+	public string MainNetBackendUri => GetEffectiveString(Config.MainNetBackendUri);
+	public string TestNetBackendUri => GetEffectiveString(Config.TestNetBackendUri);
+	public string RegTestBackendUri => GetEffectiveString(Config.RegTestBackendUri);
+	public string? MainNetCoordinatorUri => GetEffectiveOptionalString(Config.MainNetCoordinatorUri);
+	public string? TestNetCoordinatorUri => GetEffectiveOptionalString(Config.TestNetCoordinatorUri);
+	public string? RegTestCoordinatorUri => GetEffectiveOptionalString(Config.RegTestCoordinatorUri);
+	public bool UseTor => GetEffectiveBool(Config.UseTor);
+	public bool TerminateTorOnExit => GetEffectiveBool(Config.TerminateTorOnExit);
+	public bool DownloadNewVersion => GetEffectiveBool(Config.DownloadNewVersion);
+	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveBool(Config.StartLocalBitcoinCoreOnStartup);
+	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveBool(Config.StopLocalBitcoinCoreOnShutdown);
+	public string LocalBitcoinCoreDataDir => GetEffectiveString(Config.LocalBitcoinCoreDataDir);
+	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveEndPoint(Config.MainNetBitcoinP2pEndPoint);
+	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveEndPoint(Config.TestNetBitcoinP2pEndPoint);
+	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveEndPoint(Config.RegTestBitcoinP2pEndPoint);
+	public bool JsonRpcServerEnabled => GetEffectiveBool(Config.JsonRpcServerEnabled);
+	public string JsonRpcUser => GetEffectiveString(Config.JsonRpcUser);
+	public string JsonRpcPassword => GetEffectiveString(Config.JsonRpcPassword);
+	public string[] JsonRpcServerPrefixes => GetEffectiveValue(Config.JsonRpcServerPrefixes, x => new [] { x });
+	public Money DustThreshold => GetEffectiveValue(Config.DustThreshold, x =>
+	{
+		if (Money.TryParse(x, out var money))
+		{
+			return money;
+		}
+		throw new ArgumentNullException("DustThreshold", "Not a valid money");
+	});
+
+	public bool EnableGpu => GetEffectiveBool(Config.EnableGpu);
+	public string CoordinatorIdentifier => GetEffectiveString(Config.CoordinatorIdentifier);
+	public ServiceConfiguration ServiceConfiguration => new (GetBitcoinP2pEndPoint(), DustThreshold);
+
+	private EndPoint GetEffectiveEndPoint(
+		EndPoint valueInConfigFile,
+		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		GetEffectiveValue(
+			valueInConfigFile,
+			x =>
+			{
+				if (EndPointParser.TryParse(x, 0, out var endpoint))
+				{
+					return endpoint;
+				}
+
+				throw new ArgumentNullException(key, "Not a valid endpoint");
+			},
+			key);
+
+	private bool GetEffectiveBool(
+		bool valueInConfigFile,
+		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		GetEffectiveValue(
+			valueInConfigFile,
+			x => x switch
+			{
+				_ when x.Equals("true", StringComparison.InvariantCultureIgnoreCase) => true,
+				_ when x.Equals("false", StringComparison.InvariantCultureIgnoreCase) => false,
+				_ => throw new ArgumentNullException(key, "must be 'true' or 'false'")
+			},
+			key);
+
+	private string GetEffectiveString(
+		string valueInConfigFile,
+		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		GetEffectiveValue(valueInConfigFile, x => x, key);
+
+	private string? GetEffectiveOptionalString(
+		string? valueInConfigFile,
+		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		GetEffectiveValue(valueInConfigFile, x => x, key);
+
+	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, [CallerArgumentExpression("valueInConfigFile")] string key = "")
+	{
+		key = key.Remove(0, nameof(Config).Length + 1);
+		var cliArgKey = ("--" + key + "=");
+		var cliArgOrNull = Args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
+		if (cliArgOrNull is { } cliArg)
+		{
+			return converter(cliArg.Substring(cliArgKey.Length));
+		}
+
+		var envKey = "WASABI-" + key.ToUpperInvariant();
+		var envVars = Environment.GetEnvironmentVariables();
+		if (envVars.Contains(envKey))
+		{
+			if (envVars[envKey] is string envVar)
+			{
+				return converter(envVar);
+			}
+		}
+
+		return valueInConfigFile;
+	}
+
+	public EndPoint GetBitcoinP2pEndPoint()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetBitcoinP2pEndPoint;
+		}
+		if (Network == Network.TestNet)
+		{
+			return TestNetBitcoinP2pEndPoint;
+		}
+		if (Network == Network.RegTest)
+		{
+			return RegTestBitcoinP2pEndPoint;
+		}
+		throw new NotSupportedNetworkException(Network);
+	}
+
+	public Uri GetBackendUri()
+	{
+		if (Network == Network.Main)
+		{
+			return new Uri(MainNetBackendUri);
+		}
+		if (Network == Network.TestNet)
+		{
+			return new Uri(TestNetBackendUri);
+		}
+		if (Network == Network.RegTest)
+		{
+			return new Uri(RegTestBackendUri);
+		}
+		throw new NotSupportedNetworkException(Network);
+	}
+
+	public Uri GetCoordinatorUri()
+	{
+		var result = Network switch
+		{
+			{ } n when n == Network.Main => MainNetCoordinatorUri,
+			{ } n when n == Network.TestNet => TestNetCoordinatorUri,
+			{ } n when n == Network.RegTest => RegTestCoordinatorUri,
+			_ => throw new NotSupportedNetworkException(Network)
+		};
+
+		return result is null ? GetBackendUri() : new Uri(result);
 	}
 }

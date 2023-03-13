@@ -57,14 +57,14 @@ public class Program
 		try
 		{
 			var app = WasabiAppBuilder
-				.Create("Wasabi GUI")
+				.Create("Wasabi GUI", args)
 				.EnsureSingleInstance()
 				.OnUnhandledExceptions(LogUnhandledException)
 				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = await app.RunAsGUIAsync(args);
+			var exitCode = await app.RunAsGUIAsync();
 
 			if (Services.UpdateManager.DoUpdateOnClose)
 			{
@@ -171,7 +171,7 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<int> RunAsGUIAsync(this WApp app, string[] args)
+	public static async Task<int> RunAsGUIAsync(this WApp app)
 	{
 		return await app.RunAsync(
 			() =>
@@ -189,7 +189,7 @@ public static class WasabiAppExtensions
 				});
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
-				bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
+				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(app.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
 
@@ -206,7 +206,7 @@ public static class WasabiAppExtensions
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
-					.StartWithClassicDesktopLifetime(args);
+					.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 			});
 	}
 
