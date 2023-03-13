@@ -129,7 +129,7 @@ public class ChangelessTransactionCoinSelectorTests
 		TxOut txOut = new(target, destination);
 		int maxInputCount = 6;
 
-		// Coins with same ScriptPubKey should be considered one coin, thus be chosen together.
+		// Coins with the same ScriptPubKey should be considered one coin, thus be chosen together.
 		List<SmartCoin> availableCoins = new()
 		{
 			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
