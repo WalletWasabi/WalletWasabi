@@ -48,7 +48,6 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 		if (panel is LabelsPanel labelsPanel)
 		{
-			Console.WriteLine($"[PanelCreated] Panel={Panel}, labelsPanel={labelsPanel}");
 			UpdateFilteredItems(labelsPanel);
 		}
 	}
@@ -62,12 +61,10 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 			{
 				if (Items is IEnumerable<string> items)
 				{
-					// Console.WriteLine($"[UpdateFilteredItems] VisibleItemsCount={x}");
 					labelsPanel.FilteredItems = items.Skip(x).ToList();
 				}
 				else
 				{
-					// Console.WriteLine($"[UpdateFilteredItems] NO ITEMS {Items}");
 					labelsPanel.FilteredItems = new List<string>();
 				}
 			});
@@ -79,7 +76,6 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 		if (Panel is LabelsPanel labelsPanel)
 		{
-			// Console.WriteLine($"[OnDataContextChanged] Panel={Panel}");
 			UpdateFilteredItems(labelsPanel);
 		}
 	}
