@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -42,10 +43,11 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 				return item.Children;
 			})
-			.Cast(x => (CoinCoinControlItemViewModel) x)
 			.AddKey(model => model.SmartCoin.Outpoint);
 
-		changes
+		sourceItems
+			.Connect()
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
@@ -101,9 +103,11 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
 	{
-		foreach (var coinItem in coinItems)
+		var coinsToSelect = coinItems.Where(x => selectedCoins.Contains(x.SmartCoin));
+
+		foreach (var coinItem in coinsToSelect)
 		{
-			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
+			coinItem.IsSelected = true;
 		}
 	}
 

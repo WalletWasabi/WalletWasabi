@@ -12,13 +12,18 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Filters;
+namespace WalletWasabi.Tests.UnitTests.Stores;
 
+/// <summary>
+/// Tests for <see cref="IndexStore"/>.
+/// </summary>
 public class IndexStoreTests
 {
 	[Fact]
 	public async Task IndexStoreTestsAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		var network = Network.Main;
 
 		var dir = (await GetIndexStorePathsAsync()).dir;
@@ -27,12 +32,14 @@ public class IndexStoreTests
 			Directory.Delete(dir, true);
 		}
 		await using var indexStore = new IndexStore(dir, network, new SmartHeaderChain());
-		await indexStore.InitializeAsync();
+		await indexStore.InitializeAsync(testDeadlineCts.Token);
 	}
 
 	[Fact]
 	public async Task InconsistentMatureIndexAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		var (dir, matureFilters, _) = await GetIndexStorePathsAsync();
 
 		var network = Network.Main;
@@ -49,7 +56,7 @@ public class IndexStoreTests
 			};
 		await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-		await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
+		await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(testDeadlineCts.Token));
 		Assert.Equal(new uint256(3), headersChain.TipHash);
 		Assert.Equal(2u, headersChain.TipHeight);
 
@@ -60,6 +67,8 @@ public class IndexStoreTests
 	[Fact]
 	public async Task InconsistentImmatureIndexAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		var (dir, _, immatureFilters) = await GetIndexStorePathsAsync();
 
 		var network = Network.Main;
@@ -77,7 +86,7 @@ public class IndexStoreTests
 			};
 		await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-		await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
+		await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(testDeadlineCts.Token));
 		Assert.Equal(new uint256(3), headersChain.TipHash);
 		Assert.Equal(startingFilter.Header.Height + 2u, headersChain.TipHeight);
 
@@ -88,6 +97,8 @@ public class IndexStoreTests
 	[Fact]
 	public async Task GapInIndexAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
 
 		var network = Network.Main;
@@ -109,7 +120,7 @@ public class IndexStoreTests
 			};
 		await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-		await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
+		await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(testDeadlineCts.Token));
 		Assert.Equal(new uint256(3), headersChain.TipHash);
 		Assert.Equal(2u, headersChain.TipHeight);
 
@@ -120,6 +131,8 @@ public class IndexStoreTests
 	[Fact]
 	public async Task ReceiveNonMatchingFilterAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
 
 		var network = Network.Main;
@@ -135,7 +148,7 @@ public class IndexStoreTests
 			};
 		await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-		await indexStore.InitializeAsync();
+		await indexStore.InitializeAsync(testDeadlineCts.Token);
 		Assert.Equal(new uint256(3), headersChain.TipHash);
 		Assert.Equal(2u, headersChain.TipHeight);
 
