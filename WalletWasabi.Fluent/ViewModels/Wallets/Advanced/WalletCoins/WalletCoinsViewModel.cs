@@ -73,6 +73,20 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
+		coinChanges
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Select(c => coinsCollection.Where(x => x.Coin.HdPubKey == c.Sender.Coin.HdPubKey && x.IsSelected != c.Sender.IsSelected))
+			.Do(coins =>
+			{
+				// Select/deselect all the coins on the same address.
+				foreach (var coin in coins)
+				{
+					coin.IsSelected = !coin.IsSelected;
+				}
+			})
+			.Subscribe()
+			.DisposeWith(disposables);
+
 		Source = CreateGridSource(coinsCollection)
 			.DisposeWith(disposables);
 
