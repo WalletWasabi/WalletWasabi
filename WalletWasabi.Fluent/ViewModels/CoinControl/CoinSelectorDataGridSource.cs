@@ -3,6 +3,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -107,7 +108,18 @@ public static class CoinSelectorDataGridSource
 	{
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
-			node => node.AnonymityScore.ToString(),
+			node =>
+			{
+				if (node is PocketCoinControlItemViewModel pocket)
+				{
+					// TODO: One coin pocket is acting like a coin item. Should be fixed.
+					return pocket.Children.Count == 1
+						? pocket.Children.First().AnonymityScore.ToString()
+						: "";
+				}
+
+				return node.AnonymityScore.ToString();
+			},
 			new GridLength(50, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{

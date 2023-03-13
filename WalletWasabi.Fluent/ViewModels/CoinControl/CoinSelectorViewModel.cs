@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -35,6 +36,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		sourceItems
 			.Connect()
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
