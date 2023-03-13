@@ -101,7 +101,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
 	public async Task SoloCoinJoinTestAsync(long[] amounts)
 	{
-		var random = new InsecureRandom(12345);
+		var random = new InsecureRandom(4);
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -185,6 +185,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// Should be multiple taproot outputs.
 		var taprootCount = successResult.OutputScripts.Count(s => s.IsScriptType(ScriptType.Taproot));
 		Assert.InRange(taprootCount, 2, 10);
+
+		var bech32Count = successResult.OutputScripts.Count(s => s.IsScriptType(ScriptType.P2WPKH));
+		Assert.InRange(bech32Count, 1, 10);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);

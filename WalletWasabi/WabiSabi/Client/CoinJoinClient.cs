@@ -707,7 +707,7 @@ public class CoinJoinClient
 
 		// We want to isolate red coins from each other. We only let a single red coin get into our selection candidates.
 		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
-		var red = redCoins.RandomElement();
+		var red = redCoins.RandomElement(rnd);
 		if (red is not null)
 		{
 			allowedNonPrivateCoins.Add(red);
@@ -725,7 +725,7 @@ public class CoinJoinClient
 		}
 		Logger.LogDebug($"Targeted {nameof(inputCount)}: {inputCount}.");
 
-		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins).ToArray();
+		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins, rnd).ToArray();
 
 		// Deprioritize private coins those are too large.
 		var smallerPrivateCoins = biasShuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
@@ -739,7 +739,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"{nameof(allowedCoins)}: {allowedCoins.Length} coins, valued at {Money.Satoshis(allowedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		// Shuffle coins, while randomly biasing towards lower AS.
-		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
+		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins, rnd).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestNonPrivateCoins = allowedNonPrivateCoins
@@ -798,7 +798,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
-		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
+		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(rnd); // Select randomly at first just to have a starting value.
 		foreach (var coin in remainingLargestNonPrivateCoins.OrderByDescending(x => x.Amount))
 		{
 			if (rnd.GetInt(1, 101) <= 50)
@@ -816,7 +816,7 @@ public class CoinJoinClient
 
 		var finalCandidate = bestRepGroups
 			.Where(x => x.Contains(selectedNonPrivateCoin))
-			.RandomElement();
+			.RandomElement(rnd);
 		if (finalCandidate is null)
 		{
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
@@ -945,7 +945,7 @@ public class CoinJoinClient
 			}
 		}
 
-		return winner.ToShuffled().ToImmutableList();
+		return winner.ToShuffled(rnd).ToImmutableList();
 	}
 
 	private static double GetAnonLoss<TCoin>(IEnumerable<TCoin> coins)
@@ -968,7 +968,7 @@ public class CoinJoinClient
 		return 0;
 	}
 
-	private static IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins)
+	private static IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins, WasabiRandom random)
 		where TCoin : ISmartCoin
 	{
 		var orderedCoins = new List<TCoin>();
@@ -993,7 +993,7 @@ public class CoinJoinClient
 			}
 			alternating.AddRange(skipped);
 
-			var coin = alternating.BiasedRandomElement(50);
+			var coin = alternating.BiasedRandomElement(50, random);
 			if (coin is null)
 			{
 				throw new NotSupportedException("This is impossible.");
