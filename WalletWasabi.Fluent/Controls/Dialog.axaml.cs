@@ -208,7 +208,7 @@ public class Dialog : ContentControl
 	{
 		base.OnAttachedToVisualTree(e);
 
-		// _canCancelActivatedOnPointerPressed = true;
+		_canCancelActivatedOnPointerPressed = true;
 
 		ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
 	}
