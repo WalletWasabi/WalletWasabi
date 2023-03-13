@@ -147,14 +147,12 @@ public class ChangelessTransactionCoinSelectorTests
 
 			var sumOfCoins = coins.Sum(coin => coin.Amount);
 
-			// First case: Lesser strategy
-			if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey.P2wpkhScript))
+			if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey.P2wpkhScript))  // First case: Lesser strategy
 			{
 				Assert.Equal(30_000, sumOfCoins);
 				Assert.Equal(3, coins.Count());
 			}
-			// Second case: More strategy
-			else if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey2.P2wpkhScript))
+			else if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey2.P2wpkhScript))    // Second case: More strategy
 			{
 				Assert.Equal(35_000, sumOfCoins);
 				Assert.Equal(4, coins.Count());
