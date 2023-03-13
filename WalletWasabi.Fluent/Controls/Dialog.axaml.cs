@@ -240,22 +240,15 @@ public class Dialog : ContentControl
 			if (!isWindowActivated)
 			{
 				_canCancelActivatedOnPointerPressed = false;
-				Console.WriteLine($"UpdateActivatedDelay: isWindowActivated={isWindowActivated} _canCancelActivatedOnPointerPressed={_canCancelActivatedOnPointerPressed}");
 			}
 
 			CancelPointerActivatedPressedDelay?.Cancel();
 
 			if (isWindowActivated)
 			{
-				Console.WriteLine($"UpdateActivatedDelay: isWindowActivated={isWindowActivated} _canCancelActivatedOnPointerPressed={_canCancelActivatedOnPointerPressed}");
-
 				CancelPointerActivatedPressedDelay = new CancellationTokenSource();
 
-				Task.Delay(TimeSpan.FromSeconds(3), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ =>
-				{
-					Console.WriteLine($"UpdateActivatedDelay: isWindowActivated={isWindowActivated} _canCancelActivatedOnPointerPressed=true");
-					return _canCancelActivatedOnPointerPressed = true;
-				});
+				Task.Delay(TimeSpan.FromSeconds(5), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
 			}
 		}
 		catch (OperationCanceledException)
