@@ -68,6 +68,9 @@ public class Dialog : ContentControl
 	public static readonly StyledProperty<bool> IncreasedSizeEnabledProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedSizeEnabled));
 
+	public static readonly StyledProperty<bool> ShowAlertProperty =
+		AvaloniaProperty.Register<Dialog, bool>(nameof(ShowAlert));
+
 	private static readonly Stack<Dialog> Open = new ();
 
 	public Dialog()
@@ -191,6 +194,12 @@ public class Dialog : ContentControl
 		set => SetValue(IncreasedSizeEnabledProperty, value);
 	}
 
+	private bool ShowAlert
+	{
+		get => GetValue(ShowAlertProperty);
+		set => SetValue(ShowAlertProperty, value);
+	}
+
 	private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
 
 	private void UpdateDelay(bool isDialogOpen)
@@ -261,11 +270,21 @@ public class Dialog : ContentControl
 			PseudoClasses.Set(":open", isOpen);
 
 			HandleDialogFocus(isOpen);
+
+			if (!isOpen)
+			{
+				PseudoClasses.Set(":alert", false);
+			}
 		}
 
 		if (change.Property == IsBusyProperty)
 		{
 			PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+		}
+
+		if (change.Property == ShowAlertProperty)
+		{
+			PseudoClasses.Set(":alert", change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 
@@ -286,10 +305,16 @@ public class Dialog : ContentControl
 	private void Close()
 	{
 		IsDialogOpen = false;
+		ShowAlert = false;
 	}
 
 	private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
+		if (IsDialogOpen && ShowAlert)
+		{
+			ShowAlert = false;
+		}
+
 		if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
@@ -305,6 +330,11 @@ public class Dialog : ContentControl
 
 	private void CancelKeyDown(object? sender, KeyEventArgs e)
 	{
+		if (IsDialogOpen && ShowAlert)
+		{
+			ShowAlert = false;
+		}
+
 		if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsActive)
 		{
 			e.Handled = true;
