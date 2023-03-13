@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
@@ -48,6 +49,7 @@ public class CoinJoinTrackerFactory
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
 			LiquidityClueProvider,
+			SecureRandom.Instance,
 			wallet.AnonScoreTarget,
 			consolidationMode: wallet.ConsolidationMode,
 			redCoinIsolation: wallet.RedCoinIsolation,

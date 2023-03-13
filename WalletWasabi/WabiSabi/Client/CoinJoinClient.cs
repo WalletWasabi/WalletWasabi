@@ -45,6 +45,7 @@ public class CoinJoinClient
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
 		LiquidityClueProvider liquidityClueProvider,
+		WasabiRandom wasabiRandom,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
@@ -61,13 +62,13 @@ public class CoinJoinClient
 		ConsolidationMode = consolidationMode;
 		SemiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
-		SecureRandom = new SecureRandom();
+		Random = wasabiRandom;
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
-	private SecureRandom SecureRandom { get; }
+	private WasabiRandom Random { get; }
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
 	private IDestinationProvider DestinationProvider { get; }
@@ -81,7 +82,6 @@ public class CoinJoinClient
 	private bool RedCoinIsolation { get; }
 	private int SemiPrivateThreshold { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	internal virtual Random Random { get; set; } = Random.Shared; // Mockable random used by the decomposer.
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
@@ -144,7 +144,7 @@ public class CoinJoinClient
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
-			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, Random);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -374,8 +374,8 @@ public class CoinJoinClient
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
 				var aliceArenaClient = new ArenaClient(
-					roundState.CreateAmountCredentialClient(SecureRandom),
-					roundState.CreateVsizeCredentialClient(SecureRandom),
+					roundState.CreateAmountCredentialClient(Random),
+					roundState.CreateVsizeCredentialClient(Random),
 					CoordinatorIdentifier,
 					arenaRequestHandler);
 
@@ -511,8 +511,8 @@ public class CoinJoinClient
 		return new BobClient(
 			roundState.Id,
 			new(
-				roundState.CreateAmountCredentialClient(SecureRandom),
-				roundState.CreateVsizeCredentialClient(SecureRandom),
+				roundState.CreateAmountCredentialClient(Random),
+				roundState.CreateVsizeCredentialClient(Random),
 				CoordinatorIdentifier,
 				arenaRequestHandler));
 	}
@@ -1186,7 +1186,7 @@ public class CoinJoinClient
 		var combinedToken = linkedCts.Token;
 		var alicesToSign = mustSignAllInputs
 			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
+			: registeredAliceClients.RemoveAt(Random.GetInt(0, registeredAliceClients.Length));
 
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");

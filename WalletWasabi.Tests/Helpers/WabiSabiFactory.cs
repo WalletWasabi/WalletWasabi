@@ -296,8 +296,10 @@ public static class WabiSabiFactory
 		IWasabiHttpClientFactory httpClientFactory,
 		KeyManager keyManager,
 		RoundStateUpdater roundStateUpdater,
-		Random? random = null)
+		WasabiRandom? random = null)
 	{
+		random ??= new InsecureRandom(12345);
+
 		return CreateTestCoinJoinClient(
 			httpClientFactory,
 			new KeyChain(keyManager, new Kitchen("")),
@@ -313,7 +315,7 @@ public static class WabiSabiFactory
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStateUpdater,
 		bool redCoinIsolation,
-		Random? random = null)
+		WasabiRandom random)
 	{
 		var mock = new Mock<CoinJoinClient>(
 			httpClientFactory,
@@ -322,6 +324,7 @@ public static class WabiSabiFactory
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
 			new LiquidityClueProvider(),
+			random,
 			int.MaxValue,
 			true,
 			redCoinIsolation,
@@ -331,10 +334,6 @@ public static class WabiSabiFactory
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
 			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
-
-		var rnd = random ?? Random.Shared;
-
-		mock.SetupGet(m => m.Random).Returns(rnd);
 
 		mock.CallBase = true;
 

@@ -28,6 +28,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -100,91 +101,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
 	public async Task SoloCoinJoinTestAsync(long[] amounts)
 	{
-		int inputCount = amounts.Length;
-
-		// At the end of the test a coinjoin transaction has to be created and broadcasted.
-		var transactionCompleted = new TaskCompletionSource<Transaction>();
-
-		// Create a key manager and use it to create fake coins.
-		_output.WriteLine("Creating key manager...");
-		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		var coins = keyManager.GetKeys()
-			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
-			.ToArray();
-		_output.WriteLine("Coins were created successfully");
-
-		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder.AddMockRpcClient(
-				coins,
-				rpc =>
-
-					// Make the coordinator believe that the transaction is being
-					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransationAsync` was invoked) we stop waiting
-					// and finish the waiting tasks to finish the test successfully.
-					rpc.OnSendRawTransactionAsync = (tx) =>
-					{
-						transactionCompleted.SetResult(tx);
-						return tx.GetHash();
-					})
-			.ConfigureServices(services =>
-			{
-				// Instruct the coordinator DI container to use these two scoped
-				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddScoped(s => new WabiSabiConfig
-				{
-					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
-					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
-
-				// Emulate that the first coin is coming from a coinjoin.
-				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
-			})).CreateClient();
-
-		// Create the coinjoin client
-		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
-
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
-			.Returns(personCircuit);
-
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-			.Returns(httpClientWrapper);
-
-		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
-		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
-
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
-
-		await roundStateUpdater.StartAsync(CancellationToken.None);
-
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
-
-		// Run the coinjoin client task.
-		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
-		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
-
-		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
-		Assert.NotNull(broadcastedTx);
-
-		await roundStateUpdater.StopAsync(CancellationToken.None);
-	}
-
-	[Theory]
-	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
-	public async Task SoloCoinJoinTaprootAsync(long[] amounts)
-	{
-		var random = new Random(12345);
+		var random = new InsecureRandom(12345);
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.

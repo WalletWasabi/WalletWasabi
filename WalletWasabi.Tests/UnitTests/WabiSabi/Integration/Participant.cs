@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
@@ -77,7 +78,7 @@ internal class Participant
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater, false);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater, false, InsecureRandom.Instance);
 
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{
