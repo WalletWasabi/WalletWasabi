@@ -31,6 +31,15 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Children
 			.AsObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
+			.Select(c => Children.Where(x => x.SmartCoin.HdPubKey == c.Sender.SmartCoin.HdPubKey && x.IsSelected != c.Sender.IsSelected))
+			.Do(coins =>
+			{
+				// Select/deselect all the coins on the same address.
+				foreach (var coin in coins)
+				{
+					coin.IsSelected = !coin.IsSelected;
+				}
+			})
 			.Select(_ =>
 			{
 				var totalCount = Children.Count;

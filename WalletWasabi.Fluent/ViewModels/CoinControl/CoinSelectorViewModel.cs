@@ -31,8 +31,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		var coinItems = sourceItems
 			.Connect()
-			.TransformMany(x => x.Children)
-			.Cast(x => (CoinCoinControlItemViewModel) x);
+			.TransformMany(x => x.Children);
 
 		sourceItems
 			.Connect()
@@ -91,9 +90,11 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
 	{
-		foreach (var coinItem in coinItems)
+		var coinsToSelect = coinItems.Where(x => selectedCoins.Contains(x.SmartCoin));
+
+		foreach (var coinItem in coinsToSelect)
 		{
-			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
+			coinItem.IsSelected = true;
 		}
 	}
 
