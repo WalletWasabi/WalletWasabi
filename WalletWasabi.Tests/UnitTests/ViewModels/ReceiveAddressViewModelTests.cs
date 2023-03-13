@@ -8,14 +8,13 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using Xunit;
 
-namespace WalletWasabi.Tests.Gui;
+namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
 public class ReceiveAddressViewModelTests
 {
@@ -45,9 +44,8 @@ public class ReceiveAddressViewModelTests
 	[Fact]
 	public void When_address_becomes_used_navigation_goes_back()
 	{
-		var uiContext = new UIContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
 		var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-		uiContext.RegisterNavigation(new MyNavigation(ns));
+		var uiContext = ContextWith(new TestNavigation(ns));
 		var address = new TestAddress("SomeAddress");
 		var wallet = WalletWithAddresses(address);
 		new ReceiveAddressViewModel(wallet, address, true, uiContext);
@@ -62,17 +60,17 @@ public class ReceiveAddressViewModelTests
 		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
 	}
 
-	private static UIContext ContextWith(INavigate navigationService)
+	private static UIContext ContextWith(INavigate navigation)
 	{
-		var contextWith = new UIContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
-		contextWith.RegisterNavigation(new MyNavigation());
-		return contextWith;
+		var uiContext = new UIContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
+		uiContext.RegisterNavigation(navigation);
+		return uiContext;
 	}
 
 	private static UIContext ContextWith(IClipboard clipboard)
 	{
 		var contextWith = new UIContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), clipboard);
-		contextWith.RegisterNavigation(new MyNavigation());
+		contextWith.RegisterNavigation(Mock.Of<INavigate>());
 		return contextWith;
 	}
 
@@ -111,58 +109,25 @@ public class ReceiveAddressViewModelTests
 			return false;
 		}
 	}
-}
 
-internal class MyNavigation : INavigate
-{
-	private readonly INavigationStack<RoutableViewModel> _navigationStack;
-
-	public MyNavigation(INavigationStack<RoutableViewModel> navigationStack)
+	private class TestNavigation : INavigate
 	{
-		_navigationStack = navigationStack;
-	}
+		private readonly INavigationStack<RoutableViewModel> _navigationStack;
 
-	public MyNavigation()
-	{
-	}
+		public TestNavigation(INavigationStack<RoutableViewModel> navigationStack)
+		{
+			_navigationStack = navigationStack;
+		}
 
-	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
-	{
-		return _navigationStack;
-	}
+		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
+		{
+			return _navigationStack;
+		}
 
-	public FluentNavigate To()
-	{
-		throw new NotImplementedException();
+		public FluentNavigate To()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
 
-internal class TestNavigationStack : INavigationStack<RoutableViewModel>
-{
-	private DialogViewModelBase<object> _dialog;
-	public RoutableViewModel? CurrentPage { get; }
-	public bool CanNavigateBack { get; }
-	public void To(RoutableViewModel viewmodel, NavigationMode mode = NavigationMode.Normal)
-	{
-	}
-
-	public void Back()
-	{
-		throw new NotImplementedException();
-	}
-
-	public void BackTo(RoutableViewModel viewmodel)
-	{
-		throw new NotImplementedException();
-	}
-
-	public void BackTo<TViewModel>() where TViewModel : RoutableViewModel
-	{
-		throw new NotImplementedException();
-	}
-
-	public void Clear()
-	{
-		throw new NotImplementedException();
-	}
-}
