@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 
-namespace WalletWasabi.Tests.Gui.TestDoubles;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 
 public class TestAddress : ReactiveObject, IAddress
 {

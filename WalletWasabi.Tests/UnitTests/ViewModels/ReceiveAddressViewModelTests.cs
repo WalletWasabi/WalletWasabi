@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
-using WalletWasabi.Tests.Gui.TestDoubles;
+using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using Xunit;
 
 namespace WalletWasabi.Tests.Gui;
