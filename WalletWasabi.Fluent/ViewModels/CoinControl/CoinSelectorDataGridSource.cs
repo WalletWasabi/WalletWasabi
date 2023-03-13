@@ -108,18 +108,7 @@ public static class CoinSelectorDataGridSource
 	{
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
-			node =>
-			{
-				if (node is PocketCoinControlItemViewModel pocket)
-				{
-					// TODO: One coin pocket is acting like a coin item. Should be fixed.
-					return pocket.Children.Count == 1
-						? pocket.Children.First().AnonymityScore.ToString()
-						: "";
-				}
-
-				return node.AnonymityScore.ToString();
-			},
+			node => node is PocketCoinControlItemViewModel ? "" : node.AnonymityScore.ToString(),
 			new GridLength(50, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
