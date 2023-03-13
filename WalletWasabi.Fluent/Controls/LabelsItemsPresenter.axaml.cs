@@ -1,11 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
 using Avalonia.Styling;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -19,8 +16,6 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 	public static readonly StyledProperty<double> MaxLabelWidthProperty =
 		AvaloniaProperty.Register<LabelsItemsPresenter, double>("MaxLabelWidth");
-
-	private IDisposable? _disposable;
 
 	public double MaxLabelWidth
 	{
@@ -48,35 +43,7 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 		if (panel is LabelsPanel labelsPanel)
 		{
-			UpdateFilteredItems(labelsPanel);
-		}
-	}
-
-	private void UpdateFilteredItems(LabelsPanel labelsPanel)
-	{
-		_disposable?.Dispose();
-		_disposable = labelsPanel
-			.WhenAnyValue(x => x.VisibleItemsCount)
-			.Subscribe(x =>
-			{
-				if (Items is IEnumerable<string> items)
-				{
-					labelsPanel.FilteredItems = items.Skip(x).ToList();
-				}
-				else
-				{
-					labelsPanel.FilteredItems = new List<string>();
-				}
-			});
-	}
-
-	protected override void OnDataContextChanged(EventArgs e)
-	{
-		base.OnDataContextChanged(e);
-
-		if (Panel is LabelsPanel labelsPanel)
-		{
-			UpdateFilteredItems(labelsPanel);
+			labelsPanel.Presenter = this;
 		}
 	}
 }

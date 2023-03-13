@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -9,18 +10,12 @@ public class LabelsPanel : VirtualizingStackPanel
 	public static readonly StyledProperty<Control?> EllipsisControlProperty =
 		AvaloniaProperty.Register<LabelsPanel, Control?>(nameof(EllipsisControl));
 
-	public static readonly DirectProperty<LabelsPanel, int> VisibleItemsCountProperty =
-		AvaloniaProperty.RegisterDirect<LabelsPanel, int>(
-			nameof(VisibleItemsCount),
-			o => o.VisibleItemsCount);
-
 	public static readonly DirectProperty<LabelsPanel, List<string>?> FilteredItemsProperty =
 		AvaloniaProperty.RegisterDirect<LabelsPanel, List<string>?>(
 			nameof(FilteredItems),
 			o => o.FilteredItems,
 			(o, v) => o.FilteredItems = v);
 
-	private int _visibleItemsCount;
 	private List<string>? _filteredItems;
 	private IDisposable? _disposable;
 
@@ -30,16 +25,24 @@ public class LabelsPanel : VirtualizingStackPanel
 		set => SetValue(EllipsisControlProperty, value);
 	}
 
-	public int VisibleItemsCount
-	{
-		get => _visibleItemsCount;
-		private set => SetAndRaise(VisibleItemsCountProperty, ref _visibleItemsCount, value);
-	}
-
 	public List<string>? FilteredItems
 	{
 		get => _filteredItems;
 		set => SetAndRaise(FilteredItemsProperty, ref _filteredItems, value);
+	}
+
+	internal LabelsItemsPresenter? Presenter { get; set; }
+
+	private void UpdateFilteredItems(int count)
+	{
+		if (Presenter?.Items is IEnumerable<string> items)
+		{
+			FilteredItems = items.Skip(count).ToList();
+		}
+		else
+		{
+			FilteredItems = new List<string>();
+		}
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -170,7 +173,7 @@ public class LabelsPanel : VirtualizingStackPanel
 			}
 		}
 
-		VisibleItemsCount = count;
+		UpdateFilteredItems(count);
 
 		return new Size(width, height);
 	}
