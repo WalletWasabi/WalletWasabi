@@ -72,10 +72,6 @@ public class Dialog : ContentControl
 
 	public Dialog()
 	{
-		_canCancelActivatedOnPointerPressed = true;
-
-		ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
-
 		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateOpenedDelay);
 
 		this.WhenAnyValue(x => x.Bounds)
@@ -203,6 +199,15 @@ public class Dialog : ContentControl
 
 	private CancellationTokenSource? CancelPointerActivatedPressedDelay { get; set; }
 
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		// _canCancelActivatedOnPointerPressed = true;
+
+		ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
+	}
+
 	private void UpdateOpenedDelay(bool isDialogOpen)
 	{
 		try
@@ -230,15 +235,22 @@ public class Dialog : ContentControl
 			if (!isWindowActivated)
 			{
 				_canCancelActivatedOnPointerPressed = false;
+				Console.WriteLine($"UpdateActivatedDelay: isWindowActivated={isWindowActivated} _canCancelActivatedOnPointerPressed={_canCancelActivatedOnPointerPressed}");
 			}
 
 			CancelPointerActivatedPressedDelay?.Cancel();
 
 			if (isWindowActivated)
 			{
+				Console.WriteLine($"UpdateActivatedDelay: isWindowActivated={isWindowActivated} _canCancelActivatedOnPointerPressed={_canCancelActivatedOnPointerPressed}");
+
 				CancelPointerActivatedPressedDelay = new CancellationTokenSource();
 
-				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
+				Task.Delay(TimeSpan.FromSeconds(3), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ =>
+				{
+					Console.WriteLine($"UpdateActivatedDelay: isWindowActivated={isWindowActivated} _canCancelActivatedOnPointerPressed=true");
+					return _canCancelActivatedOnPointerPressed = true;
+				});
 			}
 		}
 		catch (OperationCanceledException)
