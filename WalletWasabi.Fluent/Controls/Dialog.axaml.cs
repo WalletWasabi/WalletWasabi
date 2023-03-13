@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -7,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -17,7 +19,8 @@ public class Dialog : ContentControl
 {
 	private Panel? _dismissPanel;
 	private Panel? _overlayPanel;
-	private bool _canCancelOnPointerPressed;
+	private bool _canCancelOpenedOnPointerPressed;
+	private bool _canCancelActivatedOnPointerPressed;
 
 	public static readonly StyledProperty<bool> IsDialogOpenProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
@@ -72,7 +75,9 @@ public class Dialog : ContentControl
 
 	public Dialog()
 	{
-		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+		ApplicationHelper.MainWindowActivated.Where(isActivated => isActivated).Subscribe(UpdateActivatedDelay);
+
+		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateOpenedDelay);
 
 		this.WhenAnyValue(x => x.Bounds)
 			.Subscribe(bounds =>
@@ -197,21 +202,40 @@ public class Dialog : ContentControl
 		set => SetValue(ShowAlertProperty, value);
 	}
 
-	private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
+	private CancellationTokenSource? CancelPointerOpenedPressedDelay { get; set; }
 
-	private void UpdateDelay(bool isDialogOpen)
+	private CancellationTokenSource? CancelPointerActivatedPressedDelay { get; set; }
+
+	private void UpdateOpenedDelay(bool isDialogOpen)
 	{
 		try
 		{
-			_canCancelOnPointerPressed = false;
-			CancelPointerPressedDelay?.Cancel();
+			_canCancelOpenedOnPointerPressed = false;
+			CancelPointerOpenedPressedDelay?.Cancel();
 
 			if (isDialogOpen)
 			{
-				CancelPointerPressedDelay = new CancellationTokenSource();
+				CancelPointerOpenedPressedDelay = new CancellationTokenSource();
 
-				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ => _canCancelOnPointerPressed = true);
+				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerOpenedPressedDelay.Token).ContinueWith(_ => _canCancelOpenedOnPointerPressed = true);
 			}
+		}
+		catch (OperationCanceledException)
+		{
+			// ignored
+		}
+	}
+
+	private void UpdateActivatedDelay(bool isDialogOpen)
+	{
+		try
+		{
+			_canCancelActivatedOnPointerPressed = false;
+			CancelPointerActivatedPressedDelay?.Cancel();
+
+			CancelPointerActivatedPressedDelay = new CancellationTokenSource();
+
+			Task.Delay(TimeSpan.FromSeconds(1), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
 		}
 		catch (OperationCanceledException)
 		{
@@ -273,7 +297,14 @@ public class Dialog : ContentControl
 			ShowAlert = false;
 		}
 
-		if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
+		if (IsDialogOpen
+		    && IsActive
+		    && EnableCancelOnPressed
+		    && !IsBusy
+		    && _dismissPanel is { }
+		    && _overlayPanel is { }
+		    && _canCancelOpenedOnPointerPressed
+		    && _canCancelActivatedOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
 			var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;
