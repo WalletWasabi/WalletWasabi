@@ -24,7 +24,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	public bool IsNonPrivate => !IsSemiPrivate && !IsPrivate;
 
-	public IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; protected set; } = new List<CoinControlItemViewModelBase>();
+	public IReadOnlyCollection<CoinCoinControlItemViewModel> Children { get; protected set; } = new List<CoinCoinControlItemViewModel>();
 
 	public bool IsConfirmed { get; protected set; }
 
