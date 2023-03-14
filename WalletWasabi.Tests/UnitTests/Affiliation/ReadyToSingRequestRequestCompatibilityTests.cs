@@ -27,11 +27,11 @@ public class ReadyToSignRequestRequestCompatibilityTests
 	}
 
 	[Theory]
- 	[InlineData("123456789012345678901")] // 21 characters.
- 	[InlineData("müller")] // non-ASCII character.
- 	[InlineData("MÜLLER")] // non-ASCII character.
- 	[InlineData("?")]
- 	[InlineData("$")]
+	[InlineData("123456789012345678901")] // 21 characters.
+	[InlineData("müller")] // non-ASCII character.
+	[InlineData("MÜLLER")] // non-ASCII character.
+	[InlineData("?")]
+	[InlineData("$")]
 	public void InvalidAffiliationId(string affiliationId)
 	{
 		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23","AffiliationId":"%af%"}"""
@@ -44,11 +44,11 @@ public class ReadyToSignRequestRequestCompatibilityTests
 	}
 
 	[Theory]
- 	[InlineData("1")]
- 	[InlineData("a")]
- 	[InlineData("a1")]
+	[InlineData("1")]
+	[InlineData("a")]
+	[InlineData("a1")]
 	[InlineData("A")]
- 	[InlineData("A1")]
+	[InlineData("A1")]
 	public void ValidAffiliationId(string affiliationId)
 	{
 		var requestWithOutAffiliation = """{"RoundId":{"Size":32},"AliceId":"c9599f5a-bae2-4680-8200-ebe3ea945f23","AffiliationId":"%af%"}"""
