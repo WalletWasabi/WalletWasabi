@@ -87,7 +87,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		RefreshFromPockets(sourceItems);
 		UpdateSelection(coinItemsCollection, initialCoinSelection);
-		CollapseUnselectedPockets();
+		ExpandSelectedItems();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
@@ -147,11 +147,11 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	private void CollapseUnselectedPockets()
+	private void ExpandSelectedItems()
 	{
-		foreach (var pocket in _itemsCollection.Where(x => x.IsSelected == false))
+		foreach (var item in _itemsCollection.Where(x => x.IsSelected is not false))
 		{
-			pocket.IsExpanded = false;
+			item.IsExpanded = true;
 		}
 	}
 }
