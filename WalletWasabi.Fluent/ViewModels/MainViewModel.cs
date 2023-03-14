@@ -114,7 +114,7 @@ public partial class MainViewModel : ViewModelBase
 
 		SearchBar = CreateSearchBar();
 
-		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+		NetworkBadgeName = Services.PersistentConfig.Network == Network.Main ? "" : Services.PersistentConfig.Network.Name;
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -182,9 +182,9 @@ public partial class MainViewModel : ViewModelBase
 	{
 		StatusIcon.Initialize();
 
-		if (Services.Config.Network != Network.Main)
+		if (Services.PersistentConfig.Network != Network.Main)
 		{
-			Title += $" - {Services.Config.Network}";
+			Title += $" - {Services.PersistentConfig.Network}";
 		}
 	}
 

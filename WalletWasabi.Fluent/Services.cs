@@ -22,7 +22,7 @@ public static class Services
 
 	public static LegalChecker LegalChecker { get; private set; } = null!;
 
-	public static Config Config { get; private set; } = null!;
+	public static PersistentConfig PersistentConfig { get; private set; } = null!;
 
 	public static WasabiSynchronizer Synchronizer { get; private set; } = null!;
 
@@ -53,7 +53,7 @@ public static class Services
 		Guard.NotNull(nameof(global.BitcoinStore), global.BitcoinStore);
 		Guard.NotNull(nameof(global.HttpClientFactory), global.HttpClientFactory);
 		Guard.NotNull(nameof(global.LegalChecker), global.LegalChecker);
-		Guard.NotNull(nameof(global.Settings), global.Settings);
+		Guard.NotNull(nameof(global.Config), global.Config);
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
@@ -66,7 +66,7 @@ public static class Services
 		BitcoinStore = global.BitcoinStore;
 		HttpClientFactory = global.HttpClientFactory;
 		LegalChecker = global.LegalChecker;
-		Config = global.Settings.Config;
+		PersistentConfig = global.Config.PersistentConfig;
 		Synchronizer = global.Synchronizer;
 		WalletManager = global.WalletManager;
 		TransactionBroadcaster = global.TransactionBroadcaster;

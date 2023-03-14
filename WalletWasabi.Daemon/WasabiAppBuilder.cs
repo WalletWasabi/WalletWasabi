@@ -10,20 +10,20 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Daemon;
 
-public class WApp
+public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
 	public Global? Global { get; private set; }
-	public Settings Settings { get; }
+	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 
 	public string DataDir { get; } = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 
-	public WApp(WasabiAppBuilder wasabiAppBuilder)
+	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
 		AppConfig = wasabiAppBuilder;
-		Settings = new Settings(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
-		SingleInstanceChecker = new(Settings.Network);
+		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
+		SingleInstanceChecker = new(Config.Network);
 	}
 
 	public async Task<int> RunAsync(Action afterStarting)
@@ -82,24 +82,24 @@ public class WApp
 
 	private Global CreateGlobal()
 	{
-		var walletManager = new WalletManager(Settings.Network, DataDir, new WalletDirectories(Settings.Network, DataDir));
-		return new Global(DataDir, Settings, walletManager);
+		var walletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir));
+		return new Global(DataDir, Config, walletManager);
 	}
 
-	private Config LoadOrCreateConfigs()
+	private PersistentConfig LoadOrCreateConfigs()
 	{
 		Directory.CreateDirectory(DataDir);
 
-		Config config = new(Path.Combine(DataDir, "Config.json"));
-		config.LoadFile(createIfMissing: true);
+		PersistentConfig persistentConfig = new(Path.Combine(DataDir, "Config.json"));
+		persistentConfig.LoadFile(createIfMissing: true);
 
-		if (config.MigrateOldDefaultBackendUris())
+		if (persistentConfig.MigrateOldDefaultBackendUris())
 		{
 			// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-			config.ToFile();
+			persistentConfig.ToFile();
 		}
 
-		return config;
+		return persistentConfig;
 	}
 
 	private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
@@ -148,7 +148,7 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 
 	public WasabiAppBuilder OnTermination(Action action) =>
 		this with { Terminate = action };
-	public WApp Build() =>
+	public WasabiApplication Build() =>
 		new(this);
 
 	public static WasabiAppBuilder Create(string appName, string[] args) =>
@@ -157,7 +157,7 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 
 public static class WasabiAppExtensions
 {
-	public static async Task<int> RunAsConsoleAsync(this WApp app)
+	public static async Task<int> RunAsConsoleAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
 			() =>

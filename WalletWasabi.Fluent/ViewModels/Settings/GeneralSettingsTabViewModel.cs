@@ -45,9 +45,9 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
 			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
 			: FeeDisplayUnit.Satoshis;
-		_useTor = Services.Config.UseTor;
-		_terminateTorOnExit = Services.Config.TerminateTorOnExit;
-		_downloadNewVersion = Services.Config.DownloadNewVersion;
+		_useTor = Services.PersistentConfig.UseTor;
+		_terminateTorOnExit = Services.PersistentConfig.TerminateTorOnExit;
+		_downloadNewVersion = Services.PersistentConfig.DownloadNewVersion;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
@@ -113,10 +113,10 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
 		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
 
-	protected override void EditConfigOnSave(Config config)
+	protected override void EditConfigOnSave(PersistentConfig persistentConfig)
 	{
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
-		config.DownloadNewVersion = DownloadNewVersion;
+		persistentConfig.UseTor = UseTor;
+		persistentConfig.TerminateTorOnExit = TerminateTorOnExit;
+		persistentConfig.DownloadNewVersion = DownloadNewVersion;
 	}
 }

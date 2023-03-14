@@ -171,7 +171,7 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<int> RunAsGUIAsync(this WApp app)
+	public static async Task<int> RunAsGUIAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
 			() =>
@@ -200,8 +200,7 @@ public static class WasabiAppExtensions
 					.AfterSetup(_ =>
 					{
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						Logger.LogInfo(glInterface is { }
-							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
+						Logger.LogInfo(glInterface is { } ? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
 							: "Renderer: Avalonia Software");
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
