@@ -155,17 +155,17 @@ public class IndexStoreTests
 		Assert.True(File.Exists(matureFilters)); // mature filters are ok
 
 		var nonMatchingBlockHashFilter = new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
-		await indexStore.AddNewFiltersAsync(new[] { nonMatchingBlockHashFilter }, CancellationToken.None);
+		await indexStore.AddNewFiltersAsync(new[] { nonMatchingBlockHashFilter });
 		Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 		Assert.Equal(2u, headersChain.TipHeight);
 
 		var nonMatchingHeightFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 37, MinutesAgo(1)), dummyFilter);
-		await indexStore.AddNewFiltersAsync(new[] { nonMatchingHeightFilter }, CancellationToken.None);
+		await indexStore.AddNewFiltersAsync(new[] { nonMatchingHeightFilter });
 		Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 		Assert.Equal(2u, headersChain.TipHeight);
 
 		var correctFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 3, MinutesAgo(1)), dummyFilter);
-		await indexStore.AddNewFiltersAsync(new[] { correctFilter }, CancellationToken.None);
+		await indexStore.AddNewFiltersAsync(new[] { correctFilter });
 		Assert.Equal(new uint256(4), headersChain.TipHash); // the filter is not added!
 		Assert.Equal(3u, headersChain.TipHeight);
 	}

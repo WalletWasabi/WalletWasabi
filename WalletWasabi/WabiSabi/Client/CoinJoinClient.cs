@@ -1124,9 +1124,9 @@ public class CoinJoinClient
 			// Output registration.
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count, outputRegistrationEndTime, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
+			roundState.LogInfo($"Outputs({outputTxOuts.Count}) were registered.");
 		}
 		catch (Exception e)
 		{
