@@ -209,7 +209,7 @@ public static class LinqExtensions
 		}
 	}
 
-	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)
+	public static double WeightedMean<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)
 	{
 		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).Sum();
 	}
