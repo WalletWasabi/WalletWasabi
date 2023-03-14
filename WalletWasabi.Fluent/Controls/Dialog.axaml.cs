@@ -231,7 +231,7 @@ public class Dialog : ContentControl
 
 		if (isWindowActivated)
 		{
-			await Task.Delay(TimeSpan.FromSeconds(2));
+			await Task.Delay(TimeSpan.FromSeconds(1));
 			_canCancelActivatedOnPointerPressed = true;
 		}
 	}
