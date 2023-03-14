@@ -34,8 +34,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Connect()
 			.TransformMany(x => x.Children);
 
-		sourceItems
-			.Connect()
+		changes
 			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
