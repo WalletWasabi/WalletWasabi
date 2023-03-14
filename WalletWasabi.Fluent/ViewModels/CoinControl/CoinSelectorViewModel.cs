@@ -45,8 +45,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			})
 			.AddKey(model => model.SmartCoin.Outpoint);
 
-		sourceItems
-			.Connect()
+		changes
 			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
