@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -67,10 +68,10 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Do(
 				sl =>
 				{
-					var oldItems = _itemsCollection.ToArray();
+					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
 					RefreshFromPockets(sourceItems);
 					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldItems);
+					RestoreExpandedRows(oldExpandedItemsLabel);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
@@ -135,10 +136,9 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			});
 	}
 
-	private void RestoreExpandedRows(CoinControlItemViewModelBase[] oldItems)
+	private void RestoreExpandedRows(IEnumerable<SmartLabel> oldItemsLabels)
 	{
-		var expandedOldItems = oldItems.Where(x => x.IsExpanded);
-		var itemsToExpand = _itemsCollection.Where(x => expandedOldItems.Any(y => x.Labels == y.Labels));
+		var itemsToExpand = _itemsCollection.Where(item => oldItemsLabels.Any(label => item.Labels.Equals(label)));
 
 		foreach (var item in itemsToExpand)
 		{
