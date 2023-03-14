@@ -56,10 +56,10 @@ public class WalletTests
 		(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(1), 1000, bitcoinStore, httpClientFactory);
 		try
 		{
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), 1000);
+			synchronizer.Start();
 
 			var blockCount = await rpc.GetBlockCountAsync() + 1; // Plus one because of the zeroth.
 																 // Test initial synchronization.
@@ -141,11 +141,11 @@ public class WalletTests
 		var node = RegTestFixture.BackendRegTestNode;
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 
 		try
 		{
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000);
+			synchronizer.Start();
 
 			var reorgAwaiter = new EventsAwaiter<FilterModel>(
 				h => bitcoinStore.IndexStore.Reorged += h,
@@ -243,7 +243,7 @@ public class WalletTests
 
 		// 2. Create wasabi synchronizer service.
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 3. Create key manager service.
@@ -282,7 +282,7 @@ public class WalletTests
 			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Wait until the filter our previous transaction is present.

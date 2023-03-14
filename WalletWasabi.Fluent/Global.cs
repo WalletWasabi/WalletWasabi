@@ -59,7 +59,10 @@ public class Global
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
-		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
+
+        TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+        int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+        Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
@@ -179,10 +182,7 @@ public class Global
 				}
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-				int maxFilterSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-
-				Synchronizer.Start(requestInterval, maxFilterSyncCount);
+				Synchronizer.Start();
 				Logger.LogInfo("Start synchronizing filters...");
 
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);

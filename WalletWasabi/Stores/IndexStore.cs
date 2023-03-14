@@ -118,12 +118,12 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancellationToken)
+	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
 		if (NewFilter is null)
 		{
 			// Lock once.
-			using IDisposable lockDisposable = await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false);
+			using IDisposable lockDisposable = await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false);
 
 			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
@@ -141,7 +141,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				bool success;
 
-				using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+				using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 				{
 					success = TryProcessFilterNoLock(filter, enqueue: true);
 				}

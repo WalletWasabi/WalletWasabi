@@ -48,7 +48,7 @@ public class FilterProcessor
 					}
 					else
 					{
-						await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, CancellationToken.None).ConfigureAwait(false);
+						await BitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
 
 						if (filters.Count() == 1)
 						{
