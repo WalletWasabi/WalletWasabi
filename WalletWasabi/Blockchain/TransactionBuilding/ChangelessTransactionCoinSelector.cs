@@ -14,7 +14,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public static class ChangelessTransactionCoinSelector
 {
-	public static async IAsyncEnumerable<IEnumerable<SmartCoin>> GetAllStrategyResultsAsync(
+	public static async IAsyncEnumerable<IReadOnlyList<SmartCoin>> GetAllStrategyResultsAsync(
 		IReadOnlyList<SmartCoin> availableCoins,
 		FeeRate feeRate,
 		TxOut txOut,
@@ -50,19 +50,24 @@ public static class ChangelessTransactionCoinSelector
 			.Select(strategy => Task.Run(
 				() =>
 				{
-					if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+					if (TryGetCoins(strategy, inputEffectiveValues, out IReadOnlyList<SmartCoin>? coins, cancellationToken))
 					{
 						return coins;
 					}
 
-					return Enumerable.Empty<SmartCoin>();
+					return null;
 				},
 				cancellationToken))
 			.ToArray();
 
 		foreach (var task in tasks)
 		{
-			yield return await task.ConfigureAwait(false);
+			IReadOnlyList<SmartCoin>? smartCoins = await task.ConfigureAwait(false);
+
+			if (smartCoins is not null)
+			{
+				yield return smartCoins;
+			}
 		}
 	}
 
@@ -74,7 +79,7 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
 	/// <param name="selectedCoins">Out parameter that returns (non-grouped!) coins back.</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin[], long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
+	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin[], long> inputEffectiveValues, [NotNullWhen(true)] out IReadOnlyList<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
 	{
 		selectedCoins = null;
 
@@ -103,13 +108,13 @@ public static class ChangelessTransactionCoinSelector
 			List<SmartCoin> resultCoins = new();
 			int i = 0;
 
-			foreach ((SmartCoin[] smartCoins, long effectiveSatoshis) in inputEffectiveValues)
+			foreach ((SmartCoin[] smartCoinGroup, long effectiveSatoshis) in inputEffectiveValues)
 			{
 				// Both arrays are in decreasing order so the first match will be the coin we are looking for.
 				if (effectiveSatoshis == solution[i])
 				{
 					i++;
-					resultCoins.AddRange(smartCoins);
+					resultCoins.AddRange(smartCoinGroup);
 					if (i == solution.Count)
 					{
 						break;
