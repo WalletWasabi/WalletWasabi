@@ -154,7 +154,7 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void DoNotSelectCoinsWithBigAnonymityLoss()
 	{
-		// This test ensures that we do not select coins whose anonymity could be lowered a lot
+		// This test ensures that we do not select coins whose anonymity could be lowered a lot.
 		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var bigCoinWithSmallAnonymity1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: 1);
