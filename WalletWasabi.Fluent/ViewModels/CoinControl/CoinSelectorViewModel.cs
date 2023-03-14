@@ -59,7 +59,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 					var oldItems = _itemsCollection.ToArray();
 					RefreshFromPockets(sourceItems);
 					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreCollapsedRowState(oldItems);
+					RestoreExpandedRows(oldItems);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
@@ -124,15 +124,14 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			});
 	}
 
-	private void RestoreCollapsedRowState(CoinControlItemViewModelBase[] oldItems)
+	private void RestoreExpandedRows(CoinControlItemViewModelBase[] oldItems)
 	{
 		var expandedOldItems = oldItems.Where(x => x.IsExpanded);
-		var expandedNewItems = _itemsCollection.Where(x => expandedOldItems.Any(y => x.Labels == y.Labels));
-		var itemsToCollapse = _itemsCollection.Except(expandedNewItems);
+		var itemsToExpand = _itemsCollection.Where(x => expandedOldItems.Any(y => x.Labels == y.Labels));
 
-		foreach (var item in itemsToCollapse)
+		foreach (var item in itemsToExpand)
 		{
-			item.IsExpanded = false;
+			item.IsExpanded = true;
 		}
 	}
 
