@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -75,7 +75,7 @@ public class Dialog : ContentControl
 
 	public Dialog()
 	{
-		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateOpenedDelay);
+		this.GetObservable(IsDialogOpenProperty).SubscribeAsync(UpdateOpenedDelayAsync);
 
 		this.WhenAnyValue(x => x.Bounds)
 			.Subscribe(bounds =>
@@ -200,15 +200,11 @@ public class Dialog : ContentControl
 		set => SetValue(ShowAlertProperty, value);
 	}
 
-	private CancellationTokenSource? CancelPointerOpenedPressedDelay { get; set; }
-
-	private CancellationTokenSource? CancelPointerActivatedPressedDelay { get; set; }
-
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		base.OnAttachedToVisualTree(e);
 
-		_updateActivatedDelayDisposable = ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
+		_updateActivatedDelayDisposable = ApplicationHelper.MainWindowActivated.SubscribeAsync(UpdateActivatedDelayAsync);
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -218,47 +214,28 @@ public class Dialog : ContentControl
 		_updateActivatedDelayDisposable?.Dispose();
 	}
 
-	private void UpdateOpenedDelay(bool isDialogOpen)
+	private async Task UpdateOpenedDelayAsync(bool isDialogOpen)
 	{
-		try
-		{
-			_canCancelOpenedOnPointerPressed = false;
-			CancelPointerOpenedPressedDelay?.Cancel();
+		_canCancelOpenedOnPointerPressed = false;
 
-			if (isDialogOpen)
-			{
-				CancelPointerOpenedPressedDelay = new CancellationTokenSource();
-
-				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerOpenedPressedDelay.Token).ContinueWith(_ => _canCancelOpenedOnPointerPressed = true);
-			}
-		}
-		catch (OperationCanceledException)
+		if (isDialogOpen)
 		{
-			// ignored
+			await Task.Delay(TimeSpan.FromSeconds(1));
+			_canCancelOpenedOnPointerPressed = true;
 		}
 	}
 
-	private void UpdateActivatedDelay(bool isWindowActivated)
+	private async Task UpdateActivatedDelayAsync(bool isWindowActivated)
 	{
-		try
+		if (!isWindowActivated)
 		{
-			if (!isWindowActivated)
-			{
-				_canCancelActivatedOnPointerPressed = false;
-			}
-
-			CancelPointerActivatedPressedDelay?.Cancel();
-
-			if (isWindowActivated)
-			{
-				CancelPointerActivatedPressedDelay = new CancellationTokenSource();
-
-				Task.Delay(TimeSpan.FromSeconds(2), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
-			}
+			_canCancelActivatedOnPointerPressed = false;
 		}
-		catch (OperationCanceledException)
+
+		if (isWindowActivated)
 		{
-			// ignored
+			await Task.Delay(TimeSpan.FromSeconds(2));
+			_canCancelActivatedOnPointerPressed = true;
 		}
 	}
 
