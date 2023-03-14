@@ -21,6 +21,7 @@ public class Dialog : ContentControl
 	private Panel? _overlayPanel;
 	private bool _canCancelOpenedOnPointerPressed;
 	private bool _canCancelActivatedOnPointerPressed;
+	private IDisposable? _updateActivatedDelayDisposable;
 
 	public static readonly StyledProperty<bool> IsDialogOpenProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
@@ -208,7 +209,14 @@ public class Dialog : ContentControl
 	{
 		base.OnAttachedToVisualTree(e);
 
-		ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
+		_updateActivatedDelayDisposable = ApplicationHelper.MainWindowActivated.Subscribe(UpdateActivatedDelay);
+	}
+
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnDetachedFromVisualTree(e);
+
+		_updateActivatedDelayDisposable?.Dispose();
 	}
 
 	private void UpdateOpenedDelay(bool isDialogOpen)
