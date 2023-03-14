@@ -125,8 +125,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				}
 
 				return new PocketCoinControlItemViewModel(pocket);
-			})
-			.ToArray();
+			});
 
 		source.Edit(
 			x =>
