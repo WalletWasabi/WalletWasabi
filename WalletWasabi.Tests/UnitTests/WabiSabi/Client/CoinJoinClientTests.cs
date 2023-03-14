@@ -69,7 +69,7 @@ public class CoinJoinClientTests
 		};
 
 		var password = "satoshi";
-		var km = ServiceFactory.CreateKeyManager(password);
+		var km = ServiceFactory.CreateKeyManager(password, true);
 		var destinationProvider = new InternalDestinationProvider(km);
 
 		var txOuts = CoinJoinClient.GetTxOuts(outputs, destinationProvider);
