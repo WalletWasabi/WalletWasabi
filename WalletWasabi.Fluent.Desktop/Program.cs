@@ -31,13 +31,8 @@ public class Program
 	// yet and stuff might break.
 	public static async Task<int> Main(string[] args)
 	{
-		// Initialize the logger.
-		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-		SetupLogger(dataDir, args);
-
-		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
-
 		// Crash reporting must be before the "single instance checking".
+		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
 		try
 		{
 			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
@@ -79,31 +74,6 @@ public class Program
 			Logger.LogCritical(ex);
 			return 1;
 		}
-	}
-
-	/// <summary>
-	/// Initializes Wasabi Logger. Sets user-defined log-level, if provided.
-	/// </summary>
-	/// <example>Start Wasabi Wallet with <c>./wassabee --LogLevel=trace</c> to set <see cref="LogLevel.Trace"/>.</example>
-	private static void SetupLogger(string dataDir, string[] args)
-	{
-		LogLevel? logLevel = null;
-
-		foreach (string arg in args)
-		{
-			if (arg.StartsWith("--LogLevel="))
-			{
-				string value = arg.Split('=', count: 2)[1];
-
-				if (Enum.TryParse(value, ignoreCase: true, out LogLevel parsedLevel))
-				{
-					logLevel = parsedLevel;
-					break;
-				}
-			}
-		}
-
-		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
 	}
 
 	/// <summary>
@@ -190,7 +160,7 @@ public static class WasabiAppExtensions
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
-				UiConfig uiConfig = LoadOrCreateUiConfig(app.DataDir);
+				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
 
 				AppBuilder

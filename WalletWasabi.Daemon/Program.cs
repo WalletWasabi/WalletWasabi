@@ -19,10 +19,6 @@ public class Program
 {
 	public static async Task<int> Main(string[] args)
 	{
-		// Initialize the logger.
-		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-		SetupLogger(dataDir, args);
-
 		var app = WasabiAppBuilder
 			.Create("Wasabi Daemon", args)
 			.EnsureSingleInstance()
@@ -31,31 +27,6 @@ public class Program
 			.Build();
 
 		return await app.RunAsConsoleAsync();
-	}
-
-	/// <summary>
-	/// Initializes Wasabi Logger. Sets user-defined log-level, if provided.
-	/// </summary>
-	/// <example>Start Wasabi Wallet with <c>./wassabee --LogLevel=trace</c> to set <see cref="LogLevel.Trace"/>.</example>
-	private static void SetupLogger(string dataDir, string[] args)
-	{
-		LogLevel? logLevel = null;
-
-		foreach (string arg in args)
-		{
-			if (arg.StartsWith("--LogLevel="))
-			{
-				string value = arg.Split('=', count: 2)[1];
-
-				if (Enum.TryParse(value, ignoreCase: true, out LogLevel parsedLevel))
-				{
-					logLevel = parsedLevel;
-					break;
-				}
-			}
-		}
-
-		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)

@@ -1,9 +1,11 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using NBitcoin;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
@@ -50,6 +52,13 @@ public class Config
 	});
 
 	public bool BlockOnlyMode => GetEffectiveBool(false, "blockonly");
+	public string LogLevel => GetEffectiveString("", "loglevel");
+
+	public static string DataDir => GetString(
+		EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")),
+		Environment.GetCommandLineArgs(),
+		"datadir");
+
 	public bool EnableGpu => GetEffectiveBool(PersistentConfig.EnableGpu);
 	public string CoordinatorIdentifier => GetEffectiveString(PersistentConfig.CoordinatorIdentifier);
 	public ServiceConfiguration ServiceConfiguration => new (GetBitcoinP2pEndPoint(), DustThreshold);
@@ -68,6 +77,7 @@ public class Config
 
 				throw new ArgumentNullException(key, "Not a valid endpoint");
 			},
+			Args,
 			key);
 
 	private bool GetEffectiveBool(
@@ -81,23 +91,34 @@ public class Config
 				_ when x.Equals("false", StringComparison.InvariantCultureIgnoreCase) => false,
 				_ => throw new ArgumentNullException(key, "must be 'true' or 'false'")
 			},
+			Args,
 			key);
 
 	private string GetEffectiveString(
 		string valueInConfigFile,
 		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
-		GetEffectiveValue(valueInConfigFile, x => x, key);
+		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
 
 	private string? GetEffectiveOptionalString(
 		string? valueInConfigFile,
 		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
-		GetEffectiveValue(valueInConfigFile, x => x, key);
+		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
 
-	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, [CallerArgumentExpression("valueInConfigFile")] string key = "")
+	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, [CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		GetEffectiveValue(valueInConfigFile, converter, Args, key);
+
+	private static string GetString(
+		string valueInConfigFile, string[] args, [CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		GetEffectiveValue(valueInConfigFile, x => x, args, key);
+
+	private static T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, [CallerArgumentExpression("valueInConfigFile")] string key = "")
 	{
-		key = key.Remove(0, nameof(PersistentConfig).Length + 1);
+		key = key.StartsWith(nameof(PersistentConfig) + ".")
+			? key.Remove(0, nameof(PersistentConfig).Length + 1)
+			: key;
+
 		var cliArgKey = ("--" + key + "=");
-		var cliArgOrNull = Args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
+		var cliArgOrNull = args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
 		if (cliArgOrNull is { } cliArg)
 		{
 			return converter(cliArg.Substring(cliArgKey.Length));

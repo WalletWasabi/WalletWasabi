@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Helpers;
@@ -17,12 +18,12 @@ public class WasabiApplication
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 
-	public string DataDir { get; } = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-
 	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
 		AppConfig = wasabiAppBuilder;
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
+		SetupLogger();
+		Logger.LogDebug($"Wasabi was started with these argument(s): {(AppConfig.Arguments.Any() ? string.Join(" ", AppConfig.Arguments) : "none")}.");
 		SingleInstanceChecker = new(Config.Network);
 	}
 
@@ -82,15 +83,15 @@ public class WasabiApplication
 
 	private Global CreateGlobal()
 	{
-		var walletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir));
-		return new Global(DataDir, Config, walletManager);
+		var walletManager = new WalletManager(Config.Network, Config.DataDir, new WalletDirectories(Config.Network, Config.DataDir));
+		return new Global(Config.DataDir, Config, walletManager);
 	}
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		Directory.CreateDirectory(DataDir);
+		Directory.CreateDirectory(Config.DataDir);
 
-		PersistentConfig persistentConfig = new(Path.Combine(DataDir, "Config.json"));
+		PersistentConfig persistentConfig = new(Path.Combine(Config.DataDir, "Config.json"));
 		persistentConfig.LoadFile(createIfMissing: true);
 
 		if (persistentConfig.MigrateOldDefaultBackendUris())
@@ -125,6 +126,13 @@ public class WasabiApplication
 		}
 	}
 
+	private void SetupLogger()
+	{
+		LogLevel logLevel = Enum.TryParse(Config.LogLevel, ignoreCase: true, out LogLevel parsedLevel)
+			? parsedLevel
+			: LogLevel.Info;
+		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel);
+	}
 }
 
 public record WasabiAppBuilder(string AppName, string[] Arguments)
