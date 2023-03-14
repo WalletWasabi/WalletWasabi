@@ -11,7 +11,7 @@ public class CoinjoinAnalyzer
 {
 	public static readonly int MaxRecursionDepth = 3;
 	public static readonly AggregationFunction Min = x => x.Any() ? x.Min(x => x.Anonymity) : 0;
-	public static readonly AggregationFunction WeightedAverage = x => x.Any() ? x.WeightedAverage(x => x.Anonymity, x => x.Amount.Satoshi) : 0;
+	public static readonly AggregationFunction WeightedMean = x => x.Any() ? x.WeightedMean(x => x.Anonymity, x => x.Amount.Satoshi) : 0;
 
 	public CoinjoinAnalyzer(SmartTransaction transaction)
 	{
