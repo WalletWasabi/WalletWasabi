@@ -253,7 +253,7 @@ public class Dialog : ContentControl
 			{
 				CancelPointerActivatedPressedDelay = new CancellationTokenSource();
 
-				Task.Delay(TimeSpan.FromSeconds(5), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
+				Task.Delay(TimeSpan.FromSeconds(2), CancelPointerActivatedPressedDelay.Token).ContinueWith(_ => _canCancelActivatedOnPointerPressed = true);
 			}
 		}
 		catch (OperationCanceledException)
