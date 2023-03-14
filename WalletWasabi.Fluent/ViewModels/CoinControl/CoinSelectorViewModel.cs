@@ -56,8 +56,10 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Do(
 				sl =>
 				{
+					var oldItems = _itemsCollection.ToArray();
 					RefreshFromPockets(sourceItems);
 					UpdateSelection(coinItemsCollection, sl.ToList());
+					RestoreCollapsedRowState(oldItems);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
@@ -103,7 +105,16 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 	{
 		var newItems = _wallet
 			.GetPockets()
-			.Select(pocket => new PocketCoinControlItemViewModel(pocket));
+			.Select(pocket =>
+			{
+				// When it's single coin pocket, return its unique coin
+				if (pocket.Coins.Count() == 1)
+				{
+					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket);
+				}
+
+				return new PocketCoinControlItemViewModel(pocket);
+			});
 
 		source.Edit(
 			x =>
@@ -111,6 +122,18 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				x.Clear();
 				x.AddRange(newItems);
 			});
+	}
+
+	private void RestoreCollapsedRowState(CoinControlItemViewModelBase[] oldItems)
+	{
+		var expandedOldItems = oldItems.Where(x => x.IsExpanded);
+		var expandedNewItems = _itemsCollection.Where(x => expandedOldItems.Any(y => x.Labels == y.Labels));
+		var itemsToCollapse = _itemsCollection.Except(expandedNewItems);
+
+		foreach (var item in itemsToCollapse)
+		{
+			item.IsExpanded = false;
+		}
 	}
 
 	private void CollapseUnselectedPockets()
