@@ -135,7 +135,7 @@ public class ChangelessTransactionCoinSelectorTests
 			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(5000)),
 		};
 
-		// First test case where we show that no mixing of script pub keys is not if BnB can find such a solution.
+		// First test case where we show that we are not mixing the script pub keys and we spend the address reused coins together.
 		{
 			Money target = Money.Satoshis(30000);
 			TxOut txOut = new(target, scriptPubKey: BitcoinFactory.CreateScript());
@@ -149,12 +149,12 @@ public class ChangelessTransactionCoinSelectorTests
 
 				long sumOfCoins = coins.Sum(coin => coin.Amount);
 
-				if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey.P2wpkhScript))  // First case: Less-selection strategy
+				if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey.P2wpkhScript))  // Less-selection strategy
 				{
 					Assert.Equal(30_000, sumOfCoins);
 					Assert.Equal(3, coins.Count);
 				}
-				else if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey2.P2wpkhScript))   // Second case: More-selection strategy
+				else if (coins.All(coin => coin.ScriptPubKey == constantHdPubKey2.P2wpkhScript))   // More-selection strategy
 				{
 					Assert.Equal(35_000, sumOfCoins);
 					Assert.Equal(4, coins.Count);
