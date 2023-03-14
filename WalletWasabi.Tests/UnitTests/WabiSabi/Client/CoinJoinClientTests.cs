@@ -62,10 +62,10 @@ public class CoinJoinClientTests
 
 		var outputs = new[]
 		{
-			Output.FromDenomination(Money.Coins(1m),ScriptType.P2WPKH,feeRate),
-			Output.FromDenomination(Money.Coins(2m),ScriptType.P2WPKH,feeRate),
-			Output.FromDenomination(Money.Coins(3m),ScriptType.Taproot,feeRate),
-			Output.FromDenomination(Money.Coins(4m),ScriptType.Taproot,feeRate),
+			Output.FromDenomination(Money.Coins(1m), ScriptType.P2WPKH, feeRate),
+			Output.FromDenomination(Money.Coins(2m), ScriptType.P2WPKH, feeRate),
+			Output.FromDenomination(Money.Coins(3m), ScriptType.Taproot, feeRate),
+			Output.FromDenomination(Money.Coins(4m), ScriptType.Taproot, feeRate),
 		};
 
 		var password = "satoshi";
