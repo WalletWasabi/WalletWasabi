@@ -68,10 +68,32 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	public void OnShutdownPrevented(bool restartRequest)
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
+
+		if (!MainViewCanShutdown())
+		{
+			MainViewModel.Instance.ShowDialogAlert();
+			return;
+		}
+
 		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 
 	public bool CanShutdown()
+	{
+		if (!MainViewCanShutdown())
+		{
+			return false;
+		}
+
+		return CoinJoinCanShutdown();
+	}
+
+	public bool MainViewCanShutdown()
+	{
+		return !MainViewModel.Instance.IsDialogOpen();
+	}
+
+	public bool CoinJoinCanShutdown()
 	{
 		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 

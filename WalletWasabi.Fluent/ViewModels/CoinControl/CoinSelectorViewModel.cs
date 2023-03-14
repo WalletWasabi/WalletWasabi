@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -29,13 +30,24 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
 		sourceItems.DisposeWith(_disposables);
 
-		var coinItems = sourceItems
-			.Connect()
-			.TransformMany(x => x.Children)
-			.Cast(x => (CoinCoinControlItemViewModel) x);
+		var changes = sourceItems.Connect();
+
+		var coinItems = changes
+			.TransformMany(item =>
+			{
+				// When root item is a coin item
+				if (item is CoinCoinControlItemViewModel c)
+				{
+					return new[] { c };
+				}
+
+				return item.Children;
+			})
+			.AddKey(model => model.SmartCoin.Outpoint);
 
 		sourceItems
 			.Connect()
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
@@ -91,9 +103,11 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
 	{
-		foreach (var coinItem in coinItems)
+		var coinsToSelect = coinItems.Where(x => selectedCoins.Contains(x.SmartCoin));
+
+		foreach (var coinItem in coinsToSelect)
 		{
-			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
+			coinItem.IsSelected = true;
 		}
 	}
 
@@ -101,7 +115,16 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 	{
 		var newItems = _wallet
 			.GetPockets()
-			.Select(pocket => new PocketCoinControlItemViewModel(pocket));
+			.Select(pocket =>
+			{
+				// When it's single coin pocket, return its unique coin
+				if (pocket.Coins.Count() == 1)
+				{
+					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket);
+				}
+
+				return new PocketCoinControlItemViewModel(pocket);
+			});
 
 		source.Edit(
 			x =>

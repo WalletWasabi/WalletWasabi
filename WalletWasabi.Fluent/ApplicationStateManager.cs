@@ -39,23 +39,23 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(initTransitionState)
 			.OnTrigger(
-			Trigger.ShutdownRequested,
-			() =>
-			{
-				if (_restartRequest)
+				Trigger.ShutdownRequested,
+				() =>
 				{
-					AppLifetimeHelper.StartAppWithArgs();
-				}
+					if (_restartRequest)
+					{
+						AppLifetimeHelper.StartAppWithArgs();
+					}
 
-				lifetime.Shutdown();
-			})
+					lifetime.Shutdown();
+				})
 			.OnTrigger(
-			Trigger.ShutdownPrevented,
-			() =>
-			{
-				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
-				_restartRequest = false; // reset the value.
-			});
+				Trigger.ShutdownPrevented,
+				() =>
+				{
+					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
+					_restartRequest = false; // reset the value.
+				});
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)
@@ -142,6 +142,7 @@ public class ApplicationStateManager : IMainWindowService
 
 				_isShuttingDown = !preventShutdown;
 				e.Cancel = preventShutdown;
+
 				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 			})
 			.DisposeWith(_compositeDisposable);
