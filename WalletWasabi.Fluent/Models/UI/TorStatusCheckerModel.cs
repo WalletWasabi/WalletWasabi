@@ -3,11 +3,11 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Tor.StatusChecker;
 
-namespace WalletWasabi.Fluent.AppServices.Tor;
+namespace WalletWasabi.Fluent.Models.UI;
 
-public class TorStatusCheckerWrapper
+public class TorStatusCheckerModel
 {
-	public TorStatusCheckerWrapper(TorStatusChecker statusChecker)
+	public TorStatusCheckerModel(TorStatusChecker statusChecker)
 	{
 		Issues = Observable
 			.FromEventPattern<Issue[]>(statusChecker, nameof(TorStatusChecker.StatusEvent))

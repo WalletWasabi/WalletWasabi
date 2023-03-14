@@ -7,10 +7,10 @@ using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -32,7 +32,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	[AutoNotify] private string? _versionText;
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
-	public StatusIconViewModel(TorStatusCheckerWrapper statusCheckerWrapper)
+	public StatusIconViewModel(TorStatusCheckerModel statusCheckerWrapper)
 	{
 		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
