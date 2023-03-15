@@ -26,7 +26,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Labels = pocket.Labels;
 		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
-		ScriptType = pocketCoins.Count == 1 ? ScriptType.FromEnum(pocketCoins[0].ScriptType) : null;
+		ScriptType = null;
 
 		Children
 			.AsObservableChangeSet()

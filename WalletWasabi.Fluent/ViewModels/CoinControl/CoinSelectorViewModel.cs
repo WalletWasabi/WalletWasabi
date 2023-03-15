@@ -31,9 +31,20 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
 		sourceItems.DisposeWith(_disposables);
 
-		var coinItems = sourceItems
-			.Connect()
-			.TransformMany(x => x.Children);
+		var changes = sourceItems.Connect();
+
+		var coinItems = changes
+			.TransformMany(item =>
+			{
+				// When root item is a coin item
+				if (item is CoinCoinControlItemViewModel c)
+				{
+					return new[] { c };
+				}
+
+				return item.Children;
+			})
+			.AddKey(model => model.SmartCoin.Outpoint);
 
 		changes
 			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
