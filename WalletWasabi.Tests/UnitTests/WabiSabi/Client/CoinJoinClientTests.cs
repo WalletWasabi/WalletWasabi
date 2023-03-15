@@ -80,10 +80,7 @@ public class CoinJoinClientTests
 		// No address reuse.
 		Assert.Distinct(txOuts.Select(x => x.ScriptPubKey));
 
-		// The count per script type is correct.
-		Assert.Equal(outputs.Count(x => x.ScriptType == ScriptType.Taproot), txOuts.Count(x => x.ScriptPubKey.IsScriptType(ScriptType.Taproot)));
-		Assert.Equal(outputs.Count(x => x.ScriptType == ScriptType.P2WPKH), txOuts.Count(x => x.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)));
-
+		// Verify if all the outputs are generated with correct ScriptType and Value.
 		List<TxOut> toCheck = txOuts.ToList();
 		foreach (var output in outputs)
 		{
