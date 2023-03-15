@@ -191,12 +191,6 @@ public class Dialog : ContentControl
 		set => SetValue(IncreasedSizeEnabledProperty, value);
 	}
 
-	private bool ShowAlert
-	{
-		get => GetValue(ShowAlertProperty);
-		set => SetValue(ShowAlertProperty, value);
-	}
-
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		base.OnAttachedToVisualTree(e);
@@ -272,12 +266,6 @@ public class Dialog : ContentControl
 
 	private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-
-		if (IsDialogOpen && ShowAlert)
-		{
-			ShowAlert = false;
-		}
-
 		if (IsDialogOpen
 		    && IsActive
 		    && EnableCancelOnPressed
