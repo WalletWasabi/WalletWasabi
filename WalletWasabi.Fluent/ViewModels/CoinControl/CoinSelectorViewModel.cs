@@ -30,12 +30,22 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
 		sourceItems.DisposeWith(_disposables);
 
-		var coinItems = sourceItems
-			.Connect()
-			.TransformMany(x => x.Children);
+		var changes = sourceItems.Connect();
 
-		sourceItems
-			.Connect()
+		var coinItems = changes
+			.TransformMany(item =>
+			{
+				// When root item is a coin item
+				if (item is CoinCoinControlItemViewModel c)
+				{
+					return new[] { c };
+				}
+
+				return item.Children;
+			})
+			.AddKey(model => model.SmartCoin.Outpoint);
+
+		changes
 			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
@@ -104,7 +114,16 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 	{
 		var newItems = _wallet
 			.GetPockets()
-			.Select(pocket => new PocketCoinControlItemViewModel(pocket));
+			.Select(pocket =>
+			{
+				// When it's single coin pocket, return its unique coin
+				if (pocket.Coins.Count() == 1)
+				{
+					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket);
+				}
+
+				return new PocketCoinControlItemViewModel(pocket);
+			});
 
 		source.Edit(
 			x =>
