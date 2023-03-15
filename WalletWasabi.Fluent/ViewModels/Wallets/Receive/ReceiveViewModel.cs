@@ -1,15 +1,13 @@
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using DynamicData;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
@@ -24,17 +22,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class ReceiveViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
-	[AutoNotify] private bool _isExistingAddressesButtonVisible;
+	private readonly IWalletModel _wallet;
 
-	public ReceiveViewModel(Wallet wallet)
+	public ReceiveViewModel(IWalletModel wallet, UIContext context)
 	{
 		_wallet = wallet;
+		UIContext = context;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Receive, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
@@ -45,29 +43,30 @@ public partial class ReceiveViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+
+		HasUnusedAddresses =
+			_wallet
+				.UnusedAddresses()
+				.ToCollection()
+				.Select(x => x.Any())
+				.StartWith(false);
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 	public ICommand ShowExistingAddressesCommand { get; }
+	public IObservable<bool> HasUnusedAddresses { get; }
 
 	private void OnNext()
 	{
-		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
+		var address = _wallet.GetNextReceiveAddress(SuggestionLabels.Labels);
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(new WalletModel(_wallet), new Address(_wallet.KeyManager, newKey), Services.UiConfig.Autocopy, UIContext));
+		Navigate().To(new ReceiveAddressViewModel(_wallet, address, Services.UiConfig.Autocopy, UIContext));
 	}
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet));
-	}
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
-	{
-		base.OnNavigatedTo(isInHistory, disposable);
-
-		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
+		UIContext.Navigate(NavigationTarget.DialogScreen).To(new ReceiveAddressesViewModel(_wallet, UIContext));
 	}
 }
