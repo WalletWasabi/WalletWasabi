@@ -55,16 +55,16 @@ public static class ChangelessTransactionCoinSelector
 						return coins;
 					}
 
-					return Array.Empty<SmartCoin>();
+					return null;
 				},
 				cancellationToken))
 			.ToArray();
 
 		foreach (var task in tasks)
 		{
-			IReadOnlyList<SmartCoin> smartCoins = await task.ConfigureAwait(false);
+			IReadOnlyList<SmartCoin>? smartCoins = await task.ConfigureAwait(false);
 
-			if (smartCoins.Any())
+			if (smartCoins is not null)
 			{
 				yield return smartCoins;
 			}
