@@ -22,14 +22,4 @@ public static class StartupHelper
 			await MacOsStartupHelper.AddOrRemoveLoginItemAsync(runOnSystemStartup).ConfigureAwait(false);
 		}
 	}
-
-	public static bool SetAndGetCorrectStartup()
-	{
-		if (Services.UiConfig.Oobe && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			Services.UiConfig.RunOnSystemStartup = true;
-		}
-
-		return Services.UiConfig.RunOnSystemStartup;
-	}
 }
