@@ -6,7 +6,9 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -29,13 +31,23 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
 		sourceItems.DisposeWith(_disposables);
 
-		var coinItems = sourceItems
-			.Connect()
-			.TransformMany(x => x.Children)
-			.Cast(x => (CoinCoinControlItemViewModel) x);
+		var changes = sourceItems.Connect();
 
-		sourceItems
-			.Connect()
+		var coinItems = changes
+			.TransformMany(item =>
+			{
+				// When root item is a coin item
+				if (item is CoinCoinControlItemViewModel c)
+				{
+					return new[] { c };
+				}
+
+				return item.Children;
+			})
+			.AddKey(model => model.SmartCoin.Outpoint);
+
+		changes
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
@@ -56,8 +68,10 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Do(
 				sl =>
 				{
+					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
 					RefreshFromPockets(sourceItems);
 					UpdateSelection(coinItemsCollection, sl.ToList());
+					RestoreExpandedRows(oldExpandedItemsLabel);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
@@ -74,7 +88,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		RefreshFromPockets(sourceItems);
 		UpdateSelection(coinItemsCollection, initialCoinSelection);
-		CollapseUnselectedPockets();
+		ExpandSelectedItems();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
@@ -91,9 +105,11 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
 	{
-		foreach (var coinItem in coinItems)
+		var coinsToSelect = coinItems.Where(x => selectedCoins.Contains(x.SmartCoin));
+
+		foreach (var coinItem in coinsToSelect)
 		{
-			coinItem.IsSelected = selectedCoins.Any(x => x == coinItem.SmartCoin);
+			coinItem.IsSelected = true;
 		}
 	}
 
@@ -101,7 +117,16 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 	{
 		var newItems = _wallet
 			.GetPockets()
-			.Select(pocket => new PocketCoinControlItemViewModel(pocket));
+			.Select(pocket =>
+			{
+				// When it's single coin pocket, return its unique coin
+				if (pocket.Coins.Count() == 1)
+				{
+					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket);
+				}
+
+				return new PocketCoinControlItemViewModel(pocket);
+			});
 
 		source.Edit(
 			x =>
@@ -111,11 +136,21 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			});
 	}
 
-	private void CollapseUnselectedPockets()
+	private void RestoreExpandedRows(IEnumerable<SmartLabel> oldItemsLabels)
 	{
-		foreach (var pocket in _itemsCollection.Where(x => x.IsSelected == false))
+		var itemsToExpand = _itemsCollection.Where(item => oldItemsLabels.Any(label => item.Labels.Equals(label)));
+
+		foreach (var item in itemsToExpand)
 		{
-			pocket.IsExpanded = false;
+			item.IsExpanded = true;
+		}
+	}
+
+	private void ExpandSelectedItems()
+	{
+		foreach (var item in _itemsCollection.Where(x => x.IsSelected is not false))
+		{
+			item.IsExpanded = true;
 		}
 	}
 }
