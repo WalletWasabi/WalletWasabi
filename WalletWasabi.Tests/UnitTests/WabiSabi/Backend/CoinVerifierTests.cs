@@ -86,7 +86,7 @@ public class CoinVerifierTests
 		List<Coin> removedCoins = new();
 		List<Coin> checkedCoins = new();
 
-		ScheduleVerifications(coinVerifier, generatedCoins, TimeSpan.FromSeconds(2));
+		ScheduleVerifications(coinVerifier, generatedCoins);
 		coinVerifier.CancelSchedule(generatedCoins[9]);
 
 		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
@@ -230,11 +230,11 @@ public class CoinVerifierTests
 		return coins;
 	}
 
-	private void ScheduleVerifications(CoinVerifier coinVerifier, IEnumerable<Coin> coins, TimeSpan? delay = null)
+	private void ScheduleVerifications(CoinVerifier coinVerifier, IEnumerable<Coin> coins)
 	{
 		foreach (Coin coin in coins)
 		{
-			coinVerifier.TryScheduleVerification(coin, out _, CancellationToken.None, delay, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations);
+			coinVerifier.TryScheduleVerification(coin, delayedStart: TimeSpan.Zero, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations, oneHop: false, CancellationToken.None);
 		}
 	}
 }
