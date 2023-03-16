@@ -60,9 +60,9 @@ public class Global
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
-        TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-        int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-        Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory);
+		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
@@ -92,6 +92,7 @@ public class Global
 
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
 	public HttpClientFactory HttpClientFactory { get; }
+
 	public HttpClientFactory CoordinatorHttpClientFactory { get; }
 
 	public LegalChecker LegalChecker { get; private set; }
