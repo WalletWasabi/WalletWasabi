@@ -78,9 +78,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 
-	public bool CanShutdown()
+	public bool CanShutdown(bool restart)
 	{
-		if (!MainViewCanShutdown())
+		if (!MainViewCanShutdown() && !restart)
 		{
 			return false;
 		}
