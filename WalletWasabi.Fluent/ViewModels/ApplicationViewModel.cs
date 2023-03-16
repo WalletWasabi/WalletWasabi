@@ -69,7 +69,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
 
-		if (!MainViewCanShutdown())
+		if (!MainViewCanShutdown() && !restartRequest)
 		{
 			MainViewModel.Instance.ShowDialogAlert();
 			return;
