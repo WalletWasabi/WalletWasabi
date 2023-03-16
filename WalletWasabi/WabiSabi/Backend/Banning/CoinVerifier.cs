@@ -137,7 +137,7 @@ public class CoinVerifier : IAsyncDisposable
 		}
 	}
 
-	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response)
+	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int blockHeightOfTransaction)
 	{
 		if (WabiSabiConfig.RiskFlags is null)
 		{
@@ -153,18 +153,25 @@ public class CoinVerifier : IAsyncDisposable
 		}
 
 		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
-		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used;
+
+		/* When to remove:
+		 - if we ban it
+		 - OR if address_used is false (API provider doesn't know about it)
+		 - OR if the report doesn't include the block in which the script is used to receive the coin.
+		 */
+		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used || blockHeightOfTransaction > response.Report_info_section.Report_block_height;
+
 		return (shouldBan, shouldRemove);
 	}
 
-	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, int confirmations, bool oneHop, CancellationToken cancellationToken)
+	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, int confirmations, bool oneHop, int currentBlockHeight, CancellationToken cancellationToken)
 	{
 		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
 		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
-		return TryScheduleVerification(coin, delayUntilStart, confirmations, oneHop, cancellationToken);
+		return TryScheduleVerification(coin, delayUntilStart, confirmations, oneHop, currentBlockHeight, cancellationToken);
 	}
 
-	public bool TryScheduleVerification(Coin coin, TimeSpan delayedStart, int confirmations, bool oneHop, CancellationToken verificationCancellationToken)
+	public bool TryScheduleVerification(Coin coin, TimeSpan delayedStart, int confirmations, bool oneHop, int currentBlockHeight, CancellationToken verificationCancellationToken)
 	{
 		if (CoinVerifyItems.TryGetValue(coin, out _))
 		{
@@ -245,7 +252,9 @@ public class CoinVerifier : IAsyncDisposable
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 
-					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem);
+					int blockHeightOfTransaction = currentBlockHeight - (confirmations - 1);
+
+					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem, blockHeightOfTransaction);
 
 					// We got a definitive answer.
 					if (shouldBan)
