@@ -5,6 +5,8 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
+using System.Runtime.Serialization;
+using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Fluent;
 
@@ -147,7 +149,8 @@ public class UiConfig : ConfigBase
 		set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
 	}
 
-	[DefaultValue(false)]
+	// OnDeserialized changes this default on Mac and Linux
+	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool RunOnSystemStartup
 	{
@@ -183,5 +186,14 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
+	[OnDeserialized]
+	internal void OnDeserialized(StreamingContext context)
+	{
+		if (Oobe && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			RunOnSystemStartup = false;
+		}
 	}
 }
