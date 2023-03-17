@@ -252,9 +252,11 @@ public class CoinVerifier : IAsyncDisposable
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 
-					int blockHeightOfTransaction = currentBlockHeight - (confirmations - 1);
+					// This calculates in which block the coin got into the blockchain.
+					// So we can compare it to the latest block height that the API provider has already processed.
+					int blockchainHeightOfCoin = currentBlockHeight - (confirmations - 1);
 
-					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem, blockHeightOfTransaction);
+					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem, blockchainHeightOfCoin);
 
 					// We got a definitive answer.
 					if (shouldBan)
