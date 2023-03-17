@@ -155,9 +155,9 @@ public class CoinVerifier : IAsyncDisposable
 		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		// When to remove:
-		bool shouldRemove = shouldBan ||    // If we ban it.
-			!response.Report_info_section.Address_used ||   // If address_used is false (API provider doesn't know about it).
-			blockchainHeightOfCoin > response.Report_info_section.Report_block_height;  // If the report_block_height is less than the block height of the coin. This means that the API provider didn't processed it, yet. On equal or if the report_height is bigger,then the API provider processed that block for sure.
+		bool shouldRemove = shouldBan || // If we ban it.
+			!response.Report_info_section.Address_used || // If address_used is false (API provider doesn't know about it).
+			blockchainHeightOfCoin > response.Report_info_section.Report_block_height; // If the report_block_height is less than the block height of the coin. This means that the API provider didn't processed it, yet. On equal or if the report_height is bigger,then the API provider processed that block for sure.
 
 		return (shouldBan, shouldRemove);
 	}
