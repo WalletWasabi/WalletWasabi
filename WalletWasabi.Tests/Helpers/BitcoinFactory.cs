@@ -134,7 +134,7 @@ public static class BitcoinFactory
 				FeeRate = new FeeRate(Money.Satoshis(5000))
 			});
 
-		// We don't need use the result, but we need to not throw NotImplementedException.
+		// We don't use the result, but we need not to throw NotImplementedException.
 		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
 
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
