@@ -119,17 +119,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-			int currentBlockHeight = 0;
-
-			// We need the try-catch block, otherwise the tests will fail.
-			try
-			{
-				currentBlockHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"Couldn't get current blockchain height. Exception: {ex}");
-			}
+			int currentBlockHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 
 			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, confirmations, oneHop: oneHop, currentBlockHeight, cancellationToken);
 
