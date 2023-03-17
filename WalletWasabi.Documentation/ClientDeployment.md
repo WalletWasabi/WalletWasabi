@@ -118,7 +118,7 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 4. Import the `zksnacks_limited.p7b` file to DigiCert® Certificate Utility.
 5. Choose a friendly name for the certificate and apply the default password to it.
 6. Export the `zksnacks_limited.pfx` to `C:\zksnacks_limited.pfx`.
-7. Rename `zksnacks_limited.pfx` to `digicert.pfx`, so the Packager can find it!!
+7. Rename `C:\zksnacks_limited.pfx` to `C:\digicert.pfx`, so the Packager can find it!!
 
 **Obsolete method**
 
