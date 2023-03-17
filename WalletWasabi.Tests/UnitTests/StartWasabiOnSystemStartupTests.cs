@@ -66,7 +66,14 @@ public class StartWasabiOnSystemStartupTests
 		UiConfig config = new(Path.Combine(workDir, "UiConfig.json"));
 		config.LoadFile(true);
 		Assert.True(config.Oobe);
-		Assert.True(config.RunOnSystemStartup);
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			Assert.True(config.RunOnSystemStartup);
+		}
+		else
+		{
+			Assert.False(config.RunOnSystemStartup);
+		}
 		File.Delete(config.FilePath);
 	}
 
