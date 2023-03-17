@@ -112,7 +112,7 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 
 **New method**
 
-1. Create a new CSR file with DigiCert® Certificate Utility application.
+1. Create a new Certificate Signing Request (CSR) file with DigiCert® Certificate Utility application.
 2. Save the file to a hard disk and upload the CSR file to DigiCert.
 3. Wait for DigiCert to issue our new `zksnacks_limited.p7b` file.
 4. Download and import the `zksnacks_limited.p7b` file to DigiCert® Certificate Utility.
