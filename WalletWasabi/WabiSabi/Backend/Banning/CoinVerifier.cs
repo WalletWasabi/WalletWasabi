@@ -137,7 +137,7 @@ public class CoinVerifier : IAsyncDisposable
 		}
 	}
 
-	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response)
+	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int blockchainHeightOfCoin)
 	{
 		if (WabiSabiConfig.RiskFlags is null)
 		{
@@ -153,18 +153,23 @@ public class CoinVerifier : IAsyncDisposable
 		}
 
 		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
-		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used;
+
+		// When to remove:
+		bool shouldRemove = shouldBan || // If we ban it.
+			!response.Report_info_section.Address_used || // If address_used is false (API provider doesn't know about it).
+			blockchainHeightOfCoin > response.Report_info_section.Report_block_height; // If the report_block_height is less than the block height of the coin. This means that the API provider didn't processed it, yet. On equal or if the report_height is bigger,then the API provider processed that block for sure.
+
 		return (shouldBan, shouldRemove);
 	}
 
-	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, int confirmations, bool oneHop, CancellationToken cancellationToken)
+	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, int confirmations, bool oneHop, int currentBlockHeight, CancellationToken cancellationToken)
 	{
 		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
 		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
-		return TryScheduleVerification(coin, delayUntilStart, confirmations, oneHop, cancellationToken);
+		return TryScheduleVerification(coin, delayUntilStart, confirmations, oneHop, currentBlockHeight, cancellationToken);
 	}
 
-	public bool TryScheduleVerification(Coin coin, TimeSpan delayedStart, int confirmations, bool oneHop, CancellationToken verificationCancellationToken)
+	public bool TryScheduleVerification(Coin coin, TimeSpan delayedStart, int confirmations, bool oneHop, int currentBlockHeight, CancellationToken verificationCancellationToken)
 	{
 		if (CoinVerifyItems.TryGetValue(coin, out _))
 		{
@@ -245,7 +250,11 @@ public class CoinVerifier : IAsyncDisposable
 
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 
-					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem);
+					// This calculates in which block the coin got into the blockchain.
+					// So we can compare it to the latest block height that the API provider has already processed.
+					int blockchainHeightOfCoin = currentBlockHeight - (confirmations - 1);
+
+					(bool shouldBan, bool shouldRemove) = CheckVerifierResult(apiResponseItem, blockchainHeightOfCoin);
 
 					// We got a definitive answer.
 					if (shouldBan)
