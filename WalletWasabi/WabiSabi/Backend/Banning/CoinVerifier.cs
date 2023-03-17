@@ -137,7 +137,7 @@ public class CoinVerifier : IAsyncDisposable
 		}
 	}
 
-	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int blockHeightOfTransaction)
+	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int blockchainHeightOfCoin)
 	{
 		if (WabiSabiConfig.RiskFlags is null)
 		{
@@ -154,12 +154,10 @@ public class CoinVerifier : IAsyncDisposable
 
 		bool shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
-		/* When to remove:
-		 - if we ban it
-		 - OR if address_used is false (API provider doesn't know about it)
-		 - OR if the report doesn't include the block in which the script is used to receive the coin.
-		 */
-		bool shouldRemove = shouldBan || !response.Report_info_section.Address_used || blockHeightOfTransaction > response.Report_info_section.Report_block_height;
+		// When to remove:
+		bool shouldRemove = shouldBan ||                    // if we ban it OR
+			!response.Report_info_section.Address_used ||   // if address_used is false (API provider doesn't know about it) OR
+			blockchainHeightOfCoin > response.Report_info_section.Report_block_height; // if the report_block_height is less than the block height of the coin. This means that the API provider didn't processed it, yet. On equal or if the report_height is bigger,then the API provider processed that block for sure.
 
 		return (shouldBan, shouldRemove);
 	}
