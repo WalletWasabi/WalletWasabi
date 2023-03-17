@@ -31,6 +31,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent;
 
@@ -138,6 +139,9 @@ public class Global
 
 			try
 			{
+				// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+				await StartupHelper.ModifyStartupSettingAsync(UiConfig.RunOnSystemStartup).ConfigureAwait(false);
+
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
