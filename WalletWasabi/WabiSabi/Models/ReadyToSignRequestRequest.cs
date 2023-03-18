@@ -16,13 +16,13 @@ public record ReadyToSignRequestRequest
 		RoundId = roundId;
 		AliceId = aliceId;
 		AffiliationId = affiliationId is { } nonNullAffilitiationFlag && IsValidAffiliationName(nonNullAffilitiationFlag)
-				? nonNullAffilitiationFlag 
+				? nonNullAffilitiationFlag
 				: AffiliationConstants.DefaultAffiliationId;
 	}
 	public uint256 RoundId { get; }
 	public Guid AliceId { get; }
 	public string AffiliationId { get; }
-	
+
 	private static bool IsValidAffiliationName(string name)
 	{
 		const int MinimumNameLength = 1;
