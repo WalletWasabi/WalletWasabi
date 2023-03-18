@@ -4,7 +4,7 @@ namespace WalletWasabi.Affiliation.Extensions;
 
 public static class NBitcoinExtensions
 {
-	public static long ToSlip44CoinType(this Network me) => 
+	public static long ToSlip44CoinType(this Network me) =>
 		me.Name switch
 		{
 			"Main" => 0,
