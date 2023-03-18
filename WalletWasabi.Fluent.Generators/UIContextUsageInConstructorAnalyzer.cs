@@ -78,6 +78,15 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 			.Where(static x => x.FirstAncestorOrSelf<LambdaExpressionSyntax>() == null)
 			.FirstOrDefault();
 
+		// if constructor already has a UIContext parameter, leave it be. Don't raise any warnings.
+		var ctorHasUiContextParameter =
+			ctor.ParameterList.Parameters.Any(x => x.Type.IsUIContextType(context.SemanticModel));
+
+		if (ctorHasUiContextParameter)
+		{
+			return;
+		}
+
 		if (uiContextReferenceInConstructor != null)
 		{
 			var location = uiContextReferenceInConstructor.GetLocation();
