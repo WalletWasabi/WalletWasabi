@@ -122,7 +122,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				// When it's single coin pocket, return its unique coin
 				if (pocket.Coins.Count() == 1)
 				{
-					return (CoinControlItemViewModelBase) new CoinCoinControlItemViewModel(pocket);
+					return (CoinControlItemViewModelBase)new CoinCoinControlItemViewModel(pocket);
 				}
 
 				return new PocketCoinControlItemViewModel(pocket);

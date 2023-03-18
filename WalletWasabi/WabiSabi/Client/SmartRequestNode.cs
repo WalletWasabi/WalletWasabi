@@ -13,7 +13,7 @@ public class SmartRequestNode
 	// Limit reissuance requests at the same time when coinjoining with multiple wallets to avoid overloading tor.
 	private static readonly int MaxParallelReissuanceRequests = 10;
 	private static readonly SemaphoreSlim SemaphoreSlim = new(MaxParallelReissuanceRequests);
-	
+
 	public SmartRequestNode(
 		IEnumerable<Task<Credential>> inputAmountCredentialTasks,
 		IEnumerable<Task<Credential>> inputVsizeCredentialTasks,
@@ -40,10 +40,10 @@ public class SmartRequestNode
 		var vsizesToRequest = AddExtraCredentialRequests(vsizes, inputVsizeCredentials.Sum(x => x.Value));
 
 		(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials) result;
-		
+
 		await SemaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
-		{ 
+		{
 			result = await bobClient.ReissueCredentialsAsync(
 				amountsToRequest,
 				vsizesToRequest,
@@ -55,7 +55,7 @@ public class SmartRequestNode
 		{
 			SemaphoreSlim.Release();
 		}
-		
+
 		// TODO keep the credentials that were not needed by the graph
 		var (amountCredentials, _) = SeparateExtraCredentials(result.RealAmountCredentials, amounts);
 		var (vsizeCredentials, _) = SeparateExtraCredentials(result.RealVsizeCredentials, vsizes);
