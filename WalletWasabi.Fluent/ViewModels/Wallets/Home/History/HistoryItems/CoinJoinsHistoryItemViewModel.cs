@@ -6,16 +6,15 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
+public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private readonly WalletViewModel _walletVm;
 
-	public CoinJoinsHistoryItemViewModel(
+	private CoinJoinsHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary firstItem,
 		WalletViewModel walletVm)
