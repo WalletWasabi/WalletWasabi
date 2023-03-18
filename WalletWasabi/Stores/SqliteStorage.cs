@@ -211,7 +211,7 @@ public class SqliteStorage : IDisposable
 	/// <returns><c>true</c> if at least one row was deleted, <c>false</c> otherwise.</returns>
 	public bool Clear()
 	{
-		SqliteCommand createCommand = Connection.CreateCommand();
+		using SqliteCommand createCommand = Connection.CreateCommand();
 		createCommand.CommandText = "DELETE FROM filter";
 		int affectedLines = createCommand.ExecuteNonQuery();
 
