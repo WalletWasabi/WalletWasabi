@@ -54,11 +54,17 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 			return;
 		}
 
+		var excludedClasses = new[]
+		{
+			"MainViewModel",
+			"RoutableViewModel"
+		};
+
 		var isViewModel =
 			ctor.Parent is ClassDeclarationSyntax cls &&
 			cls.Identifier.ValueText is string className &&
 			className.EndsWith("ViewModel") &&
-			className is not "MainViewModel";
+			!excludedClasses.Contains(className);
 
 		if (!isViewModel)
 		{
