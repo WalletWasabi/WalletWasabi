@@ -12,19 +12,19 @@ public class RpcBlockProvider : IBlockProvider
 	{
 		RpcClient = rpcClient;
 	}
-	
+
 	private IRPCClient RpcClient { get; }
 
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
-    {
-	    try
-	    {
-		    return await RpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-	    }
-	    catch (Exception ex)
-	    {
-		    Logger.LogDebug(ex);
-		    return null;
-	    }
-    }
+	{
+		try
+		{
+			return await RpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug(ex);
+			return null;
+		}
+	}
 }

@@ -47,7 +47,7 @@ public class AffiliateDataUpdaterTests
 			.ReturnsAsync(ok0)
 			.ReturnsAsync(ok1);
 
-		Dictionary<string, AffiliateServerHttpApiClient> servers = new ()
+		Dictionary<string, AffiliateServerHttpApiClient> servers = new()
 		{
 			["affiliate"] = new AffiliateServerHttpApiClient(clientMock.Object),
 		};
@@ -60,7 +60,7 @@ public class AffiliateDataUpdaterTests
 			.Setup(x => x.GetRoundNotifications(It.IsAny<CancellationToken>()))
 			.Returns(notifications.GetAsyncIterator(testCts.Token));
 
-		using AffiliateDataUpdater requestsUpdater = new (notifier.Object, servers.ToImmutableDictionary(), signer);
+		using AffiliateDataUpdater requestsUpdater = new(notifier.Object, servers.ToImmutableDictionary(), signer);
 		try
 		{
 			await requestsUpdater.StartAsync(testCts.Token);
