@@ -190,7 +190,7 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancellationToken)
+	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
 		var successAny = false;
 
@@ -198,7 +198,7 @@ public class IndexStore : IAsyncDisposable
 		{
 			var success = false;
 
-			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
 				success = TryProcessFilterNoLock(filter, enqueue: true);
 			}
@@ -213,15 +213,15 @@ public class IndexStore : IAsyncDisposable
 
 		if (successAny)
 		{
-			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancellationToken));
+			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3)));
 		}
 	}
 
-	public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancellationToken)
+	public async Task<FilterModel> RemoveLastFilterAsync()
 	{
 		FilterModel? filter = null;
 
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			filter = ImmatureFilters.Last();
 			ImmatureFilters.RemoveLast();
@@ -234,15 +234,15 @@ public class IndexStore : IAsyncDisposable
 
 		Reorged?.Invoke(this, filter);
 
-		AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancellationToken));
+		AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3)));
 
 		return filter;
 	}
 
-	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync(CancellationToken cancellationToken)
+	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync()
 	{
 		var removed = new List<FilterModel>();
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			if (ImmatureFilters.Any())
 			{
@@ -252,8 +252,8 @@ public class IndexStore : IAsyncDisposable
 			{
 				Logger.LogCritical("Filters got corrupted and have no more immature filters. Deleting all filters and crashing the software...");
 
-				using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
-				using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+				using (await MatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+				using (await ImmatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 				{
 					ImmatureIndexFileManager.DeleteMe();
 					MatureIndexFileManager.DeleteMe();
@@ -265,7 +265,7 @@ public class IndexStore : IAsyncDisposable
 
 		while (ImmatureFilters.Any())
 		{
-			removed.Add(await RemoveLastFilterAsync(cancellationToken).ConfigureAwait(false));
+			removed.Add(await RemoveLastFilterAsync().ConfigureAwait(false));
 		}
 
 		return removed;
@@ -275,7 +275,7 @@ public class IndexStore : IAsyncDisposable
 	/// It'll LogError the exceptions.
 	/// If cancelled, it'll LogTrace the exception.
 	/// </summary>
-	private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancellationToken)
+	private async Task TryCommitToFileAsync(TimeSpan throttle)
 	{
 		try
 		{
@@ -287,7 +287,7 @@ public class IndexStore : IAsyncDisposable
 
 				if (incremented < 21)
 				{
-					await Task.Delay(throttle, cancellationToken).ConfigureAwait(false);
+					await Task.Delay(throttle, CancellationToken.None).ConfigureAwait(false);
 				}
 
 				// If the _throttleId is still the incremented value, then I am the latest CommitToFileAsync request.
@@ -304,9 +304,9 @@ public class IndexStore : IAsyncDisposable
 				Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 			}
 
-			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-			using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
-			using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+			using (await MatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+			using (await ImmatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
 				// Do not feed the cancellationToken here I always want this to finish running for safety.
 				var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.

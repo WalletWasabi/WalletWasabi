@@ -83,7 +83,7 @@ public class SmartBlockProvider : IBlockProvider
 	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		Block? result = null;
-		
+
 		if (RpcProvider is not null)
 		{
 			result = await RpcProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
