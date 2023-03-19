@@ -1,11 +1,10 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Backend.Http.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -17,9 +16,9 @@ public class CoinVerifierApiClient : IAsyncDisposable
 	/// <summary>Maximum re-tries for a single API request.</summary>
 	private const int MaxRetries = 3;
 
-	public CoinVerifierApiClient(string apiToken, HttpClient httpClient)
+	public CoinVerifierApiClient(Uri? uri, string apiToken, HttpClient httpClient)
 	{
-		ApiToken = apiToken;
+		httpClient.Configure(uri, apiToken, ApiRequestTimeout);
 		HttpClient = httpClient;
 
 		if (HttpClient.BaseAddress is null)
@@ -36,8 +35,6 @@ public class CoinVerifierApiClient : IAsyncDisposable
 	/// <summary>Long timeout for a single API request. No retry after that. </summary>
 	public static TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(5);
 
-	private string ApiToken { get; }
-
 	private HttpClient HttpClient { get; }
 
 	private SemaphoreSlim ThrottlingSemaphore { get; } = new(initialCount: MaxParallelRequestCount);
@@ -53,27 +50,21 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			try
 			{
 				using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
-				content.Headers.Authorization = new("Bearer", ApiToken);
 
 				// Makes sure that there are no more than MaxParallelRequestCount requests in-flight at a time.
 				// Re-tries are not an exception to the max throttling limit.
 				await ThrottlingSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-				var before = DateTimeOffset.UtcNow;
 				try
 				{
-					using CancellationTokenSource apiTimeoutCts = new(ApiRequestTimeout);
-					using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(apiTimeoutCts.Token, cancellationToken);
-					response = await HttpClient.SendAsync(content, linkedCts.Token).ConfigureAwait(false);
+					response = await HttpClient.SendRequestAsync(content, "verifier-request", cancellationToken).ConfigureAwait(false);
 				}
 				finally
 				{
 					ThrottlingSemaphore.Release();
 				}
 
-				var duration = DateTimeOffset.UtcNow - before;
-				RequestTimeStatista.Instance.Add("verifier-request", duration);
 
-				if (response is { } && response.StatusCode == HttpStatusCode.OK)
+				if (response is { StatusCode: HttpStatusCode.OK })
 				{
 					// Successful request, break the iteration.
 					break;
@@ -105,11 +96,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
-		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
-			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return deserializedRecord;
+		return await response.Content.ReadAsJsonAsync<ApiResponseItem>(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

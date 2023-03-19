@@ -30,7 +30,6 @@ public class CoinVerifierApiClientStressTests
 		response.Content = new StringContent(GenerateCleanJsonReport());
 
 		Mock<HttpClient> mockHttpClient = new();
-		mockHttpClient.Object.BaseAddress = new Uri("https://verifier.local/");
 		_ = mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.Returns(async () =>
 			{
@@ -49,7 +48,7 @@ public class CoinVerifierApiClientStressTests
 				return response;
 			});
 
-		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(uri: new Uri("https://verifier.local/"), apiToken: "token", mockHttpClient.Object);
 
 		Task<ApiResponseItem>[] tasks = new Task<ApiResponseItem>[tasksToRun];
 
