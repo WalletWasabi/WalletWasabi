@@ -289,3 +289,8 @@ dotnet_diagnostic.CA1827.severity = warning
 
 # CA1822: This complains to make functions static. Static is evil. Don't let it complain.
 dotnet_diagnostic.CA1822.severity = none
+
+# Spell Checker rules
+spelling_languages = en-us
+spelling_checkable_types = strings,identifiers,comments
+spelling_error_severity = error
