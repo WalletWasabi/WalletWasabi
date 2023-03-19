@@ -63,7 +63,6 @@ public class CoinVerifierApiClient : IAsyncDisposable
 					ThrottlingSemaphore.Release();
 				}
 
-
 				if (response is { StatusCode: HttpStatusCode.OK })
 				{
 					// Successful request, break the iteration.
