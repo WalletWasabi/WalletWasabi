@@ -247,8 +247,7 @@ public class Dialog : ContentControl
 	{
 		if (isOpen)
 		{
-			var previous = AllOpenedDialogStack.Count > 0 ? AllOpenedDialogStack.Peek() : null;
-			if (previous is { })
+			if (AllOpenedDialogStack.TryPeek(out var previous))
 			{
 				previous.IsEnabled = false;
 			}
@@ -264,8 +263,7 @@ public class Dialog : ContentControl
 				AllOpenedDialogStack.Pop();
 			}
 
-			var previous = AllOpenedDialogStack.Count > 0 ? AllOpenedDialogStack.Peek() : null;
-			if (previous is { })
+			if (AllOpenedDialogStack.TryPeek(out var previous))
 			{
 				previous.IsEnabled = true;
 				previous.Focus();
