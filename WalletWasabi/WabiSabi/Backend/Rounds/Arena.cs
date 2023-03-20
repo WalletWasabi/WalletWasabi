@@ -55,10 +55,15 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
+
 	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
+
 	public event EventHandler<CoinJoinTransactionCreatedEventArgs>? CoinJoinTransactionCreated;
+
 	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
+
 	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
+
 	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
