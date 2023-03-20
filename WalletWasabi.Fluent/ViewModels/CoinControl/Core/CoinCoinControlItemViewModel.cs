@@ -1,10 +1,22 @@
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
+	public CoinCoinControlItemViewModel(Pocket pocket) : this(pocket.Coins.First())
+	{
+		if (pocket.Coins.Count() != 1)
+		{
+			throw new InvalidOperationException("The pocket must contain only one coin.");
+		}
+
+		Labels = pocket.Labels;
+	}
+
 	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
 	{
 		SmartCoin = smartCoin;

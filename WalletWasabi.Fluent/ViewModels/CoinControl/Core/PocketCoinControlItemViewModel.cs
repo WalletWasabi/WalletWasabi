@@ -22,15 +22,24 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
-		AnonymityScore = pocketCoins.Count == 1 ? (int)pocketCoins[0].HdPubKey.AnonymitySet : null;
+		AnonymityScore = (int)pocketCoins.Min(coin => coin.AnonymitySet);
 		Labels = pocket.Labels;
-		Children = pocketCoins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
+		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
-		ScriptType = pocketCoins.Count == 1 ? ScriptType.FromEnum(pocketCoins[0].ScriptType) : null;
+		ScriptType = null;
 
 		Children
 			.AsObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
+			.Select(c => Children.Where(x => x.SmartCoin.HdPubKey == c.Sender.SmartCoin.HdPubKey && x.IsSelected != c.Sender.IsSelected))
+			.Do(coins =>
+			{
+				// Select/deselect all the coins on the same address.
+				foreach (var coin in coins)
+				{
+					coin.IsSelected = !coin.IsSelected;
+				}
+			})
 			.Select(_ =>
 			{
 				var totalCount = Children.Count;
