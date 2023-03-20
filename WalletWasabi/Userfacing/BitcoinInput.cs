@@ -7,7 +7,7 @@ namespace WalletWasabi.Userfacing;
 
 public static class BitcoinInput
 {
-	public static bool TryCorrectAmount(in string? original, [NotNullWhen(true)] out string? best)
+	public static bool TryCorrectAmount(string? original, [NotNullWhen(true)] out string? best)
 	{
 		var corrected = Guard.Correct(original);
 
