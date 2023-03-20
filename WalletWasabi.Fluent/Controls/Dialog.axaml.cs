@@ -75,7 +75,7 @@ public class Dialog : ContentControl
 	public static readonly StyledProperty<bool> ShowAlertProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(ShowAlert));
 
-	private static readonly Stack<Dialog> Open = new ();
+	private static readonly Stack<Dialog> AllOpenedDialogStack = new ();
 
 	public Dialog()
 	{
@@ -247,24 +247,24 @@ public class Dialog : ContentControl
 	{
 		if (isOpen)
 		{
-			var previous = Open.Count > 0 ? Open.Peek() : null;
+			var previous = AllOpenedDialogStack.Count > 0 ? AllOpenedDialogStack.Peek() : null;
 			if (previous is { })
 			{
 				previous.IsEnabled = false;
 			}
 
-			Open.Push(this);
+			AllOpenedDialogStack.Push(this);
 
 			Focus();
 		}
 		else
 		{
-			if (Open.Count > 0)
+			if (AllOpenedDialogStack.Count > 0)
 			{
-				Open.Pop();
+				AllOpenedDialogStack.Pop();
 			}
 
-			var previous = Open.Count > 0 ? Open.Peek() : null;
+			var previous = AllOpenedDialogStack.Count > 0 ? AllOpenedDialogStack.Peek() : null;
 			if (previous is { })
 			{
 				previous.IsEnabled = true;
