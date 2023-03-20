@@ -110,9 +110,9 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 
 **Renewal**
 
-**New method**
-
-1. Create a new Certificate Signing Request (CSR) file with DigiCert® Certificate Utility application.
+1. Create a new Certificate Signing Request (CSR) file with DigiCert® Certificate Utility application. 
+   DigiCert® Certificate Utility is using the logged in user's public key to encrypt the file and only the same user can decrypt it after we receive the certificate.
+   Make sure to create the CSR file in David's profile (or wherever the release script is located)!
 2. Upload the CSR file to DigiCert.
 3. Wait for DigiCert to issue a new `zksnacks_limited.p7b` file.
 4. Import the `zksnacks_limited.p7b` file to DigiCert® Certificate Utility.
@@ -120,16 +120,6 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 6. Export the `zksnacks_limited.pfx` to `C:\zksnacks_limited.pfx`.
 7. Rename `C:\zksnacks_limited.pfx` to `C:\digicert.pfx`, so the Packager can find it!!
 
-**Obsolete method**
-
-1. Issue a renewal on digicert website with the CSR file: `secret-ssl/mainnet/wasabiserver.csr`.
-2. Wait for `zksnacks_limited.p7b` file put it into `c:\temp`.
-3. Copy `secret-ssl/mainnet/wasabiserver.key` to `c:\temp`.
-4. Open Windows Linux Subsystem and navigate into folder `c:\temp`.
-5. Run command `openssl pkcs7 -print_certs -in zksnacks_limited.p7b -out certificatename.cer`.
-6. Run command `openssl pkcs12 -export -in certificatename.cer -inkey wasabiserver.key -out digicert.pfx`.
-7. Apply the default password from `secret-ssl/codesigning/windows/password.txt`.
-8. Packager needs the codesigning certificate file to be here: `c:\digicert.pfx`.
 
 ## Packager environment setup
 
