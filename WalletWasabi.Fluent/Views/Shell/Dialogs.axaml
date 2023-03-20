@@ -32,8 +32,7 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580"
-              Name="FullScreen">
+              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}" />
@@ -57,8 +56,7 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580"
-              Name="DialogScreen">
+              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog DataContext="{Binding CompactDialogScreen}"
@@ -70,8 +68,7 @@
               IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
               EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              Name="CompactDialogScreen">
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
   </Panel>
