@@ -1,12 +1,24 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Userfacing;
 
-public static class BitcoinInput
+public static class CurrencyInput
 {
+	private const string DecimalSeparator = ".";
+	private const string GroupSeparator = " ";
+
+	public static NumberFormatInfo InvariantNumberFormat { get; } = new()
+	{
+		CurrencyGroupSeparator = GroupSeparator,
+		CurrencyDecimalSeparator = DecimalSeparator,
+		NumberGroupSeparator = GroupSeparator,
+		NumberDecimalSeparator = DecimalSeparator
+	};
+
 	public static bool TryCorrectAmount(string? original, [NotNullWhen(true)] out string? best)
 	{
 		var corrected = Guard.Correct(original);
@@ -67,6 +79,25 @@ public static class BitcoinInput
 				corrected = "";
 			}
 		}
+
+		if (corrected != original)
+		{
+			best = corrected;
+			return true;
+		}
+		else
+		{
+			best = null;
+			return false;
+		}
+	}
+
+	public static bool TryCorrectBitcoinAmount(string? original, [NotNullWhen(true)] out string? best)
+	{
+		TryCorrectAmount(original, out var corrected);
+
+		// If the original value wasn't fixed, it's definitely not a null.
+		corrected ??= original!;
 
 		// Enable max 8 decimals.
 		var dotIndex = corrected.IndexOf('.');

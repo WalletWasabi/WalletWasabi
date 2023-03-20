@@ -64,9 +64,6 @@ public class DualCurrencyEntryBox : UserControl
 	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(LeftEntryBox));
 
-	private readonly CultureInfo _customCultureInfo;
-	private readonly char _decimalSeparator = '.';
-	private readonly char _groupSeparator = ' ';
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
 	private decimal _amountBtc;
@@ -75,17 +72,6 @@ public class DualCurrencyEntryBox : UserControl
 
 	public DualCurrencyEntryBox()
 	{
-		_customCultureInfo = new CultureInfo("")
-		{
-			NumberFormat =
-			{
-				CurrencyGroupSeparator = _groupSeparator.ToString(),
-				NumberGroupSeparator = _groupSeparator.ToString(),
-				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-				NumberDecimalSeparator = _decimalSeparator.ToString()
-			}
-		};
-
 		this.GetObservable(TextProperty).Subscribe(InputText);
 		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
 		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(true));
@@ -238,7 +224,7 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void InputBtcString(string value)
 	{
-		if (BitcoinInput.TryCorrectAmount(value, out var better))
+		if (CurrencyInput.TryCorrectAmount(value, out var better))
 		{
 			if (better != Constants.MaximumNumberOfBitcoins.ToString())
 			{
@@ -246,7 +232,7 @@ public class DualCurrencyEntryBox : UserControl
 			}
 		}
 
-		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
+		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 		{
 			InputBtcValue(decimalValue);
 		}
@@ -261,7 +247,7 @@ public class DualCurrencyEntryBox : UserControl
 			return;
 		}
 
-		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
+		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 		{
 			InputBtcValue(FiatToBitcoin(decimalValue));
 		}

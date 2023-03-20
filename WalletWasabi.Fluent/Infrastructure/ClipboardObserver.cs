@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Infrastructure;
 
@@ -40,7 +41,12 @@ internal class ClipboardObserver
 
 	private static decimal? ParseToUsd(string text)
 	{
-		return decimal.TryParse(text, out var n) ? n : (decimal?)default;
+		if (CurrencyInput.TryCorrectAmount(text, out var corrected))
+		{
+			text = corrected;
+		}
+		
+		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
 	private static Money? ParseToMoney(string text)
