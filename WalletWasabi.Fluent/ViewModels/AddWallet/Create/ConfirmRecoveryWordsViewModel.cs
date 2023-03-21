@@ -23,13 +23,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private readonly string _walletName;
 
 	[AutoNotify] private bool _isSkipEnabled;
-	[AutoNotify] private RecoveryWordViewModel? _currentWord;
+	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
 	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
 		_availableWords = new List<RecoveryWordViewModel>();
-		_words = words;
+		_words = words.OrderBy(x => x.Index).ToList();
+		_currentWord = words.First();
 		_mnemonic = mnemonic;
 		_walletName = walletName;
 	}
@@ -49,7 +50,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.DisposeWith(disposables)
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
 			.Bind(ConfirmationWords)
 			.OnItemAdded(x => x.Reset())
 			.Subscribe()
@@ -95,27 +95,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private void SetNextWord()
 	{
-		CurrentWord =
-			CurrentWord?.Index switch
-			{
-				null => ConfirmationWords.First(),
-				int i when i >= 1 && i < ConfirmationWords.Count => ConfirmationWords[i],
-				_ => null
-			};
-
-		if (CurrentWord is { })
+		if (ConfirmationWords.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
 		{
-			EnableAvailableWords(true);
+			CurrentWord = nextWord;
 		}
+
+		EnableAvailableWords(true);
 	}
 
 	private void OnWordSelectionChanged(RecoveryWordViewModel selectedWord)
 	{
-		if (CurrentWord is null)
-		{
-			return;
-		}
-
 		if (selectedWord.IsSelected)
 		{
 			CurrentWord.SelectedWord = selectedWord.Word;
