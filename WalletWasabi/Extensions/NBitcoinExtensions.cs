@@ -50,7 +50,7 @@ public static class NBitcoinExtensions
 			if (message.Message.Payload is NotFoundPayload ||
 				(message.Message.Payload is PongPayload p && p.Nonce == pingNonce))
 			{
-				throw new InvalidOperationException($"Disconnected local node, because it does not have the block data.");
+				throw new InvalidOperationException($"Disconnected node, because it does not have the block data.");
 			}
 			else if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
 			{
@@ -207,7 +207,8 @@ public static class NBitcoinExtensions
 	public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, SmartTransaction unsignedSmartTransaction)
 	{
 		var extractedTx = psbt.ExtractTransaction();
-		return new SmartTransaction(extractedTx,
+		return new SmartTransaction(
+			extractedTx,
 			unsignedSmartTransaction.Height,
 			unsignedSmartTransaction.BlockHash,
 			unsignedSmartTransaction.BlockIndex,
@@ -222,7 +223,7 @@ public static class NBitcoinExtensions
 	}
 
 	/// <param name="startWithM">The keypath will start with m/ or not.</param>
-	/// <param name="format">h or ', eg.: m/84h/0h/0 or m/84'/0'/0</param>
+	/// <param name="format">Either h or ', eg.: m/84h/0h/0 or m/84'/0'/0</param>
 	public static string ToString(this KeyPath me, bool startWithM, string format)
 	{
 		var toStringBuilder = new StringBuilder(me.ToString());
@@ -381,6 +382,7 @@ public static class NBitcoinExtensions
 		if (keyManager.MasterFingerprint.HasValue)
 		{
 			var fp = keyManager.MasterFingerprint.Value;
+
 			// Add input keypaths.
 			foreach (var script in psbt.Inputs.Select(x => x.WitnessUtxo?.ScriptPubKey).ToArray())
 			{
@@ -451,6 +453,14 @@ public static class NBitcoinExtensions
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
 			ScriptType.Taproot => Constants.P2trInputVirtualSize,
+			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+		};
+
+	public static int EstimateOutputVsize(this ScriptType scriptType) =>
+		scriptType switch
+		{
+			ScriptType.P2WPKH => Constants.P2wpkhOutputVirtualSize,
+			ScriptType.Taproot => Constants.P2trOutputVirtualSize,
 			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 

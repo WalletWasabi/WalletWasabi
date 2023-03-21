@@ -56,6 +56,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 		if (apiResponseItem is not null)
 		{
 			var reportId = apiResponseItem?.Report_info_section.Report_id;
+			var reportHeight = apiResponseItem?.Report_info_section.Report_block_height.ToString();
 			var reportType = apiResponseItem?.Report_info_section.Report_type;
 			var ids = apiResponseItem?.Cscore_section.Cscore_info?.Select(x => x.Id) ?? Enumerable.Empty<int>();
 			var categories = apiResponseItem?.Cscore_section.Cscore_info.Select(x => x.Name) ?? Enumerable.Empty<string>();
@@ -64,13 +65,14 @@ public class CoinVerifierLogger : IAsyncDisposable
 			var detailsArray = new string[]
 			{
 					reportId ?? "ReportID None",
+					reportHeight ?? "ReportHeight None",
 					reportType ?? "ReportType None",
 					addressUsed ? "Address used" : "Address not used",
 					ids.Any() ? string.Join(' ', ids) : "FlagIds None",
 					categories.Any() ? string.Join(' ', categories) : "Risk categories None"
 			};
 
-			// Separate the different values of the ApiResponseItem with ';', so the details will be one value in the CSV file.
+			// Separate the different values of the ApiResponseItem with '|', so the details will be one value in the CSV file.
 			details = string.Join("|", detailsArray);
 		}
 		else if (exception is not null)

@@ -204,8 +204,8 @@ public class ChaumianCoinJoinController : ControllerBase
 				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.BlindedOutput.ToBytes()));
 				uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blindedOutputScriptHashesByte));
 
-				var inputs = new HashSet<Coin>();
-				var coinAndTxOutResponses = new Dictionary<Coin, GetTxOutResponse>();
+				var inputs = new HashSet<Coin>(CoinEqualityComparer.Default);
+				var coinAndTxOutResponses = new Dictionary<Coin, GetTxOutResponse>(CoinEqualityComparer.Default);
 
 				var allInputsConfirmed = true;
 				foreach (var responses in getTxOutResponses)
@@ -307,9 +307,11 @@ public class ChaumianCoinJoinController : ControllerBase
 					round.RemoveAlicesBy(aliceToRemove);
 				}
 
+				var blockHeight = await RpcClient.GetBlockCountAsync().ConfigureAwait(false);
+
 				foreach (var coin in alice.Inputs)
 				{
-					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, out _, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations);
+					CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimesout, coinAndTxOutResponses[coin].Confirmations, oneHop: false, currentBlockHeight: blockHeight, CancellationToken.None);
 				}
 
 				round.AddAlice(alice);

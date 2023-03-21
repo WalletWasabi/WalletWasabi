@@ -54,7 +54,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
-	
+
 	public SendViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;

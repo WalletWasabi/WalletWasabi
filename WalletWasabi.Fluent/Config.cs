@@ -1,6 +1,5 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Net;
 using WalletWasabi.Bases;
@@ -8,9 +7,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent;
 
@@ -40,13 +37,13 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(NetworkJsonConverter))]
 	public Network Network { get; internal set; } = Network.Main;
 
-	[DefaultValue("https://wasabiwallet.io/")]
+	[DefaultValue("https://api.wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetBackendUri { get; private set; } = "https://wasabiwallet.io/";
+	public string MainNetBackendUri { get; private set; } = "https://api.wasabiwallet.io/";
 
-	[DefaultValue("https://wasabiwallet.co/")]
+	[DefaultValue("https://api.wasabiwallet.co/")]
 	[JsonProperty(PropertyName = "TestNetClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetBackendUri { get; private set; } = "https://wasabiwallet.co/";
+	public string TestNetBackendUri { get; private set; } = "https://api.wasabiwallet.co/";
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -111,9 +108,9 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
 	public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
 	{
-			"http://127.0.0.1:37128/",
-			"http://localhost:37128/"
-		};
+		"http://127.0.0.1:37128/",
+		"http://localhost:37128/"
+	};
 
 	[JsonProperty(PropertyName = "DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
@@ -214,77 +211,30 @@ public class Config : ConfigBase
 		}
 	}
 
-	/// <inheritdoc />
-	public override void LoadFile()
+	/// <inheritdoc/>
+	public override void LoadFile(bool createIfMissing = false)
 	{
-		base.LoadFile();
+		base.LoadFile(createIfMissing);
 
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
-	protected override bool TryEnsureBackwardsCompatibility(string jsonString)
+	public bool MigrateOldDefaultBackendUris()
 	{
-		try
+		bool hasChanged = false;
+
+		if (MainNetBackendUri == "https://wasabiwallet.io/")
 		{
-			var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
-
-			if (jsObject is null)
-			{
-				Logger.LogWarning("Failed to parse config JSON.");
-				return false;
-			}
-
-			bool saveIt = false;
-
-			var torHost = jsObject.Value<string>("TorHost");
-			var torSocks5Port = jsObject.Value<int?>("TorSocks5Port");
-			var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
-			var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
-			var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
-			var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
-			var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
-			var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
-
-			if (mainNetBitcoinCoreHost is { })
-			{
-				int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
-
-				if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint? ep))
-				{
-					MainNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			if (testNetBitcoinCoreHost is { })
-			{
-				int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
-
-				if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint? ep))
-				{
-					TestNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			if (regTestBitcoinCoreHost is { })
-			{
-				int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
-
-				if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint? ep))
-				{
-					RegTestBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			return saveIt;
+			MainNetBackendUri = "https://api.wasabiwallet.io/";
+			hasChanged = true;
 		}
-		catch (Exception ex)
+
+		if (TestNetBackendUri == "https://wasabiwallet.co/")
 		{
-			Logger.LogWarning("Backwards compatibility couldn't be ensured.");
-			Logger.LogInfo(ex);
-			return false;
+			TestNetBackendUri = "https://api.wasabiwallet.co/";
+			hasChanged = true;
 		}
+
+		return hasChanged;
 	}
 }

@@ -55,45 +55,46 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
 			return !AreDeepEqual(newConfigObject);
-		}		
-	}
-
-	/// <inheritdoc />
-	public virtual void LoadOrCreateDefaultFile()
-	{
-		AssertFilePathSet();
-
-		lock (FileLock)
-		{
-			JsonConvert.PopulateObject("{}", this);
-
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				try
-				{
-					LoadFileNoLock();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
-					Logger.LogWarning(ex);
-				}
-			}
-
-			ToFileNoLock();
 		}
 	}
 
 	/// <inheritdoc />
-	public virtual void LoadFile()
+	public virtual void LoadFile(bool createIfMissing = false)
 	{
-		lock (FileLock)
+		if (createIfMissing)
 		{
-			LoadFileNoLock();
+			AssertFilePathSet();
+
+			lock (FileLock)
+			{
+				JsonConvert.PopulateObject("{}", this);
+
+				if (!File.Exists(FilePath))
+				{
+					Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+				}
+				else
+				{
+					try
+					{
+						LoadFileNoLock();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
+						Logger.LogWarning(ex);
+					}
+				}
+
+				ToFileNoLock();
+			}
+		}
+		else
+		{
+			lock (FileLock)
+			{
+				LoadFileNoLock();
+			}
 		}
 	}
 
@@ -121,18 +122,11 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		}
 	}
 
-	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
-
 	protected void LoadFileNoLock()
 	{
 		string jsonString = ReadFileNoLock();
 
 		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
-
-		if (TryEnsureBackwardsCompatibility(jsonString))
-		{
-			ToFileNoLock();
-		}
 	}
 
 	protected void ToFileNoLock()

@@ -14,25 +14,28 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public static class ChangelessTransactionCoinSelector
 {
-	public static async IAsyncEnumerable<IEnumerable<SmartCoin>> GetAllStrategyResultsAsync(
-		IEnumerable<SmartCoin> availableCoins,
+	public static async IAsyncEnumerable<IReadOnlyList<SmartCoin>> GetAllStrategyResultsAsync(
+		IReadOnlyList<SmartCoin> availableCoins,
 		FeeRate feeRate,
 		TxOut txOut,
-		int maxInputCount = int.MaxValue,
-		[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		int maxInputCount,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		// target = target amount + output cost
 		long target = txOut.Value.Satoshi + feeRate.GetFee(txOut.ScriptPubKey.EstimateOutputVsize()).Satoshi;
 
-		// Keys are effective values of smart coins in satoshis.
-		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
+		// Group coins by their script pub key and sort the groups in the descending order. Each coin group is considered to be a single coin for the purposes of the algorithm.
+		// All coins in a single group have the same script pub key so all the coins should be spent together or not spent at all.
+		IOrderedEnumerable<IGrouping<Script, SmartCoin>> coinsByScript = availableCoins
+			.GroupBy(coin => coin.ScriptPubKey)
+			.OrderByDescending(group => group.Sum(coin => coin.EffectiveValue(feeRate).Satoshi));
 
-		// How much it costs to spend each coin.
-		long[] inputCosts = sortedCoins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+		// How much it costs to spend each coin group.
+		long[] inputCosts = coinsByScript.Select(group => group.Sum(coin => feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()).Satoshi)).ToArray();
 
-		Dictionary<SmartCoin, long> inputEffectiveValues = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		Dictionary<SmartCoin[], long> inputEffectiveValues = new(coinsByScript.ToDictionary(x => x.Select(coin => coin).ToArray(), x => x.Sum(coin => coin.EffectiveValue(feeRate).Satoshi)));
 
-		// Pass smart coins' effective values in descending order.
+		// Pass smart coin groups effective values in descending order.
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
 
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount);
@@ -47,19 +50,24 @@ public static class ChangelessTransactionCoinSelector
 			.Select(strategy => Task.Run(
 				() =>
 				{
-					if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+					if (TryGetCoins(strategy, inputEffectiveValues, out IReadOnlyList<SmartCoin>? coins, cancellationToken))
 					{
 						return coins;
 					}
 
-					return Enumerable.Empty<SmartCoin>();
+					return null;
 				},
 				cancellationToken))
 			.ToArray();
 
 		foreach (var task in tasks)
 		{
-			yield return await task.ConfigureAwait(false);
+			IReadOnlyList<SmartCoin>? smartCoins = await task.ConfigureAwait(false);
+
+			if (smartCoins is not null)
+			{
+				yield return smartCoins;
+			}
 		}
 	}
 
@@ -69,8 +77,9 @@ public static class ChangelessTransactionCoinSelector
 	/// </summary>
 	/// <param name="strategy">The strategy determines what the algorithm is looking for.</param>
 	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
+	/// <param name="selectedCoins">Out parameter that returns (non-grouped!) coins back.</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin[], long> inputEffectiveValues, [NotNullWhen(true)] out IReadOnlyList<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
 	{
 		selectedCoins = null;
 
@@ -99,13 +108,13 @@ public static class ChangelessTransactionCoinSelector
 			List<SmartCoin> resultCoins = new();
 			int i = 0;
 
-			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputEffectiveValues)
+			foreach ((SmartCoin[] smartCoinGroup, long effectiveSatoshis) in inputEffectiveValues)
 			{
 				// Both arrays are in decreasing order so the first match will be the coin we are looking for.
 				if (effectiveSatoshis == solution[i])
 				{
 					i++;
-					resultCoins.Add(smartCoin);
+					resultCoins.AddRange(smartCoinGroup);
 					if (i == solution.Count)
 					{
 						break;

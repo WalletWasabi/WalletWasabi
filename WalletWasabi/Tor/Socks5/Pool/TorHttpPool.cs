@@ -463,6 +463,7 @@ public class TorHttpPool : IAsyncDisposable
 		// in forwarded messages.
 		request.Version = HttpProtocol.HTTP11.Version;
 
+		// Do not re-add the header if it is already present.
 		if (!request.Headers.AcceptEncoding.Contains(GzipEncoding))
 		{
 			request.Headers.AcceptEncoding.Add(GzipEncoding);

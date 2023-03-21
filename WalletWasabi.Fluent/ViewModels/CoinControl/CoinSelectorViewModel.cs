@@ -1,218 +1,156 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Templates;
 using DynamicData;
-using NBitcoin;
+using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
-using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+	private readonly ReadOnlyObservableCollection<CoinControlItemViewModelBase> _itemsCollection;
+	private readonly Wallet _wallet;
+
 	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
 
-	public CoinSelectorViewModel(WalletViewModelBase walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
+	public CoinSelectorViewModel(WalletViewModel walletViewModel, IList<SmartCoin> initialCoinSelection)
 	{
-		var pockets = walletViewModel.Wallet.GetPockets();
-		var pocketItems = CreatePocketItems(pockets);
+		_wallet = walletViewModel.Wallet;
+		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
+		sourceItems.DisposeWith(_disposables);
 
-		SyncSelectedItems(pocketItems, initialCoinSelection);
-		CollapseUnselectedPockets(pocketItems);
+		var changes = sourceItems.Connect();
 
-		TreeDataGridSource = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
-		{
-			Columns =
+		var coinItems = changes
+			.TransformMany(item =>
 			{
-				ChildrenColumn(),
-				IndicatorsColumn(),
-				AmountColumn(),
-				AnonymityScoreColumn(),
-				PocketColumn(),
-			}
-		};
+				// When root item is a coin item
+				if (item is CoinCoinControlItemViewModel c)
+				{
+					return new[] { c };
+				}
 
-		var coins = GetAllCoinItems(pocketItems);
+				return item.Children;
+			})
+			.AddKey(model => model.SmartCoin.Outpoint);
 
-		coins
-			.AsObservableChangeSet(x => x.SmartCoin)
-			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(100), scheduler: RxApp.MainThreadScheduler)
+		changes
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
+			.DisposeMany()
+			.Bind(out _itemsCollection)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		coinItems
+			.Bind(out var coinItemsCollection)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		var selectedCoins = coinItems
+			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Select(x => x.Where(m => m.IsSelected == true))
-			.Select(models => models.Select(x => x.SmartCoin).ToImmutableList())
-			.BindTo(this, model => model.SelectedCoins);
+			.Select(GetSelectedCoins);
+
+		walletViewModel.UiTriggers.TransactionsUpdateTrigger
+			.WithLatestFrom(selectedCoins, (_, sc) => sc)
+			.Do(
+				sl =>
+				{
+					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+					RefreshFromPockets(sourceItems);
+					UpdateSelection(coinItemsCollection, sl.ToList());
+					RestoreExpandedRows(oldExpandedItemsLabel);
+				})
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		// Project selected coins to public property. Throttle for improved UI performance
+		selectedCoins
+			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
+			.BindTo(this, x => x.SelectedCoins)
+			.DisposeWith(_disposables);
+
+		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
+
+		TreeDataGridSource.DisposeWith(_disposables);
+
+		RefreshFromPockets(sourceItems);
+		UpdateSelection(coinItemsCollection, initialCoinSelection);
+		ExpandSelectedItems();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
 
 	public void Dispose()
 	{
-		foreach (var pocket in TreeDataGridSource.Items.OfType<PocketCoinControlItemViewModel>())
-		{
-			pocket.Dispose();
-		}
-
-		TreeDataGridSource.Dispose();
+		_disposables.Dispose();
 	}
 
-	private static IList<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
+	private static ReadOnlyCollection<SmartCoin> GetSelectedCoins(IReadOnlyCollection<CoinCoinControlItemViewModel> list)
 	{
-		return pockets
-			.SelectMany(x => x.Children)
-			.OfType<CoinCoinControlItemViewModel>()
-			.ToList();
+		return new ReadOnlyCollection<SmartCoin>(list.Where(item => item.IsSelected == true).Select(x => x.SmartCoin).ToList());
 	}
 
-	private static void SyncSelectedItems(IEnumerable<PocketCoinControlItemViewModel> items, IEnumerable<SmartCoin> selectedCoins)
+	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
 	{
-		var allCoins = GetAllCoinItems(items);
-		var selected = allCoins.Where(x => selectedCoins.Any(other => other == x.SmartCoin));
-		foreach (var viewModel in selected)
+		var coinsToSelect = coinItems.Where(x => selectedCoins.Contains(x.SmartCoin));
+
+		foreach (var coinItem in coinsToSelect)
 		{
-			viewModel.IsSelected = true;
+			coinItem.IsSelected = true;
 		}
 	}
 
-	private static void CollapseUnselectedPockets(IReadOnlyCollection<PocketCoinControlItemViewModel> pocketItems)
+	private void RefreshFromPockets(ISourceList<CoinControlItemViewModelBase> source)
 	{
-		foreach (var pocket in pocketItems.Where(x => x.IsSelected == false))
-		{
-			pocket.IsExpanded = false;
-		}
-	}
-
-	private static int GetLabelPriority(CoinControlItemViewModelBase coin)
-	{
-		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
-		{
-			return 3;
-		}
-
-		if (coin.Labels == CoinPocketHelper.SemiPrivateFundsText)
-		{
-			return 2;
-		}
-
-		return 1;
-	}
-
-	private static int GetIndicatorPriority(CoinControlItemViewModelBase x)
-	{
-		if (x.IsCoinjoining)
-		{
-			return 1;
-		}
-
-		if (x.BannedUntilUtc.HasValue)
-		{
-			return 2;
-		}
-
-		if (!x.IsConfirmed)
-		{
-			return 3;
-		}
-
-		return 0;
-	}
-
-	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreatePocketItems(IEnumerable<Pocket> pockets)
-	{
-		return pockets
-			.Select(pocket => new PocketCoinControlItemViewModel(pocket))
-			.ToList();
-	}
-
-	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
-	{
-		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
-	}
-
-	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
-	{
-		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
-	}
-
-	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
-	{
-		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
-			SelectionColumn(),
-			group => group.Children,
-			node => node.Children.Count > 1,
-			node => node.IsExpanded);
-	}
-
-	private static TemplateColumn<CoinControlItemViewModelBase> SelectionColumn()
-	{
-		return new TemplateColumn<CoinControlItemViewModelBase>(
-			"",
-			new FuncDataTemplate<CoinControlItemViewModelBase>(
-				(_, _) => new SelectionCellView(),
-				true),
-			GridLength.Auto);
-	}
-
-	private static IColumn<CoinControlItemViewModelBase> AmountColumn()
-	{
-		return new PlainTextColumn<CoinControlItemViewModelBase>(
-			"Amount",
-			node => node.Amount.ToFormattedString(),
-			GridLength.Auto,
-			new ColumnOptions<CoinControlItemViewModelBase>
+		var newItems = _wallet
+			.GetPockets()
+			.Select(pocket =>
 			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, Money>(x => x.Amount),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, Money>(x => x.Amount)
+				// When it's single coin pocket, return its unique coin
+				if (pocket.Coins.Count() == 1)
+				{
+					return (CoinControlItemViewModelBase)new CoinCoinControlItemViewModel(pocket);
+				}
+
+				return new PocketCoinControlItemViewModel(pocket);
+			});
+
+		source.Edit(
+			x =>
+			{
+				x.Clear();
+				x.AddRange(newItems);
 			});
 	}
 
-	private static IColumn<CoinControlItemViewModelBase> IndicatorsColumn()
+	private void RestoreExpandedRows(IEnumerable<SmartLabel> oldItemsLabels)
 	{
-		return new TemplateColumn<CoinControlItemViewModelBase>(
-			"",
-			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new IndicatorsCellView(), true),
-			GridLength.Auto,
-			new ColumnOptions<CoinControlItemViewModelBase>
-			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetIndicatorPriority),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetIndicatorPriority)
-			});
+		var itemsToExpand = _itemsCollection.Where(item => oldItemsLabels.Any(label => item.Labels.Equals(label)));
+
+		foreach (var item in itemsToExpand)
+		{
+			item.IsExpanded = true;
+		}
 	}
 
-	private static IColumn<CoinControlItemViewModelBase> AnonymityScoreColumn()
+	private void ExpandSelectedItems()
 	{
-		return new PlainTextColumn<CoinControlItemViewModelBase>(
-			new AnonymityScoreHeaderView(),
-			node => node.AnonymityScore.ToString(),
-			GridLength.Auto,
-			new TextColumnOptions<CoinControlItemViewModelBase>
-			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore)
-			});
-	}
-
-	private static IColumn<CoinControlItemViewModelBase> PocketColumn()
-	{
-		return new TemplateColumn<CoinControlItemViewModelBase>(
-			"Pocket",
-			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new LabelsCellView(), true),
-			GridLength.Star,
-			new ColumnOptions<CoinControlItemViewModelBase>
-			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetLabelPriority),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetLabelPriority)
-			});
+		foreach (var item in _itemsCollection.Where(x => x.IsSelected is not false))
+		{
+			item.IsExpanded = true;
+		}
 	}
 }
