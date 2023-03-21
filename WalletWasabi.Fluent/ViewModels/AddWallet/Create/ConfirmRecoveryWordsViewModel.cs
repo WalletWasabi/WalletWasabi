@@ -12,7 +12,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.Views.AddWallet.Create;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
