@@ -83,7 +83,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.DisposeWith(disposables)
 			.Connect()
 			.WhenPropertyChanged(x => x.IsSelected)
-			.Subscribe(x => OnWordSelected(x.Sender));
+			.Subscribe(x => OnWordSelectionChanged(x.Sender));
 
 		availableWordsSourceList.AddRange(AvailableWords);
 
@@ -109,7 +109,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		}
 	}
 
-	private void OnWordSelected(RecoveryWordViewModel selectedWord)
+	private void OnWordSelectionChanged(RecoveryWordViewModel selectedWord)
 	{
 		if (selectedWord.IsConfirmed)
 		{
