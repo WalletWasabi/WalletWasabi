@@ -9,6 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 public partial class DialogScreenViewModel : TargettedNavigationStack
 {
 	[AutoNotify] private bool _isDialogOpen;
+	[AutoNotify] private bool _showAlert;
 
 	public DialogScreenViewModel(NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
 	{

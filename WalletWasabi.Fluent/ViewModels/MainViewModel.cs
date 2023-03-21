@@ -44,7 +44,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public MainViewModel()
 	{
-		ApplyUiConfigWindowSate();
+		ApplyUiConfigWindowState();
 
 		_dialogScreen = new DialogScreenViewModel();
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -134,6 +134,36 @@ public partial class MainViewModel : ViewModelBase
 		DialogScreen.CurrentPage is { IsBusy: true } ||
 		FullScreen.CurrentPage is { IsBusy: true } ||
 		CompactDialogScreen.CurrentPage is { IsBusy: true };
+
+	public bool IsDialogOpen()
+	{
+		return DialogScreen.IsDialogOpen
+			   || FullScreen.IsDialogOpen
+			   || CompactDialogScreen.IsDialogOpen;
+	}
+
+	public void ShowDialogAlert()
+	{
+		if (CompactDialogScreen.IsDialogOpen)
+		{
+			CompactDialogScreen.ShowAlert = false;
+			CompactDialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (DialogScreen.IsDialogOpen)
+		{
+			DialogScreen.ShowAlert = false;
+			DialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (FullScreen.IsDialogOpen)
+		{
+			FullScreen.ShowAlert = false;
+			FullScreen.ShowAlert = true;
+		}
+	}
 
 	public void ClearStacks()
 	{
@@ -284,7 +314,7 @@ public partial class MainViewModel : ViewModelBase
 		});
 	}
 
-	public void ApplyUiConfigWindowSate()
+	public void ApplyUiConfigWindowState()
 	{
 		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}

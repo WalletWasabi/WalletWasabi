@@ -382,6 +382,7 @@ public static class NBitcoinExtensions
 		if (keyManager.MasterFingerprint.HasValue)
 		{
 			var fp = keyManager.MasterFingerprint.Value;
+
 			// Add input keypaths.
 			foreach (var script in psbt.Inputs.Select(x => x.WitnessUtxo?.ScriptPubKey).ToArray())
 			{
@@ -452,6 +453,14 @@ public static class NBitcoinExtensions
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
 			ScriptType.Taproot => Constants.P2trInputVirtualSize,
+			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+		};
+
+	public static int EstimateOutputVsize(this ScriptType scriptType) =>
+		scriptType switch
+		{
+			ScriptType.P2WPKH => Constants.P2wpkhOutputVirtualSize,
+			ScriptType.Taproot => Constants.P2trOutputVirtualSize,
 			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 

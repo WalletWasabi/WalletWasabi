@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -143,6 +144,15 @@ public static class EnvironmentHelpers
 	/// https://stackoverflow.com/a/47918132/2061103
 	/// </summary>
 	public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
+		=> await ShellExecAndGetResultAsync(cmd, waitForExit, false).ConfigureAwait(false);
+
+	public static async Task<string> ShellExecAndGetResultAsync(string cmd)
+		=> await ShellExecAndGetResultAsync(cmd, true, true).ConfigureAwait(false);
+
+	/// <summary>
+	/// Executes a command with Bourne shell and returns Standard Output.
+	/// </summary>
+	private static async Task<string> ShellExecAndGetResultAsync(string cmd, bool waitForExit = true, bool readResult = false)
 	{
 		var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -151,18 +161,29 @@ public static class EnvironmentHelpers
 			FileName = "/usr/bin/env",
 			Arguments = $"sh -c \"{escapedArgs}\"",
 			RedirectStandardOutput = true,
+			RedirectStandardError = readResult,
 			UseShellExecute = false,
 			CreateNoWindow = true,
 			WindowStyle = ProcessWindowStyle.Hidden
 		};
+
+		if (readResult)
+		{
+			waitForExit = true;
+		}
+		string output = "";
 
 		if (waitForExit)
 		{
 			using var process = new ProcessAsync(startInfo);
 			process.Start();
 
-			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+			if (readResult)
+			{
+				output = process.StandardOutput.ReadToEnd();
+			}
 
+			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 			if (process.ExitCode != 0)
 			{
 				Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
@@ -172,6 +193,8 @@ public static class EnvironmentHelpers
 		{
 			using var process = Process.Start(startInfo);
 		}
+
+		return output;
 	}
 
 	public static bool IsFileTypeAssociated(string fileExtension)
@@ -185,15 +208,10 @@ public static class EnvironmentHelpers
 
 		fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
 
-		using (var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
-		{
-			// Read the (Default) value.
-			if (key?.GetValue(null) is not null)
-			{
-				return true;
-			}
-		}
-		return false;
+		using var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}");
+
+		// Read the (Default) value.
+		return key?.GetValue(null) is not null;
 	}
 
 	public static string GetFullBaseDirectory()
