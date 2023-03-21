@@ -8,8 +8,8 @@ namespace WalletWasabi.Userfacing;
 
 public static class CurrencyInput
 {
-	private const string DecimalSeparator = ".";
-	private const string GroupSeparator = " ";
+	public const string DecimalSeparator = ".";
+	public const string GroupSeparator = " ";
 
 	public static NumberFormatInfo InvariantNumberFormat { get; } = new()
 	{
