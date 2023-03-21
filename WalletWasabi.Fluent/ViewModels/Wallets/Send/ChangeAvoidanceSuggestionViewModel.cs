@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -17,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
-	private const int SignificantFiguresForFiatAmount = 3;
 	[AutoNotify] private string _amount;
 	[AutoNotify] private decimal _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
@@ -68,39 +66,36 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
-			if (selection.Any())
+			BuildTransactionResult? transaction = null;
+
+			try
 			{
-				BuildTransactionResult? transaction = null;
+				transaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					transactionInfo.Destination,
+					transactionInfo.Recipient,
+					transactionInfo.FeeRate,
+					selection,
+					tryToSign: false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Failed to build changeless transaction. Exception: {ex}");
+			}
 
-				try
+			if (transaction is not null)
+			{
+				Money destinationAmount = transaction.CalculateDestinationAmount();
+
+				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
+				if (!foundSolutionsByAmount.Contains(destinationAmount))
 				{
-					transaction = TransactionHelpers.BuildChangelessTransaction(
-						wallet,
-						transactionInfo.Destination,
-						transactionInfo.Recipient,
-						transactionInfo.FeeRate,
-						selection,
-						tryToSign: false);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Failed to build changeless transaction. Exception: {ex}");
-				}
+					foundSolutionsByAmount.Add(destinationAmount);
 
-				if (transaction is not null)
-				{
-					Money destinationAmount = transaction.CalculateDestinationAmount();
-
-					// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
-					if (!foundSolutionsByAmount.Contains(destinationAmount))
-					{
-						foundSolutionsByAmount.Add(destinationAmount);
-
-						yield return new ChangeAvoidanceSuggestionViewModel(
-							transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-							transaction,
-							usdExchangeRate);
-					}
+					yield return new ChangeAvoidanceSuggestionViewModel(
+						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+						transaction,
+						usdExchangeRate);
 				}
 			}
 		}

@@ -16,7 +16,7 @@ public static class CoinHelpers
 		var anonymitySet = coin.AnonymitySet;
 		return anonymitySet >= semiPrivateThreshold && anonymitySet < privateThreshold;
 	}
-	
+
 	public static bool IsRedCoin<TCoin>(this TCoin coin, int semiPrivateThreshold = Constants.SemiPrivateThreshold)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{

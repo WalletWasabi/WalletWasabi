@@ -66,14 +66,24 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Select(items => items.Any(t => t.IsSelected))
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		coinChanges.WhenPropertyChanged(x => x.IsExcludedFromCoinJoin, false)
-			.Subscribe(_ => _walletVm.Wallet.UpdateExcludedCoinFromCoinJoin())
-			.DisposeWith(disposables);
-
 		coinChanges
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out var coinsCollection)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		coinChanges
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Select(c => coinsCollection.Where(x => x.Coin.HdPubKey == c.Sender.Coin.HdPubKey && x.IsSelected != c.Sender.IsSelected))
+			.Do(coins =>
+			{
+				// Select/deselect all the coins on the same address.
+				foreach (var coin in coins)
+				{
+					coin.IsSelected = !coin.IsSelected;
+				}
+			})
 			.Subscribe()
 			.DisposeWith(disposables);
 

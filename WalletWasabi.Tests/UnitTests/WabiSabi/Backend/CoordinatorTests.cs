@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -39,26 +40,26 @@ public class CoordinatorTests
 		await coordinator.StartAsync(cts.Token);
 		await coordinator.StopAsync(CancellationToken.None);
 
-		using WabiSabiCoordinator coordinator2 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		using WabiSabiCoordinator coordinator2 = CreateWabiSabiCoordinator(coordinatorParameters);
 		using CancellationTokenSource cts2 = new();
 		await coordinator2.StartAsync(cts2.Token);
 		cts2.Cancel();
 		await coordinator2.StopAsync(CancellationToken.None);
 
-		using WabiSabiCoordinator coordinator3 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		using WabiSabiCoordinator coordinator3 = CreateWabiSabiCoordinator(coordinatorParameters);
 		using CancellationTokenSource cts3 = new();
 		var t = coordinator3.StartAsync(cts3.Token);
 		cts3.Cancel();
 		await t;
 		await coordinator3.StopAsync(CancellationToken.None);
 
-		using WabiSabiCoordinator coordinator4 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		using WabiSabiCoordinator coordinator4 = CreateWabiSabiCoordinator(coordinatorParameters);
 		await coordinator4.StartAsync(CancellationToken.None);
 		using CancellationTokenSource cts4 = new();
 		cts4.Cancel();
 		await coordinator4.StopAsync(cts4.Token);
 
-		using WabiSabiCoordinator coordinator5 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		using WabiSabiCoordinator coordinator5 = CreateWabiSabiCoordinator(coordinatorParameters);
 		await coordinator5.StartAsync(CancellationToken.None);
 		using CancellationTokenSource cts5 = new();
 		t = coordinator5.StopAsync(cts5.Token);
@@ -78,5 +79,5 @@ public class CoordinatorTests
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore(), new Mock<IHttpClientFactory>(MockBehavior.Strict).Object);
 }
