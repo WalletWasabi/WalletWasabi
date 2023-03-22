@@ -15,37 +15,36 @@ public static class UserFriendlyExceptionExtensions
 		{
 			return ex.ToTypeMessageString();
 		}
-		else
+
+		if (ex is OperationCanceledException exception)
 		{
-			if (ex is OperationCanceledException exception)
-			{
-				return exception.Message;
-			}
-			else if (ex is HwiException hwiEx)
-			{
-				if (hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
-				{
-					return "Could not find the hardware wallet.\nMake sure it is connected.";
-				}
-				else if (hwiEx.ErrorCode == HwiErrorCode.ActionCanceled)
-				{
-					return "The transaction was canceled on the device.";
-				}
-				else if (hwiEx.ErrorCode == HwiErrorCode.UnknownError)
-				{
-					return "Unknown error.\nMake sure the device is connected and isn't busy, then try again.";
-				}
-			}
-
-			foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
-			{
-				if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
-				{
-					return pair.Value;
-				}
-			}
-
-			return ex.ToTypeMessageString();
+			return exception.Message;
 		}
+
+		if (ex is HwiException hwiEx)
+		{
+			return GetFriendlyHwiExceptionMessage(hwiEx);
+		}
+
+		foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
+		{
+			if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+			{
+				return pair.Value;
+			}
+		}
+
+		return ex.ToTypeMessageString();
+	}
+
+	private static string GetFriendlyHwiExceptionMessage(HwiException hwiEx)
+	{
+		return hwiEx.ErrorCode switch
+		{
+			HwiErrorCode.DeviceConnError => "Could not find the hardware wallet.\nMake sure it is connected.",
+			HwiErrorCode.ActionCanceled => "The transaction was canceled on the device.",
+			HwiErrorCode.UnknownError => "Unknown error.\nMake sure the device is connected and isn't busy, then try again.",
+			_ => hwiEx.Message
+		};
 	}
 }
