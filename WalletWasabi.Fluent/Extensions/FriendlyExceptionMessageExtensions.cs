@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -24,6 +25,11 @@ public static class FriendlyExceptionMessageExtensions
 		if (ex is HwiException hwiEx)
 		{
 			return GetFriendlyHwiExceptionMessage(hwiEx);
+		}
+
+		if (ex is HttpRequestException httpEx)
+		{
+			return  $"An unexpected network error occured.\n{httpEx}\nTry again.";
 		}
 
 		foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
