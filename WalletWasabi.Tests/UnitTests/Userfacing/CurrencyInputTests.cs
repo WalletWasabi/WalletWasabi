@@ -76,6 +76,12 @@ public class CurrencyInputTests
 			Add("0...1.", true, "");
 			Add("1...1.", true, "");
 			Add("1.s.1...1.", true, "");
+
+			// Negative values.
+			Add("-0", true, "0");
+			Add("-1", true, "1");
+			Add("-0.5", true, "0.5");
+			Add("-0,5", true, "0.5");			
 		}
 	}
 
