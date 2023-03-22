@@ -90,6 +90,14 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 					await foreach (var suggestion in suggestions)
 					{
+						var changeAvoidanceSuggestions = Suggestions.OfType<ChangeAvoidanceSuggestionViewModel>();
+
+						// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
+						if (changeAvoidanceSuggestions.Any(x => x.GetAmount() == suggestion.GetAmount()))
+						{
+							continue;
+						}
+
 						Suggestions.Add(suggestion);
 					}
 				}

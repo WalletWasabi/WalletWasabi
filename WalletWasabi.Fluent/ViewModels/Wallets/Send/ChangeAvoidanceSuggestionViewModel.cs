@@ -69,8 +69,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			maxInputCount,
 			cancellationToken);
 
-		HashSet<Money> foundSolutionsByAmount = new();
-
 		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			BuildTransactionResult? transaction = null;
@@ -92,18 +90,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 			if (transaction is not null)
 			{
-				Money destinationAmount = transaction.CalculateDestinationAmount();
-
-				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
-				if (!foundSolutionsByAmount.Contains(destinationAmount))
-				{
-					foundSolutionsByAmount.Add(destinationAmount);
-
-					yield return new ChangeAvoidanceSuggestionViewModel(
-						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-						transaction,
-						usdExchangeRate);
-				}
+				yield return new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+					transaction,
+					usdExchangeRate);
 			}
 		}
 	}
