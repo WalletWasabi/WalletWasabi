@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		TransactionResult = transactionResult;
 
-		var totalAmount = transactionResult.CalculateDestinationAmount();
+		var totalAmount = GetAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatTotal = total * fiatExchangeRate;
@@ -39,6 +38,11 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public BuildTransactionResult TransactionResult { get; }
+
+	public Money GetAmount()
+	{
+		return TransactionResult.CalculateDestinationAmount();
+	}
 
 	private string GetDifferenceFiatText(decimal fiatDifference)
 	{
