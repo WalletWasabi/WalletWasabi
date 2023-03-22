@@ -133,8 +133,11 @@
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
-      <!-- TODO: Execute SendCommand on Enter -->
-      <behaviors:SwallowEnterKeyBehavior />
+      <!-- <behaviors:SwallowEnterKeyBehavior /> -->
+      <!-- TODO: Handle IsEnabled - disable while sending -->
+      <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding SendCommand}"
+                                                 IsEnabled="True"
+                                                 Key="Enter" />
       <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsChatListVisible, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
 
