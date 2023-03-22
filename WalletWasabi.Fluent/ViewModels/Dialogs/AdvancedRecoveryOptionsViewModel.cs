@@ -29,7 +29,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 	private void ValidateMinGapLimit(IValidationErrors errors)
 	{
 		if (!int.TryParse(MinGapLimit, out var minGapLimit) ||
-		    minGapLimit is < KeyManager.AbsoluteMinGapLimit or > KeyManager.MaxGapLimit)
+			minGapLimit is < KeyManager.AbsoluteMinGapLimit or > KeyManager.MaxGapLimit)
 		{
 			errors.Add(
 				ErrorSeverity.Error,

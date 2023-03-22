@@ -17,7 +17,7 @@ public class P2PBlockProvider : IBlockProvider
 	{
 		P2PNodesManager = new P2PNodesManager(network, nodes, isTorEnabled);
 	}
-	
+
 	private P2PNodesManager P2PNodesManager { get; }
 
 	/// <summary>
@@ -37,7 +37,7 @@ public class P2PBlockProvider : IBlockProvider
 			try
 			{
 				Node? node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
-				
+
 				if (node is null || !node.IsConnected)
 				{
 					await Task.Delay(100, cancellationToken).ConfigureAwait(false);
