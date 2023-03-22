@@ -45,10 +45,6 @@
                 </MultiBinding>
               </ToggleButton.IsEnabled>
               <ToggleButton.Styles>
-                <Style Selector="ToggleButton[IsChecked=True] /template/ c|TagControl">
-                  <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-                  <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-                </Style>
                 <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
                   <Setter Property="Opacity" Value="0.6" />
                   <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
