@@ -423,7 +423,7 @@ public class CoinJoinClient
 					}
 				}
 			}
-			catch (OperationCanceledException ex)
+			catch (Exception ex) when (ex is OperationCanceledException || (ex is AggregateException ae && ae.Flatten().InnerExceptions.All(e => e is OperationCanceledException)))
 			{
 				if (cancel.IsCancellationRequested)
 				{
