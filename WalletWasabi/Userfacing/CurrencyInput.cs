@@ -94,7 +94,7 @@ public static class CurrencyInput
 
 	public static bool TryCorrectBitcoinAmount(string original, [NotNullWhen(true)] out string? best)
 	{
-		TryCorrectAmount(original, out var corrected);
+		_ = TryCorrectAmount(original, out var corrected);
 
 		// If the original value wasn't fixed, it's definitely not a null.
 		corrected ??= original;
