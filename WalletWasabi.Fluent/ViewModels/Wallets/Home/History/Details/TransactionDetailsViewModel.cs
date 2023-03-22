@@ -1,8 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Avalonia;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
@@ -25,7 +24,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
-	[AutoNotify] private bool? _isOutgoingAmount;
+	[AutoNotify] private string? _amountText = "";
 
 	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -46,8 +45,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false).TrimStart('-');
-		IsOutgoingAmount = transactionSummary.Amount < 0;
+		Amount = transactionSummary.Amount.Abs().ToString(fplus: false, trimExcessZero: false);
+		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
 
