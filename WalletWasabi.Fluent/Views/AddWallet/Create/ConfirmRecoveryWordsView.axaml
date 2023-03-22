@@ -45,6 +45,9 @@
                 </MultiBinding>
               </ToggleButton.IsEnabled>
               <ToggleButton.Styles>
+                <Style Selector="ToggleButton /template/ c|TagControl">
+                  <Setter Property="Cursor" Value="Hand" />
+                </Style>
                 <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
                   <Setter Property="Opacity" Value="0.6" />
                   <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
