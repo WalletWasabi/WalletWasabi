@@ -18,7 +18,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	[AutoNotify] private string _amount;
 	[AutoNotify] private decimal _amountFiat;
-	[AutoNotify] private string? _differenceFiat;
+	[AutoNotify] private string? _differenceFiatText;
 
 	public ChangeAvoidanceSuggestionViewModel(
 		decimal originalAmount,
@@ -29,23 +29,26 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var totalAmount = transactionResult.CalculateDestinationAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
-
-		var fiatTotal = total * fiatExchangeRate;
-
-		_amountFiat = fiatTotal;
-
 		var fiatOriginal = originalAmount * fiatExchangeRate;
+		var fiatTotal = total * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 
-		_differenceFiat = (fiatDifference > 0
-				? $"{fiatDifference.ToUsd()} More"
-				: $"{Math.Abs(fiatDifference).ToUsd()} Less")
-			.Replace("(", "").Replace(")", "");
-
+		_amountFiat = fiatTotal;
+		_differenceFiatText = GetDifferenceFiatText(fiatDifference);
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
 	}
 
 	public BuildTransactionResult TransactionResult { get; }
+
+	private string GetDifferenceFiatText(decimal fiatDifference)
+	{
+		return fiatDifference switch
+		{
+			> 0 => $"{fiatDifference.ToUsd()} More",
+			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} Less",
+			_ => "Same Amount"
+		};
+	}
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo,
