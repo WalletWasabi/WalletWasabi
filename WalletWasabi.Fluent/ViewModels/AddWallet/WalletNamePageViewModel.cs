@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Helpers;
 using NBitcoin;
-using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
