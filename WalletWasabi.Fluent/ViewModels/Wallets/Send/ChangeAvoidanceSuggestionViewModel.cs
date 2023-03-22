@@ -28,8 +28,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var totalAmount = GetAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
-		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatTotal = total * fiatExchangeRate;
+		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 
 		_amountFiat = fiatTotal;
