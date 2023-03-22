@@ -29,6 +29,7 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 		ApplicationViewModel = new ApplicationViewModel(this);
+		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
 			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
@@ -36,53 +37,47 @@ public class ApplicationStateManager : IMainWindowService
 			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
 
 		_stateMachine.Configure(State.InitialState)
-			.InitialTransition(State.Open)
+			.InitialTransition(initTransitionState)
 			.OnTrigger(
-			Trigger.ShutdownRequested,
-			() =>
-			{
-				if (_restartRequest)
+				Trigger.ShutdownRequested,
+				() =>
 				{
-					AppLifetimeHelper.StartAppWithArgs();
-				}
+					if (_restartRequest)
+					{
+						AppLifetimeHelper.StartAppWithArgs();
+					}
 
-				lifetime.Shutdown();
-			})
+					lifetime.Shutdown();
+				})
 			.OnTrigger(
-			Trigger.ShutdownPrevented,
-			() =>
-			{
-				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
-				_restartRequest = false; // reset the value.
-			});
+				Trigger.ShutdownPrevented,
+				() =>
+				{
+					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
+					_restartRequest = false; // reset the value.
+				});
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow.Close();
+				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
-			.Permit(Trigger.ShutdownPrevented, State.Open)
-			.Permit(Trigger.Loaded, State.Open);
+			.Permit(Trigger.ShutdownPrevented, State.Open);
 
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.InitialState)
 			.OnEntry(CreateAndShowMainWindow)
 			.Permit(Trigger.Hide, State.Closed)
 			.Permit(Trigger.MainWindowClosed, State.Closed)
-			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowSate);
+			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
 
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
-
-		if (!startInBg)
-		{
-			_stateMachine.Fire(Trigger.Loaded);
-		}
 	}
 
 	private enum Trigger
@@ -90,7 +85,6 @@ public class ApplicationStateManager : IMainWindowService
 		Invalid = 0,
 		Hide,
 		Show,
-		Loaded,
 		ShutdownPrevented,
 		ShutdownRequested,
 		MainWindowClosed,
@@ -109,7 +103,7 @@ public class ApplicationStateManager : IMainWindowService
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		// Shutdown prevention will only work if you directly run the executable.
-		e.Cancel = !ApplicationViewModel.CanShutdown();
+		e.Cancel = !ApplicationViewModel.CanShutdown(false);
 
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
@@ -132,7 +126,7 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown()))
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
 			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
@@ -148,6 +142,7 @@ public class ApplicationStateManager : IMainWindowService
 
 				_isShuttingDown = !preventShutdown;
 				e.Cancel = preventShutdown;
+
 				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 			})
 			.DisposeWith(_compositeDisposable);
@@ -225,6 +220,6 @@ public class ApplicationStateManager : IMainWindowService
 	void IMainWindowService.Shutdown(bool restart)
 	{
 		_restartRequest = restart;
-		_stateMachine.Fire(ApplicationViewModel.CanShutdown() ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
+		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }

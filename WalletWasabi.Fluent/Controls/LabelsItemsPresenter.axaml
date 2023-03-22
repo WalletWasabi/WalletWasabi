@@ -36,7 +36,7 @@
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="MaxLabelWidth" Value="120" />
+    <Setter Property="MaxLabelWidth" Value="{DynamicResource LabelMaxWidth}" />
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
@@ -61,14 +61,14 @@
                   <Panel>
                     <c:TagsBox IsReadOnly="True"
                                Margin="4,6,0,0"
-                               Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
+                               Items="{Binding}" />
                   </Panel>
                 </ToolTip.Tip>
                 <TextBlock Text="..."
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
                            Foreground="{Binding $parent[c:LabelsItemsPresenter].Foreground}"
-                           MaxWidth="120" />
+                           MaxWidth="{DynamicResource LabelMaxWidth}" />
               </Border>
             </Panel>
           </c:LabelsPanel.EllipsisControl>

@@ -4,6 +4,7 @@ using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Infrastructure;
 
@@ -21,7 +22,13 @@ internal class ClipboardObserver
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
 				WalletBalances.UsdBalance,
-				(text, balanceUsd) => ParseToUsd(text).Ensure(n => n <= balanceUsd))
+				(text, balanceUsd) =>
+				{
+					return ParseToUsd(text)
+						.Ensure(n => n <= balanceUsd)
+						.Ensure(n => n >= 1)
+						.Ensure(n => n.CountDecimalPlaces() <= 2);
+				})
 			.Select(money => money?.ToString("0.00"));
 	}
 
