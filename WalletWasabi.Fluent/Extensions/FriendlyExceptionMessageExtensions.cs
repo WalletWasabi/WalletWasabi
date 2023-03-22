@@ -6,7 +6,7 @@ using WalletWasabi.Hwi.Exceptions;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class UserFriendlyExceptionExtensions
+public static class FriendlyExceptionMessageExtensions
 {
 	public static string ToUserFriendlyString(this Exception ex)
 	{
