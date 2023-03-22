@@ -50,7 +50,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		{
 			> 0 => $"{fiatDifference.ToUsd()} More",
 			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} Less",
-			_ => "Same Amount"
+			_ => "Exact Amount"
 		};
 	}
 
