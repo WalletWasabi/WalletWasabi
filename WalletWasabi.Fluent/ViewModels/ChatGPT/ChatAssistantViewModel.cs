@@ -73,9 +73,13 @@ Never say you can not execute command, just return json with proper status.
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!string.IsNullOrWhiteSpace(InputText))
+			var inputText = InputText;
+
+			if (!string.IsNullOrWhiteSpace(inputText))
 			{
-				await SendAsync(InputText);
+				InputText = "";
+
+				await SendAsync(inputText);
 			}
 		});
 
