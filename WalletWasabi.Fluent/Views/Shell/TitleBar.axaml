@@ -3,6 +3,7 @@
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:chat="clr-namespace:WalletWasabi.Fluent.Views.ChatGPT"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              mc:Ignorable="d" d:DesignWidth="1000"
@@ -54,6 +55,12 @@
                            Margin="5" />
     </DataTemplate>
 
+    <DataTemplate x:Key="ChatAssistant">
+      <chat:ChatAssistant DataContext="{Binding #UserControl.DataContext.ChatAssistant}" VerticalAlignment="Stretch"
+                           HorizontalAlignment="Stretch"
+                           Margin="5" />
+    </DataTemplate>
+
     <DataTemplate x:Key="WindowsLayout">
       <Grid DataContext="{Binding $parent.DataContext}">
 
@@ -72,7 +79,9 @@
                         VerticalAlignment="Center"
                         ContentTemplate="{StaticResource Title}" />
 
-        <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
+        <!-- TODO: Enable showing search bar too ? -->
+        <!--<ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />-->
+        <ContentControl Grid.Column="3" ContentTemplate="{StaticResource ChatAssistant}" />
 
         <shell:NetworkBadge VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 8 0" Grid.Column="4" />
 
