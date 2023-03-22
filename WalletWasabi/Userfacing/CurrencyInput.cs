@@ -30,12 +30,12 @@ public static class CurrencyInput
 		corrected = digitsOnly.Replace(corrected, "");
 
 		// https://en.wikipedia.org/wiki/Decimal_separator
-		corrected = corrected.Replace(',', '.');
-		corrected = corrected.Replace('٫', '.');
-		corrected = corrected.Replace('٬', '.');
-		corrected = corrected.Replace('⎖', '.');
-		corrected = corrected.Replace('·', '.');
-		corrected = corrected.Replace('\'', '.');
+		corrected = corrected.Replace(",", DecimalSeparator);
+		corrected = corrected.Replace("٫", DecimalSeparator);
+		corrected = corrected.Replace("٬", DecimalSeparator);
+		corrected = corrected.Replace("⎖", DecimalSeparator);
+		corrected = corrected.Replace("·", DecimalSeparator);
+		corrected = corrected.Replace("'", DecimalSeparator);
 
 		// Trim trailing dots except the last one.
 		if (corrected.EndsWith('.'))
