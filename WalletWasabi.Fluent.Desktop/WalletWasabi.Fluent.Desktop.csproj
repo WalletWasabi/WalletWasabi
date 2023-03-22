@@ -52,11 +52,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="wassabeehidden.command" />
+	  <None Remove="wassabeehidden.sh" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="wassabeehidden.command">
+	  <Content Include="wassabeehidden.sh">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
