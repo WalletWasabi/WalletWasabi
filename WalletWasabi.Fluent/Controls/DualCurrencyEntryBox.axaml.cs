@@ -224,7 +224,7 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void InputBtcString(string value)
 	{
-		if (CurrencyInput.TryCorrectAmount(value, out var better))
+		if (CurrencyInput.TryCorrectBitcoinAmount(value, out var better))
 		{
 			if (better != Constants.MaximumNumberOfBitcoins.ToString())
 			{
