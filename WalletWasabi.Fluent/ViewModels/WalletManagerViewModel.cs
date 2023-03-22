@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -22,8 +23,10 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 
-	private WalletManagerViewModel()
+	public WalletManagerViewModel(UIContext uiContext)
 	{
+		UIContext = uiContext;
+
 		_walletsSourceList
 			.Connect()
 			.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
