@@ -19,9 +19,9 @@ public static class CurrencyInput
 		NumberDecimalSeparator = DecimalSeparator
 	};
 
-	public static bool TryCorrectAmount(string? original, [NotNullWhen(true)] out string? best)
+	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
 	{
-		var corrected = Guard.Correct(original);
+		var corrected = original;
 
 		// Correct amount
 		Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
@@ -92,12 +92,12 @@ public static class CurrencyInput
 		}
 	}
 
-	public static bool TryCorrectBitcoinAmount(string? original, [NotNullWhen(true)] out string? best)
+	public static bool TryCorrectBitcoinAmount(string original, [NotNullWhen(true)] out string? best)
 	{
 		TryCorrectAmount(original, out var corrected);
 
 		// If the original value wasn't fixed, it's definitely not a null.
-		corrected ??= original!;
+		corrected ??= original;
 
 		// Enable max 8 decimals.
 		var dotIndex = corrected.IndexOf('.');
