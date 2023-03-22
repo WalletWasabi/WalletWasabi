@@ -75,6 +75,17 @@
           "Avalonia.Xaml.Interactivity": "0.10.18"
         }
       },
+      "ChatGPT.Core": {
+        "type": "Direct",
+        "requested": "[1.0.0-preview.4, )",
+        "resolved": "1.0.0-preview.4",
+        "contentHash": "GVAevfLlSi43Ox9MwWr2haGEShr5svtxH9kP2RasA3IxY2x+ZLGVfHBnxxOmPCKiDHrYKDqkDkK9xIaZ8yO/3w==",
+        "dependencies": {
+          "ChatGPT": "1.0.0-preview.4",
+          "CommunityToolkit.Mvvm": "8.1.0",
+          "Microsoft.Extensions.DependencyInjection": "7.0.0"
+        }
+      },
       "System.Drawing.Common": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -126,6 +137,16 @@
         "dependencies": {
           "Avalonia": "0.10.18"
         }
+      },
+      "ChatGPT": {
+        "type": "Transitive",
+        "resolved": "1.0.0-preview.4",
+        "contentHash": "QL1biptxZPAFzWPoNGXovFfGW7vDNdVS8te0L542X1tOhDZlm/LqXRywbbUQSV4dWTUcsVev/FOUcvX7dPOxGg=="
+      },
+      "CommunityToolkit.Mvvm": {
+        "type": "Transitive",
+        "resolved": "8.1.0",
+        "contentHash": "xxOt7lu9a5kB5Fs9RfcxzVlKnhuuPe+w7AXHtmCFtS3oldrsUhEMxHfNulluXSscUUoGxZ0jh55Om12ZP6abHA=="
       },
       "DynamicData": {
         "type": "Transitive",
@@ -244,6 +265,19 @@
         "type": "Transitive",
         "resolved": "4.7.0",
         "contentHash": "pTj+D3uJWyN3My70i2Hqo+OXixq3Os2D1nJ2x92FFo6sk8fYS1m1WLNTs0Dc1uPaViH0YvEEwvzddQ7y4rhXmA=="
+      },
+      "Microsoft.Extensions.DependencyInjection": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "elNeOmkeX3eDVG6pYVeV82p29hr+UKDaBhrZyWvWLw/EVZSYEkZlQdkp0V39k/Xehs2Qa0mvoCvkVj3eQxNQ1Q==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "7.0.0"
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "h3j/QfmFN4S0w4C2A6X7arXij/M/OVw3uQHSOFxnND4DyAzO1F9eMX7Eti7lU/OkSthEE0WzRsfT/Dmx86jzCw=="
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Transitive",
