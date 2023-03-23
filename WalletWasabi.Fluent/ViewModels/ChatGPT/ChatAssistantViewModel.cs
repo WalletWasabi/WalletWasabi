@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.ChatGPT;
 
@@ -120,83 +118,6 @@ Do not add additional text before or after json.
 
 	public ObservableCollection<MessageViewModel> Messages { get; }
 
-	private class Globals
-	{
-		public ChatAssistantViewModel Chat { get; set; }
-
-		public MainViewModel Main { get; set; }
-
-		public async Task<string> Send(string address, string amount)
-		{
-			// TODO:
-
-			return $"Sending {amount} to {address}...";
-		}
-
-		public async Task<string> Receive(string[] labels)
-		{
-			// TODO: Show receive dialog but QR cod progress view.
-
-			var resultMessage = "";
-
-			if (MainViewModel.Instance.CurrentWallet is { } currentWallet)
-			{
-				var currentWalletValue = await currentWallet.LastOrDefaultAsync();
-				if (currentWalletValue is { })
-				{
-					// TODO:
-					if (currentWalletValue.ReceiveCommand.CanExecute(null))
-					{
-						currentWalletValue.ReceiveCommand.Execute(null);
-						resultMessage = "Generating receive address...";
-					}
-					else
-					{
-						resultMessage = "Can't generate receive address.";
-					}
-				}
-				else
-				{
-					resultMessage = "Please select current wallet.";
-				}
-			}
-			else
-			{
-				resultMessage = "Can't generate receive address.";
-			}
-
-			return resultMessage;
-		}
-
-		public async Task<string> Balance()
-		{
-			// TODO:
-
-			var resultMessage = "";
-
-			if (MainViewModel.Instance.CurrentWallet is { } currentWallet)
-			{
-				var currentWalletValue = await currentWallet.LastOrDefaultAsync();
-				if (currentWalletValue is { })
-				{
-					var balance = currentWalletValue.Wallet.Coins.TotalAmount().ToFormattedString();
-
-					resultMessage = $"{currentWalletValue.Wallet.WalletName} balance is {balance}";
-				}
-				else
-				{
-					resultMessage = "Please select current wallet.";
-				}
-			}
-			else
-			{
-				resultMessage = "Can not provide wallet balance.";
-			}
-
-			return resultMessage;
-		}
-	}
-
 	private async Task SendAsync(string input)
 	{
 		try
@@ -231,7 +152,7 @@ Do not add additional text before or after json.
 						{
 							if (message is { })
 							{
-								var globals = new Globals
+								var globals = new ChatAssistantScriptGlobals
 								{
 									Chat = this,
 									Main = MainViewModel.Instance
