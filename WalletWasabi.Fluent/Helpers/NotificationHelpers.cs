@@ -41,7 +41,7 @@ public static class NotificationHelpers
 
 	public static void Show(Wallet wallet, ProcessedResult result, Action onClick)
 	{
-		if (TryGetNotificationInputs(wallet.Synchronizer.UsdExchangeRate, result, out var message))
+		if (TryGetNotificationInputs(result, wallet.Synchronizer.UsdExchangeRate, out var message))
 		{
 			Show(wallet.WalletName, message, onClick);
 		}
@@ -52,7 +52,7 @@ public static class NotificationHelpers
 		NotificationManager?.Show(viewModel);
 	}
 
-	private static bool TryGetNotificationInputs(decimal fiatExchangeRate, ProcessedResult result, [NotNullWhen(true)] out string? message)
+	private static bool TryGetNotificationInputs(ProcessedResult result, decimal fiatExchangeRate, [NotNullWhen(true)] out string? message)
 	{
 		message = null;
 
