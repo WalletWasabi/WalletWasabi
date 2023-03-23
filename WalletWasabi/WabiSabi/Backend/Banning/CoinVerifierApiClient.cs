@@ -73,7 +73,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 				var duration = DateTimeOffset.UtcNow - before;
 				RequestTimeStatista.Instance.Add("verifier-request", duration);
 
-				if (response is { } && response.StatusCode == HttpStatusCode.OK)
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					// Successful request, break the iteration.
 					break;
