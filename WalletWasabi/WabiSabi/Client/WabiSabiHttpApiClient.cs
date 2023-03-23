@@ -115,7 +115,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 				AddException(exceptions, e);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
 				throw;
