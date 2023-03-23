@@ -61,9 +61,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, TimeSpan? retryTimeout = null)
 	{
-		var exceptions = new Dictionary<Exception, int>();
 		var start = DateTime.UtcNow;
-
 		var totalTimeout = TimeSpan.FromMinutes(30);
 
 		using CancellationTokenSource absoluteTimeoutCts = new(totalTimeout);
@@ -86,10 +84,10 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
-				if (exceptions.Any())
+				if (attempt > 1)
 				{
 					Logger.LogDebug(
-						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
+						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts.");
 				}
 				else if (action != RemoteAction.GetStatus)
 				{
@@ -101,19 +99,10 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			catch (HttpRequestException e)
 			{
 				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(HttpRequestException)}: {e.Message}.");
-				AddException(exceptions, e);
 			}
 			catch (OperationCanceledException e)
 			{
 				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
-
-				if (combinedToken.IsCancellationRequested)
-				{
-					// Do not delay below, get out of the while-cycle immediately.
-					throw;
-				}
-
-				AddException(exceptions, e);
 			}
 			catch (Exception e)
 			{
@@ -121,17 +110,15 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				throw;
 			}
 
+			// Do not delay below, get out of the while-cycle immediately.
+			combinedToken.ThrowIfCancellationRequested();
+
 			// Wait before the next try.
 			await Task.Delay(250, combinedToken).ConfigureAwait(false);
 
 			attempt++;
-
-			// Make sure to end the while with an exception.
-			combinedToken.ThrowIfCancellationRequested();
 		}
 		while (true);
-
-		throw exceptions.Last().Key;
 	}
 
 	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
