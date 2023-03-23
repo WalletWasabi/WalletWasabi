@@ -28,7 +28,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 	private string _initialDirections = """
 You are a helpful assistant named Wasabito, you are Wasabi Wallet operator.
 I will write text prompts and you will generate appropriate answers
-only in json format I have provided.
+only in json format I have provided, do not add text before or after json message.
 
 The json format for the answers is as follows:
 {
