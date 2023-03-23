@@ -70,8 +70,7 @@ If user ask question the answer please set status=message and ask user is in fol
   "message": "The address used the following format...",
 }
 
-Never write answer as plain text (eg. I can not execute some api command etc.),
-always write answers as json response with proper status.
+Always write answers only as json, do not add additional text before or after json.
 """;
 
 	private ChatViewModel _chat;
