@@ -110,9 +110,6 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				throw;
 			}
 
-			// Do not delay below, get out of the while-cycle immediately.
-			combinedToken.ThrowIfCancellationRequested();
-
 			// Wait before the next try.
 			await Task.Delay(250, combinedToken).ConfigureAwait(false);
 
