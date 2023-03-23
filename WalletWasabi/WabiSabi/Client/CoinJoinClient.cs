@@ -749,7 +749,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Select a group of coins those are close to each other by anonymity score.
-		List<IEnumerable<SmartCoin>> groups = new();
+		List<IEnumerable<TCoin>> groups = new();
 		foreach (var coin in largestNonPrivateCoins)
 		{
 			groups.Add(orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin }));
