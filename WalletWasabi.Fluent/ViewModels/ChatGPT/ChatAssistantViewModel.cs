@@ -160,7 +160,7 @@ always write answers as json response with proper status.
 				catch (Exception e)
 				{
 					Console.WriteLine(e);
-					resultMessage = "ERROR";
+					resultMessage = assistantResultString;
 				}
 
 				Messages.Add(new AssistantMessageViewModel
