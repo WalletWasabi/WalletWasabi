@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,12 +19,6 @@ namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
-	private static NumberFormatInfo CurrencyNumberFormat = new()
-	{
-		NumberGroupSeparator = " ",
-		NumberDecimalDigits = 0
-	};
-
 	public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 	{
 		if (node.State == NodeState.Connected)
@@ -297,22 +290,6 @@ public static class NBitcoinExtensions
 		}
 
 		return null;
-	}
-
-	private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
-	{
-		var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
-
-		return privacyMode
-			? $"### {currency}"
-			: exchangeRate == default
-				? $"??? {currency}"
-				: $"{dollars.ToString("N", CurrencyNumberFormat)} {currency}";
-	}
-
-	public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
-	{
-		return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
 	}
 
 	/// <summary>
