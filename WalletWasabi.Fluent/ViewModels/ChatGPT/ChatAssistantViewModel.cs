@@ -147,17 +147,77 @@ Do not add additional text before or after json.
 					if (assistantResult is { })
 					{
 						var message = assistantResult.Message;
+
 						if (assistantResult.Status == "command")
 						{
-							resultMessage = message;
+							if (message is { })
+							{
+								var args = message.Split(new char[] { '|' });
+
+								if (args.Length >= 1)
+								{
+									switch (args[0])
+									{
+										case "send":
+										{
+											if (args.Length == 4)
+											{
+												var address = args[1];
+												var value = args[2];
+												resultMessage = $"Sending {value} to {address}...";
+											}
+											else
+											{
+												resultMessage = "ERROR: Invalid command.";
+											}
+											break;
+										}
+										case "receive":
+										{
+											resultMessage = "Generating receive address...";
+											break;
+										}
+										case "balance":
+										{
+											resultMessage = "Wallet balance is...";
+											break;
+										}
+									}
+								}
+								else
+								{
+									resultMessage = "ERROR: Invalid command.";
+								}
+							}
+							else
+							{
+								// TODO:
+								resultMessage = message;
+							}
 						}
 						else if (assistantResult.Status == "error")
 						{
-							resultMessage = message;
+							if (message is { })
+							{
+								resultMessage = message;
+							}
+							else
+							{
+								// TODO:
+								resultMessage = message;
+							}
 						}
 						else if (assistantResult.Status == "message")
 						{
-							resultMessage = message;
+							if (message is { })
+							{
+								resultMessage = message;
+							}
+							else
+							{
+								// TODO:
+								resultMessage = message;
+							}
 						}
 					}
 				}
