@@ -75,7 +75,7 @@ public class AliceClient
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (OperationCanceledException)
 		{
 			if (aliceClient is { })
 			{
@@ -209,7 +209,7 @@ public class AliceClient
 			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (OperationCanceledException e)
 		{
 			Logger.LogTrace(e);
 		}

@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
 	Title = "Send",
-	Caption = "Displays wallet send dialog",
+	Caption = "Display wallet send dialog",
 	IconName = "wallet_action_send",
 	Order = 5,
 	Category = "Wallet",
@@ -54,7 +54,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
-	
+
 	public SendViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;

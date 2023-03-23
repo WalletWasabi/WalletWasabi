@@ -55,7 +55,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
 			return !AreDeepEqual(newConfigObject);
-		}		
+		}
 	}
 
 	/// <inheritdoc />

@@ -9,6 +9,7 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="(KeyboardNavigation.TabNavigation)" Value="Cycle" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -59,12 +60,34 @@
       </BehaviorCollectionTemplate>
     </Setter>
   </Style>
+
   <Style Selector="c|Dialog /template/ Border#PART_Border">
     <Setter Property="Margin" Value="40" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="4" />
     <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}" />
   </Style>
+
+  <Style Selector="c|Dialog:alert /template/ Border#PART_Border">
+    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
+    <Style.Animations>
+      <Animation Duration="0:0:0.6" PlaybackDirection="AlternateReverse" IterationCount="1">
+        <KeyFrame Cue="25%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertEndBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="75%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
   <Style Selector="c|Dialog /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="MinWidth" Value="382" />
     <Setter Property="MinHeight" Value="284" />

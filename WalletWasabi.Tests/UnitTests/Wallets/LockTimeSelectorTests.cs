@@ -2,7 +2,7 @@ using NBitcoin;
 using WalletWasabi.Wallets;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Wallet;
+namespace WalletWasabi.Tests.UnitTests.Wallets;
 
 public class LockTimeSelectorTests
 {

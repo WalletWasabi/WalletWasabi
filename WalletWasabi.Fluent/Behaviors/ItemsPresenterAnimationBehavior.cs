@@ -5,6 +5,7 @@ using Avalonia.Controls.Generators;
 using Avalonia.Styling;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -83,7 +84,13 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 							}
 						}
 					};
-					animation.RunAsync(v, null);
+
+					Dispatcher.UIThread.InvokeAsync(async () =>
+					{
+						v.Opacity = 0;
+						await animation.RunAsync(v, null);
+						v.Opacity = 1;
+					});
 				}
 			})
 			.DisposeWith(disposable);

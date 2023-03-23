@@ -15,7 +15,7 @@ cd WalletWasabi/Microservices/Binaries
 ### Manually
 
 1. Check if there is a new Tor Browser version.
-    * The Tor Browser changelog can be found here: https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/tor-browser/Bundle-Data/Docs/ChangeLog.txt
+    * The Tor Browser changelog can be found here: https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/browser/Bundle-Data/Docs/ChangeLog.txt
     * The Tor changelog can be found here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
 2. [Download](https://www.torproject.org/download/) the latest stable Tor Browsers for the following platforms:
     * Windows x64

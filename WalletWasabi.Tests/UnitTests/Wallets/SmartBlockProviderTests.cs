@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 using WalletWasabi.Wallets;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Wallets;
 
+/// <summary>
+/// Tests for <see cref="SmartBlockProvider"/>.
+/// </summary>
 public class SmartBlockProviderTests
 {
 	/// <summary>

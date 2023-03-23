@@ -238,3 +238,10 @@ If it seems not possible to implement something without breaking some of this ad
 
 ## Avoid using Grid as much as possible, Use Panel instead 
 If you don't need any row or column splitting for your child controls, just use `Panel` as your default container control instead of `Grid` since it is a moderately memory and CPU intensive control.
+
+## Never throw AggregateException and Exception in a mixed way
+It causes confusion and awkward catch clauses.
+[Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files) 
+
+
+
