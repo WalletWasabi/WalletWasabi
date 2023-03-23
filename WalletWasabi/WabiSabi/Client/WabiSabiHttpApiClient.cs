@@ -118,21 +118,6 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		while (true);
 	}
 
-	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
-	{
-		bool Predicate(KeyValuePair<Exception, int> x) => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message;
-
-		if (exceptions.Any(Predicate))
-		{
-			var first = exceptions.First(Predicate);
-			exceptions[first.Key]++;
-		}
-		else
-		{
-			exceptions.Add(e, 1);
-		}
-	}
-
 	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
 		using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken, retryTimeout).ConfigureAwait(false);
