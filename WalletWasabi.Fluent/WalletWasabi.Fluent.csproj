@@ -29,6 +29,7 @@
 		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 		<PackageReference Include="ChatGPT.Core" Version="1.0.0-preview.4" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.5.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
