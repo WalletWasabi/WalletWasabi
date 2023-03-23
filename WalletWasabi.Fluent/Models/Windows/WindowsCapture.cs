@@ -304,7 +304,7 @@ public class WindowsCapture
 			}
 		}
 
-		SetVideoOutputFormat(pin, 0, Size.Empty, 0);
+		SetVideoOutputFormat(pin, 0, default, 0);
 	}
 
 	private static VideoFormat[] GetVideoOutputFormat(IPin pin)
@@ -386,7 +386,7 @@ public class WindowsCapture
 		if (mt?.FormatType == DsGuid.FORMAT_VideoInfo)
 		{
 			var vinfo = PtrToStructure<VIDEOINFOHEADER>(mt.pbFormat);
-			if (!size.IsDefault)
+			if (size != default)
 			{
 				vinfo.bmiHeader.biWidth = (int)size.Width;
 				vinfo.bmiHeader.biHeight = (int)size.Height;
@@ -402,7 +402,7 @@ public class WindowsCapture
 		else if (mt?.FormatType == DsGuid.FORMAT_VideoInfo2)
 		{
 			var vinfo = PtrToStructure<VIDEOINFOHEADER2>(mt.pbFormat);
-			if (!size.IsDefault)
+			if (size != default)
 			{
 				vinfo.bmiHeader.biWidth = (int)size.Width;
 				vinfo.bmiHeader.biHeight = (int)size.Height;

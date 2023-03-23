@@ -6,11 +6,11 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class FlyoutShowController : IDisposable
 {
-	private readonly FlyoutBase _flyout;
+	private readonly PopupFlyoutBase _flyout;
 	private readonly Control _parent;
 	private bool _isForcedOpen;
 
-	public FlyoutShowController(Control parent, FlyoutBase flyout)
+	public FlyoutShowController(Control parent, PopupFlyoutBase flyout)
 	{
 		_flyout = flyout;
 		_parent = parent;

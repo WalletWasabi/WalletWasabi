@@ -67,7 +67,7 @@ public partial class LineChart : Control
 	{
 		var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, null);
 
-		if (constraint != Size.Empty)
+		if (constraint != default)
 		{
 			ft.MaxTextHeight = constraint.Height;
 			ft.MaxTextWidth = constraint.Width;
@@ -411,7 +411,7 @@ public partial class LineChart : Control
 
 		var deflate = 0.5;
 		var geometry = CreateFillGeometry(state.Points, state.AreaWidth, state.AreaHeight);
-		var transform = context.PushPreTransform(
+		var transform = context.PushTransform(
 			Matrix.CreateTranslation(
 				state.AreaMargin.Left + deflate,
 				state.AreaMargin.Top + deflate));
@@ -440,7 +440,7 @@ public partial class LineChart : Control
 		var pen = new Pen(brush, thickness, dashStyle, lineCap, lineJoin, miterLimit);
 		var deflate = thickness * 0.5;
 		var geometry = CreateStrokeGeometry(state.Points);
-		var transform = context.PushPreTransform(
+		var transform = context.PushTransform(
 			Matrix.CreateTranslation(
 				state.AreaMargin.Left + deflate,
 				state.AreaMargin.Top + deflate));
@@ -470,7 +470,7 @@ public partial class LineChart : Control
 		var deflate = thickness * 0.5;
 		var p1 = new Point(state.XAxisCursorPosition + deflate, 0);
 		var p2 = new Point(state.XAxisCursorPosition + deflate, state.AreaHeight);
-		var transform = context.PushPreTransform(
+		var transform = context.PushTransform(
 			Matrix.CreateTranslation(
 				state.AreaMargin.Left,
 				state.AreaMargin.Top));
@@ -564,7 +564,7 @@ public partial class LineChart : Control
 		for (var i = 0; i < labels.Count; i++)
 		{
 			var label = labels[i];
-			var formattedText = CreateFormattedText(label, typeface, TextAlignment.Left, fontSize, Size.Empty);
+			var formattedText = CreateFormattedText(label, typeface, TextAlignment.Left, fontSize, default);
 			formattedTextLabels.Add(formattedText);
 			constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Width);
 			constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Height);
@@ -744,14 +744,14 @@ public partial class LineChart : Control
 		{
 			var label = labels[i];
 			var textAlignment = GetYAxisLabelTextAlignment(alignment);
-			var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, Size.Empty);
+			var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, default);
 			formattedTextLabels.Add(formattedText);
 			constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Width);
 			constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Height);
 		}
 
 		var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
-		var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
+		var offsetTransform = context.PushTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 		for (var i = 0; i < formattedTextLabels.Count; i++)
 		{
@@ -768,7 +768,7 @@ public partial class LineChart : Control
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 			             * Matrix.CreateRotation(angleRadians)
 			             * Matrix.CreateTranslation(xPosition, yPosition);
-			var labelTransform = context.PushPreTransform(matrix);
+			var labelTransform = context.PushTransform(matrix);
 			var opacityState = context.PushOpacity(opacity, new Rect(new Point(), constraintMax));
 			formattedTextLabels[i].SetForegroundBrush(foreground);
 			context.DrawText(formattedTextLabels[i], origin + offsetCenter);

@@ -31,7 +31,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		}
 	}
 
-	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
+	public override void Realize(TreeDataGridElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell)model;
 		var text = privacyTextCell.Value;
