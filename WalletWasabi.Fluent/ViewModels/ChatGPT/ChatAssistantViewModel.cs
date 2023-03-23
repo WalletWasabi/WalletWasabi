@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -12,6 +13,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.ChatGPT;
 
@@ -165,6 +167,7 @@ Do not add additional text before or after json.
 												var address = args[1];
 												var value = args[2];
 												resultMessage = $"Sending {value} to {address}...";
+												// TODO: Show send dialog but with send progress view.
 											}
 											else
 											{
@@ -174,12 +177,56 @@ Do not add additional text before or after json.
 										}
 										case "receive":
 										{
-											resultMessage = "Generating receive address...";
+											// TODO: Show receive dialog but QR cod progress view.
+											if (MainViewModel.Instance.CurrentWallet is { } currentWallet)
+											{
+												var currentWalletValue = await currentWallet.LastOrDefaultAsync();
+												if (currentWalletValue is { })
+												{
+													// TODO:
+													if (currentWalletValue.ReceiveCommand.CanExecute(null))
+													{
+														currentWalletValue.ReceiveCommand.Execute(null);
+														resultMessage = "Generating receive address...";
+													}
+													else
+													{
+														resultMessage = "Can't generate receive address.";
+													}
+												}
+												else
+												{
+													resultMessage = "Please select current wallet.";
+												}
+											}
+											else
+											{
+												resultMessage = "Can't generate receive address.";
+											}
+
 											break;
 										}
 										case "balance":
 										{
-											resultMessage = "Wallet balance is...";
+											if (MainViewModel.Instance.CurrentWallet is { } currentWallet)
+											{
+												var currentWalletValue = await currentWallet.LastOrDefaultAsync();
+												if (currentWalletValue is { })
+												{
+													var balance = currentWalletValue.Wallet.Coins.TotalAmount().ToFormattedString();
+
+													resultMessage = $"{currentWalletValue.Wallet.WalletName} balance is {balance}";
+												}
+												else
+												{
+													resultMessage = "Please select current wallet.";
+												}
+											}
+											else
+											{
+												resultMessage = "Can not provide wallet balance.";
+											}
+
 											break;
 										}
 									}
