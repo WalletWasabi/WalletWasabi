@@ -10,6 +10,7 @@ using ChatGPT.ViewModels.Chat;
 using ChatGPT.ViewModels.Settings;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.ChatGPT;
@@ -126,20 +127,46 @@ always write answers as json response with proper status.
 			_cts = new CancellationTokenSource();
 			var result = await _chat.SendAsync(_chat.CreateChatMessages(), _cts.Token);
 
-			_chat.AddAssistantMessage(result?.Message);
-
-			Console.WriteLine(result?.Message);
-
-			// TODO: Deserialize result json message and get message param and command.
-
-			// TODO: AssistantResult
-
-			var resultMessage = result?.Message;
-
-			Messages.Add(new AssistantMessageViewModel
+			if (result?.Message is { } assistantResultString)
 			{
-				Message = resultMessage
-			});
+				_chat.AddAssistantMessage(assistantResultString);
+
+				Console.WriteLine(assistantResultString);
+
+				AssistantResult? assistantResult;
+				string resultMessage = "";
+
+				try
+				{
+					assistantResult = JsonConvert.DeserializeObject<AssistantResult>(assistantResultString);
+					if (assistantResult is { })
+					{
+						var message = assistantResult.Message;
+						if (assistantResult.Status == "command")
+						{
+							resultMessage = message;
+						}
+						else if (assistantResult.Status == "error")
+						{
+							resultMessage = message;
+						}
+						else if (assistantResult.Status == "message")
+						{
+							resultMessage = message;
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+					resultMessage = "ERROR";
+				}
+
+				Messages.Add(new AssistantMessageViewModel
+				{
+					Message = resultMessage
+				});
+			}
 		}
 		catch (Exception ex)
 		{
