@@ -106,22 +106,19 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			catch (OperationCanceledException e)
 			{
 				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
-				AddException(exceptions, e);
 
 				if (combinedToken.IsCancellationRequested)
 				{
-					// Do not delay below, get out of the while immediately.
-					break;
+					// Do not delay below, get out of the while-cycle immediately.
+					throw;
 				}
-			}
-			catch (Exception e)
-			{
-				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
 
 				AddException(exceptions, e);
-
-				// Throw exception(s) below.
-				break;
+			}
+			catch (Exception)
+			{
+				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
+				throw;
 			}
 
 			try
@@ -129,21 +126,19 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				// Wait before the next try.
 				await Task.Delay(250, combinedToken).ConfigureAwait(false);
 			}
-			catch (Exception e)
+			catch
 			{
-				AddException(exceptions, e);
+				throw;
 			}
 
 			attempt++;
-		}
-		while (!combinedToken.IsCancellationRequested);
 
-		if (exceptions.Count == 1)
-		{
-			throw exceptions.First().Key;
+			// Make sure to end the while with an exception.
+			combinedToken.ThrowIfCancellationRequested();
 		}
+		while (true);
 
-		throw new AggregateException(exceptions.Keys);
+		throw exceptions.Last().Key;
 	}
 
 	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
