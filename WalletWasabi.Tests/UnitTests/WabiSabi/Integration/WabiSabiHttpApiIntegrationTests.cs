@@ -398,10 +398,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// BadCoinsTask will throw.
-		var ex = await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
-		Assert.True(ex.InnerExceptions.Last() is TaskCanceledException);
+		await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
+		var resultOk = await coinJoinTask;
+		var resultBad = await badCoinsTask;
 
-		Assert.True(coinJoinTask.Result is SuccessfulCoinJoinResult);
+		Assert.IsType<DisruptedCoinJoinResult>(resultBad);
+		Assert.IsType<SuccessfulCoinJoinResult>(resultOk);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);

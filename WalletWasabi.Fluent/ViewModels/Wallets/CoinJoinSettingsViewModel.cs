@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 [NavigationMetaData(
 	Title = "Coinjoin Settings",
-	Caption = "Displays wallet coinjoin settings",
+	Caption = "Display wallet coinjoin settings",
 	IconName = "nav_wallet_24_regular",
 	Order = 1,
 	Category = "Wallet",
