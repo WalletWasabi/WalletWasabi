@@ -46,9 +46,13 @@ When "status"="command" the "message" value can only be set to
 e.g.:
 {
   "status": "command",
-  "message": "send|address|amount",
+  "message": "send|address|amount|void",
 }
-When message is api command write it using | separator between command name and command parameters e.g.: send|address|amount
+When message is api command write it using | separator between command name
+and command parameters, last item is return value e.g.:
+- send|address|amount|void
+- receive|address
+- balance|value
 
 If user does not provide valid param to execute api command please set status=error and ask followup question to provide that info:
 e.g.:
@@ -70,7 +74,8 @@ If user ask question the answer please set status=message and ask user is in fol
   "message": "The address used the following format...",
 }
 
-Always write answers only as json, do not add additional text before or after json.
+You will always write answers only as json response.
+Do not add additional text before or after json.
 """;
 
 	private ChatViewModel _chat;
