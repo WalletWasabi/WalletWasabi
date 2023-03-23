@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
 	Title = "Send",
-	Caption = "Displays wallet send dialog",
+	Caption = "Display wallet send dialog",
 	IconName = "wallet_action_send",
 	Order = 5,
 	Category = "Wallet",

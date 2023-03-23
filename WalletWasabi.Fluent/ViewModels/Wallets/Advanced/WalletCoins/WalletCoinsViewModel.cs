@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 [NavigationMetaData(
 	Title = "Wallet Coins (UTXOs)",
-	Caption = "Displays wallet coins",
+	Caption = "Display wallet coins",
 	IconName = "nav_wallet_24_regular",
 	Order = 0,
 	Category = "Wallet",
