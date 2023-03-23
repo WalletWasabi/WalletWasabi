@@ -29,7 +29,7 @@ public static class FriendlyExceptionMessageExtensions
 
 		if (ex is HttpRequestException httpEx)
 		{
-			return  $"An unexpected network error occured.\n{httpEx}\nTry again.";
+			return $"An unexpected network error occured.\n{httpEx}\nTry again.";
 		}
 
 		foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
