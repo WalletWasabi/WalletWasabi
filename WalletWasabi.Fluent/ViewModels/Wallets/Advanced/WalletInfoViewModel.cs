@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
 	Title = "Wallet Info",
-	Caption = "Displays wallet info",
+	Caption = "Display wallet info",
 	IconName = "nav_wallet_24_regular",
 	Order = 4,
 	Category = "Wallet",
