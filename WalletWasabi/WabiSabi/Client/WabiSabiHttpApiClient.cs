@@ -107,18 +107,21 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
 				AddException(exceptions, e);
+
+				if (combinedToken.IsCancellationRequested)
+				{
+					// Do not delay below, get out of the while immediately.
+					break;
+				}
 			}
 			catch (Exception e)
 			{
 				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
 
-				if (exceptions.Any())
-				{
-					AddException(exceptions, e);
-					throw new AggregateException(exceptions.Keys);
-				}
+				AddException(exceptions, e);
 
-				throw;
+				// Throw exception(s) below.
+				break;
 			}
 
 			try
@@ -134,6 +137,11 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			attempt++;
 		}
 		while (!combinedToken.IsCancellationRequested);
+
+		if (exceptions.Count == 1)
+		{
+			throw exceptions.First().Key;
+		}
 
 		throw new AggregateException(exceptions.Keys);
 	}
