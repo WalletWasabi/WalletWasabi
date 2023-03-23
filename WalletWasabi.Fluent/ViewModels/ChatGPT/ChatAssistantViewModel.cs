@@ -46,8 +46,9 @@ When "status"="command" the "message" value can only be set to
 e.g.:
 {
   "status": "command",
-  "message": "send(address, amount)",
+  "message": "send|address|amount",
 }
+When message is api command write it using | separator between command name and command parameters e.g.: send|address|amount
 
 If user does not provide valid param to execute api command please set status=error and ask followup question to provide that info:
 e.g.:
