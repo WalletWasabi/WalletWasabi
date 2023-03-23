@@ -29,7 +29,7 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <ItemsControl Items="{Binding AvailableWords}">
+      <ItemsControl Items="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -37,7 +37,7 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="create:RecoveryWordViewModel">
-            <ToggleButton IsChecked="{Binding IsSelected}">
+            <ToggleButton IsChecked="{Binding IsSelected}" Margin="1 0">
               <ToggleButton.IsEnabled>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="IsEnabled" />
