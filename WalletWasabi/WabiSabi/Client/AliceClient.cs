@@ -75,40 +75,24 @@ public class AliceClient
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
-		catch (Exception e)
+		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode
+			is WabiSabiProtocolErrorCode.RoundNotFound
+			or WabiSabiProtocolErrorCode.WrongPhase
+			or WabiSabiProtocolErrorCode.AliceAlreadyRegistered
+			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection)
 		{
-			if (aliceClient is { })
-			{
-				bool tryToUnregister = true;
-
-				// We can get a single or an AggregateException, make it AggregateException.
-				var ae = e is AggregateException exception ? exception : new AggregateException(e);
-
-				foreach (var ex in ae.Flatten().InnerExceptions)
-				{
-					if (ex is WabiSabiProtocolException wpe)
-					{
-						if (wpe.ErrorCode is WabiSabiProtocolErrorCode.RoundNotFound or WabiSabiProtocolErrorCode.WrongPhase)
-						{
-							tryToUnregister = false;
-							break;
-						}
-					}
-
-					if (ex is UnexpectedRoundPhaseException)
-					{
-						tryToUnregister = false;
-						break;
-					}
-				}
-
-				if (tryToUnregister)
-				{
-					// Unregistering coins is only possible before connection confirmation phase.
-					await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-				}
-			}
-
+			// Do not unregister.
+			throw;
+		}
+		catch (UnexpectedRoundPhaseException)
+		{
+			// Do not unregister.
+			throw;
+		}
+		catch (Exception) when (aliceClient is { })
+		{
+			// Unregistering coins is only possible before connection confirmation phase.
+			await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
 			throw;
 		}
 
@@ -235,7 +219,7 @@ public class AliceClient
 			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (OperationCanceledException e)
 		{
 			Logger.LogTrace(e);
 		}
