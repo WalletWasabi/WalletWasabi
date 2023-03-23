@@ -21,7 +21,7 @@ public class NavBarViewModel : ViewModelBase
 
 		SetDefaultSelection();
 
-		Observable.Amb(
+		Observable.Merge(
 				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
 				TopItems.ToObservableChangeSet(),
 				BottomItems.ToObservableChangeSet())

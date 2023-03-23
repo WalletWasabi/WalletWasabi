@@ -1,11 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
 using Avalonia.Styling;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -46,18 +43,7 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 
 		if (panel is LabelsPanel labelsPanel)
 		{
-			labelsPanel.WhenAnyValue(x => x.VisibleItemsCount)
-				.Subscribe(x =>
-				{
-					if (Items is IEnumerable<string> items)
-					{
-						labelsPanel.FilteredItems = items.Skip(x).ToList();
-					}
-					else
-					{
-						labelsPanel.FilteredItems = new List<string>();
-					}
-				});
+			labelsPanel.Presenter = this;
 		}
 	}
 }
