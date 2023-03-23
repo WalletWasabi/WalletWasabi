@@ -1,6 +1,6 @@
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -11,7 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
-public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPreviewItem
+public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivacyRingPreviewItem
 {
 	private readonly WalletViewModel _walletVm;
 	private readonly Wallet _wallet;
@@ -27,7 +27,11 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_walletVm = walletVm;
 		_showPrivacyBar = showPrivacyBar;
 
-		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
+		var showDetailsCanExecute =
+			walletVm.WhenAnyValue(x => x.IsWalletBalanceZero)
+					.Select(x => !x);
+
+		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, showDetailsCanExecute);
 
 		if (showPrivacyBar)
 		{
@@ -46,6 +50,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_walletVm.UiTriggers.PrivacyProgressUpdateTrigger
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
+
+		PrivacyBar?.Activate(disposables);
 	}
 
 	private void ShowDetails()

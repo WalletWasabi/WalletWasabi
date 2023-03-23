@@ -59,11 +59,7 @@ public class RoundStateUpdater : PeriodicRunner
 		var updatedRoundStates = roundStates
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
-			.Select(
-			x => x.NewRoundState with
-			{
-				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
-			})
+			.Select(x => x.NewRoundState with { CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState) })
 			.ToList();
 
 		var newRoundStates = roundStates
@@ -86,7 +82,7 @@ public class RoundStateUpdater : PeriodicRunner
 		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
 	}
 
-	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
+	private Task<RoundState> CreateRoundAwaiterAsync(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
 	{
 		RoundStateAwaiter? roundStateAwaiter = null;
 
@@ -107,19 +103,19 @@ public class RoundStateUpdater : PeriodicRunner
 		return roundStateAwaiter.Task;
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, null, predicate, cancellationToken);
+		return CreateRoundAwaiterAsync(null, null, predicate, cancellationToken);
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Phase phase, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(roundId, phase, null, cancellationToken);
+		return CreateRoundAwaiterAsync(roundId, phase, null, cancellationToken);
 	}
 
 	public Task<RoundState> CreateRoundAwaiter(Phase phase, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, phase, null, cancellationToken);
+		return CreateRoundAwaiterAsync(null, phase, null, cancellationToken);
 	}
 
 	/// <summary>

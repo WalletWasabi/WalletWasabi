@@ -107,9 +107,21 @@ public record ConstructionState : MultipartyTransactionState
 
 		if (EffectiveFeeRate < Parameters.MiningFeeRate)
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}.");
+			var state = new SigningState(Parameters, Events);
+			var tx = state.CreateUnsignedTransaction();
+			var txHex = tx.ToHex();
+
+			throw new WabiSabiProtocolException(
+				WabiSabiProtocolErrorCode.InsufficientFees,
+				$"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}. RawTx: {txHex}");
 		}
 
 		return new SigningState(Parameters, Events);
 	}
+
+	public ConstructionState AsPayingForSharedOverhead() =>
+		this with
+		{
+			UnpaidSharedOverhead = 0
+		};
 }

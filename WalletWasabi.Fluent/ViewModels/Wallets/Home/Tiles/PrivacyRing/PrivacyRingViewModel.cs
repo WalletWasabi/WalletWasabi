@@ -1,28 +1,27 @@
 using Avalonia;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 [NavigationMetaData(
-	Title = "Wallet Coins",
+	Title = "Privacy Progress",
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
 	private readonly CompositeDisposable _disposables = new();
-	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
-	private IObservable<Unit> _coinsUpdated;
+	private readonly WalletViewModel _walletViewModel;
+
 	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
 	[AutoNotify] private double _height;
 	[AutoNotify] private double _width;
@@ -31,6 +30,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	public PrivacyRingViewModel(WalletViewModel walletViewModel)
 	{
+		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
@@ -39,99 +39,96 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		PreviewItems.Add(PrivacyTile);
 
-		_itemsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(Items)
-			.DisposeMany()
-			.Subscribe();
-
-		_coinsUpdated =
-			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
-						  .Merge(walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		_coinsUpdated
-			.Select(_ => walletViewModel.Wallet.GetPockets())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList);
-
-		_disposables.Add(_itemsSourceList);
-
-		this.WhenAnyValue(x => x.Width, x => x.Height)
-			.Subscribe(x =>
-			{
-				var usableHeight = x.Item2;
-				var usableWidth = x.Item1;
-				Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
-				NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
-				RefreshCoinsList(walletViewModel.Wallet.GetPockets());
-			});
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
 	public PrivacyControlTileViewModel PrivacyTile { get; }
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
+	public ObservableCollectionExtended<PrivacyRingItemViewModel> References { get; } = new();
 	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
 
 	public Wallet Wallet { get; }
 
-	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_itemsSourceList.Edit(list => CreateSegments(pockets, list));
+		var itemsSourceList = new SourceList<PrivacyRingItemViewModel>();
+
+		itemsSourceList
+			.DisposeWith(disposables)
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(Items)
+			.DisposeMany()
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		var sizeTrigger =
+			this.WhenAnyValue(x => x.Width, x => x.Height)
+				.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
+				.Do(_ => itemsSourceList.Clear())
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ToSignal();
+
+		_walletViewModel.UiTriggers
+						.PrivacyProgressUpdateTrigger
+						.Merge(sizeTrigger)
+						.ObserveOn(RxApp.MainThreadScheduler)
+						.Subscribe(_ => RenderRing(itemsSourceList))
+						.DisposeWith(disposables);
 	}
 
-	private void CreateSegments(IEnumerable<Pocket> pockets, IExtendedList<PrivacyRingItemViewModel> list)
+	private void RenderRing(SourceList<PrivacyRingItemViewModel> list)
 	{
-		list.Clear();
-
 		if (Width == 0d)
 		{
 			return;
 		}
 
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+		SetMargins();
 
-		var result = Enumerable.Empty<PrivacyRingItemViewModel>();
+		list.Edit(list => CreateSegments(list));
 
-		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
-		{
-			result = CreateCoinSegments(pockets);
-		}
-		else
-		{
-			result = CreatePocketSegments(pockets);
-		}
+		PreviewItems.RemoveMany(PreviewItems.OfType<PrivacyRingItemViewModel>());
+		PreviewItems.AddRange(list.Items);
 
-		foreach (var item in result)
-		{
-			list.Add(item);
-		}
-
-		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
-		PreviewItems.AddRange(list);
+		SetReferences(list);
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets)
+	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list)
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		list.Clear();
+
+		var coinCount = _walletViewModel.Wallet.Coins.Count();
+
+		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
+
+		var result =
+			shouldCreateSegmentsByCoin
+			? CreateSegmentsByCoin()
+			: CreateSegmentsByPrivacyLevel();
+
+		list.AddRange(result);
+	}
+
+	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin()
+	{
+		var groupsByPrivacy =
+			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+										 .OrderBy(x => (int)x.Key)
+										 .ToList();
+
+		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
-
-		foreach (var pocket in usablePockets)
+		foreach (var group in groupsByPrivacy)
 		{
-			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
+			var coins = group.OrderByDescending(x => x.Amount).ToList();
 
-			foreach (var coin in pocketCoins)
+			foreach (var coin in coins)
 			{
-				var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+				var end = start + (Math.Abs(coin.Amount.ToDecimal(MoneyUnit.BTC)) / total);
 
 				var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end);
 
@@ -142,21 +139,24 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		}
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
+	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByPrivacyLevel()
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
+		var groupsByPrivacy =
+			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+										 .OrderBy(x => (int)x.Key)
+										 .ToList();
 
-		foreach (var pocket in usablePockets)
+		foreach (var group in groupsByPrivacy)
 		{
-			var end = start + (Math.Abs(pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+			var groupAmount =
+				group.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 
-			var item = new PrivacyRingItemViewModel(this, pocket, (double)start, (double)end);
+			var end = start + (Math.Abs(groupAmount) / total);
+
+			var item = new PrivacyRingItemViewModel(this, group.Key, new Money(groupAmount, MoneyUnit.BTC), (double)start, (double)end);
 
 			yield return item;
 
@@ -166,9 +166,22 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		}
 	}
 
-	public void Dispose()
+	private void SetMargins()
 	{
-		_itemsSourceList?.Dispose();
-		_disposables.Dispose();
+		Margin = new Thickness(Width / 2, Height / 2, 0, 0);
+		NegativeMargin = Margin * -1;
+	}
+
+	private void SetReferences(SourceList<PrivacyRingItemViewModel> list)
+	{
+		References.Clear();
+
+		var references =
+			list.Items.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
+				.Select(x => x.First())
+				.OrderBy(list.Items.IndexOf)
+				.ToList();
+
+		References.AddRange(references);
 	}
 }

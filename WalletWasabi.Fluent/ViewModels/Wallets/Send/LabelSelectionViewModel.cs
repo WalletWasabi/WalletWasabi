@@ -17,8 +17,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private readonly KeyManager _keyManager;
 	private readonly string _password;
 	private readonly TransactionInfo _info;
-	private readonly Money _targetAmount;
-	private readonly FeeRate _feeRate;
+	private readonly bool _isSilent;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
 
 	[AutoNotify] private bool _enoughSelected;
@@ -27,13 +26,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info, bool isSilent)
 	{
 		_keyManager = keyManager;
 		_password = password;
 		_info = info;
-		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
-		_feeRate = _info.FeeRate;
+		_isSilent = isSilent;
 	}
 
 	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
@@ -68,8 +66,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var privateAndSemiPrivateAndUnknownPockets = privateAndSemiPrivatePockets.Union(unknownPockets).ToArray();
 		var privateAndSemiPrivateAndKnownPockets = privateAndSemiPrivatePockets.Union(knownPockets).ToArray();
 
-		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => _info.UserLabels.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
-		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(_info.UserLabels, StringComparer.OrdinalIgnoreCase)).ToArray();
+		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => _info.Recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
+		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(_info.Recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
 
 		if (IsPocketEnough(onlyKnownByRecipientPockets))
 		{
@@ -86,7 +84,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, _info.UserLabels, out var pockets))
+		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _info.Recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -104,7 +102,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
-	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
+	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
 		pockets = null;
 
@@ -197,7 +195,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			unlabelledViewModel.ToolTip = "There is no information about these people, only use it when necessary!";
 		}
 
-		OnSelectionChanged();
+		if (!_isSilent)
+		{
+			OnSelectionChanged();
+		}
 	}
 
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
@@ -279,7 +280,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var usedPockets = GetUsedPockets();
 		var usedPocketsLabels = new SmartLabel(usedPockets.SelectMany(p => p.Labels));
 
-		if (usedPocketsLabels != _info.UserLabels || !IsPocketEnough(usedPockets))
+		if (usedPocketsLabels != _info.Recipient || !IsPocketEnough(usedPockets))
 		{
 			isPrivateNeeded = true;
 

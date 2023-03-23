@@ -31,14 +31,20 @@
           <Image Height="100" Source="{Binding Generic, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
         </StackPanel>
       </Viewbox>
-      <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <DockPanel>
+      <Panel>
+
+        <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
           <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top" />
           <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 5 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Open wallet" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom" />
         </DockPanel>
-        <Viewbox IsVisible="{Binding !ConfirmationRequired}" MaxHeight="100" Margin="15">
-          <c:ProgressRing IsIndeterminate="True" Height="100" Width="100" />
-        </Viewbox>
+
+        <Panel IsVisible="{Binding !ConfirmationRequired}">
+          <Viewbox MaxHeight="100" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <c:ProgressRing IsIndeterminate="True" Height="100" Width="100" />
+          </Viewbox>
+          <c:InfoMessage Content="Enter your passphrase on the hardware wallet if needed." HorizontalAlignment="Center" VerticalAlignment="Bottom" Opacity="0.6"/>
+        </Panel>
+
       </Panel>
     </DockPanel>
   </c:ContentArea>

@@ -6,7 +6,15 @@ using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
-[NavigationMetaData(Title = "Wallet Info")]
+[NavigationMetaData(
+	Title = "Wallet Info",
+	Caption = "Display wallet info",
+	IconName = "nav_wallet_24_regular",
+	Order = 4,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Info", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _showSensitiveData;
@@ -37,25 +45,28 @@ public partial class WalletInfoViewModel : RoutableViewModel
 			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Kitchen.SaltSoup(), out _);
 
 			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
-			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.AccountKeyPath).GetWif(network).ToWif();
+			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.SegwitAccountKeyPath).GetWif(network).ToWif();
 			ExtendedMasterZprv = secret.ToZPrv(network);
-			ExtendedAccountZprv = secret.Derive(wallet.KeyManager.AccountKeyPath).ToZPrv(network);
 
 			// TODO: Should work for every type of wallet, temporarily disabling it.
 			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
 		}
 
-		ExtendedAccountPublicKey = wallet.KeyManager.ExtPubKey.ToString(network);
-		ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
-		AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
+		SegWitExtendedAccountPublicKey = wallet.KeyManager.SegwitExtPubKey.ToString(network);
+		TaprootExtendedAccountPublicKey = wallet.KeyManager.TaprootExtPubKey?.ToString(network);
+
+		SegWitAccountKeyPath = $"m/{wallet.KeyManager.SegwitAccountKeyPath}";
+		TaprootAccountKeyPath = $"m/{wallet.KeyManager.TaprootAccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 	}
 
-	public string ExtendedAccountPublicKey { get; }
+	public string SegWitExtendedAccountPublicKey { get; }
 
-	public string ExtendedAccountZpub { get; }
+	public string? TaprootExtendedAccountPublicKey { get; }
 
-	public string AccountKeyPath { get; }
+	public string SegWitAccountKeyPath { get; }
+
+	public string TaprootAccountKeyPath { get; }
 
 	public string? MasterKeyFingerprint { get; }
 
@@ -64,8 +75,6 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	public string? ExtendedAccountPrivateKey { get; }
 
 	public string? ExtendedMasterZprv { get; }
-
-	public string? ExtendedAccountZprv { get; }
 
 	public WpkhDescriptors? WpkhOutputDescriptors { get; }
 

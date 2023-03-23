@@ -21,7 +21,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
-	[AutoNotify] private Money? _coinJoinFee;
+	[AutoNotify] private string _coinJoinFeeRawString = "";
 	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
@@ -60,8 +60,8 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		Date = _coinJoinGroup.DateString;
 		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFee = _coinJoinGroup.OutgoingAmount;
-		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
+		CoinJoinFeeRawString = _coinJoinGroup.OutgoingAmount.ToFeeDisplayUnitRawString();
+		CoinJoinFeeString = _coinJoinGroup.OutgoingAmount.ToFeeDisplayUnitFormattedString();
 
 		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.TransactionId));
 		TxCount = TransactionIds.Count;

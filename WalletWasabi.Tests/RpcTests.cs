@@ -104,7 +104,7 @@ public class RpcTests
 		{
 			jsonrpc = "2.0",
 			method = methodName,
-			@params = parameters.Length == 1 && (parameters[0].GetType().IsClass && !(parameters[0] is string)) ? parameters[0] : parameters,
+			@params = parameters.Length == 1 && (parameters[0].GetType().IsClass && parameters[0] is not string) ? parameters[0] : parameters,
 			id
 		});
 	}

@@ -46,6 +46,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCoinJoin { get; protected set; }
 
+	public bool IsCoinJoinGroup { get; protected set; }
+
 	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
 
 	public Money? Balance { get; protected set; }
@@ -71,6 +73,18 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
 		throw new NotSupportedException();
+	}
+
+	protected void SetAmount(Money amount)
+	{
+		if (amount < Money.Zero)
+		{
+			OutgoingAmount = amount * -1;
+		}
+		else
+		{
+			IncomingAmount = amount;
+		}
 	}
 
 	public virtual bool HasChildren() => false;

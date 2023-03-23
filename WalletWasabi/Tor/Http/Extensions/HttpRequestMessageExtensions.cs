@@ -16,7 +16,7 @@ public static class HttpRequestMessageExtensions
 	/// </summary>
 	/// <param name="request">HTTP request to convert.</param>
 	/// <returns>String representation of <paramref name="request"/> according to <seealso href="https://tools.ietf.org/html/rfc7230"/>.</returns>
-	public static async Task<string> ToHttpStringAsync(this HttpRequestMessage request, CancellationToken cancellationToken = default)
+	public static async Task<string> ToHttpStringAsync(this HttpRequestMessage request, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3.3.2
 		// A user agent SHOULD send a Content-Length in a request message when no Transfer-Encoding is sent and the request method defines a meaning
@@ -65,7 +65,7 @@ public static class HttpRequestMessageExtensions
 		if (request.Headers.NotNullAndNotEmpty())
 		{
 			var headerSection = HeaderSection.CreateNew(request.Headers);
-			headers += headerSection.ToString(endWithTwoCRLF: false);
+			headers += headerSection.ToString();
 		}
 
 		string messageBody = "";
@@ -74,7 +74,7 @@ public static class HttpRequestMessageExtensions
 			if (request.Content.Headers.NotNullAndNotEmpty())
 			{
 				var headerSection = HeaderSection.CreateNew(request.Content.Headers);
-				headers += headerSection.ToString(endWithTwoCRLF: false);
+				headers += headerSection.ToString();
 			}
 
 			messageBody = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

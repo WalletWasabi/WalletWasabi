@@ -27,17 +27,11 @@ public partial class TransactionInfo
 
 	public int PrivateCoinThreshold { get; }
 
-	/// <summary>
-	/// In the case when InsufficientBalanceException happens, this amount should be
-	/// taken into account when selecting pockets.
-	/// </summary>
-	public Money MinimumRequiredAmount { get; set; } = Money.Zero;
-
 	public Money Amount { get; init; } = Money.Zero;
 
 	public BitcoinAddress Destination { get; init; }
 
-	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
+	public SmartLabel Recipient { get; set; } = SmartLabel.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -53,7 +47,7 @@ public partial class TransactionInfo
 
 	public bool IsCustomFeeUsed { get; set; }
 
-	public bool SubtractFee { get; set; }
+	public bool SubtractFee { get; init; }
 
 	public bool IsOtherPocketSelectionPossible { get; set; }
 
@@ -64,7 +58,6 @@ public partial class TransactionInfo
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
-		MinimumRequiredAmount = Money.Zero;
 	}
 
 	private void OnCoinsChanged()
@@ -78,10 +71,9 @@ public partial class TransactionInfo
 		{
 			FeeRate = FeeRate,
 			Coins = Coins,
-			MinimumRequiredAmount = MinimumRequiredAmount,
 			Amount = Amount,
 			Destination = Destination,
-			UserLabels = UserLabels,
+			Recipient = Recipient,
 			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
 			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			ChangelessCoins = ChangelessCoins,

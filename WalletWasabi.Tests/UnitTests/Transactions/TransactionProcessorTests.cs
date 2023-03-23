@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -251,7 +252,7 @@ public class TransactionProcessorTests
 				var coin = Assert.Single(doubleSpents);
 
 				// Double spend to ourselves but to a different address. So checking the address.
-				Assert.Equal(keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), coin.ScriptPubKey);
+				Assert.Equal(keys[1].GetAssumedScriptPubKey(), coin.ScriptPubKey);
 
 				doubleSpendReceived++;
 			}
@@ -266,29 +267,29 @@ public class TransactionProcessorTests
 			{
 				switch (coinReceivedCalled)
 				{
-					case 0: Assert.Equal(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), c.ScriptPubKey); break;
-					case 1: Assert.Equal(keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), c.ScriptPubKey); break;
-					case 2: Assert.Equal(keys[2].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), c.ScriptPubKey); break;
+					case 0: Assert.Equal(keys[0].GetAssumedScriptPubKey(), c.ScriptPubKey); break;
+					case 1: Assert.Equal(keys[1].GetAssumedScriptPubKey(), c.ScriptPubKey); break;
+					case 2: Assert.Equal(keys[2].GetAssumedScriptPubKey(), c.ScriptPubKey); break;
 					default:
 						throw new InvalidOperationException();
-				};
+				}
 
 				coinReceivedCalled++;
 			}
 		};
 
 		// An unconfirmed segwit transaction for us
-		var tx0 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m), height: 54321);
+		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m), height: 54321);
 
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].GetAssumedScriptPubKey());
 
 		Assert.Equal(0, doubleSpendReceived);
 
 		// Spend the coin
-		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), height: 54321);
+		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].GetAssumedScriptPubKey(), height: 54321);
 		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 		Assert.Equal(1, doubleSpendReceived);
 
@@ -830,24 +831,34 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionWithDustForWalletAsync()
 	{
+		static void AssertCoin(ProcessedResult result, bool expectDust)
+		{
+			if (!expectDust)
+			{
+				Assert.Empty(result.ReceivedDusts);
+				Assert.NotEmpty(result.ReceivedCoins);
+				Assert.NotEmpty(result.NewlyReceivedCoins);
+			}
+			else
+			{
+				Assert.NotEmpty(result.ReceivedDusts);
+				Assert.Empty(result.ReceivedCoins);
+				Assert.Empty(result.NewlyReceivedCoins);
+			}
+			Assert.True(result.IsNews);
+			Assert.Empty(result.NewlyConfirmedReceivedCoins);
+		}
+
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
-		{
-			// The dust coin should raise an event, but it shouldn't be fully processed.
-			Assert.NotEmpty(e.ReceivedDusts);
-			Assert.Empty(e.ReceivedCoins);
-			Assert.Empty(e.NewlyReceivedCoins);
-			Assert.Empty(e.NewlyConfirmedReceivedCoins);
-		};
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
 		var relevant = transactionProcessor.Process(tx);
 
 		// It is relevant even when all the coins can be dust.
-		Assert.True(relevant.IsNews);
-		Assert.Empty(transactionProcessor.Coins);
+		AssertCoin(relevant, expectDust: false);
+		Assert.Single(transactionProcessor.Coins);
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -855,6 +866,14 @@ public class TransactionProcessorTests
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
+
+		var attackTx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
+
+		var result = transactionProcessor.Process(attackTx);
+
+		// It is relevant even when all the coins can be dust.
+		AssertCoin(result, expectDust: true);
+		Assert.Single(transactionProcessor.Coins); // the dust coin used is not added to the coin registry
 	}
 
 	[Fact]
@@ -867,7 +886,7 @@ public class TransactionProcessorTests
 		foreach (var hdPubKey in keys.Take(5))
 		{
 			transactionProcessor.Process(
-				CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(0.000099m)));
+				CreateCreditingTransaction(hdPubKey.GetAssumedScriptPubKey(), Money.Coins(0.000099m)));
 		}
 
 		// It is relevant even when all the coins can be dust.
@@ -894,7 +913,7 @@ public class TransactionProcessorTests
 		var spendingTx = CreateSpendingTransaction(
 			Enumerable.Repeat(receivedCoin.Coin, 1),
 			destinationKey.GetScriptPubKey(ScriptPubKeyType.Legacy),
-			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone"), out _).P2wpkhScript);
+			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone")).P2wpkhScript);
 		relevant = transactionProcessor.Process(spendingTx);
 		Assert.True(relevant.IsNews);
 
@@ -1406,7 +1425,6 @@ public class TransactionProcessorTests
 	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore, int privacyLevelThreshold = 100)
 	{
 		var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
-		keyManager.AssertCleanKeysIndexed();
 
 		return new TransactionProcessor(
 			transactionStore,

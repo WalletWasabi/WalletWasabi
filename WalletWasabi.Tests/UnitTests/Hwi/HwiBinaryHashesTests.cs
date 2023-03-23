@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using WalletWasabi.Helpers;
 using WalletWasabi.Microservices;
 using Xunit;
 

@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
@@ -32,13 +33,6 @@ public class KeyManager
 	public const int MaxGapLimit = 10_000;
 	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
-	// BIP84-ish derivation scheme
-	// m / purpose' / coin_type' / account' / change / address_index
-	// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-	private static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
-
-	private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
-
 	private static readonly JsonConverter[] JsonConverters =
 	{
 		new BitcoinEncryptedSecretNoECJsonConverter(),
@@ -50,21 +44,31 @@ public class KeyManager
 	};
 
 	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
+	public KeyManager(BitcoinEncryptedSecretNoEC? encryptedSecret, byte[]? chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
 		MasterFingerprint = masterFingerprint;
-		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+		SegwitExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+		TaprootExtPubKey = taprootExtPubKey;
 
 		SkipSynchronization = skipSynchronization;
-		SetMinGapLimit(minGapLimit);
+		MinGapLimit = Math.Max(AbsoluteMinGapLimit, minGapLimit ?? 0);
 
 		BlockchainState = blockchainState;
 
-		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
+		SegwitAccountKeyPath = segwitAccountKeyPath ?? GetAccountKeyPath(BlockchainState.Network, ScriptPubKeyType.Segwit);
+		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
+		SegwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
 
+		TaprootAccountKeyPath = taprootAccountKeyPath ?? GetAccountKeyPath(BlockchainState.Network, ScriptPubKeyType.TaprootBIP86);
+		if (TaprootExtPubKey is { })
+		{
+			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
+			TaprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
+		}
 		SetFilePath(filePath);
+
 		ToFile();
 	}
 
@@ -74,15 +78,24 @@ public class KeyManager
 
 		password ??= "";
 
-		SetMinGapLimit(AbsoluteMinGapLimit);
+		MinGapLimit = AbsoluteMinGapLimit;
 
 		EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 		ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 		var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
-		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+
+		SegwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		SegwitExtPubKey = extKey.Derive(SegwitAccountKeyPath).Neuter();
+
+		TaprootAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
+		TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
+
+		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
+		SegwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
+		TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
+		TaprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
 	}
 
 	[OnDeserialized]
@@ -94,10 +107,28 @@ public class KeyManager
 		{
 			AutoCoinJoin = false;
 		}
+		HdPubKeyCache.AddRangeKeys(HdPubKeys);
 	}
 
-	public static KeyPath GetAccountKeyPath(Network network) =>
-		network == Network.TestNet ? TestNetAccountKeyPath : DefaultAccountKeyPath;
+	[OnSerializing]
+	private void OnSerializingdMethod(StreamingContext context)
+	{
+		HdPubKeys.Clear();
+		HdPubKeys.AddRange(HdPubKeyCache);
+		MinGapLimit = Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0);
+	}
+
+	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
+		new((network.Name, scriptPubKeyType) switch
+		{
+			("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
+			("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
+			("Main", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
+			("TestNet", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
+			("RegTest", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
+			("Main", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
+			_ => throw new ArgumentException($"Unknown account for network '{network}' and script type '{scriptPubKeyType}'.")
+		});
 
 	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 	{
@@ -106,20 +137,25 @@ public class KeyManager
 			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
 		}
 
-		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
+		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
 	}
 
+	#region Properties
+
 	[JsonProperty(PropertyName = "EncryptedSecret")]
-	public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
+	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
 	[JsonProperty(PropertyName = "ChainCode")]
-	public byte[] ChainCode { get; }
+	public byte[]? ChainCode { get; }
 
 	[JsonProperty(PropertyName = "MasterFingerprint")]
 	public HDFingerprint? MasterFingerprint { get; private set; }
 
 	[JsonProperty(PropertyName = "ExtPubKey")]
-	public ExtPubKey ExtPubKey { get; }
+	public ExtPubKey SegwitExtPubKey { get; }
+
+	[JsonProperty(PropertyName = "TaprootExtPubKey")]
+	public ExtPubKey? TaprootExtPubKey { get; private set; }
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
@@ -128,7 +164,10 @@ public class KeyManager
 	public int MinGapLimit { get; private set; }
 
 	[JsonProperty(PropertyName = "AccountKeyPath")]
-	public KeyPath AccountKeyPath { get; private set; }
+	public KeyPath SegwitAccountKeyPath { get; private set; }
+
+	[JsonProperty(PropertyName = "TaprootAccountKeyPath")]
+	public KeyPath TaprootAccountKeyPath { get; private set; }
 
 	[JsonProperty(PropertyName = "BlockchainState")]
 	private BlockchainState BlockchainState { get; }
@@ -164,6 +203,9 @@ public class KeyManager
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();
 
+	[JsonProperty(ItemConverterType = typeof(OutPointJsonConverter), PropertyName = "ExcludedCoinsFromCoinJoin")]
+	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
+
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
@@ -172,18 +214,19 @@ public class KeyManager
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
-	private object BlockchainStateLock { get; } = new();
+	private HdPubKeyCache HdPubKeyCache { get; } = new();
 
-	private object HdPubKeysLock { get; } = new();
+	// `CriticalStateLock` is aimed to synchronize read/write access to the "critical" properties:
+	// keys (stored in the `HdPubKeyCache`), minGapLimit, secrets, height, network.
+	private object CriticalStateLock { get; } = new();
 
-	private List<byte[]> HdPubKeyScriptBytes { get; } = new();
+	#endregion Properties
 
-	private object HdPubKeyScriptBytesLock { get; } = new();
+	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
+	private HdPubKeyGenerator SegwitInternalKeyGenerator { get; }
+	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
+	private HdPubKeyGenerator? TaprootInternalKeyGenerator { get; }
 
-	private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; } = new();
-
-	private object ScriptHdPubKeyMapLock { get; } = new();
-	private object ToFileLock { get; } = new();
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
@@ -201,22 +244,26 @@ public class KeyManager
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		BlockchainState blockchainState = new(network);
-		KeyPath keyPath = GetAccountKeyPath(network);
-		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
+		KeyPath segwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
+
+		KeyPath taprootAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
+		ExtPubKey taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string? filePath = null)
+	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null)
 	{
-		return new KeyManager(null, null, null, extPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
-	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
+	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, Network network, string? filePath = null)
 	{
-		return new KeyManager(null, null, masterFingerprint, extPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
+		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 	}
 
-	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 	{
 		Guard.NotNull(nameof(mnemonic), mnemonic);
 		password ??= "";
@@ -226,9 +273,14 @@ public class KeyManager
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 
-		KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
-		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: false, minGapLimit, new BlockchainState(network), filePath, keyPath);
+		KeyPath segwitAccountKeyPath = swAccountKeyPath ?? GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
+		KeyPath taprootAccountKeyPath = trAccountKeyPath ?? GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
+		ExtPubKey taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+
+		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, minGapLimit, new BlockchainState(network), filePath, segwitAccountKeyPath, taprootAccountKeyPath);
+		km.AssertCleanKeysIndexed();
+		return km;
 	}
 
 	public static KeyManager FromFile(string filePath)
@@ -247,18 +299,6 @@ public class KeyManager
 			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
-		lock (km.HdPubKeyScriptBytesLock)
-		{
-			km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
-		}
-
-		lock (km.ScriptHdPubKeyMapLock)
-		{
-			foreach (var key in km.GetKeys())
-			{
-				km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
-			}
-		}
 
 		return km;
 	}
@@ -274,150 +314,73 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	public void ToFile()
+	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		lock (HdPubKeysLock)
+		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
+							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
+
+		lock (CriticalStateLock)
 		{
-			lock (BlockchainStateLock)
-			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock();
-				}
-			}
-		}
-	}
-
-	public void ToFile(string filePath)
-	{
-		lock (HdPubKeysLock)
-		{
-			lock (BlockchainStateLock)
-			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock(filePath);
-				}
-			}
-		}
-	}
-
-	public HdPubKey GenerateNewPersistentKey(SmartLabel label, KeyState keyState, bool isInternal)
-	{
-		var newKey = GenerateNewKey(label, keyState, isInternal);
-		ToFile();
-		return newKey;
-	}
-
-	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal)
-	{
-		// BIP44-ish derivation scheme
-		// m / purpose' / coin_type' / account' / change / address_index
-		var change = isInternal ? 1 : 0;
-
-		lock (HdPubKeysLock)
-		{
-			HdPubKey[] relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal == isInternal).ToArray();
-
-			KeyPath path = new($"{change}/0");
-			if (relevantHdPubKeys.Any())
-			{
-				int largestIndex = relevantHdPubKeys.Max(x => x.Index);
-				var smallestMissingIndex = largestIndex;
-				var present = new bool[largestIndex + 1];
-				for (int i = 0; i < relevantHdPubKeys.Length; ++i)
-				{
-					present[relevantHdPubKeys[i].Index] = true;
-				}
-				for (int i = 1; i < present.Length; ++i)
-				{
-					if (!present[i])
-					{
-						smallestMissingIndex = i - 1;
-						break;
-					}
-				}
-
-				path = relevantHdPubKeys[smallestMissingIndex].NonHardenedKeyPath.Increment();
-			}
-
-			var fullPath = AccountKeyPath.Derive(path);
-			var pubKey = ExtPubKey.Derive(path).PubKey;
-
-			var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
-			HdPubKeys.Add(hdPubKey);
-			lock (HdPubKeyScriptBytesLock)
-			{
-				HdPubKeyScriptBytes.Add(hdPubKey.P2wpkhScript.ToCompressedBytes());
-			}
-
-			lock (ScriptHdPubKeyMapLock)
-			{
-				ScriptHdPubKeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
-			}
-
+			var view = HdPubKeyCache.GetView(hdPubKeyRegistry.KeyPath);
+			var (keyPath, extPubKey) = hdPubKeyRegistry.GenerateNewKey(view);
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, label, keyState);
+			HdPubKeyCache.AddKey(hdPubKey, scriptPubKeyType);
 			return hdPubKey;
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(SmartLabel label, out bool minGapLimitIncreased)
+	public HdPubKey GetNextReceiveKey(SmartLabel label)
 	{
 		if (label.IsEmpty)
 		{
 			throw new InvalidOperationException("Label is required.");
 		}
 
-		minGapLimitIncreased = false;
-
-		AssertCleanKeysIndexed(isInternal: false);
-
-		// Find the next clean external key with empty label.
-		var newKey = GetKeys(x => x.IsInternal == false && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
-
-		// If not found, generate a new.
-		if (newKey is null)
+		lock (CriticalStateLock)
 		{
-			SetMinGapLimit(MinGapLimit + 1);
-			newKey = AssertCleanKeysIndexed(isInternal: false).First();
+			// Find the next clean external key with empty label.
+			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
+			if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
+			{
+				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
+				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
+				HdPubKeyCache.AddRangeKeys(newHdPubKeys);
 
-			// If the new is over the MinGapLimit, set minGapLimitIncreased to true.
-			minGapLimitIncreased = true;
+				newKey = newHdPubKeys.First();
+			}
+			newKey.SetLabel(label);
+
+			SkipSynchronization = false;
+
+			ToFile();
+			return newKey;
 		}
-
-		newKey.SetLabel(label, kmToFile: this);
-
-		SetDoNotSkipSynchronization();
-
-		return newKey;
 	}
+
+	public HdPubKey GetNextChangeKey() =>
+		GetKeys(x =>
+			x.KeyState == KeyState.Clean &&
+			x.IsInternal == true)
+			.First();
+
+	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
+		GetKeys(x =>
+				x.KeyState == KeyState.Locked &&
+				x.IsInternal == true);
 
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
-		lock (HdPubKeysLock)
+		lock (CriticalStateLock)
 		{
-			if (wherePredicate is null)
+			AssertCleanKeysIndexed();
+			return wherePredicate switch
 			{
-				return HdPubKeys.ToList();
-			}
-			else
-			{
-				return HdPubKeys.Where(wherePredicate).ToList();
-			}
+				null => HdPubKeyCache.ToList(),
+				_ => HdPubKeyCache.Where(wherePredicate).ToList()
+			};
 		}
-	}
-
-	public void SetDoNotSkipSynchronization()
-	{
-		// Don't set it unnecessarily
-		if (SkipSynchronization == false)
-		{
-			return;
-		}
-
-		SkipSynchronization = false;
-		ToFile();
 	}
 
 	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null) =>
@@ -429,68 +392,29 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
-	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
+	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
 	{
-		var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).Select(x => x.Index).ToArray();
-
-		if (ignoreTail)
+		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
+		lock (CriticalStateLock)
 		{
-			var lastUsedIndex = GetKeys(x => x.IsInternal == isInternal && x.KeyState == KeyState.Used).LastOrDefault()?.Index;
-			if (lastUsedIndex is null)
-			{
-				return 0;
-			}
-			else
-			{
-				keyIndexes = keyIndexes.Where(x => x < lastUsedIndex).ToArray();
-			}
+			return HdPubKeyCache.GetView(keySource.KeyPath);
 		}
-
-		var hs = keyIndexes.ToHashSet();
-		int largerConsecutiveSequence = 0;
-
-		for (int i = 0; i < keyIndexes.Length; ++i)
-		{
-			if (!hs.Contains(keyIndexes[i] - 1))
-			{
-				int j = keyIndexes[i];
-				while (hs.Contains(j))
-				{
-					j++;
-				}
-
-				var sequenceLength = j - keyIndexes[i];
-				if (largerConsecutiveSequence < sequenceLength)
-				{
-					largerConsecutiveSequence = sequenceLength;
-				}
-			}
-		}
-		return largerConsecutiveSequence;
 	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
-		lock (HdPubKeyScriptBytesLock)
+		lock (CriticalStateLock)
 		{
-			return HdPubKeyScriptBytes.ToImmutableArray();
+			AssertCleanKeysIndexed();
+			return HdPubKeyCache.GetScriptPubKeysBytes();
 		}
 	}
 
 	public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 	{
-		hdPubKey = default;
-
-		lock (ScriptHdPubKeyMapLock)
+		lock (CriticalStateLock)
 		{
-			if (ScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
-			{
-				hdPubKey = key;
-				return true;
-			}
-
-			return false;
+			return HdPubKeyCache.TryGetPubKey(scriptPubKey, out hdPubKey);
 		}
 	}
 
@@ -504,32 +428,49 @@ public class KeyManager
 		ExtKey extKey = GetMasterExtKey(password);
 		var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
-		lock (HdPubKeysLock)
+		lock (CriticalStateLock)
 		{
-			foreach (HdPubKey key in HdPubKeys.Where(x =>
+			foreach (HdPubKey key in GetKeys(x =>
 				scripts.Contains(x.P2wpkhScript)
 				|| scripts.Contains(x.P2shOverP2wpkhScript)
 				|| scripts.Contains(x.P2pkhScript)
-				|| scripts.Contains(x.P2pkScript)))
+				|| scripts.Contains(x.P2pkScript)
+				|| scripts.Contains(x.P2Taproot)))
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
 				extKeysAndPubs.Add((ek, key));
+
+				if (ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != key.P2wpkhScript
+					&& ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) != key.P2Taproot)
+				{
+					throw new InvalidOperationException("Wtf");
+				}
 			}
 		}
 		return extKeysAndPubs;
 	}
 
-	public IEnumerable<SmartLabel> GetChangeLabels() => GetKeys(x => x.IsInternal).Select(x => x.Label);
-
-	public IEnumerable<SmartLabel> GetReceiveLabels() => GetKeys(x => !x.IsInternal).Select(x => x.Label);
+	private (int PasswordHash, ExtKey MasterKey)? MasterKeyAndPasswordHash { get; set; }
 
 	public ExtKey GetMasterExtKey(string password)
 	{
-		password ??= "";
-
 		if (IsWatchOnly)
 		{
 			throw new SecurityException("This is a watchonly wallet.");
+		}
+
+		password ??= "";
+
+		var passwordHash = password.GetHashCode();
+
+		if (MasterKeyAndPasswordHash is { MasterKey: var masterkey, PasswordHash: var storedPasswordHash })
+		{
+			if (passwordHash != storedPasswordHash)
+			{
+				throw new SecurityException("Invalid password.");
+			}
+
+			return masterkey;
 		}
 
 		try
@@ -539,6 +480,9 @@ public class KeyManager
 
 			// Backwards compatibility:
 			MasterFingerprint ??= secret.PubKey.GetHDFingerPrint();
+			DeriveTaprootExtPubKey(extKey);
+
+			MasterKeyAndPasswordHash = (passwordHash, extKey);
 
 			return extKey;
 		}
@@ -548,169 +492,161 @@ public class KeyManager
 		}
 	}
 
-	/// <summary>
-	/// Make sure there's always clean keys generated and indexed.
-	/// Call SetMinGapLimit() to set how many keys should be asserted.
-	/// </summary>
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexedAndPersist(bool? isInternal = null)
+	private void DeriveTaprootExtPubKey(ExtKey extKey)
 	{
-		var newKeys = AssertCleanKeysIndexed(isInternal);
-		if (newKeys.Any())
+		if (TaprootExtPubKey is null)
 		{
-			ToFile();
+			TaprootAccountKeyPath = GetAccountKeyPath(GetNetwork(), ScriptPubKeyType.TaprootBIP86);
+			TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
 		}
-
-		return newKeys;
 	}
 
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
+	public void SetKeyState(KeyState newKeyState, HdPubKey hdPubKey)
 	{
-		var newKeys = new List<HdPubKey>();
-
-		if (isInternal.HasValue)
+		if (hdPubKey.KeyState == newKeyState)
 		{
-			while (CountConsecutiveUnusedKeys(isInternal.Value, ignoreTail: false) < MinGapLimit)
-			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value));
-			}
-		}
-		else
-		{
-			while (CountConsecutiveUnusedKeys(true, ignoreTail: false) < MinGapLimit)
-			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true));
-			}
-			while (CountConsecutiveUnusedKeys(false, ignoreTail: false) < MinGapLimit)
-			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false));
-			}
+			return;
 		}
 
-		return newKeys;
+		hdPubKey.SetKeyState(newKeyState);
+		if (newKeyState is KeyState.Locked or KeyState.Used)
+		{
+			var keySource = GetHdPubKeyGenerator(hdPubKey.IsInternal, hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath());
+
+			// This can happen after downgrading to pre-taproot wasabi version the switching back to a supporting
+			// version so taproot keys are detected. However, the user has not login yet so taprootextpubkey is
+			// not derived yet (because pre-taproot wasabi do not serialize fields that it doesn't know)
+			if (keySource is { })
+			{
+				var view = HdPubKeyCache.GetView(keySource.KeyPath);
+				HdPubKeyCache.AddRangeKeys(keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey));
+			}
+		}
+	}
+
+	private HdPubKeyGenerator? GetHdPubKeyGenerator(bool isInternal, ScriptPubKeyType scriptPubKeyType) =>
+		(isInternal, scriptPubKeyType) switch
+		{
+			(true, ScriptPubKeyType.Segwit) => SegwitInternalKeyGenerator,
+			(false, ScriptPubKeyType.Segwit) => SegwitExternalKeyGenerator,
+			(true, ScriptPubKeyType.TaprootBIP86) => TaprootInternalKeyGenerator,
+			(false, ScriptPubKeyType.TaprootBIP86) => TaprootExternalKeyGenerator,
+			_ => throw new NotSupportedException($"There is not available generator for '{scriptPubKeyType}.")
+		};
+
+	private IEnumerable<HdPubKey> AssertCleanKeysIndexed()
+	{
+		var keys = new[]
+			{
+				SegwitInternalKeyGenerator,
+				SegwitExternalKeyGenerator,
+				TaprootInternalKeyGenerator,
+				TaprootExternalKeyGenerator
+			}
+			.Where(x => x is not null)
+			.SelectMany(gen => gen!.AssertCleanKeysIndexed(HdPubKeyCache.GetView(gen.KeyPath)))
+			.Select(CreateHdPubKey);
+
+		return HdPubKeyCache.AddRangeKeys(keys);
 	}
 
 	/// <summary>
 	/// Make sure there's always locked internal keys generated and indexed.
 	/// </summary>
-	public void AssertLockedInternalKeysIndexedAndPersist(int howMany)
+	public void AssertLockedInternalKeysIndexedAndPersist(int howMany, bool preferTaproot)
 	{
-		if (AssertLockedInternalKeysIndexed(howMany))
+		if (AssertLockedInternalKeysIndexed(howMany, preferTaproot))
 		{
 			ToFile();
 		}
 	}
 
-	public bool AssertLockedInternalKeysIndexed(int howMany)
+	public bool AssertLockedInternalKeysIndexed(int howMany, bool preferTaproot)
 	{
-		var changed = false;
-
-		while (GetKeys(KeyState.Locked, true).Count() < howMany)
+		var hdPubKeyGenerator = (TaprootInternalKeyGenerator, preferTaproot) switch
 		{
-			var firstUnusedInternalKey = GetKeys(x => x.IsInternal == true && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
+			({ }, true) => TaprootInternalKeyGenerator,
+			_ => SegwitInternalKeyGenerator
+		};
 
-			if (firstUnusedInternalKey is null)
-			{
-				// If not found, generate a new.
-				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true);
-			}
-			else
-			{
-				firstUnusedInternalKey.SetKeyState(KeyState.Locked);
-			}
+		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, hdPubKeyGenerator.MinGapLimit);
+		var internalView = HdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
+		var lockedKeyCount = internalView.LockedKeys.Count();
+		var missingLockedKeys = Math.Max(howMany - lockedKeyCount, 0);
 
-			changed = true;
+		HdPubKeyCache.AddRangeKeys(hdPubKeyGenerator.AssertCleanKeysIndexed(internalView).Select(CreateHdPubKey));
+
+		var availableCandidates = HdPubKeyCache
+			.GetView(hdPubKeyGenerator.KeyPath)
+			.CleanKeys
+			.Where(x => x.Label.IsEmpty)
+			.Take(missingLockedKeys)
+			.ToList();
+
+		foreach (var hdPubKeys in availableCandidates)
+		{
+			SetKeyState(KeyState.Locked, hdPubKeys);
 		}
 
-		var newKeys = AssertCleanKeysIndexed(isInternal: true);
-
-		return changed || newKeys.Any();
+		return availableCandidates.Count > 0;
 	}
 
-	private void SetMinGapLimit(int? minGapLimit)
+	public void ToFile()
 	{
-		MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
-		// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
-	}
-
-	private void ToFileNoBlockchainStateLock()
-	{
-		lock (HdPubKeysLock)
+		if (FilePath is { } filePath)
 		{
-			lock (ToFileLock)
-			{
-				ToFileNoLock();
-			}
+			ToFile(filePath);
 		}
 	}
 
-	private void ToFileNoLock()
+	public void ToFile(string filePath)
 	{
-		if (FilePath is null)
+		string jsonString = string.Empty;
+
+		lock (CriticalStateLock)
 		{
-			return;
+			jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
 		}
 
-		ToFileNoLock(FilePath);
-	}
-
-	private void ToFileNoLock(string filePath)
-	{
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
-		// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-		int maturity = 101;
-		Height prevHeight = BlockchainState.Height;
-		int matureHeight = Math.Max(0, prevHeight.Value - maturity);
-
-		BlockchainState.Height = new Height(matureHeight);
-
-		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
 
 		SafeIoManager safeIoManager = new(filePath);
 		safeIoManager.WriteAllText(jsonString, Encoding.UTF8);
-
-		// Re-add removed items for further operations.
-		BlockchainState.Height = prevHeight;
 	}
 
 	#region BlockchainState
 
 	public Height GetBestHeight()
 	{
-		Height res;
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
-			res = BlockchainState.Height;
+			return BlockchainState.Height;
 		}
-		return res;
 	}
 
 	public Network GetNetwork()
 	{
-		lock (BlockchainStateLock)
-		{
-			return BlockchainState.Network;
-		}
+		return BlockchainState.Network;
 	}
 
 	public void SetBestHeight(Height height)
 	{
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
-			ToFileNoBlockchainStateLock();
+			ToFile();
 		}
 	}
 
 	public void SetMaxBestHeight(Height height)
 	{
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
 			var prevHeight = BlockchainState.Height;
 			var newHeight = Math.Min(prevHeight, height);
 			if (prevHeight != newHeight)
 			{
-				BlockchainState.Height = newHeight;
-				ToFileNoBlockchainStateLock();
+				SetBestHeight(newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
@@ -752,14 +688,13 @@ public class KeyManager
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 	{
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
 			var lastNetwork = BlockchainState.Network;
 			if (lastNetwork is null || lastNetwork != expectedNetwork)
 			{
 				BlockchainState.Network = expectedNetwork;
-				BlockchainState.Height = 0;
-				ToFileNoBlockchainStateLock();
+				SetBestHeight(0);
 
 				if (lastNetwork is { })
 				{
@@ -771,4 +706,34 @@ public class KeyManager
 	}
 
 	#endregion BlockchainState
+
+	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
+		new(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
+
+	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
+	{
+		ExcludedCoinsFromCoinJoin = excludedOutpoints.ToList();
+		ToFile();
+	}
+}
+
+public static class KeyPathExtensions
+{
+	public static ScriptPubKeyType GetScriptTypeFromKeyPath(this KeyPath keyPath) =>
+		keyPath.ToBytes().First() switch
+		{
+			84 => ScriptPubKeyType.Segwit,
+			86 => ScriptPubKeyType.TaprootBIP86,
+			_ => ScriptPubKeyType.Segwit // User can specify a specify whatever (like m/999'/999'/999')
+										 // throw new NotSupportedException("Unknown script type.")
+		};
+}
+
+public static class HdPubKeyExtensions
+{
+	public static BitcoinAddress GetAddress(this HdPubKey me, Network network) =>
+		me.PubKey.GetAddress(me.FullKeyPath.GetScriptTypeFromKeyPath(), network);
+
+	public static Script GetAssumedScriptPubKey(this HdPubKey me) =>
+		me.PubKey.GetScriptPubKey(me.FullKeyPath.GetScriptTypeFromKeyPath());
 }

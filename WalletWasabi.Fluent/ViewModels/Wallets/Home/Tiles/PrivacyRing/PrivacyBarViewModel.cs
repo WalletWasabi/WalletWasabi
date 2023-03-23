@@ -3,160 +3,89 @@ using DynamicData.Binding;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Threading;
-using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
+using NBitcoin;
 using WalletWasabi.Wallets;
+using System.Reactive.Disposables;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public partial class PrivacyBarViewModel : ViewModelBase
+public partial class PrivacyBarViewModel : ActivatableViewModel
 {
-	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
-	private IObservable<Unit> _coinsUpdated;
+	private readonly WalletViewModel _walletViewModel;
 
-	[AutoNotify] private double _width;
+	[AutoNotify] private decimal _totalAmount;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel)
 	{
+		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
-
-		_itemsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(Items)
-			.DisposeMany()
-			.Subscribe();
-
-		_coinsUpdated =
-			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
-						  .Merge(walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		_coinsUpdated
-			.CombineLatest(this.WhenAnyValue(x => x.Width))
-			.Select(_ => walletViewModel.Wallet.GetPockets())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList);
-
-		IsEmpty = _coinsUpdated
-			.Select(_ => !Items.Any())
-			.ReplayLastActive();
 	}
-
-	public IObservable<bool> IsEmpty { get; }
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
 	public Wallet Wallet { get; }
 
-	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	protected override void OnActivated(CompositeDisposable disposables)
 	{
-		_itemsSourceList.Edit(list => CreateSegments(list, pockets));
+		Items.Clear();
+
+		var itemsSourceList = new SourceList<PrivacyBarItemViewModel>();
+
+		itemsSourceList
+			.DisposeWith(disposables)
+			.Connect()
+			.Bind(Items)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
+			.Subscribe(_ => itemsSourceList.Edit(Update))
+			.DisposeWith(disposables);
 	}
 
-	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list, IEnumerable<Pocket> pockets)
+	private void Update(IExtendedList<PrivacyBarItemViewModel> list)
 	{
+		TotalAmount = _walletViewModel.Wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
+
 		list.Clear();
 
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+		var coinCount = _walletViewModel.Wallet.Coins.Count();
 
 		if (coinCount == 0d)
 		{
 			return;
 		}
 
-		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
+		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
 
-		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
-		{
-			result = CreateCoinSegments(pockets, coinCount);
-		}
-		else
-		{
-			result = CreatePocketSegments(pockets);
-		}
+		var result =
+			shouldCreateSegmentsByCoin
+			? CreateSegmentsByCoin()
+			: CreateSegmentsByPrivacyLevel();
 
-		foreach (var item in result)
-		{
-			list.Add(item);
-		}
+		list.AddRange(result);
 	}
 
-	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
+	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByCoin()
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-		var start = 0.0m;
-
-		var usableWidth = Width - (coinCount * 2);
-
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
-
-		foreach (var pocket in usablePockets)
-		{
-			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
-
-			foreach (var coin in pocketCoins)
-			{
-				var margin = 2;
-				var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-				var width = Math.Abs((decimal)usableWidth * amount / total);
-
-				// Artificially enlarge segments smaller than 2 px in order to make them visible.
-				if (width < 2)
-				{
-					width++;
-					margin--;
-				}
-
-				yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
-
-				start += width + margin;
-			}
-		}
+		return
+			_walletViewModel.Wallet.Coins
+								   .Select(coin => new PrivacyBarItemViewModel(this, coin))
+								   .OrderBy(x => x.PrivacyLevel)
+								   .ThenByDescending(x => x.Amount)
+								   .ToList();
 	}
 
-	private IEnumerable<PrivacyBarItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
+	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByPrivacyLevel()
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-		var start = 0.0m;
-
-		var usableWidth = Width - (pockets.Count() * 2);
-
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
-
-		foreach (var pocket in usablePockets)
-		{
-			var margin = 2;
-			var amount = pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-
-			var width = Math.Abs((decimal)usableWidth * amount / total);
-
-			// Artificially enlarge segments smaller than 2 px in order to make them visible.
-			if (width < 2)
-			{
-				width++;
-				margin--;
-			}
-
-			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
-
-			start += width + margin;
-		}
-	}
-
-	public void Dispose()
-	{
-		_itemsSourceList.Dispose();
+		return
+			_walletViewModel.Wallet.Coins
+								   .GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+								   .OrderBy(x => (int)x.Key)
+								   .Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+								   .ToList();
 	}
 }

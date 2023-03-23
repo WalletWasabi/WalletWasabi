@@ -11,15 +11,32 @@
   <StackPanel Spacing="15">
 
     <!-- Amount -->
-    <c:PreviewItem Icon="{StaticResource btc_logo}"
-                   Label="a total of">
-      <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
-    </c:PreviewItem>
+    <DockPanel>
+      <Button Classes="activeHyperLink"
+              Command="{Binding Parent.ChangeCoinsCommand}"
+              Content="Review coins"
+              Margin="10 0"
+              VerticalAlignment="Center"
+              DockPanel.Dock="Right">
+        <Button.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="Parent.IsCoinControlVisible" />
+            <Binding Path="!IsPreview" />
+          </MultiBinding>
+        </Button.IsVisible>
+      </Button>
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="a total of" HorizontalContentAlignment="Stretch"
+                     TextValue="{Binding Amount}">
+        <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
+      </c:PreviewItem>
+    </DockPanel>
     <Separator />
 
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
-                   Label="will be sent to">
+                   Label="will be sent to"
+                   TextValue="{Binding Recipient}">
       <c:LabelsItemsPresenter Items="{Binding Recipient}"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
@@ -28,7 +45,8 @@
 
     <!-- Address -->
     <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                   Label="to the Bitcoin address">
+                   Label="to the Bitcoin address"
+                   TextValue="{Binding AddressText}">
       <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </c:PreviewItem>
     <Separator />
@@ -40,14 +58,20 @@
               Command="{Binding Parent.ChangePocketCommand}"
               ToolTip.Tip="Control your privacy"
               DockPanel.Dock="Right"
-              Margin="10 0"
-              IsVisible="{Binding IsOtherPocketSelectionPossible}">
+              Margin="10 0">
+        <Button.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsOtherPocketSelectionPossible" />
+            <Binding Path="!IsPreview" />
+          </MultiBinding>
+        </Button.IsVisible>
         <Viewbox Height="20">
           <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
         </Viewbox>
       </Button>
-      <c:PreviewItem Icon="{StaticResource incognito_pathicon}"
-                     Label="other people or companies could know about this">
+      <c:PreviewItem Icon="{StaticResource nav_incognito_24_regular}"
+                     Label="other people or companies could know about this"
+                     TextValue="{Binding Labels}">
         <c:LabelsItemsPresenter Items="{Binding Labels}"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center" />
@@ -83,7 +107,8 @@
           <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Label="there will be an additional transaction fee of">
+                       Label="there will be an additional transaction fee of"
+                       TextValue="{Binding Fee}">
           <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
         </c:PreviewItem>
       </StackPanel>

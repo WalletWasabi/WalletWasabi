@@ -218,4 +218,7 @@ public static class LinqExtensions
 	{
 		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).Sum();
 	}
+
+	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
+		me.DefaultIfEmpty(defaultValue).Max();
 }

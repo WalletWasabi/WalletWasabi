@@ -1,53 +1,24 @@
-using Avalonia;
-using Avalonia.Media;
-using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public class PrivacyBarItemViewModel : ViewModelBase, IDisposable
+public class PrivacyBarItemViewModel : ViewModelBase
 {
-	public const double BarHeight = 10;
-
-	public PrivacyBarItemViewModel(PrivacyBarViewModel parent, SmartCoin coin, double start, double width)
+	public PrivacyBarItemViewModel(PrivacyBarViewModel parent, SmartCoin coin)
 	{
-		Coin = new WalletCoinViewModel(coin);
-
-		IsPrivate = coin.IsPrivate(parent.Wallet.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-
-		Data = new RectangleGeometry
-		{
-			Rect = new Rect(start, 0, width, BarHeight)
-		};
+		PrivacyLevel = coin.GetPrivacyLevel(parent.Wallet.AnonScoreTarget);
+		Amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
 	}
 
-	public PrivacyBarItemViewModel(Pocket pocket, Wallet wallet, double start, double width)
+	public PrivacyBarItemViewModel(PrivacyLevel privacyLevel, decimal amount)
 	{
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(wallet.AnonScoreTarget));
-		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-
-		Data = new RectangleGeometry
-		{
-			Rect = new Rect(start, 0, width, BarHeight)
-		};
+		PrivacyLevel = privacyLevel;
+		Amount = amount;
 	}
 
-	public RectangleGeometry Data { get; }
-	public WalletCoinViewModel? Coin { get; }
+	public decimal Amount { get; }
 
-	public bool IsPrivate { get; }
-	public bool IsSemiPrivate { get; }
-	public bool IsNonPrivate { get; }
-
-	public void Dispose()
-	{
-		Coin?.Dispose();
-	}
+	public PrivacyLevel PrivacyLevel { get; }
 }

@@ -9,21 +9,23 @@
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Write down the following recovery words in the correct order and store them in a safe place. They are needed to recover this wallet."
+                 Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
-    <DockPanel>
-      <c:InfoMessage Opacity="0.5"
-                     HorizontalAlignment="Center"
-                     DockPanel.Dock="Bottom">
-        <TextBlock Text="You will not be able to see these words again." />
-      </c:InfoMessage>
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition MinHeight="70" Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="20" />
+      </Grid.RowDefinitions>
 
-      <Panel>
-        <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl" Margin="0 10 0 0">
+      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ItemsControl Items="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
@@ -32,7 +34,7 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="252" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
@@ -45,12 +47,17 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Panel HorizontalAlignment="Center" VerticalAlignment="Center"
-               Width="{Binding #ItemsControl.Bounds.Width}"
-               Height="{Binding #ItemsControl.Bounds.Height}">
-          <Separator Classes="vertical" Margin="0 0 0 20" />
-        </Panel>
+        <Grid ColumnDefinitions="*,1,*,1,*">
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
+          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
+        </Grid>
       </Panel>
-    </DockPanel>
+
+      <c:InfoMessage Opacity="0.5"
+                     HorizontalAlignment="Center"
+                     Grid.Row="4">
+        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
+      </c:InfoMessage>
+    </Grid>
   </c:ContentArea>
 </UserControl>

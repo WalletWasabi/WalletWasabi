@@ -21,16 +21,16 @@ public class PocketSelectionTests
 			new Mnemonic("all all all all all all all all all all all all"),
 			pw,
 			Network.Main,
-			KeyManager.GetAccountKeyPath(Network.Main));
+			KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit));
 		var address = BitcoinAddress.Create("bc1q7v7qfhwx55erxkc66nsv39x4azwufvy6zq8ya4", Network.Main);
 		var info = new TransactionInfo(address, 100)
 		{
 			Amount = amount,
 			FeeRate = new FeeRate(2m),
-			UserLabels = recipient
+			Recipient = recipient
 		};
 
-		return new LabelSelectionViewModel(km, pw, info);
+		return new LabelSelectionViewModel(km, pw, info, isSilent: false);
 	}
 
 	[Fact]

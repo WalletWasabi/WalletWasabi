@@ -9,6 +9,11 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
+using WalletWasabi.Affiliation.Models;
+using System.Linq;
+using System.Collections.Immutable;
+using WalletWasabi.Affiliation;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
@@ -29,21 +34,21 @@ public class RoundStateUpdaterTests
 		// Each line represents a response for each request.
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState2 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState2 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), mockApiClient.Object);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var round1TSCts = new CancellationTokenSource();
-		var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.InputRegistration, cancellationToken);
-		var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.OutputRegistration, cancellationToken);
-		var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.TransactionSigning, round1TSCts.Token);
-		var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.Ended, cancellationToken);
+		var round1IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.InputRegistration, cancellationToken);
+		var round1ORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.OutputRegistration, cancellationToken);
+		var round1TSTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.TransactionSigning, round1TSCts.Token);
+		var round1TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.Ended, cancellationToken);
 
 		// Start
 		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -57,8 +62,8 @@ public class RoundStateUpdaterTests
 		// Force the RoundStatusUpdater to run. After this it will know about the existence of `round2` so,
 		// we can subscribe to events.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
-		var round2IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, Phase.InputRegistration, cancellationToken);
-		var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, Phase.Ended, cancellationToken);
+		var round2IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.InputRegistration, cancellationToken);
+		var round2TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.Ended, cancellationToken);
 
 		// Force the RoundStatusUpdater to run again just to make it trigger the events.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
@@ -105,21 +110,21 @@ public class RoundStateUpdaterTests
 		// Exceptions, Problems, Errors everywhere!!!
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
 			.ThrowsAsync(new Exception())
 			.ThrowsAsync(new OperationCanceledException())
 			.ThrowsAsync(new InvalidOperationException())
 			.ThrowsAsync(new HttpRequestException())
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), mockApiClient.Object);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var roundTSCts = new CancellationTokenSource();
-		var roundIRTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.InputRegistration, cancellationToken);
-		var roundORTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken);
+		var roundIRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		var roundORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
 
 		// Start
 		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -153,21 +158,21 @@ public class RoundStateUpdaterTests
 		// Exceptions, Problems, Errors everywhere!!!
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
 			.ThrowsAsync(new Exception())
 			.ThrowsAsync(new OperationCanceledException())
 			.ThrowsAsync(new InvalidOperationException())
 			.ThrowsAsync(new HttpRequestException())
-			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.Ended } }, Array.Empty<CoinJoinFeeRateMedian>()))
-			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.Ended } }, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty))
+			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), mockApiClient.Object);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var roundTSCts = new CancellationTokenSource();
-		var roundIRTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.InputRegistration, cancellationToken);
-		var roundORTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken);
+		var roundIRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		var roundORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
 
 		// Start
 		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -198,7 +203,8 @@ public class RoundStateUpdaterTests
 			.ReturnsAsync(
 				() => new RoundStateResponse(
 					new[] { roundState with { Phase = Phase.InputRegistration } },
-					Array.Empty<CoinJoinFeeRateMedian>()));
+					Array.Empty<CoinJoinFeeRateMedian>(),
+					AffiliateInformation.Empty));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), mockApiClient.Object);
 		try
@@ -207,7 +213,7 @@ public class RoundStateUpdaterTests
 			using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
 			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-				await roundStatusUpdater.CreateRoundAwaiter(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
+				await roundStatusUpdater.CreateRoundAwaiterAsync(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
 		}
 		finally
 		{

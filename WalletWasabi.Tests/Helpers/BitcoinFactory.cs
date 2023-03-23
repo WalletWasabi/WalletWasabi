@@ -86,7 +86,7 @@ public static class BitcoinFactory
 	{
 		var height = confirmed ? new Height(rnd?.GetInt(0, 200) ?? CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 		pubKey.SetKeyState(KeyState.Used);
-		tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
+		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint(rnd));
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
@@ -137,6 +137,9 @@ public static class BitcoinFactory
 				Blocks = target,
 				FeeRate = new FeeRate(Money.Satoshis(5000))
 			});
+
+		// We don't use the result, but we need not to throw NotImplementedException.
+		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
 
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
