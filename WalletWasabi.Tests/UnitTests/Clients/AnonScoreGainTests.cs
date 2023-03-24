@@ -20,16 +20,16 @@ using System.IO;
 
 namespace WalletWasabi.Tests.UnitTests.Clients;
 
-public class WhaleCoinjoinTests
+public class AnonScoreGainTests
 {
 	private ITestOutputHelper TestOutputHelper { get; }
 	private string OutputFilePath { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
-	public WhaleCoinjoinTests(ITestOutputHelper testOutputHelper)
+	public AnonScoreGainTests(ITestOutputHelper testOutputHelper)
 	{
 		TestOutputHelper = testOutputHelper;
-		var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(WhaleCoinjoinTests), "Output"));
+		var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(AnonScoreGainTests), "Output"));
 		var date = DateTime.Now.ToString("Md_HHmmss");
 		OutputFilePath = Path.Combine(outputFolder.FullName, $"Outputs{date}.txt");
 		LiquidityClueProvider = new();
@@ -41,9 +41,10 @@ public class WhaleCoinjoinTests
 	}
 
 	[Theory]
-	[InlineData(1234)]
-	[InlineData(6789)]
-	public void ScoreForWhales(int randomSeed)
+	[InlineData(4324, 10, 0.8)]
+	[InlineData(4324, 2, 8)]
+	[InlineData(4324, 3, 10)]
+	public void AnonScoreGainTest(int randomSeed, double p, double q)
 	{
 		var nbClients = 30;
 		var otherNbInputsPerClient = 5;
@@ -83,31 +84,28 @@ public class WhaleCoinjoinTests
 				TestOutputHelper.WriteLine("WARNING: Specific Client does not have enough funds to see the behavior we want to test. Please change the seed");
 				break;
 			}
-			var totalVSizeWhale = 0;
-			var whaleMinInputAnonSet = 1.0;
-			var whaleMaxGlobalAnonScore = 0.0;
+			var totalVsizeSpecificClient = 0;
+			var specificClientMinInputAnonSet = 1.0;
+			var specificClientMaxGlobalAnonScore = 0.0;
 			var maxDeltaGlobalAnonScore = 0.0;
 			var minDeltaGlobalAnonScore = 0.0;
-			var whaleGlobalAnonScoreAfter = 0.0;
+			var specificClientGlobalAnonScoreAfter = 0.0;
 			var counter = 0;
-			while (whaleMinInputAnonSet < anonScoreTarget && counter <= maxTestRounds)
+			while (specificClientMinInputAnonSet < anonScoreTarget && counter <= maxTestRounds)
 			{
 				counter++;
 
-				whaleMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
-				var whaleTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
-				var whaleGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiBefore) / anonScoreTarget;
+				specificClientMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
+				var specificClientTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
+				var specificClientGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / specificClientTotalSatoshiBefore) / anonScoreTarget;
 
-				// Same as cost variable in pr #8938
-				var whaleCostCoinsBefore = specificClientSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
-
-				var whaleSelectedSmartCoins = SelectCoinsForRound(specificClientSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
-				if (!whaleSelectedSmartCoins.Select(sm => sm.Coin).Any())
+				var specificClientSelectedSmartCoins = SelectCoinsForRound(specificClientSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q);
+				if (!specificClientSelectedSmartCoins.Select(sm => sm.Coin).Any())
 				{
 					break;
 				}
 
-				specificClientSmartCoins.Remove(whaleSelectedSmartCoins);
+				specificClientSmartCoins.Remove(specificClientSelectedSmartCoins);
 
 				otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
 				var otherSelectedSmartCoins = new List<List<SmartCoin>>();
@@ -115,38 +113,35 @@ public class WhaleCoinjoinTests
 
 				foreach (var other in otherSmartCoins)
 				{
-					var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
+					var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q);
 					otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
 				}
 
 				foreach (var otherSelectedSmartCoin in otherSelectedSmartCoins)
 				{
-					otherOutputs.Add(DecomposeWithAnonSet(otherSelectedSmartCoin.Select(x => x.Coin), otherSelectedSmartCoins.SelectMany(x => x).Except(otherSelectedSmartCoin).Concat(whaleSelectedSmartCoins).Select(x => x.Coin), mockSecureRandom));
+					otherOutputs.Add(DecomposeWithAnonSet(otherSelectedSmartCoin.Select(x => x.Coin), otherSelectedSmartCoins.SelectMany(x => x).Except(otherSelectedSmartCoin).Concat(specificClientSelectedSmartCoins).Select(x => x.Coin), mockSecureRandom));
 				}
 
-				var whaleInputs = whaleSelectedSmartCoins.Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
-				var whaleOutputs = DecomposeWithAnonSet(whaleSelectedSmartCoins.Select(sm => sm.Coin), otherSelectedSmartCoins.SelectMany(x => x).Select(x => x.Coin), mockSecureRandom);
-				var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedSmartCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), whaleInputs, whaleOutputs);
+				var specificClientInputs = specificClientSelectedSmartCoins.Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
+				var specificClientOutputs = DecomposeWithAnonSet(specificClientSelectedSmartCoins.Select(sm => sm.Coin), otherSelectedSmartCoins.SelectMany(x => x).Select(x => x.Coin), mockSecureRandom);
+				var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedSmartCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), specificClientInputs, specificClientOutputs);
 
 				analyser.Analyze(tx);
 
 				specificClientSmartCoins.Add(tx.WalletOutputs.ToList());
 
-				whaleMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
-				var whaleTotalSatoshiAfter = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
-				whaleGlobalAnonScoreAfter = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiAfter) / anonScoreTarget;
-
-				// Same as cost variable in pr #8938
-				var whaleCostCoinsAfter = specificClientSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
+				specificClientMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
+				var specificClientTotalSatoshiAfter = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
+				specificClientGlobalAnonScoreAfter = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / specificClientTotalSatoshiAfter) / anonScoreTarget;
 
 				LiquidityClueProvider.UpdateLiquidityClue(maxSuggestedAmount, tx.Transaction, tx.WalletOutputs.Select(output => output.TxOut));
 
-				if (whaleGlobalAnonScoreAfter > whaleMaxGlobalAnonScore)
+				if (specificClientGlobalAnonScoreAfter > specificClientMaxGlobalAnonScore)
 				{
-					whaleMaxGlobalAnonScore = whaleGlobalAnonScoreAfter;
+					specificClientMaxGlobalAnonScore = specificClientGlobalAnonScoreAfter;
 				}
 
-				var deltaGlobalAnonScore = whaleGlobalAnonScoreAfter - whaleGlobalAnonScoreBefore;
+				var deltaGlobalAnonScore = specificClientGlobalAnonScoreAfter - specificClientGlobalAnonScoreBefore;
 				if (deltaGlobalAnonScore > maxDeltaGlobalAnonScore)
 				{
 					maxDeltaGlobalAnonScore = deltaGlobalAnonScore;
@@ -157,22 +152,22 @@ public class WhaleCoinjoinTests
 					minDeltaGlobalAnonScore = deltaGlobalAnonScore;
 				}
 
-				totalVSizeWhale += tx.WalletInputs.Sum(x => x.ScriptPubKey.EstimateInputVsize());
+				totalVsizeSpecificClient += tx.WalletInputs.Sum(x => x.ScriptPubKey.EstimateInputVsize());
 
 				if (counter % displayProgressEachNRounds == 0)
 				{
-					WriteLine($"Round N° {counter} - Total vSize: {totalVSizeWhale}");
-					DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
+					WriteLine($"Round N° {counter} - Total vSize: {totalVsizeSpecificClient}");
+					DisplayAnonScore(specificClientGlobalAnonScoreAfter, specificClientMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 					DisplayCoins(specificClientSmartCoins);
 				}
 			}
 
-			WriteLine($"master: {master}, whaleAmountBtc: {specificClientStartingBalance}, liquidityClue: {LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount)}, randomSeed: {randomSeed}");
+			WriteLine($"master: {master}, specificClientAmountBtc: {specificClientStartingBalance}, liquidityClue: {LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount)}, randomSeed: {randomSeed}");
 			WriteLine(
 				counter >= maxTestRounds
-					? $"FAILED whaleMaxGlobalAnonScore only reached {Math.Round(whaleMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
-					: $"PASSED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
-			DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
+					? $"FAILED specificClientMaxGlobalAnonScore only reached {Math.Round(specificClientMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
+					: $"PASSED after {counter} rounds -> Total vSize specificClient: {totalVsizeSpecificClient}");
+			DisplayAnonScore(specificClientGlobalAnonScoreAfter, specificClientMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 		}
 	}
 
@@ -208,13 +203,13 @@ public class WhaleCoinjoinTests
 		WriteLine($"AnonScore: Current: {Math.Round(currentAnonScore * 100, 2)}% Max: {Math.Round(maxGlobalAnonScore * 100, 2)}% - Delta: Max: +{Math.Round(maxDeltaGlobalAnonScore * 100, 2)}% / Min: {Math.Round(minDeltaGlobalAnonScore * 100, 2)}%");
 	}
 
-	private void DisplayCoins(IEnumerable<SmartCoin> whaleSmartCoins)
+	private void DisplayCoins(IEnumerable<SmartCoin> specificClientSmartCoins)
 	{
 		WriteLine($"Amount       AnonSet       ");
-		var whaleSmartCoinsOrdered = whaleSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
-		foreach (var whaleSC in whaleSmartCoinsOrdered)
+		var specificClientSmartCoinsOrdered = specificClientSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
+		foreach (var specificClientSc in specificClientSmartCoinsOrdered)
 		{
-			WriteLine($"{whaleSC.Amount} {(int)Math.Round(whaleSC.HdPubKey.AnonymitySet)}");
+			WriteLine($"{specificClientSc.Amount} {(int)Math.Round(specificClientSc.HdPubKey.AnonymitySet)}");
 		}
 	}
 
@@ -253,7 +248,7 @@ public class WhaleCoinjoinTests
 		return numbers;
 	}
 
-	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom, bool master, Money liquidityClue)
+	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom, bool master, Money liquidityClue, double p, double q)
 	{
 		return CoinJoinClient.SelectCoinsForRound(
 			coins: sc,
@@ -263,7 +258,9 @@ public class WhaleCoinjoinTests
 			liquidityClue: liquidityClue,
 			semiPrivateThreshold: 2,
 			rnd: mockSecureRandom,
-			master: master);
+			master: master,
+			p: p,
+			q: q);
 	}
 
 	private static List<(Money, int)> DecomposeWithAnonSet(IEnumerable<Coin> ourCoins, IEnumerable<Coin> theirCoins, TestRandomSeed rnd)
@@ -280,8 +277,8 @@ public class WhaleCoinjoinTests
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 
 		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, Constants.P2trOutputVirtualSize * 8, true, rnd);
-		var whaleDecomposed = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
-		return whaleDecomposed.Select(output => (output.Amount, HdPubKey.DefaultHighAnonymitySet)).ToList();
+		var specificClientDecomposed = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+		return specificClientDecomposed.Select(output => (output.Amount, HdPubKey.DefaultHighAnonymitySet)).ToList();
 	}
 
 	private static RoundParameters CreateMultipartyTransactionParameters()

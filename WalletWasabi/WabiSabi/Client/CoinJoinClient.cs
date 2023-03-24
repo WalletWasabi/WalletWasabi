@@ -660,7 +660,9 @@ public class CoinJoinClient
 		int semiPrivateThreshold,
 		Money liquidityClue,
 		WasabiRandom rnd,
-		bool master = true)
+		bool master = true,
+		double p = 10,
+		double q = 0.8)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
 		if (semiPrivateThreshold < 0)
@@ -848,7 +850,7 @@ public class CoinJoinClient
 			}
 		}
 
-		double winnerAnonLoss = GetAnonLoss(winner);
+		double winnerAnonLoss = GetAnonLoss(winner, master, p, q);
 
 		// Only stay in the while if we are above the liquidityClue (we are a whale) AND the weightedAnonLoss is not tolerable.
 		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerAnonLoss > MaxWeightedAnonLoss))
@@ -861,7 +863,7 @@ public class CoinJoinClient
 			foreach (TCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
 			{
 				var reducedWinner = winner.Except(new[] { coin });
-				var anonLoss = GetAnonLoss(reducedWinner);
+				var anonLoss = GetAnonLoss(reducedWinner, master, p, q);
 
 				if (anonLoss <= bestAnonLoss)
 				{
@@ -912,7 +914,7 @@ public class CoinJoinClient
 		return winner.ToShuffled(rnd).ToImmutableList();
 	}
 
-	private static double GetAnonLoss<TCoin>(IEnumerable<TCoin> coins)
+	private static double GetAnonLoss<TCoin>(IEnumerable<TCoin> coins, bool master, double p, double q)
 		where TCoin : ISmartCoin
 	{
 		if (coins.Count() <= 1)
@@ -920,12 +922,12 @@ public class CoinJoinClient
 			return 0;
 		}
 
-		// Parameters were picked experimentally to model anonymity loss that matches real-world experience.
-		double p = 10;
-		double q = 0.8;
-
 		double minimumAnonScore = coins.Min(x => x.AnonymitySet);
-		return coins.GeneralizedWeightedMean(value: x => x.AnonymitySet - minimumAnonScore, weight: x => Math.Pow(x.Amount.Satoshi, q), p);
+		if (!master)
+		{
+			return coins.GeneralizedWeightedMean(value: x => x.AnonymitySet - minimumAnonScore, weight: x => Math.Pow(x.Amount.Satoshi, q), p);
+		}
+		return coins.Sum(x => (x.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
 	}
 
 	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
