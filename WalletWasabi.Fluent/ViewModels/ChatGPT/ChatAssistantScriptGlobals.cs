@@ -10,11 +10,11 @@ public class ChatAssistantScriptGlobals
 
 	public MainViewModel Main { get; set; }
 
-	public async Task<string> Send(string address, string amount)
+	public async Task<string> Send(string address, string amount, string[] labels)
 	{
 		// TODO:
 
-		return $"Sending {amount} to {address}...";
+		return $"Sending {amount} to {address}, {labels}...";
 	}
 
 	public async Task<string> Receive(string[] labels)

@@ -42,7 +42,7 @@ The json response "status" property value can be one of the following:
 
 When "status"="command" the "message" value can only be set to
 one of the following wasabi api C# scripting commands which will be executed as C# script:
-- public async Task<string> Send(string address, string amount)
+- public async Task<string> Send(string address, string amount, string[] labels)
   command requires address and amount parameters
 - public async Task<string> Receive(string[] labels)
   command requires labels array parameter
@@ -51,7 +51,7 @@ one of the following wasabi api C# scripting commands which will be executed as 
 e.g. for Send command (other follow similar pattern):
 {
   "status": "command",
-  "message": "await Send("valid BTC address", "valid BTC amount")",
+  "message": "await Send("valid BTC address", "valid BTC amount", "valid labels comma separated",
 }
 
 If user does not provide valid param to execute api command please set status=error and ask followup question to provide that info:
