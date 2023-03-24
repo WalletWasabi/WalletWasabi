@@ -101,36 +101,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		MainViewModel.Instance.IsOobeBackgroundVisible = false;
 	}
 
-	private async Task ImportWalletAsync()
-	{
-		try
-		{
-			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
-
-			if (filePath is null)
-			{
-				return;
-			}
-
-			var walletName = Path.GetFileNameWithoutExtension(filePath);
-
-			var validationError = WalletHelpers.ValidateWalletName(walletName);
-			if (validationError is { })
-			{
-				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
-				return;
-			}
-
-			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
-		}
-	}
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
