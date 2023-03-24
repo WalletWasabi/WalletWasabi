@@ -262,7 +262,7 @@ public class CoinJoinClient
 				EndRoundState.AbortedNotAllAlicesConfirmed => "Aborted. Some Alices didn't confirm.",
 				EndRoundState.AbortedLoadBalancing => "Aborted. Load balancing registrations.",
 				EndRoundState.None => "Unknown.",
-				_ => throw new ArgumentOutOfRangeException()
+				_ => throw new ArgumentOutOfRangeException(nameof(roundState))
 			};
 
 			roundState.LogInfo(msg);
