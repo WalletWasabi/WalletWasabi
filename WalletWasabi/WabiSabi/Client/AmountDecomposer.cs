@@ -51,7 +51,7 @@ public class AmountDecomposer
 			return ScriptType.P2WPKH;
 		}
 
-		return Random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
+		return Random.GetInt(0, 2) < 1 ? ScriptType.P2WPKH : ScriptType.Taproot;
 	}
 
 	private IOrderedEnumerable<Output> CreateDenominations()

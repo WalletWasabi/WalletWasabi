@@ -17,7 +17,6 @@ using DynamicData;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using Xunit.Abstractions;
 using System.IO;
-using System.Threading;
 
 namespace WalletWasabi.Tests.UnitTests.Clients;
 
@@ -36,129 +35,145 @@ public class WhaleCoinjoinTests
 		LiquidityClueProvider = new();
 	}
 
-	[Theory]
-	[InlineData(true, 1, 0.0005, 0.05, 1234)]
-	[InlineData(true, 1, 0.0005, 0.05, 6789)]
-	[InlineData(true, 1, 0.001, 0.1, 1234)]
-	[InlineData(true, 1, 0.0005, 0.2, 1234)]
-	[InlineData(false, 1, 0.0005, 0.05, 1234)]
-	[InlineData(false, 1, 0.0005, 0.05, 6789)]
-	[InlineData(false, 1, 0.001, 0.1, 1234)]
-	[InlineData(false, 1, 0.0005, 0.2, 1234)]
-	public void ScoreForWhales(bool master, double whaleAmountBtc, double otherClientsAmountMin, double otherClientsAmountMax, int randomSeed)
+	private IEnumerable<SmartCoin> SelectSpecificClient(IEnumerable<IEnumerable<SmartCoin>> clients)
 	{
-		var nbOtherClients = 30;
+		return clients.MaxBy(x => x.Sum(y => y.Amount))!;
+	}
+
+	[Theory]
+	[InlineData(1234)]
+	[InlineData(6789)]
+	public void ScoreForWhales(int randomSeed)
+	{
+		var nbClients = 30;
 		var otherNbInputsPerClient = 5;
-		var mockSecureRandom = new TestRandomSeed(randomSeed);
-
-		Money maxSuggestedAmount = new(1343.75m, MoneyUnit.BTC);
-
 		var anonScoreTarget = 100;
 		var maxTestRounds = 1000;
-		var displayProgressEachNRounds = int.MaxValue;
 
-		var analyser = new BlockchainAnalyzer();
 
-		RoundParameters roundParams = CreateMultipartyTransactionParameters();
-		KeyManager km = KeyManager.CreateNew(out _, "", Network.RegTest);
-		HdPubKey hdPub = BitcoinFactory.CreateHdPubKey(km);
-		HdPubKey[] otherHdPub = new HdPubKey[nbOtherClients];
-		for (int i = 0; i < nbOtherClients; i++)
+		List<bool> mode = new() { true, false };
+		foreach (var master in mode)
 		{
-			KeyManager kmTmp = KeyManager.CreateNew(out _, "", Network.RegTest);
-			otherHdPub[i] = BitcoinFactory.CreateHdPubKey(kmTmp);
-		}
-
-		var whaleSmartCoins = new List<SmartCoin> { BitcoinFactory.CreateSmartCoin(hdPub, (decimal)whaleAmountBtc) };
-		var totalVSizeWhale = 0;
-		var whaleMinInputAnonSet = 1.0;
-		var whaleMaxGlobalAnonScore = 0.0;
-		var maxDeltaGlobalAnonScore = 0.0;
-		var minDeltaGlobalAnonScore = 0.0;
-		var whaleGlobalAnonScoreAfter = 0.0;
-		var counter = 0;
-		while (whaleMinInputAnonSet < anonScoreTarget && counter <= maxTestRounds)
-		{
-			counter++;
-
-			whaleMinInputAnonSet = whaleSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
-			var whaleTotalSatoshiBefore = whaleSmartCoins.Sum(x => x.Amount.Satoshi);
-			var whaleGlobalAnonScoreBefore = whaleSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiBefore) / anonScoreTarget;
-			// Same as cost variable in pr #8938
-			var whaleCostCoinsBefore = whaleSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
-
+			Money maxSuggestedAmount = new(1343.75m, MoneyUnit.BTC);
 			Money liquidityClue = LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount);
 
-			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
-			if (!whaleSelectedSmartCoins.Select(sm => sm.Coin).Any())
+			Func<IEnumerable<IEnumerable<SmartCoin>>, IEnumerable<SmartCoin>> formulaSpecificClient = SelectSpecificClient;
+			var mockSecureRandom = new TestRandomSeed(randomSeed);
+
+			var displayProgressEachNRounds = int.MaxValue;
+
+			var analyser = new BlockchainAnalyzer();
+
+			RoundParameters roundParams = CreateMultipartyTransactionParameters();
+			KeyManager km = KeyManager.CreateNew(out _, "", Network.RegTest);
+			HdPubKey[] otherHdPub = new HdPubKey[nbClients];
+			for (int i = 0; i < nbClients; i++)
 			{
+				otherHdPub[i] = BitcoinFactory.CreateHdPubKey(km);
+			}
+
+
+			List<List<SmartCoin>> otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
+			List<SmartCoin> specificClientSmartCoins = formulaSpecificClient(otherSmartCoins).ToList();
+			otherSmartCoins.RemoveAll(x => x.All(y => specificClientSmartCoins.Contains(y)) && specificClientSmartCoins.All(z => x.Contains(z)));
+			otherHdPub = otherHdPub.Take(otherHdPub.Length - 1).ToArray();
+			var specificClientStartingBalance = specificClientSmartCoins.Sum(x => x.Amount);
+			if (specificClientStartingBalance < liquidityClue)
+			{
+				TestOutputHelper.WriteLine("WARNING: Specific Client does not have enough funds to see the behavior we want to test. Please change the seed");
 				break;
 			}
-
-			whaleSmartCoins.Remove(whaleSelectedSmartCoins);
-
-			var otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient, otherClientsAmountMin, otherClientsAmountMax);
-			var otherSelectedSmartCoins = new List<List<SmartCoin>>();
-			var otherOutputs = new List<List<(Money, int)>>();
-
-			foreach (var other in otherSmartCoins)
+			var totalVSizeWhale = 0;
+			var whaleMinInputAnonSet = 1.0;
+			var whaleMaxGlobalAnonScore = 0.0;
+			var maxDeltaGlobalAnonScore = 0.0;
+			var minDeltaGlobalAnonScore = 0.0;
+			var whaleGlobalAnonScoreAfter = 0.0;
+			var counter = 0;
+			while (whaleMinInputAnonSet < anonScoreTarget && counter <= maxTestRounds)
 			{
-				var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
-				otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
+				counter++;
+
+				whaleMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
+				var whaleTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
+				var whaleGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiBefore) / anonScoreTarget;
+
+				// Same as cost variable in pr #8938
+				var whaleCostCoinsBefore = specificClientSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
+
+				var whaleSelectedSmartCoins = SelectCoinsForRound(specificClientSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
+				if (!whaleSelectedSmartCoins.Select(sm => sm.Coin).Any())
+				{
+					break;
+				}
+
+				specificClientSmartCoins.Remove(whaleSelectedSmartCoins);
+
+				otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
+				var otherSelectedSmartCoins = new List<List<SmartCoin>>();
+				var otherOutputs = new List<List<(Money, int)>>();
+
+				foreach (var other in otherSmartCoins)
+				{
+					var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
+					otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
+				}
+
+				foreach (var otherSelectedSmartCoin in otherSelectedSmartCoins)
+				{
+					otherOutputs.Add(DecomposeWithAnonSet(otherSelectedSmartCoin.Select(x => x.Coin), otherSelectedSmartCoins.SelectMany(x => x).Except(otherSelectedSmartCoin).Concat(whaleSelectedSmartCoins).Select(x => x.Coin), mockSecureRandom));
+				}
+
+				var whaleInputs = whaleSelectedSmartCoins.Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
+				var whaleOutputs = DecomposeWithAnonSet(whaleSelectedSmartCoins.Select(sm => sm.Coin), otherSelectedSmartCoins.SelectMany(x => x).Select(x => x.Coin), mockSecureRandom);
+				var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedSmartCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), whaleInputs, whaleOutputs);
+
+				analyser.Analyze(tx);
+
+				specificClientSmartCoins.Add(tx.WalletOutputs.ToList());
+
+				whaleMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
+				var whaleTotalSatoshiAfter = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
+				whaleGlobalAnonScoreAfter = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiAfter) / anonScoreTarget;
+
+				// Same as cost variable in pr #8938
+				var whaleCostCoinsAfter = specificClientSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
+
+				LiquidityClueProvider.UpdateLiquidityClue(maxSuggestedAmount, tx.Transaction, tx.WalletOutputs.Select(output => output.TxOut));
+
+				if (whaleGlobalAnonScoreAfter > whaleMaxGlobalAnonScore)
+				{
+					whaleMaxGlobalAnonScore = whaleGlobalAnonScoreAfter;
+				}
+
+				var deltaGlobalAnonScore = whaleGlobalAnonScoreAfter - whaleGlobalAnonScoreBefore;
+				if (deltaGlobalAnonScore > maxDeltaGlobalAnonScore)
+				{
+					maxDeltaGlobalAnonScore = deltaGlobalAnonScore;
+				}
+
+				if (deltaGlobalAnonScore < minDeltaGlobalAnonScore)
+				{
+					minDeltaGlobalAnonScore = deltaGlobalAnonScore;
+				}
+
+				totalVSizeWhale += tx.WalletInputs.Sum(x => x.ScriptPubKey.EstimateInputVsize());
+
+				if (counter % displayProgressEachNRounds == 0)
+				{
+					WriteLine($"Round N° {counter} - Total vSize: {totalVSizeWhale}");
+					DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
+					DisplayCoins(specificClientSmartCoins);
+				}
 			}
 
-			foreach (var otherSelectedSmartCoin in otherSelectedSmartCoins)
-			{
-				otherOutputs.Add(DecomposeWithAnonSet(otherSelectedSmartCoin.Select(x => x.Coin), otherSelectedSmartCoins.SelectMany(x => x).Except(otherSelectedSmartCoin).Concat(whaleSelectedSmartCoins).Select(x => x.Coin), mockSecureRandom));
-			}
-
-			var whaleInputs = whaleSelectedSmartCoins.Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
-			var whaleOutputs = DecomposeWithAnonSet(whaleSelectedSmartCoins.Select(sm => sm.Coin), otherSelectedSmartCoins.SelectMany(x => x).Select(x => x.Coin), mockSecureRandom);
-			var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedSmartCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), whaleInputs, whaleOutputs);
-
-			analyser.Analyze(tx);
-
-			whaleSmartCoins.Add(tx.WalletOutputs.ToList());
-
-			whaleMinInputAnonSet = whaleSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
-			var whaleTotalSatoshiAfter = whaleSmartCoins.Sum(x => x.Amount.Satoshi);
-			whaleGlobalAnonScoreAfter = whaleSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiAfter) / anonScoreTarget;
-			// Same as cost variable in pr #8938
-			var whaleCostCoinsAfter = whaleSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
-
-			LiquidityClueProvider.UpdateLiquidityClue(maxSuggestedAmount, tx.Transaction, tx.WalletOutputs.Select(output => output.TxOut));
-
-			if (whaleGlobalAnonScoreAfter > whaleMaxGlobalAnonScore)
-			{
-				whaleMaxGlobalAnonScore = whaleGlobalAnonScoreAfter;
-			}
-
-			var deltaGlobalAnonScore = whaleGlobalAnonScoreAfter - whaleGlobalAnonScoreBefore;
-			if (deltaGlobalAnonScore > maxDeltaGlobalAnonScore)
-			{
-				maxDeltaGlobalAnonScore = deltaGlobalAnonScore;
-			}
-
-			if (deltaGlobalAnonScore < minDeltaGlobalAnonScore)
-			{
-				minDeltaGlobalAnonScore = deltaGlobalAnonScore;
-			}
-
-			totalVSizeWhale += tx.WalletInputs.Sum(x => x.ScriptPubKey.EstimateInputVsize());
-
-			if (counter % displayProgressEachNRounds == 0)
-			{
-				WriteLine($"Round N° {counter} - Total vSize: {totalVSizeWhale}");
-				DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
-				DisplayCoins(whaleSmartCoins);
-			}
+			WriteLine($"master: {master}, whaleAmountBtc: {specificClientStartingBalance}, liquidityClue: {LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount)}, randomSeed: {randomSeed}");
+			WriteLine(
+				counter >= maxTestRounds
+					? $"FAILED whaleMaxGlobalAnonScore only reached {Math.Round(whaleMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
+					: $"PASSED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
+			DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 		}
-
-		WriteLine($"master: {master}, whaleAmountBtc: {whaleAmountBtc}, liquidityClue: {LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount)}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
-		WriteLine(counter >= maxTestRounds
-			? $"FAILED whaleMaxGlobalAnonScore only reached {Math.Round(whaleMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
-			: $"PASSED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
-		DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 	}
 
 	public class TestRandomSeed : SecureRandom
@@ -203,20 +218,19 @@ public class WhaleCoinjoinTests
 		}
 	}
 
-	private static List<List<SmartCoin>> CreateOtherSmartCoins(TestRandomSeed rnd, IReadOnlyList<HdPubKey> otherHdPub, int otherNbInputsPerClient, double otherClientsAmountMin, double otherClientsAmountMax)
+	private static List<List<SmartCoin>> CreateOtherSmartCoins(TestRandomSeed rnd, IReadOnlyList<HdPubKey> otherHdPub, int otherNbInputsPerClient)
 	{
 		var nbOtherClients = otherHdPub.Count;
 		var otherSmartCoins = new List<List<SmartCoin>>();
 		var otherIndex = 0;
+
+		var inputs = GetSakeInputs();
 		for (var i = 0; i < nbOtherClients; i++)
 		{
 			var listCoinsCurrentOther = new List<SmartCoin>();
 			for (var j = 0; j < otherNbInputsPerClient; j++)
 			{
-				// Sleeping solves a weird inconsistency that sometimes occurs
-				Thread.Sleep(1);
-				var tmp = GetRandomDouble(rnd, otherClientsAmountMin, otherClientsAmountMax);
-				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], (decimal)tmp));
+				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], inputs.RandomElement(rnd)));
 			}
 
 			otherIndex++;
@@ -226,18 +240,30 @@ public class WhaleCoinjoinTests
 		return otherSmartCoins;
 	}
 
+	private static List<decimal> GetSakeInputs()
+	{
+		// Get the path of the file
+		string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../UnitTests/Clients/SakeInputs.txt");
+		string[] lines = File.ReadAllLines(filePath);
+		List<decimal> numbers = new List<decimal>();
+		foreach (var line in lines)
+		{
+			numbers.Add(decimal.Parse(line));
+		}
+		return numbers;
+	}
+
 	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom, bool master, Money liquidityClue)
 	{
 		return CoinJoinClient.SelectCoinsForRound(
 			coins: sc,
-			roundParams,
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
 			consolidationMode: false,
 			anonScoreTarget: anonScoreTarget,
-			redCoinIsolation: false,
 			liquidityClue: liquidityClue,
+			semiPrivateThreshold: 2,
 			rnd: mockSecureRandom,
-			master: master
-		);
+			master: master);
 	}
 
 	private static List<(Money, int)> DecomposeWithAnonSet(IEnumerable<Coin> ourCoins, IEnumerable<Coin> theirCoins, TestRandomSeed rnd)
@@ -253,9 +279,9 @@ public class WhaleCoinjoinTests
 		var theirCoinEffectiveValues = theirCoins.Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 
-		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, Constants.P2wpkhOutputVirtualSize, Constants.P2wpkhInputVirtualSize, availableVsize, rnd);
+		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, Constants.P2trOutputVirtualSize * 8, true, rnd);
 		var whaleDecomposed = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
-		return whaleDecomposed.Select(output => (output, HdPubKey.DefaultHighAnonymitySet)).ToList();
+		return whaleDecomposed.Select(output => (output.Amount, HdPubKey.DefaultHighAnonymitySet)).ToList();
 	}
 
 	private static RoundParameters CreateMultipartyTransactionParameters()

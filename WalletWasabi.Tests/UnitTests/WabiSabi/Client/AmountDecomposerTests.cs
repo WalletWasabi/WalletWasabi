@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
@@ -13,7 +14,27 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class AmountDecomposerTests
 {
-	private static readonly Random Random = new(1234567);
+	private static readonly TestRandomSeed Random = new(1234567);
+
+	public class TestRandomSeed : SecureRandom
+	{
+		private readonly Random _seededInstance;
+
+		public TestRandomSeed(int seed)
+		{
+			_seededInstance = new Random(seed);
+		}
+
+		public override int GetInt(int fromInclusive, int toExclusive)
+		{
+			return _seededInstance.Next(fromInclusive, toExclusive);
+		}
+
+		public double GetDouble()
+		{
+			return _seededInstance.NextDouble();
+		}
+	}
 
 	[Theory]
 	[InlineData(0, 0, 8)]
@@ -83,7 +104,7 @@ public class AmountDecomposerTests
 		var script = key.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		while (true)
 		{
-			var amount = Random.NextInt64(100_000, ProtocolConstants.MaxAmountPerAlice);
+			var amount = Random.GetInt(1, (int)(ProtocolConstants.MaxAmountPerAlice / 100000)) * 100000;
 			yield return CreateCoin(script, amount);
 		}
 	}
