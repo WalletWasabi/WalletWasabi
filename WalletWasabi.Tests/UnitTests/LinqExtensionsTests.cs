@@ -111,7 +111,7 @@ public class LinqExtensionsTests
 	[Fact]
 	public void GeneralizedWeightedMean()
 	{
-		var values = new Tuple<double, double>[] { new(1.0, 1.1), new(1.2, 1.3) };
+		List<(double, double)> values = new() { (1.0, 1.1), (1.2, 1.3) };
 		Assert.Equal(1.097412680210462, values.GeneralizedWeightedMean(x => x.Item1, x => x.Item2, -1.4));
 	}
 
