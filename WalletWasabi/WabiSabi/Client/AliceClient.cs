@@ -67,22 +67,31 @@ public class AliceClient
 		CancellationToken registrationCancellationToken,
 		CancellationToken confirmationCancellationToken)
 	{
-		AliceClient? aliceClient = null;
+		var aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 		try
 		{
-			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
-		catch (OperationCanceledException)
+		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode
+			is WabiSabiProtocolErrorCode.RoundNotFound
+			or WabiSabiProtocolErrorCode.WrongPhase
+			or WabiSabiProtocolErrorCode.AliceAlreadyRegistered
+			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection)
 		{
-			if (aliceClient is { })
-			{
-				// Unregistering coins is only possible before connection confirmation phase.
-				await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-			}
-
+			// Do not unregister.
+			throw;
+		}
+		catch (UnexpectedRoundPhaseException)
+		{
+			// Do not unregister.
+			throw;
+		}
+		catch (Exception) when (aliceClient is { })
+		{
+			// Unregistering coins is only possible before connection confirmation phase.
+			await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
 			throw;
 		}
 
