@@ -952,7 +952,7 @@ public class CoinJoinClient
 			return 0;
 		}
 
-		// Parameters were picked experimentally to model anonymity loss that matches real-world experience.
+		// Parameters were picked experimentally to model anonymity loss that matches real-world experience: https://github.com/zkSNACKs/WalletWasabi/pull/10096
 		double p = 10;
 		double q = 0.8;
 
