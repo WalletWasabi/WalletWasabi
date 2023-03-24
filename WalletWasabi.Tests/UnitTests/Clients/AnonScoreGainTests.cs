@@ -41,14 +41,23 @@ public class AnonScoreGainTests
 	}
 
 	[Theory]
-	[InlineData(4324, 10, 0.8)]
-	[InlineData(4324, 2, 8)]
-	[InlineData(4324, 3, 10)]
+	[InlineData(443, 10, 0.8)]
+	[InlineData(4325, 10, 0.8)]
+	[InlineData(53234, 10, 0.8)]
+	[InlineData(44, 10, 0.8)]
+	[InlineData(6546, 10, 0.8)]
+	[InlineData(3254, 10, 0.8)]
+	[InlineData(52423, 10, 0.8)]
+	[InlineData(5433333333, 10, 0.8)]
+	[InlineData(5346, 10, 0.8)]
+	[InlineData(564, 10, 0.8)]
+	[InlineData(764, 10, 0.8)]
+	[InlineData(6435, 10, 0.8)]
 	public void AnonScoreGainTest(int randomSeed, double p, double q)
 	{
 		var nbClients = 30;
 		var otherNbInputsPerClient = 5;
-		var anonScoreTarget = 100;
+		var anonScoreTarget = 50;
 		var maxTestRounds = 1000;
 
 
@@ -56,7 +65,6 @@ public class AnonScoreGainTests
 		foreach (var master in mode)
 		{
 			Money maxSuggestedAmount = new(1343.75m, MoneyUnit.BTC);
-			Money liquidityClue = LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount);
 
 			Func<IEnumerable<IEnumerable<SmartCoin>>, IEnumerable<SmartCoin>> formulaSpecificClient = SelectSpecificClient;
 			var mockSecureRandom = new TestRandomSeed(randomSeed);
@@ -79,11 +87,9 @@ public class AnonScoreGainTests
 			otherSmartCoins.RemoveAll(x => x.All(y => specificClientSmartCoins.Contains(y)) && specificClientSmartCoins.All(z => x.Contains(z)));
 			otherHdPub = otherHdPub.Take(otherHdPub.Length - 1).ToArray();
 			var specificClientStartingBalance = specificClientSmartCoins.Sum(x => x.Amount);
-			if (specificClientStartingBalance < liquidityClue)
-			{
-				TestOutputHelper.WriteLine("WARNING: Specific Client does not have enough funds to see the behavior we want to test. Please change the seed");
-				break;
-			}
+
+			Money liquidityClue = Math.Min(LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount), specificClientStartingBalance) - 1;
+
 			var totalVsizeSpecificClient = 0;
 			var specificClientMinInputAnonSet = 1.0;
 			var specificClientMaxGlobalAnonScore = 0.0;
