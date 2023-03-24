@@ -661,8 +661,8 @@
       },
       "WabiSabi": {
         "type": "Transitive",
-        "resolved": "1.0.1",
-        "contentHash": "ftmFoDQ2xHW7jpSgyo/txoOtuVvaKn5DzqrinlWq8glj5DVxtPbh0+PpeCUHTehODIrlQp8Ka2NV32dJ3CxoRg==",
+        "resolved": "1.0.1.2",
+        "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -673,7 +673,7 @@
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.0, )",
           "Microsoft.Win32.SystemEvents": "[7.0.0, )",
           "NBitcoin": "[7.0.24, )",
-          "WabiSabi": "[1.0.1, )"
+          "WabiSabi": "[1.0.1.2, )"
         }
       },
       "walletwasabi.fluent": {
