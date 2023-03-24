@@ -13,16 +13,6 @@
           "System.ComponentModel.Annotations": "4.5.0"
         }
       },
-      "Avalonia.Controls.TreeDataGrid": {
-        "type": "Direct",
-        "requested": "[11.0.999-build20230324.1, )",
-        "resolved": "11.0.999-build20230324.1",
-        "contentHash": "jzGbKmM7eJpB4q5eIT+0Ar6mh7VtgXj8RSORbGt3CmYr8U2X54v6rUPNcubLPoNSgYuFi8buv2ZezuZT4yyxiA==",
-        "dependencies": {
-          "Avalonia": "11.0.0-preview6",
-          "System.Reactive": "5.0.0"
-        }
-      },
       "Avalonia.Diagnostics": {
         "type": "Direct",
         "requested": "[11.0.0-preview6, )",
