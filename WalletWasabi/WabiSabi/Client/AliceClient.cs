@@ -75,7 +75,7 @@ public class AliceClient
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (OperationCanceledException)
 		{
 			if (aliceClient is { })
 			{
@@ -209,27 +209,16 @@ public class AliceClient
 			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (OperationCanceledException e)
 		{
 			Logger.LogTrace(e);
 		}
+		catch (Exception e) when (e is HttpRequestException or WabiSabiProtocolException)
+		{
+			Logger.LogDebug($"Unregistration failed for coin '{SmartCoin.Coin.Outpoint}'.", e);
+		}
 		catch (Exception e)
 		{
-			if (e is HttpRequestException && e.InnerException is WabiSabiProtocolException wpe)
-			{
-				switch (wpe.ErrorCode)
-				{
-					case WabiSabiProtocolErrorCode.RoundNotFound:
-						SmartCoin.CoinJoinInProgress = false;
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} the round was not found. Nothing to unregister.");
-						break;
-
-					case WabiSabiProtocolErrorCode.WrongPhase:
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
-						break;
-				}
-			}
-
 			// Log and swallow the exception because there is nothing else that can be done here.
 			Logger.LogWarning($"{SmartCoin.Coin.Outpoint} unregistration failed with {e}.");
 		}
