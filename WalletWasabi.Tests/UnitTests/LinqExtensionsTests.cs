@@ -107,4 +107,18 @@ public class LinqExtensionsTests
 		Assert.Equal(4, new int[] { 4, 3 }.MaxOrDefault(defaultValue: 10));
 		Assert.Equal(4, new int[] { 4 }.MaxOrDefault(defaultValue: 10));
 	}
+
+	[Fact]
+	public void GeneralizedWeightedMean()
+	{
+		var values = new Tuple<double, double>[] { new(1.0, 1.1), new(1.2, 1.3) };
+		Assert.Equal(1.097412680210462, values.GeneralizedWeightedMean(x => x.Item1, x => x.Item2, -1.4));
+	}
+
+	[Fact]
+	public void GeneralizedWeightedMeanOneP()
+	{
+		var values = new Tuple<double, double>[] { new(1.0, 1.1), new(1.2, 1.3) };
+		Assert.Equal(values.WeightedMean(x => x.Item1, x => x.Item2), values.GeneralizedWeightedMean(x => x.Item1, x => x.Item2, 1.0));
+	}
 }
