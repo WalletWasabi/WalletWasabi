@@ -67,10 +67,9 @@ public class AliceClient
 		CancellationToken registrationCancellationToken,
 		CancellationToken confirmationCancellationToken)
 	{
-		AliceClient? aliceClient = null;
+		var aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 		try
 		{
-			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
