@@ -41,6 +41,12 @@ public class NavBarViewModel : ViewModelBase
 			});
 	}
 
+	public ObservableCollection<NavBarItemViewModel> TopItems { get; }
+
+	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
+
+	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
+
 	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
 	{
 		return observable
@@ -48,12 +54,6 @@ public class NavBarViewModel : ViewModelBase
 			.Where(x => x.Value)
 			.Select(x => x.Sender);
 	}
-
-	public ObservableCollection<NavBarItemViewModel> TopItems { get; }
-
-	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
-
-	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
 	private void SetDefaultSelection()
 	{
