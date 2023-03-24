@@ -320,7 +320,7 @@ public class CoinJoinClient
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
-			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
 			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
 
@@ -618,7 +618,7 @@ public class CoinJoinClient
 		return remainingTime.SamplePoisson(howMany);
 	}
 
-	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, RoundState roundState)
 	{
 		RoundParameters roundParameters = roundState.CoinjoinState.Parameters;
 		FeeRate feeRate = roundParameters.MiningFeeRate;
