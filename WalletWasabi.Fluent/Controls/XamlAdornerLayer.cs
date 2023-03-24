@@ -92,7 +92,7 @@ public class XamlAdornerLayer : AvaloniaObject
 	private static void Detach(Visual visual, Control adorner)
 	{
 		var layer = visual.GetValue(SavedAdornerLayerProperty);
-		RemoveVisualAdorner(visual, adorner, layer);
+		RemoveVisualAdorner(adorner, layer);
 		visual.ClearValue(SavedAdornerLayerProperty);
 	}
 
@@ -110,7 +110,7 @@ public class XamlAdornerLayer : AvaloniaObject
 		layer.Children.Add(adorner);
 	}
 
-	private static void RemoveVisualAdorner(Visual visual, Control? adorner, AdornerLayer? layer)
+	private static void RemoveVisualAdorner(Control? adorner, AdornerLayer? layer)
 	{
 		if (adorner is null || layer is null || !layer.Children.Contains(adorner))
 		{
