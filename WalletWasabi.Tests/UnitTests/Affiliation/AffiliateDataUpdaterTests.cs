@@ -2,11 +2,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using Moq.Language;
 using NBitcoin;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Tests.Helpers;
@@ -18,38 +16,38 @@ namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
 public class AffiliateDataUpdaterTests
 {
-	public (Mock<IHttpClient> mockHttpClient, ISetupSequentialResult<Task<HttpResponseMessage>> setup) CreateMockHttpClient()
-	{
-		var mockHttpClient = new Mock<IHttpClient>();
-		var setup = mockHttpClient.SetupSequence(
-			httpClient => httpClient.SendAsync(
-				HttpMethod.Post,
-				"notify_coinjoin",
-				It.IsAny<HttpContent>(),
-				It.IsAny<CancellationToken>()));
-		return (mockHttpClient, setup);
-	}
-
 	[Fact]
 	public async Task GetCoinJoinRequestTestAsync()
 	{
-		static HttpResponseMessage Ok()
+		var trezorClient = new AffiliateHttpClient("http://trezor.io")
 		{
-			HttpResponseMessage okResponse = new(HttpStatusCode.OK);
-			okResponse.Content = new StringContent("{ \"affiliate_data\":\"010203040506\" }");
-			return okResponse;
-		}
+			OnSendAsync = async (message, token) =>
+			{
+				var requestText = await message.Content?.ReadAsStringAsync(token)!;
+				Assert.Contains("\"is_affiliated\":true", requestText);
+				HttpResponseMessage okResponse = new(HttpStatusCode.OK);
+				okResponse.Content = new StringContent("{ \"affiliate_data\":\"010203040506\" }");
+				return okResponse;
+			}
+		};
 
-		using HttpResponseMessage ok0 = Ok();
-		using HttpResponseMessage ok1 = Ok();
-		var (clientMock, setup) = CreateMockHttpClient();
-		setup
-			.ReturnsAsync(ok0)
-			.ReturnsAsync(ok1);
+		var btcpayClient = new AffiliateHttpClient("http://btcpayserver.julio.net")
+		{
+			OnSendAsync = async (message, token) =>
+			{
+				var requestText = await message.Content?.ReadAsStringAsync(token)!;
+				Assert.DoesNotContain("\"is_affiliated\":true", requestText);
+
+				HttpResponseMessage okResponse = new(HttpStatusCode.OK);
+				okResponse.Content = new StringContent("{}");
+				return okResponse;
+			}
+		};
 
 		Dictionary<string, AffiliateServerHttpApiClient> servers = new()
 		{
-			["affiliate"] = new AffiliateServerHttpApiClient(clientMock.Object),
+			["trezor"] = new AffiliateServerHttpApiClient(trezorClient),
+			["btcpay"] = new AffiliateServerHttpApiClient(btcpayClient),
 		};
 
 		using CancellationTokenSource testCts = new(TimeSpan.FromSeconds(10));
@@ -81,7 +79,7 @@ public class AffiliateDataUpdaterTests
 						wasabiCoin.ScriptPubKey,
 						AffiliationConstants.DefaultAffiliationId,
 						false),
-					new AffiliateInput(affiliateCoin.Outpoint, affiliateCoin.ScriptPubKey, "affiliate", false)
+					new AffiliateInput(affiliateCoin.Outpoint, affiliateCoin.ScriptPubKey, "trezor", false)
 				},
 				new[]
 				{
@@ -96,15 +94,34 @@ public class AffiliateDataUpdaterTests
 			var coinjoinRequests = Assert.Single(requestsUpdater.GetAffiliateData());
 
 			Assert.Equal(uint256.One, uint256.Parse(coinjoinRequests.Key));
-			var coinjoinRequest = Assert.Single(coinjoinRequests.Value);
-			Assert.Equal("affiliate", coinjoinRequest.Key);
-			Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6 }, coinjoinRequest.Value);
+			var coinjoinRequestTrezor = coinjoinRequests.Value["trezor"];
+			Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6 }, coinjoinRequestTrezor);
+
+			var coinjoinRequestBtcPay = coinjoinRequests.Value["btcpay"];
+			Assert.Null(coinjoinRequestBtcPay);
 
 			testCts.Cancel();
 		}
 		finally
 		{
 			await requestsUpdater.StopAsync(testCts.Token);
+		}
+	}
+
+	public class AffiliateHttpClient : IHttpClient
+	{
+		public AffiliateHttpClient(string server)
+		{
+			BaseUriGetter = () => new Uri(server);
+		}
+
+		public Func<Uri>? BaseUriGetter { get; }
+
+		public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync;
+
+		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+		{
+			return OnSendAsync(request, cancellationToken);
 		}
 	}
 }
