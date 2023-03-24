@@ -1,6 +1,7 @@
 using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.VisualTree;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -32,7 +33,8 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		foreach (var child in ((Panel)AssociatedObject).Children)
+		var children = AssociatedObject.GetVisualChildren();
+		foreach (var child in children)
 		{
 			if (child is { })
 			{
