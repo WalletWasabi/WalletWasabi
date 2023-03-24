@@ -31,9 +31,9 @@
       },
       "WabiSabi": {
         "type": "Direct",
-        "requested": "[1.0.1, )",
-        "resolved": "1.0.1",
-        "contentHash": "ftmFoDQ2xHW7jpSgyo/txoOtuVvaKn5DzqrinlWq8glj5DVxtPbh0+PpeCUHTehODIrlQp8Ka2NV32dJ3CxoRg==",
+        "requested": "[1.0.1.2, )",
+        "resolved": "1.0.1.2",
+        "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
