@@ -103,7 +103,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 									Main = MainViewModel.Instance
 								};
 								resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
-
+/*
 								if (resultMessage is null)
 								{
 									// TODO: "Error" message view model
@@ -112,6 +112,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 										Message = resultMessage
 									});
 								}
+*/
 							}
 						}
 						else if (assistantResult.Status == "error")
