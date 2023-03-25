@@ -16,7 +16,7 @@ public class ProofJsonConverter : JsonConverter<Proof>
 		var responses = reader.ReadProperty<ScalarVector>(serializer, "Responses");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
-		return ReflectionUtils.CreateInstance<Proof>(new object[]{ publicNonces, responses });
+		return ReflectionUtils.CreateInstance<Proof>(new object[] { publicNonces, responses });
 	}
 
 	/// <inheritdoc />
