@@ -225,8 +225,8 @@ public class SerializationTests
 		SecureRandom rnd = SecureRandom.Instance;
 		var sk = new CredentialIssuerSecretKey(rnd);
 
-		var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
-		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
+		var issuer = new CredentialIssuer(sk, rnd, 4_300_000_000_000);
+		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4_300_000_000_000);
 		(ICredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 		var credentialResponse = issuer.HandleRequest(credentialRequest);
 		var present = client.HandleResponse(credentialResponse, validationData);
