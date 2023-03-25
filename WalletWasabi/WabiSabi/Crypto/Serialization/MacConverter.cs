@@ -14,10 +14,10 @@ public class MacJsonConverter : JsonConverter<MAC>
 	{
 		reader.Expect(JsonToken.StartObject);
 		var t = reader.ReadProperty<Scalar>(serializer, "T");
-		var V = reader.ReadProperty<GroupElement>(serializer, "V");
+		var v = reader.ReadProperty<GroupElement>(serializer, "V");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
-		return ReflectionUtils.CreateInstance<MAC>(new object[] { t, V });
+		return ReflectionUtils.CreateInstance<MAC>(new object[] { t, v });
 	}
 
 	/// <inheritdoc />
