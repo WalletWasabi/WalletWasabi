@@ -47,6 +47,7 @@
         <DataTemplate DataType="{x:Type cmvm:UserMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
                        DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
@@ -54,6 +55,7 @@
         <DataTemplate DataType="{x:Type cmvm:AssistantMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
                        DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
@@ -61,6 +63,7 @@
         <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
                        DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
@@ -68,6 +71,7 @@
         <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
                        DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
@@ -75,6 +79,7 @@
         <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
                        DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
@@ -82,6 +87,7 @@
         <DataTemplate DataType="{x:Type cmavm:SendActionMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
                        DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
