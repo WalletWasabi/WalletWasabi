@@ -1,6 +1,8 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages;
+using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages.Actions;
 
 namespace WalletWasabi.Fluent.ViewModels.ChatGPT;
 
@@ -12,9 +14,16 @@ public class ChatAssistantScriptGlobals
 
 	public async Task<string> Send(string address, string amount, string[] labels)
 	{
+		var resultMessage = $"Sending {amount} to {address}, {labels}...";
+
+		Chat.Messages.Add(new SendActionMessageViewModel()
+		{
+			Message = resultMessage
+		});
+
 		// TODO:
 
-		return $"Sending {amount} to {address}, {labels}...";
+		return resultMessage;
 	}
 
 	public async Task<string> Receive(string[] labels)
@@ -49,6 +58,11 @@ public class ChatAssistantScriptGlobals
 			resultMessage = "Can't generate receive address.";
 		}
 
+		Chat.Messages.Add(new ReceiveActionMessageViewModel()
+		{
+			Message = resultMessage
+		});
+
 		return resultMessage;
 	}
 
@@ -76,6 +90,11 @@ public class ChatAssistantScriptGlobals
 		{
 			resultMessage = "Can not provide wallet balance.";
 		}
+
+		Chat.Messages.Add(new BalanceActionMessageViewModel()
+		{
+			Message = resultMessage
+		});
 
 		return resultMessage;
 	}

@@ -2,13 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:cvm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT"
+             xmlns:cmvm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT.Messages"
+             xmlns:cmavm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT.Messages.Actions"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.ChatGPT.ChatAssistantDropdown"
              x:CompileBindings="True"
-             x:DataType="sb:ChatAssistantViewModel"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT">
+             x:DataType="cvm:ChatAssistantViewModel">
   <Design.DataContext>
-    <sb:ChatAssistantViewModel />
+    <cvm:ChatAssistantViewModel />
   </Design.DataContext>
 
   <UserControl.Styles>
@@ -41,14 +43,46 @@
     <!-- TODO: IsVisible="{Binding HasResults^}" -->
     <ItemsControl Items="{Binding Messages}">
       <ItemsControl.DataTemplates>
-        <DataTemplate DataType="{x:Type sb:UserMessageViewModel}">
+        <!-- User Message -->
+        <DataTemplate DataType="{x:Type cmvm:UserMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}" DockPanel.Dock="Top" />
+            <TextBlock Text="{Binding Message}"
+                       DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
-        <DataTemplate DataType="{x:Type sb:AssistantMessageViewModel}">
+        <!-- Assistant Message -->
+        <DataTemplate DataType="{x:Type cmvm:AssistantMessageViewModel}">
           <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}" DockPanel.Dock="Top" />
+            <TextBlock Text="{Binding Message}"
+                       DockPanel.Dock="Top" />
+          </DockPanel>
+        </DataTemplate>
+        <!-- Error Message -->
+        <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
+          <DockPanel Margin="0 0 0 10">
+            <TextBlock Text="{Binding Message}"
+                       DockPanel.Dock="Top" />
+          </DockPanel>
+        </DataTemplate>
+        <!-- Balance Action Message -->
+        <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
+          <DockPanel Margin="0 0 0 10">
+            <TextBlock Text="{Binding Message}"
+                       DockPanel.Dock="Top" />
+          </DockPanel>
+        </DataTemplate>
+        <!-- Receive Action Message -->
+        <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
+          <DockPanel Margin="0 0 0 10">
+            <TextBlock Text="{Binding Message}"
+                       DockPanel.Dock="Top" />
+          </DockPanel>
+        </DataTemplate>
+        <!-- Send Action Message -->
+        <DataTemplate DataType="{x:Type cmavm:SendActionMessageViewModel}">
+          <DockPanel Margin="0 0 0 10">
+            <TextBlock Text="{Binding Message}"
+                       DockPanel.Dock="Top" />
           </DockPanel>
         </DataTemplate>
       </ItemsControl.DataTemplates>
