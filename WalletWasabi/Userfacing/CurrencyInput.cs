@@ -85,11 +85,9 @@ public static class CurrencyInput
 			best = corrected;
 			return true;
 		}
-		else
-		{
-			best = null;
-			return false;
-		}
+
+		best = null;
+		return false;
 	}
 
 	public static bool TryCorrectBitcoinAmount(string original, [NotNullWhen(true)] out string? best)
@@ -117,10 +115,8 @@ public static class CurrencyInput
 			best = corrected;
 			return true;
 		}
-		else
-		{
-			best = null;
-			return false;
-		}
+
+		best = null;
+		return false;
 	}
 }

@@ -123,6 +123,6 @@ public partial class TorControlClientFactory
 		return controlClient;
 	}
 
-	[GeneratedRegex($"^AUTHCHALLENGE SERVERHASH=([a-fA-F0-9]+) SERVERNONCE=([a-fA-F0-9]+)$")]
+	[GeneratedRegex("^AUTHCHALLENGE SERVERHASH=([a-fA-F0-9]+) SERVERNONCE=([a-fA-F0-9]+)$")]
 	private static partial Regex AuthChallengeRegex();
 }
