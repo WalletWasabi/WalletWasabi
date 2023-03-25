@@ -23,7 +23,7 @@ internal class ClipboardObserver
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
 				WalletBalances.UsdBalance,
-				(text, balanceUsd) => ParseToUsd(text)
+				(string? text, decimal balanceUsd) => ParseToUsd(text)
 						.Ensure(n => n <= balanceUsd)
 						.Ensure(n => n >= 1)
 						.Ensure(n => n.CountDecimalPlaces() <= 2))
@@ -35,12 +35,17 @@ internal class ClipboardObserver
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
 				WalletBalances.BtcBalance,
-				(text, balance) => ParseToMoney(text).Ensure(m => m <= balance))
+				(string? text, Money balance) => ParseToMoney(text).Ensure(m => m <= balance))
 			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
 	}
 
-	private static decimal? ParseToUsd(string text)
+	private static decimal? ParseToUsd(string? text)
 	{
+		if (text is null)
+		{
+			return null;
+		}
+
 		if (CurrencyInput.TryCorrectAmount(text, out var corrected))
 		{
 			text = corrected;
@@ -49,8 +54,13 @@ internal class ClipboardObserver
 		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
-	private static Money? ParseToMoney(string text)
+	private static Money? ParseToMoney(string? text)
 	{
+		if (text is null)
+		{
+			return null;
+		}
+
 		if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
 		{
 			text = corrected;
