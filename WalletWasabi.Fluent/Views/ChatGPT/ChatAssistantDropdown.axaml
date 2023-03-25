@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:cvm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT"
              xmlns:cmvm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT.Messages"
              xmlns:cmavm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT.Messages.Actions"
@@ -98,22 +99,28 @@
         <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
           <Border Classes="message"
                   HorizontalAlignment="Left">
-            <DockPanel>
-              <TextBlock Text="{Binding Message}"
-                         Classes="message"
-                         DockPanel.Dock="Top" />
-            </DockPanel>
+            <c:PreviewItem Label="Wallet balance"
+                           TextValue="{Binding Balance}">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </c:PreviewItem>
           </Border>
         </DataTemplate>
         <!-- Receive Action Message -->
         <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
           <Border Classes="message"
                   HorizontalAlignment="Left">
-            <DockPanel>
-              <TextBlock Text="{Binding Message}"
-                         Classes="message"
-                         DockPanel.Dock="Top" />
-            </DockPanel>
+            <c:PreviewItem Label="Receive address"
+                           TextValue="{Binding Address}">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </c:PreviewItem>
           </Border>
         </DataTemplate>
         <!-- Send Action Message -->
