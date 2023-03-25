@@ -45,12 +45,17 @@ internal class ClipboardObserver
 		{
 			text = corrected;
 		}
-		
+
 		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
 	private static Money? ParseToMoney(string text)
 	{
+		if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
+		{
+			text = corrected;
+		}
+
 		return Money.TryParse(text, out var n) ? n : default;
 	}
 }
