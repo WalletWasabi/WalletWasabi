@@ -14,7 +14,6 @@ public static class StrobeHasherExtensions
 	public static StrobeHasher Append(this StrobeHasher hasher, string fieldName, IBitcoinSerializable serializable)
 		=> hasher.Append(fieldName, serializable.ToBytes());
 
-
 	public static StrobeHasher Append(this StrobeHasher hasher, string fieldName, Money money)
 		=> hasher.Append(fieldName, money.Satoshi);
 

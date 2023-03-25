@@ -1,13 +1,13 @@
- using System.Collections.Generic;
- using Newtonsoft.Json;
- using WabiSabi;
- using WabiSabi.Crypto.Groups;
- using WalletWasabi.JsonConverters;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using WabiSabi;
+using WabiSabi.Crypto.Groups;
+using WalletWasabi.JsonConverters;
 
- namespace WalletWasabi.WabiSabi.Crypto.Serialization;
- 
- public class IssuanceRequestJsonConverter : JsonConverter<IssuanceRequest>
- {
+namespace WalletWasabi.WabiSabi.Crypto.Serialization;
+
+public class IssuanceRequestJsonConverter : JsonConverter<IssuanceRequest>
+{
 	public override IssuanceRequest? ReadJson(JsonReader reader, Type objectType, IssuanceRequest? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		reader.Expect(JsonToken.StartObject);
@@ -15,7 +15,7 @@
 		var bitCommitments = reader.ReadProperty<IEnumerable<GroupElement>>(serializer, "BitCommitments");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
-		return ReflectionUtils.CreateInstance<IssuanceRequest>(new object[]{ ma, bitCommitments });
+		return ReflectionUtils.CreateInstance<IssuanceRequest>(new object[] { ma, bitCommitments });
 	}
 
 	/// <inheritdoc />
@@ -30,4 +30,4 @@
 		writer.WriteProperty("BitCommitments", ir.BitCommitments, serializer);
 		writer.WriteEndObject();
 	}
- }
+}

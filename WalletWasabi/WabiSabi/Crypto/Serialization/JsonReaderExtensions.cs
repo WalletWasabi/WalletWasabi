@@ -33,12 +33,3 @@ public static class JsonReaderExtensions
 		}
 	}
 }
-
-public static class JsonWriterExtensions
-{
-	public static void WriteProperty<T>(this JsonWriter writer, string name, T value, JsonSerializer serializer)
-	{
-		writer.WritePropertyName(name);
-		serializer.Serialize(writer, value);
-	}
-}

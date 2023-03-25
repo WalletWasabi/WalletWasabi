@@ -17,7 +17,7 @@ public class MacJsonConverter : JsonConverter<MAC>
 		var V = reader.ReadProperty<GroupElement>(serializer, "V");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
-		return ReflectionUtils.CreateInstance<MAC>(new object[]{ t, V });
+		return ReflectionUtils.CreateInstance<MAC>(new object[] { t, V });
 	}
 
 	/// <inheritdoc />

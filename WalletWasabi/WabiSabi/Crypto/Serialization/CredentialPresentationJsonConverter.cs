@@ -1,13 +1,13 @@
- using System.Diagnostics.CodeAnalysis;
- using Newtonsoft.Json;
- using WabiSabi.Crypto.Groups;
- using WabiSabi.Crypto.ZeroKnowledge;
- using WalletWasabi.JsonConverters;
+using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.ZeroKnowledge;
+using WalletWasabi.JsonConverters;
 
- namespace WalletWasabi.WabiSabi.Crypto.Serialization;
- 
- public class CredentialPresentationJsonConverter : JsonConverter<CredentialPresentation>
- {
+namespace WalletWasabi.WabiSabi.Crypto.Serialization;
+
+public class CredentialPresentationJsonConverter : JsonConverter<CredentialPresentation>
+{
 	public override CredentialPresentation? ReadJson(JsonReader reader, Type objectType, CredentialPresentation? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		reader.Expect(JsonToken.StartObject);
@@ -19,7 +19,7 @@
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 
-		return ReflectionUtils.CreateInstance<CredentialPresentation>(new object[]{ ca, cx0, cx1, cV, s });
+		return ReflectionUtils.CreateInstance<CredentialPresentation>(new object[] { ca, cx0, cx1, cV, s });
 	}
 
 	/// <inheritdoc />
@@ -37,5 +37,4 @@
 		writer.WriteProperty("S", value.S, serializer);
 		writer.WriteEndObject();
 	}
- }
- 
+}
