@@ -42,54 +42,90 @@
     <!--<TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">No results</TextBlock>-->
     <!-- TODO: IsVisible="{Binding HasResults^}" -->
     <ItemsControl Items="{Binding Messages}">
+      <ItemsControl.Styles>
+        <Style Selector="Border.message">
+          <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+          <Setter Property="Margin" Value="0 0 0 10" />
+          <Setter Property="Padding" Value="12,5,12,5" />
+          <Setter Property="VerticalAlignment" Value="Top" />
+          <Setter Property="HorizontalAlignment" Value="Left" />
+          <Setter Property="MinHeight" Value="0" />
+          <Setter Property="MinWidth" Value="38" />
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+          <Setter Property="CornerRadius" Value="2" />
+        </Style>
+        <Style Selector="TextBlock.message">
+          <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+          <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+      </ItemsControl.Styles>
       <ItemsControl.DataTemplates>
         <!-- User Message -->
         <DataTemplate DataType="{x:Type cmvm:UserMessageViewModel}">
-          <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}"
-                       TextWrapping="Wrap"
-                       DockPanel.Dock="Top" />
-          </DockPanel>
+          <Border Classes="message"
+                  HorizontalAlignment="Right">
+            <DockPanel>
+              <TextBlock Text="{Binding Message}"
+                         Classes="message"
+                         DockPanel.Dock="Top" />
+            </DockPanel>
+          </Border>
         </DataTemplate>
         <!-- Assistant Message -->
         <DataTemplate DataType="{x:Type cmvm:AssistantMessageViewModel}">
-          <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}"
-                       TextWrapping="Wrap"
-                       DockPanel.Dock="Top" />
-          </DockPanel>
+          <Border Classes="message"
+                  HorizontalAlignment="Left">
+            <DockPanel>
+              <TextBlock Text="{Binding Message}"
+                         Classes="message"
+                         DockPanel.Dock="Top" />
+            </DockPanel>
+          </Border>
         </DataTemplate>
         <!-- Error Message -->
         <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
-          <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}"
-                       TextWrapping="Wrap"
-                       DockPanel.Dock="Top" />
-          </DockPanel>
+          <Border Classes="message"
+                  HorizontalAlignment="Left">
+            <DockPanel>
+              <TextBlock Text="{Binding Message}"
+                         Classes="message"
+                         DockPanel.Dock="Top" />
+            </DockPanel>
+          </Border>
         </DataTemplate>
         <!-- Balance Action Message -->
         <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
-          <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}"
-                       TextWrapping="Wrap"
-                       DockPanel.Dock="Top" />
-          </DockPanel>
+          <Border Classes="message"
+                  HorizontalAlignment="Left">
+            <DockPanel>
+              <TextBlock Text="{Binding Message}"
+                         Classes="message"
+                         DockPanel.Dock="Top" />
+            </DockPanel>
+          </Border>
         </DataTemplate>
         <!-- Receive Action Message -->
         <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
-          <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}"
-                       TextWrapping="Wrap"
-                       DockPanel.Dock="Top" />
-          </DockPanel>
+          <Border Classes="message"
+                  HorizontalAlignment="Left">
+            <DockPanel>
+              <TextBlock Text="{Binding Message}"
+                         Classes="message"
+                         DockPanel.Dock="Top" />
+            </DockPanel>
+          </Border>
         </DataTemplate>
         <!-- Send Action Message -->
         <DataTemplate DataType="{x:Type cmavm:SendActionMessageViewModel}">
-          <DockPanel Margin="0 0 0 10">
-            <TextBlock Text="{Binding Message}"
-                       TextWrapping="Wrap"
-                       DockPanel.Dock="Top" />
-          </DockPanel>
+          <Border Classes="message"
+                  HorizontalAlignment="Left">
+            <DockPanel>
+              <TextBlock Text="{Binding Message}"
+                         Classes="message"
+                         DockPanel.Dock="Top" />
+            </DockPanel>
+          </Border>
         </DataTemplate>
       </ItemsControl.DataTemplates>
     </ItemsControl>
