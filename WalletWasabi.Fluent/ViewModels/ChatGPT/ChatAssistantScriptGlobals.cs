@@ -1,8 +1,10 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages;
 using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages.Actions;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.ChatGPT;
 
@@ -31,36 +33,24 @@ public class ChatAssistantScriptGlobals
 		// TODO: Show receive dialog but QR cod progress view.
 
 		var resultMessage = "";
+		var address = default(string);
 
-		if (MainViewModel.Instance.CurrentWallet is { } currentWallet)
+		if (MainViewModel.Instance.MainScreen.CurrentPage is WalletViewModel currentWallet)
 		{
-			var currentWalletValue = await currentWallet.LastOrDefaultAsync();
-			if (currentWalletValue is { })
-			{
-				// TODO:
-				if (currentWalletValue.ReceiveCommand.CanExecute(null))
-				{
-					currentWalletValue.ReceiveCommand.Execute(null);
-					resultMessage = "Generating receive address...";
-				}
-				else
-				{
-					resultMessage = "Can't generate receive address.";
-				}
-			}
-			else
-			{
-				resultMessage = "Please select current wallet.";
-			}
+			var newKey = currentWallet.Wallet.KeyManager.GetNextReceiveKey(new SmartLabel(labels));
+			address = newKey.GetP2wpkhAddress( currentWallet.Wallet.Network).ToString();
+			resultMessage = $"New receive address: {address}";
 		}
 		else
 		{
-			resultMessage = "Can't generate receive address.";
+			resultMessage = "Can't generate receive address, please login into wallet.";
 		}
 
 		Chat.Messages.Add(new ReceiveActionMessageViewModel()
 		{
-			Message = resultMessage
+			Message = resultMessage,
+			// TODO: Enable copy new address (use copy button).
+			Address = address
 		});
 
 		return resultMessage;
@@ -71,29 +61,22 @@ public class ChatAssistantScriptGlobals
 		// TODO:
 
 		var resultMessage = "";
+		var balance = default(string);
 
-		if (MainViewModel.Instance.CurrentWallet is { } currentWallet)
+		if (MainViewModel.Instance.MainScreen.CurrentPage is WalletViewModel currentWallet)
 		{
-			var currentWalletValue = await currentWallet.LastOrDefaultAsync();
-			if (currentWalletValue is { })
-			{
-				var balance = currentWalletValue.Wallet.Coins.TotalAmount().ToFormattedString();
-
-				resultMessage = $"{currentWalletValue.Wallet.WalletName} balance is {balance}";
-			}
-			else
-			{
-				resultMessage = "Please select current wallet.";
-			}
+			balance = currentWallet.Wallet.Coins.TotalAmount().ToFormattedString();
+			resultMessage = $"{currentWallet.Wallet.WalletName} balance is {balance}";
 		}
 		else
 		{
-			resultMessage = "Can not provide wallet balance.";
+			resultMessage = "Can't provide wallet balance, please login into wallet.";
 		}
 
 		Chat.Messages.Add(new BalanceActionMessageViewModel()
 		{
-			Message = resultMessage
+			Message = resultMessage,
+			Balance = balance
 		});
 
 		return resultMessage;
