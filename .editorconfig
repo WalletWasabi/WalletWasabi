@@ -294,3 +294,4 @@ dotnet_diagnostic.CA1822.severity = none
 spelling_languages = en-us
 spelling_checkable_types = strings,identifiers,comments
 spelling_error_severity = error
+spelling_exclusion_path = .\exclusion.dic
