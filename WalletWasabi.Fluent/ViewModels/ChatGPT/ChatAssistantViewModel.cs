@@ -2,15 +2,9 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using AI.Model.Services;
-using AI.Services;
-using ChatGPT.Model.Services;
-using ChatGPT.Services;
+using ChatGPT;
 using ChatGPT.ViewModels.Chat;
-using ChatGPT.ViewModels.Settings;
-using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages;
@@ -21,7 +15,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 {
 	static ChatAssistantViewModel()
 	{
-		ConfigureServices();
+		Defaults.ConfigureDefaultServices();
 	}
 
 	private ChatViewModel _chat;
@@ -179,21 +173,5 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		{
 			Console.WriteLine("Error: " + ex.Message);
 		}
-	}
-
-	private static void ConfigureServices()
-	{
-		IServiceCollection serviceCollection = new ServiceCollection();
-
-		serviceCollection.AddSingleton<IStorageFactory, IsolatedStorageFactory>();
-		serviceCollection.AddSingleton<IChatService, ChatService>();
-
-		serviceCollection.AddTransient<ChatMessageViewModel>();
-		serviceCollection.AddTransient<ChatSettingsViewModel>();
-		serviceCollection.AddTransient<ChatResultViewModel>();
-		serviceCollection.AddTransient<ChatViewModel>();
-		serviceCollection.AddTransient<PromptViewModel>();
-
-		Ioc.Default.ConfigureServices(serviceCollection.BuildServiceProvider());
 	}
 }

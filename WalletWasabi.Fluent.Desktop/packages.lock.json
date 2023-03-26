@@ -161,15 +161,15 @@
       },
       "ChatGPT": {
         "type": "Transitive",
-        "resolved": "1.0.0-preview.4",
-        "contentHash": "QL1biptxZPAFzWPoNGXovFfGW7vDNdVS8te0L542X1tOhDZlm/LqXRywbbUQSV4dWTUcsVev/FOUcvX7dPOxGg=="
+        "resolved": "1.0.0-preview.5",
+        "contentHash": "sEDWnmtN0E2qYbevlS6VcO8V70QDt6Y1aRdHRFYHKGjF8Z0XK/6Vy+lDoVeQiwspOE5Zkw8rhF34PB74J67g6A=="
       },
       "ChatGPT.Core": {
         "type": "Transitive",
-        "resolved": "1.0.0-preview.4",
-        "contentHash": "GVAevfLlSi43Ox9MwWr2haGEShr5svtxH9kP2RasA3IxY2x+ZLGVfHBnxxOmPCKiDHrYKDqkDkK9xIaZ8yO/3w==",
+        "resolved": "1.0.0-preview.5",
+        "contentHash": "HIDaklt0feGfjXnMIauHZkTUk9WGACvvIVhy5AUKpV2giFUNYJCc5CeG+Dls52odV6O9hwfb/hP1y9jVk62hJA==",
         "dependencies": {
-          "ChatGPT": "1.0.0-preview.4",
+          "ChatGPT": "1.0.0-preview.5",
           "CommunityToolkit.Mvvm": "8.1.0",
           "Microsoft.Extensions.DependencyInjection": "7.0.0"
         }
@@ -708,7 +708,7 @@
           "Avalonia.ReactiveUI": "[0.10.18, )",
           "Avalonia.Skia": "[0.10.18, )",
           "Avalonia.Xaml.Behaviors": "[0.10.18, )",
-          "ChatGPT.Core": "[1.0.0-preview.4, )",
+          "ChatGPT.Core": "[1.0.0-preview.5, )",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "[4.5.0, )",
           "System.Drawing.Common": "[7.0.0, )",
           "System.Runtime": "[4.3.1, )",

@@ -1,8 +1,6 @@
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages;
 using WalletWasabi.Fluent.ViewModels.ChatGPT.Messages.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
