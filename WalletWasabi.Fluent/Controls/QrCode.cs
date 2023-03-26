@@ -146,8 +146,7 @@ public class QrCode : Control
 		var (indexW, indexH) = GetMatrixIndexSize(source);
 		var gcf = qrCodeSize.gridCellFactor;
 
-		var canvasSize = new Rect(0, 0, gcf * indexW,
-			gcf * indexH);
+		var canvasSize = new Rect(0, 0, gcf * indexW, gcf * indexH);
 
 		ctx.DrawRectangle(Brushes.White, null, canvasSize);
 
