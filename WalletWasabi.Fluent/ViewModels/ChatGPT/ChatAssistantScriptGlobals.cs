@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -46,6 +49,25 @@ public class ChatAssistantScriptGlobals
 				SubtractFee = amount == currentWallet.Wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin),
 				FeeRate = new FeeRate(Money.Satoshis(1000))
 			};
+
+
+
+			var LabelSelection = new LabelSelectionViewModel(currentWallet.Wallet.KeyManager, currentWallet.Wallet.Kitchen.SaltSoup(), transactionInfo, true);
+
+			 void InitializeLabels()
+			{
+				var privateThreshold = currentWallet.Wallet.AnonScoreTarget;
+
+				LabelSelection.Reset(currentWallet.Wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
+				LabelSelection.SetUsedLabel(new List<SmartCoin>(), privateThreshold);
+			}
+
+
+			 var autoSelectedPockets = LabelSelection.AutoSelectPockets();
+			 var coins = Pocket.Merge(autoSelectedPockets.ToArray()).Coins;
+
+			 transactionInfo.Coins = coins;
+
 
 			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(currentWallet.Wallet, transactionInfo));
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
