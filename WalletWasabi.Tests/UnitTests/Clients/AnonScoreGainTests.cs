@@ -41,23 +41,12 @@ public class AnonScoreGainTests
 	}
 
 	[Theory]
-	[InlineData(443, 10, 0.8)]
-	[InlineData(4325, 10, 0.8)]
-	[InlineData(53234, 10, 0.8)]
-	[InlineData(44, 10, 0.8)]
-	[InlineData(6546, 10, 0.8)]
-	[InlineData(3254, 10, 0.8)]
-	[InlineData(52423, 10, 0.8)]
-	[InlineData(5433333333, 10, 0.8)]
-	[InlineData(5346, 10, 0.8)]
-	[InlineData(564, 10, 0.8)]
-	[InlineData(764, 10, 0.8)]
-	[InlineData(6435, 10, 0.8)]
+	[InlineData(443, 0.5, 50)]
 	public void AnonScoreGainTest(int randomSeed, double p, double q)
 	{
-		var nbClients = 30;
+		var nbClients = 50;
 		var otherNbInputsPerClient = 5;
-		var anonScoreTarget = 50;
+		var anonScoreTarget = 100;
 		var maxTestRounds = 1000;
 
 
@@ -69,7 +58,7 @@ public class AnonScoreGainTests
 			Func<IEnumerable<IEnumerable<SmartCoin>>, IEnumerable<SmartCoin>> formulaSpecificClient = SelectSpecificClient;
 			var mockSecureRandom = new TestRandomSeed(randomSeed);
 
-			var displayProgressEachNRounds = int.MaxValue;
+			var displayProgressEachNRounds = 9999999999;
 
 			var analyser = new BlockchainAnalyzer();
 
@@ -88,8 +77,6 @@ public class AnonScoreGainTests
 			otherHdPub = otherHdPub.Take(otherHdPub.Length - 1).ToArray();
 			var specificClientStartingBalance = specificClientSmartCoins.Sum(x => x.Amount);
 
-			Money liquidityClue = Math.Min(LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount), specificClientStartingBalance) - 1;
-
 			var totalVsizeSpecificClient = 0;
 			var specificClientMinInputAnonSet = 1.0;
 			var specificClientMaxGlobalAnonScore = 0.0;
@@ -100,7 +87,7 @@ public class AnonScoreGainTests
 			while (specificClientMinInputAnonSet < anonScoreTarget && counter <= maxTestRounds)
 			{
 				counter++;
-
+				Money liquidityClue = Math.Min(LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount), specificClientStartingBalance) - 1;
 				specificClientMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
 				var specificClientTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
 				var specificClientGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / specificClientTotalSatoshiBefore) / anonScoreTarget;
@@ -231,7 +218,7 @@ public class AnonScoreGainTests
 			var listCoinsCurrentOther = new List<SmartCoin>();
 			for (var j = 0; j < otherNbInputsPerClient; j++)
 			{
-				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], inputs.RandomElement(rnd)));
+				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], inputs.RandomElement(rnd)/100000000));
 			}
 
 			otherIndex++;
