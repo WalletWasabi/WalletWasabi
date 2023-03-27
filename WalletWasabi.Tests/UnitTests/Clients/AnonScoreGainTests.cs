@@ -41,16 +41,16 @@ public class AnonScoreGainTests
 	}
 
 	[Theory]
-	[InlineData(443, 0.5, 50)]
+	[InlineData(64654, 10, 0.8)]
 	public void AnonScoreGainTest(int randomSeed, double p, double q)
 	{
 		var nbClients = 50;
 		var otherNbInputsPerClient = 5;
-		var anonScoreTarget = 100;
+		var anonScoreTarget = 30;
 		var maxTestRounds = 1000;
 
 
-		List<bool> mode = new() { true, false };
+		List<bool> mode = new() { false };
 		foreach (var master in mode)
 		{
 			Money maxSuggestedAmount = new(1343.75m, MoneyUnit.BTC);
@@ -58,7 +58,7 @@ public class AnonScoreGainTests
 			Func<IEnumerable<IEnumerable<SmartCoin>>, IEnumerable<SmartCoin>> formulaSpecificClient = SelectSpecificClient;
 			var mockSecureRandom = new TestRandomSeed(randomSeed);
 
-			var displayProgressEachNRounds = 9999999999;
+			var displayProgressEachNRounds = 10;
 
 			var analyser = new BlockchainAnalyzer();
 
@@ -71,10 +71,13 @@ public class AnonScoreGainTests
 			}
 
 
-			List<List<SmartCoin>> otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
-			List<SmartCoin> specificClientSmartCoins = formulaSpecificClient(otherSmartCoins).ToList();
-			otherSmartCoins.RemoveAll(x => x.All(y => specificClientSmartCoins.Contains(y)) && specificClientSmartCoins.All(z => x.Contains(z)));
+			//List<SmartCoin> specificClientSmartCoins = formulaSpecificClient(otherSmartCoins).ToList();
+			List<SmartCoin> specificClientSmartCoins = new List<SmartCoin>();
+			specificClientSmartCoins.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[^1], (decimal)100));
+			//otherSmartCoins.RemoveAll(x => x.All(y => specificClientSmartCoins.Contains(y)) && specificClientSmartCoins.All(z => x.Contains(z)));
 			otherHdPub = otherHdPub.Take(otherHdPub.Length - 1).ToArray();
+
+			List<List<SmartCoin>> otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
 			var specificClientStartingBalance = specificClientSmartCoins.Sum(x => x.Amount);
 
 			var totalVsizeSpecificClient = 0;
@@ -87,7 +90,7 @@ public class AnonScoreGainTests
 			while (specificClientMinInputAnonSet < anonScoreTarget && counter <= maxTestRounds)
 			{
 				counter++;
-				Money liquidityClue = Math.Min(LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount), specificClientStartingBalance) - 1;
+				Money liquidityClue = LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount);
 				specificClientMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
 				var specificClientTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
 				var specificClientGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / specificClientTotalSatoshiBefore) / anonScoreTarget;
