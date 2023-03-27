@@ -43,7 +43,8 @@ public class ChatAssistantScriptGlobals
 				// TODO: PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
 				PayJoinClient = null,
 				IsFixedAmount = IsFixedAmount,
-				SubtractFee = amount == currentWallet.Wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
+				SubtractFee = amount == currentWallet.Wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin),
+				FeeRate = new FeeRate(Money.Satoshis(1000))
 			};
 
 			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(currentWallet.Wallet, transactionInfo));
