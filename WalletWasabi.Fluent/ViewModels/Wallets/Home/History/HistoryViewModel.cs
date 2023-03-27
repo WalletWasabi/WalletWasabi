@@ -30,7 +30,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
 	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _bringIntoView;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
@@ -218,9 +217,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			var index = _transactions.IndexOf(SelectedItem);
 			Dispatcher.UIThread.Post(() =>
 			{
-				BringIntoView = true;
 				Source.RowSelection!.SelectedIndex = new IndexPath(index);
-				BringIntoView = false;
 			});
 		}
 	}

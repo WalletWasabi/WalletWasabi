@@ -8,21 +8,35 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avalonia.Controls.TreeDataGrid>
 {
-	public static readonly StyledProperty<bool> IsEnabledProperty =
-		AvaloniaProperty.Register<ScrollToSelectedItemBehavior, bool>(nameof(IsEnabled));
-
-	public bool IsEnabled
-	{
-		get => GetValue(IsEnabledProperty);
-		set => SetValue(IsEnabledProperty, value);
-	}
-
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject is { SelectionInteraction: { } selection, RowSelection: { } rowSelection })
 		{
 			Observable.FromEventPattern(selection, nameof(selection.SelectionChanged))
-				.Select(x => rowSelection.SelectedIndex.FirstOrDefault())
+				.Select(x =>
+				{
+					var selectedIndexPath = rowSelection.SelectedIndex.FirstOrDefault();
+					if (AssociatedObject.Rows is null)
+					{
+						return selectedIndexPath;
+					}
+
+					// Get the actual index in the list of items.
+					var rowIndex = AssociatedObject.Rows.ModelIndexToRowIndex(selectedIndexPath);
+
+					// Correct the index wih the index of child item, in the case when the selected item is a child.
+					if (rowSelection.SelectedIndex.Count > 1)
+					{
+						// Skip 1 because the first index is the parent.
+						// Every other index is the child index.
+						rowIndex += rowSelection.SelectedIndex.Skip(1).Sum();
+
+						// Need to add 1 to get the correct index.
+						rowIndex += 1;
+					}
+
+					return rowIndex;
+				})
 				.WhereNotNull()
 				.Do(ScrollToItemIndex)
 				.Subscribe()
@@ -32,11 +46,6 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 
 	private void ScrollToItemIndex(int index)
 	{
-		if (!IsEnabled)
-		{
-			return;
-		}
-
 		if (AssociatedObject is { RowsPresenter: { } rowsPresenter })
 		{
 			rowsPresenter.BringIntoView(index);
