@@ -4,11 +4,11 @@
     "net7.0": {
       "Avalonia": {
         "type": "Direct",
-        "requested": "[0.10.18, )",
-        "resolved": "0.10.18",
-        "contentHash": "hA7US1I75f+ztOyqFWXdzkyJDU9FxcMktfmnmey2uPb+9Cn2GSTU+/7t08CMAyMxuCBpWjlOwkdCZh1cPFWHpg==",
+        "requested": "[0.10.19, )",
+        "resolved": "0.10.19",
+        "contentHash": "KgT8O+uE9sZdsjr2J5VQo+55raPeQAhdiHjSic300P3EJMsjjdjC132O0ERGRWf7OSDcskqnDstnuop0fMGhLg==",
         "dependencies": {
-          "Avalonia.Remote.Protocol": "0.10.18",
+          "Avalonia.Remote.Protocol": "0.10.19",
           "JetBrains.Annotations": "10.3.0",
           "System.ComponentModel.Annotations": "4.5.0",
           "System.Memory": "4.5.3",
@@ -19,43 +19,43 @@
       },
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Direct",
-        "requested": "[0.10.18, )",
-        "resolved": "0.10.18",
-        "contentHash": "qm4y7cz+0Xcno4pOne1C7wJjV4J0igXUgBnQFCmXyx6P7orFaoGOMfaF/7jIOgGOFYlnmxrlmdLKBBOOcGZ1TA==",
+        "requested": "[0.10.18.1, )",
+        "resolved": "0.10.18.1",
+        "contentHash": "ojQoUFo9PQKO6BFvDH7C+kiw5sRnjbvDWBBkNYEeAA9djxhjf/tIhnw1pUfqmtvNhvfSUQKnt4oorKCDcg0gAw==",
         "dependencies": {
           "Avalonia": "0.10.18"
         }
       },
       "Avalonia.Diagnostics": {
         "type": "Direct",
-        "requested": "[0.10.18, )",
-        "resolved": "0.10.18",
-        "contentHash": "3PjA6r0mmRUeS+R34VtYAyzmlPeqflsQ9B8E2TrZKGke0Wo6t3JsvPWA8ynA/ii0icPnnn7nmQaEZQs07ZthxQ==",
+        "requested": "[0.10.19, )",
+        "resolved": "0.10.19",
+        "contentHash": "eV5bhAs7N6opgo5B2irNBrEpU3e+Rd+P5UtxYf7qnbHFD0i0JOTMTSUAW9heWMbj9kV97BvVPX9fP0V1rse1sw==",
         "dependencies": {
-          "Avalonia": "0.10.18",
-          "Avalonia.Controls.DataGrid": "0.10.18",
+          "Avalonia": "0.10.19",
+          "Avalonia.Controls.DataGrid": "0.10.19",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "3.4.0",
           "System.Reactive": "5.0.0"
         }
       },
       "Avalonia.ReactiveUI": {
         "type": "Direct",
-        "requested": "[0.10.18, )",
-        "resolved": "0.10.18",
-        "contentHash": "1mAz+ll9/RLUEvkLLO20k196/gVmAHLwubIuy+fe07cS/LN9QkgsnODTFpsinUB0PLmIhwmmGWBsF5k+Mgnz2Q==",
+        "requested": "[0.10.19, )",
+        "resolved": "0.10.19",
+        "contentHash": "JgGR6wq51hxkC9NYrg7CeXDFLROsn8IoTib8SqlH/+210VZEjzDBATiKug/7/+M5eaRa3zfyeZ32v62DYk0t4Q==",
         "dependencies": {
-          "Avalonia": "0.10.18",
+          "Avalonia": "0.10.19",
           "ReactiveUI": "13.2.10",
           "System.Reactive": "5.0.0"
         }
       },
       "Avalonia.Skia": {
         "type": "Direct",
-        "requested": "[0.10.18, )",
-        "resolved": "0.10.18",
-        "contentHash": "QY3W/Hb3PfOW6mM0E9y1TsUeOjuECGwoXoHhmPmiBmNismXxOkLeXJUYNcUkCxTgKYjj6ZNfFYc5wbHWVJ2Hsw==",
+        "requested": "[0.10.19, )",
+        "resolved": "0.10.19",
+        "contentHash": "ZpZLu4qsctmzEMnkYj40b9izQBiYCT/bBC56evUgn78mOqTWtqAoPzqRg5yvLV11quRbqRNnXTXv2wGZC3njxA==",
         "dependencies": {
-          "Avalonia": "0.10.18",
+          "Avalonia": "0.10.19",
           "HarfBuzzSharp": "2.8.2.1-preview.108",
           "HarfBuzzSharp.NativeAssets.Linux": "2.8.2.1-preview.108",
           "HarfBuzzSharp.NativeAssets.WebAssembly": "2.8.2.1-preview.108",
@@ -66,13 +66,13 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Direct",
-        "requested": "[0.10.18, )",
-        "resolved": "0.10.18",
-        "contentHash": "wmFgiF41WKIbwlmVsDy8cz2dlcwr8VdbVzmB9PNoqdKR5Aa+/Umjj+AmdPSVzI3dOZiOO7r9QStd51jQFJdWhQ==",
+        "requested": "[0.10.19, )",
+        "resolved": "0.10.19",
+        "contentHash": "IJroLH4aHMBbf5Rz0T0Dr1f8WkKvTea8/74LbygajhgHsOo0SFsHSjzuE/f1bv6Q5WeRXZ7rmuWtMn6egwGTIw==",
         "dependencies": {
-          "Avalonia": "0.10.18",
-          "Avalonia.Xaml.Interactions": "0.10.18",
-          "Avalonia.Xaml.Interactivity": "0.10.18"
+          "Avalonia": "0.10.19",
+          "Avalonia.Xaml.Interactions": "0.10.19",
+          "Avalonia.Xaml.Interactivity": "0.10.19"
         }
       },
       "ChatGPT.Core": {
@@ -119,35 +119,35 @@
       },
       "Avalonia.Controls.DataGrid": {
         "type": "Transitive",
-        "resolved": "0.10.18",
-        "contentHash": "LDNZxnzk++GgBeUKsqmeWJDQgF83C4Quk4Wn0z5P6vIm1f5YSSFJL6JbibbIAvjqlGjqWWFTBZpHMUNjdyw4Aw==",
+        "resolved": "0.10.19",
+        "contentHash": "s1xlpkkjyC2cVHI/ZY57GRvTsYVk+qPs+qQPYa88ehH5WcMyvgQjKu8SvzVjLSegMKb28NJO7b203Zu3NoDC4A==",
         "dependencies": {
-          "Avalonia": "0.10.18",
-          "Avalonia.Remote.Protocol": "0.10.18",
+          "Avalonia": "0.10.19",
+          "Avalonia.Remote.Protocol": "0.10.19",
           "JetBrains.Annotations": "10.3.0",
           "System.Reactive": "5.0.0"
         }
       },
       "Avalonia.Remote.Protocol": {
         "type": "Transitive",
-        "resolved": "0.10.18",
-        "contentHash": "YRymqWJWBDTM+o1CRs5ymAXQpd26erystkyavPgk10bWR4o3D657yFp0oCdfJek2Eba+agazcbZEmB8rdO8eiA=="
+        "resolved": "0.10.19",
+        "contentHash": "DjwS7k4tNzvEHvqnQqO0YT/mc2Z/gpFllHqN6kr+yoVIrXOKZegvwDl3dwpD/zXXP0Q4oMcZJFn1H36ZeO0wtQ=="
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.18",
-        "contentHash": "LYWo3dbE6GEzZgo4mu4oNRUB8DUQK7giwISb1SV6EpNTzht9Wjn+IizkPmF2IdB/on3G5CYM1tK1KKieWJOMWw==",
+        "resolved": "0.10.19",
+        "contentHash": "ZxClXQEfxeai+cFrkKP2NzM8I5Xsju/AEE+KNG5WHGc6fpTDqb4tWmRr4lPy3lebr6YkSnTuysHLmfcoNCsXeA==",
         "dependencies": {
-          "Avalonia": "0.10.18",
-          "Avalonia.Xaml.Interactivity": "0.10.18"
+          "Avalonia": "0.10.19",
+          "Avalonia.Xaml.Interactivity": "0.10.19"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.18",
-        "contentHash": "WMZivMfce1nYIbxCS6lUUEC1/TD5orfk8CFAJzWMqFH1hgcLcdS4HnMit13aMWYq0EYB3lWIhkvE5dI8f3lZlw==",
+        "resolved": "0.10.19",
+        "contentHash": "b0yFngiW8K0Zb75NqR9+eDH76YrENHuErmAWrcsu7D5dEUJlTgZO2oZ4OaEJd7rNNvxdXzyhHKLssB+7+ztrKQ==",
         "dependencies": {
-          "Avalonia": "0.10.18"
+          "Avalonia": "0.10.19"
         }
       },
       "ChatGPT": {
