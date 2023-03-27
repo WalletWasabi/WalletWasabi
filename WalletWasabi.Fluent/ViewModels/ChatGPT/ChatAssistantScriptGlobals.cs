@@ -85,7 +85,7 @@ public class ChatAssistantScriptGlobals
 					//Navigate().To(new SendSuccessViewModel(currentWallet.Wallet, finalTransaction));
 					Chat.Messages.Add(new SendActionMessageViewModel()
 					{
-						Message = $"Sent {amountBtc} to {address}, {labels}."
+						Message = $"Sent {amountBtc} to {address}, {new SmartLabel(labels)}."
 					});
 				}
 				catch (Exception ex)
