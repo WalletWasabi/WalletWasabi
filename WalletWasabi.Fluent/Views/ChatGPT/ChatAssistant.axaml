@@ -129,7 +129,7 @@
     </Style>
   </UserControl.Styles>
 
-  <TextBox x:Name="SearchBox" Watermark="Ask me anything" MaxLength="50" HorizontalAlignment="Stretch"
+  <TextBox x:Name="SearchBox" Watermark="Ask me anything" MaxLength="500" HorizontalAlignment="Stretch"
            Text="{Binding InputText, Mode=TwoWay}" VerticalAlignment="Center">
 
     <i:Interaction.Behaviors>
