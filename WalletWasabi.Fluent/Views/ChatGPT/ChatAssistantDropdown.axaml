@@ -14,6 +14,10 @@
     <cvm:ChatAssistantViewModel />
   </Design.DataContext>
 
+  <UserControl.Resources>
+    <StreamGeometry x:Key="arrow_reset_regular">M6.78 2.72a.75.75 0 0 1 0 1.06L4.56 6h8.69a7.75 7.75 0 1 1-7.75 7.75.75.75 0 0 1 1.5 0 6.25 6.25 0 1 0 6.25-6.25H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 0Z</StreamGeometry>
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0" />
@@ -39,19 +43,35 @@
 
   </UserControl.Styles>
 
-  <Panel VerticalAlignment="Center">
+  <DockPanel VerticalAlignment="Center">
     <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}"
-               Margin="10,10,10,0"
+               Margin="10,10,10,10"
                TextWrapping="Wrap"
                Opacity="0.6"
                Text="{Binding WelcomeMessage}" />
+    <Button Margin="0,0,0,10"
+            HorizontalAlignment="Left"
+            Classes="plain"
+            Command="{Binding ClearCommand}"
+            IsVisible="{Binding HasResults}"
+            ToolTip.Tip="Clear chat history"
+            DockPanel.Dock="Top">
+      <PathIcon Data="{DynamicResource arrow_reset_regular}"
+                Classes="size16"
+                Opacity="0.6"/>
+    </Button>
+    <ProgressBar IsIndeterminate="{Binding IsBusy}"
+                 IsVisible="{Binding IsBusy}"
+                 Margin="0,5,0,10"
+                 Value="50"
+                 DockPanel.Dock="Bottom"/>
     <ItemsControl IsVisible="{Binding HasResults}"
                   Items="{Binding Messages}"
                   Margin="0,0,0,0">
       <ItemsControl.Styles>
         <Style Selector="Border.message">
           <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
-          <Setter Property="Margin" Value="0 0 0 0" />
+          <Setter Property="Margin" Value="0 0 0 10" />
           <Setter Property="Padding" Value="12,5,12,5" />
           <Setter Property="VerticalAlignment" Value="Top" />
           <Setter Property="HorizontalAlignment" Value="Left" />
@@ -141,6 +161,6 @@
         </DataTemplate>
       </ItemsControl.DataTemplates>
     </ItemsControl>
-  </Panel>
+  </DockPanel>
 
 </UserControl>

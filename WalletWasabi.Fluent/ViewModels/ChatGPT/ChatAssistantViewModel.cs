@@ -24,6 +24,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 	private ChatViewModel? _chat;
 	private CancellationTokenSource? _cts;
 	[AutoNotify] private bool _isChatListVisible;
+	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private string? _inputText;
 	[AutoNotify] private string? _welcomeMessage;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasResults;
@@ -101,6 +102,8 @@ I'm here to make your experience friendly, informative, and professional.
 		{
 			return;
 		}
+
+		IsBusy = true;
 
 		try
 		{
@@ -223,5 +226,7 @@ I'm here to make your experience friendly, informative, and professional.
 		{
 			Console.WriteLine("Error: " + ex.Message);
 		}
+
+		IsBusy = false;
 	}
 }
