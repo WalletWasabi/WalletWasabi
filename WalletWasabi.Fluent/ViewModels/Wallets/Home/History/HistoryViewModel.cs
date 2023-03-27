@@ -215,10 +215,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			SelectedItem.IsFlashing = true;
 
 			var index = _transactions.IndexOf(SelectedItem);
-			Dispatcher.UIThread.Post(() =>
-			{
-				Source.RowSelection!.SelectedIndex = new IndexPath(index);
-			});
+			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
 		}
 	}
 
