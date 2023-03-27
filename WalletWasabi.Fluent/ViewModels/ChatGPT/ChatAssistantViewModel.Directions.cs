@@ -22,7 +22,7 @@ The json response "status" property value can be one of the following:
 
 When "status"="command" the "message" value can only be set to
 one of the following wasabi api C# scripting commands which will be executed as C# script:
-- public async Task<string> Send(string address, string amount, string[] labels);
+- public async Task<string> Send(string address, decimal amountBtc, string[] labels);
   Send command requires address, amount and labels parameters. Users must provide at least one label.
 - public async Task<string> Receive(string[] labels);
   Receive command requires labels array parameter. Users must provide at least one label.
