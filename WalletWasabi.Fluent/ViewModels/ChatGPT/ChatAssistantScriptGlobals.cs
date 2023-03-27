@@ -62,6 +62,7 @@ public class ChatAssistantScriptGlobals
 				LabelSelection.SetUsedLabel(new List<SmartCoin>(), privateThreshold);
 			}
 
+			 InitializeLabels();
 
 			 var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 			 var coins = Pocket.Merge(autoSelectedPockets.ToArray()).Coins;
