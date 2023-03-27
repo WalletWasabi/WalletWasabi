@@ -472,7 +472,7 @@ public partial class Arena : PeriodicRunner
 					parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
 					var smallRound = TryMineRound(parameters, roundWithoutThis.Concat(new[] { largeRound }).ToArray());
 
-					// If creation is successful destroy round only.
+					// If creation is successful, only then destroy the round.
 					if (smallRound is not null)
 					{
 						AddRound(largeRound);
