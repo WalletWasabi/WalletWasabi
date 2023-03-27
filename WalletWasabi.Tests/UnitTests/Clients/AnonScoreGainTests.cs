@@ -35,30 +35,30 @@ public class AnonScoreGainTests
 		LiquidityClueProvider = new();
 	}
 
-	private IEnumerable<SmartCoin> SelectSpecificClient(IEnumerable<IEnumerable<SmartCoin>> clients)
-	{
-		return clients.MaxBy(x => x.Sum(y => y.Amount))!;
-	}
-
 	[Theory]
-	[InlineData(64654, 10, 0.8)]
-	public void AnonScoreGainTest(int randomSeed, double p, double q)
+	[InlineData(64654, 10, 10, 0.8, 3)]
+	public void AnonScoreGainTest(int randomSeed, decimal specificClientBalance, double p, double q, int maxWeightedAnonLoss)
 	{
-		var nbClients = 50;
+		// --- Other Parameters ---
+		var nbClients = 30;
 		var otherNbInputsPerClient = 5;
 		var anonScoreTarget = 30;
 		var maxTestRounds = 1000;
+		List<bool> mode = new() { true, false };
+		// -------------------------
 
+		WriteLine($"Seed: {randomSeed} - Amount to mix: {specificClientBalance} BTC - AS target: {anonScoreTarget} - Other inputs count: {nbClients * otherNbInputsPerClient}");
+		WriteLine($"p: {p} - q: {q} - MaxWeightedAnonLoss: {maxWeightedAnonLoss}");
 
-		List<bool> mode = new() { false };
+		var resultStr = "";
+
 		foreach (var master in mode)
 		{
 			Money maxSuggestedAmount = new(1343.75m, MoneyUnit.BTC);
 
-			Func<IEnumerable<IEnumerable<SmartCoin>>, IEnumerable<SmartCoin>> formulaSpecificClient = SelectSpecificClient;
 			var mockSecureRandom = new TestRandomSeed(randomSeed);
 
-			var displayProgressEachNRounds = 10;
+			var displayProgressEachNRounds = int.MaxValue;
 
 			var analyser = new BlockchainAnalyzer();
 
@@ -70,15 +70,9 @@ public class AnonScoreGainTests
 				otherHdPub[i] = BitcoinFactory.CreateHdPubKey(km);
 			}
 
-
-			//List<SmartCoin> specificClientSmartCoins = formulaSpecificClient(otherSmartCoins).ToList();
 			List<SmartCoin> specificClientSmartCoins = new List<SmartCoin>();
-			specificClientSmartCoins.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[^1], (decimal)100));
-			//otherSmartCoins.RemoveAll(x => x.All(y => specificClientSmartCoins.Contains(y)) && specificClientSmartCoins.All(z => x.Contains(z)));
+			specificClientSmartCoins.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[^1], specificClientBalance));
 			otherHdPub = otherHdPub.Take(otherHdPub.Length - 1).ToArray();
-
-			List<List<SmartCoin>> otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
-			var specificClientStartingBalance = specificClientSmartCoins.Sum(x => x.Amount);
 
 			var totalVsizeSpecificClient = 0;
 			var specificClientMinInputAnonSet = 1.0;
@@ -91,11 +85,10 @@ public class AnonScoreGainTests
 			{
 				counter++;
 				Money liquidityClue = LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount);
-				specificClientMinInputAnonSet = specificClientSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
 				var specificClientTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
 				var specificClientGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / specificClientTotalSatoshiBefore) / anonScoreTarget;
 
-				var specificClientSelectedSmartCoins = SelectCoinsForRound(specificClientSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q);
+				var specificClientSelectedSmartCoins = SelectCoinsForRound(specificClientSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q, maxWeightedAnonLoss);
 				if (!specificClientSelectedSmartCoins.Select(sm => sm.Coin).Any())
 				{
 					break;
@@ -103,13 +96,13 @@ public class AnonScoreGainTests
 
 				specificClientSmartCoins.Remove(specificClientSelectedSmartCoins);
 
-				otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
+				List<List<SmartCoin>> otherSmartCoins = CreateOtherSmartCoins(mockSecureRandom, otherHdPub, otherNbInputsPerClient);
 				var otherSelectedSmartCoins = new List<List<SmartCoin>>();
 				var otherOutputs = new List<List<(Money, int)>>();
 
 				foreach (var other in otherSmartCoins)
 				{
-					var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q);
+					var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q, maxWeightedAnonLoss);
 					otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
 				}
 
@@ -153,18 +146,16 @@ public class AnonScoreGainTests
 				if (counter % displayProgressEachNRounds == 0)
 				{
 					WriteLine($"Round N° {counter} - Total vSize: {totalVsizeSpecificClient}");
-					DisplayAnonScore(specificClientGlobalAnonScoreAfter, specificClientMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
+					WriteLine(AnonScoreString(specificClientGlobalAnonScoreAfter, specificClientMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore));
 					DisplayCoins(specificClientSmartCoins);
 				}
 			}
 
-			WriteLine($"master: {master}, specificClientAmountBtc: {specificClientStartingBalance}, liquidityClue: {LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount)}, randomSeed: {randomSeed}");
-			WriteLine(
-				counter >= maxTestRounds
-					? $"FAILED specificClientMaxGlobalAnonScore only reached {Math.Round(specificClientMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
-					: $"PASSED after {counter} rounds -> Total vSize specificClient: {totalVsizeSpecificClient}");
-			DisplayAnonScore(specificClientGlobalAnonScoreAfter, specificClientMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
+			var strMaster = master ? "MASTER:" : "PR:";
+			resultStr += $"\n{strMaster} Finished in {counter} rounds - Total vSize: {totalVsizeSpecificClient} - Final nb coins: {specificClientSmartCoins.Count}\n"
+			             + AnonScoreString(specificClientGlobalAnonScoreAfter, specificClientMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 		}
+		WriteLine(resultStr);
 	}
 
 	public class TestRandomSeed : SecureRandom
@@ -180,11 +171,6 @@ public class AnonScoreGainTests
 		{
 			return _seededInstance.Next(fromInclusive, toExclusive);
 		}
-
-		public double GetDouble()
-		{
-			return _seededInstance.NextDouble();
-		}
 	}
 
 	private void WriteLine(string content)
@@ -194,9 +180,9 @@ public class AnonScoreGainTests
 		sw.WriteLine(content);
 	}
 
-	private void DisplayAnonScore(double currentAnonScore, double maxGlobalAnonScore, double maxDeltaGlobalAnonScore, double minDeltaGlobalAnonScore)
+	private string AnonScoreString(double currentAnonScore, double maxGlobalAnonScore, double maxDeltaGlobalAnonScore, double minDeltaGlobalAnonScore)
 	{
-		WriteLine($"AnonScore: Current: {Math.Round(currentAnonScore * 100, 2)}% Max: {Math.Round(maxGlobalAnonScore * 100, 2)}% - Delta: Max: +{Math.Round(maxDeltaGlobalAnonScore * 100, 2)}% / Min: {Math.Round(minDeltaGlobalAnonScore * 100, 2)}%");
+		return $"AnonScore: Current: {Math.Round(currentAnonScore * 100, 2)}% Max: {Math.Round(maxGlobalAnonScore * 100, 2)}% - Delta: Max: +{Math.Round(maxDeltaGlobalAnonScore * 100, 2)}% / Min: {Math.Round(minDeltaGlobalAnonScore * 100, 2)}%\n";
 	}
 
 	private void DisplayCoins(IEnumerable<SmartCoin> specificClientSmartCoins)
@@ -244,7 +230,7 @@ public class AnonScoreGainTests
 		return numbers;
 	}
 
-	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom, bool master, Money liquidityClue, double p, double q)
+	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom, bool master, Money liquidityClue, double p, double q, int maxWeightedAnonLoss)
 	{
 		return CoinJoinClient.SelectCoinsForRound(
 			coins: sc,
@@ -256,18 +242,16 @@ public class AnonScoreGainTests
 			rnd: mockSecureRandom,
 			master: master,
 			p: p,
-			q: q);
+			q: q,
+			maxWeightedAnonLoss: maxWeightedAnonLoss);
 	}
 
 	private static List<(Money, int)> DecomposeWithAnonSet(IEnumerable<Coin> ourCoins, IEnumerable<Coin> theirCoins, TestRandomSeed rnd)
 	{
 		decimal feeRateDecimal = 5;
 		var minOutputAmount = 5000;
-		var maxAvailableOutputs = 50;
 
-		var availableVsize = maxAvailableOutputs * Constants.P2wpkhOutputVirtualSize;
 		var feeRate = new FeeRate(feeRateDecimal);
-		var feePerOutput = feeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
 		var registeredCoinEffectiveValues = ourCoins.Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var theirCoinEffectiveValues = theirCoins.Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
@@ -282,13 +266,8 @@ public class AnonScoreGainTests
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
 			MinRegistrableAmount = Money.Coins(0.00001m),
-			MaxRegistrableAmount = Money.Coins(430)
+			MaxRegistrableAmount = Money.Coins(43000)
 		});
 		return roundParams;
-	}
-
-	private static double GetRandomDouble(TestRandomSeed rnd, double min, double max, int precision = 6)
-	{
-		return rnd.GetInt((int)(Math.Pow(10, precision) * min), (int)(Math.Pow(10, precision) * max)) / Math.Pow(10, precision);
 	}
 }
