@@ -26,7 +26,7 @@ public class ChatAssistantScriptGlobals
 		{
 			Chat.Messages.Add(new SendActionMessageViewModel()
 			{
-				Message = $"Sending {amountBtc} to {address}, {labels}..."
+				Message = $"Sending {amountBtc} to {address}, {new SmartLabel(labels)}..."
 			});
 
 			Chat.IsBusy = true;
