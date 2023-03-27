@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 
 		Messages = new ObservableCollection<MessageViewModel>();
 
-		HasResults = _hasResultsSubject;
+		HasResults = _hasResultsSubject.Select(x => x).Replay(1).RefCount();
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
