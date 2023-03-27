@@ -57,6 +57,8 @@ public class AliceClient
 	private TimeSpan ConfirmationTimeout { get; }
 	public bool IsCoordinationFeeExempted { get; }
 
+	public DateTimeOffset LastSuccessfulInputConnectionConfirmation { get; private set; } = DateTimeOffset.UtcNow;
+
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
 		ArenaClient arenaClient,
@@ -90,9 +92,15 @@ public class AliceClient
 		}
 		catch (Exception) when (aliceClient is { })
 		{
-			// Unregistering coins is only possible before connection confirmation phase.
-			await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-			throw;
+            var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+
+            // We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
+            if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
+            {
+                // Unregistering coins is only possible before connection confirmation phase.
+                await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
+            }
+            throw;
 		}
 
 		return aliceClient;
@@ -202,6 +210,8 @@ public class AliceClient
 
 		IssuedAmountCredentials = response.IssuedAmountCredentials;
 		IssuedVsizeCredentials = response.IssuedVsizeCredentials;
+
+		LastSuccessfulInputConnectionConfirmation = DateTimeOffset.UtcNow;
 
 		var isConfirmed = response.Value;
 		return isConfirmed;
