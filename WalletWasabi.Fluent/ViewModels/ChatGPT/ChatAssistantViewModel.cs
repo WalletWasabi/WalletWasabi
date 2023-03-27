@@ -24,18 +24,33 @@ public partial class ChatAssistantViewModel : ReactiveObject
 	private ChatViewModel? _chat;
 	private CancellationTokenSource? _cts;
 	[AutoNotify] private bool _isChatListVisible;
-	[AutoNotify] private string? _inputText = "";
+	[AutoNotify] private string? _inputText;
+	[AutoNotify] private string? _welcomeMessage;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasResults;
 
 	public ChatAssistantViewModel()
 	{
 		_hasResultsSubject = new Subject<bool>();
 		_hasResultsSubject.OnNext(false);
 
+		_inputText = "";
+		_welcomeMessage = """
+Welcome to the Assistant Chat!
+
+I'm here to help you with anything related to the Wasabi Wallet.
+
+Feel free to ask questions or request assistance with tasks such as creating a receiving address or sending BTC.
+
+I'm here to make your experience friendly, informative, and professional.
+""";
+
 		CreateChat();
 
 		Messages = new ObservableCollection<MessageViewModel>();
 
-		HasResults = _hasResultsSubject.Select(x => x).Replay(1).RefCount();
+		this.WhenAnyValue(x => x.Messages.Count)
+			.Select(x => x > 0)
+			.Subscribe(x => HasResults = x);
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -73,7 +88,6 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		_chat.AddSystemMessage(_initialDirections);
 	}
 
-	public IObservable<bool> HasResults { get; }
 
 	public ICommand? SendCommand { get; protected set; }
 

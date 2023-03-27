@@ -40,12 +40,18 @@
   </UserControl.Styles>
 
   <Panel VerticalAlignment="Center">
-    <TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">Welcome to the Assistant Chat! I'm here to help you with anything related to the Wasabi Wallet. Feel free to ask questions or request assistance with tasks such as creating a receiving address or sending BTC. I'm here to make your experience friendly, informative, and professional.</TextBlock>
-    <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Messages}">
+    <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}"
+               Margin="10,10,10,0"
+               TextWrapping="Wrap"
+               Opacity="0.6"
+               Text="{Binding WelcomeMessage}" />
+    <ItemsControl IsVisible="{Binding HasResults}"
+                  Items="{Binding Messages}"
+                  Margin="0,0,0,0">
       <ItemsControl.Styles>
         <Style Selector="Border.message">
           <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
-          <Setter Property="Margin" Value="0 0 0 10" />
+          <Setter Property="Margin" Value="0 0 0 0" />
           <Setter Property="Padding" Value="12,5,12,5" />
           <Setter Property="VerticalAlignment" Value="Top" />
           <Setter Property="HorizontalAlignment" Value="Left" />
