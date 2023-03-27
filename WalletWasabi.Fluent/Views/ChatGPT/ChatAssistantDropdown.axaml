@@ -41,8 +41,7 @@
 
   <Panel VerticalAlignment="Center">
     <!--<TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">No results</TextBlock>-->
-    <!-- TODO: IsVisible="{Binding HasResults^}" -->
-    <ItemsControl Items="{Binding Messages}">
+    <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Messages}">
       <ItemsControl.Styles>
         <Style Selector="Border.message">
           <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />

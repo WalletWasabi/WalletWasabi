@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -18,25 +19,22 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		Defaults.ConfigureDefaultServices();
 	}
 
-	private ChatViewModel _chat;
+	private Subject<bool> _hasResultsSubject;
+	private ChatViewModel? _chat;
 	private CancellationTokenSource? _cts;
 	[AutoNotify] private bool _isChatListVisible;
 	[AutoNotify] private string? _inputText = "";
 
 	public ChatAssistantViewModel()
 	{
-		_chat = new ChatViewModel
-		{
-			Settings = new ChatSettingsViewModel
-			{
-				Temperature = 0.7m,
-				TopP = 1m,
-				MaxTokens = 2000,
-				Model = "gpt-3.5-turbo"
-			}
-		};
+		_hasResultsSubject = new Subject<bool>();
+		_hasResultsSubject.OnNext(false);
 
-		_chat.AddSystemMessage(_initialDirections);
+		CreateChat();
+
+		Messages = new ObservableCollection<MessageViewModel>();
+
+		HasResults = _hasResultsSubject;
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -50,21 +48,56 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			}
 		});
 
-		Messages = new ObservableCollection<MessageViewModel>();
+		ClearCommand = ReactiveCommand.Create(() =>
+		{
+			CreateChat();
+			Messages.Clear();
+			_hasResultsSubject.OnNext(false);
+		});
 	}
 
+	private void CreateChat()
+	{
+		_chat = new ChatViewModel
+		{
+			Settings = new ChatSettingsViewModel
+			{
+				Temperature = 0.7m,
+				TopP = 1m,
+				MaxTokens = 2000,
+				Model = "gpt-3.5-turbo"
+			}
+		};
+
+		_chat.AddSystemMessage(_initialDirections);
+	}
+
+	public IObservable<bool> HasResults { get; }
+
 	public ICommand? SendCommand { get; protected set; }
+
+	public ICommand? ClearCommand { get; protected set; }
 
 	public ObservableCollection<MessageViewModel> Messages { get; }
 
 	private async Task SendAsync(string input)
 	{
+		if (_chat == null)
+		{
+			return;
+		}
+
 		try
 		{
 			Messages.Add(new UserMessageViewModel()
 			{
 				Message = input
 			});
+
+			if (Messages.Count >= 1)
+			{
+				_hasResultsSubject.OnNext(true);
+			}
 
 			_chat.AddUserMessage(input);
 
@@ -97,7 +130,9 @@ public partial class ChatAssistantViewModel : ReactiveObject
 									Main = MainViewModel.Instance
 								};
 								resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
-/*
+
+								// TODO: Handle script result.
+								/*
 								if (resultMessage is null)
 								{
 									// TODO: "Error" message view model
@@ -106,7 +141,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 										Message = resultMessage
 									});
 								}
-*/
+								*/
 							}
 						}
 						else if (assistantResult.Status == "error")
