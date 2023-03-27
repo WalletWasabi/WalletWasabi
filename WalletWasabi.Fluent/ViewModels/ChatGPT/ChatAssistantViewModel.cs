@@ -212,7 +212,8 @@ I'm here to make your experience friendly, informative, and professional.
 				catch (Exception e)
 				{
 					Console.WriteLine(e);
-					resultMessage = assistantResultString;
+					//resultMessage = assistantResultString;
+					resultMessage = $"Error: {e.Message}";
 
 					// TODO: "Error" message view model
 					Messages.Add(new ErrorMessageViewModel()
