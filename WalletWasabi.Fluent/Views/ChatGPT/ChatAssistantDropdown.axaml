@@ -40,7 +40,7 @@
   </UserControl.Styles>
 
   <Panel VerticalAlignment="Center">
-    <!--<TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">No results</TextBlock>-->
+    <TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">Welcome to the Assistant Chat! I'm here to help you with anything related to the Wasabi Wallet. Feel free to ask questions or request assistance with tasks such as creating a receiving address or sending BTC. I'm here to make your experience friendly, informative, and professional.</TextBlock>
     <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Messages}">
       <ItemsControl.Styles>
         <Style Selector="Border.message">
