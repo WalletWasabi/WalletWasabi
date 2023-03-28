@@ -143,7 +143,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 
 		try
 		{
-			Messages.Add(new UserMessageViewModel()
+			Messages.Add(new UserMessageViewModel
 			{
 				Message = input
 			});
@@ -158,7 +158,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			{
 				var message = result?.Message ?? "Error while sending message. Please check OpenAI settings in Advanced tab.";
 
-				Messages.Add(new ErrorMessageViewModel()
+				Messages.Add(new ErrorMessageViewModel
 				{
 					Message = message
 				});
@@ -169,8 +169,6 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				_chat.AddAssistantMessage(assistantResultString);
 
 				Console.WriteLine(assistantResultString);
-
-				var resultMessage = "";
 
 				try
 				{
@@ -193,33 +191,34 @@ public partial class ChatAssistantViewModel : ReactiveObject
 
 									try
 									{
-										resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
-										Console.WriteLine($"CSharpScript.EvaluateAsync()='{resultMessage}");
+										await CSharpScript.EvaluateAsync<string>(message, globals: globals);
 									}
 									catch (Exception e)
 									{
 										Console.WriteLine(e);
-										resultMessage = "Failed to execute command.";
-									}
 
-									// TODO: Handle script result errors.
-									// if (resultMessage is null)
-									// {
-									// 	Messages.Add(new ErrorMessageViewModel()
-									// 	{
-									// 		Message = resultMessage
-									// 	});
-									// }
+										Messages.Add(new ErrorMessageViewModel
+										{
+											Message = "Failed to execute command."
+										});
+										CurrentMessage =  Messages.LastOrDefault();
+									}
+								}
+								else
+								{
+									Messages.Add(new ErrorMessageViewModel
+									{
+										Message = "Invalid command."
+									});
+									CurrentMessage =  Messages.LastOrDefault();
 								}
 								break;
 							}
 							case "error":
 							{
-								resultMessage = message ?? "Unknown error.";
-
-								Messages.Add(new AssistantMessageViewModel
+								Messages.Add(new ErrorMessageViewModel
 								{
-									Message = resultMessage
+									Message = message ?? "Unknown error."
 								});
 								CurrentMessage = Messages.LastOrDefault();
 
@@ -227,13 +226,22 @@ public partial class ChatAssistantViewModel : ReactiveObject
 							}
 							case "message":
 							{
-								resultMessage = message ?? "Invalid message.";
-
-								Messages.Add(new AssistantMessageViewModel
+								if (message is { })
 								{
-									Message = resultMessage
-								});
+									Messages.Add(new AssistantMessageViewModel
+									{
+										Message = message
+									});
+								}
+								else
+								{
+									Messages.Add(new ErrorMessageViewModel
+									{
+										Message = "Invalid message."
+									});
+								}
 								CurrentMessage = Messages.LastOrDefault();
+
 								break;
 							}
 						}
@@ -242,7 +250,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 					{
 						Messages.Add(new AssistantMessageViewModel
 						{
-							Message = resultMessage
+							Message = assistantResultString
 						});
 						CurrentMessage = Messages.LastOrDefault();
 					}
@@ -251,12 +259,10 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				{
 					Console.WriteLine(e);
 
-					resultMessage = assistantResultString;
-					// resultMessage = $"Error: {e.Message}";
-
-					Messages.Add(new ErrorMessageViewModel()
+					Messages.Add(new ErrorMessageViewModel
 					{
-						Message = resultMessage
+						// Message = $"Error: {e.Message}"
+						Message = assistantResultString
 					});
 					CurrentMessage = Messages.LastOrDefault();
 				}
