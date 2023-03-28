@@ -20,6 +20,13 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		Defaults.ConfigureDefaultServices();
 	}
 
+	private static string[] WelcomeMessages =
+	{
+		"What do you wish my master",
+		"Speak, and I shall obey",
+		"Your wish is my command"
+	};
+
 	private Subject<bool> _hasResultsSubject;
 	private ChatViewModel? _chat;
 	private CancellationTokenSource? _cts;
@@ -31,20 +38,17 @@ public partial class ChatAssistantViewModel : ReactiveObject
 
 	public ChatAssistantViewModel()
 	{
+		void SwitchWelcomeMessage()
+		{
+			WelcomeMessage = WelcomeMessages[Random.Shared.Next(0, WelcomeMessages.Length - 1)];
+		}
+
 		_hasResultsSubject = new Subject<bool>();
 		_hasResultsSubject.OnNext(false);
 
 		_inputText = "";
-		_welcomeMessage = """
-Welcome to the Assistant Chat!
 
-I'm here to help you with anything related to the Wasabi Wallet.
-
-Feel free to ask questions or request assistance with tasks such as creating a receiving address or sending BTC.
-
-I'm here to make your experience friendly, informative, and professional.
-""";
-
+		SwitchWelcomeMessage();
 		CreateChat();
 
 		Messages = new ObservableCollection<MessageViewModel>();
@@ -52,6 +56,10 @@ I'm here to make your experience friendly, informative, and professional.
 		this.WhenAnyValue(x => x.Messages.Count)
 			.Select(x => x > 0)
 			.Subscribe(x => HasResults = x);
+
+		this.WhenAnyValue(x => x.IsChatListVisible)
+			.Where(x => x == true)
+			.Subscribe(x => SwitchWelcomeMessage());
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
