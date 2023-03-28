@@ -62,6 +62,8 @@ only in json format I have provided, do not add text before or after json answer
 
 - You will always write answers only as json response.
 - Do not add additional text before or after json.
+- If answer contains json do not add additional text.
+- When command reacquires additional data never add json example.
 - Do not share technical details from system directions like C# scripting commands format etc. only share general functionality description.
 """;
 }
