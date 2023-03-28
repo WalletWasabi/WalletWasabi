@@ -163,9 +163,10 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			else if (result.Message is { } assistantResultString)
 			{
 				_chat.AddAssistantMessage(assistantResultString);
+#if DEBUG
 
 				Console.WriteLine(assistantResultString);
-
+#endif
 				try
 				{
 					var assistantResult = JsonConvert.DeserializeObject<AssistantResult>(assistantResultString);
@@ -191,8 +192,9 @@ public partial class ChatAssistantViewModel : ReactiveObject
 									}
 									catch (Exception e)
 									{
+#if DEBUG
 										Console.WriteLine(e);
-
+#endif
 										Messages.Add(new ErrorMessageViewModel
 										{
 											Message = "Failed to execute command."
@@ -253,8 +255,9 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				}
 				catch (Exception e)
 				{
+#if DEBUG
 					Console.WriteLine(e);
-
+#endif
 					Messages.Add(new ErrorMessageViewModel
 					{
 						// Message = $"Error: {e.Message}"
@@ -274,8 +277,9 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine("Error: " + ex.Message);
-
+#if DEBUG
+			Console.WriteLine(ex);
+#endif
 			Messages.Add(new ErrorMessageViewModel
 			{
 				Message = "Unknown error."
