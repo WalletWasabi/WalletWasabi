@@ -31,6 +31,7 @@ public class ChatAssistantScriptGlobals
 			{
 				Message = $"Sending {amountBtc} to {address}, {new SmartLabel(labels)}..."
 			});
+			Chat.CurrentMessage = Chat.Messages.LastOrDefault();
 
 			Chat.IsBusy = true;
 
@@ -87,6 +88,7 @@ public class ChatAssistantScriptGlobals
 					{
 						Message = $"Sent {amountBtc} to {address}, {new SmartLabel(labels)}."
 					});
+					Chat.CurrentMessage = Chat.Messages.LastOrDefault();
 				}
 				catch (Exception ex)
 				{
@@ -157,6 +159,7 @@ public class ChatAssistantScriptGlobals
 			// TODO: Enable copy new address (use copy button).
 			Address = address
 		});
+		Chat.CurrentMessage = Chat.Messages.LastOrDefault();
 
 		return resultMessage;
 	}
@@ -183,6 +186,7 @@ public class ChatAssistantScriptGlobals
 			Message = resultMessage,
 			Balance = balance
 		});
+		Chat.CurrentMessage = Chat.Messages.LastOrDefault();
 
 		return resultMessage;
 	}

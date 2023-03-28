@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -35,6 +36,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 	[AutoNotify] private string? _inputText;
 	[AutoNotify] private string? _welcomeMessage;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasResults;
+	[AutoNotify] private MessageViewModel? _currentMessage;
 
 	public ChatAssistantViewModel()
 	{
@@ -54,6 +56,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		CreateChat();
 
 		Messages = new ObservableCollection<MessageViewModel>();
+		CurrentMessage = null;
 
 		this.WhenAnyValue(x => x.Messages.Count)
 			.Select(x => x > 0)
@@ -79,6 +82,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		{
 			CreateChat();
 			Messages.Clear();
+			CurrentMessage = null;
 			_hasResultsSubject.OnNext(false);
 		});
 	}
@@ -121,6 +125,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			{
 				Message = input
 			});
+			CurrentMessage = Messages.LastOrDefault();
 
 			if (Messages.Count >= 1)
 			{
@@ -197,6 +202,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 							{
 								Message = resultMessage
 							});
+							CurrentMessage = Messages.LastOrDefault();
 						}
 						else if (assistantResult.Status == "message")
 						{
@@ -216,6 +222,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 							{
 								Message = resultMessage
 							});
+							CurrentMessage = Messages.LastOrDefault();
 						}
 					}
 					else
@@ -225,6 +232,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 						{
 							Message = resultMessage
 						});
+						CurrentMessage = Messages.LastOrDefault();
 					}
 				}
 				catch (Exception e)
@@ -238,6 +246,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 					{
 						Message = resultMessage
 					});
+					CurrentMessage = Messages.LastOrDefault();
 				}
 			}
 		}
