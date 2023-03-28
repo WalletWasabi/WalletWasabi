@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -81,10 +80,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			}
 		});
 
-		ClearCommand = ReactiveCommand.Create(() =>
-		{
-			CreateChat();
-		});
+		ClearCommand = ReactiveCommand.Create(CreateChat);
 	}
 
 	public ICommand? SendCommand { get; protected set; }
