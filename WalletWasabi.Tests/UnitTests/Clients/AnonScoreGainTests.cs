@@ -36,7 +36,7 @@ public class AnonScoreGainTests
 	}
 
 	[Theory]
-	[InlineData(23, 1, 10, 0.8, 3)]
+	[InlineData(2903, 5, 10, 0.8, 3)]
 	public void AnonScoreGainTest(int randomSeed, decimal specificClientBalance, double p, double q, int maxWeightedAnonLoss)
 	{
 		// --- Other Parameters ---
@@ -45,7 +45,7 @@ public class AnonScoreGainTests
 		var anonScoreTarget = 100;
 		var maxTestRounds = 1000;
 		List<bool> mode = new() { true, false };
-		var displayProgressEachNRounds = int.MaxValue;
+		var displayProgressEachNRounds = 10;
 		// -------------------------
 
 		WriteLine($"Seed: {randomSeed} - Amount to mix: {specificClientBalance} BTC - AS target: {anonScoreTarget} - Other inputs count: {nbClients * otherNbInputsPerClient}");
@@ -88,7 +88,9 @@ public class AnonScoreGainTests
 				var specificClientTotalSatoshiBefore = specificClientSmartCoins.Sum(x => x.Amount.Satoshi);
 				var specificClientGlobalAnonScoreBefore = specificClientSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / specificClientTotalSatoshiBefore) / anonScoreTarget;
 
+				// This is the actual line that is being tested.
 				var specificClientSelectedSmartCoins = SelectCoinsForRound(specificClientSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q, maxWeightedAnonLoss);
+
 				if (!specificClientSelectedSmartCoins.Select(sm => sm.Coin).Any())
 				{
 					break;
@@ -102,8 +104,9 @@ public class AnonScoreGainTests
 
 				foreach (var other in otherSmartCoins)
 				{
-					var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q, maxWeightedAnonLoss);
-					otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
+					//var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue, p, q, maxWeightedAnonLoss);
+					//otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
+					otherSelectedSmartCoins.Add((other));
 				}
 
 				foreach (var otherSelectedSmartCoin in otherSelectedSmartCoins)

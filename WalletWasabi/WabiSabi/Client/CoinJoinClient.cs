@@ -755,9 +755,15 @@ public class CoinJoinClient
 		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<TCoin>> groups = new();
 
+		var sw = Stopwatch.StartNew();
 		// Create a bunch of combinations.
+		var otherCoinGroup = 0;
 		foreach (var coin in largestNonPrivateCoins)
 		{
+			if (sw.Elapsed > TimeSpan.FromSeconds(10))
+			{
+				Logger.LogDebug($"Creating combinations took too long, ending.");
+			}
 			// Create a base combination just in case.
 			var baseGroup = orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
@@ -768,6 +774,19 @@ public class CoinJoinClient
 				         .Select(x => x.Concat(new[] { coin })))
 			{
 				TryAddGroup(parameters, groups, group);
+				
+				if (sw.Elapsed > TimeSpan.FromSeconds(10))
+				{
+					Logger.LogDebug($"Creating combinations took too long, ending.");
+				}
+				
+				if (groups.Count > 100000 + otherCoinGroup)
+				{
+					// Speed up the test.
+					break;
+				}
+
+				otherCoinGroup += groups.Count;
 			}
 		}
 
@@ -783,7 +802,8 @@ public class CoinJoinClient
 		Logger.LogDebug($"{nameof(bestRep)}: {bestRep}.");
 		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
 
-		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => bestRepGroups.Any(y => y.Contains(x)));		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
+		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => bestRepGroups.Any(y => y.Contains(x)));
+		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
 		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(rnd); // Select randomly at first just to have a starting value.
