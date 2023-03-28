@@ -177,7 +177,7 @@ public class QrCode : Control
 	// TODO: Fix remark.
 	/// <remarks>
 	/// The returned size can differ from the size that is set on the control, which can cause unexpected layout issue.
-	/// Choose a size on the a control which can be divided by minDimension without a remainder.
+	/// Choose a size on the control which can be divided by minDimension without a remainder.
 	/// </remarks>
 	private (Size coercedSize, double gridCellFactor) GetQrCodeSize(bool[,] source, Size size)
 	{
