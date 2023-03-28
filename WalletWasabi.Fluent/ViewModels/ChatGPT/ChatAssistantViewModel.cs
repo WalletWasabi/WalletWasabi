@@ -28,7 +28,6 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		"Your wish is my command"
 	};
 
-	private Subject<bool> _hasResultsSubject;
 	private ChatViewModel? _chat;
 	private CancellationTokenSource? _cts;
 	[AutoNotify] private bool _isChatListVisible;
@@ -47,16 +46,13 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			Console.WriteLine($"WelcomeMessage='{WelcomeMessage}'");
 		}
 
-		_hasResultsSubject = new Subject<bool>();
-		_hasResultsSubject.OnNext(false);
-
 		_inputText = "";
-
-		SwitchWelcomeMessage();
-		CreateChat();
 
 		Messages = new ObservableCollection<MessageViewModel>();
 		CurrentMessage = null;
+
+		SwitchWelcomeMessage();
+		CreateChat();
 
 		this.WhenAnyValue(x => x.Messages.Count)
 			.Select(x => x > 0)
@@ -65,6 +61,14 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		this.WhenAnyValue(x => x.IsChatListVisible)
 			.Where(x => x)
 			.Subscribe(_ => SwitchWelcomeMessage());
+
+		Services.UiConfig.WhenAnyValue(
+			x => x.Model,
+			x => x.ApiKey)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => CreateChat());
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -81,14 +85,33 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		ClearCommand = ReactiveCommand.Create(() =>
 		{
 			CreateChat();
-			Messages.Clear();
-			CurrentMessage = null;
-			_hasResultsSubject.OnNext(false);
 		});
 	}
 
 	private void CreateChat()
 	{
+		try
+		{
+			_cts?.Cancel();
+			_cts = null;
+		}
+		catch (Exception)
+		{
+			// ignored
+		}
+
+		IsBusy = false;
+		Messages.Clear();
+		CurrentMessage = null;
+
+		var model = string.IsNullOrWhiteSpace(Services.UiConfig.Model)
+			? "gpt-3.5-turbo"
+			: Services.UiConfig.Model;
+
+		var apiKey = string.IsNullOrWhiteSpace(Services.UiConfig.ApiKey)
+			? ""
+			: Services.UiConfig.ApiKey;
+
 		_chat = new ChatViewModel
 		{
 			Settings = new ChatSettingsViewModel
@@ -96,13 +119,13 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				Temperature = 0.7m,
 				TopP = 1m,
 				MaxTokens = 2000,
-				Model = "gpt-3.5-turbo"
+				Model = model,
+				ApiKey = apiKey
 			}
 		};
 
 		_chat.AddSystemMessage(_initialDirections);
 	}
-
 
 	public ICommand? SendCommand { get; protected set; }
 
@@ -126,11 +149,6 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				Message = input
 			});
 			CurrentMessage = Messages.LastOrDefault();
-
-			if (Messages.Count >= 1)
-			{
-				_hasResultsSubject.OnNext(true);
-			}
 
 			_chat.AddUserMessage(input);
 
