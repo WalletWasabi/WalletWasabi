@@ -157,8 +157,16 @@ public partial class ChatAssistantViewModel : ReactiveObject
 									Chat = this,
 									Main = MainViewModel.Instance
 								};
-								resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
 
+								try
+								{
+									resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
+								}
+								catch (Exception e)
+								{
+									Console.WriteLine(e);
+									resultMessage = "Failed to execute command.";
+								}
 								// TODO: Handle script result.
 								/*
 								if (resultMessage is null)
@@ -222,8 +230,8 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				catch (Exception e)
 				{
 					Console.WriteLine(e);
-					//resultMessage = assistantResultString;
-					resultMessage = $"Error: {e.Message}";
+					resultMessage = assistantResultString;
+					//resultMessage = $"Error: {e.Message}";
 
 					// TODO: "Error" message view model
 					Messages.Add(new ErrorMessageViewModel()
