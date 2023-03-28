@@ -194,6 +194,7 @@ public partial class ChatAssistantViewModel : ReactiveObject
 									try
 									{
 										resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
+										Console.WriteLine($"CSharpScript.EvaluateAsync()='{resultMessage}");
 									}
 									catch (Exception e)
 									{
