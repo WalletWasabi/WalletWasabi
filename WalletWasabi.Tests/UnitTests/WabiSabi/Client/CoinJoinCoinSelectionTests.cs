@@ -192,7 +192,7 @@ public class CoinJoinCoinSelectionTests
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
 			MinRegistrableAmount = Money.Coins(0.0001m),
-			MaxRegistrableAmount = Money.Coins(430)
+			MaxRegistrableAmount = Money.Coins(43000)
 		});
 		return roundParams;
 	}

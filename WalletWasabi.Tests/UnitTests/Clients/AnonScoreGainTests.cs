@@ -36,15 +36,16 @@ public class AnonScoreGainTests
 	}
 
 	[Theory]
-	[InlineData(64654, 10, 10, 0.8, 3)]
+	[InlineData(23, 1, 10, 0.8, 3)]
 	public void AnonScoreGainTest(int randomSeed, decimal specificClientBalance, double p, double q, int maxWeightedAnonLoss)
 	{
 		// --- Other Parameters ---
-		var nbClients = 30;
+		var nbClients = 50;
 		var otherNbInputsPerClient = 5;
-		var anonScoreTarget = 30;
+		var anonScoreTarget = 100;
 		var maxTestRounds = 1000;
 		List<bool> mode = new() { true, false };
+		var displayProgressEachNRounds = int.MaxValue;
 		// -------------------------
 
 		WriteLine($"Seed: {randomSeed} - Amount to mix: {specificClientBalance} BTC - AS target: {anonScoreTarget} - Other inputs count: {nbClients * otherNbInputsPerClient}");
@@ -58,7 +59,6 @@ public class AnonScoreGainTests
 
 			var mockSecureRandom = new TestRandomSeed(randomSeed);
 
-			var displayProgressEachNRounds = int.MaxValue;
 
 			var analyser = new BlockchainAnalyzer();
 
@@ -108,11 +108,11 @@ public class AnonScoreGainTests
 
 				foreach (var otherSelectedSmartCoin in otherSelectedSmartCoins)
 				{
-					otherOutputs.Add(DecomposeWithAnonSet(otherSelectedSmartCoin.Select(x => x.Coin), otherSelectedSmartCoins.SelectMany(x => x).Except(otherSelectedSmartCoin).Concat(specificClientSelectedSmartCoins).Select(x => x.Coin), mockSecureRandom));
+					otherOutputs.Add(DecomposeWithAnonSet(otherSelectedSmartCoin, otherSelectedSmartCoins.SelectMany(x => x).Except(otherSelectedSmartCoin).Concat(specificClientSelectedSmartCoins), mockSecureRandom));
 				}
 
 				var specificClientInputs = specificClientSelectedSmartCoins.Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
-				var specificClientOutputs = DecomposeWithAnonSet(specificClientSelectedSmartCoins.Select(sm => sm.Coin), otherSelectedSmartCoins.SelectMany(x => x).Select(x => x.Coin), mockSecureRandom);
+				var specificClientOutputs = DecomposeWithAnonSet(specificClientSelectedSmartCoins, otherSelectedSmartCoins.SelectMany(x => x), mockSecureRandom);
 				var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedSmartCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), specificClientInputs, specificClientOutputs);
 
 				analyser.Analyze(tx);
@@ -246,7 +246,7 @@ public class AnonScoreGainTests
 			maxWeightedAnonLoss: maxWeightedAnonLoss);
 	}
 
-	private static List<(Money, int)> DecomposeWithAnonSet(IEnumerable<Coin> ourCoins, IEnumerable<Coin> theirCoins, TestRandomSeed rnd)
+	private static List<(Money, int)> DecomposeWithAnonSet(IEnumerable<SmartCoin> ourCoins, IEnumerable<SmartCoin> theirCoins, TestRandomSeed rnd)
 	{
 		decimal feeRateDecimal = 5;
 		var minOutputAmount = 5000;
@@ -258,7 +258,8 @@ public class AnonScoreGainTests
 
 		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, Constants.P2trOutputVirtualSize * 8, true, rnd);
 		var specificClientDecomposed = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
-		return specificClientDecomposed.Select(output => (output.Amount, HdPubKey.DefaultHighAnonymitySet)).ToList();
+		double specificClientSum = ourCoins.Sum(x => x.Amount);
+		return specificClientDecomposed.Select(output => (output.Amount, ourCoins.Sum(x => (int)((x.AnonymitySet * x.Amount.Satoshi) / specificClientSum)))).ToList();
 	}
 
 	private static RoundParameters CreateMultipartyTransactionParameters()
@@ -266,7 +267,7 @@ public class AnonScoreGainTests
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
 			MinRegistrableAmount = Money.Coins(0.00001m),
-			MaxRegistrableAmount = Money.Coins(43000)
+			MaxRegistrableAmount = Money.Coins(430),
 		});
 		return roundParams;
 	}
