@@ -79,7 +79,7 @@
     </Button>
     <ProgressBar IsIndeterminate="{Binding IsBusy}"
                  IsVisible="{Binding IsBusy}"
-                 Margin="0,5,0,10"
+                 Margin="12,5,12,10"
                  Value="50"
                  DockPanel.Dock="Bottom"/>
     <ScrollViewer Name="ChatScrollViewer"
@@ -89,7 +89,7 @@
                              IsVisible="{Binding HasResults}"
                              Items="{Binding Messages}"
                              SelectedItem="{Binding CurrentMessage}"
-                             Margin="0,0,0,0">
+                             Margin="12,0,12,0">
         <SelectingItemsControl.Styles>
           <Style Selector="Border.message">
             <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
