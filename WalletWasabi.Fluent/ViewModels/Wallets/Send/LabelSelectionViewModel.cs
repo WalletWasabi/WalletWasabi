@@ -42,12 +42,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelsViewModel.Where(x => x.IsBlackListed);
 
-	private bool IsPocketEnough(params Pocket[] pockets)
+	private async Task<bool> IsPocketEnoughAsync(params Pocket[] pockets)
 	{
 		var coins = Pocket.Merge(pockets).Coins;
 		var allCoins = Pocket.Merge(_allPockets).Coins;
 
-		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(
+		return await Task.Run(() => TransactionHelpers.TryBuildTransactionWithoutPrevTx(
 			keyManager: _keyManager,
 			transactionInfo: _info,
 			allCoins: new CoinsView(allCoins),
