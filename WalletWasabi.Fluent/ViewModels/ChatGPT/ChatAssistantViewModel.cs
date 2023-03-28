@@ -87,6 +87,12 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		});
 	}
 
+	public ICommand? SendCommand { get; protected set; }
+
+	public ICommand? ClearCommand { get; protected set; }
+
+	public ObservableCollection<MessageViewModel> Messages { get; }
+
 	private void CreateChat()
 	{
 		try
@@ -125,12 +131,6 @@ public partial class ChatAssistantViewModel : ReactiveObject
 
 		_chat.AddSystemMessage(_initialDirections);
 	}
-
-	public ICommand? SendCommand { get; protected set; }
-
-	public ICommand? ClearCommand { get; protected set; }
-
-	public ObservableCollection<MessageViewModel> Messages { get; }
 
 	private async Task SendAsync(string input)
 	{
