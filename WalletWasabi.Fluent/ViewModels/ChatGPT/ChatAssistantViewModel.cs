@@ -258,9 +258,8 @@ public partial class ChatAssistantViewModel : ReactiveObject
 #if DEBUG
 					Console.WriteLine(e);
 #endif
-					Messages.Add(new ErrorMessageViewModel
+					Messages.Add(new AssistantMessageViewModel
 					{
-						// Message = $"Error: {e.Message}"
 						Message = assistantResultString
 					});
 					CurrentMessage = Messages.LastOrDefault();
