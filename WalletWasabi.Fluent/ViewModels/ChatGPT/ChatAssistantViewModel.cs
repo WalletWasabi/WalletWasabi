@@ -43,7 +43,6 @@ public partial class ChatAssistantViewModel : ReactiveObject
 		{
 			var index = Random.Shared.Next(0, WelcomeMessages.Length);
 			WelcomeMessage = WelcomeMessages[index];
-			Console.WriteLine($"WelcomeMessage='{WelcomeMessage}'");
 		}
 
 		_inputText = "";
