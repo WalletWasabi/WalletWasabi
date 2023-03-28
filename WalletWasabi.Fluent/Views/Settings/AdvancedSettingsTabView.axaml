@@ -16,7 +16,8 @@
 
     <StackPanel Spacing="10" ToolTip.Tip="Override OpenAI model. By default gpt-3.5-turbo model is used.">
       <TextBlock Text="OpenAI model" />
-      <TextBox Text="{Binding Model}" />
+      <TextBox Text="{Binding Model}"
+               Watermark="Override OpenAI model" />
     </StackPanel>
 
     <StackPanel Spacing="10"
