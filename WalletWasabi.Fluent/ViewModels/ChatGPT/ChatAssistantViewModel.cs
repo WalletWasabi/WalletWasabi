@@ -40,7 +40,9 @@ public partial class ChatAssistantViewModel : ReactiveObject
 	{
 		void SwitchWelcomeMessage()
 		{
-			WelcomeMessage = WelcomeMessages[Random.Shared.Next(0, WelcomeMessages.Length - 1)];
+			var index = Random.Shared.Next(0, WelcomeMessages.Length);
+			WelcomeMessage = WelcomeMessages[index];
+			Console.WriteLine($"WelcomeMessage='{WelcomeMessage}'");
 		}
 
 		_hasResultsSubject = new Subject<bool>();
@@ -58,8 +60,8 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			.Subscribe(x => HasResults = x);
 
 		this.WhenAnyValue(x => x.IsChatListVisible)
-			.Where(x => x == true)
-			.Subscribe(x => SwitchWelcomeMessage());
+			.Where(x => x)
+			.Subscribe(_ => SwitchWelcomeMessage());
 
 		SendCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
