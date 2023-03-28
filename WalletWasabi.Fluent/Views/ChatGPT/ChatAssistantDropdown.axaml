@@ -41,6 +41,23 @@
       </Setter>
     </Style>
 
+    <Style Selector="SelectingItemsControl">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ItemsPresenter Name="PART_ItemsPresenter"
+                            Items="{TemplateBinding Items}"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            ItemTemplate="{TemplateBinding ItemTemplate}"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
   </UserControl.Styles>
 
   <DockPanel VerticalAlignment="Center">
@@ -65,102 +82,108 @@
                  Margin="0,5,0,10"
                  Value="50"
                  DockPanel.Dock="Bottom"/>
-    <ItemsControl IsVisible="{Binding HasResults}"
-                  Items="{Binding Messages}"
-                  Margin="0,0,0,0">
-      <ItemsControl.Styles>
-        <Style Selector="Border.message">
-          <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
-          <Setter Property="Margin" Value="0 0 0 10" />
-          <Setter Property="Padding" Value="12,5,12,5" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="HorizontalAlignment" Value="Left" />
-          <Setter Property="MinHeight" Value="0" />
-          <Setter Property="MinWidth" Value="38" />
-          <Setter Property="BorderThickness" Value="1" />
-          <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
-          <Setter Property="CornerRadius" Value="2" />
-        </Style>
-        <Style Selector="TextBlock.message">
-          <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-          <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-      </ItemsControl.Styles>
-      <ItemsControl.DataTemplates>
-        <!-- User Message -->
-        <DataTemplate DataType="{x:Type cmvm:UserMessageViewModel}">
-          <Border Classes="message"
-                  HorizontalAlignment="Right">
-            <DockPanel>
-              <TextBlock Text="{Binding Message}"
-                         Classes="message"
-                         DockPanel.Dock="Top" />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-        <!-- Assistant Message -->
-        <DataTemplate DataType="{x:Type cmvm:AssistantMessageViewModel}">
-          <Border Classes="message"
-                  HorizontalAlignment="Left">
-            <DockPanel>
-              <TextBlock Text="{Binding Message}"
-                         Classes="message"
-                         DockPanel.Dock="Top" />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-        <!-- Error Message -->
-        <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
-          <Border Classes="message"
-                  HorizontalAlignment="Left">
-            <DockPanel>
-              <TextBlock Text="{Binding Message}"
-                         Classes="message"
-                         DockPanel.Dock="Top" />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-        <!-- Balance Action Message -->
-        <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
-          <Border Classes="message"
-                  HorizontalAlignment="Left">
-            <c:PreviewItem Label="Wallet balance"
-                           TextValue="{Binding Balance}">
+    <ScrollViewer Name="ChatScrollViewer"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+      <SelectingItemsControl Name="MessagesItemsControl"
+                             IsVisible="{Binding HasResults}"
+                             Items="{Binding Messages}"
+                             SelectedItem="{Binding CurrentMessage}"
+                             Margin="0,0,0,0">
+        <SelectingItemsControl.Styles>
+          <Style Selector="Border.message">
+            <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+            <Setter Property="Margin" Value="0 0 0 10" />
+            <Setter Property="Padding" Value="12,5,12,5" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="38" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+            <Setter Property="CornerRadius" Value="2" />
+          </Style>
+          <Style Selector="TextBlock.message">
+            <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+        </SelectingItemsControl.Styles>
+        <SelectingItemsControl.DataTemplates>
+          <!-- User Message -->
+          <DataTemplate DataType="{x:Type cmvm:UserMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Right">
               <DockPanel>
                 <TextBlock Text="{Binding Message}"
                            Classes="message"
                            DockPanel.Dock="Top" />
               </DockPanel>
-            </c:PreviewItem>
-          </Border>
-        </DataTemplate>
-        <!-- Receive Action Message -->
-        <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
-          <Border Classes="message"
-                  HorizontalAlignment="Left">
-            <c:PreviewItem Label="Receive address"
-                           TextValue="{Binding Address}">
+            </Border>
+          </DataTemplate>
+          <!-- Assistant Message -->
+          <DataTemplate DataType="{x:Type cmvm:AssistantMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
               <DockPanel>
                 <TextBlock Text="{Binding Message}"
                            Classes="message"
                            DockPanel.Dock="Top" />
               </DockPanel>
-            </c:PreviewItem>
-          </Border>
-        </DataTemplate>
-        <!-- Send Action Message -->
-        <DataTemplate DataType="{x:Type cmavm:SendActionMessageViewModel}">
-          <Border Classes="message"
-                  HorizontalAlignment="Left">
-            <DockPanel>
-              <TextBlock Text="{Binding Message}"
-                         Classes="message"
-                         DockPanel.Dock="Top" />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-      </ItemsControl.DataTemplates>
-    </ItemsControl>
+            </Border>
+          </DataTemplate>
+          <!-- Error Message -->
+          <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+          <!-- Balance Action Message -->
+          <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <c:PreviewItem Label="Wallet balance"
+                             TextValue="{Binding Balance}">
+                <DockPanel>
+                  <TextBlock Text="{Binding Message}"
+                             Classes="message"
+                             DockPanel.Dock="Top" />
+                </DockPanel>
+              </c:PreviewItem>
+            </Border>
+          </DataTemplate>
+          <!-- Receive Action Message -->
+          <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <c:PreviewItem Label="Receive address"
+                             TextValue="{Binding Address}">
+                <DockPanel>
+                  <TextBlock Text="{Binding Message}"
+                             Classes="message"
+                             DockPanel.Dock="Top" />
+                </DockPanel>
+              </c:PreviewItem>
+            </Border>
+          </DataTemplate>
+          <!-- Send Action Message -->
+          <DataTemplate DataType="{x:Type cmavm:SendActionMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </SelectingItemsControl.DataTemplates>
+      </SelectingItemsControl>
+    </ScrollViewer>
   </DockPanel>
 
 </UserControl>

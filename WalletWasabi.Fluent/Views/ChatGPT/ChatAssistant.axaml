@@ -126,6 +126,7 @@
 
     <Style Selector="FlyoutPresenter">
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
     </Style>
   </UserControl.Styles>
 
