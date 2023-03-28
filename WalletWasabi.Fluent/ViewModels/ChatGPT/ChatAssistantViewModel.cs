@@ -155,97 +155,91 @@ public partial class ChatAssistantViewModel : ReactiveObject
 			_cts = new CancellationTokenSource();
 			var result = await _chat.SendAsync(_chat.CreateChatMessages(), _cts.Token);
 
-			if (result?.Message is { } assistantResultString)
+			if (result is null || result is { IsError: true })
+			{
+				var message = result?.Message ?? "Error while sending message. Please check OpenAI settings in Advanced tab.";
+
+				Messages.Add(new ErrorMessageViewModel()
+				{
+					Message = message
+				});
+				CurrentMessage = Messages.LastOrDefault();
+			}
+			else if (result.Message is { } assistantResultString)
 			{
 				_chat.AddAssistantMessage(assistantResultString);
 
 				Console.WriteLine(assistantResultString);
 
-				AssistantResult? assistantResult;
-				string resultMessage = "";
+				var resultMessage = "";
 
 				try
 				{
-					assistantResult = JsonConvert.DeserializeObject<AssistantResult>(assistantResultString);
+					var assistantResult = JsonConvert.DeserializeObject<AssistantResult>(assistantResultString);
 					if (assistantResult is { })
 					{
 						var message = assistantResult.Message;
 
-						if (assistantResult.Status == "command")
+						switch (assistantResult.Status)
 						{
-							if (message is { })
+							case "command":
 							{
-								var globals = new ChatAssistantScriptGlobals
+								if (message is { })
 								{
-									Chat = this,
-									Main = MainViewModel.Instance
-								};
-
-								try
-								{
-									resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
-								}
-								catch (Exception e)
-								{
-									Console.WriteLine(e);
-									resultMessage = "Failed to execute command.";
-								}
-								// TODO: Handle script result.
-								/*
-								if (resultMessage is null)
-								{
-									// TODO: "Error" message view model
-									Messages.Add(new AssistantMessageViewModel
+									var globals = new ChatAssistantScriptGlobals
 									{
-										Message = resultMessage
-									});
+										Chat = this,
+										Main = MainViewModel.Instance
+									};
+
+									try
+									{
+										resultMessage = await CSharpScript.EvaluateAsync<string>(message, globals: globals);
+									}
+									catch (Exception e)
+									{
+										Console.WriteLine(e);
+										resultMessage = "Failed to execute command.";
+									}
+
+									// TODO: Handle script result errors.
+									// if (resultMessage is null)
+									// {
+									// 	Messages.Add(new ErrorMessageViewModel()
+									// 	{
+									// 		Message = resultMessage
+									// 	});
+									// }
 								}
-								*/
+								break;
 							}
-						}
-						else if (assistantResult.Status == "error")
-						{
-							if (message is { })
+							case "error":
 							{
-								resultMessage = message;
-							}
-							else
-							{
-								// TODO:
-								resultMessage = message;
-							}
+								resultMessage = message ?? "Unknown error.";
 
-							// TODO: "Error" message view model
-							Messages.Add(new AssistantMessageViewModel
-							{
-								Message = resultMessage
-							});
-							CurrentMessage = Messages.LastOrDefault();
-						}
-						else if (assistantResult.Status == "message")
-						{
-							if (message is { })
-							{
-								resultMessage = message;
-							}
-							else
-							{
-								// TODO:
-								resultMessage = message;
-							}
+								Messages.Add(new AssistantMessageViewModel
+								{
+									Message = resultMessage
+								});
+								CurrentMessage = Messages.LastOrDefault();
 
-
-							// TODO: "Message" message view model
-							Messages.Add(new AssistantMessageViewModel
+								break;
+							}
+							case "message":
 							{
-								Message = resultMessage
-							});
-							CurrentMessage = Messages.LastOrDefault();
+								resultMessage = message ?? "Invalid message.";
+
+								Messages.Add(new AssistantMessageViewModel
+								{
+									Message = resultMessage
+								});
+								CurrentMessage = Messages.LastOrDefault();
+								break;
+							}
 						}
 					}
 					else
 					{
-						// TODO: "Error" or "Assistant" message view model
 						Messages.Add(new AssistantMessageViewModel
 						{
 							Message = resultMessage
@@ -256,10 +250,10 @@ public partial class ChatAssistantViewModel : ReactiveObject
 				catch (Exception e)
 				{
 					Console.WriteLine(e);
-					resultMessage = assistantResultString;
-					//resultMessage = $"Error: {e.Message}";
 
-					// TODO: "Error" message view model
+					resultMessage = assistantResultString;
+					// resultMessage = $"Error: {e.Message}";
+
 					Messages.Add(new ErrorMessageViewModel()
 					{
 						Message = resultMessage
@@ -267,10 +261,24 @@ public partial class ChatAssistantViewModel : ReactiveObject
 					CurrentMessage = Messages.LastOrDefault();
 				}
 			}
+			else
+			{
+				Messages.Add(new ErrorMessageViewModel
+				{
+					Message = "Error while sending message. Please check OpenAI settings in Advanced tab."
+				});
+				CurrentMessage = Messages.LastOrDefault();
+			}
 		}
 		catch (Exception ex)
 		{
 			Console.WriteLine("Error: " + ex.Message);
+
+			Messages.Add(new ErrorMessageViewModel
+			{
+				Message = "Unknown error."
+			});
+			CurrentMessage = Messages.LastOrDefault();
 		}
 
 		IsBusy = false;
