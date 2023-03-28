@@ -134,10 +134,12 @@
           <!-- Error Message -->
           <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
             <Border Classes="message"
-                    HorizontalAlignment="Left">
+                    HorizontalAlignment="Left"
+                    BorderBrush="{DynamicResource WarningMessageForeground}">
               <DockPanel>
                 <TextBlock Text="{Binding Message}"
                            Classes="message"
+                           Foreground="{DynamicResource WarningMessageForeground}"
                            DockPanel.Dock="Top" />
               </DockPanel>
             </Border>
