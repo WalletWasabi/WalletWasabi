@@ -49,8 +49,8 @@
           </Panel>
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20" MaxHeight="270" MinHeight="100">
-          <c:PrivacyContentControl PrivacyReplacementMode="Icon">
-            <c:QrCode Matrix="{Binding QrCode}" Height="264" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
+          <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
+            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
           </c:PrivacyContentControl>
         </Viewbox>
       </c:AdorningContentControl>
