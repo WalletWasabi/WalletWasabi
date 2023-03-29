@@ -266,7 +266,7 @@ public class TransactionProcessor
 					if (spenderKey.Coins.All(x => x.Outpoint == coin.Outpoint))
 					{
 						// Internal key spent its coin, so it's not used anymore.
-						spenderKey.SetKeyState(KeyState.Obsolete);
+						KeyManager.SetKeyState(KeyState.Obsolete, spenderKey);
 						if (spenderKey.ObsoleteHeight == 0 || spenderKey.ObsoleteHeight < tx.Height)
 						{
 							spenderKey.ObsoleteHeight = tx.Height;
