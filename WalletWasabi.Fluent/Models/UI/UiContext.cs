@@ -10,8 +10,8 @@ public class UiContext
 
 	public UiContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard)
 	{
-		QrCodeGenerator = qrCodeGenerator;
-		Clipboard = clipboard;
+		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
+		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
 	}
 
 	public IClipboard Clipboard { get; }
