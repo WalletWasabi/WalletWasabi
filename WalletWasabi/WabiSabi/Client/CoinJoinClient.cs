@@ -1093,20 +1093,14 @@ public class CoinJoinClient
 		// Get the output's size and its of the input that will spend it in the future.
 		// Here we assume all the outputs share the same scriptpubkey type.
 		var isTaprootAllowed = roundParameters.AllowedOutputTypes.Contains(ScriptType.Taproot);
-		var preferTaprootOutputs = isTaprootAllowed && Random.Shared.NextDouble() < .5;
-		var (inputVirtualSize, outputVirtualSize) = DestinationProvider.Peek(preferTaprootOutputs).IsScriptType(ScriptType.Taproot)
-			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
-			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
 
-		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, outputVirtualSize, inputVirtualSize, (int)availableVsize);
+		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, (int)availableVsize, isTaprootAllowed);
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 
-		// Get as many destinations as outputs we need.
-		var destinations = DestinationProvider.GetNextDestinations(outputValues.Count(), preferTaprootOutputs).ToArray();
-		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
+		var outputTxOuts = GetTxOuts(outputValues, DestinationProvider).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
@@ -1122,9 +1116,9 @@ public class CoinJoinClient
 			// Output registration.
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Length, outputRegistrationEndTime, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
+			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
 		}
 		catch (Exception e)
 		{
@@ -1136,6 +1130,28 @@ public class CoinJoinClient
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
+		return outputTxOuts;
+	}
+
+	internal static IEnumerable<TxOut> GetTxOuts(IEnumerable<Output> outputValues, IDestinationProvider destinationProvider)
+	{
+		// Get as many destinations as outputs we need.
+		var taprootOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.Taproot);
+		var taprootScripts = new Stack<IDestination>(destinationProvider.GetNextDestinations(taprootOutputCount, preferTaproot: true));
+		var segwitOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.P2WPKH);
+		var segwitScripts = new Stack<IDestination>(destinationProvider.GetNextDestinations(segwitOutputCount, preferTaproot: false));
+
+		List<TxOut> outputTxOuts = new();
+		foreach (var output in outputValues)
+		{
+			var destinationStack = output.ScriptType is ScriptType.Taproot
+				? taprootScripts
+				: segwitScripts;
+
+			var dest = destinationStack.Pop();
+			var txOut = new TxOut(output.Amount, dest.ScriptPubKey);
+			outputTxOuts.Add(txOut);
+		}
 		return outputTxOuts;
 	}
 

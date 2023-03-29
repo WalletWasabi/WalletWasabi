@@ -270,7 +270,7 @@ public class CoinJoinManager : BackgroundService
 
 		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
-	
+
 	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
 	{
 		if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
@@ -281,7 +281,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		return false;
 	}
-	
+
 	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken stoppingToken)
 	{
 		var skipDelay = false;
@@ -292,12 +292,12 @@ public class CoinJoinManager : BackgroundService
 				walletToStart.LogDebug("AutoStart was already scheduled");
 				return;
 			}
-			
+
 			walletToStart.LogDebug("AutoStart was already scheduled with different parameters, cancel the last task and do not wait.");
 			TryRemoveTrackedAutoStart(trackedAutoStarts, walletToStart);
 			skipDelay = true;
 		}
-		
+
 		NotifyWalletStartedCoinJoin(walletToStart);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -333,7 +333,7 @@ public class CoinJoinManager : BackgroundService
 				}
 			},
 			linkedCts.Token);
-		
+
 		if (trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, linkedCts)))
 		{
 			restartTask.Start();
