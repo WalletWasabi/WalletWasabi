@@ -64,7 +64,7 @@ public record CircuitInfo
 		List<CircPath> circPaths = new();
 
 		// Optional arguments.
-		while (remainder != "")
+		while (!string.IsNullOrWhiteSpace(remainder))
 		{
 			// Read <PATH>.
 			if (remainder.StartsWith("$", StringComparison.Ordinal))

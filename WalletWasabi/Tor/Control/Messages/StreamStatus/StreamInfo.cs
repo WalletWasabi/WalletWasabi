@@ -124,7 +124,7 @@ public record StreamInfo
 		List<IsoFieldFlag> isoFields = new();
 
 		// Optional arguments.
-		while (remainder != "")
+		while (!string.IsNullOrWhiteSpace(remainder))
 		{
 			if (remainder.StartsWith("SOURCE=", StringComparison.Ordinal))
 			{

@@ -51,7 +51,7 @@ public class OrConnEvent : IAsyncEvent
 		orStatus = Tokenizer.ParseEnumValue(value, OrStatus.UNKNOWN);
 
 		// Optional arguments.
-		while (remainder != "")
+		while (!string.IsNullOrWhiteSpace(remainder))
 		{
 			string key;
 			(key, value, remainder) = Tokenizer.ReadKeyValueAssignment(remainder, allowValueAsQuotedString: true);
