@@ -19,7 +19,7 @@ public class UiContext
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// Application.Current should never be null
-	public static UiContext Default => new(new QrGenerator(), Application.Current?.Clipboard);
+	public static UiContext Default => new(new QrGenerator(), Application.Current?.Clipboard!);
 
 	public void RegisterNavigation(INavigate navigate)
 	{
