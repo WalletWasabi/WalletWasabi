@@ -38,7 +38,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
 	[AutoNotify] private StatusIconViewModel _statusIcon;
-	[AutoNotify] private string _title = "Wasabi Wallet";
+	[AutoNotify] private string _title = "Wasabi Wallet GPT";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;

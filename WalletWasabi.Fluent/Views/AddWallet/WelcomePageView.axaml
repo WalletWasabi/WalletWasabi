@@ -144,7 +144,7 @@
         <!-- Welcome to Wasabi -->
         <DockPanel LastChildFill="True" VerticalAlignment="Center">
           <TextBlock Classes="title1" FontWeight="Bold" DockPanel.Dock="Top" HorizontalAlignment="Center">
-            Welcome to Wasabi Wallet!
+            Welcome to Wasabi Wallet GPT!
           </TextBlock>
           <DockPanel LastChildFill="True">
             <Panel DockPanel.Dock="Right"
@@ -210,7 +210,7 @@
                      LineHeight="22"
                      DockPanel.Dock="Bottom"
                      Margin="0 15" />
-          <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
+          <TextBlock Text="Start using Wasabi Wallet GPT" FontSize="30" HorizontalAlignment="Center"
                      DockPanel.Dock="Bottom" />
           <Panel Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
             <ExperimentalAcrylicBorder Margin="2">

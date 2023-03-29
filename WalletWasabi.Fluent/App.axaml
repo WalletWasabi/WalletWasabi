@@ -46,12 +46,12 @@
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
-      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
+      <NativeMenuItem Header="About Wasabi Wallet GPT" Command="{Binding AboutCommand}" />
     </NativeMenu>
   </NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
+      <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet GPT">
         <NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />

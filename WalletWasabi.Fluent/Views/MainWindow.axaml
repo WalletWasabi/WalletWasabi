@@ -18,7 +18,7 @@
         ExtendClientAreaTitleBarHeightHint="50"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
-        Title="Wasabi Wallet"
+        Title="Wasabi Wallet GPT"
         WindowState="{Binding WindowState, Mode=TwoWay}"
         Focusable="{Binding ChatAssistant.IsChatListVisible}"
         Icon="/Assets/WasabiLogo.ico">

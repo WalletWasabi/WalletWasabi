@@ -34,7 +34,7 @@ public partial class Setting<TTarget, TProperty> : ReactiveObject
 
 		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
 
-		ShowNotificationCommand = ReactiveCommand.Create(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")));
+		ShowNotificationCommand = ReactiveCommand.Create(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet GPT needs to be restarted")));
 
 		this.WhenAnyValue(x => x.Value)
 			.ObserveOn(RxApp.MainThreadScheduler)
