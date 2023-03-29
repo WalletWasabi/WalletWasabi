@@ -34,7 +34,7 @@ public static class WabiSabiFactory
 		key ??= new();
 		amount ??= Money.Coins(1);
 		return new(
-			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes().Concat(BitConverter.GetBytes(amount)).ToArray() ), 0),
+			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes().Concat(BitConverter.GetBytes(amount)).ToArray()), 0),
 			new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
 	}
 

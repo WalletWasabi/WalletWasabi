@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 [NavigationMetaData(
 	Title = "Wallet Settings",
-	Caption = "Displays wallet settings",
+	Caption = "Display wallet settings",
 	IconName = "nav_wallet_24_regular",
 	Order = 2,
 	Category = "Wallet",

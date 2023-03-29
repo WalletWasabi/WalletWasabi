@@ -88,8 +88,8 @@ public static class RPCClientExtensions
 				outer => outer.Key,
 				inner => inner.Key,
 				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
-			.SelectMany(x =>
-				x.MinimumFromMemPool.DefaultIfEmpty(),
+			.SelectMany(
+				x => x.MinimumFromMemPool.DefaultIfEmpty(),
 				(a, b) => (
 					Target: a.Estimation.Key,
 					FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
@@ -146,21 +146,22 @@ public static class RPCClientExtensions
 			var remainingSize = (long)group.Sizes;
 			while (remainingSize > 0)
 			{
-				var chunckSize = (int)Math.Min(remainingSize, BlockSize);
-				yield return (chunckSize, group.From, group.To);
+				var chunkSize = (int)Math.Min(remainingSize, BlockSize);
+				yield return (chunkSize, group.From, group.To);
 				remainingSize -= BlockSize;
 			}
 		}
+
 		// Filter those groups with very high fee transactions (less than 0.1%).
-		// This is because in case a few transactions pay unreasonablely high fees
+		// This is because in case a few transactions pay unreasonably high fees
 		// then we don't want our estimations to be affected by those rare cases.
 		var relevantFeeGroups = mempoolInfo.Histogram
 			.OrderByDescending(x => x.Group)
 			.SkipWhile(x => x.Count < mempoolInfo.Size / 1_000);
 
-		// Splits multi-megabyte fee rate groups in 1mb chunck
-		// We need to count blocks (or 1MvB transaction chuncks) so, in case fee
-		// groups are bigger than 1MvB we split those in multiple 1MvB chuncks.
+		// Splits multi-megabyte fee rate groups in 1mb chunk
+		// We need to count blocks (or 1MvB transaction chunks) so, in case fee
+		// groups are bigger than 1MvB we split those in multiple 1MvB chunks.
 		var splittedFeeGroups = relevantFeeGroups.SelectMany(x => SplitFeeGroupInBlocks(x));
 
 		// Assigns the corresponding confirmation target to the set of fee groups.
@@ -176,8 +177,9 @@ public static class RPCClientExtensions
 			.Select(x => x.Size)
 			.Scan(0m, (acc, size) => acc + size);
 
-		var feeGroupsByTarget = splittedFeeGroups.Zip(accumulatedSizes, (feeGroup, accumulatedSize) =>
-			(FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
+		var feeGroupsByTarget = splittedFeeGroups.Zip(
+			accumulatedSizes,
+			(feeGroup, accumulatedSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
 
 		// Consolidates all the fee rate groups that share the same confirmation target.
 		// Following the previous example we have the fee rate groups with target in the
@@ -187,7 +189,8 @@ public static class RPCClientExtensions
 		// But what we need is the following:
 		//      [(1, 200) (2, 100)]
 		var consolidatedFeeGroupByTarget = feeGroupsByTarget
-			.GroupBy(x => x.Target,
+			.GroupBy(
+				x => x.Target,
 				(target, feeGroups) => (Target: target, FeeRate: feeGroups.LastOrDefault().FeeRate.SatoshiPerByte));
 
 		return consolidatedFeeGroupByTarget.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
