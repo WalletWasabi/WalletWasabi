@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public class ActionsSearchSource : ISearchSource
 {
-	public ActionsSearchSource(UIContext uiContext, IObservable<string> query)
+	public ActionsSearchSource(UiContext uiContext, IObservable<string> query)
 	{
 		UIContext = uiContext;
 
@@ -27,7 +27,7 @@ public class ActionsSearchSource : ISearchSource
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
-	public UIContext UIContext { get; }
+	public UiContext UIContext { get; }
 
 	private IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{

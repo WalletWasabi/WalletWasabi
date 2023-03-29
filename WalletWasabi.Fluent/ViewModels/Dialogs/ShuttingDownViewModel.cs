@@ -24,7 +24,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 				  .ObserveOn(RxApp.MainThreadScheduler)
 				  .Subscribe(_ =>
 				  {
-					  if (_applicationViewModel.CanShutdown())
+					  if (_applicationViewModel.CanShutdown(_restart))
 					  {
 						  Navigate().Clear();
 						  _applicationViewModel.Shutdown(_restart);

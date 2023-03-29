@@ -127,8 +127,8 @@ public partial class MainViewModel : ViewModelBase
 	public bool IsDialogOpen()
 	{
 		return DialogScreen.IsDialogOpen
-		       || FullScreen.IsDialogOpen
-		       || CompactDialogScreen.IsDialogOpen;
+			   || FullScreen.IsDialogOpen
+			   || CompactDialogScreen.IsDialogOpen;
 	}
 
 	public void ShowDialogAlert()

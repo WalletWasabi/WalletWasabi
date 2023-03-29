@@ -1,15 +1,27 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Userfacing;
 
-public static class BitcoinInput
+public static class CurrencyInput
 {
-	public static bool TryCorrectAmount(in string? original, [NotNullWhen(true)] out string? best)
+	public const string DecimalSeparator = ".";
+	public const string GroupSeparator = " ";
+
+	public static NumberFormatInfo InvariantNumberFormat { get; } = new()
 	{
-		var corrected = Guard.Correct(original);
+		CurrencyGroupSeparator = GroupSeparator,
+		CurrencyDecimalSeparator = DecimalSeparator,
+		NumberGroupSeparator = GroupSeparator,
+		NumberDecimalSeparator = DecimalSeparator
+	};
+
+	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
+	{
+		var corrected = original;
 
 		// Correct amount
 		Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
@@ -18,12 +30,12 @@ public static class BitcoinInput
 		corrected = digitsOnly.Replace(corrected, "");
 
 		// https://en.wikipedia.org/wiki/Decimal_separator
-		corrected = corrected.Replace(',', '.');
-		corrected = corrected.Replace('٫', '.');
-		corrected = corrected.Replace('٬', '.');
-		corrected = corrected.Replace('⎖', '.');
-		corrected = corrected.Replace('·', '.');
-		corrected = corrected.Replace('\'', '.');
+		corrected = corrected.Replace(",", DecimalSeparator);
+		corrected = corrected.Replace("٫", DecimalSeparator);
+		corrected = corrected.Replace("٬", DecimalSeparator);
+		corrected = corrected.Replace("⎖", DecimalSeparator);
+		corrected = corrected.Replace("·", DecimalSeparator);
+		corrected = corrected.Replace("'", DecimalSeparator);
 
 		// Trim trailing dots except the last one.
 		if (corrected.EndsWith('.'))
@@ -68,6 +80,23 @@ public static class BitcoinInput
 			}
 		}
 
+		if (corrected != original)
+		{
+			best = corrected;
+			return true;
+		}
+
+		best = null;
+		return false;
+	}
+
+	public static bool TryCorrectBitcoinAmount(string original, [NotNullWhen(true)] out string? best)
+	{
+		_ = TryCorrectAmount(original, out var corrected);
+
+		// If the original value wasn't fixed, it's definitely not a null.
+		corrected ??= original;
+
 		// Enable max 8 decimals.
 		var dotIndex = corrected.IndexOf('.');
 		if (dotIndex != -1 && corrected.Length - (dotIndex + 1) > 8)
@@ -86,10 +115,8 @@ public static class BitcoinInput
 			best = corrected;
 			return true;
 		}
-		else
-		{
-			best = null;
-			return false;
-		}
+
+		best = null;
+		return false;
 	}
 }

@@ -56,7 +56,7 @@ public static class ServiceFactory
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
 	}
 
-	public static KeyManager CreateKeyManager(string password = "blahblahblah")
+	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)
 	{
 		var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey(password);
@@ -67,7 +67,14 @@ public static class ServiceFactory
 		KeyPath segwitAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit);
 		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
 
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, null, skipSynchronization: true, 21, blockchainState, null, segwitAccountKeyPath, null);
+		ExtPubKey? taprootExtPubKey = null;
+		if (isTaprootAllowed)
+		{
+			KeyPath taprootAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86);
+			taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+		}
+
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, 21, blockchainState, null, segwitAccountKeyPath, null);
 	}
 
 	public static KeyManager CreateWatchOnlyKeyManager()

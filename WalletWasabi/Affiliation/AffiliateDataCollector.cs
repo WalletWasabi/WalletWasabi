@@ -30,9 +30,9 @@ public class AffiliateDataCollector : IRoundNotifier
 	private Dictionary<uint256, RoundData> RoundData { get; } = new();
 	private AsyncQueue<RoundNotification> RoundsToUpdate { get; } = new();
 
-	public IAsyncEnumerable<RoundNotification> GetRoundNotifications(CancellationToken cancellationToken) => 
+	public IAsyncEnumerable<RoundNotification> GetRoundNotifications(CancellationToken cancellationToken) =>
 		RoundsToUpdate.GetAsyncIterator(cancellationToken);
-	
+
 	private void Arena_InputAdded(object? sender, InputAddedEventArgs args) =>
 		GetRoundDataOrFail(args.RoundId)
 			.AddInputCoin(args.Coin, args.IsCoordinationFeeExempted);
@@ -75,7 +75,7 @@ public class AffiliateDataCollector : IRoundNotifier
 
 		return roundData;
 	}
-	
+
 	private void AddHandlers()
 	{
 		Arena.RoundCreated += Arena_RoundCreated;

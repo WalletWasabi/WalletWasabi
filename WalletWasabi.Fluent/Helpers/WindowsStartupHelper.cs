@@ -26,11 +26,13 @@ public static class WindowsStartupHelper
 		}
 
 		using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
-		if (runOnSystemStartup)
+
+		var existingPath = key.GetValue(nameof(WalletWasabi));
+		if (existingPath is null && runOnSystemStartup)
 		{
 			key.SetValue(nameof(WalletWasabi), pathToExecWithArgs);
 		}
-		else
+		else if (existingPath is not null && !runOnSystemStartup)
 		{
 			key.DeleteValue(nameof(WalletWasabi), false);
 		}
