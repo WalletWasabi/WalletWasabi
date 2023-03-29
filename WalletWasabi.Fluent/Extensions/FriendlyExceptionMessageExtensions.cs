@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Extensions;
@@ -17,19 +18,14 @@ public static class FriendlyExceptionMessageExtensions
 			return ex.ToTypeMessageString();
 		}
 
-		if (ex is OperationCanceledException exception)
+		switch (ex)
 		{
-			return exception.Message;
-		}
-
-		if (ex is HwiException hwiEx)
-		{
-			return GetFriendlyHwiExceptionMessage(hwiEx);
-		}
-
-		if (ex is HttpRequestException httpEx)
-		{
-			return $"An unexpected network error occured.\n{httpEx}\nTry again.";
+			case OperationCanceledException operationCanceledEx:
+				return operationCanceledEx.Message;
+			case HwiException hwiEx:
+				return GetFriendlyHwiExceptionMessage(hwiEx);
+			case HttpRequestException httpEx:
+				return GetFriendlyHttpRequestExceptionMessage(httpEx);
 		}
 
 		foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
@@ -51,6 +47,15 @@ public static class FriendlyExceptionMessageExtensions
 			HwiErrorCode.ActionCanceled => "The transaction was canceled on the device.",
 			HwiErrorCode.UnknownError => "Unknown error.\nMake sure the device is connected and isn't busy, then try again.",
 			_ => hwiEx.Message
+		};
+	}
+
+	private static string GetFriendlyHttpRequestExceptionMessage(HttpRequestException httpEx)
+	{
+		return httpEx.StatusCode switch
+		{	
+			HttpStatusCode.BadRequest => "An unexpected network error occured. Try again.",
+			_ => httpEx.Message
 		};
 	}
 }
