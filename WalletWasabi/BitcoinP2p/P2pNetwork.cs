@@ -124,13 +124,11 @@ public class P2pNetwork : BackgroundService
 		{
 			try
 			{
-				EndPoint bitcoinCoreEndpoint = FullnodeP2PEndPoint;
-
-				Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
+				Node node = await Node.ConnectAsync(Network.RegTest, FullnodeP2PEndPoint).ConfigureAwait(false);
 
 				Nodes.ConnectedNodes.Add(node);
 
-				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
+				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, FullnodeP2PEndPoint).ConfigureAwait(false);
 
 				RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 			}
