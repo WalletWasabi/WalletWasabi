@@ -88,9 +88,8 @@ public class P2pNetwork : BackgroundService
 
 			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 
-			var bestEffortEndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
-			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 			if (torSocks5EndPoint is not null)
 			{
 				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
