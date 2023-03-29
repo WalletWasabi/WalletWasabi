@@ -23,7 +23,7 @@ public class ReceiveAddressViewModelTests
 	{
 		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
 		var context = ContextWith(clipboard);
-		var sut = new ReceiveAddressViewModel(new TestWallet(), new TestAddress("SomeAddress"), false, context);
+		var sut = new ReceiveAddressViewModel(new ReceiveAddressViewModelTests.TestWallet(), new TestAddress("SomeAddress"), false, context);
 
 		sut.CopyAddressCommand.Execute(null);
 
@@ -36,7 +36,7 @@ public class ReceiveAddressViewModelTests
 	{
 		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
 		var context = ContextWith(clipboard);
-		new ReceiveAddressViewModel(new TestWallet(), new TestAddress("SomeAddress"), true, context);
+		new ReceiveAddressViewModel(new ReceiveAddressViewModelTests.TestWallet(), new TestAddress("SomeAddress"), true, context);
 		var mock = Mock.Get(clipboard);
 		mock.Verify(x => x.SetTextAsync("SomeAddress"));
 	}
@@ -45,7 +45,7 @@ public class ReceiveAddressViewModelTests
 	public void When_address_becomes_used_navigation_goes_back()
 	{
 		var navigationStack = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-		var uiContext = ContextWith(new TestNavigation(navigationStack));
+		var uiContext = Mocks.ContextWith(new TestNavigation(navigationStack));
 		var address = new TestAddress("SomeAddress");
 		var wallet = WalletWithAddresses(address);
 		new ReceiveAddressViewModel(wallet, address, true, uiContext);
@@ -58,13 +58,6 @@ public class ReceiveAddressViewModelTests
 	private static IWalletModel WalletWithAddresses(TestAddress address)
 	{
 		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
-	}
-
-	private static UIContext ContextWith(INavigate navigation)
-	{
-		var uiContext = new UIContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
-		uiContext.RegisterNavigation(navigation);
-		return uiContext;
 	}
 
 	private static UIContext ContextWith(IClipboard clipboard)

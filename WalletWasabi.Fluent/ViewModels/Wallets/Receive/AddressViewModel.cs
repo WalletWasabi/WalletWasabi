@@ -19,12 +19,13 @@ public partial class AddressViewModel : ViewModelBase
 
 	public AddressViewModel(AddressAction onEdit, AddressAction onShow, IAddress address, UIContext context)
 	{
+		UIContext = context;
 		_address = address;
 		_addressText = address.Text;
 
 		address.WhenAnyValue(x => x.Labels).BindTo(this, viewModel => viewModel.Label);
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => context.Clipboard.SetTextAsync(AddressText));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UIContext.Clipboard.SetTextAsync(AddressText));
 		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddress);
 		EditLabelCommand = ReactiveCommand.CreateFromTask(() => onEdit(address));
 		NavigateCommand = ReactiveCommand.CreateFromTask(() => onShow(address));
@@ -32,7 +33,7 @@ public partial class AddressViewModel : ViewModelBase
 
 	private async Task PromptHideAddress()
 	{
-		var result = await UIContext.Default.Navigate(NavigationTarget.CompactDialogScreen).NavigateDialogAsync(new ConfirmHideAddressViewModel(_address));
+		var result = await UIContext.Navigate(NavigationTarget.CompactDialogScreen).NavigateDialogAsync(new ConfirmHideAddressViewModel(_address));
 
 		if (result.Result == false)
 		{
