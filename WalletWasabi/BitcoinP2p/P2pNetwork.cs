@@ -76,17 +76,17 @@ public class P2pNetwork : BackgroundService
 			}
 		}
 
-		var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
-		{
-			Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
-		};
-
 		if (Network == Network.RegTest)
 		{
 			Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 		}
 		else
 		{
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
+				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
+			};
+
 			var userAgent = Constants.UserAgents.RandomElement();
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
