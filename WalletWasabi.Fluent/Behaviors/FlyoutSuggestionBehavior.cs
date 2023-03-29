@@ -91,7 +91,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 		return targets
 			.Select(x => Observable.FromEventPattern(x, nameof(x.GotFocus)))
 			.Switch()
-			.Select(x => (TextBox?) x.Sender)
+			.Select(x => (TextBox?)x.Sender)
 			.WithLatestFrom(this.WhenAnyValue(x => x.Content))
 			.Where(tuple => !string.IsNullOrWhiteSpace(tuple.Second) && !EqualityComparer.Equals(tuple.First?.Text, tuple.Second))
 			.Select(tuple => CreateSuggestion(tuple.First, tuple.Second))

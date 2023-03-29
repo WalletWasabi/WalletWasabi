@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Infrastructure;
 
@@ -22,13 +23,10 @@ internal class ClipboardObserver
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
 				WalletBalances.UsdBalance,
-				(text, balanceUsd) =>
-				{
-					return ParseToUsd(text)
+				(string? text, decimal balanceUsd) => ParseToUsd(text)
 						.Ensure(n => n <= balanceUsd)
 						.Ensure(n => n >= 1)
-						.Ensure(n => n.CountDecimalPlaces() <= 2);
-				})
+						.Ensure(n => n.CountDecimalPlaces() <= 2))
 			.Select(money => money?.ToString("0.00"));
 	}
 
@@ -37,17 +35,37 @@ internal class ClipboardObserver
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
 				WalletBalances.BtcBalance,
-				(text, balance) => ParseToMoney(text).Ensure(m => m <= balance))
+				(string? text, Money balance) => ParseToMoney(text).Ensure(m => m <= balance))
 			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
 	}
 
-	private static decimal? ParseToUsd(string text)
+	private static decimal? ParseToUsd(string? text)
 	{
-		return decimal.TryParse(text, out var n) ? n : (decimal?)default;
+		if (text is null)
+		{
+			return null;
+		}
+
+		if (CurrencyInput.TryCorrectAmount(text, out var corrected))
+		{
+			text = corrected;
+		}
+
+		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
-	private static Money? ParseToMoney(string text)
+	private static Money? ParseToMoney(string? text)
 	{
+		if (text is null)
+		{
+			return null;
+		}
+
+		if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
+		{
+			text = corrected;
+		}
+
 		return Money.TryParse(text, out var n) ? n : default;
 	}
 }
