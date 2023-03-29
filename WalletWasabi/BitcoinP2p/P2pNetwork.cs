@@ -24,7 +24,6 @@ public class P2pNetwork : BackgroundService
 	{
 		Network = network;
 		FullnodeP2PEndPoint = fullnodeP2pEndPoint;
-		TorSocks5EndPoint = torSocks5EndPoint;
 		BitcoinStore = bitcoinStore;
 
 		var userAgent = Constants.UserAgents.RandomElement();
@@ -53,7 +52,7 @@ public class P2pNetwork : BackgroundService
 				// of course).
 				// On the other side, increasing this number forces users that do not need to discover more peers
 				// to spend resources (CPU/bandwidth) to discover new peers.
-				needsToDiscoverPeers = TorSocks5EndPoint is not null || AddressManager.Count < 500;
+				needsToDiscoverPeers = torSocks5EndPoint is not null || AddressManager.Count < 500;
 				Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 			}
 			catch (DirectoryNotFoundException ex)
@@ -97,9 +96,9 @@ public class P2pNetwork : BackgroundService
 		{
 			var bestEffortEndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
-			if (TorSocks5EndPoint is not null)
+			if (torSocks5EndPoint is not null)
 			{
-				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 			}
 			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
@@ -112,7 +111,6 @@ public class P2pNetwork : BackgroundService
 
 	private Network Network { get; }
 	private EndPoint FullnodeP2PEndPoint { get; }
-	private EndPoint? TorSocks5EndPoint { get; }
 	private BitcoinStore BitcoinStore { get; }
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
