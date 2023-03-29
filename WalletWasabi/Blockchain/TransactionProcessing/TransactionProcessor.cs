@@ -263,7 +263,7 @@ public class TransactionProcessor
 			{
 				if (spenderKey.IsInternal)
 				{
-					if (spenderKey.Coins.All(x => x.Outpoint == coin.Outpoint))
+					if (spenderKey.Coins.Except(result.SpentCoins).All(x => x.Outpoint == coin.Outpoint))
 					{
 						KeyManager.SetKeyState(KeyState.Obsolete, spenderKey);
 						if (spenderKey.ObsoleteHeight == 0 || spenderKey.ObsoleteHeight < tx.Height)
