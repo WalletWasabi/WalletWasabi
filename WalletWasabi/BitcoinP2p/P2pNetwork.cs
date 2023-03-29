@@ -183,8 +183,12 @@ public class P2pNetwork : BackgroundService
 
 	public override void Dispose()
 	{
-		Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
-		Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
+		if (Network != Network.RegTest)
+		{
+			Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
+			Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
+		}
+
 		Nodes.Dispose();
 		base.Dispose();
 	}
