@@ -154,8 +154,8 @@ public class P2pNetwork : BackgroundService
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-		var addressManager = AddressManager;
-		if (addressManager is { })
+
+		if (AddressManager is { } addressManager)
 		{
 			addressManager.SavePeerFile(AddressManagerFilePath, Network);
 			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
