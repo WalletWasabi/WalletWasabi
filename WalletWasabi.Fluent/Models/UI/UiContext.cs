@@ -3,9 +3,9 @@ using Avalonia.Input.Platform;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public class UIContext
+public class UiContext
 {
-	public UIContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
@@ -16,5 +16,5 @@ public class UIContext
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// Application.Current should never be null
-	public static UIContext Default => new(new QrGenerator(), Application.Current?.Clipboard!);
+	public static UiContext Default => new(new QrGenerator(), Application.Current?.Clipboard!);
 }
