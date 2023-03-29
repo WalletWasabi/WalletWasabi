@@ -525,7 +525,7 @@ public class Wallet : BackgroundService, IWallet
 				HdPubKeysWithScriptBytes.Add(hdPubKey, hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes());
 			}
 			
-			// Ignore keys that was made Obsolete before the Height
+			// Ignore keys that were made Obsolete before the Height
 			if (hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= new Height(filterModel.Header.Height))
 			{
 				toTestKeys.Add(HdPubKeysWithScriptBytes[hdPubKey]);

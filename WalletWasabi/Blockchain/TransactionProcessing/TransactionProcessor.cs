@@ -257,15 +257,16 @@ public class TransactionProcessor
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
 
-			if (KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? foundKey))
+			// If the key is internal and doesn't contain any other coin, then it won't be used anymore.
+			if (KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? spenderKey))
 			{
-				if (foundKey.IsInternal)
+				if (spenderKey.IsInternal)
 				{
-					if (foundKey.Coins.All(x => x.Outpoint == coin.Outpoint))
+					if (spenderKey.Coins.All(x => x.Outpoint != coin.Outpoint))
 					{
 						// Internal key spent its coin, so it's not used anymore.
-						foundKey.SetKeyState(KeyState.Obsolete);
-						foundKey.SetObsoleteHeight(tx.Height);
+						spenderKey.SetKeyState(KeyState.Obsolete);
+						spenderKey.ObsoleteHeight = tx.Height;
 					}
 				}
 			}
