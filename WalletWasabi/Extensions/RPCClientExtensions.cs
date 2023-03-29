@@ -88,8 +88,8 @@ public static class RPCClientExtensions
 				outer => outer.Key,
 				inner => inner.Key,
 				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
-			.SelectMany(x =>
-				x.MinimumFromMemPool.DefaultIfEmpty(),
+			.SelectMany(
+				x => x.MinimumFromMemPool.DefaultIfEmpty(),
 				(a, b) => (
 					Target: a.Estimation.Key,
 					FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
@@ -151,6 +151,7 @@ public static class RPCClientExtensions
 				remainingSize -= BlockSize;
 			}
 		}
+
 		// Filter those groups with very high fee transactions (less than 0.1%).
 		// This is because in case a few transactions pay unreasonablely high fees
 		// then we don't want our estimations to be affected by those rare cases.
@@ -176,8 +177,9 @@ public static class RPCClientExtensions
 			.Select(x => x.Size)
 			.Scan(0m, (acc, size) => acc + size);
 
-		var feeGroupsByTarget = splittedFeeGroups.Zip(accumulatedSizes, (feeGroup, accumulatedSize) =>
-			(FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
+		var feeGroupsByTarget = splittedFeeGroups.Zip(
+			accumulatedSizes,
+			(feeGroup, accumulatedSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
 
 		// Consolidates all the fee rate groups that share the same confirmation target.
 		// Following the previous example we have the fee rate groups with target in the
@@ -187,7 +189,8 @@ public static class RPCClientExtensions
 		// But what we need is the following:
 		//      [(1, 200) (2, 100)]
 		var consolidatedFeeGroupByTarget = feeGroupsByTarget
-			.GroupBy(x => x.Target,
+			.GroupBy(
+				x => x.Target,
 				(target, feeGroups) => (Target: target, FeeRate: feeGroups.LastOrDefault().FeeRate.SatoshiPerByte));
 
 		return consolidatedFeeGroupByTarget.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));

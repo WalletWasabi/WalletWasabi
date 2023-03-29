@@ -8,6 +8,7 @@
     <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts#Roboto Mono</FontFamily>
     <FontFamily x:Key="WasabiLogoTextFont">avares://WalletWasabi.Fluent/Assets/Fonts#Objectivity</FontFamily>
     <sys:Int32 x:Key="MaxLabelLength">50</sys:Int32>
+    <x:Double x:Key="LabelMaxWidth">120</x:Double>
   </Styles.Resources>
 
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Button.axaml" />

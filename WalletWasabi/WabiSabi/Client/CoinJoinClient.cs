@@ -262,7 +262,7 @@ public class CoinJoinClient
 				EndRoundState.AbortedNotAllAlicesConfirmed => "Aborted. Some Alices didn't confirm.",
 				EndRoundState.AbortedLoadBalancing => "Aborted. Load balancing registrations.",
 				EndRoundState.None => "Unknown.",
-				_ => throw new ArgumentOutOfRangeException()
+				_ => throw new ArgumentOutOfRangeException(nameof(roundState))
 			};
 
 			roundState.LogInfo(msg);
@@ -320,7 +320,7 @@ public class CoinJoinClient
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
-			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
 			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
 
@@ -618,7 +618,7 @@ public class CoinJoinClient
 		return remainingTime.SamplePoisson(howMany);
 	}
 
-	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, RoundState roundState)
 	{
 		RoundParameters roundParameters = roundState.CoinjoinState.Parameters;
 		FeeRate feeRate = roundParameters.MiningFeeRate;
@@ -1098,17 +1098,9 @@ public class CoinJoinClient
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 
-		// Get as many destinations as outputs we need.
-		List<TxOut> outputTxOuts = new();
-		foreach (var output in outputValues)
-		{
-			var needTaprootOutput = output.ScriptType is ScriptType.Taproot;
-			var dest = DestinationProvider.GetNextDestinations(1, needTaprootOutput).First();
-			var txOut = new TxOut(output.Amount, dest.ScriptPubKey);
-			outputTxOuts.Add(txOut);
-		}
+		var outputTxOuts = GetTxOuts(outputValues, DestinationProvider).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
@@ -1124,9 +1116,9 @@ public class CoinJoinClient
 			// Output registration.
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Length, outputRegistrationEndTime, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
+			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
 		}
 		catch (Exception e)
 		{
@@ -1138,6 +1130,28 @@ public class CoinJoinClient
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
+		return outputTxOuts;
+	}
+
+	internal static IEnumerable<TxOut> GetTxOuts(IEnumerable<Output> outputValues, IDestinationProvider destinationProvider)
+	{
+		// Get as many destinations as outputs we need.
+		var taprootOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.Taproot);
+		var taprootScripts = new Stack<IDestination>(destinationProvider.GetNextDestinations(taprootOutputCount, preferTaproot: true));
+		var segwitOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.P2WPKH);
+		var segwitScripts = new Stack<IDestination>(destinationProvider.GetNextDestinations(segwitOutputCount, preferTaproot: false));
+
+		List<TxOut> outputTxOuts = new();
+		foreach (var output in outputValues)
+		{
+			var destinationStack = output.ScriptType is ScriptType.Taproot
+				? taprootScripts
+				: segwitScripts;
+
+			var dest = destinationStack.Pop();
+			var txOut = new TxOut(output.Amount, dest.ScriptPubKey);
+			outputTxOuts.Add(txOut);
+		}
 		return outputTxOuts;
 	}
 

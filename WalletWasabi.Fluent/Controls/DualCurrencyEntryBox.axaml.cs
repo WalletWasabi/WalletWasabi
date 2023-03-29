@@ -65,9 +65,9 @@ public class DualCurrencyEntryBox : UserControl
 		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(LeftEntryBox));
 
 	private readonly CultureInfo _customCultureInfo;
-	private CompositeDisposable? _disposable;
 	private readonly char _decimalSeparator = '.';
 	private readonly char _groupSeparator = ' ';
+	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
 	private decimal _amountBtc;
 	private bool _canUpdateDisplay = true;
