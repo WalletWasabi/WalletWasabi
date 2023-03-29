@@ -25,13 +25,8 @@ public class P2pNetwork : BackgroundService
 		Network = network;
 		FullnodeP2PEndPoint = fullnodeP2pEndPoint;
 		BitcoinStore = bitcoinStore;
-
-		var userAgent = Constants.UserAgents.RandomElement();
-		var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
-		connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-
 		AddressManagerFilePath = Path.Combine(workDir, $"AddressManager{Network}.dat");
+
 		var needsToDiscoverPeers = true;
 		if (Network == Network.RegTest)
 		{
@@ -86,14 +81,18 @@ public class P2pNetwork : BackgroundService
 			Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 		};
 
-		connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-
 		if (Network == Network.RegTest)
 		{
 			Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 		}
 		else
 		{
+			var userAgent = Constants.UserAgents.RandomElement();
+			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
+
+			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+
 			var bestEffortEndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 			if (torSocks5EndPoint is not null)
