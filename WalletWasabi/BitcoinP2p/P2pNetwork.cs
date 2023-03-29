@@ -22,7 +22,6 @@ public class P2pNetwork : BackgroundService
 		Network = network;
 		FullnodeP2PEndPoint = fullnodeP2pEndPoint;
 		TorSocks5EndPoint = torSocks5EndPoint;
-		WorkDir = workDir;
 		BitcoinStore = bitcoinStore;
 
 		var userAgent = Constants.UserAgents.RandomElement();
@@ -30,7 +29,7 @@ public class P2pNetwork : BackgroundService
 
 		connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 
-		AddressManagerFilePath = Path.Combine(WorkDir, $"AddressManager{Network}.dat");
+		AddressManagerFilePath = Path.Combine(workDir, $"AddressManager{Network}.dat");
 		var needsToDiscoverPeers = true;
 		if (Network == Network.RegTest)
 		{
@@ -112,7 +111,6 @@ public class P2pNetwork : BackgroundService
 	private Network Network { get; }
 	private EndPoint FullnodeP2PEndPoint { get; }
 	private EndPoint? TorSocks5EndPoint { get; }
-	private string WorkDir { get; }
 	private BitcoinStore BitcoinStore { get; }
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
