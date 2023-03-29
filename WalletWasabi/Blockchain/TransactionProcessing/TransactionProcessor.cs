@@ -296,7 +296,7 @@ public class TransactionProcessor
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
-	
+
 	public void UndoBlock(Height blockHeight)
 	{
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);

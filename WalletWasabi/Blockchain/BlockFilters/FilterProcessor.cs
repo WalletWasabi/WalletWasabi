@@ -44,11 +44,11 @@ public class FilterProcessor
 							$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
 							$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
-						await BitcoinStore.IndexStore.RemoveAllImmatureFiltersAsync(CancellationToken.None, deleteAndCrashIfMature: true).ConfigureAwait(false);
+						await BitcoinStore.IndexStore.RemoveAllImmatureFiltersAsync().ConfigureAwait(false);
 					}
 					else
 					{
-						await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, CancellationToken.None).ConfigureAwait(false);
+						await BitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
 
 						if (filters.Count() == 1)
 						{
@@ -64,7 +64,7 @@ public class FilterProcessor
 				{
 					// Reorg happened
 					// 1. Rollback index
-					FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(CancellationToken.None).ConfigureAwait(false);
+					FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync().ConfigureAwait(false);
 					Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 				}
 				else if (filtersResponseState == FiltersResponseState.NoNewFilter)
@@ -74,7 +74,7 @@ public class FilterProcessor
 					if (serverBestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 					{
 						// If still bad delete filters and crash the software?
-						await BitcoinStore.IndexStore.RemoveAllImmatureFiltersAsync(CancellationToken.None, deleteAndCrashIfMature: true).ConfigureAwait(false);
+						await BitcoinStore.IndexStore.RemoveAllImmatureFiltersAsync().ConfigureAwait(false);
 					}
 				}
 			}
