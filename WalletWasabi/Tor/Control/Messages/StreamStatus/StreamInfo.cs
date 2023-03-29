@@ -174,7 +174,7 @@ public record StreamInfo
 
 			if (key == "ISO_FIELDS")
 			{
-				if (value != "")
+				if (!string.IsNullOrWhiteSpace(value))
 				{
 					string[] flags = value.Split(',');
 					isoFields = flags.Select(x => Tokenizer.ParseEnumValue(x, IsoFieldFlag.UNKNOWN)).ToList();
