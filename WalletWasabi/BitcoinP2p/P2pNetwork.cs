@@ -27,14 +27,17 @@ public class P2pNetwork : BackgroundService
 		BitcoinStore = bitcoinStore;
 		AddressManagerFilePath = Path.Combine(workDir, $"AddressManager{Network}.dat");
 
-		var needsToDiscoverPeers = true;
 		if (Network == Network.RegTest)
 		{
 			AddressManager = new AddressManager();
 			Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
+
+			Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 		}
 		else
 		{
+			var needsToDiscoverPeers = true;
+
 			try
 			{
 				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
@@ -74,14 +77,7 @@ public class P2pNetwork : BackgroundService
 				AddressManager = new AddressManager();
 				Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 			}
-		}
 
-		if (Network == Network.RegTest)
-		{
-			Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
-		}
-		else
-		{
 			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
 			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
