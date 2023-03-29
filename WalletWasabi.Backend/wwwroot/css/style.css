@@ -705,7 +705,13 @@ ol li::marker {
     color: var(--green);
     margin: 40px;
 }
-.navbar:hover .collapse:not(.show) {
+.navbar-toggler {
+    cursor: pointer;
+}
+#navswitch {
+    display: none;
+}
+#navswitch:checked + label + .navbar-collapse {
     display: block;
 }
 .dropdown-menu {

@@ -350,7 +350,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			Logger.LogError(ex);
 
-			await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
+			await ShowErrorAsync(
+				"Transaction Building",
+				ex.ToUserFriendlyString(),
 				"Wasabi was unable to create your transaction.");
 
 			return null;
@@ -367,7 +369,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (!result)
 		{
-			await ShowErrorAsync("Transaction Building", "The transaction cannot be sent because its fee is more than the payment amount.",
+			await ShowErrorAsync(
+				"Transaction Building",
+				"The transaction cannot be sent because its fee is more than the payment amount.",
 				"Wasabi was unable to create your transaction.");
 
 			return false;
@@ -442,7 +446,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+				await ShowErrorAsync(
+					"Transaction",
+					ex.ToUserFriendlyString(),
 					"Wasabi was unable to send your transaction.");
 			}
 
@@ -469,8 +475,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 	}
 
-	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction,
-		TransactionInfo transactionInfo)
+	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
 	{
 		if (transactionInfo.PayJoinClient is { })
 		{

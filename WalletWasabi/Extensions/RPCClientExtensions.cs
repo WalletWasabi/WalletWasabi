@@ -146,22 +146,22 @@ public static class RPCClientExtensions
 			var remainingSize = (long)group.Sizes;
 			while (remainingSize > 0)
 			{
-				var chunckSize = (int)Math.Min(remainingSize, BlockSize);
-				yield return (chunckSize, group.From, group.To);
+				var chunkSize = (int)Math.Min(remainingSize, BlockSize);
+				yield return (chunkSize, group.From, group.To);
 				remainingSize -= BlockSize;
 			}
 		}
 
 		// Filter those groups with very high fee transactions (less than 0.1%).
-		// This is because in case a few transactions pay unreasonablely high fees
+		// This is because in case a few transactions pay unreasonably high fees
 		// then we don't want our estimations to be affected by those rare cases.
 		var relevantFeeGroups = mempoolInfo.Histogram
 			.OrderByDescending(x => x.Group)
 			.SkipWhile(x => x.Count < mempoolInfo.Size / 1_000);
 
-		// Splits multi-megabyte fee rate groups in 1mb chunck
-		// We need to count blocks (or 1MvB transaction chuncks) so, in case fee
-		// groups are bigger than 1MvB we split those in multiple 1MvB chuncks.
+		// Splits multi-megabyte fee rate groups in 1mb chunk
+		// We need to count blocks (or 1MvB transaction chunks) so, in case fee
+		// groups are bigger than 1MvB we split those in multiple 1MvB chunks.
 		var splittedFeeGroups = relevantFeeGroups.SelectMany(x => SplitFeeGroupInBlocks(x));
 
 		// Assigns the corresponding confirmation target to the set of fee groups.
