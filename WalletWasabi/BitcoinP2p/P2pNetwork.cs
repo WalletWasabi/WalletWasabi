@@ -17,6 +17,9 @@ namespace WalletWasabi.BitcoinP2p;
 
 public class P2pNetwork : BackgroundService
 {
+	/// <summary>Maximum number of nodes to establish connection to.</summary>
+	private const int MaximumNodeConnections = 12;
+
 	public P2pNetwork(Network network, EndPoint fullnodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
 	{
 		Network = network;
@@ -92,8 +95,7 @@ public class P2pNetwork : BackgroundService
 		}
 		else
 		{
-			var maximumNodeConnection = 12;
-			var bestEffortEndpointConnector = new BestEffortEndpointConnector(maximumNodeConnection / 2);
+			var bestEffortEndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 			if (TorSocks5EndPoint is not null)
 			{
@@ -102,7 +104,7 @@ public class P2pNetwork : BackgroundService
 			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
 			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
-			nodes.MaximumNodeConnection = maximumNodeConnection;
+			nodes.MaximumNodeConnection = MaximumNodeConnections;
 
 			Nodes = nodes;
 		}
