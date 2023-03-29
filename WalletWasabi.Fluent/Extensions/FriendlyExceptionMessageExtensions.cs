@@ -11,16 +11,16 @@ public static class FriendlyExceptionMessageExtensions
 {
 	public static string ToUserFriendlyString(this Exception ex)
 	{
-		var trimmed = Guard.Correct(ex.Message);
+		var exceptionMessage = Guard.Correct(ex.Message);
 
-		if (trimmed.Length == 0)
+		if (exceptionMessage.Length == 0)
 		{
 			return "An unexpected error occured. Please try again or contact support.";
 		}
 
-		if (TryFindRpcErrorMessage(trimmed, out var pairValue))
+		if (TryFindRpcErrorMessage(exceptionMessage, out var friendlyMessage))
 		{
-			return pairValue;
+			return friendlyMessage;
 		}
 
 		return ex switch
@@ -51,16 +51,16 @@ public static class FriendlyExceptionMessageExtensions
 		};
 	}
 
-	private static bool TryFindRpcErrorMessage(string trimmed, out string pairValue)
+	private static bool TryFindRpcErrorMessage(string exceptionMessage, out string friendlyMessage)
 	{
-		pairValue = "";
+		friendlyMessage = "";
 
 		foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
 		{
-			if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+			if (exceptionMessage.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
 			{
 				{
-					pairValue = pair.Value;
+					friendlyMessage = pair.Value;
 					return true;
 				}
 			}
