@@ -109,11 +109,11 @@ public class P2pNetwork : BackgroundService
 		}
 	}
 
-	public Network Network { get; }
-	public EndPoint FullnodeP2PEndPoint { get; }
-	public EndPoint? TorSocks5EndPoint { get; }
-	public string WorkDir { get; }
-	public BitcoinStore BitcoinStore { get; }
+	private Network Network { get; }
+	private EndPoint FullnodeP2PEndPoint { get; }
+	private EndPoint? TorSocks5EndPoint { get; }
+	private string WorkDir { get; }
+	private BitcoinStore BitcoinStore { get; }
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
 	private string? AddressManagerFilePath { get; set; }
