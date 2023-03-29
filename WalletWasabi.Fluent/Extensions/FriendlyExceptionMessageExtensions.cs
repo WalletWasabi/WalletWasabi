@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Http;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 
@@ -13,19 +12,10 @@ public static class FriendlyExceptionMessageExtensions
 	public static string ToUserFriendlyString(this Exception ex)
 	{
 		var trimmed = Guard.Correct(ex.Message);
+
 		if (trimmed.Length == 0)
 		{
-			return ex.ToTypeMessageString();
-		}
-
-		switch (ex)
-		{
-			case OperationCanceledException operationCanceledEx:
-				return operationCanceledEx.Message;
-			case HwiException hwiEx:
-				return GetFriendlyHwiExceptionMessage(hwiEx);
-			case HttpRequestException httpEx:
-				return GetFriendlyHttpRequestExceptionMessage(httpEx);
+			return "An unexpected error occured. Please try again or contact support.";
 		}
 
 		if (TryFindRpcErrorMessage(trimmed, out var pairValue))
@@ -33,7 +23,32 @@ public static class FriendlyExceptionMessageExtensions
 			return pairValue;
 		}
 
-		return ex.ToTypeMessageString();
+		return ex switch
+		{
+			HwiException hwiEx => GetFriendlyHwiExceptionMessage(hwiEx),
+			HttpRequestException httpEx => GetFriendlyHttpRequestExceptionMessage(httpEx),
+			_ => ex.Message
+		};
+	}
+
+	private static string GetFriendlyHwiExceptionMessage(HwiException hwiEx)
+	{
+		return hwiEx.ErrorCode switch
+		{
+			HwiErrorCode.DeviceConnError => "Could not find the hardware wallet. Make sure it is connected.",
+			HwiErrorCode.ActionCanceled => "The transaction was canceled on the device.",
+			HwiErrorCode.UnknownError => "Unknown error. Make sure the device is connected and isn't busy, then try again.",
+			_ => hwiEx.Message
+		};
+	}
+
+	private static string GetFriendlyHttpRequestExceptionMessage(HttpRequestException httpEx)
+	{
+		return httpEx.StatusCode switch
+		{
+			HttpStatusCode.BadRequest => "An unexpected network error occured. Try again.",
+			_ => httpEx.Message
+		};
 	}
 
 	private static bool TryFindRpcErrorMessage(string trimmed, out string pairValue)
@@ -52,25 +67,5 @@ public static class FriendlyExceptionMessageExtensions
 		}
 
 		return false;
-	}
-
-	private static string GetFriendlyHwiExceptionMessage(HwiException hwiEx)
-	{
-		return hwiEx.ErrorCode switch
-		{
-			HwiErrorCode.DeviceConnError => "Could not find the hardware wallet.\nMake sure it is connected.",
-			HwiErrorCode.ActionCanceled => "The transaction was canceled on the device.",
-			HwiErrorCode.UnknownError => "Unknown error.\nMake sure the device is connected and isn't busy, then try again.",
-			_ => hwiEx.Message
-		};
-	}
-
-	private static string GetFriendlyHttpRequestExceptionMessage(HttpRequestException httpEx)
-	{
-		return httpEx.StatusCode switch
-		{
-			HttpStatusCode.BadRequest => "An unexpected network error occured. Try again.",
-			_ => httpEx.Message
-		};
 	}
 }
