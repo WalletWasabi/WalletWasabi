@@ -517,6 +517,7 @@ public class Wallet : BackgroundService, IWallet
 		// GetScriptPubKey is an expansive operation, so result is cached.
 		var allKeys = KeyManager.GetKeys();
 		var toTestKeys = new List<byte[]>();
+		// TODO: Reduce complexity of this loop.
 		foreach (var hdPubKey in allKeys)
 		{
 			// Compute and save HdPubKey/ScriptPubKey pair for all keys

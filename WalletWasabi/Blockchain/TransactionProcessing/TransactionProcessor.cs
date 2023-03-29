@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
@@ -258,15 +259,23 @@ public class TransactionProcessor
 			Coins.Spend(coin, tx);
 
 			// If the key is internal and doesn't contain any other coin, then it won't be used anymore.
-			if (KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? spenderKey))
+			if (tx.Confirmed && KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? spenderKey))
 			{
 				if (spenderKey.IsInternal)
 				{
-					if (spenderKey.Coins.All(x => x.Outpoint != coin.Outpoint))
+					if (spenderKey.Coins.All(x => x.Outpoint == coin.Outpoint))
 					{
 						// Internal key spent its coin, so it's not used anymore.
 						spenderKey.SetKeyState(KeyState.Obsolete);
-						spenderKey.ObsoleteHeight = tx.Height;
+						if (spenderKey.ObsoleteHeight == 0 || spenderKey.ObsoleteHeight < tx.Height)
+						{
+							spenderKey.ObsoleteHeight = tx.Height;
+						}
+						else
+						{
+							// TODO: Remove debug log
+							Logger.LogWarning($"The key {spenderKey.PubKey} was made obsolete at a height lower than the transaction height.");
+						}
 					}
 				}
 			}
