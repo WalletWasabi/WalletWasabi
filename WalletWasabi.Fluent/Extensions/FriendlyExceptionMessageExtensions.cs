@@ -28,15 +28,30 @@ public static class FriendlyExceptionMessageExtensions
 				return GetFriendlyHttpRequestExceptionMessage(httpEx);
 		}
 
+		if (TryFindRpcErrorMessage(trimmed, out var pairValue))
+		{
+			return pairValue;
+		}
+
+		return ex.ToTypeMessageString();
+	}
+
+	private static bool TryFindRpcErrorMessage(string trimmed, out string pairValue)
+	{
+		pairValue = "";
+
 		foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
 		{
 			if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
 			{
-				return pair.Value;
+				{
+					pairValue = pair.Value;
+					return true;
+				}
 			}
 		}
 
-		return ex.ToTypeMessageString();
+		return false;
 	}
 
 	private static string GetFriendlyHwiExceptionMessage(HwiException hwiEx)
@@ -53,7 +68,7 @@ public static class FriendlyExceptionMessageExtensions
 	private static string GetFriendlyHttpRequestExceptionMessage(HttpRequestException httpEx)
 	{
 		return httpEx.StatusCode switch
-		{	
+		{
 			HttpStatusCode.BadRequest => "An unexpected network error occured. Try again.",
 			_ => httpEx.Message
 		};
