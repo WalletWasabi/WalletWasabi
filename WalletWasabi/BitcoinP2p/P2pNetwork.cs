@@ -114,7 +114,7 @@ public class P2pNetwork : BackgroundService
 	private BitcoinStore BitcoinStore { get; }
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
-	private string? AddressManagerFilePath { get; set; }
+	private string AddressManagerFilePath { get; }
 	private AddressManager? AddressManager { get; set; }
 
 	/// <inheritdoc />
@@ -159,15 +159,12 @@ public class P2pNetwork : BackgroundService
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		if (AddressManagerFilePath is { } addressManagerFilePath)
+		IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+		var addressManager = AddressManager;
+		if (addressManager is { })
 		{
-			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
-			var addressManager = AddressManager;
-			if (addressManager is { })
-			{
-				addressManager.SavePeerFile(AddressManagerFilePath, Network);
-				Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
-			}
+			addressManager.SavePeerFile(AddressManagerFilePath, Network);
+			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();
