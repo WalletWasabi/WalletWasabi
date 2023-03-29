@@ -335,7 +335,7 @@ public class TorControlClient : IAsyncDisposable
 
 		if (sendCommand)
 		{
-			string command = subscribedEventNames == "" ? "SETEVENTS\r\n" : $"SETEVENTS {subscribedEventNames}\r\n";
+			string command = string.IsNullOrWhiteSpace(subscribedEventNames) ? "SETEVENTS\r\n" : $"SETEVENTS {subscribedEventNames}\r\n";
 			TorControlReply reply = await SendCommandNoLockAsync(command, cancellationToken).ConfigureAwait(false);
 
 			if (!reply.Success)

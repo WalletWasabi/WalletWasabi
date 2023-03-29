@@ -13,7 +13,7 @@ public static class Tokenizer
 	/// </summary>
 	public static (string token, string remainder) ReadUntilSeparator(string input)
 	{
-		if (input == "")
+		if (string.IsNullOrWhiteSpace(input))
 		{
 			throw new TorControlReplyParseException("Expected a token.");
 		}
@@ -73,7 +73,7 @@ public static class Tokenizer
 		input = ReadExactString("=", input);
 		(string value, string remainder) = ReadQuotedString(input);
 
-		if (remainder != "")
+		if (!string.IsNullOrWhiteSpace(remainder))
 		{
 			remainder = remainder[1..];
 		}
