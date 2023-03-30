@@ -9,8 +9,8 @@ public class FluentNavigate
 {
 	public FluentNavigate(UiContext uiContext)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 	}
 
-	public UiContext UIContext { get; }
+	public UiContext UiContext { get; }
 }
