@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using NBitcoin.Secp256k1;
 
 namespace WalletWasabi.Helpers;
 
@@ -169,12 +167,4 @@ public static class Guard
 			? ""
 			: str.Trim();
 	}
-
-	[DebuggerStepThrough]
-	public static Scalar NotZero(string parameterName, Scalar scalar)
-		=> scalar switch
-		{
-			_ when scalar.IsZero => throw new ArgumentException("Value cannot be zero.", parameterName),
-			_ => scalar
-		};
 }

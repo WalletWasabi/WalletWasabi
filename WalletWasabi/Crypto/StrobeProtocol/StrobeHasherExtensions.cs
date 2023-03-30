@@ -1,10 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using NBitcoin;
-using WabiSabi.Crypto;
 using WabiSabi.Crypto.StrobeProtocol;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Crypto.StrobeProtocol;

@@ -7,8 +7,8 @@ using WabiSabi;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
@@ -97,7 +97,11 @@ public class SerializationTests
 		var converters = new JsonConverter[]
 		{
 			new ScalarJsonConverter(),
+			new ScalarVectorJsonConverter(),
 			new GroupElementJsonConverter(),
+			new GroupElementVectorJsonConverter(),
+			new MacJsonConverter(),
+			new ProofJsonConverter()
 		};
 
 		var rnd = new InsecureRandom(1234);
