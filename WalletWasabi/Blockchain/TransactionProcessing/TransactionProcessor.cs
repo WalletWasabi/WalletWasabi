@@ -257,28 +257,7 @@ public class TransactionProcessor
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
-
-			// If the key is internal and doesn't contain any other coin, then it won't be used anymore.
-			if (tx.Confirmed && KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? spenderKey))
-			{
-				if (spenderKey.IsInternal)
-				{
-					if (spenderKey.Coins.Except(result.SpentCoins).All(x => x.Outpoint == coin.Outpoint))
-					{
-						KeyManager.SetKeyState(KeyState.Obsolete, spenderKey);
-						if (spenderKey.ObsoleteHeight == 0 || spenderKey.ObsoleteHeight < tx.Height)
-						{
-							spenderKey.ObsoleteHeight = tx.Height;
-						}
-						else
-						{
-							// TODO: Remove debug log
-							Logger.LogWarning($"The key {spenderKey.PubKey} was made obsolete at a height lower than the transaction height.");
-						}
-					}
-				}
-			}
-
+			
 			if (!alreadyKnown)
 			{
 				result.NewlySpentCoins.Add(coin);
@@ -295,10 +274,38 @@ public class TransactionProcessor
 			TransactionStore.AddOrUpdate(tx);
 		}
 
+		if (tx.Confirmed)
+		{
+			// If a key is internal and spent all its coins, then it shouldn't be used again.
+			foreach (var spenderKey in myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct())
+			{
+				if (spenderKey.Coins.Any(x => x.SpenderTransaction is null))
+				{
+					// The key still has unspent coins.
+					continue;
+				}
+
+				if (spenderKey.KeyState != KeyState.Obsolete)
+				{
+					KeyManager.SetKeyState(KeyState.Obsolete, spenderKey);
+					spenderKey.ObsoleteHeight = tx.Height;
+				}
+				else
+				{
+					if (spenderKey.ObsoleteHeight < tx.Height)
+					{
+						// We found a new transaction using a key that was previously marked as obsolete.
+						spenderKey.ObsoleteHeight = tx.Height;
+					}
+				}
+			}
+		}
+
 		BlockchainAnalyzer.Analyze(result.Transaction);
 
 		return result;
 	}
+	
 
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
 		output.Value <= DustThreshold // the value received is under the dust threshold
