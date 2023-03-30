@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using NBitcoin;
 using NBitcoin.Secp256k1;
@@ -186,7 +188,7 @@ public class SerializationTests
 				new MoneySatoshiJsonConverter()
 		};
 
-		SecureRandom rnd = SecureRandom.Instance;
+		WasabiRandom rnd = new InsecureRandom(12345);
 		var sk = new CredentialIssuerSecretKey(rnd);
 
 		var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
@@ -198,6 +200,8 @@ public class SerializationTests
 
 		// Registration request message.
 		var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
+		Assert.Equal(SerializedMessages.FromBase64EncodedString(SerializedMessages.SerializedICredentialsRequest), serializedRequestMessage);
+
 		ZeroCredentialsRequest deserializedCredentialsRequest = JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters)!;
 		Assert.NotSame(credentialRequest, deserializedCredentialsRequest);
 
