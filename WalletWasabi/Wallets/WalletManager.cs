@@ -160,8 +160,19 @@ public class WalletManager : IWalletProvider
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
+
 				cancel.ThrowIfCancellationRequested();
 
+				var cancelNonAwaited = CancelAllInitialization.Token;
+				var bestKeyManagerHeight = wallet.KeyManager.GetBestHeight();
+#pragma warning disable CS4014
+				BitcoinStore.IndexStore.ForeachFiltersAsync(
+#pragma warning restore CS4014
+					async (filterModel) =>
+						await wallet.ProcessFilterModelAsync(filterModel, false, cancel).ConfigureAwait(false),
+					new Height(bestKeyManagerHeight.Value + 1),
+					cancelNonAwaited);
+				
 				return wallet;
 			}
 			catch

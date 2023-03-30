@@ -413,7 +413,8 @@ public class Wallet : BackgroundService, IWallet
 			{
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
-					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
+					await ProcessFilterModelAsync(filterModel, true, CancellationToken.None).ConfigureAwait(false);
+					await ProcessFilterModelAsync(filterModel, false, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
 
@@ -448,6 +449,7 @@ public class Wallet : BackgroundService, IWallet
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
 		KeyManager.AssertNetworkOrClearBlockState(Network);
+		Height bestKeyManagerNonObsoleteHeight = KeyManager.GetBestNonObsoleteHeight();
 		Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
@@ -458,8 +460,8 @@ public class Wallet : BackgroundService, IWallet
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
 			async (filterModel) =>
-				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
-			new Height(bestKeyManagerHeight.Value + 1),
+				await ProcessFilterModelAsync(filterModel, true, cancel).ConfigureAwait(false),
+			new Height(bestKeyManagerNonObsoleteHeight.Value + 1),
 			cancel).ConfigureAwait(false);
 	}
 
@@ -511,13 +513,12 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
+	public async Task ProcessFilterModelAsync(FilterModel filterModel, bool testNonObsoleteKeys, CancellationToken cancel)
 	{
 		// Don't test obsolete keys as they should not contain any coins.
 		// GetScriptPubKey is an expansive operation, so result is cached.
 		var allKeys = KeyManager.GetKeys();
 		var toTestKeys = new List<byte[]>();
-		// TODO: Reduce complexity of this loop.
 		foreach (var hdPubKey in allKeys)
 		{
 			// Compute and save HdPubKey/ScriptPubKey pair for all keys
@@ -525,17 +526,35 @@ public class Wallet : BackgroundService, IWallet
 			{
 				HdPubKeysWithScriptBytes.Add(hdPubKey, hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes());
 			}
-			
-			// Ignore keys that were made Obsolete before the Height
-			if (hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= new Height(filterModel.Header.Height))
+		}
+
+		if (testNonObsoleteKeys)
+		{
+			// Only test keys that are not yet obsolete.
+			foreach (var hdPubKey in allKeys.Where(x => x.KeyState != KeyState.Obsolete || x.ObsoleteHeight >= new Height(filterModel.Header.Height)))
 			{
 				toTestKeys.Add(HdPubKeysWithScriptBytes[hdPubKey]);
 			}
 		}
-		
+		else
+		{
+			// Only test keys that are obsolete.
+			foreach (var hdPubKey in allKeys.Where(x => x.KeyState == KeyState.Obsolete && x.ObsoleteHeight < new Height(filterModel.Header.Height)))
+			{
+				toTestKeys.Add(HdPubKeysWithScriptBytes[hdPubKey]);
+			}
+		}
+
+		if (toTestKeys.Count == 0)
+		{
+			// No keys to test.
+			return;
+		}
 		var matchFound = filterModel.Filter.MatchAny(toTestKeys, filterModel.FilterKey);
 		if (matchFound)
 		{
+			await Task.Delay(2500, cancel).ConfigureAwait(false);
+			Logger.LogWarning($"Match found at height: {filterModel.Header.Height}");
 			Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
 			var height = new Height(filterModel.Header.Height);
 
@@ -547,12 +566,24 @@ public class Wallet : BackgroundService, IWallet
 			}
 
 			TransactionProcessor.Process(txsToProcess);
-			KeyManager.SetBestHeight(height);
+			if (testNonObsoleteKeys)
+			{
+				// We are testing non-obsolete keys, so we can update the best non obsolete height.
+				KeyManager.SetBestNonObsoleteHeight(height);
+			}
+			else
+			{
+				// All keys were tested, so we can update the best height.
+				KeyManager.SetBestHeight(height);
+			}
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
 
-		LastProcessedFilter = filterModel;
+		if (testNonObsoleteKeys)
+		{
+			LastProcessedFilter = filterModel;
+		}
 	}
 
 	public void SetWaitingForInitState()

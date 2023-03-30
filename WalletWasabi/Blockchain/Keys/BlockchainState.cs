@@ -10,27 +10,33 @@ namespace WalletWasabi.Blockchain.Keys;
 public class BlockchainState
 {
 	[JsonConstructor]
-	public BlockchainState(Network network, Height height)
+	public BlockchainState(Network network, Height height, Height nonObsoleteHeight)
 	{
 		Network = network;
 		Height = height;
+		NonObsoleteHeight = height;
 	}
 
 	public BlockchainState()
 	{
 		Network = Network.Main;
 		Height = 0;
+		NonObsoleteHeight = Height.Unknown;
 	}
 
-	public BlockchainState(Network network) : this(network, 0)
+	public BlockchainState(Network network) : this(network, 0, Height.Unknown)
 	{
 	}
 
 	[JsonProperty]
-	[JsonConverter(typeof(NetworkJsonConverter))]
+	[JsonConverter(typeof(NetworkJsonConverter))]	
 	public Network Network { get; set; }
 
 	[JsonProperty]
 	[JsonConverter(typeof(WalletHeightJsonConverter))]
 	public Height Height { get; set; }
+	
+	[JsonProperty]
+	[JsonConverter(typeof(WalletHeightJsonConverter))]
+	public Height NonObsoleteHeight { get; set; }
 }

@@ -623,6 +623,14 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
+	
+	public Height GetBestNonObsoleteHeight()
+	{
+		lock (CriticalStateLock)
+		{
+			return BlockchainState.NonObsoleteHeight;
+		}
+	}
 
 	public Network GetNetwork()
 	{
@@ -634,6 +642,14 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
+			ToFile();
+		}
+	}
+	public void SetBestNonObsoleteHeight(Height height)
+	{
+		lock (CriticalStateLock)
+		{
+			BlockchainState.NonObsoleteHeight = height;
 			ToFile();
 		}
 	}
