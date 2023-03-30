@@ -46,6 +46,8 @@ public class CoinJoinClient
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
 		LiquidityClueProvider liquidityClueProvider,
+		int bestHeight,
+		CoinRefrigerator coinRefrigerator,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
@@ -59,6 +61,8 @@ public class CoinJoinClient
 		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
+		BestHeight = bestHeight;
+		CoinRefrigerator = coinRefrigerator;
 		ConsolidationMode = consolidationMode;
 		SemiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
@@ -75,9 +79,10 @@ public class CoinJoinClient
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
+	private int BestHeight { get; }
 	private int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-
+	private CoinRefrigerator CoinRefrigerator { get; }
 	private bool ConsolidationMode { get; set; }
 	private bool RedCoinIsolation { get; }
 	private int SemiPrivateThreshold { get; }
@@ -131,7 +136,7 @@ public class CoinJoinClient
 		return roundState;
 	}
 
-	public async Task<CoinJoinResult> StartCoinJoinAsync(IWallet wallet, int bestHeight, CoinRefrigerator coinRefrigerator, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartCoinJoinAsync(IEnumerable<SmartCoin> allCoins, CancellationToken cancellationToken)
 	{
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
@@ -142,14 +147,14 @@ public class CoinJoinClient
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 
-			preselection = new CoinsView(await wallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
-									.Available()
-									.Confirmed()
-									.Where(coin => !coin.IsExcludedFromCoinJoin)
-									.Where(coin => !coin.IsImmature(bestHeight))
-									.Where(coin => !coin.IsBanned)
-									.Where(coin => !coinRefrigerator.IsFrozen(coin))
-									.ToImmutableList();
+			preselection = new CoinsView(allCoins)
+								.Available()
+								.Confirmed()
+								.Where(coin => !coin.IsExcludedFromCoinJoin)
+								.Where(coin => !coin.IsImmature(BestHeight))
+								.Where(coin => !coin.IsBanned)
+								.Where(coin => !CoinRefrigerator.IsFrozen(coin))
+								.ToImmutableList();
 
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 

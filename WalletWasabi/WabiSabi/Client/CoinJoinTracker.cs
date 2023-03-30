@@ -12,8 +12,6 @@ public class CoinJoinTracker : IDisposable
 	public CoinJoinTracker(
 		IWallet wallet,
 		CoinJoinClient coinJoinClient,
-		int bestHeight,
-		CoinRefrigerator coinRefrigerator,
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
 		CancellationToken cancellationToken)
@@ -25,7 +23,7 @@ public class CoinJoinTracker : IDisposable
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(wallet, bestHeight, coinRefrigerator, CancellationTokenSource.Token);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(wallet.GetCoinjoinCoinCandidates(), CancellationTokenSource.Token);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;

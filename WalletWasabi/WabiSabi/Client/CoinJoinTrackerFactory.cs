@@ -48,12 +48,14 @@ public class CoinJoinTrackerFactory
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
 			LiquidityClueProvider,
+			bestHeight,
+			coinRefrigerator,
 			wallet.AnonScoreTarget,
 			consolidationMode: wallet.ConsolidationMode,
 			redCoinIsolation: wallet.RedCoinIsolation,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
-		return new CoinJoinTracker(wallet, coinJoinClient, bestHeight, coinRefrigerator, stopWhenAllMixed, overridePlebStop, CancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, stopWhenAllMixed, overridePlebStop, CancellationToken);
 	}
 }
