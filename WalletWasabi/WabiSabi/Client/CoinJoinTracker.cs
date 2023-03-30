@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.Wallets;
 
@@ -14,7 +12,8 @@ public class CoinJoinTracker : IDisposable
 	public CoinJoinTracker(
 		IWallet wallet,
 		CoinJoinClient coinJoinClient,
-		IEnumerable<SmartCoin> coinCandidates,
+		int bestHeight,
+		CoinRefrigerator coinRefrigerator,
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
 		CancellationToken cancellationToken)
@@ -23,11 +22,10 @@ public class CoinJoinTracker : IDisposable
 		CoinJoinClient = coinJoinClient;
 		CoinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
 
-		CoinCandidates = coinCandidates;
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(wallet, bestHeight, coinRefrigerator, CancellationTokenSource.Token);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
@@ -37,7 +35,6 @@ public class CoinJoinTracker : IDisposable
 
 	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
-	public IEnumerable<SmartCoin> CoinCandidates { get; }
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
 
