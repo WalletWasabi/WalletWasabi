@@ -18,6 +18,7 @@ using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -130,20 +131,31 @@ public class CoinJoinClient
 		return roundState;
 	}
 
-	public async Task<CoinJoinResult> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartCoinJoinAsync(IWallet wallet, int bestHeight, CoinRefrigerator coinRefrigerator, CancellationToken cancellationToken)
 	{
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
+		ImmutableList<SmartCoin> preselection;
 		ImmutableList<SmartCoin> coins;
 
 		do
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
+
+			preselection = new CoinsView(await wallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+									.Available()
+									.Confirmed()
+									.Where(coin => !coin.IsExcludedFromCoinJoin)
+									.Where(coin => !coin.IsImmature(bestHeight))
+									.Where(coin => !coin.IsBanned)
+									.Where(coin => !coinRefrigerator.IsFrozen(coin))
+									.ToImmutableList();
+
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
-			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
+			coins = SelectCoinsForRound(preselection, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -167,7 +179,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new NoCoinsToMixException($"No coin was selected from '{preselection.Count}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(preselection.Sum(c => c.Amount))} BTC.");
 		}
 
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
