@@ -279,7 +279,7 @@ public class TransactionProcessor
 			// If a key is internal and spent all its coins, then it shouldn't be used again.
 			foreach (var spenderKey in myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct())
 			{
-				if (spenderKey.Coins.Any(x => x.SpenderTransaction is null))
+				if (spenderKey.Coins.Any(x => !x.IsSpent()))
 				{
 					// The key still has unspent coins.
 					continue;
