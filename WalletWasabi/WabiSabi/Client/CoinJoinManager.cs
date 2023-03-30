@@ -47,7 +47,8 @@ public class CoinJoinManager : BackgroundService
 	/// </summary>
 	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
 
-	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
+	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.MaxBy(s => (int)s);
+	public ImmutableDictionary<string, CoinJoinClientState> CoinJoinClientStates { get; private set; } = ImmutableDictionary<string, CoinJoinClientState>.Empty;
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
@@ -368,22 +369,26 @@ public class CoinJoinManager : BackgroundService
 				}
 			}
 
-			// Updates the highest coinjoin client state.
-			var onGoingCoinJoins = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
-			var scheduledCoinJoins = trackedAutoStarts.Select(t => t.Key);
+			// Updates coinjoin client states.
+			Dictionary<string, CoinJoinClientState> coinJoinClientStates = new();
+			foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+			{
+				CoinJoinClientState state = CoinJoinClientState.Idle;
+				if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
+				{
+					state = coinJoinTracker.InCriticalCoinJoinState
+						? CoinJoinClientState.InCriticalPhase
+						: CoinJoinClientState.InProgress;
+				}
+				else if (trackedAutoStarts.TryGetValue(wallet, out var trackedAutoStart))
+				{
+					state = CoinJoinClientState.InSchedule;
+				}
 
-			var onGoingHighestState = onGoingCoinJoins.IsEmpty
-				? CoinJoinClientState.Idle
-				: onGoingCoinJoins.Any(wtd => wtd.InCriticalCoinJoinState)
-					? CoinJoinClientState.InCriticalPhase
-					: CoinJoinClientState.InProgress;
+				coinJoinClientStates.Add(wallet.WalletName, state);
+			}
 
-			HighestCoinJoinClientState = onGoingHighestState is not CoinJoinClientState.Idle
-				? onGoingHighestState
-				: scheduledCoinJoins.Any()
-					? CoinJoinClientState.InProgress
-					: CoinJoinClientState.Idle;
-
+			CoinJoinClientStates = coinJoinClientStates.ToImmutableDictionary();
 			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
