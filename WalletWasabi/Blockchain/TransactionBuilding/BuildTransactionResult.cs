@@ -30,7 +30,8 @@ public class BuildTransactionResult
 	public IEnumerable<SmartCoin> InnerWalletOutputs => Transaction.WalletOutputs;
 	public IEnumerable<SmartCoin> SpentCoins => Transaction.WalletInputs;
 
-	public Dictionary<HdPubKey, SmartLabel> HdPubKeysWithLabels { get;}
+	public Dictionary<HdPubKey, SmartLabel> HdPubKeysWithLabels { get; }
+
 	public IEnumerable<Coin> OuterWalletOutputs
 	{
 		get
