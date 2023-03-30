@@ -192,17 +192,6 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			var coinCandidates = (await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false)).ToArray();
-			if (coinCandidates.Length == 0 ||
-				coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget))) // If all selectable coins are already private, then don't mix.
-			{
-				walletToStart.LogDebug("No candidate coins available to mix.");
-				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
-
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
-				return;
-			}
-
 			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, synchronizerResponse.BestHeight, CoinRefrigerator, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 			NotifyWalletStartedCoinJoin(walletToStart);
 
