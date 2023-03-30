@@ -35,7 +35,7 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.Main;
+	public Network Network { get; internal set; } = Network.TestNet;
 
 	[DefaultValue("https://api.wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -217,6 +217,8 @@ public class Config : ConfigBase
 		base.LoadFile(createIfMissing);
 
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
+
+		Network = Network.TestNet;
 	}
 
 	public bool MigrateOldDefaultBackendUris()
