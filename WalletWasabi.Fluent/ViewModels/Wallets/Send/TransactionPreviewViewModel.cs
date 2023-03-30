@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -440,6 +442,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
+				UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithLabels);
 				_cancellationTokenSource?.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
@@ -453,6 +456,14 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			IsBusy = false;
+		}
+	}
+
+	private void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
+	{
+		foreach (var item in hdPubKeysWithLabels)
+		{
+			item.Key.SetLabel(item.Value);
 		}
 	}
 
