@@ -370,29 +370,37 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			// Updates coinjoin client states.
-			Dictionary<string, CoinJoinClientState> coinJoinClientStates = new();
-			foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
-			{
-				CoinJoinClientState state = CoinJoinClientState.Idle;
-				if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
-				{
-					state = coinJoinTracker.InCriticalCoinJoinState
-						? CoinJoinClientState.InCriticalPhase
-						: CoinJoinClientState.InProgress;
-				}
-				else if (trackedAutoStarts.TryGetValue(wallet, out var trackedAutoStart))
-				{
-					state = CoinJoinClientState.InSchedule;
-				}
-
-				coinJoinClientStates.Add(wallet.WalletName, state);
-			}
+			var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
+			var coinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 
 			CoinJoinClientStates = coinJoinClientStates.ToImmutableDictionary();
 			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
+	}
+
+	private static Dictionary<string, CoinJoinClientState> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
+	{
+		Dictionary<string, CoinJoinClientState> coinJoinClientStates = new();
+		foreach (var wallet in wallets)
+		{
+			CoinJoinClientState state = CoinJoinClientState.Idle;
+			if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
+			{
+				state = coinJoinTracker.InCriticalCoinJoinState
+					? CoinJoinClientState.InCriticalPhase
+					: CoinJoinClientState.InProgress;
+			}
+			else if (trackedAutoStarts.TryGetValue(wallet, out var trackedAutoStart))
+			{
+				state = CoinJoinClientState.InSchedule;
+			}
+
+			coinJoinClientStates.Add(wallet.WalletName, state);
+		}
+
+		return coinJoinClientStates;
 	}
 
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
