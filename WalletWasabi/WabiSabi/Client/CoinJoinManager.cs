@@ -164,7 +164,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
-				walletToStart.LogDebug("PlebStop preventing coinjoin.");
+				walletToStart.LogTrace($"PlebStop preventing coinjoin.");
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
