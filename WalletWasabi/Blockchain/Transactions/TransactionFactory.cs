@@ -252,6 +252,7 @@ public class TransactionFactory
 				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
+
 		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
 		Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels = new();
 
