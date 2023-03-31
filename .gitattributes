@@ -5,7 +5,7 @@
 **/osx64/Tor/tor text eol=lf
 
 # Visual Studio spell checker file should be treated as a text file, not a binary file.
-exclusion.dic     text
+*.dic     text
 
 ###############################################################################
 # Set default behavior for command prompt diff.
