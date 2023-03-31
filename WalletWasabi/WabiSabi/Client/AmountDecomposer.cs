@@ -43,6 +43,54 @@ public class AmountDecomposer
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private Random Random { get; }
 
+	private static IEnumerable<long> CreateGeometricProgression(long minimum, long maximum, byte r, long a)
+	{
+		if (minimum < 0)
+		{
+			throw new ArgumentException("Cannot be negative", nameof(minimum));
+		}
+
+		if (maximum < 0)
+		{
+			throw new ArgumentException("Cannot be negative", nameof(maximum));
+		}
+
+		if (a < 0)
+		{
+			throw new ArgumentException("Cannot be negative", nameof(a));
+		}
+
+		if (maximum < minimum)
+		{
+			throw new ArgumentException("Maximum cannot be less than minimum");
+		}
+
+		long x = a;
+		while (true)
+		{
+			long new_x = checked(x * r);
+
+			if (new_x == x)
+			{
+				break;
+			}
+
+			x = new_x;
+
+			if (x < minimum)
+			{
+				continue;
+			}
+
+			if (x > maximum)
+			{
+				break;
+			}
+
+			yield return x;
+		}
+	}
+
 	private ScriptType GetNextScriptType()
 	{
 		if (!IsTaprootAllowed)
@@ -55,124 +103,27 @@ public class AmountDecomposer
 
 	private IOrderedEnumerable<Output> CreateDenominations()
 	{
-		var denominations = new HashSet<Output>();
-
-		Output CreateDenom(double sats)
+		Output CreateDenom(long sats)
 		{
 			var scriptType = GetNextScriptType();
-			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
+			return Output.FromDenomination(Money.Satoshis(sats), scriptType, FeeRate);
 		}
 
-		// Powers of 2
-		for (int i = 0; i < int.MaxValue; i++)
+		IEnumerable<long> CreateDenominationProgression(byte r, long a)
 		{
-			var denom = CreateDenom(Math.Pow(2, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
+			return CreateGeometricProgression(MinAllowedOutputAmount, MaxAllowedOutputAmount, r, a);
 		}
 
-		// Powers of 3
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3 * 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 2 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 5 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 5);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
+		var denominations = Enumerable.Empty<long>()
+			.Concat(CreateDenominationProgression(2, 1))
+			.Concat(CreateDenominationProgression(3, 1))
+			.Concat(CreateDenominationProgression(3, 2))
+			.Concat(CreateDenominationProgression(10, 1))
+			.Concat(CreateDenominationProgression(10, 2))
+			.Concat(CreateDenominationProgression(10, 5));
 
 		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return denominations.Select(CreateDenom).OrderByDescending(x => x.EffectiveAmount);
 	}
 
 	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
