@@ -558,9 +558,16 @@ public class Wallet : BackgroundService, IWallet
 
 	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
 	{
+		if (!hdPubKeysWithLabels.Any())
+		{
+			return;
+		}
+
 		foreach (var item in hdPubKeysWithLabels)
 		{
 			item.Key.SetLabel(item.Value);
 		}
+
+		KeyManager.ToFile();
 	}
 }
