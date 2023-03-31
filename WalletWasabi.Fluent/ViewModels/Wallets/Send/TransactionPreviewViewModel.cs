@@ -442,7 +442,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
-				UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithLabels);
+				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithLabels);
 				_cancellationTokenSource?.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
@@ -456,14 +456,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			IsBusy = false;
-		}
-	}
-
-	private void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
-	{
-		foreach (var item in hdPubKeysWithLabels)
-		{
-			item.Key.SetLabel(item.Value);
 		}
 	}
 

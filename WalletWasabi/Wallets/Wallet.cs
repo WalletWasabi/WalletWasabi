@@ -555,4 +555,12 @@ public class Wallet : BackgroundService, IWallet
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
 	}
+
+	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
+	{
+		foreach (var item in hdPubKeysWithLabels)
+		{
+			item.Key.SetLabel(item.Value);
+		}
+	}
 }
