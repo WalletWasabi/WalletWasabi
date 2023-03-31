@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.WabiSabi.Crypto;
@@ -86,6 +87,32 @@ public class SerializationTests
 		var deserializedIssuanceRequest = JsonConvert.DeserializeObject<IssuanceRequest>(serializedIssuanceRequest, converters)!;
 		Assert.Equal(issuanceRequest.Ma, deserializedIssuanceRequest.Ma);
 		Assert.Equal(issuanceRequest.BitCommitments, deserializedIssuanceRequest.BitCommitments);
+	}
+
+	[Fact]
+	public void CredentialResponseSerialization()
+	{
+		var converters = new JsonConverter[]
+		{
+			new ScalarJsonConverter(),
+			new GroupElementJsonConverter(),
+		};
+
+		var rnd = new InsecureRandom(1234);
+		var points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
+		var scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
+		var issuerKey = new CredentialIssuerSecretKey(rnd);
+
+		var credentialRespose =
+			new CredentialsResponse(
+				new[] { MAC.ComputeMAC(issuerKey, points.First(), scalars.First()) },
+				new[] { new Proof(new GroupElementVector(points.Take(2)), new ScalarVector(scalars.Take(2))) });
+
+		var serializedCredentialsResponse = JsonConvert.SerializeObject(credentialRespose, converters);
+
+		var deserializedCredentialsResponse = JsonConvert.DeserializeObject<CredentialsResponse>(serializedCredentialsResponse, converters)!;
+		Assert.Equal(credentialRespose.IssuedCredentials, deserializedCredentialsResponse.IssuedCredentials);
+		Assert.Equal(credentialRespose.Proofs, deserializedCredentialsResponse.Proofs);
 	}
 
 	[Fact]
