@@ -81,7 +81,7 @@ public class TransactionFactoryTests
 		var changeCoin = Assert.Single(result.InnerWalletOutputs);
 		Assert.True(changeCoin.HdPubKey.IsInternal);
 
-		var changeCoinAndLabelPair = result.HdPubKeysWithLabels.First(x => x.Key == changeCoin.HdPubKey);
+		var changeCoinAndLabelPair = result.HdPubKeysWithNewLabels.First(x => x.Key == changeCoin.HdPubKey);
 		Assert.Equal("Sophie", changeCoinAndLabelPair.Value);
 	}
 
@@ -111,7 +111,7 @@ public class TransactionFactoryTests
 		var changeCoin = Assert.Single(result.InnerWalletOutputs);
 		Assert.True(changeCoin.HdPubKey.IsInternal);
 
-		var changeCoinAndLabelPair = result.HdPubKeysWithLabels.First(x => x.Key == changeCoin.HdPubKey);
+		var changeCoinAndLabelPair = result.HdPubKeysWithNewLabels.First(x => x.Key == changeCoin.HdPubKey);
 		Assert.Equal("Joseph, Sophie", changeCoinAndLabelPair.Value);
 	}
 
@@ -170,7 +170,7 @@ public class TransactionFactoryTests
 		Assert.Equal(Money.Coins(0.14m), result.SpentCoins.Select(x => x.Amount).Sum());
 
 		var changeCoin = Assert.Single(result.InnerWalletOutputs);
-		var changeCoinAndLabelPair = result.HdPubKeysWithLabels.First(x => x.Key == changeCoin.HdPubKey);
+		var changeCoinAndLabelPair = result.HdPubKeysWithNewLabels.First(x => x.Key == changeCoin.HdPubKey);
 		Assert.Equal("Daniel, Maria, Sophie", changeCoinAndLabelPair.Value);
 
 		var tx = result.Transaction.Transaction;

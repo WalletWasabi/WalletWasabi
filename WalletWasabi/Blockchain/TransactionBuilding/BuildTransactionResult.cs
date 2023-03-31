@@ -10,14 +10,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class BuildTransactionResult
 {
-	public BuildTransactionResult(SmartTransaction transaction, PSBT psbt, bool signed, Money fee, decimal feePercentOfSent, Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
+	public BuildTransactionResult(SmartTransaction transaction, PSBT psbt, bool signed, Money fee, decimal feePercentOfSent, Dictionary<HdPubKey, SmartLabel> hdPubKeysWithNewLabels)
 	{
 		Transaction = transaction;
 		Psbt = psbt;
 		Signed = signed;
 		Fee = fee;
 		FeePercentOfSent = feePercentOfSent;
-		HdPubKeysWithLabels = hdPubKeysWithLabels;
+		HdPubKeysWithNewLabels = hdPubKeysWithNewLabels;
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -30,7 +30,7 @@ public class BuildTransactionResult
 	public IEnumerable<SmartCoin> InnerWalletOutputs => Transaction.WalletOutputs;
 	public IEnumerable<SmartCoin> SpentCoins => Transaction.WalletInputs;
 
-	public Dictionary<HdPubKey, SmartLabel> HdPubKeysWithLabels { get; }
+	public Dictionary<HdPubKey, SmartLabel> HdPubKeysWithNewLabels { get; }
 
 	public IEnumerable<Coin> OuterWalletOutputs
 	{
