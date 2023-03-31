@@ -28,6 +28,8 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -107,16 +109,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
-		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		var coins = keyManager.GetKeys()
-			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
-			.ToArray();
+		KeyManager keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
+
+		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
+
+		SmartCoin[] GetCoinsCandidate()
+		{
+			return coins;
+		}
+
 		_output.WriteLine("Coins were created successfully");
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
-				coins,
+				GetCoinsCandidate(),
 				rpc =>
 
 					// Make the coordinator believe that the transaction is being
@@ -143,7 +149,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				});
 
 				// Emulate that the first coin is coming from a coinjoin.
-				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
+				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { GetCoinsCandidate()[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
 
 		// Create the coinjoin client
@@ -171,7 +177,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(GetCoinsCandidate, cts.Token);
 		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
@@ -183,7 +189,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[Fact]
 	public async Task FailToRegisterOutputsCoinJoinTestAsync()
 	{
-		var amounts = new long[] { 10_000_000, 20_000_000, 30_000_000 };
+		long[] amounts = new long[] { 10_000_000, 20_000_000, 30_000_000 };
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -191,11 +197,15 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
-		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		var coins = keyManager.GetKeys()
-			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
-			.ToArray();
+		KeyManager keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
+
+		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
+
+		SmartCoin[] GetCoinsCandidate()
+		{
+			return coins;
+		}
+
 		_output.WriteLine("Coins were created successfully");
 
 		keyManager.AssertLockedInternalKeysIndexed(14, false);
@@ -206,7 +216,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder
-			.AddMockRpcClient(coins, rpc => { })
+			.AddMockRpcClient(GetCoinsCandidate(), rpc => { })
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use this scoped
@@ -268,7 +278,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			coinJoinClient.CoinJoinClientProgress += HandleCoinJoinProgress;
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
+			await coinJoinClient.StartCoinJoinAsync(GetCoinsCandidate, cts.Token);
 			throw new Exception("Coinjoin should have never finished successfully.");
 		}
 		catch (OperationCanceledException)
@@ -295,18 +305,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-		var keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		var keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		var coins = keyManager1.GetKeys()
-			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
-			.ToArray();
+		var coins = GenerateSmartCoins(keyManager1, amounts, inputCount);
+		var badCoins = GenerateSmartCoins(keyManager2, amounts, inputCount);
 
-		var badCoins = keyManager2.GetKeys()
-			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
-			.ToArray();
+		SmartCoin[] GetCoinsCandidate()
+		{
+			return coins;
+		}
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 		builder.AddMockRpcClient(
@@ -368,7 +376,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager1, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, cts.Token).ConfigureAwait(false), cts.Token);
+		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(GetCoinsCandidate, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
@@ -409,7 +417,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		Assert.NotNull(broadcastedTx);
 
 		Assert.Equal(
-			coins.Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
+			GetCoinsCandidate().Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
 			broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x));
 
 		await roundStateUpdater.StopAsync(CancellationToken.None);
@@ -607,6 +615,14 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
+	}
+
+	private SmartCoin[] GenerateSmartCoins(KeyManager keyManager, long[] amounts, int inputCount)
+	{
+		return keyManager.GetKeys()
+			.Take(inputCount)
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
+			.ToArray();
 	}
 
 	public class TesteableRpcClient : RpcClientBase
