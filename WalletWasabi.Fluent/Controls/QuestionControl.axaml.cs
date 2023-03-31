@@ -35,6 +35,11 @@ public class QuestionControl : ContentControl
 	public static readonly StyledProperty<bool> IsNoButtonProperty =
 		AvaloniaProperty.Register<QuestionControl, bool>(nameof(IsNoButton));
 
+	public QuestionControl()
+	{
+		UpdateHighlightedButton(HighlightButton);
+	}
+
 	public ICommand YesCommand
 	{
 		get => GetValue(YesCommandProperty);
@@ -75,11 +80,6 @@ public class QuestionControl : ContentControl
 	{
 		get => GetValue(HighlightButtonProperty);
 		set => SetValue(HighlightButtonProperty, value);
-	}
-
-	public QuestionControl()
-	{
-		UpdateHighlightedButton(HighlightButton);
 	}
 
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)

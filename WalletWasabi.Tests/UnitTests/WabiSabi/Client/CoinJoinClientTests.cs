@@ -1,7 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.JsonPatch.Internal;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -49,5 +53,41 @@ public class CoinJoinClientTests
 		Assert.False(CoinJoinClient.SanityCheck(
 			new[] { output2, output3 },
 			new[] { output1, AddOneSat(output2), SubOneSat(output3), output4 }));
+	}
+
+	[Fact]
+	public void GetTxOutsTest()
+	{
+		FeeRate feeRate = new(10m);
+
+		var outputs = new[]
+		{
+			Output.FromDenomination(Money.Coins(1m), ScriptType.P2WPKH, feeRate),
+			Output.FromDenomination(Money.Coins(2m), ScriptType.P2WPKH, feeRate),
+			Output.FromDenomination(Money.Coins(3m), ScriptType.Taproot, feeRate),
+			Output.FromDenomination(Money.Coins(4m), ScriptType.Taproot, feeRate),
+		};
+
+		var password = "satoshi";
+		var km = ServiceFactory.CreateKeyManager(password, true);
+		var destinationProvider = new InternalDestinationProvider(km);
+
+		var txOuts = CoinJoinClient.GetTxOuts(outputs, destinationProvider);
+
+		// All the outputs were generated.
+		Assert.Equal(txOuts.Count(), outputs.Length);
+
+		// No address reuse.
+		Assert.Distinct(txOuts.Select(x => x.ScriptPubKey));
+
+		// Verify if all the outputs are generated with correct ScriptType and Value.
+		List<TxOut> toCheck = txOuts.ToList();
+		foreach (var output in outputs)
+		{
+			var foundTxOut = toCheck.First(txout => txout.ScriptPubKey.IsScriptType(output.ScriptType) && txout.Value == output.Amount);
+			toCheck.Remove(foundTxOut);
+		}
+
+		Assert.Empty(toCheck);
 	}
 }

@@ -44,7 +44,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	public DateTimeOffset? BannedUntilUtc { get; protected set; }
 
-	public bool IsExpanded { get; set; } = true;
+	public bool IsExpanded { get; set; }
 
 	public bool CanBeSelected { get; protected set; }
 

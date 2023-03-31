@@ -24,7 +24,7 @@
 
       <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Amount"
+                     Label="{Binding AmountText}"
                      TextValue="{Binding Amount}">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />

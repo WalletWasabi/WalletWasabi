@@ -164,7 +164,13 @@ public static class WasabiAppExtensions
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
 
 				AppBuilder
-					.Configure(() => new App( async () => await Task.CompletedTask, runGuiInBackground))
+					.Configure(() => new App(
+						async () =>
+						{
+							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup)
+								.ConfigureAwait(false);
+						}, runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
