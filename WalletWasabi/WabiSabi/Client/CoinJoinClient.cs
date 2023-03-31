@@ -133,12 +133,14 @@ public class CoinJoinClient
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
 		ImmutableList<SmartCoin> coins;
-		var coinCandidates = coinCandidatesFunc();
+		IEnumerable<SmartCoin> coinCandidates;
 
 		do
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
+
+			coinCandidates = coinCandidatesFunc();
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
