@@ -14,7 +14,6 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -29,7 +28,6 @@ using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
