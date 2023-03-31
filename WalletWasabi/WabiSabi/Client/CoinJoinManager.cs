@@ -371,16 +371,15 @@ public class CoinJoinManager : BackgroundService
 
 			// Updates coinjoin client states.
 			var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
-			var coinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 
-			CoinJoinClientStates = coinJoinClientStates.ToImmutableDictionary();
+			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
 	}
 
-	private static Dictionary<string, CoinJoinClientState> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
+	private static ImmutableDictionary<string, CoinJoinClientState> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
 	{
 		Dictionary<string, CoinJoinClientState> coinJoinClientStates = new();
 		foreach (var wallet in wallets)
@@ -400,7 +399,7 @@ public class CoinJoinManager : BackgroundService
 			coinJoinClientStates.Add(wallet.WalletName, state);
 		}
 
-		return coinJoinClientStates;
+		return coinJoinClientStates.ToImmutableDictionary();
 	}
 
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
