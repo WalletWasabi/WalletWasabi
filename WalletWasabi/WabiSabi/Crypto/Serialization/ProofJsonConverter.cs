@@ -12,8 +12,8 @@ public class ProofJsonConverter : JsonConverter<Proof>
 	public override Proof? ReadJson(JsonReader reader, Type objectType, Proof? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		reader.Expect(JsonToken.StartObject);
-		var publicNonces = reader.ReadProperty<GroupElementVector>(serializer, "publicNonces");
-		var responses = reader.ReadProperty<ScalarVector>(serializer, "responses");
+		var publicNonces = reader.ReadProperty<GroupElementVector>(serializer, "PublicNonces");
+		var responses = reader.ReadProperty<ScalarVector>(serializer, "Responses");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 		return ReflectionUtils.CreateInstance<Proof>(new object[] { publicNonces, responses });
@@ -27,8 +27,8 @@ public class ProofJsonConverter : JsonConverter<Proof>
 			throw new ArgumentException($"No valid {nameof(Proof)}.", nameof(proof));
 		}
 		writer.WriteStartObject();
-		writer.WriteProperty("publicNonces", proof.PublicNonces, serializer);
-		writer.WriteProperty("responses", proof.Responses, serializer);
+		writer.WriteProperty("PublicNonces", proof.PublicNonces, serializer);
+		writer.WriteProperty("Responses", proof.Responses, serializer);
 		writer.WriteEndObject();
 	}
 }

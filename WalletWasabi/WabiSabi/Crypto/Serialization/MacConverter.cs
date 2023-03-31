@@ -13,8 +13,8 @@ public class MacJsonConverter : JsonConverter<MAC>
 	public override MAC? ReadJson(JsonReader reader, Type objectType, MAC? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		reader.Expect(JsonToken.StartObject);
-		var t = reader.ReadProperty<Scalar>(serializer, "t");
-		var v = reader.ReadProperty<GroupElement>(serializer, "v");
+		var t = reader.ReadProperty<Scalar>(serializer, "T");
+		var v = reader.ReadProperty<GroupElement>(serializer, "V");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 		return ReflectionUtils.CreateInstance<MAC>(new object[] { t, v });
@@ -28,8 +28,8 @@ public class MacJsonConverter : JsonConverter<MAC>
 			throw new ArgumentException($"No valid {nameof(MAC)}.", nameof(mac));
 		}
 		writer.WriteStartObject();
-		writer.WriteProperty("t", mac.T, serializer);
-		writer.WriteProperty("v", mac.V, serializer);
+		writer.WriteProperty("T", mac.T, serializer);
+		writer.WriteProperty("V", mac.V, serializer);
 		writer.WriteEndObject();
 	}
 }

@@ -11,11 +11,11 @@ public class CredentialPresentationJsonConverter : JsonConverter<CredentialPrese
 	public override CredentialPresentation? ReadJson(JsonReader reader, Type objectType, CredentialPresentation? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		reader.Expect(JsonToken.StartObject);
-		var ca = reader.ReadProperty<GroupElement>(serializer, "ca");
-		var cx0 = reader.ReadProperty<GroupElement>(serializer, "cx0");
-		var cx1 = reader.ReadProperty<GroupElement>(serializer, "cx1");
-		var cV = reader.ReadProperty<GroupElement>(serializer, "cv");
-		var s = reader.ReadProperty<GroupElement>(serializer, "s");
+		var ca = reader.ReadProperty<GroupElement>(serializer, "Ca");
+		var cx0 = reader.ReadProperty<GroupElement>(serializer, "Cx0");
+		var cx1 = reader.ReadProperty<GroupElement>(serializer, "Cx1");
+		var cV = reader.ReadProperty<GroupElement>(serializer, "CV");
+		var s = reader.ReadProperty<GroupElement>(serializer, "S");
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 
@@ -30,11 +30,11 @@ public class CredentialPresentationJsonConverter : JsonConverter<CredentialPrese
 			throw new ArgumentException($"No valid {nameof(CredentialPresentation)}.", nameof(value));
 		}
 		writer.WriteStartObject();
-		writer.WriteProperty("ca", value.Ca, serializer);
-		writer.WriteProperty("cx0", value.Cx0, serializer);
-		writer.WriteProperty("cx1", value.Cx1, serializer);
-		writer.WriteProperty("cv", value.CV, serializer);
-		writer.WriteProperty("s", value.S, serializer);
+		writer.WriteProperty("Ca", value.Ca, serializer);
+		writer.WriteProperty("Cx0", value.Cx0, serializer);
+		writer.WriteProperty("Cx1", value.Cx1, serializer);
+		writer.WriteProperty("CV", value.CV, serializer);
+		writer.WriteProperty("S", value.S, serializer);
 		writer.WriteEndObject();
 	}
 }
