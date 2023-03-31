@@ -81,13 +81,13 @@ public class CoinJoinClient
 	private bool RedCoinIsolation { get; }
 	private int SemiPrivateThreshold { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	private TimeSpan MaxWaitingTimeSpanForRound { get; } = TimeSpan.FromMinutes(10);
+	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
 		CoinJoinClientProgress.SafeInvoke(this, new WaitingForRound());
 
-		using CancellationTokenSource cts = new(MaxWaitingTimeSpanForRound);
+		using CancellationTokenSource cts = new(MaxWaitingTimeForRound);
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, cts.Token);
 
 		return await RoundStatusUpdater
