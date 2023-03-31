@@ -28,13 +28,13 @@ public class UiContext
 
 	public INavigate Navigate()
 	{
-		return _navigate ?? throw new InvalidOperationException("UIContext Navigation hasn't been initialized.");
+		return _navigate ?? throw new InvalidOperationException($"{GetType().Name} {nameof(_navigate)} hasn't been initialized.");
 	}
 
 	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
 	{
 		return
 			_navigate?.Navigate(target)
-			?? throw new InvalidOperationException("UIContext Navigation hasn't been initialized.");
+			?? throw new InvalidOperationException($"{GetType().Name} {nameof(_navigate)} hasn't been initialized.");
 	}
 }
