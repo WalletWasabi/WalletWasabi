@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
