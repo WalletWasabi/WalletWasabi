@@ -13,14 +13,16 @@ public static class JsonReaderExtensions
 
 		if (reader.TokenType == JsonToken.PropertyName)
 		{
-			var propertyName = reader.Value.ToString();
-			if (propertyName != name)
+			if (reader.Value?.ToString() is { } propertyName)
 			{
-				throw new JsonException($"Property '{name}' was expected.");
-			}
+				if (!propertyName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+				{
+					throw new JsonException($"Property '{name}' was expected.");
+				}
 
-			reader.Read();
-			return serializer.Deserialize<T>(reader);
+				reader.Read();
+				return serializer.Deserialize<T>(reader);
+			}
 		}
 		throw new JsonException($"Property '{name}' was expected.");
 	}
