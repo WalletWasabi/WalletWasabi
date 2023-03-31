@@ -128,7 +128,7 @@ public static class CoinJoinCoinSelector
 
 			var sw2 = Stopwatch.StartNew();
 			foreach (var group in orderedAllowedCoins
-				.Except(new TCoin[] { coin })
+				.Except(new[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))
 			{
