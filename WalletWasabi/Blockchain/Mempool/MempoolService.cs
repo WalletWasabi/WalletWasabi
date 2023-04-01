@@ -104,12 +104,14 @@ public class MempoolService
 				var compactness = 10;
 				var allMempoolHashes = await httpClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
+				int removedTxCount;
+
 				lock (ProcessedLock)
 				{
-					int removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
-
-					Logger.LogInfo($"{removedTxCount} transactions were cleaned from mempool.");
+					removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
 				}
+
+				Logger.LogInfo($"{removedTxCount} transactions were removed from mempool.");
 			}
 
 			// Display warning if total receives would be reached by duplicated receives.
