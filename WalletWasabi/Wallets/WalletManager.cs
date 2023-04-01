@@ -108,13 +108,11 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public bool HasWallet() => AnyWallet(_ => true);
-
-	public bool AnyWallet(Func<Wallet, bool> predicate)
+	public bool HasWallet()
 	{
 		lock (Lock)
 		{
-			return Wallets.Any(predicate);
+			return Wallets.Count > 0;
 		}
 	}
 
