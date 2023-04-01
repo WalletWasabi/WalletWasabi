@@ -79,9 +79,7 @@ public class Wallet : BackgroundService, IWallet
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
-	/// <summary>
-	/// Unspent Transaction Outputs
-	/// </summary>
+	/// <summary>Unspent Transaction Outputs</summary>
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
