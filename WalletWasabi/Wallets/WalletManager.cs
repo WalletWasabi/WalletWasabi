@@ -165,13 +165,18 @@ public class WalletManager : IWalletProvider
 
 				var cancelNonAwaited = CancelAllInitialization.Token;
 				var bestKeyManagerHeight = wallet.KeyManager.GetBestHeight();
-#pragma warning disable CS4014
-				BitcoinStore.IndexStore.ForeachFiltersAsync(
-#pragma warning restore CS4014
-					async (filterModel) =>
-						await wallet.ProcessFilterModelAsync(filterModel, false, cancel).ConfigureAwait(false),
-					new Height(bestKeyManagerHeight.Value + 1),
-					cancelNonAwaited);
+				
+				// Continue wallet synchronization in the background for all keys skipped by TurboSync.
+				_ = Task.Run(
+					async () =>
+				{
+					await BitcoinStore.IndexStore.ForeachFiltersAsync(
+						async (filterModel) =>
+							await wallet.ProcessFilterModelAsync(filterModel, false, cancel).ConfigureAwait(false),
+						new Height(bestKeyManagerHeight.Value + 1),
+						cancelNonAwaited).ConfigureAwait(false);
+				},
+					cancel);
 				
 				return wallet;
 			}

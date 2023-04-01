@@ -413,8 +413,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
-					await ProcessFilterModelAsync(filterModel, true, CancellationToken.None).ConfigureAwait(false);
-					await ProcessFilterModelAsync(filterModel, false, CancellationToken.None).ConfigureAwait(false);
+					await ProcessFilterModelAsync(filterModel).ConfigureAwait(false);
 				}
 			}
 
@@ -513,13 +512,18 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 	
-	private IEnumerable<byte[]> GetScriptPubKeysToTest(FilterModel filterModel, bool testNonObsoleteKeys)
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(FilterModel filterModel, bool? turboSync = null)
 	{
+		if (turboSync is null)
+		{
+			return KeyManager.GetPubKeyScriptBytes();
+		}
+		
 		var result = new List<byte[]>();
 		
 		// If testNonObsoleteKeys, then test all non-obsolete keys or keys not yet obsoleted at the height.
 		// If !testNonObsoleteKeys, then test all other keys (obsoleted at the height)
-		var keysToTest = testNonObsoleteKeys ? 
+		var keysToTest = turboSync.GetValueOrDefault() ? 
 			KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= new Height(filterModel.Header.Height)) : 
 			KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < new Height(filterModel.Header.Height));
 		
@@ -541,9 +545,10 @@ public class Wallet : BackgroundService, IWallet
 		return result;
 	}
 
-	public async Task ProcessFilterModelAsync(FilterModel filterModel, bool testNonObsoleteKeys, CancellationToken cancel)
+	// TurboSync specifications: https://github.com/zkSNACKs/WalletWasabi/issues/10219
+	public async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync = null, CancellationToken cancel = default)
 	{
-		var toTestKeys = GetScriptPubKeysToTest(filterModel, testNonObsoleteKeys).ToList();
+		var toTestKeys = GetScriptPubKeysToTest(filterModel, turboSync).ToList();
 		
 		if (toTestKeys.Count == 0)
 		{
@@ -565,7 +570,7 @@ public class Wallet : BackgroundService, IWallet
 			}
 
 			TransactionProcessor.Process(txsToProcess);
-			if (testNonObsoleteKeys)
+			if (turboSync.GetValueOrDefault())
 			{
 				// We are testing non-obsolete keys, so we can update the best non obsolete height.
 				KeyManager.SetBestNonObsoleteHeight(height);
