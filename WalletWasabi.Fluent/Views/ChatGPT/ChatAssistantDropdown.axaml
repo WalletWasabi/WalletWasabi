@@ -1,0 +1,191 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:cvm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT"
+             xmlns:cmvm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT.Messages"
+             xmlns:cmavm="clr-namespace:WalletWasabi.Fluent.ViewModels.ChatGPT.Messages.Actions"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.ChatGPT.ChatAssistantDropdown"
+             x:CompileBindings="True"
+             x:DataType="cvm:ChatAssistantViewModel">
+  <Design.DataContext>
+    <cvm:ChatAssistantViewModel />
+  </Design.DataContext>
+
+  <UserControl.Resources>
+    <StreamGeometry x:Key="arrow_reset_regular">M6.78 2.72a.75.75 0 0 1 0 1.06L4.56 6h8.69a7.75 7.75 0 1 1-7.75 7.75.75.75 0 0 1 1.5 0 6.25 6.25 0 1 0 6.25-6.25H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 0Z</StreamGeometry>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.searchItem /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="Background">
+        <Setter.Value>
+          <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style Selector="SelectingItemsControl">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ItemsPresenter Name="PART_ItemsPresenter"
+                            Items="{TemplateBinding Items}"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            ItemTemplate="{TemplateBinding ItemTemplate}"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+  </UserControl.Styles>
+
+  <DockPanel VerticalAlignment="Center">
+    <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}"
+               Margin="10,10,10,10"
+               TextWrapping="Wrap"
+               Opacity="0.6"
+               Text="{Binding WelcomeMessage}" />
+    <Button Margin="0,0,0,10"
+            HorizontalAlignment="Left"
+            Classes="plain"
+            Command="{Binding ClearCommand}"
+            IsVisible="{Binding HasResults}"
+            ToolTip.Tip="Clear chat history"
+            DockPanel.Dock="Top">
+      <PathIcon Data="{DynamicResource arrow_reset_regular}"
+                Classes="size16"
+                Opacity="0.6"/>
+    </Button>
+    <ProgressBar IsIndeterminate="{Binding IsBusy}"
+                 IsVisible="{Binding IsBusy}"
+                 Margin="12,5,12,10"
+                 Value="50"
+                 DockPanel.Dock="Bottom"/>
+    <ScrollViewer Name="ChatScrollViewer"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+      <SelectingItemsControl Name="MessagesItemsControl"
+                             IsVisible="{Binding HasResults}"
+                             Items="{Binding Messages}"
+                             SelectedItem="{Binding CurrentMessage}"
+                             Margin="12,0,12,0">
+        <SelectingItemsControl.Styles>
+          <Style Selector="Border.message">
+            <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+            <Setter Property="Margin" Value="0 0 0 10" />
+            <Setter Property="Padding" Value="12,5,12,5" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="38" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+            <Setter Property="CornerRadius" Value="2" />
+          </Style>
+          <Style Selector="TextBlock.message">
+            <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+        </SelectingItemsControl.Styles>
+        <SelectingItemsControl.DataTemplates>
+          <!-- User Message -->
+          <DataTemplate DataType="{x:Type cmvm:UserMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Right">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+          <!-- Assistant Message -->
+          <DataTemplate DataType="{x:Type cmvm:AssistantMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+          <!-- Error Message -->
+          <DataTemplate DataType="{x:Type cmvm:ErrorMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left"
+                    BorderBrush="{DynamicResource WarningMessageForeground}">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           Foreground="{DynamicResource WarningMessageForeground}"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+          <!-- Balance Action Message -->
+          <DataTemplate DataType="{x:Type cmavm:BalanceActionMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <c:PreviewItem Label="Wallet balance"
+                             TextValue="{Binding Balance}">
+                <DockPanel>
+                  <TextBlock Text="{Binding Message}"
+                             Classes="message"
+                             DockPanel.Dock="Top" />
+                </DockPanel>
+              </c:PreviewItem>
+            </Border>
+          </DataTemplate>
+          <!-- Receive Action Message -->
+          <DataTemplate DataType="{x:Type cmavm:ReceiveActionMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <c:PreviewItem Label="Receive address"
+                             TextValue="{Binding Address}">
+                <DockPanel>
+                  <TextBlock Text="{Binding Message}"
+                             Classes="message"
+                             DockPanel.Dock="Top" />
+                </DockPanel>
+              </c:PreviewItem>
+            </Border>
+          </DataTemplate>
+          <!-- Send Action Message -->
+          <DataTemplate DataType="{x:Type cmavm:SendActionMessageViewModel}">
+            <Border Classes="message"
+                    HorizontalAlignment="Left">
+              <DockPanel>
+                <TextBlock Text="{Binding Message}"
+                           Classes="message"
+                           DockPanel.Dock="Top" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </SelectingItemsControl.DataTemplates>
+      </SelectingItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+
+</UserControl>

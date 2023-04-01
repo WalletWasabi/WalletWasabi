@@ -8,6 +8,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.ChatGPT;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -37,7 +38,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
 	[AutoNotify] private StatusIconViewModel _statusIcon;
-	[AutoNotify] private string _title = "Wasabi Wallet";
+	[AutoNotify] private string _title = "Wasabi Wallet GPT";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
@@ -114,6 +115,8 @@ public partial class MainViewModel : ViewModelBase
 
 		SearchBar = CreateSearchBar();
 
+		ChatAssistant = CreateChatAssistant();
+
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
 
@@ -126,6 +129,8 @@ public partial class MainViewModel : ViewModelBase
 	public TargettedNavigationStack MainScreen { get; }
 
 	public SearchBarViewModel SearchBar { get; }
+
+	public ChatAssistantViewModel ChatAssistant { get; }
 
 	public static MainViewModel Instance { get; } = new();
 
@@ -338,5 +343,14 @@ public partial class MainViewModel : ViewModelBase
 			.Subscribe(filterChanged);
 
 		return searchBar;
+	}
+
+	private ChatAssistantViewModel CreateChatAssistant()
+	{
+		var chatAssistant = new ChatAssistantViewModel();
+
+		// TODO: Initialization?
+
+		return chatAssistant;
 	}
 }

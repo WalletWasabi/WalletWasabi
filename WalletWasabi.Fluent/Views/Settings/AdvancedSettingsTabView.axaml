@@ -14,5 +14,19 @@
       <ToggleSwitch IsChecked="{Binding EnableGpu}" />
     </DockPanel>
 
+    <StackPanel Spacing="10" ToolTip.Tip="Override OpenAI model. By default gpt-3.5-turbo model is used.">
+      <TextBlock Text="OpenAI model" />
+      <TextBox Text="{Binding Model}"
+               Watermark="Override OpenAI model" />
+    </StackPanel>
+
+    <StackPanel Spacing="10"
+                ToolTip.Tip="Override OpenAI api key. By default OPENAI_API_KEY environment variable is used." >
+      <TextBlock Text="OpenAI api key" />
+      <TextBox Text="{Binding ApiKey}"
+               Watermark="Override OpenAI api key"
+               PasswordChar="*" />
+    </StackPanel>
+
   </StackPanel>
 </UserControl>

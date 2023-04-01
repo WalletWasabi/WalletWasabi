@@ -18,10 +18,11 @@
         ExtendClientAreaTitleBarHeightHint="50"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
-        Title="Wasabi Wallet"
+        Title="Wasabi Wallet GPT"
         WindowState="{Binding WindowState, Mode=TwoWay}"
-        Focusable="{Binding SearchBar.IsSearchListVisible}"
+        Focusable="{Binding ChatAssistant.IsChatListVisible}"
         Icon="/Assets/WasabiLogo.ico">
+  <!--  Focusable="{Binding SearchBar.IsSearchListVisible}" -->
   <Window.Styles>
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />

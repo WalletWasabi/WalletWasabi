@@ -28,6 +28,8 @@ public class UiConfig : ConfigBase
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
+	private string? _model;
+	private string? _apiKey;
 
 	public UiConfig() : base()
 	{
@@ -66,6 +68,14 @@ public class UiConfig : ConfigBase
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(
+				x => x.Model,
+				x => x.ApiKey)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
@@ -186,6 +196,22 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
+	[DefaultValue(null)]
+	[JsonProperty(PropertyName = "Model", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string? Model
+	{
+		get => _model;
+		set => RaiseAndSetIfChanged(ref _model, value);
+	}
+
+	[DefaultValue(null)]
+	[JsonProperty(PropertyName = "ApiKey", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string? ApiKey
+	{
+		get => _apiKey;
+		set => RaiseAndSetIfChanged(ref _apiKey, value);
 	}
 
 	[OnDeserialized]
