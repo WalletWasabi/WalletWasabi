@@ -90,11 +90,13 @@ public class MempoolService
 		// This function is designed to prevent forever growing mempool.
 		try
 		{
-			// No need for locking when accessing Count.
-			if (ProcessedTransactionHashes.Count == 0)
+			lock (ProcessedLock)
 			{
-				// There's nothing to cleanup.
-				return true;
+				if (ProcessedTransactionHashes.Count == 0)
+				{
+					// There's nothing to cleanup.
+					return true;
+				}
 			}
 
 			Logger.LogInfo("Start cleaning out mempool...");
