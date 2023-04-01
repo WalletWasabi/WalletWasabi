@@ -24,13 +24,19 @@ public class MempoolService
 
 	public event EventHandler<SmartTransaction>? TransactionReceived;
 
+	/// <remarks>Guarded by <see cref="ProcessedLock"/>.</remarks>
 	private HashSet<uint256> ProcessedTransactionHashes { get; } = new();
+
+	/// <summary>Guards <see cref="ProcessedTransactionHashes"/>.</summary>
 	private object ProcessedLock { get; } = new();
 
-	// Transactions that we would reply to INV messages.
+	/// <summary>Transactions that we would reply to INV messages.</summary>
+	/// <remarks>Guarded by <see cref="BroadcastStoreLock"/>.</remarks>
 	private List<TransactionBroadcastEntry> BroadcastStore { get; } = new();
 
+	/// <summary>Guards <see cref="BroadcastStore"/>.</summary>
 	private object BroadcastStoreLock { get; } = new();
+
 	public bool TrustedNodeMode { get; set; }
 
 	public bool TryAddToBroadcastStore(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
