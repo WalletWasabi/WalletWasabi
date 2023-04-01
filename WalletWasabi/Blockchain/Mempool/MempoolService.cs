@@ -14,25 +14,23 @@ namespace WalletWasabi.Blockchain.Mempool;
 
 public class MempoolService
 {
+	private int _cleanupInProcess = 0;
+	private long _totalReceives = 0;
+	private long _duplicatedReceives = 0;
+
 	public MempoolService()
 	{
-		ProcessedTransactionHashes = new HashSet<uint256>();
-		ProcessedLock = new object();
-		BroadcastStore = new List<TransactionBroadcastEntry>();
-		BroadcastStoreLock = new object();
-		_cleanupInProcess = 0;
-		TrustedNodeMode = false;
 	}
 
 	public event EventHandler<SmartTransaction>? TransactionReceived;
 
-	private HashSet<uint256> ProcessedTransactionHashes { get; }
-	private object ProcessedLock { get; }
+	private HashSet<uint256> ProcessedTransactionHashes { get; } = new();
+	private object ProcessedLock { get; } = new();
 
 	// Transactions that we would reply to INV messages.
-	private List<TransactionBroadcastEntry> BroadcastStore { get; }
+	private List<TransactionBroadcastEntry> BroadcastStore { get; } = new();
 
-	private object BroadcastStoreLock { get; }
+	private object BroadcastStoreLock { get; } = new();
 	public bool TrustedNodeMode { get; set; }
 
 	public bool TryAddToBroadcastStore(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
@@ -71,8 +69,6 @@ public class MempoolService
 
 		return label;
 	}
-
-	private int _cleanupInProcess;
 
 	/// <summary>
 	/// Tries to perform mempool cleanup with the help of the backend.
@@ -141,9 +137,6 @@ public class MempoolService
 			return ProcessedTransactionHashes.Contains(txid);
 		}
 	}
-
-	private long _totalReceives = 0;
-	private long _duplicatedReceives = 0;
 
 	public void Process(Transaction tx)
 	{
