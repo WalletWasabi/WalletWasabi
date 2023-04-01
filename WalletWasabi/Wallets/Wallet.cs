@@ -512,44 +512,45 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 		}
 	}
+	
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(FilterModel filterModel, bool testNonObsoleteKeys)
+	{
+		var result = new List<byte[]>();
+		
+		// If testNonObsoleteKeys, then test all non-obsolete keys or keys not yet obsoleted at the height.
+		// If !testNonObsoleteKeys, then test all other keys (obsoleted at the height)
+		var keysToTest = testNonObsoleteKeys ? 
+			KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= new Height(filterModel.Header.Height)) : 
+			KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < new Height(filterModel.Header.Height));
+		
+		// Compute and save HdPubKey/ScriptPubKey pair for all keys
+		foreach (var hdPubKey in keysToTest)
+		{
+			if (HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
+			{
+				result.Add(scriptBytes);
+			}
+			else
+			{
+				scriptBytes = hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes();
+				HdPubKeysWithScriptBytes.Add(hdPubKey, scriptBytes);
+				result.Add(scriptBytes);
+			}
+		}
+
+		return result;
+	}
 
 	public async Task ProcessFilterModelAsync(FilterModel filterModel, bool testNonObsoleteKeys, CancellationToken cancel)
 	{
-		// Don't test obsolete keys as they should not contain any coins.
-		// GetScriptPubKey is an expansive operation, so result is cached.
-		var allKeys = KeyManager.GetKeys();
-		var toTestKeys = new List<byte[]>();
-		foreach (var hdPubKey in allKeys)
-		{
-			// Compute and save HdPubKey/ScriptPubKey pair for all keys
-			if (!HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out _))
-			{
-				HdPubKeysWithScriptBytes.Add(hdPubKey, hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes());
-			}
-		}
-
-		if (testNonObsoleteKeys)
-		{
-			// Only test keys that are not yet obsolete.
-			foreach (var hdPubKey in allKeys.Where(x => x.KeyState != KeyState.Obsolete || x.ObsoleteHeight >= new Height(filterModel.Header.Height)))
-			{
-				toTestKeys.Add(HdPubKeysWithScriptBytes[hdPubKey]);
-			}
-		}
-		else
-		{
-			// Only test keys that are obsolete.
-			foreach (var hdPubKey in allKeys.Where(x => x.KeyState == KeyState.Obsolete && x.ObsoleteHeight < new Height(filterModel.Header.Height)))
-			{
-				toTestKeys.Add(HdPubKeysWithScriptBytes[hdPubKey]);
-			}
-		}
-
+		var toTestKeys = GetScriptPubKeysToTest(filterModel, testNonObsoleteKeys).ToList();
+		
 		if (toTestKeys.Count == 0)
 		{
 			// No keys to test.
 			return;
 		}
+		
 		var matchFound = filterModel.Filter.MatchAny(toTestKeys, filterModel.FilterKey);
 		if (matchFound)
 		{
