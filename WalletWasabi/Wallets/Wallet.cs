@@ -554,8 +554,6 @@ public class Wallet : BackgroundService, IWallet
 		var matchFound = filterModel.Filter.MatchAny(toTestKeys, filterModel.FilterKey);
 		if (matchFound)
 		{
-			await Task.Delay(2500, cancel).ConfigureAwait(false);
-			Logger.LogWarning($"Match found at height: {filterModel.Header.Height}");
 			Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
 			var height = new Height(filterModel.Header.Height);
 
