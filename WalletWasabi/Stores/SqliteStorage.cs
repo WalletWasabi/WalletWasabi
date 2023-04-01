@@ -172,9 +172,9 @@ public class SqliteStorage : IDisposable
 	private FilterModel ReadRow(SqliteDataReader reader)
 	{
 		uint blockHeight = (uint)reader.GetInt64(ordinal: 0);
-		uint256 blockHash = new((byte[])reader["block_hash"]);
-		byte[] filterData = (byte[])reader["filter_data"];
-		uint256 prevBlockHash = new((byte[])reader["previous_block_hash"]);
+		uint256 blockHash = new(reader.GetFieldValue<byte[]>(ordinal: 1));
+		byte[] filterData = reader.GetFieldValue<byte[]>(ordinal: 2);
+		uint256 prevBlockHash = new(reader.GetFieldValue<byte[]>(ordinal: 3));
 		long blockTime = reader.GetInt64(ordinal: 4);
 
 		return FilterModel.FromParameters(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
