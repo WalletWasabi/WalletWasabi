@@ -580,11 +580,8 @@ public class Wallet : BackgroundService, IWallet
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
-
-		if (testNonObsoleteKeys)
-		{
-			LastProcessedFilter = filterModel;
-		}
+		
+		LastProcessedFilter = filterModel;
 	}
 
 	public void SetWaitingForInitState()
