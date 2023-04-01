@@ -384,7 +384,7 @@ public class CoinJoinManager : BackgroundService
 
 	private static ImmutableDictionary<string, CoinJoinClientState> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
 	{
-		Dictionary<string, CoinJoinClientState> coinJoinClientStates = new();
+		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<string, CoinJoinClientState>();
 		foreach (var wallet in wallets)
 		{
 			CoinJoinClientState state = CoinJoinClientState.Idle;
@@ -402,7 +402,7 @@ public class CoinJoinManager : BackgroundService
 			coinJoinClientStates.Add(wallet.WalletName, state);
 		}
 
-		return coinJoinClientStates.ToImmutableDictionary();
+		return coinJoinClientStates.ToImmutable();
 	}
 
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
