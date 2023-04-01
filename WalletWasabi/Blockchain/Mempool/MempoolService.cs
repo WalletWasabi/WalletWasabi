@@ -14,7 +14,9 @@ namespace WalletWasabi.Blockchain.Mempool;
 
 public class MempoolService
 {
+	/// <summary>Denotes whether we are cleaning up the mempool at the moment or not.</summary>
 	private int _cleanupInProcess = 0;
+
 	private long _totalReceives = 0;
 	private long _duplicatedReceives = 0;
 
