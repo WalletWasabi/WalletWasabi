@@ -60,7 +60,7 @@ public class WalletManager : IWalletProvider
 	private AsyncLock StartStopWalletLock { get; } = new();
 
 	private BitcoinStore BitcoinStore { get; set; }
-	public WasabiSynchronizer? Synchronizer { get; private set; }
+	private WasabiSynchronizer? Synchronizer { get; set; }
 	private ServiceConfiguration ServiceConfiguration { get; set; }
 	private bool IsInitialized { get; set; }
 
@@ -68,7 +68,7 @@ public class WalletManager : IWalletProvider
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private IBlockProvider BlockProvider { get; set; }
-	public string WorkDir { get; }
+	private string WorkDir { get; }
 
 	private void RefreshWalletList()
 	{
