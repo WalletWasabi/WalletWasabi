@@ -24,6 +24,7 @@ public class MockRpcClient : IRPCClient
 	public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>>? OnEstimateSmartFeeAsync { get; set; }
 	public Func<Task<PeerInfo[]>>? OnGetPeersInfoAsync { get; set; }
 	public Func<int, BitcoinAddress, Task<uint256[]>>? OnGenerateToAddressAsync { get; set; }
+	public Func<Task<int>>? OnGetBlockCountAsync { get; set; }
 	public Network Network { get; set; } = Network.RegTest;
 	public RPCCredentialString CredentialString => new();
 
@@ -52,7 +53,7 @@ public class MockRpcClient : IRPCClient
 
 	public Task<int> GetBlockCountAsync(CancellationToken cancellationToken = default)
 	{
-		throw new NotImplementedException();
+		return OnGetBlockCountAsync?.Invoke() ?? NotImplementedTask<int>(nameof(GetBlockCountAsync));
 	}
 
 	public Task<uint256> GetBlockHashAsync(int height, CancellationToken cancellationToken = default)

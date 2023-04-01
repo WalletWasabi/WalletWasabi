@@ -16,12 +16,12 @@ public class P2PNodesManager
 		Nodes = nodes;
 		IsTorEnabled = isTorEnabled;
 	}
-	
+
 	private Network Network { get; }
 	private NodesGroup Nodes { get; }
 	private bool IsTorEnabled { get; }
 	private int NodeTimeouts { get; set; }
-	
+
 	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
 	{
 		while (Nodes.ConnectedNodes.Count == 0)
@@ -32,7 +32,7 @@ public class P2PNodesManager
 		// Select a random node we are connected to.
 		return Nodes.ConnectedNodes.RandomElement();
 	}
-	
+
 	public void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
 	{
 		if (Nodes.ConnectedNodes.Count > 3 || force)
@@ -49,7 +49,7 @@ public class P2PNodesManager
 			? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
 			: RuntimeParams.Instance.NetworkNodeTimeout;
 	}
-	
+
 	/// <summary>
 	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 	/// </summary>

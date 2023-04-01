@@ -32,7 +32,7 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.3" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
 		<PackageReference Include="NBitcoin" Version="7.0.24" />
-		<PackageReference Include="NBitcoin.Secp256k1" Version="3.0.1" />
+		<PackageReference Include="WabiSabi" Version="1.0.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
