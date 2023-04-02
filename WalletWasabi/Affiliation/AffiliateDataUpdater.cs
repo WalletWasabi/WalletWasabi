@@ -86,7 +86,7 @@ public class AffiliateDataUpdater : BackgroundService
 	private async Task UpdateAffiliateDataAsync(uint256 roundId, BuiltTransactionData builtTransactionData, CancellationToken cancellationToken)
 	{
 		var updateTasks = Clients.Select(
-			x => UpdateAffiliateDataAsync(roundId, builtTransactionData, x.Key, x.Value, cancellationToken));
+			x => UpdateAffiliateDataAsync(roundId, builtTransactionData, affiliationId: x.Key, x.Value, cancellationToken));
 		await Task.WhenAll(updateTasks).ConfigureAwait(false);
 	}
 
