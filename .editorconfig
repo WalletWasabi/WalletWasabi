@@ -26,6 +26,12 @@ indent_size = 2
 
 [*.cs]
 
+# Spell Checker rules
+spelling_languages = en-us
+spelling_checkable_types = strings,identifiers,comments
+spelling_error_severity = information
+spelling_exclusion_path = .\exclusion.dic
+
 # require braces to be on a new line for all
 csharp_new_line_before_open_brace = all
 
@@ -295,9 +301,3 @@ dotnet_diagnostic.CA1827.severity = warning
 
 # CA1822: This complains to make functions static. Static is evil. Don't let it complain.
 dotnet_diagnostic.CA1822.severity = none
-
-# Spell Checker rules
-spelling_languages = en-us
-spelling_checkable_types = strings,identifiers,comments
-spelling_error_severity = information
-spelling_exclusion_path = .\exclusion.dic
