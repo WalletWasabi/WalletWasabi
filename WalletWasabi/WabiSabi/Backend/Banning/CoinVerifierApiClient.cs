@@ -1,10 +1,10 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
@@ -73,15 +73,13 @@ public class CoinVerifierApiClient : IAsyncDisposable
 				var duration = DateTimeOffset.UtcNow - before;
 				RequestTimeStatista.Instance.Add("verifier-request", duration);
 
-				if (response is { } && response.StatusCode == HttpStatusCode.OK)
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					// Successful request, break the iteration.
 					break;
 				}
-				else
-				{
-					throw new InvalidOperationException($"Response was either null or response.{nameof(HttpStatusCode)} was {response?.StatusCode.ToString() ?? "Null"}.");
-				}
+
+				throw new InvalidOperationException($"HTTP status code was {response.StatusCode}.");
 			}
 			catch (OperationCanceledException)
 			{
@@ -95,7 +93,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			}
 		}
 
-		// Throw proper exceptions - if needed - according to the latest response.
+		// Handle the HTTP response, if there is any.
 		if (response?.StatusCode == HttpStatusCode.Forbidden)
 		{
 			throw new UnauthorizedAccessException("User roles access forbidden.");
@@ -105,11 +103,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
-		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
-			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return deserializedRecord;
+		return await response.Content.ReadAsJsonAsync<ApiResponseItem>().ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
