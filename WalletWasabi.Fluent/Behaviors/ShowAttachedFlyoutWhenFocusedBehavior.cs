@@ -94,6 +94,9 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 	{
 		return this
 			.WhenAnyValue(x => x.IsFlyoutOpen)
+			.CombineLatest(ApplicationHelper.MainWindowActivated, (isFlyoutOpen, isActivated) => (isFlyoutOpen, isActivated ))
+			.Where(x => x.isActivated)
+			.Select(x => x.isFlyoutOpen)
 			.Do(controller.SetIsForcedOpen)
 			.Subscribe();
 	}
