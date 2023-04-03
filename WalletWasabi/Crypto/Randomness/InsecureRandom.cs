@@ -10,6 +10,11 @@ public class InsecureRandom : WasabiRandom
 		Random = Random.Shared;
 	}
 
+	public InsecureRandom(int seed)
+	{
+		Random = new Random(seed);
+	}
+	
 	private Random Random { get; }
 
 	public override void GetBytes(byte[] buffer) => Random.NextBytes(buffer);
