@@ -36,7 +36,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		GenerateQrCode();
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true, escapeGoesBack: true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = true;
 
