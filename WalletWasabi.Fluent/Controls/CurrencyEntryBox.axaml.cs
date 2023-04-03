@@ -328,21 +328,21 @@ public partial class CurrencyEntryBox : TextBox
 		return "";
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", change.GetNewValue<bool>());
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", change.GetNewValue<decimal>() == 0m);
 		}
 		else if (change.Property == IsFiatProperty)
 		{
-			PseudoClasses.Set(":isfiat", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":isfiat", change.GetNewValue<bool>());
 		}
 	}
 }
