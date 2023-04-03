@@ -186,9 +186,9 @@ public class TagsBox : TemplatedControl
 		_compositeDisposable = new CompositeDisposable();
 
 		_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
-		var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
+		var presenter = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
 		presenter.ApplyTemplate();
-		_containerControl = (Control)presenter.Panel;
+		_containerControl = (Control)presenter.ItemsPanelRoot;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>()
 			.FirstOrDefault();
 

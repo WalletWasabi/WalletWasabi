@@ -68,10 +68,10 @@
                            Padding="15 0"
                            VerticalAlignment="Center"
                            Text="{TemplateBinding Watermark}" />
-                <!-- TODO: Items="{TemplateBinding Items}" -->
-                <ItemsPresenter Name="PART_ItemsPresenter"
-                                Focusable="False">
-                  <ItemsPresenter.ItemsPanel>
+                <ItemsControl Name="PART_ItemsPresenter"
+                              ItemsSource="{TemplateBinding Items}"
+                              Focusable="False">
+                  <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                       <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
@@ -81,18 +81,15 @@
                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                       </c:ConcatenatingWrapPanel>
                     </ItemsPanelTemplate>
-                  </ItemsPresenter.ItemsPanel>
-                  <!-- TODO: ItemsPresenter.ItemTemplate -->
-                  <!--
-                  <ItemsPresenter.ItemTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <c:TagControl Content="{Binding .}"
                                     EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}"
                                     EnableDelete="{Binding #PART_DockPanel.TemplatedParent.EnableDelete}" />
                     </DataTemplate>
-                  </ItemsPresenter.ItemTemplate>
-                -->
-                </ItemsPresenter>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </Panel>
             </Border>
           </DockPanel>
@@ -118,22 +115,21 @@
                          Padding="15 0"
                          VerticalAlignment="Center"
                          Text="{TemplateBinding Watermark}" />
-              <!-- TODO: Items="{TemplateBinding Items}" -->
-              <ItemsPresenter Name="PART_ItemsPresenter"
-                              Focusable="False">
-                <ItemsPresenter.ItemsPanel>
+              <ItemsControl Name="PART_ItemsPresenter"
+                            ItemsSource="{TemplateBinding Items}"
+                            Focusable="False">
+                <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
                   </ItemsPanelTemplate>
-                </ItemsPresenter.ItemsPanel>
-                <!-- TODO: ItemsPresenter.ItemTemplate -->
-                <!--<ItemsPresenter.ItemTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <c:TagControl Content="{Binding .}"
                                   EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}" />
                   </DataTemplate>
-                </ItemsPresenter.ItemTemplate>-->
-              </ItemsPresenter>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
             </Panel>
           </Border>
         </DataValidationErrors>
