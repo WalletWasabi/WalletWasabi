@@ -120,7 +120,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
-				GetCoinsCandidate(),
+				coins,
 				rpc =>
 
 					// Make the coordinator believe that the transaction is being
@@ -147,7 +147,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				});
 
 				// Emulate that the first coin is coming from a coinjoin.
-				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { GetCoinsCandidate()[0].Coin.Outpoint.Hash }));
+				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
 
 		// Create the coinjoin client
@@ -214,7 +214,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder
-			.AddMockRpcClient(GetCoinsCandidate(), rpc => { })
+			.AddMockRpcClient(coins, rpc => { })
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use this scoped
@@ -415,7 +415,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		Assert.NotNull(broadcastedTx);
 
 		Assert.Equal(
-			GetCoinsCandidate().Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
+			coins.Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
 			broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x));
 
 		await roundStateUpdater.StopAsync(CancellationToken.None);
