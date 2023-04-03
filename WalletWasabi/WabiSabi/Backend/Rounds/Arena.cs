@@ -159,7 +159,9 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (round.InputCount < Config.MinInputCountByRound)
+				var uniqueInputsByScript = round.Alices.DistinctBy(alice => alice.Coin.ScriptPubKey);
+
+				if (uniqueInputsByScript.Count() < Config.MinInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
