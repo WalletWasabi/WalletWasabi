@@ -32,8 +32,6 @@
 
   <Style Selector="c|LabelsItemsPresenter">
     <Setter Property="Margin" Value="0" />
-    <!-- TODO: -->
-    <!-- <Setter Property="VirtualizationMode" Value="Simple" /> -->
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
