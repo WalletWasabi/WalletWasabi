@@ -18,17 +18,4 @@ public class LabelsItemsPresenter : ItemsControl, IStyleable
 	}
 
 	Type IStyleable.StyleKey => typeof(LabelsItemsPresenter);
-
-	// TODO: Breaking change PanelCreated ?
-	/*
-	protected override void PanelCreated(IPanel panel)
-	{
-		base.PanelCreated(panel);
-
-		if (panel is LabelsPanel labelsPanel)
-		{
-			labelsPanel.Presenter = this;
-		}
-	}
-	*/
 }
