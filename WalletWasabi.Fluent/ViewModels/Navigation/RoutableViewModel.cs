@@ -10,6 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 {
+	private CompositeDisposable? _currentDisposable;
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _enableCancelOnPressed;
 	[AutoNotify] private bool _enableCancelOnEscape;
@@ -18,8 +19,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	[AutoNotify] private bool _isActive;
 
 	public abstract string Title { get; protected set; }
-
-	private CompositeDisposable? _currentDisposable;
 
 	public NavigationTarget CurrentTarget { get; internal set; }
 
@@ -164,10 +163,10 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		await NavigateDialogAsync(dialog, navigationTarget);
 	}
 
-	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)
+	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed, bool escapeGoesBack = false)
 	{
 		EnableCancel = enableCancel;
-		EnableCancelOnEscape = enableCancelOnEscape;
+		EnableCancelOnEscape = enableCancelOnEscape && !escapeGoesBack;
 		EnableCancelOnPressed = enableCancelOnPressed;
 	}
 }
