@@ -13,11 +13,11 @@ namespace WalletWasabi.Stores;
 /// <seealso href="https://learn.microsoft.com/en-gb/dotnet/standard/data/sqlite/async">
 /// Async is not supported at the moment, so no async methods were used in this implementation.
 /// </seealso>
-public class SqliteStorage : IDisposable
+public class BlockFilterSqliteStorage : IDisposable
 {
 	private bool _disposedValue;
 
-	private SqliteStorage(SqliteConnection connection)
+	private BlockFilterSqliteStorage(SqliteConnection connection)
 	{
 		Connection = connection;
 	}
@@ -32,7 +32,7 @@ public class SqliteStorage : IDisposable
 	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
 	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
-	public static SqliteStorage FromFile(string path, FilterModel? startingFilter = null)
+	public static BlockFilterSqliteStorage FromFile(string path, FilterModel? startingFilter = null)
 	{
 		SqliteConnection connection = new($"Data Source={path}");
 		connection.Open();
@@ -61,7 +61,7 @@ public class SqliteStorage : IDisposable
 			walCommand.ExecuteNonQuery();
 		}
 
-		SqliteStorage storage = new(connection);
+		BlockFilterSqliteStorage storage = new(connection);
 
 		if (startingFilter is not null)
 		{

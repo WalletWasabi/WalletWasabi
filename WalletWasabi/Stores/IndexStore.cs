@@ -27,7 +27,7 @@ public class IndexStore : IAsyncDisposable
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		string indexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		IndexStorage = SqliteStorage.FromFile(path: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+		IndexStorage = BlockFilterSqliteStorage.FromFile(path: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
 
 		if (network == Network.RegTest)
 		{
@@ -41,7 +41,7 @@ public class IndexStore : IAsyncDisposable
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
-	private SqliteStorage IndexStorage { get; }
+	private BlockFilterSqliteStorage IndexStorage { get; }
 
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
 	private AsyncLock IndexLock { get; } = new();
