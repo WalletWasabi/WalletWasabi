@@ -22,7 +22,7 @@
       <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="Tor network is having issues:" />
         <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details" />
-        <ItemsControl Margin="8" Items="{Binding TorIssues}">
+        <ItemsControl Margin="8" ItemsSource="{Binding TorIssues}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="tor:Issue">
               <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />

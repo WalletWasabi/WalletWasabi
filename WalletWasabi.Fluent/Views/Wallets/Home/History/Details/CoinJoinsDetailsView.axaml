@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:nBitcoin="clr-namespace:NBitcoin;assembly=NBitcoin"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:CoinJoinsDetailsViewModel"
              x:CompileBindings="True"
@@ -52,9 +53,9 @@
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction IDs">
-        <ItemsControl Items="{Binding TransactionIds}">
+        <ItemsControl ItemsSource="{Binding TransactionIds}">
           <ItemsControl.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="nBitcoin:uint256">
               <c:PreviewItem TextValue="{Binding }">
                 <c:PrivacyContentControl>
                   <TextBlock Text="{Binding }" Classes="monoSpaced" />

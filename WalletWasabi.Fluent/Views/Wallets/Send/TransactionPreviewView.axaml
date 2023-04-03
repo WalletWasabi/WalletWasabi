@@ -75,7 +75,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                       <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                                HorizontalAlignment="Center"
-                               Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+                               ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
                         <i:Interaction.Behaviors>
                           <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
                         </i:Interaction.Behaviors>
@@ -157,7 +157,7 @@
       </DockPanel>
     </c:ContentArea.Title>
     <!-- TODO: IsVirtualized="False" -->
-    <Carousel Items="{Binding TransactionSummaries}"
+    <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
         <CrossFade Duration="0.75" />

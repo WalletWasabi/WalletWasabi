@@ -28,7 +28,7 @@
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
-            <ItemsControl Items="{Binding Links}"
+            <ItemsControl ItemsSource="{Binding Links}"
                           Margin="0 0 0 25"
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>

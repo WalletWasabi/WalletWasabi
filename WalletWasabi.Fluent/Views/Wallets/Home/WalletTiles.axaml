@@ -9,7 +9,7 @@
              x:DataType="collections:IEnumerable">
 
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-    <ItemsControl Items="{Binding}">
+    <ItemsControl ItemsSource="{Binding}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel ItemWidth="310" ItemHeight="140" />

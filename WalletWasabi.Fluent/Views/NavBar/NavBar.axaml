@@ -114,7 +114,7 @@
   <DockPanel Margin="0 0 0 5">
 
     <!-- Bottom items -->
-    <ItemsControl Items="{Binding BottomItems}"
+    <ItemsControl ItemsSource="{Binding BottomItems}"
                   DockPanel.Dock="Bottom">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
@@ -140,7 +140,7 @@
 
     <!-- Wallet List -->
     <ScrollViewer>
-      <ItemsControl Items="{Binding Wallets}">
+      <ItemsControl ItemsSource="{Binding Wallets}">
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}">

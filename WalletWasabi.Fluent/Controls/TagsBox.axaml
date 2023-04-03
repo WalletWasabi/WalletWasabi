@@ -36,7 +36,7 @@
       <ControlTemplate>
         <DataValidationErrors>
           <DockPanel x:Name="PART_DockPanel">
-            <ItemsControl Items="{TemplateBinding TopItems}"
+            <ItemsControl ItemsSource="{TemplateBinding TopItems}"
                           IsVisible="{TemplateBinding TopItems, Converter={x:Static ObjectConverters.IsNotNull}}"
                           ClipToBounds="False"
                           Margin="0,10,0,0"

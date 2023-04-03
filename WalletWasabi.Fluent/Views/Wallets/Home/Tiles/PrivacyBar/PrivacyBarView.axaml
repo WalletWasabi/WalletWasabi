@@ -11,7 +11,7 @@
   <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
           ToolTip.Tip="Show Details"
           IsVisible="{Binding !!PrivacyBar.Items.Count}">
-    <c:PrivacyBar Items="{Binding PrivacyBar.Items}"
+    <c:PrivacyBar ItemsSource="{Binding PrivacyBar.Items}"
                   TotalAmount="{Binding PrivacyBar.TotalAmount}"
                   Height="8">
       <c:PrivacyBar.Styles>
