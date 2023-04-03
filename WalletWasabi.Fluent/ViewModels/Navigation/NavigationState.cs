@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 public class NavigationState : ReactiveObject, INavigate
 {
 	public NavigationState(
-		UIContext uiContext,
+		UiContext uiContext,
 		INavigationStack<RoutableViewModel> homeScreenNavigation,
 		INavigationStack<RoutableViewModel> dialogScreenNavigation,
 		INavigationStack<RoutableViewModel> fullScreenNavigation,
@@ -31,7 +31,7 @@ public class NavigationState : ReactiveObject, INavigate
 			.Subscribe();
 	}
 
-	public UIContext UIContext { get; }
+	public UiContext UIContext { get; }
 
 	public INavigationStack<RoutableViewModel> HomeScreenNavigation { get; }
 

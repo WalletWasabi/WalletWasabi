@@ -4,11 +4,11 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public class UIContext
+public class UiContext
 {
 	private INavigate? _navigate;
 
-	public UIContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard)
 	{
 		QrCodeGenerator = qrCodeGenerator;
 		Clipboard = clipboard;
@@ -17,7 +17,7 @@ public class UIContext
 	public IClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 
-	public static UIContext Default { get; } = new(new QrGenerator(), Application.Current?.Clipboard);
+	public static UiContext Default { get; } = new(new QrGenerator(), Application.Current?.Clipboard);
 
 	public void RegisterNavigation(INavigate navigate)
 	{
