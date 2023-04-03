@@ -196,12 +196,12 @@ public partial class Arena : PeriodicRunner
 				}
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
-					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
-					foreach (var alice in alicesDidntConfirm)
+					var alicesDidNotConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
+					foreach (var alice in alicesDidNotConfirm)
 					{
 						Prison.Note(alice, round.Id);
 					}
-					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
 					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
@@ -371,11 +371,11 @@ public partial class Arena : PeriodicRunner
 
 	private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
-		foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
+		foreach (var chunkOfAlices in round.Alices.ToList().ChunkBy(16))
 		{
 			var batchedRpc = Rpc.PrepareBatch();
 
-			var aliceCheckingTaskPairs = chunckOfAlices
+			var aliceCheckingTaskPairs = chunkOfAlices
 				.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
 				.ToList();
 
@@ -393,18 +393,18 @@ public partial class Arena : PeriodicRunner
 
 		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
 
-		var alicesWhoDidntSign = round.Alices
+		var alicesWhoDidNotSign = round.Alices
 			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
-		foreach (var alice in alicesWhoDidntSign)
+		foreach (var alice in alicesWhoDidNotSign)
 		{
 			Prison.Note(alice, round.Id);
 		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
-		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount}");
+		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
@@ -472,7 +472,7 @@ public partial class Arena : PeriodicRunner
 					parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
 					var smallRound = TryMineRound(parameters, roundWithoutThis.Concat(new[] { largeRound }).ToArray());
 
-					// If creation is successful destory round only.
+					// If creation is successful, only then destroy the round.
 					if (smallRound is not null)
 					{
 						AddRound(largeRound);
@@ -667,7 +667,7 @@ public partial class Arena : PeriodicRunner
 		// For logging reason Prison needs the roundId.
 		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
 
-		// Cound be a coin from WW1.
+		// Could be a coin from WW1.
 		var roundId = roundState?.Id ?? uint256.Zero;
 		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
 	}

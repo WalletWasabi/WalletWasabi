@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	[AutoNotify] private string _amount;
 	[AutoNotify] private decimal _amountFiat;
-	[AutoNotify] private string? _differenceFiat;
+	[AutoNotify] private string? _differenceFiatText;
 
 	public ChangeAvoidanceSuggestionViewModel(
 		decimal originalAmount,
@@ -27,25 +26,33 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		TransactionResult = transactionResult;
 
-		var totalAmount = transactionResult.CalculateDestinationAmount();
+		var totalAmount = GetAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
-
 		var fiatTotal = total * fiatExchangeRate;
-
-		_amountFiat = fiatTotal;
-
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 
-		_differenceFiat = (fiatDifference > 0
-				? $"{fiatDifference.ToUsd()} More"
-				: $"{Math.Abs(fiatDifference).ToUsd()} Less")
-			.Replace("(", "").Replace(")", "");
-
+		_amountFiat = fiatTotal;
+		_differenceFiatText = GetDifferenceFiatText(fiatDifference);
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
 	}
 
 	public BuildTransactionResult TransactionResult { get; }
+
+	public Money GetAmount()
+	{
+		return TransactionResult.CalculateDestinationAmount();
+	}
+
+	private string GetDifferenceFiatText(decimal fiatDifference)
+	{
+		return fiatDifference switch
+		{
+			> 0 => $"{fiatDifference.ToUsd()} More",
+			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} Less",
+			_ => "Same Amount"
+		};
+	}
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo,
@@ -61,8 +68,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			new TxOut(transactionInfo.Amount, transactionInfo.Destination),
 			maxInputCount,
 			cancellationToken);
-
-		HashSet<Money> foundSolutionsByAmount = new();
 
 		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
@@ -85,18 +90,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 			if (transaction is not null)
 			{
-				Money destinationAmount = transaction.CalculateDestinationAmount();
-
-				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
-				if (!foundSolutionsByAmount.Contains(destinationAmount))
-				{
-					foundSolutionsByAmount.Add(destinationAmount);
-
-					yield return new ChangeAvoidanceSuggestionViewModel(
-						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-						transaction,
-						usdExchangeRate);
-				}
+				yield return new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+					transaction,
+					usdExchangeRate);
 			}
 		}
 	}

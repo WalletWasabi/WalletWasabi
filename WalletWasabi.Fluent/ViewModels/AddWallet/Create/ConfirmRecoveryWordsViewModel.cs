@@ -73,7 +73,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		AvailableWords =
 			confirmationWordsSourceList.Items
 									   .Select(x => new RecoveryWordViewModel(x.Index, x.Word))
-									   .OrderBy(_ => Random.Shared.Next())
+									   .OrderBy(x => x.Word)
 									   .ToList();
 
 		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();

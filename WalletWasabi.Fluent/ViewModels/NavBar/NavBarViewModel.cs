@@ -21,13 +21,10 @@ public class NavBarViewModel : ViewModelBase
 
 		SetDefaultSelection();
 
-		Observable.Amb(
-				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
-				TopItems.ToObservableChangeSet(),
-				BottomItems.ToObservableChangeSet())
-			.WhenPropertyChanged(x => x.IsSelected)
-			.Where(x => x.Value)
-			.Select(x => x.Sender)
+		Observable.Merge(
+				WhenItemSelected(Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel)),
+				WhenItemSelected(BottomItems.ToObservableChangeSet()),
+				WhenItemSelected(TopItems.ToObservableChangeSet()))
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
 			.Subscribe(x =>
@@ -49,6 +46,14 @@ public class NavBarViewModel : ViewModelBase
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
+
+	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
+	{
+		return observable
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Where(x => x.Value)
+			.Select(x => x.Sender);
+	}
 
 	private void SetDefaultSelection()
 	{

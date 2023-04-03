@@ -1,14 +1,11 @@
 using System.Security.Cryptography;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto.Randomness;
 
 public class SecureRandom : WasabiRandom
 {
 	public static readonly SecureRandom Instance = new();
-
-	public SecureRandom()
-	{
-	}
 
 	public override void GetBytes(byte[] buffer)
 	{
