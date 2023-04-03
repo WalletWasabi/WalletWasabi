@@ -50,7 +50,7 @@ public partial class MainViewModel : ViewModelBase
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-		UIContext.RegisterNavigation(new NavigationState(UIContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
+		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
 
 		UiServices.Initialize();
 
