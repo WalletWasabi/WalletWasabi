@@ -9,6 +9,7 @@ namespace WalletWasabi.Stores;
 /// <summary>
 /// Sqlite-based storage for block filters.
 /// </summary>
+/// <remarks>The implementation is not thread-safe because <see cref="SqliteConnection"/> is not thread-safe.</remarks>
 /// <seealso href="https://learn.microsoft.com/en-gb/dotnet/standard/data/sqlite/async">
 /// Async is not supported at the moment, so no async methods were used in this implementation.
 /// </seealso>
@@ -21,6 +22,7 @@ public class SqliteStorage : IDisposable
 		Connection = connection;
 	}
 
+	/// <remarks>Connection cannot be accessed from multiple threads at the same time.</remarks>
 	private SqliteConnection Connection { get; }
 
 	/// <summary>

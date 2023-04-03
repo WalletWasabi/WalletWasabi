@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -41,6 +40,7 @@ public class IndexStore : IAsyncDisposable
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Filter disk storage.</summary>
+	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
 	private SqliteStorage IndexStorage { get; }
 
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
