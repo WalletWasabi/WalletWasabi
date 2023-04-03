@@ -25,6 +25,16 @@
       </Grid.RowDefinitions>
 
       <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Panel.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy to clipboard"
+                      Command="{Binding CopyToClipboardCommand}">
+              <MenuItem.Icon>
+                <PathIcon Data="{StaticResource clipboard_text_regular}" />
+              </MenuItem.Icon>
+            </MenuItem>
+          </ContextMenu>
+        </Panel.ContextMenu>
         <ItemsControl Items="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
