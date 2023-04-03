@@ -394,7 +394,7 @@ public class CoinJoinManager : BackgroundService
 					? CoinJoinClientState.InCriticalPhase
 					: CoinJoinClientState.InProgress;
 			}
-			else if (trackedAutoStarts.TryGetValue(wallet, out var trackedAutoStart))
+			else if (trackedAutoStarts.TryGetValue(wallet, out _))
 			{
 				state = CoinJoinClientState.InSchedule;
 			}
