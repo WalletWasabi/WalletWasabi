@@ -74,7 +74,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 	{
-		return UIContext.Navigate(currentTarget);
+		return UiContext.Navigate(currentTarget);
 	}
 
 	public void OnNavigatedTo(bool isInHistory)
@@ -107,7 +107,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		return await UIContext.Navigate(target).NavigateDialogAsync(dialog, navigationMode);
+		return await UiContext.Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
 
 	protected async Task ShowErrorAsync(string title, string message, string caption, NavigationTarget navigationTarget = NavigationTarget.Default)

@@ -30,7 +30,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		SetAmount(amount);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			UIContext.Navigate(NavigationTarget.DialogScreen).To(
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new TransactionDetailsViewModel(transactionSummary, walletVm)));
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)

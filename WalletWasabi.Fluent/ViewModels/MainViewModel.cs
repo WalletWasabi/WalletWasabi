@@ -262,7 +262,7 @@ public partial class MainViewModel : ViewModelBase
 					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
 					{
 						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
-						var dialogResult = await UIContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
 						{
@@ -315,7 +315,7 @@ public partial class MainViewModel : ViewModelBase
 		var filterChanged = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSearchSource(UIContext, filterChanged),
+			new ActionsSearchSource(UiContext, filterChanged),
 			new SettingsSearchSource(_settingsPage, filterChanged),
 			new TransactionsSearchSource(filterChanged));
 
