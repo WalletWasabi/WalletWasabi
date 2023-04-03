@@ -122,10 +122,10 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		await Navigate(target).ShowErrorAsync(title, message, caption);
 	}
 
-	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)
+	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed, bool escapeGoesBack = false)
 	{
 		EnableCancel = enableCancel;
-		EnableCancelOnEscape = enableCancelOnEscape;
+		EnableCancelOnEscape = enableCancelOnEscape && !escapeGoesBack;
 		EnableCancelOnPressed = enableCancelOnPressed;
 	}
 }
