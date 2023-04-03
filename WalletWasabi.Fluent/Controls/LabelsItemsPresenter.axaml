@@ -36,6 +36,20 @@
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="MaxLabelWidth" Value="{DynamicResource LabelMaxWidth}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                          AreVerticalSnapPointsRegular="{TemplateBinding AreVerticalSnapPointsRegular}"
+                          AreHorizontalSnapPointsRegular="{TemplateBinding AreHorizontalSnapPointsRegular}"
+                          ItemsPanel="{TemplateBinding ItemsPanel}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
