@@ -6,14 +6,14 @@
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
       <c:LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
-        <c:LabelsItemsPresenter.Items>
+        <c:LabelsItemsPresenter.ItemsSource>
           <g:List x:TypeArguments="x:String">
             <x:String>Label 1</x:String>
             <x:String>Label 2</x:String>
             <x:String>Label 3</x:String>
             <x:String>Label 4</x:String>
           </g:List>
-        </c:LabelsItemsPresenter.Items>
+        </c:LabelsItemsPresenter.ItemsSource>
       </c:LabelsItemsPresenter>
     </Border>
   </Design.PreviewWith>

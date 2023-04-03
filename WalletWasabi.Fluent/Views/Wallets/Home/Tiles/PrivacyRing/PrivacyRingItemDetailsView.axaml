@@ -47,7 +47,7 @@
 
       <StackPanel IsVisible="{Binding IsNonPrivate}" MinHeight="42">
         <Separator IsVisible="{Binding !Coin.SmartLabel.IsEmpty}" Margin="0 3 0 9" />
-        <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+        <c:LabelsItemsPresenter ItemsSource="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
       </StackPanel>
     </StackPanel>
   </StackPanel>
