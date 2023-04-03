@@ -7,10 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 /// </summary>
 public class FluentNavigate
 {
-	public FluentNavigate(UIContext uiContext)
+	public FluentNavigate(UiContext uiContext)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 	}
 
-	public UIContext UIContext { get; }
+	public UiContext UiContext { get; }
 }

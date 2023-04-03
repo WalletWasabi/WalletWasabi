@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 [NavigationMetaData(
 	Title = "Wallet Coins (UTXOs)",
-	Caption = "Displays wallet coins",
+	Caption = "Display wallet coins",
 	IconName = "nav_wallet_24_regular",
 	Order = 0,
 	Category = "Wallet",
@@ -70,6 +70,20 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out var coinsCollection)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		coinChanges
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Select(c => coinsCollection.Where(x => x.Coin.HdPubKey == c.Sender.Coin.HdPubKey && x.IsSelected != c.Sender.IsSelected))
+			.Do(coins =>
+			{
+				// Select/deselect all the coins on the same address.
+				foreach (var coin in coins)
+				{
+					coin.IsSelected = !coin.IsSelected;
+				}
+			})
 			.Subscribe()
 			.DisposeWith(disposables);
 
