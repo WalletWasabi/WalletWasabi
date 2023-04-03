@@ -352,29 +352,29 @@ public class DualCurrencyEntryBox : UserControl
 		focusOn?.Focus();
 	}
 
-	protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
 		if (property == AmountBtcProperty)
 		{
-			DataValidationErrors.SetError(this, value.Error);
+			DataValidationErrors.SetError(this, error);
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", change.GetNewValue<bool>());
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", change.GetNewValue<decimal>() == 0m);
 		}
 		else if (change.Property == IsConversionReversedProperty)
 		{
-			PseudoClasses.Set(":reversed", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":reversed", change.GetNewValue<bool>());
 			ReorganizeVisuals();
 			UpdateDisplay(false);
 		}
