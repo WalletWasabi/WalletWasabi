@@ -35,6 +35,9 @@ public class Program
 	// yet and stuff might break.
 	public static int Main(string[] args)
 	{
+		var theme = typeof(Avalonia.Themes.Fluent.FluentTheme);
+		Console.WriteLine(theme.Name);
+
 		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.
@@ -67,7 +70,9 @@ public class Program
 
 		try
 		{
+#pragma warning disable VSTHRD002
 			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
 		}
 		catch (OperationCanceledException)
 		{
@@ -113,11 +118,13 @@ public class Program
 				.SetupAppBuilder()
 				.AfterSetup(_ =>
 					{
+						// TODO: IPlatformOpenGlInterface
+						/*
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
 						Logger.LogInfo(glInterface is { }
 							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
 							: "Renderer: Avalonia Software");
-
+						*/
 						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(args);
@@ -276,9 +283,9 @@ public class Program
 		}
 
 		return result
-			.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
+			.With(new Win32PlatformOptions { AllowEglInitialization = false })
 			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
-			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
+			.With(new AvaloniaNativePlatformOptions { UseGpu = false })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 	}

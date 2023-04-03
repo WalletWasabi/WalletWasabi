@@ -46,8 +46,8 @@ public class ContentArea : ContentControl
 	public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
 		AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
-	private IContentPresenter? _titlePresenter;
-	private IContentPresenter? _captionPresenter;
+	private ContentPresenter? _titlePresenter;
+	private ContentPresenter? _captionPresenter;
 
 	public object Title
 	{
@@ -131,6 +131,11 @@ public class ContentArea : ContentControl
 	{
 		var result = base.RegisterContentPresenter(presenter);
 
+		if (presenter is not ContentPresenter contentPresenter)
+		{
+			return result;
+		}
+
 		switch (presenter.Name)
 		{
 			case "PART_TitlePresenter":
@@ -139,7 +144,7 @@ public class ContentArea : ContentControl
 					_titlePresenter.PropertyChanged -= PresenterOnPropertyChanged;
 				}
 
-				_titlePresenter = presenter;
+				_titlePresenter = contentPresenter;
 				_titlePresenter.PropertyChanged += PresenterOnPropertyChanged;
 				result = true;
 				break;
@@ -150,7 +155,7 @@ public class ContentArea : ContentControl
 					_captionPresenter.PropertyChanged -= PresenterOnPropertyChanged;
 				}
 
-				_captionPresenter = presenter;
+				_captionPresenter = contentPresenter;
 				_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
 				_captionPresenter.IsVisible = Caption is not null;
 				result = true;
@@ -166,12 +171,12 @@ public class ContentArea : ContentControl
 		{
 			var className = sender == _captionPresenter ? "caption" : "title";
 
-			if (e.OldValue is IStyledElement oldValue)
+			if (e.OldValue is StyledElement oldValue)
 			{
 				oldValue.Classes.Remove(className);
 			}
 
-			if (e.NewValue is IStyledElement newValue)
+			if (e.NewValue is StyledElement newValue)
 			{
 				newValue.Classes.Add(className);
 			}

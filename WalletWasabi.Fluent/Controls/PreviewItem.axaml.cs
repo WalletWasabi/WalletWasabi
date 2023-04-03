@@ -91,7 +91,7 @@ public class PreviewItem : ContentControl
 			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b)))
 			.Select(x => x.First || x.Second);
 
-		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+		Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 
 		base.OnApplyTemplate(e);
 	}

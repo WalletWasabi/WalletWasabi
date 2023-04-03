@@ -41,7 +41,7 @@
               <Setter Property="Background" Value="Transparent" />
             </Style>
             <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
             </Style>
             <Style Selector="ListBoxItem">
               <Setter Property="Opacity" Value="0.3" />
@@ -82,11 +82,11 @@
             </Style>
             <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPointerOver}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
             </Style>
             <Style Selector="Button:pressed  /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPressed}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
             </Style>
             <Style Selector="Button > PathIcon">
               <Setter Property="Width" Value="5" />

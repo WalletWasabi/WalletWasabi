@@ -16,7 +16,7 @@
 
   <Style Selector="c|NavBarItem">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
   <!-- TODO: Enable back when item dragging is enabled

@@ -41,8 +41,8 @@
           <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
           <ContentPresenter x:Name="PART_HeaderContentPresenter"
                             DockPanel.Dock="Top"
-                            TextBlock.FontWeight="Normal"
-                            TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
+                            TextElement.FontWeight="Normal"
+                            TextElement.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
@@ -131,8 +131,8 @@
         <DockPanel>
           <ContentPresenter x:Name="PART_HeaderContentPresenter"
                             DockPanel.Dock="Top"
-                            TextBlock.FontWeight="Normal"
-                            TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
+                            TextElement.FontWeight="Normal"
+                            TextElement.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 

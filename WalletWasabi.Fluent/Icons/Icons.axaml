@@ -408,11 +408,11 @@
         </Panel>
       </ControlTemplate>
       <ControlTemplate x:Key="wasabi_logo_text_dynamic">
-        <StackPanel Margin="0,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
-                    TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
-          <TextBlock Text="WASABI" Classes="h6" Foreground="{StaticResource TextForegroundColor}" ClipToBounds="False" />
-          <TextBlock Text="." Classes="h6" Foreground="{StaticResource LogoFixedAccentColor}" ClipToBounds="False" />
-          <TextBlock Text="WALLET" Classes="h6" Foreground="{StaticResource TextForegroundColor}" ClipToBounds="False" />
+        <StackPanel Margin="0,0,0,-5" TextElement.FontFamily="{StaticResource WasabiLogoTextFont}"
+                    TextElement.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
+          <TextBlock Text="WASABI" Classes="h6" Foreground="{DynamicResource TextForegroundColor}" ClipToBounds="False" />
+          <TextBlock Text="." Classes="h6" Foreground="{DynamicResource LogoFixedAccentColor}" ClipToBounds="False" />
+          <TextBlock Text="WALLET" Classes="h6" Foreground="{DynamicResource TextForegroundColor}" ClipToBounds="False" />
         </StackPanel>
       </ControlTemplate>
       <DrawingImage x:Key="wasabi_logo_dynamic">

@@ -10,11 +10,13 @@
     <Setter Property="Height" Value="0.55" />
     <Setter Property="Background" Value="{DynamicResource SeparatorBackgroundBrush}" />
     <Setter Property="Opacity" Value="0.5" />
+    <Setter Property="Margin" Value="0" />
   </Style>
 
   <Style Selector="Separator.vertical">
     <Setter Property="Height" Value="NaN" />
     <Setter Property="Width" Value="0.55" />
+    <Setter Property="Margin" Value="0" />
   </Style>
 
 </Styles>

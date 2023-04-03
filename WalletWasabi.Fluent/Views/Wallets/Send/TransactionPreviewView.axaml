@@ -27,7 +27,7 @@
     <c:ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
@@ -75,7 +75,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                       <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                                HorizontalAlignment="Center"
-                               Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+                               ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
                         <i:Interaction.Behaviors>
                           <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
                         </i:Interaction.Behaviors>
@@ -106,8 +106,8 @@
 
                             <Setter Property="BorderBrush" Value="#14FFFFFF" />
                             <Setter Property="BorderThickness" Value="1" />
-                            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-                            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+                            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+                            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
                           </Style>
 
                           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
@@ -117,8 +117,8 @@
 
                             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
                             <Setter Property="BorderThickness" Value="1" />
-                            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-                            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+                            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+                            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
 
                             <Setter Property="Opacity" Value="0" />
                           </Style>
@@ -156,7 +156,8 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <Carousel Items="{Binding TransactionSummaries}" IsVirtualized="False"
+    <!-- TODO: IsVirtualized="False" -->
+    <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
         <CrossFade Duration="0.75" />

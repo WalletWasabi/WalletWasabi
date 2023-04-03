@@ -33,7 +33,7 @@ public static class ApplicationHelper
 		}
 	}
 
-	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default)
+	public static IObservable<string> ClipboardTextChanged(IScheduler? scheduler = default)
 	{
 		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
 			.SelectMany(

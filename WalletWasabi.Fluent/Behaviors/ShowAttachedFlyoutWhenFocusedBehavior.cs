@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Diagnostics;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.VisualTree;
@@ -35,7 +36,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			return;
 		}
 
-		var flyoutBase = FlyoutBase.GetAttachedFlyout(AssociatedObject);
+		var flyoutBase = FlyoutBase.GetAttachedFlyout(AssociatedObject) as PopupFlyoutBase;
 		if (flyoutBase is null)
 		{
 			return;
@@ -67,7 +68,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 	}
 
 	private static IDisposable ActivateOpener(
-		IInputElement associatedObject,
+		InputElement associatedObject,
 		Control visualRoot,
 		FlyoutShowController controller)
 	{
@@ -84,8 +85,8 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Select(_ => ((IPopupHostProvider)flyoutBase).PopupHost?.Presenter)
 			.WhereNotNull();
 
-		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();
-		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
+		var popupGotFocus = currentPopupHost.Select(x => (x as ContentPresenter).OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();
+		var popupLostFocus = currentPopupHost.Select(x => (x as ContentPresenter).OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
 		var flyoutGotFocus = popupGotFocus.Select(_ => true).Merge(popupLostFocus.Select(_ => false));
 		return flyoutGotFocus;
 	}
@@ -99,7 +100,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 	}
 
 	private IDisposable FocusBasedFlyoutOpener(
-		IAvaloniaObject associatedObject,
+		AvaloniaObject associatedObject,
 		FlyoutBase flyoutBase)
 	{
 		var isPopupFocused = GetPopupIsFocused(flyoutBase);

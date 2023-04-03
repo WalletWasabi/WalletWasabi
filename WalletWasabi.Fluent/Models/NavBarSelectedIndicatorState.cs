@@ -38,7 +38,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 		_currentAnimationCts = new CancellationTokenSource();
 	}
 
-	private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
+	private static Matrix GetOffsetFrom(Visual ancestor, Visual visual)
 	{
 		var identity = Matrix.Identity;
 		while (visual != ancestor)
@@ -51,12 +51,12 @@ public class NavBarSelectedIndicatorState : IDisposable
 				identity *= Matrix.CreateTranslation(topLeft);
 			}
 
-			if (visual.VisualParent is null)
+			if (visual.Parent is null)
 			{
 				return Matrix.Identity;
 			}
 
-			visual = visual.VisualParent;
+			visual = visual.Parent as Visual;
 		}
 
 		return identity;
@@ -104,8 +104,8 @@ public class NavBarSelectedIndicatorState : IDisposable
 		nextIndicator.Opacity = 0;
 
 		// Ignore the RenderTransforms so we can get the actual positions
-		var prevMatrix = GetOffsetFrom(commonAncestor, prevIndicator);
-		var nextMatrix = GetOffsetFrom(commonAncestor, nextIndicator);
+		var prevMatrix = GetOffsetFrom((Visual)commonAncestor, prevIndicator);
+		var nextMatrix = GetOffsetFrom((Visual)commonAncestor, nextIndicator);
 
 		var prevVector = new Point().Transform(prevMatrix);
 		var nextVector = new Point().Transform(nextMatrix);

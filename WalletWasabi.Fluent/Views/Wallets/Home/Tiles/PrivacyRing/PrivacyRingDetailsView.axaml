@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingDetailsView">
@@ -30,7 +30,7 @@
       <StackPanel Opacity="0.8" HorizontalAlignment="Center" Classes="balance" x:Name="Balance">
 
         <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
-                BorderBrush="{StaticResource ButtonForeground}" HorizontalAlignment="Center">
+                BorderBrush="{DynamicResource ButtonForeground}" HorizontalAlignment="Center">
           <TextBlock
             Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>

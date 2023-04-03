@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
              xmlns:controls="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
@@ -28,7 +28,7 @@
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
-            <ItemsControl Items="{Binding Links}"
+            <ItemsControl ItemsSource="{Binding Links}"
                           Margin="0 0 0 25"
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>

@@ -31,7 +31,7 @@
     </Style>
 
     <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
-      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Background">
         <Setter.Value>
           <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
@@ -113,12 +113,12 @@
 
   <Panel VerticalAlignment="Center">
     <TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">No results</TextBlock>
-    <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Groups}">
+    <ItemsControl IsVisible="{Binding HasResults^}" ItemsSource="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-            <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
+            <ItemsControl x:Name="ListBox" ItemsSource="{Binding Items}" />
           </DockPanel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>

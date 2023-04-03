@@ -25,7 +25,7 @@
       </Grid.RowDefinitions>
 
       <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ItemsControl Items="{Binding MnemonicWords}">
+        <ItemsControl ItemsSource="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />

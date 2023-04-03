@@ -20,7 +20,7 @@ public static class AppBuilderExtension
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			appBuilder.UsePlatformDetect()
-				.UseManagedSystemDialogs<AppBuilder, Window>();
+				.UseManagedSystemDialogs<Window>();
 		}
 		else
 		{
@@ -29,9 +29,9 @@ public static class AppBuilderExtension
 
 		return appBuilder
 			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 })
-			.With(new Win32PlatformOptions { AllowEglInitialization = enableGpu, UseDeferredRendering = true, UseWindowsUIComposition = true })
+			.With(new Win32PlatformOptions { AllowEglInitialization = enableGpu, UseWindowsUIComposition = true })
 			.With(new X11PlatformOptions { UseGpu = enableGpu, WmClass = "Wasabi Wallet" })
-			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = enableGpu })
+			.With(new AvaloniaNativePlatformOptions { UseGpu = enableGpu })
 			.With(new MacOSPlatformOptions { ShowInDock = true });
 	}
 }

@@ -6,14 +6,14 @@
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
       <c:LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
-        <c:LabelsItemsPresenter.Items>
+        <c:LabelsItemsPresenter.ItemsSource>
           <g:List x:TypeArguments="x:String">
             <x:String>Label 1</x:String>
             <x:String>Label 2</x:String>
             <x:String>Label 3</x:String>
             <x:String>Label 4</x:String>
           </g:List>
-        </c:LabelsItemsPresenter.Items>
+        </c:LabelsItemsPresenter.ItemsSource>
       </c:LabelsItemsPresenter>
     </Border>
   </Design.PreviewWith>
@@ -32,11 +32,24 @@
 
   <Style Selector="c|LabelsItemsPresenter">
     <Setter Property="Margin" Value="0" />
-    <Setter Property="VirtualizationMode" Value="Simple" />
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="MaxLabelWidth" Value="{DynamicResource LabelMaxWidth}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                          AreVerticalSnapPointsRegular="{TemplateBinding AreVerticalSnapPointsRegular}"
+                          AreHorizontalSnapPointsRegular="{TemplateBinding AreHorizontalSnapPointsRegular}"
+                          ItemsPanel="{TemplateBinding ItemsPanel}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
@@ -52,7 +65,8 @@
     </Setter>
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel Orientation="Horizontal" Spacing="2"
+        <!-- TODO: Spacing="2" -->
+        <c:LabelsPanel Orientation="Horizontal"
                        HorizontalAlignment="{Binding $parent[c:LabelsItemsPresenter].HorizontalAlignment}">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">

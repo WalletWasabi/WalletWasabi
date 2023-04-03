@@ -15,8 +15,8 @@
     <DockPanel Width="400" Height="250">
       <Grid Margin="12 12 12 12" RowDefinitions="Auto,Auto" DockPanel.Dock="Bottom">
         <TextBlock FontWeight="Bold" Classes="monoSpaced" Grid.Row="0" Text="{Binding ErrorMessage}"
-                   Foreground="{StaticResource SystemErrorTextColor}" TextAlignment="Center" TextWrapping="Wrap" />
-        <TextBlock Margin="0 6 0 0" Foreground="{StaticResource TextControlForeground}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                   Foreground="{DynamicResource SystemErrorTextColor}" TextAlignment="Center" TextWrapping="Wrap" />
+        <TextBlock Margin="0 6 0 0" Foreground="{DynamicResource TextControlForeground}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                    Grid.Row="1"
                    Text="{Binding QrContent}"
                    TextAlignment="Center"

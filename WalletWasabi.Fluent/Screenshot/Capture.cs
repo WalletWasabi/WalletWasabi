@@ -14,26 +14,27 @@ namespace WalletWasabi.Fluent.Screenshot;
 
 public static class Capture
 {
-	private class CanvasRenderTarget : IRenderTarget
-	{
-		private readonly SKCanvas _canvas;
-		private readonly double _dpi;
-
-		public CanvasRenderTarget(SKCanvas canvas, double dpi)
-		{
-			_canvas = canvas;
-			_dpi = dpi;
-		}
-
-		public IDrawingContextImpl CreateDrawingContext(IVisualBrushRenderer? visualBrushRenderer)
-		{
-			return DrawingContextHelper.WrapSkiaCanvas(_canvas, new Vector(_dpi, _dpi), visualBrushRenderer);
-		}
-
-		public void Dispose()
-		{
-		}
-	}
+	// TODO: Re-enable this code with new renderer code.
+	// private class CanvasRenderTarget : RenderTarget
+	// {
+	// 	private readonly SKCanvas _canvas;
+	// 	private readonly double _dpi;
+	//
+	// 	public CanvasRenderTarget(SKCanvas canvas, double dpi)
+	// 	{
+	// 		_canvas = canvas;
+	// 		_dpi = dpi;
+	// 	}
+	//
+	// 	public IDrawingContextImpl CreateDrawingContext(VisualBrushRenderer? visualBrushRenderer)
+	// 	{
+	// 		return DrawingContextHelper.WrapSkiaCanvas(_canvas, new Vector(_dpi, _dpi), visualBrushRenderer);
+	// 	}
+	//
+	// 	public void Dispose()
+	// 	{
+	// 	}
+	// }
 
 	public static void AttachCapture(this TopLevel root)
 	{
@@ -84,8 +85,9 @@ public static class Capture
 
 	private static void Render(Control target, SKCanvas canvas, double dpi)
 	{
-		using var renderTarget = new CanvasRenderTarget(canvas, dpi);
-		ImmediateRenderer.Render(target, renderTarget);
+		// TODO: Re-enable this code with new renderer code.
+		// using var renderTarget = new CanvasRenderTarget(canvas, dpi);
+		// ImmediateRenderer.Render(target, renderTarget);
 	}
 
 	private static void Save(Control? target, Size size, string path)

@@ -22,7 +22,7 @@
       <Viewbox MaxHeight="120">
         <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
       </Viewbox>
-      <TextBlock TextAlignment="Center" Foreground="{StaticResource SystemErrorTextColor}"
+      <TextBlock TextAlignment="Center" Foreground="{DynamicResource SystemErrorTextColor}"
                  Text="{Binding AuthorizationFailedMessage}"
                  TextWrapping="Wrap"
                  IsVisible="{Binding HasAuthorizationFailed}" />

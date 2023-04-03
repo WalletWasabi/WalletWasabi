@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.LogicalTree;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -33,9 +34,18 @@ public class LabelsPanel : VirtualizingStackPanel
 
 	internal LabelsItemsPresenter? Presenter { get; set; }
 
+	public override void ApplyTemplate()
+	{
+		base.ApplyTemplate();
+
+		Presenter = this
+			.GetLogicalAncestors()
+			.FirstOrDefault(x => x is LabelsItemsPresenter) as LabelsItemsPresenter;
+	}
+
 	private void UpdateFilteredItems(int count)
 	{
-		if (Presenter?.Items is IEnumerable<string> items)
+		if (Presenter?.ItemsSource is IEnumerable<string> items)
 		{
 			FilteredItems = items.Skip(count).ToList();
 		}
@@ -85,7 +95,9 @@ public class LabelsPanel : VirtualizingStackPanel
 
 	protected override Size ArrangeOverride(Size finalSize)
 	{
-		var spacing = Spacing;
+		// TODO: Spacing property missing in master Avalonia
+		//var spacing = Spacing;
+		var spacing = 0.0;
 		var ellipsisWidth = 0.0;
 		var width = 0.0;
 		var height = 0.0;
