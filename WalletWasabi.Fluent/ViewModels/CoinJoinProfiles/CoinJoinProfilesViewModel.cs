@@ -100,6 +100,6 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
-		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false, escapeGoesBack: true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 }

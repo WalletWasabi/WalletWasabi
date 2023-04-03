@@ -30,7 +30,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		Network = wallet.Network;
 		_addresses = new ObservableCollection<AddressViewModel>();
 
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true, escapeGoesBack: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = true;
 
