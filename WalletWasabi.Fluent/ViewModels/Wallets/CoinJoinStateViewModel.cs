@@ -56,7 +56,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public CoinJoinStateViewModel(WalletViewModel walletVm)
+	private CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;

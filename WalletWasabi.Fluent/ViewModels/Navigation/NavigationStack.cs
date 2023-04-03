@@ -177,6 +177,11 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		}
 	}
 
+	public FluentNavigate To()
+	{
+		return new FluentNavigate(UIContext);
+	}
+
 	private void UpdateCanNavigateBack()
 	{
 		CanNavigateBack = _backStack.Count > 0;

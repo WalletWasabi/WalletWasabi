@@ -68,8 +68,8 @@ public static class Logger
 		SetFilePath(filePath);
 
 #if RELEASE
-			SetMinimumLevel(logLevel ??= LogLevel.Info);
-			SetModes(LogMode.Console, LogMode.File);
+		SetMinimumLevel(logLevel ??= LogLevel.Info);
+		SetModes(LogMode.Console, LogMode.File);
 
 #else
 		SetMinimumLevel(logLevel ??= LogLevel.Debug);
