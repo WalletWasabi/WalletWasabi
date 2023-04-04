@@ -50,7 +50,7 @@ public partial class MainViewModel : ViewModelBase
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
+		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
 
 		UiServices.Initialize();
 
@@ -77,17 +77,6 @@ public partial class MainViewModel : ViewModelBase
 				x => x.CompactDialogScreen.IsDialogOpen,
 				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
 			.ObserveOn(RxApp.MainThreadScheduler);
-
-		this.WhenAnyValue(
-				x => x.DialogScreen.CurrentPage,
-				x => x.CompactDialogScreen.CurrentPage,
-				x => x.FullScreen.CurrentPage,
-				x => x.MainScreen.CurrentPage,
-				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
-			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(page => page.SetActive())
-			.Subscribe();
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
@@ -273,7 +262,7 @@ public partial class MainViewModel : ViewModelBase
 					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
 					{
 						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
-						var dialogResult = await RoutableViewModel.NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
 						{
@@ -326,7 +315,7 @@ public partial class MainViewModel : ViewModelBase
 		var filterChanged = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSearchSource(filterChanged),
+			new ActionsSearchSource(UiContext, filterChanged),
 			new SettingsSearchSource(_settingsPage, filterChanged),
 			new TransactionsSearchSource(filterChanged));
 
