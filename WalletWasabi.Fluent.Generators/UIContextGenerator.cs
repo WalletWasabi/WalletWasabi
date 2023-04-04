@@ -11,7 +11,7 @@ using System.Text;
 namespace WalletWasabi.Fluent.Generators;
 
 [Generator]
-public class UIContextGenerator : IIncrementalGenerator
+public class UiContextGenerator : IIncrementalGenerator
 {
 	private static string[] Exclusions =
 		new[]
