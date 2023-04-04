@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
@@ -10,7 +11,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 {
 	private CompositeDisposable? _currentDisposable;
-
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _enableCancelOnPressed;
 	[AutoNotify] private bool _enableCancelOnEscape;
@@ -18,17 +18,17 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	[AutoNotify] private bool _enableCancel;
 	[AutoNotify] private bool _isActive;
 
-	protected RoutableViewModel()
-	{
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
-		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
-	}
-
 	public abstract string Title { get; protected set; }
 
 	public NavigationTarget CurrentTarget { get; internal set; }
 
 	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
+
+	protected RoutableViewModel()
+	{
+		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
+		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
+	}
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";
 	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
@@ -72,9 +72,41 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		return Navigate(currentTarget);
 	}
 
-	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
+	public static INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 	{
-		return UiContext.Navigate(currentTarget);
+		return currentTarget switch
+		{
+			NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
+			NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
+			NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
+			NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
+			_ => throw new NotSupportedException(),
+		};
+	}
+
+	public void SetActive()
+	{
+		if (NavigationState.Instance.HomeScreenNavigation.CurrentPage is { } homeScreen)
+		{
+			homeScreen.IsActive = false;
+		}
+
+		if (NavigationState.Instance.DialogScreenNavigation.CurrentPage is { } dialogScreen)
+		{
+			dialogScreen.IsActive = false;
+		}
+
+		if (NavigationState.Instance.FullScreenNavigation.CurrentPage is { } fullScreen)
+		{
+			fullScreen.IsActive = false;
+		}
+
+		if (NavigationState.Instance.CompactDialogScreenNavigation.CurrentPage is { } compactDialogScreen)
+		{
+			compactDialogScreen.IsActive = false;
+		}
+
+		IsActive = true;
 	}
 
 	public void OnNavigatedTo(bool isInHistory)
@@ -105,21 +137,30 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
 		=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
+	public static async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		return await UiContext.Navigate(target).NavigateDialogAsync(dialog, navigationMode);
+		var dialogTask = dialog.GetDialogResultAsync();
+
+		Navigate(target).To(dialog, navigationMode);
+
+		var result = await dialogTask;
+
+		Navigate(target).Back();
+
+		return result;
 	}
 
-	protected async Task ShowErrorAsync(string title, string message, string caption, NavigationTarget navigationTarget = NavigationTarget.Default)
+	protected async Task ShowErrorAsync(string title, string message, string caption, NavigationTarget target = NavigationTarget.Default)
 	{
-		var target =
-			navigationTarget != NavigationTarget.Default
-			? navigationTarget
+		var dialog = new ShowErrorDialogViewModel(message, title, caption);
+
+		var navigationTarget = target != NavigationTarget.Default
+			? target
 			: CurrentTarget == NavigationTarget.CompactDialogScreen
 				? NavigationTarget.CompactDialogScreen
 				: NavigationTarget.DialogScreen;
 
-		await Navigate(target).ShowErrorAsync(title, message, caption);
+		await NavigateDialogAsync(dialog, navigationTarget);
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed, bool escapeGoesBack = false)

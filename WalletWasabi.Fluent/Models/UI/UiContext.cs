@@ -18,8 +18,8 @@ public class UiContext
 	public IQrCodeGenerator QrCodeGenerator { get; }
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
-	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => new(new QrGenerator(), Application.Current?.Clipboard ?? new NullClipboard());
+	// Application.Current should never be null
+	public static UiContext Default => new(new QrGenerator(), Application.Current?.Clipboard!);
 
 	public void RegisterNavigation(INavigate navigate)
 	{
