@@ -11,7 +11,7 @@ using System.Text;
 namespace WalletWasabi.Fluent.Generators;
 
 [Generator]
-public class UIContextGenerator : ISourceGenerator
+public class UiContextGenerator : ISourceGenerator
 {
 	private static string[] Exclusions =
 		new[]
@@ -67,7 +67,7 @@ public class UIContextGenerator : ISourceGenerator
 
 	private static IEnumerable<ConstructorDeclarationSyntax> GenerateConstructors(GeneratorExecutionContext context, ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel, INamedTypeSymbol classSymbol)
 	{
-		var fileName = classDeclaration.Identifier.ValueText + UIContextAnalyzer.UIContextFileSuffix;
+		var fileName = classDeclaration.Identifier.ValueText + UiContextAnalyzer.UiContextFileSuffix;
 
 		var className = classSymbol.Name;
 		var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
@@ -79,7 +79,7 @@ public class UIContextGenerator : ISourceGenerator
 
 		foreach (var ctor in ctors)
 		{
-			if (!classDeclaration.GetUIContextReferences(semanticModel).Any())
+			if (!classDeclaration.GetUiContextReferences(semanticModel).Any())
 			{
 				if (!classDeclaration.IsAbstractClass(semanticModel) && ctor.IsPublic())
 				{
@@ -87,7 +87,7 @@ public class UIContextGenerator : ISourceGenerator
 				}
 			}
 			// if constructor already has a UIContext parameter, leave it be. Don't generate a new ctor and use the current one for FluentNavigation.
-			else if (ctor.ParameterList.Parameters.Any(p => p.Type.IsUIContextType(semanticModel)))
+			else if (ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(semanticModel)))
 			{
 				// it must be public though
 				if (ctor.IsPublic())
@@ -117,12 +117,12 @@ public class UIContextGenerator : ISourceGenerator
 									  .Select(t => $"using {t.Type.ContainingNamespace.ToDisplayString()};")
 									  .ToList();
 
-				var parametersString = "UIContext uiContext";
+				var parametersString = "UiContext uiContext";
 
 				var uiContextParameter =
 					SyntaxFactory.Parameter(SyntaxFactory.Identifier("uiContext")
 														 .WithLeadingTrivia(SyntaxFactory.Space))
-								 .WithType(SyntaxFactory.ParseTypeName("UIContext"));
+								 .WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
 				if (hasCtorArgs)
 				{
@@ -145,7 +145,7 @@ partial class {{className}}
 {
     public {{className}}({{parametersString}}){{ctorString}}
     {
-	    UIContext = uiContext;
+	    UiContext = uiContext;
     }
 }
 """;
@@ -209,7 +209,7 @@ partial class {{className}}
 			var uiContextParam =
 				ctor.ParameterList
 					.Parameters
-					.FirstOrDefault(x => x.Type.IsUIContextType(semanticModel));
+					.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
 
 			var methodParams = ctor.ParameterList;
 
@@ -254,7 +254,7 @@ partial class {{className}}
 					SyntaxFactory.SeparatedList(
 					ctor.ParameterList
 						.Parameters
-						.Select(x => x.Type.IsUIContextType(semanticModel) ? "UIContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
+						.Select(x => x.Type.IsUiContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UiContext property reference
 						.Select(x => SyntaxFactory.ParseExpression(x))
 						.Select(SyntaxFactory.Argument),
 					ctor.ParameterList
@@ -271,7 +271,7 @@ partial class {{className}}
 $$"""
     public void {{methodName}}{{methodParams}}
 	{
-	    UIContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
+	    UiContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
     }
 
 """;

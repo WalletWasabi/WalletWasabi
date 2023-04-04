@@ -46,7 +46,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 			var item = CoinJoinTransactions[i];
 
 			var transaction = new CoinJoinHistoryItemViewModel(
-				UIContext,
+				UiContext,
 				i,
 				item,
 				_walletVm,

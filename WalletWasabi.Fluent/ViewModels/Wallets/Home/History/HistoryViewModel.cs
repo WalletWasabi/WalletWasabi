@@ -263,14 +263,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(UIContext, i, item, _walletVm, balance);
+				yield return new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance);
 			}
 
 			if (item.IsOwnCoinjoin)
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(UIContext, i, item, _walletVm);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(UiContext, i, item, _walletVm);
 				}
 				else
 				{
@@ -284,7 +284,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
-					var singleCjItem = new CoinJoinHistoryItemViewModel(UIContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
+					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
 					yield return singleCjItem;
 				}
 				else

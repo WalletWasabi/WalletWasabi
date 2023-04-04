@@ -15,7 +15,7 @@ public class NavigationState : ReactiveObject, INavigate
 		INavigationStack<RoutableViewModel> fullScreenNavigation,
 		INavigationStack<RoutableViewModel> compactDialogScreenNavigation)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 		HomeScreenNavigation = homeScreenNavigation;
 		DialogScreenNavigation = dialogScreenNavigation;
 		FullScreenNavigation = fullScreenNavigation;
@@ -33,7 +33,7 @@ public class NavigationState : ReactiveObject, INavigate
 			.Subscribe();
 	}
 
-	public UiContext UIContext { get; }
+	public UiContext UiContext { get; }
 
 	public INavigationStack<RoutableViewModel> HomeScreenNavigation { get; }
 
@@ -57,7 +57,7 @@ public class NavigationState : ReactiveObject, INavigate
 
 	public FluentNavigate To()
 	{
-		return new FluentNavigate(UIContext);
+		return new FluentNavigate(UiContext);
 	}
 
 	private void OnCurrentPageChanged(RoutableViewModel page)

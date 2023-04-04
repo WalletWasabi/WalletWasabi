@@ -181,7 +181,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 	public FluentNavigate To()
 	{
-		return new FluentNavigate(UIContext);
+		return new FluentNavigate(UiContext);
 	}
 
 	private void UpdateCanNavigateBack()
