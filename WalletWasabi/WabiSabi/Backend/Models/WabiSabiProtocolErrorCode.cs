@@ -33,7 +33,7 @@ public enum WabiSabiProtocolErrorCode
 	DeltaNotZero,
 	WrongNumberOfCreds,
 	CryptoException,
-	AliceAlreadySignalled,
+	AliceAlreadySignaled,
 	AliceAlreadyConfirmedConnection,
 	AlreadyRegisteredScript,
 	SignatureTooLong,
