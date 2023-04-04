@@ -1,5 +1,5 @@
 using ReactiveUI;
-using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class HardwareWalletViewModel : WalletViewModel
 {
-	internal HardwareWalletViewModel(UIContext uiContext, Wallet wallet) : base(uiContext, wallet)
+	internal HardwareWalletViewModel(UiContext uiContext, Wallet wallet) : base(uiContext, wallet)
 	{
 		BroadcastPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
 		{

@@ -9,13 +9,13 @@ namespace WalletWasabi.Fluent.Generators;
 
 public static class AnalyzerExtensions
 {
-	public static List<IdentifierNameSyntax> GetUIContextReferences(this SyntaxNode node, SemanticModel semanticModel)
+	public static List<IdentifierNameSyntax> GetUiContextReferences(this SyntaxNode node, SemanticModel semanticModel)
 	{
 		return
 			node.DescendantNodes()
 			 .OfType<IdentifierNameSyntax>()
-			 .Where(x => x.Identifier.ValueText == "UIContext")                                                   // faster verification
-			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UIContextAnalyzer.UIContextType) // slower, but safer. Only runs if previous verification passed.
+			 .Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
+			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
 			 .ToList();
 	}
 
@@ -34,7 +34,7 @@ public static class AnalyzerExtensions
 		var filePath = node.SyntaxTree.FilePath;
 
 		return filePath is null ||
-			   filePath.EndsWith(UIContextAnalyzer.UIContextFileSuffix);
+			   filePath.EndsWith(UiContextAnalyzer.UiContextFileSuffix);
 	}
 
 	public static bool IsSubTypeOf(this SyntaxNode node, SemanticModel model, string baseType)
@@ -71,35 +71,43 @@ public static class AnalyzerExtensions
 		return node.IsSubTypeOf(model, "WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
 	}
 
-	public static bool HasUIContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
+	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
 	{
-		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUIContextType(model));
+		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(model));
 	}
 
-	public static bool IsUIContextType(this TypeSyntax? typeSyntax, SemanticModel model)
+	public static bool IsUiContextType(this TypeSyntax? typeSyntax, SemanticModel model)
 	{
 		if (typeSyntax is null)
 		{
 			return false;
 		}
 
-		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UIContextAnalyzer.UIContextType;
+		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType;
 	}
 
-	public static IEnumerable<string> GetNamespaces(this ITypeSymbol? typeSymbol)
+	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
+	{
+		return GetNamespaceSymbols(typeSymbol)
+				.Where(x => !x.IsGlobalNamespace)
+				.Select(x => x.ToDisplayString())
+				.ToList();
+	}
+
+	private static IEnumerable<INamespaceSymbol> GetNamespaceSymbols(this ITypeSymbol? typeSymbol)
 	{
 		if (typeSymbol is null)
 		{
 			yield break;
 		}
 
-		yield return typeSymbol.ContainingNamespace.ToDisplayString();
+		yield return typeSymbol.ContainingNamespace;
 
 		if (typeSymbol is INamedTypeSymbol namedType)
 		{
 			foreach (var typeArg in namedType.TypeArguments)
 			{
-				yield return typeArg.ContainingNamespace.ToDisplayString();
+				yield return typeArg.ContainingNamespace;
 			}
 		}
 	}

@@ -8,19 +8,19 @@ using System.Linq;
 namespace WalletWasabi.Fluent.Generators;
 
 /// <summary>
-/// Report an error if UIContext is referenced in the constructor directly without being closed on by a lambda expression.
-/// UIContext cannot be referenced in constructor because it hasn't been initialized yet.
+/// Report an error if UiContext is referenced in the constructor directly without being closed on by a lambda expression.
+/// UiContext cannot be referenced in constructor because it hasn't been initialized yet.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class UIContextAnalyzer : DiagnosticAnalyzer
+public class UiContextAnalyzer : DiagnosticAnalyzer
 {
-	public const string UIContextType = "WalletWasabi.Fluent.Models.UI.UIContext";
-	public const string UIContextFileSuffix = "_UIContext.cs";
+	public const string UiContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
+	public const string UiContextFileSuffix = "_UiContext.cs";
 
 	internal static readonly DiagnosticDescriptor Rule1 =
 		new("WW001",
-			"Do not use UIContext or Navigation APIs in ViewModel Constructor",
-			"UIContext cannot be referenced in a ViewModel's constructor because it hasn't been initialized yet when constructor runs. Use OnNavigatedTo() or OnActivated() instead.",
+			"Do not use UiContext or Navigation APIs in ViewModel Constructor",
+			"UiContext cannot be referenced in a ViewModel's constructor because it hasn't been initialized yet when constructor runs. Use OnNavigatedTo() or OnActivated() instead.",
 			"Wasabi Wallet",
 			DiagnosticSeverity.Error,
 			true);
@@ -72,15 +72,15 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 		}
 
 		var uiContextReferenceInConstructor =
-		 	ctor
-			.GetUIContextReferences(context.SemanticModel)
+			 ctor
+			.GetUiContextReferences(context.SemanticModel)
 			.Where(static x => x.FirstAncestorOrSelf<ConstructorDeclarationSyntax>() != null)
 			.Where(static x => x.FirstAncestorOrSelf<LambdaExpressionSyntax>() == null)
 			.FirstOrDefault();
 
 		// if constructor already has a UIContext parameter, leave it be. Don't raise any warnings.
 		var ctorHasUiContextParameter =
-			ctor.ParameterList.Parameters.Any(x => x.Type.IsUIContextType(context.SemanticModel));
+			ctor.ParameterList.Parameters.Any(x => x.Type.IsUiContextType(context.SemanticModel));
 
 		if (ctorHasUiContextParameter)
 		{
@@ -100,7 +100,7 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 		}
 
 		var uiContextReferencesInClass =
-			classDeclaration.GetUIContextReferences(context.SemanticModel);
+			classDeclaration.GetUiContextReferences(context.SemanticModel);
 
 		if (uiContextReferencesInClass.Any() && !ctor.IsPrivate())
 		{

@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
@@ -17,7 +18,7 @@ public abstract class OpenFileViewModel : TriggerCommandViewModel
 			}
 			catch (Exception ex)
 			{
-				await ShowErrorAsync("Open", ex.Message, "Wasabi was unable to open the file");
+				await ShowErrorAsync("Open", ex.ToUserFriendlyString(), "Wasabi was unable to open the file");
 			}
 		});
 }
