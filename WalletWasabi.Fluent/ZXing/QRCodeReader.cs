@@ -27,7 +27,7 @@ namespace ZXing.QrCode
     /// </summary>
     public class QRCodeReader : Reader
 	{
-		private static readonly ResultPoint[] NO_POINTS = new ResultPoint[0];
+		private static readonly ResultPoint[] NO_POINTS = System.Array.Empty<ResultPoint>();
 
 		private readonly Decoder decoder = new Decoder();
 
