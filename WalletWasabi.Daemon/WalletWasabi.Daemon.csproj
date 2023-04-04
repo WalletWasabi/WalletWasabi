@@ -10,7 +10,6 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
@@ -40,10 +39,6 @@
 		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
-		<!-- Do we need an icon for the daemon???
-		<ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
-		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
-		-->
 		<Product>Wasabi Wallet Fluent Daemon</Product>
 	</PropertyGroup>
 

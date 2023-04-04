@@ -75,7 +75,6 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
-	/// <exception cref="OperationCanceledException">Wasabi is already running and signaled.</exception>
 	private async Task<bool> EnsureSingleOrThrowAsync()
 	{
 		if (DisposeCts.IsCancellationRequested)

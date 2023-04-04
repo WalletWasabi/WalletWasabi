@@ -40,7 +40,7 @@ public class WasabiApplication
 			if (instanceResult == WasabiInstanceStatus.PortIsBeingUser)
 			{
 				Logger.LogCritical($"Wasabi is already running, but cannot be signaled");
-				return 1;
+				return 2;
 			}
 		}
 

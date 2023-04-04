@@ -16,7 +16,7 @@ public class Config
 	public PersistentConfig PersistentConfig { get; }
 	private string[] Args { get; }
 
-	public Config (PersistentConfig persistentConfig, string[] args)
+	public Config(PersistentConfig persistentConfig, string[] args)
 	{
 		PersistentConfig = persistentConfig;
 		Args = args;
@@ -65,7 +65,7 @@ public class Config
 
 	private EndPoint GetEffectiveEndPoint(
 		EndPoint valueInConfigFile,
-		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(
 			valueInConfigFile,
 			x =>
@@ -82,7 +82,7 @@ public class Config
 
 	private bool GetEffectiveBool(
 		bool valueInConfigFile,
-		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(
 			valueInConfigFile,
 			x => x switch
@@ -96,22 +96,31 @@ public class Config
 
 	private string GetEffectiveString(
 		string valueInConfigFile,
-		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
 
 	private string? GetEffectiveOptionalString(
 		string? valueInConfigFile,
-		[CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
 
-	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, [CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+	private T GetEffectiveValue<T>(
+		T valueInConfigFile,
+		Func<string, T> converter,
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(valueInConfigFile, converter, Args, key);
 
 	private static string GetString(
-		string valueInConfigFile, string[] args, [CallerArgumentExpression("valueInConfigFile")] string key = "") =>
+		string valueInConfigFile,
+		string[] args,
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(valueInConfigFile, x => x, args, key);
 
-	private static T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, [CallerArgumentExpression("valueInConfigFile")] string key = "")
+	private static T GetEffectiveValue<T>(
+		T valueInConfigFile,
+		Func<string, T> converter,
+		string[] args,
+		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "")
 	{
 		key = key.StartsWith(nameof(PersistentConfig) + ".")
 			? key.Remove(0, nameof(PersistentConfig).Length + 1)
@@ -121,7 +130,7 @@ public class Config
 		var cliArgOrNull = args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
 		if (cliArgOrNull is { } cliArg)
 		{
-			return converter(cliArg.Substring(cliArgKey.Length));
+			return converter(cliArg[cliArgKey.Length..]);
 		}
 
 		var envKey = "WASABI-" + key.ToUpperInvariant();

@@ -12,7 +12,6 @@ using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using System.Diagnostics.CodeAnalysis;
@@ -59,7 +58,7 @@ public class Program
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = await app.RunAsGUIAsync();
+			var exitCode = await app.RunAsGuiAsync();
 
 			if (Services.UpdateManager.DoUpdateOnClose)
 			{
@@ -141,7 +140,7 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<int> RunAsGUIAsync(this WasabiApplication app)
+	public static async Task<int> RunAsGuiAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
 			() =>
