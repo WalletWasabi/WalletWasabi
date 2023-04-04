@@ -73,10 +73,10 @@ public static class AnalyzerExtensions
 
 	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
 	{
-		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUIContextType(model));
+		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(model));
 	}
 
-	public static bool IsUIContextType(this TypeSyntax? typeSyntax, SemanticModel model)
+	public static bool IsUiContextType(this TypeSyntax? typeSyntax, SemanticModel model)
 	{
 		if (typeSyntax is null)
 		{

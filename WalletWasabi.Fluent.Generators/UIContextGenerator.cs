@@ -215,7 +215,7 @@ partial class {{className}}
 			var uiContextParam =
 				ctor.ParameterList
 					.Parameters
-					.FirstOrDefault(x => x.Type.IsUIContextType(semanticModel));
+					.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
 
 			var methodParams = ctor.ParameterList;
 
@@ -260,7 +260,7 @@ partial class {{className}}
 					SyntaxFactory.SeparatedList(
 					ctor.ParameterList
 						.Parameters
-						.Select(x => x.Type.IsUIContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
+						.Select(x => x.Type.IsUiContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
 						.Select(x => SyntaxFactory.ParseExpression(x))
 						.Select(SyntaxFactory.Argument),
 					ctor.ParameterList
