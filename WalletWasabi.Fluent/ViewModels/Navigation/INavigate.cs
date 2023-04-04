@@ -10,4 +10,12 @@ public interface INavigate
 	FluentNavigate To();
 
 	Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal);
+
+	INavigationStack<RoutableViewModel> HomeScreen { get; }
+
+	INavigationStack<RoutableViewModel> DialogScreen { get; }
+
+	INavigationStack<RoutableViewModel> FullScreen { get; }
+
+	INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
 }
