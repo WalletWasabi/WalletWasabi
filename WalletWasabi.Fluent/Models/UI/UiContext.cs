@@ -7,6 +7,7 @@ namespace WalletWasabi.Fluent.Models.UI;
 public class UiContext
 {
 	private INavigate? _navigate;
+	private static UiContext? DefaultInstance;
 
 	public UiContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard)
 	{
@@ -19,7 +20,7 @@ public class UiContext
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => new(new QrGenerator(), Application.Current?.Clipboard ?? new NullClipboard());
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), Application.Current?.Clipboard ?? new NullClipboard());
 
 	public void RegisterNavigation(INavigate navigate)
 	{
