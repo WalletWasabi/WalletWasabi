@@ -6,9 +6,6 @@ namespace WalletWasabi.Tests;
 
 internal class TestableRpcService
 {
-	public void UnpublishedProcedure()
-	{
-	}
 
 	[JsonRpcMethod("say")]
 	public string Echo(string text) => text;
@@ -34,9 +31,5 @@ internal class TestableRpcService
 		Unused(unit);
 		Unused(ct);
 		await Task.FromResult<JsonRpcResponse>(null!);
-	}
-
-	private void Unused(object item)
-	{
 	}
 }
