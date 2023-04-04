@@ -29,14 +29,14 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	[AutoNotify] private Thickness _margin;
 	[AutoNotify] private Thickness _negativeMargin;
 
-	public PrivacyRingViewModel(UIContext uiContext, WalletViewModel walletViewModel)
+	public PrivacyRingViewModel(UiContext uiContext, WalletViewModel walletViewModel)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
-		PrivacyTile = new PrivacyControlTileViewModel(UIContext, walletViewModel, false);
+		PrivacyTile = new PrivacyControlTileViewModel(UiContext, walletViewModel, false);
 		PrivacyTile.Activate(_disposables);
 
 		PreviewItems.Add(PrivacyTile);

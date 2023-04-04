@@ -23,9 +23,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 
-	public WalletManagerViewModel(UIContext uiContext)
+	public WalletManagerViewModel(UiContext uiContext)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 
 		_walletsSourceList
 			.Connect()
@@ -66,7 +66,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			{
 				WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 					? ClosedWalletViewModel.Create(wallet)
-					: WalletViewModel.Create(UIContext, wallet);
+					: WalletViewModel.Create(UiContext, wallet);
 
 				InsertWallet(vm);
 			});
@@ -177,7 +177,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			throw new Exception("Wallet already opened.");
 		}
 
-		var walletViewModel = WalletViewModel.Create(UIContext, wallet);
+		var walletViewModel = WalletViewModel.Create(UiContext, wallet);
 
 		InsertWallet(walletViewModel);
 

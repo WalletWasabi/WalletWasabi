@@ -52,7 +52,7 @@ public partial class MainViewModel : ViewModelBase
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
 
-		UiServices.Initialize(UIContext);
+		UiServices.Initialize(UiContext);
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
@@ -262,7 +262,7 @@ public partial class MainViewModel : ViewModelBase
 					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
 					{
 						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
-						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+						var dialogResult = await Models.UI.UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
 						{

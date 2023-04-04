@@ -34,9 +34,9 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
-	protected WalletViewModel(UIContext uiContext, Wallet wallet) : base(wallet)
+	protected WalletViewModel(UiContext uiContext, Wallet wallet) : base(wallet)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 		Disposables = Disposables is null
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -112,7 +112,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(UIContext, this);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this);
 
 		Tiles = GetTiles().ToList();
 	}
@@ -174,7 +174,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 	}
 
-	public static WalletViewModel Create(UIContext uiContext, Wallet wallet)
+	public static WalletViewModel Create(UiContext uiContext, Wallet wallet)
 	{
 		return wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletViewModel(uiContext, wallet)
@@ -189,7 +189,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		if (!IsWatchOnly)
 		{
-			yield return new PrivacyControlTileViewModel(UIContext, this);
+			yield return new PrivacyControlTileViewModel(UiContext, this);
 		}
 
 		yield return new BtcPriceTileViewModel(Wallet);
