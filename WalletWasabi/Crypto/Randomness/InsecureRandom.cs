@@ -1,3 +1,5 @@
+using WabiSabi.Crypto.Randomness;
+
 namespace WalletWasabi.Crypto.Randomness;
 
 /// <seealso href="https://devblogs.microsoft.com/pfxteam/getting-random-numbers-in-a-thread-safe-way/"/>>

@@ -79,9 +79,7 @@ public class Wallet : BackgroundService, IWallet
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
-	/// <summary>
-	/// Unspent Transaction Outputs
-	/// </summary>
+	/// <summary>Unspent Transaction Outputs</summary>
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
@@ -117,8 +115,6 @@ public class Wallet : BackgroundService, IWallet
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
-
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
@@ -430,7 +426,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
+			var task = BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
 
 			if (task is { })
 			{

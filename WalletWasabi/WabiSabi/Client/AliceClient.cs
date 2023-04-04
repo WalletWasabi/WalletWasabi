@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -13,6 +12,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
 using WalletWasabi.Extensions;
 using System.Net.Http;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
