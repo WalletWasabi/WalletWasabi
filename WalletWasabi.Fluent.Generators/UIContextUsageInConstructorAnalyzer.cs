@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.Generators;
 /// UIContext cannot be referenced in constructor because it hasn't been initialized yet.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class UIContextAnalyzer : DiagnosticAnalyzer
+public class UiContextAnalyzer : DiagnosticAnalyzer
 {
 	public const string UIContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
 	public const string UIContextFileSuffix = "_UiContext.cs";

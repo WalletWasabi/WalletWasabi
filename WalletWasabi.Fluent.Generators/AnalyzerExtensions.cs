@@ -15,7 +15,7 @@ public static class AnalyzerExtensions
 			node.DescendantNodes()
 			 .OfType<IdentifierNameSyntax>()
 			 .Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
-			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UIContextAnalyzer.UIContextType) // slower, but safer. Only runs if previous verification passed.
+			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UIContextType) // slower, but safer. Only runs if previous verification passed.
 			 .ToList();
 	}
 
@@ -34,7 +34,7 @@ public static class AnalyzerExtensions
 		var filePath = node.SyntaxTree.FilePath;
 
 		return filePath is null ||
-			   filePath.EndsWith(UIContextAnalyzer.UIContextFileSuffix);
+			   filePath.EndsWith(UiContextAnalyzer.UIContextFileSuffix);
 	}
 
 	public static bool IsSubTypeOf(this SyntaxNode node, SemanticModel model, string baseType)
@@ -83,7 +83,7 @@ public static class AnalyzerExtensions
 			return false;
 		}
 
-		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UIContextAnalyzer.UIContextType;
+		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UiContextAnalyzer.UIContextType;
 	}
 
 	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
