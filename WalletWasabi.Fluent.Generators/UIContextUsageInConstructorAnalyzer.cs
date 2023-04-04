@@ -8,14 +8,14 @@ using System.Linq;
 namespace WalletWasabi.Fluent.Generators;
 
 /// <summary>
-/// Report an error if UIContext is referenced in the constructor directly without being closed on by a lambda expression.
-/// UIContext cannot be referenced in constructor because it hasn't been initialized yet.
+/// Report an error if UiContext is referenced in the constructor directly without being closed on by a lambda expression.
+/// UiContext cannot be referenced in constructor because it hasn't been initialized yet.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class UIContextAnalyzer : DiagnosticAnalyzer
+public class UiContextAnalyzer : DiagnosticAnalyzer
 {
-	public const string UIContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
-	public const string UIContextFileSuffix = "_UiContext.cs";
+	public const string UiContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
+	public const string UiContextFileSuffix = "_UiContext.cs";
 
 	internal static readonly DiagnosticDescriptor Rule1 =
 		new("WW001",
@@ -72,8 +72,8 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 		}
 
 		var uiContextReferenceInConstructor =
-		 	ctor
-			.GetUIContextReferences(context.SemanticModel)
+			 ctor
+			.GetUiContextReferences(context.SemanticModel)
 			.Where(static x => x.FirstAncestorOrSelf<ConstructorDeclarationSyntax>() != null)
 			.Where(static x => x.FirstAncestorOrSelf<LambdaExpressionSyntax>() == null)
 			.FirstOrDefault();
@@ -100,7 +100,7 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 		}
 
 		var uiContextReferencesInClass =
-			classDeclaration.GetUIContextReferences(context.SemanticModel);
+			classDeclaration.GetUiContextReferences(context.SemanticModel);
 
 		if (uiContextReferencesInClass.Any() && !ctor.IsPrivate())
 		{

@@ -11,7 +11,7 @@ using System.Text;
 namespace WalletWasabi.Fluent.Generators;
 
 [Generator]
-public class UIContextGenerator : IIncrementalGenerator
+public class UiContextGenerator : IIncrementalGenerator
 {
 	private static string[] Exclusions =
 		new[]
@@ -83,7 +83,7 @@ public class UIContextGenerator : IIncrementalGenerator
 
 	private static IEnumerable<ConstructorDeclarationSyntax> GenerateConstructors(SourceProductionContext context, ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel, INamedTypeSymbol classSymbol)
 	{
-		var fileName = classDeclaration.Identifier.ValueText + UIContextAnalyzer.UIContextFileSuffix;
+		var fileName = classDeclaration.Identifier.ValueText + UiContextAnalyzer.UiContextFileSuffix;
 
 		var className = classSymbol.Name;
 		var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
@@ -95,7 +95,7 @@ public class UIContextGenerator : IIncrementalGenerator
 
 		foreach (var ctor in ctors)
 		{
-			if (!classDeclaration.GetUIContextReferences(semanticModel).Any())
+			if (!classDeclaration.GetUiContextReferences(semanticModel).Any())
 			{
 				if (!classDeclaration.IsAbstractClass(semanticModel) && ctor.IsPublic())
 				{
@@ -224,7 +224,7 @@ partial class {{className}}
 			var uiContextParam =
 				ctor.ParameterList
 					.Parameters
-					.FirstOrDefault(x => x.Type.IsUIContextType(semanticModel));
+					.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
 
 			var methodParams = ctor.ParameterList;
 
@@ -269,7 +269,7 @@ partial class {{className}}
 					SyntaxFactory.SeparatedList(
 					ctor.ParameterList
 						.Parameters
-						.Select(x => x.Type.IsUIContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
+						.Select(x => x.Type.IsUiContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UiContext property reference
 						.Select(x => SyntaxFactory.ParseExpression(x))
 						.Select(SyntaxFactory.Argument),
 					ctor.ParameterList
