@@ -89,7 +89,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						void OnClick()
 						{
 							if (MainViewModel.Instance.IsBusy)
 							{
@@ -97,7 +97,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 							}
 
 							wvm.NavigateAndHighlight(e.Transaction.GetHash());
-						});
+						}
+
+						NotificationHelpers.Show(wallet, e, OnClick);
 					}
 
 					if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))

@@ -31,7 +31,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		SetAmount(amount);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			UIContext.Navigate(NavigationTarget.DialogScreen).To(
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";

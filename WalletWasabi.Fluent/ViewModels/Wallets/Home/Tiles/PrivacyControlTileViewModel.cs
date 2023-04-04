@@ -55,7 +55,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void ShowDetails()
 	{
-		UIContext.Navigate(NavigationTarget.DialogScreen).To(new PrivacyRingViewModel(UIContext, _walletVm));
+		UiContext.Navigate(NavigationTarget.DialogScreen).To(new PrivacyRingViewModel(UiContext, _walletVm));
 	}
 
 	private void Update()

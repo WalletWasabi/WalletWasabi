@@ -253,6 +253,9 @@ public class TransactionFactory
 			}
 		}
 
+		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
+		Dictionary<HdPubKey, SmartLabel> hdPubKeysWithNewLabels = new();
+
 		foreach (var coin in smartTransaction.WalletOutputs)
 		{
 			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
@@ -261,18 +264,18 @@ public class TransactionFactory
 			// The foundkeylabel has already been added previously, so no need to concatenate.
 			if (foundPaymentRequest is null) // Then it's autochange.
 			{
-				coin.HdPubKey.SetLabel(label);
+				hdPubKeysWithNewLabels.Add(coin.HdPubKey, label);
 			}
 			else
 			{
-				coin.HdPubKey.SetLabel(SmartLabel.Merge(coin.HdPubKey.Label, foundPaymentRequest.Label));
+				hdPubKeysWithNewLabels.Add(coin.HdPubKey, SmartLabel.Merge(coin.HdPubKey.Label, foundPaymentRequest.Label));
 			}
 		}
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 
 		var sign = !KeyManager.IsWatchOnly;
-		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
+		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 
 	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)

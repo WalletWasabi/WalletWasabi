@@ -75,7 +75,7 @@ public class Dialog : ContentControl
 	public static readonly StyledProperty<bool> ShowAlertProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(ShowAlert));
 
-	private static readonly Stack<Dialog> AllOpenedDialogStack = new ();
+	private static readonly Stack<Dialog> AllOpenedDialogStack = new();
 
 	public Dialog()
 	{
@@ -335,13 +335,13 @@ public class Dialog : ContentControl
 		}
 
 		if (IsDialogOpen
-		    && IsActive
-		    && EnableCancelOnPressed
-		    && !IsBusy
-		    && _dismissPanel is { }
-		    && _overlayPanel is { }
-		    && _canCancelOpenedOnPointerPressed
-		    && _canCancelActivatedOnPointerPressed)
+			&& IsActive
+			&& EnableCancelOnPressed
+			&& !IsBusy
+			&& _dismissPanel is { }
+			&& _overlayPanel is { }
+			&& _canCancelOpenedOnPointerPressed
+			&& _canCancelActivatedOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
 			var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;

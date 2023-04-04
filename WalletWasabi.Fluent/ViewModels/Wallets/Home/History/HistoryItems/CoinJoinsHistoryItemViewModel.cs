@@ -27,7 +27,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		IsCoinJoinGroup = true;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			UIContext.Navigate(NavigationTarget.DialogScreen).To(
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
