@@ -137,6 +137,9 @@ public class CoinJoinClient
 
 		do
 		{
+			// Sanity check if we would get coins at all otherwise this will throw.
+			var _ = coinCandidatesFunc();
+
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
