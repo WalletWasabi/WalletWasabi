@@ -313,11 +313,20 @@ public partial class FluentNavigate
 		{
 			var node = context.Node;
 
+			if (node is not ClassDeclarationSyntax c)
+			{
+				return;
+			}
+
 			var isValidClass =
-				node is ClassDeclarationSyntax c &&
 				c.Identifier.Text.EndsWith("ViewModel") &&
 				!Exclusions.Contains(c.Identifier.Text) &&
 				!node.IsSourceGenerated();
+
+			if (isValidClass)
+			{
+				ClassDeclarations.Add(c);
+			}
 		}
 	}
 }
