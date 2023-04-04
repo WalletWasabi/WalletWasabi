@@ -88,16 +88,13 @@ internal class Participant
 			return hdPubKey;
 		}
 
-		List<SmartCoin> GetCoinsCandidate()
-		{
-			return SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
-		 	.Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
-			.Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
-			.ToList();
-		}
+		var smartCoins = SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
+					 .Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
+					.Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
+					.ToList();
 
 		// Run the coinjoin client task.
-		var ret = await coinJoinClient.StartCoinJoinAsync(GetCoinsCandidate, cancellationToken).ConfigureAwait(false);
+		var ret = await coinJoinClient.StartCoinJoinAsync(() => smartCoins, cancellationToken).ConfigureAwait(false);
 
 		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 
