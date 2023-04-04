@@ -97,7 +97,7 @@ public class Global : IDisposable
 
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
 		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
-		CoinVerifier? coinVerifier = null;
+
 		if (coinVerifierEnabled)
 		{
 			try
@@ -118,11 +118,10 @@ public class Global : IDisposable
 				HttpClient.BaseAddress = url;
 				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
+				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
 				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
-				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
-				CoinVerifier = coinVerifier;
-				WhiteList = whitelist;
+				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
+
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
@@ -131,7 +130,7 @@ public class Global : IDisposable
 			}
 		}
 
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? coinVerifier : null);
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? CoinVerifier : null);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
 		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
@@ -159,7 +158,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");

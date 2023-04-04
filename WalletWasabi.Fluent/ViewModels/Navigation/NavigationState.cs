@@ -1,19 +1,21 @@
 using ReactiveUI;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public class NavigationState : ReactiveObject, INavigate
 {
 	public NavigationState(
-		UIContext uiContext,
+		UiContext uiContext,
 		INavigationStack<RoutableViewModel> homeScreenNavigation,
 		INavigationStack<RoutableViewModel> dialogScreenNavigation,
 		INavigationStack<RoutableViewModel> fullScreenNavigation,
 		INavigationStack<RoutableViewModel> compactDialogScreenNavigation)
 	{
-		UIContext = uiContext;
+		UiContext = uiContext;
 		HomeScreenNavigation = homeScreenNavigation;
 		DialogScreenNavigation = dialogScreenNavigation;
 		FullScreenNavigation = fullScreenNavigation;
@@ -31,7 +33,7 @@ public class NavigationState : ReactiveObject, INavigate
 			.Subscribe();
 	}
 
-	public UIContext UIContext { get; }
+	public UiContext UiContext { get; }
 
 	public INavigationStack<RoutableViewModel> HomeScreenNavigation { get; }
 
@@ -55,7 +57,7 @@ public class NavigationState : ReactiveObject, INavigate
 
 	public FluentNavigate To()
 	{
-		return new FluentNavigate(UIContext);
+		return new FluentNavigate(UiContext);
 	}
 
 	private void OnCurrentPageChanged(RoutableViewModel page)
@@ -81,5 +83,11 @@ public class NavigationState : ReactiveObject, INavigate
 		}
 
 		page.IsActive = true;
+	}
+
+	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		target = NavigationExtensions.GetTarget(dialog, target);
+		return await Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
 }

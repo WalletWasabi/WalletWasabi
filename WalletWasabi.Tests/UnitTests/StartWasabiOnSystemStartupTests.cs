@@ -57,6 +57,26 @@ public class StartWasabiOnSystemStartupTests
 		}
 	}
 
+	[Fact]
+	public void RunOnSystemStartupGetsSetCorrectly()
+	{
+		// Immitate fresh UiConfig file
+		string workDir = Common.GetWorkDir();
+		IoHelpers.EnsureDirectoryExists(workDir);
+		UiConfig config = new(Path.Combine(workDir, "UiConfig.json"));
+		config.LoadFile(true);
+		Assert.True(config.Oobe);
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			Assert.True(config.RunOnSystemStartup);
+		}
+		else
+		{
+			Assert.False(config.RunOnSystemStartup);
+		}
+		File.Delete(config.FilePath);
+	}
+
 	private UiConfig GetUiConfig()
 	{
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));

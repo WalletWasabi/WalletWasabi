@@ -1,12 +1,12 @@
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 

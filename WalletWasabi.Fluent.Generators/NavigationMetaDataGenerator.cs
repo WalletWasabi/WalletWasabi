@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.Generators;
 [Generator]
 public class NavigationMetaDataGenerator : ISourceGenerator
 {
-	private const string NavigationMetaDataAttributeDisplayString = "WalletWasabi.Fluent.NavigationMetaDataAttribute";
+	public const string NavigationMetaDataAttributeDisplayString = "WalletWasabi.Fluent.NavigationMetaDataAttribute";
 
 	private const string NavigationMetaDataDisplayString = "WalletWasabi.Fluent.NavigationMetaData";
 

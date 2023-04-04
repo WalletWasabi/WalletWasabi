@@ -8,13 +8,12 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Socks5.Exceptions;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
@@ -40,8 +39,11 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private long _running;
 
-	public WasabiSynchronizer(BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
+	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
 	{
+		RequestInterval = requestInterval;
+		MaxFiltersToSync = maxFiltersToSync;
+
 		LastResponse = null;
 		_running = StateNotStarted;
 		BitcoinStore = bitcoinStore;
@@ -91,9 +93,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
-
-	public TimeSpan MaxRequestIntervalForMixing { get; set; }
-
+	private TimeSpan RequestInterval { get; }
+	private int MaxFiltersToSync { get; }
 	public BitcoinStore BitcoinStore { get; }
 	public FilterProcessor FilterProcessor { get; }
 
@@ -110,15 +111,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	#region Initializers
 
-	public void Start(TimeSpan requestInterval, int maxFiltersToSyncAtInitialization)
+	public void Start()
 	{
-		Logger.LogTrace($"> {nameof(requestInterval)}={requestInterval}, {nameof(maxFiltersToSyncAtInitialization)}={maxFiltersToSyncAtInitialization}");
-
-		Guard.NotNull(nameof(requestInterval), requestInterval);
-		Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
-
-		MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
-
 		if (Interlocked.CompareExchange(ref _running, StateRunning, StateNotStarted) != StateNotStarted)
 		{
 			return;
@@ -142,7 +136,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						try
 						{
 							response = await WasabiClient
-								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
+								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
 
 							// NOT GenSocksServErr
@@ -193,7 +187,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						}
 
 						// If it's not fully synced or reorg happened.
-						if (response.Filters.Count() == maxFiltersToSyncAtInitialization || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+						if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 						{
 							ignoreRequestInterval = true;
 						}
@@ -253,8 +247,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						{
 							try
 							{
-								int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
-								await Task.Delay(delay, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
+								await Task.Delay(RequestInterval, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
 							}
 							catch (TaskCanceledException ex)
 							{
@@ -270,8 +263,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 				Logger.LogDebug("Synchronizer is fully stopped now.");
 			}
 		});
-
-		Logger.LogTrace("<");
 	}
 
 	#endregion Initializers
