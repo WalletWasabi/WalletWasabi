@@ -141,16 +141,16 @@ public class CoinJoinClient
 			var _ = coinCandidatesFunc();
 
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
-			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
+			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
 
 			coinCandidates = coinCandidatesFunc();
 
-			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
-			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
+			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters);
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
 
-			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
+			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
 				excludeRound = currentRoundState.Id;
 				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
@@ -158,10 +158,10 @@ public class CoinJoinClient
 				continue;
 			}
 
-			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
+			if (roundParameters.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
-				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameteers.MaxSuggestedAmount}' BTC, biggest coin amount is: '{coins.Select(c => c.Amount).Max()}' BTC.");
+				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{coins.Select(c => c.Amount).Max()}' BTC.");
 
 				continue;
 			}
@@ -293,7 +293,7 @@ public class CoinJoinClient
 			}
 			catch (Exception ex)
 			{
-				// Make sure that to not generate UnobserverTaskException.
+				// Make sure that to not generate UnobservedTaskException.
 				roundState.LogDebug(ex.Message);
 			}
 
