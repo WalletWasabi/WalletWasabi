@@ -133,12 +133,12 @@ public class UIContextGenerator : IIncrementalGenerator
 									  .Select(t => $"using {t.Type.ContainingNamespace.ToDisplayString()};")
 									  .ToList();
 
-				var parametersString = "UIContext uiContext";
+				var parametersString = "UiContext uiContext";
 
 				var uiContextParameter =
 					SyntaxFactory.Parameter(SyntaxFactory.Identifier("uiContext")
 														 .WithLeadingTrivia(SyntaxFactory.Space))
-								 .WithType(SyntaxFactory.ParseTypeName("UIContext"));
+								 .WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
 				if (hasCtorArgs)
 				{
@@ -161,7 +161,7 @@ partial class {{className}}
 {
     public {{className}}({{parametersString}}){{ctorString}}
     {
-	    UIContext = uiContext;
+	    UiContext = uiContext;
     }
 }
 """;
@@ -269,7 +269,7 @@ partial class {{className}}
 					SyntaxFactory.SeparatedList(
 					ctor.ParameterList
 						.Parameters
-						.Select(x => x.Type.IsUIContextType(semanticModel) ? "UIContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
+						.Select(x => x.Type.IsUIContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
 						.Select(x => SyntaxFactory.ParseExpression(x))
 						.Select(SyntaxFactory.Argument),
 					ctor.ParameterList
@@ -286,7 +286,7 @@ partial class {{className}}
 $$"""
     public void {{methodName}}{{methodParams}}
 	{
-	    UIContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
+	    UiContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
     }
 
 """;
