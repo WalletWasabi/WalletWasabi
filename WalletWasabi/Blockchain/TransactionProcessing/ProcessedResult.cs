@@ -83,4 +83,6 @@ public class ProcessedResult
 	/// Gets the coins that were made unspent again by this double spend transaction.
 	/// </summary>
 	public List<SmartCoin> RestoredCoins { get; } = new List<SmartCoin>();
+
+	public bool CancelTurboSync { get; set; } = false;
 }

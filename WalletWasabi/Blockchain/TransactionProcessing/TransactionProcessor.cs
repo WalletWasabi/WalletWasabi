@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
@@ -46,7 +47,7 @@ public class TransactionProcessor
 
 	#endregion Progress
 
-	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
+	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs, bool? turboSync = null)
 	{
 		var rets = new List<ProcessedResult>();
 
@@ -57,7 +58,7 @@ public class TransactionProcessor
 				QueuedTxCount = txs.Count();
 				foreach (var tx in txs)
 				{
-					rets.Add(ProcessNoLock(tx));
+					rets.Add(ProcessNoLock(tx, turboSync));
 					QueuedProcessedTxCount++;
 				}
 			}
@@ -90,7 +91,7 @@ public class TransactionProcessor
 		}
 	}
 
-	public ProcessedResult Process(SmartTransaction tx)
+	public ProcessedResult Process(SmartTransaction tx, bool? turboSync = null)
 	{
 		ProcessedResult ret;
 		lock (Lock)
@@ -99,7 +100,7 @@ public class TransactionProcessor
 			try
 			{
 				QueuedTxCount = 1;
-				ret = ProcessNoLock(tx);
+				ret = ProcessNoLock(tx, turboSync);
 			}
 			finally
 			{
@@ -113,7 +114,7 @@ public class TransactionProcessor
 		return ret;
 	}
 
-	private ProcessedResult ProcessNoLock(SmartTransaction tx)
+	private ProcessedResult ProcessNoLock(SmartTransaction tx, bool? turboSync = null)
 	{
 		var result = new ProcessedResult(tx);
 
@@ -133,6 +134,13 @@ public class TransactionProcessor
 			result = new ProcessedResult(tx);
 		}
 
+		if (turboSync.GetValueOrDefault() && ShouldCancelTurboSync(tx.Height, tx.Transaction.Inputs, tx.Transaction.Outputs))
+		{
+			result.CancelTurboSync = true;
+			// Don't process the TX because it will be processed again later.
+			return result;
+		}
+		
 		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
 		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
@@ -293,8 +301,9 @@ public class TransactionProcessor
 				{
 					if (spenderKey.ObsoleteHeight < tx.Height)
 					{
-						// We found a new transaction using a key that was previously marked as obsolete.
+						// We should never reach this point as TurboSync should have been cancelled in ShouldCancelTurboSync().
 						spenderKey.ObsoleteHeight = tx.Height;
+						Logger.LogError("TurboSync should have been cancelled but wasn't. TX will probably be processed twice");
 					}
 				}
 			}
@@ -310,6 +319,37 @@ public class TransactionProcessor
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
+	
+	private bool ShouldCancelTurboSync(Height txHeight, TxInList inputs, TxOutList outputs)
+	{
+		// If during first sync of TurboSync we find that an input uses a key that should be used later on, then perform a full sync.
+		// This is the case when a coin is received on/spent from an Obsolete in the same TX/block block than a coin on a non-obsolete key.
+		// Without invalidation, TX would be processed twice which would lead to an incorrect synchronization.
+		var shouldNotFindInputOutputOnTheseKeys = KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < new Height(txHeight)).ToList();
+
+		foreach (var txin in inputs)
+		{
+			if (txin.WitScript.ToScript().GetAllPubKeys().Any(x => shouldNotFindInputOutputOnTheseKeys.Any(y => y.PubKey.Equals(x))))
+			{
+				Logger.LogWarning($"Transaction is spending a coin from a key that should only have been tested later on.\nCancel TurboSync and perform a full sync.");
+				return true;
+			}
+		}
+
+		foreach (var txout in outputs)
+		{
+			if (KeyManager.TryGetKeyForScriptPubKey(txout.ScriptPubKey, out HdPubKey? foundKey))
+			{
+				if (shouldNotFindInputOutputOnTheseKeys.Any(x => x.PubKey.Equals(foundKey.PubKey)))
+				{
+					Logger.LogWarning($"Transaction has an output to a key that should only have been tested later on.\nCancel TurboSync and perform a full sync.");
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 	public void UndoBlock(Height blockHeight)
 	{

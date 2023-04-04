@@ -457,11 +457,23 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		// Go through the filters and queue to download the matches.
-		await BitcoinStore.IndexStore.ForeachFiltersAsync(
-			async (filterModel) =>
-				await ProcessFilterModelAsync(filterModel, true, cancel).ConfigureAwait(false),
-			new Height(bestKeyManagerNonObsoleteHeight.Value + 1),
-			cancel).ConfigureAwait(false);
+		try
+		{
+			await BitcoinStore.IndexStore.ForeachFiltersAsync(
+				async (filterModel) =>
+					await ProcessFilterModelAsync(filterModel, true, cancel).ConfigureAwait(false),
+				new Height(bestKeyManagerNonObsoleteHeight.Value + 1),
+				cancel).ConfigureAwait(false);
+		}
+		catch (InvalidOperationException ex)
+		{
+			// TurboSync has been invalidated, start synchronous full keys testing
+			await BitcoinStore.IndexStore.ForeachFiltersAsync(
+				async (filterModel) =>
+					await ProcessFilterModelAsync(filterModel, false, cancel).ConfigureAwait(false),
+				new Height(bestKeyManagerHeight.Value + 1),
+				cancel).ConfigureAwait(false);
+		}
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -512,7 +524,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 	
-	private IEnumerable<byte[]> GetScriptPubKeysToTest(FilterModel filterModel, bool? turboSync = null)
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, bool? turboSync = null)
 	{
 		if (turboSync is null)
 		{
@@ -521,12 +533,26 @@ public class Wallet : BackgroundService, IWallet
 		
 		var result = new List<byte[]>();
 		
-		// If testNonObsoleteKeys, then test all non-obsolete keys or keys not yet obsoleted at the height.
-		// If !testNonObsoleteKeys, then test all other keys (obsoleted at the height)
-		var keysToTest = turboSync.GetValueOrDefault() ? 
-			KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= new Height(filterModel.Header.Height)) : 
-			KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < new Height(filterModel.Header.Height));
-		
+		IEnumerable<HdPubKey> keysToTest;
+		if (turboSync.GetValueOrDefault())
+		{
+			// First sync during TurboSync, test all non-obsolete keys or keys not yet obsoleted at the height.
+			keysToTest = KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= filterHeight);
+		}
+		else
+		{
+			// Second sync during TurboSync, test only obsolete keys at the height.
+			if (KeyManager.GetBestNonObsoleteHeight() > filterHeight)
+			{
+				keysToTest = KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < filterHeight);
+			}
+			else
+			{
+				// TurboSync was invalidated before filter height, test all keys.
+				return KeyManager.GetPubKeyScriptBytes();
+			}
+		}
+
 		// Compute and save HdPubKey/ScriptPubKey pair for all keys
 		foreach (var hdPubKey in keysToTest)
 		{
@@ -548,7 +574,8 @@ public class Wallet : BackgroundService, IWallet
 	// TurboSync specifications: https://github.com/zkSNACKs/WalletWasabi/issues/10219
 	public async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync = null, CancellationToken cancel = default)
 	{
-		var toTestKeys = GetScriptPubKeysToTest(filterModel, turboSync).ToList();
+		var height = new Height(filterModel.Header.Height);
+		var toTestKeys = GetScriptPubKeysToTest(new Height(filterModel.Header.Height), turboSync).ToList();
 		
 		if (toTestKeys.Count == 0)
 		{
@@ -560,7 +587,6 @@ public class Wallet : BackgroundService, IWallet
 		if (matchFound)
 		{
 			Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
-			var height = new Height(filterModel.Header.Height);
 
 			var txsToProcess = new List<SmartTransaction>();
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
@@ -569,7 +595,12 @@ public class Wallet : BackgroundService, IWallet
 				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
 
-			TransactionProcessor.Process(txsToProcess);
+			var result = TransactionProcessor.Process(txsToProcess, turboSync);
+			if (turboSync.GetValueOrDefault() && result.Any(x => x.CancelTurboSync))
+			{
+				// Todo: Implement TurboSyncException
+				throw (new InvalidOperationException("TurboSync was invalidated."));
+			}
 			if (turboSync.GetValueOrDefault())
 			{
 				// We are testing non-obsolete keys, so we can update the best non obsolete height.
@@ -579,6 +610,11 @@ public class Wallet : BackgroundService, IWallet
 			{
 				// All keys were tested, so we can update the best height.
 				KeyManager.SetBestHeight(height);
+				if (height > KeyManager.GetBestNonObsoleteHeight())
+				{
+					// BestNonObsoleteHeight can't be behind BestHeight.
+					KeyManager.SetBestNonObsoleteHeight(height);
+				}
 			}
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
