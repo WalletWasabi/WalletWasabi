@@ -86,20 +86,28 @@ public static class AnalyzerExtensions
 		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UIContextAnalyzer.UIContextType;
 	}
 
-	public static IEnumerable<string> GetNamespaces(this ITypeSymbol? typeSymbol)
+	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
+	{
+		return GetNamespaceSymbols(typeSymbol)
+				.Where(x => !x.IsGlobalNamespace)
+				.Select(x => x.ToDisplayString())
+				.ToList();
+	}
+
+	private static IEnumerable<INamespaceSymbol> GetNamespaceSymbols(this ITypeSymbol? typeSymbol)
 	{
 		if (typeSymbol is null)
 		{
 			yield break;
 		}
 
-		yield return typeSymbol.ContainingNamespace.ToDisplayString();
+		yield return typeSymbol.ContainingNamespace;
 
 		if (typeSymbol is INamedTypeSymbol namedType)
 		{
 			foreach (var typeArg in namedType.TypeArguments)
 			{
-				yield return typeArg.ContainingNamespace.ToDisplayString();
+				yield return typeArg.ContainingNamespace;
 			}
 		}
 	}
