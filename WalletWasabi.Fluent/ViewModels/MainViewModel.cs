@@ -262,7 +262,7 @@ public partial class MainViewModel : ViewModelBase
 					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
 					{
 						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
-						var dialogResult = await Models.UI.UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
 						{
