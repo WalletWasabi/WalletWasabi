@@ -102,7 +102,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return cjManager.HighestCoinJoinClientState switch
 			{
 				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
+				CoinJoinClientState.Idle or CoinJoinClientState.InSchedule or CoinJoinClientState.InProgress => true,
 				_ => throw new ArgumentOutOfRangeException(),
 			};
 		}

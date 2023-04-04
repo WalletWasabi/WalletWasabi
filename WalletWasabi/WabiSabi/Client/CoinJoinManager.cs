@@ -3,15 +3,18 @@ using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -47,7 +50,8 @@ public class CoinJoinManager : BackgroundService
 	/// </summary>
 	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
 
-	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
+	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.MaxBy(s => (int)s);
+	private ImmutableDictionary<string, CoinJoinClientState> CoinJoinClientStates { get; set; } = ImmutableDictionary<string, CoinJoinClientState>.Empty;
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
@@ -164,7 +168,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
-				walletToStart.LogDebug("PlebStop preventing coinjoin.");
+				walletToStart.LogTrace("PlebStop preventing coinjoin.");
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
@@ -368,26 +372,37 @@ public class CoinJoinManager : BackgroundService
 				}
 			}
 
-			// Updates the highest coinjoin client state.
-			var onGoingCoinJoins = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
-			var scheduledCoinJoins = trackedAutoStarts.Select(t => t.Key);
+			// Updates coinjoin client states.
+			var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
 
-			var onGoingHighestState = onGoingCoinJoins.IsEmpty
-				? CoinJoinClientState.Idle
-				: onGoingCoinJoins.Any(wtd => wtd.InCriticalCoinJoinState)
-					? CoinJoinClientState.InCriticalPhase
-					: CoinJoinClientState.InProgress;
-
-			HighestCoinJoinClientState = onGoingHighestState is not CoinJoinClientState.Idle
-				? onGoingHighestState
-				: scheduledCoinJoins.Any()
-					? CoinJoinClientState.InProgress
-					: CoinJoinClientState.Idle;
-
+			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
+	}
+
+	private static ImmutableDictionary<string, CoinJoinClientState> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
+	{
+		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<string, CoinJoinClientState>();
+		foreach (var wallet in wallets)
+		{
+			CoinJoinClientState state = CoinJoinClientState.Idle;
+			if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
+			{
+				state = coinJoinTracker.InCriticalCoinJoinState
+					? CoinJoinClientState.InCriticalPhase
+					: CoinJoinClientState.InProgress;
+			}
+			else if (trackedAutoStarts.TryGetValue(wallet, out _))
+			{
+				state = CoinJoinClientState.InSchedule;
+			}
+
+			coinJoinClientStates.Add(wallet.WalletName, state);
+		}
+
+		return coinJoinClientStates.ToImmutable();
 	}
 
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)

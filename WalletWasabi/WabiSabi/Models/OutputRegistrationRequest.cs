@@ -1,6 +1,6 @@
 using NBitcoin;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using WabiSabi.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models;
 

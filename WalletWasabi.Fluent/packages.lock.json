@@ -287,8 +287,8 @@
       },
       "NBitcoin.Secp256k1": {
         "type": "Transitive",
-        "resolved": "3.0.1",
-        "contentHash": "n/OaEKIVvgcJ9qwde8g2IZdJMn3oAdEHAKV0gFg3JcrjxfbFCiziZ3WGOJSFPXldhuLy/E9jEIcXdRRG+Q6iUg=="
+        "resolved": "3.1.0",
+        "contentHash": "DVJbhT1plnBqPNnl5MNW1Aw5DCdfQ7MwlcL6PKcBIWPlQUO4T1FZRC4g2Axp9fd40eDKkyhq9MHlN9EeO09sGw=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
@@ -586,13 +586,21 @@
         "resolved": "4.5.0",
         "contentHash": "okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ=="
       },
+      "WabiSabi": {
+        "type": "Transitive",
+        "resolved": "1.0.1.2",
+        "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
+        "dependencies": {
+          "NBitcoin.Secp256k1": "3.1.0"
+        }
+      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.0, )",
           "Microsoft.Win32.SystemEvents": "[7.0.0, )",
           "NBitcoin": "[7.0.24, )",
-          "NBitcoin.Secp256k1": "[3.0.1, )"
+          "WabiSabi": "[1.0.1.2, )"
         }
       }
     },

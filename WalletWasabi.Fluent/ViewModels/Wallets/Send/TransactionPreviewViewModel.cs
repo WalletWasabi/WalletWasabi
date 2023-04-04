@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -62,11 +64,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.Subscribe(x =>
+			.SubscribeAsync(async x =>
 			{
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
-					UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
+					await UpdateTransactionAsync(PreviewTransactionSummary, ca.TransactionResult);
 				}
 				else
 				{
@@ -75,7 +77,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.Subscribe(x =>
+			.SubscribeAsync(async x =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
@@ -83,7 +85,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
+					await UpdateTransactionAsync(CurrentTransactionSummary, ca.TransactionResult);
 				}
 			});
 
@@ -125,12 +127,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.Create(() =>
+		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (_undoHistory.TryPop(out var previous))
 			{
 				_info = previous.Item2;
-				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
+				await UpdateTransactionAsync(CurrentTransactionSummary, previous.Item1, false);
 				CanUndo = _undoHistory.Any();
 			}
 		});
@@ -170,7 +172,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
+	private async Task UpdateTransactionAsync(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
 	{
 		if (!summary.IsPreview)
 		{
@@ -180,7 +182,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			Transaction = transaction;
-			CheckChangePocketAvailable(Transaction);
+			await CheckChangePocketAvailableAsync(Transaction);
 			_currentTransactionInfo = _info.Clone();
 		}
 
@@ -212,7 +214,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (newTransaction is { })
 		{
-			UpdateTransaction(CurrentTransactionSummary, newTransaction);
+			await UpdateTransactionAsync(CurrentTransactionSummary, newTransaction);
 		}
 	}
 
@@ -350,7 +352,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			Logger.LogError(ex);
 
-			await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
+			await ShowErrorAsync(
+				"Transaction Building",
+				ex.ToUserFriendlyString(),
 				"Wasabi was unable to create your transaction.");
 
 			return null;
@@ -367,7 +371,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (!result)
 		{
-			await ShowErrorAsync("Transaction Building", "The transaction cannot be sent because its fee is more than the payment amount.",
+			await ShowErrorAsync(
+				"Transaction Building",
+				"The transaction cannot be sent because its fee is more than the payment amount.",
 				"Wasabi was unable to create your transaction.");
 
 			return false;
@@ -384,7 +390,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
-			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
+			await UpdateTransactionAsync(CurrentTransactionSummary, initialTransaction);
 		}
 		else
 		{
@@ -436,13 +442,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
+				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource?.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+				await ShowErrorAsync(
+					"Transaction",
+					ex.ToUserFriendlyString(),
 					"Wasabi was unable to send your transaction.");
 			}
 
@@ -469,8 +478,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 	}
 
-	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction,
-		TransactionInfo transactionInfo)
+	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
 	{
 		if (transactionInfo.PayJoinClient is { })
 		{
@@ -498,7 +506,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private void CheckChangePocketAvailable(BuildTransactionResult transaction)
+	private async Task CheckChangePocketAvailableAsync(BuildTransactionResult transaction)
 	{
 		if (!_info.IsSelectedCoinModificationEnabled)
 		{
@@ -509,7 +517,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		labelSelection.Reset(pockets);
+		await labelSelection.ResetAsync(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
