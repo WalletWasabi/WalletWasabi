@@ -69,7 +69,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
 
-		if (!MainViewCanShutdown())
+		if (!MainViewCanShutdown() && !restartRequest)
 		{
 			MainViewModel.Instance.ShowDialogAlert();
 			return;
@@ -78,9 +78,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 
-	public bool CanShutdown()
+	public bool CanShutdown(bool restart)
 	{
-		if (!MainViewCanShutdown())
+		if (!MainViewCanShutdown() && !restart)
 		{
 			return false;
 		}
@@ -102,7 +102,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return cjManager.HighestCoinJoinClientState switch
 			{
 				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
+				CoinJoinClientState.Idle or CoinJoinClientState.InSchedule or CoinJoinClientState.InProgress => true,
 				_ => throw new ArgumentOutOfRangeException(),
 			};
 		}

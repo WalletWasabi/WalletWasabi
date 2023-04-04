@@ -19,7 +19,7 @@
 
         <TextBlock TextWrapping="Wrap" Text="Avoid Change by sending:" TextAlignment="Center" />
         <StackPanel Spacing="10">
-          <TextBlock Text="{Binding DifferenceFiat}" FontSize="20" HorizontalAlignment="Center"
+          <TextBlock Text="{Binding DifferenceFiatText}" FontSize="20" HorizontalAlignment="Center"
                      Foreground="{DynamicResource SystemAccentColor}" />
           <TextBlock Text="{Binding Amount}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
           <TextBlock Text="{Binding AmountFiat, Converter={x:Static converters:MoneyConverters.ToUsd}}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />

@@ -248,6 +248,12 @@ csharp_style_pattern_matching_over_as_with_null_check = true:error
 # IDE0130: Warn and provide code fixes for when namespaces do not match the folder structure.
 dotnet_diagnostic.IDE0130.severity = warning
 
+# CA1304: Specify CultureInfo
+dotnet_diagnostic.CA1304.severity = warning
+
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = warning
+
 # CA1841: Prefer Dictionary Contains methods
 dotnet_diagnostic.CA1841.severity = warning
 

@@ -2,5 +2,5 @@
 
 public interface ICanShutdownProvider
 {
-	bool CanShutdown();
+	bool CanShutdown(bool restart);
 }

@@ -82,7 +82,7 @@ public class SleepInhibitor : PeriodicRunner
 				await StopTaskAsync().ConfigureAwait(false);
 				break;
 
-			case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
+			case CoinJoinClientState.InSchedule or CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
 				await PreventSleepAsync().ConfigureAwait(false);
 				break;
 

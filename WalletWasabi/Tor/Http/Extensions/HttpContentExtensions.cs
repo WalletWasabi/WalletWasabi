@@ -8,19 +8,17 @@ namespace WalletWasabi.Tor.Http.Extensions;
 
 public static class HttpContentExtensions
 {
+	private static JsonSerializerSettings Settings = new()
+	{
+		Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
+	};
+
+	/// <exception cref="JsonException">If JSON deserialization fails for any reason.</exception>
+	/// <exception cref="InvalidOperationException">If the JSON string is <c>"null"</c> (valid value but forbiden in this implementation).</exception>
 	public static async Task<T> ReadAsJsonAsync<T>(this HttpContent me)
 	{
-		if (me is null)
-		{
-			throw new ArgumentNullException(nameof(me));
-		}
-
-		var settings = new JsonSerializerSettings
-		{
-			Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
-		};
 		var jsonString = await me.ReadAsStringAsync().ConfigureAwait(false);
-		return JsonConvert.DeserializeObject<T>(jsonString, settings)
-			?? throw new InvalidOperationException($"Deserialization failed. Received json: {jsonString}");
+		return JsonConvert.DeserializeObject<T>(jsonString, Settings)
+			?? throw new InvalidOperationException("'null' is forbidden.");
 	}
 }
