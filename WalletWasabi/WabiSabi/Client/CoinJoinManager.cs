@@ -50,7 +50,7 @@ public class CoinJoinManager : BackgroundService
 	/// </summary>
 	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
 
-	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.MaxBy(s => (int)s);
+	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.IsEmpty ? CoinJoinClientState.Idle : CoinJoinClientStates.Values.MaxBy(s => (int)s);
 	private ImmutableDictionary<string, CoinJoinClientState> CoinJoinClientStates { get; set; } = ImmutableDictionary<string, CoinJoinClientState>.Empty;
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
