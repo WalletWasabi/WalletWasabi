@@ -44,13 +44,13 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		Port = port;
 		_timeoutMultiplier = timeoutMultiplier;
 	}
+	
+	public event EventHandler? OtherInstanceStarted;
 
 	private int Port { get; }
 
 	private CancellationTokenSource DisposeCts { get; } = new();
 	private TaskCompletionSource? TaskStartTcpListener { get; set; }
-
-	public event EventHandler? OtherInstanceStarted;
 
 	public async Task<WasabiInstanceStatus> CheckSingleInstanceAsync()
 	{
@@ -122,8 +122,8 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
 		await writer.FlushAsync().ConfigureAwait(false);
 		await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
+		
 		// I was able to signal to the other instance successfully so just continue.
-
 		return false;
 	}
 
@@ -170,6 +170,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 					networkStream.ReadTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds;
 					using var reader = new StreamReader(networkStream, Encoding.UTF8);
+					
 					// Make sure the client will be disconnected.
 					using CancellationTokenSource timeOutCts = new(_timeoutMultiplier * ClientTimeOut);
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);

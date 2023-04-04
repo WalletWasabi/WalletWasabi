@@ -164,22 +164,23 @@ public class Global
 					throw;
 				}
 
-				HostedServices.Register<P2pNetwork>(() =>
-				{
-					var p2p = new P2pNetwork(
-							Network,
-							Config.GetBitcoinP2pEndPoint(),
-							Config.UseTor ? TorSettings.SocksEndpoint : null,
-							Path.Combine(DataDir, "BitcoinP2pNetwork"),
-							BitcoinStore);
-					if (!Config.BlockOnlyMode)
+				HostedServices.Register<P2pNetwork>(
+					() =>
 					{
-						p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-					}
+						var p2p = new P2pNetwork(
+								Network,
+								Config.GetBitcoinP2pEndPoint(),
+								Config.UseTor ? TorSettings.SocksEndpoint : null,
+								Path.Combine(DataDir, "BitcoinP2pNetwork"),
+								BitcoinStore);
+						if (!Config.BlockOnlyMode)
+						{
+							p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+						}
 
-					return p2p;
-				},"Bitcoin P2P Network");
-
+						return p2p;
+					},
+					"Bitcoin P2P Network");
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
