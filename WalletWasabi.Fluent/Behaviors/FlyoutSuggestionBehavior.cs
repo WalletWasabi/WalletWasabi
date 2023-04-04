@@ -1,8 +1,10 @@
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 
@@ -88,15 +90,26 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 
 	private IDisposable Displayer(IObservable<Control> targets)
 	{
-		return targets
-			.Select(x => Observable.FromEventPattern(x, nameof(x.GotFocus)))
+		var targetTextBoxes = targets
+			.Select(target => GotFocusEvents(target).Delay(TimeSpan.FromSeconds(0.2), RxApp.MainThreadScheduler))	// Wait a bit to stabilize after GotFocus
 			.Switch()
-			.Select(x => (TextBox?)x.Sender)
-			.WithLatestFrom(this.WhenAnyValue(x => x.Content))
-			.Where(tuple => !string.IsNullOrWhiteSpace(tuple.Second) && !EqualityComparer.Equals(tuple.First?.Text, tuple.Second))
-			.Select(tuple => CreateSuggestion(tuple.First, tuple.Second))
+			.Select(eventPattern => (TextBox?)eventPattern.Sender)
+			.WhereNotNull();
+
+		var contents = this.WhenAnyValue(x => x.Content);
+
+		return targetTextBoxes
+			.WithLatestFrom(contents, (tb, newText) => new { TextBox = tb, NewText = newText, CurrentText = tb.Text })
+			.Where(arg => !string.IsNullOrWhiteSpace(arg.NewText))
+			.Where(x => !EqualityComparer.Equals(x.CurrentText, x.NewText))
+			.Select(x => CreateSuggestion(x.TextBox, x.NewText))
 			.Do(ShowHint)
 			.Subscribe();
+	}
+
+	private static IObservable<EventPattern<object>> GotFocusEvents(IInputElement x)
+	{
+		return Observable.FromEventPattern(x, nameof(x.GotFocus));
 	}
 
 	private Suggestion CreateSuggestion(TextBox? textBox, string content)
