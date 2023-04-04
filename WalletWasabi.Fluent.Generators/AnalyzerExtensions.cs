@@ -15,7 +15,7 @@ public static class AnalyzerExtensions
 			node.DescendantNodes()
 			 .OfType<IdentifierNameSyntax>()
 			 .Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
-			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UIContextType) // slower, but safer. Only runs if previous verification passed.
+			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
 			 .ToList();
 	}
 
@@ -83,7 +83,7 @@ public static class AnalyzerExtensions
 			return false;
 		}
 
-		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UiContextAnalyzer.UIContextType;
+		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType;
 	}
 
 	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)

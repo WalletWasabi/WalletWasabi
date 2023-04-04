@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Generators;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class UiContextAnalyzer : DiagnosticAnalyzer
 {
-	public const string UIContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
+	public const string UiContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
 	public const string UIContextFileSuffix = "_UiContext.cs";
 
 	internal static readonly DiagnosticDescriptor Rule1 =
