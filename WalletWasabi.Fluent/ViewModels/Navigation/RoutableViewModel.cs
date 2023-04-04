@@ -18,17 +18,17 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	[AutoNotify] private bool _enableCancel;
 	[AutoNotify] private bool _isActive;
 
-	public abstract string Title { get; protected set; }
-
-	public NavigationTarget CurrentTarget { get; internal set; }
-
-	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
-
 	protected RoutableViewModel()
 	{
 		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 	}
+
+	public abstract string Title { get; protected set; }
+
+	public NavigationTarget CurrentTarget { get; internal set; }
+
+	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";
 	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
