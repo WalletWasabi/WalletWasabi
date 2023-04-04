@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -182,20 +180,5 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 	private void UpdateCanNavigateBack()
 	{
 		CanNavigateBack = _backStack.Count > 0;
-	}
-
-	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationMode navigationMode = NavigationMode.Normal)
-	{
-		var dialogTask = dialog.GetDialogResultAsync();
-
-		var t = dialog as T;
-
-		To(t, navigationMode);
-
-		var result = await dialogTask;
-
-		Back();
-
-		return result;
 	}
 }

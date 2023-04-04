@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
@@ -13,10 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public class ActionsSearchSource : ISearchSource
 {
-	public ActionsSearchSource(UiContext uiContext, IObservable<string> query)
+	public ActionsSearchSource(IObservable<string> query)
 	{
-		UiContext = uiContext;
-
 		var filter = query.Select(SearchSource.DefaultFilter);
 
 		Changes = GetItemsFromMetadata()
@@ -27,9 +24,7 @@ public class ActionsSearchSource : ISearchSource
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
-	public UiContext UiContext { get; }
-
-	private IEnumerable<ISearchItem> GetItemsFromMetadata()
+	private static IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{
 		return NavigationManager.MetaData
 			.Where(m => m.Searchable)
@@ -45,7 +40,7 @@ public class ActionsSearchSource : ISearchSource
 			});
 	}
 
-	private Func<Task> CreateOnActivateFunction(NavigationMetaData navigationMetaData)
+	private static Func<Task> CreateOnActivateFunction(NavigationMetaData navigationMetaData)
 	{
 		return async () =>
 		{
@@ -65,7 +60,7 @@ public class ActionsSearchSource : ISearchSource
 			}
 			else
 			{
-				UiContext.Navigate(vm.DefaultTarget).To(vm);
+				RoutableViewModel.Navigate(vm.DefaultTarget).To(vm);
 			}
 		};
 	}

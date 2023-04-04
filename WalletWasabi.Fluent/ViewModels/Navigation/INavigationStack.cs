@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public interface INavigationStack<T> where T : INavigatable
@@ -24,6 +21,4 @@ public interface INavigationStack<T> where T : INavigatable
 	void BackTo<TViewModel>() where TViewModel : T;
 
 	void Clear();
-
-	Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationMode navigationMode = NavigationMode.Normal);
 }
