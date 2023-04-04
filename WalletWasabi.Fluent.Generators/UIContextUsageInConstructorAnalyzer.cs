@@ -14,13 +14,13 @@ namespace WalletWasabi.Fluent.Generators;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class UIContextAnalyzer : DiagnosticAnalyzer
 {
-	public const string UIContextType = "WalletWasabi.Fluent.Models.UI.UIContext";
-	public const string UIContextFileSuffix = "_UIContext.cs";
+	public const string UIContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
+	public const string UIContextFileSuffix = "_UiContext.cs";
 
 	internal static readonly DiagnosticDescriptor Rule1 =
 		new("WW001",
-			"Do not use UIContext or Navigation APIs in ViewModel Constructor",
-			"UIContext cannot be referenced in a ViewModel's constructor because it hasn't been initialized yet when constructor runs. Use OnNavigatedTo() or OnActivated() instead.",
+			"Do not use UiContext or Navigation APIs in ViewModel Constructor",
+			"UiContext cannot be referenced in a ViewModel's constructor because it hasn't been initialized yet when constructor runs. Use OnNavigatedTo() or OnActivated() instead.",
 			"Wasabi Wallet",
 			DiagnosticSeverity.Error,
 			true);
