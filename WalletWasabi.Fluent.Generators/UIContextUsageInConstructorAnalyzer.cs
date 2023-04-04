@@ -66,8 +66,8 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 		}
 
 		var uiContextReferenceInConstructor =
-		 	ctor
-			.GetUIContextReferences(context.SemanticModel)
+			 ctor
+			.GetUiContextReferences(context.SemanticModel)
 			.Where(static x => x.FirstAncestorOrSelf<ConstructorDeclarationSyntax>() != null)
 			.Where(static x => x.FirstAncestorOrSelf<LambdaExpressionSyntax>() == null)
 			.FirstOrDefault();
@@ -85,7 +85,7 @@ public class UIContextAnalyzer : DiagnosticAnalyzer
 		}
 
 		var uiContextReferencesInClass =
-			classDeclaration.GetUIContextReferences(context.SemanticModel);
+			classDeclaration.GetUiContextReferences(context.SemanticModel);
 
 		if (uiContextReferencesInClass.Any() && !ctor.IsPrivate())
 		{

@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Generators;
 
 public static class AnalyzerExtensions
 {
-	public static List<IdentifierNameSyntax> GetUIContextReferences(this SyntaxNode node, SemanticModel semanticModel)
+	public static List<IdentifierNameSyntax> GetUiContextReferences(this SyntaxNode node, SemanticModel semanticModel)
 	{
 		return
 			node.DescendantNodes()

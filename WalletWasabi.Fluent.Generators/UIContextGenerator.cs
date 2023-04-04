@@ -95,7 +95,7 @@ public class UIContextGenerator : IIncrementalGenerator
 
 		foreach (var ctor in ctors)
 		{
-			if (!classDeclaration.GetUIContextReferences(semanticModel).Any())
+			if (!classDeclaration.GetUiContextReferences(semanticModel).Any())
 			{
 				if (!classDeclaration.IsAbstractClass(semanticModel) && ctor.IsPublic())
 				{
