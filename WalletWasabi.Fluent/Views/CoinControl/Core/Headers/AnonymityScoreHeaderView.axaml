@@ -5,5 +5,5 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Headers.AnonymityScoreHeaderView">
-  <TextBlock Text="AS" ToolTip.Tip="Anonymity Score" />
+  <TextBlock Text="AS" ToolTip.Tip="Anonymity Score" HorizontalAlignment="Center" />
 </UserControl>

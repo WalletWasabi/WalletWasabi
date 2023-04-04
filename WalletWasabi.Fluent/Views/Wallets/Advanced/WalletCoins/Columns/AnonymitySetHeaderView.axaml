@@ -7,5 +7,5 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.AnonymitySetHeaderView">
-  <TextBlock Text="AS" ToolTip.Tip="Anonymity Score" />
+  <TextBlock Text="AS" ToolTip.Tip="Anonymity Score" HorizontalAlignment="Center" />
 </UserControl>
