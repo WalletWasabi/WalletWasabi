@@ -18,4 +18,6 @@ public interface INavigate
 	INavigationStack<RoutableViewModel> FullScreen { get; }
 
 	INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
+
+	IObservable<bool> IsDialogOpen { get; }
 }

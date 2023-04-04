@@ -31,6 +31,13 @@ public class NavigationState : ReactiveObject, INavigate
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(OnCurrentPageChanged)
 			.Subscribe();
+
+		IsDialogOpen =
+			this.WhenAnyValue(
+				x => x.DialogScreen.CurrentPage,
+				x => x.CompactDialogScreen.CurrentPage,
+				x => x.FullScreen.CurrentPage,
+				(d, c, f) => (d ?? c ?? f) != null);
 	}
 
 	public UiContext UiContext { get; }
@@ -42,6 +49,8 @@ public class NavigationState : ReactiveObject, INavigate
 	public INavigationStack<RoutableViewModel> FullScreen { get; }
 
 	public INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
+
+	public IObservable<bool> IsDialogOpen { get; }
 
 	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 	{
