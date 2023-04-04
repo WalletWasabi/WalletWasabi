@@ -16,7 +16,7 @@ public record Input(Outpoint Prevout, byte[] ScriptPubkey, bool IsAffiliated, bo
 		return new(
 			Outpoint.FromOutPoint(affiliateInput.Prevout),
 			affiliateInput.ScriptPubKey.ToBytes(),
-			isAffiliated,
+			isAffiliated && !affiliateInput.IsNoFee,
 			affiliateInput.IsNoFee);
 	}
 }

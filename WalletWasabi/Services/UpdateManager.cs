@@ -186,8 +186,8 @@ public class UpdateManager : IDisposable
 			assetDownloadUrls.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
-		string sha256SumsUrl = assetDownloadUrls.Where(url => url.Contains("SHA256SUMS.asc")).First();
-		string wasabiSigUrl = assetDownloadUrls.Where(url => url.Contains("SHA256SUMS.wasabisig")).First();
+		string sha256SumsUrl = assetDownloadUrls.First(url => url.Contains("SHA256SUMS.asc"));
+		string wasabiSigUrl = assetDownloadUrls.First(url => url.Contains("SHA256SUMS.wasabisig"));
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
@@ -239,7 +239,7 @@ public class UpdateManager : IDisposable
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			var url = urls.Where(url => url.Contains(".msi")).First();
+			var url = urls.First(url => url.Contains(".msi"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -247,10 +247,10 @@ public class UpdateManager : IDisposable
 			var cpu = RuntimeInformation.ProcessArchitecture;
 			if (cpu.ToString() == "Arm64")
 			{
-				var arm64url = urls.Where(url => url.Contains("arm64.dmg")).First();
+				var arm64url = urls.First(url => url.Contains("arm64.dmg"));
 				return (arm64url, arm64url.Split("/").Last());
 			}
-			var url = urls.Where(url => url.Contains(".dmg") && !url.Contains("arm64")).First();
+			var url = urls.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

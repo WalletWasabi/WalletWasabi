@@ -39,7 +39,7 @@
         </c:PrivacyContentControl>
       </StackPanel>
 
-      <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center" ClipToBounds="False">
+      <c:AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
         <c:AdorningContentControl.Adornment>
           <Panel Margin="0 0 -5 20">
             <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
@@ -48,8 +48,8 @@
             </Button>
           </Panel>
         </c:AdorningContentControl.Adornment>
-        <Viewbox Margin="20" MinHeight="100">
-          <c:PrivacyContentControl Height="250" Margin="0 0 0 -18" PrivacyReplacementMode="Icon">
+        <Viewbox Margin="20" MaxHeight="270" MinHeight="100">
+          <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
             <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
           </c:PrivacyContentControl>
         </Viewbox>

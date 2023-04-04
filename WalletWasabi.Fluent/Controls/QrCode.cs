@@ -146,8 +146,7 @@ public class QrCode : Control
 		var (indexW, indexH) = GetMatrixIndexSize(source);
 		var gcf = qrCodeSize.gridCellFactor;
 
-		var canvasSize = new Rect(0, 0, gcf * indexW,
-			gcf * indexH);
+		var canvasSize = new Rect(0, 0, gcf * indexW, gcf * indexH);
 
 		ctx.DrawRectangle(Brushes.White, null, canvasSize);
 
@@ -175,6 +174,11 @@ public class QrCode : Control
 		DrawQrCodeImage(context.PlatformImpl, source, Bounds.Size);
 	}
 
+	// TODO: Fix remark.
+	/// <remarks>
+	/// The returned size can differ from the size that is set on the control, which can cause unexpected layout issue.
+	/// Choose a size on the control which can be divided by minDimension without a remainder.
+	/// </remarks>
 	private (Size coercedSize, double gridCellFactor) GetQrCodeSize(bool[,] source, Size size)
 	{
 		var (indexW, indexH) = GetMatrixIndexSize(source);

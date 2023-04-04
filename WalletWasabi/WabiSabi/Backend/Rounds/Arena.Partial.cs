@@ -1,12 +1,11 @@
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Crypto;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
