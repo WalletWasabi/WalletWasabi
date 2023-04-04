@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia.Input.Platform;
 using DynamicData;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -40,29 +43,29 @@ public class ReceiveAddressViewModelTests
 		mock.Verify(x => x.SetTextAsync("SomeAddress"));
 	}
 
-	//[Fact]
-	//public void When_address_becomes_used_navigation_goes_back()
-	//{
-	//	var navigationStack = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-	//	var uiContext = ContextWith(new TestNavigation(navigationStack));
-	//	var address = new TestAddress("SomeAddress");
-	//	var wallet = WalletWithAddresses(address);
-	//	new ReceiveAddressViewModel(wallet, address, true, uiContext);
+	[Fact]
+	public void When_address_becomes_used_navigation_goes_back()
+	{
+		var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
+		var uiContext = ContextWith(ns);
+		var address = new TestAddress("SomeAddress");
+		var wallet = WalletWithAddresses(address);
+		new ReceiveAddressViewModel(uiContext, wallet, address, true);
 
-	//	address.IsUsed = true;
+		address.IsUsed = true;
 
-	//	Mock.Get(navigationStack).Verify(x => x.Back(), Times.Once);
-	//}
+		Mock.Get(ns).Verify(x => x.Back(), Times.Once);
+	}
 
 	private static IWalletModel WalletWithAddresses(TestAddress address)
 	{
 		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
 	}
 
-	private static UiContext ContextWith(INavigate navigation)
+	private static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
 		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
-		uiContext.RegisterNavigation(navigation);
+		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
 	}
 
@@ -108,5 +111,29 @@ public class ReceiveAddressViewModelTests
 			return false;
 		}
 	}
-}
 
+	private class TestNavigation : INavigate
+	{
+		private readonly INavigationStack<RoutableViewModel> _ns;
+
+		public TestNavigation(INavigationStack<RoutableViewModel> ns)
+		{
+			_ns = ns;
+		}
+
+		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
+		{
+			return _ns;
+		}
+
+		public FluentNavigate To()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal)
+		{
+			throw new NotImplementedException();
+		}
+	}
+}

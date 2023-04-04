@@ -28,7 +28,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-	private ReceiveViewModel(Wallet wallet)
+	public ReceiveViewModel(Wallet wallet)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -57,12 +57,12 @@ public partial class ReceiveViewModel : RoutableViewModel
 		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(UiContext, new WalletModel(_wallet), new Address(_wallet.KeyManager, newKey), Services.UiConfig.Autocopy));
+		Navigate().To().ReceiveAddress(new WalletModel(_wallet), new Address(_wallet.KeyManager, newKey), Services.UiConfig.Autocopy);
 	}
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(UiContext, _wallet));
+		Navigate().To().ReceiveAddresses(_wallet);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
