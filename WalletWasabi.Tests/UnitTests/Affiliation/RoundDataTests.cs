@@ -33,7 +33,7 @@ public class RoundDataTests
 		Assert.Equal(unmixedCoin.Outpoint.Hash.ToBytes(), reportedAffiliatedCoin.Prevout.Hash);
 		Assert.Equal(unmixedCoin.Outpoint.N, reportedAffiliatedCoin.Prevout.Index);
 
-		var txNotificationForUnknownWallet = transactionData.GetAffiliationData("unknown",cj.GetHash());
+		var txNotificationForUnknownWallet = transactionData.GetAffiliationData("unknown", cj.GetHash());
 		Assert.Empty(txNotificationForUnknownWallet.Inputs.Where(x => x.IsAffiliated));
 	}
 }
