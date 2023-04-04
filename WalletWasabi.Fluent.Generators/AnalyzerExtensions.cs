@@ -71,7 +71,7 @@ public static class AnalyzerExtensions
 		return node.IsSubTypeOf(model, "WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
 	}
 
-	public static bool HasUIContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
+	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
 	{
 		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUIContextType(model));
 	}
