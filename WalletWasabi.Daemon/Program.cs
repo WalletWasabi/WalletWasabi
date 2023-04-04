@@ -26,7 +26,8 @@ public class Program
 			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 			.Build();
 
-		return await app.RunAsConsoleAsync();
+		var exitCode =await app.RunAsConsoleAsync();
+		return (int) exitCode;
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)

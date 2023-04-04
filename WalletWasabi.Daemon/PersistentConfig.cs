@@ -102,9 +102,9 @@ public class PersistentConfig : ConfigBase
 	[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
 	public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
 	{
-			"http://127.0.0.1:37128/",
-			"http://localhost:37128/"
-		};
+		"http://127.0.0.1:37128/",
+		"http://localhost:37128/"
+	};
 
 	[JsonProperty(PropertyName = "DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]

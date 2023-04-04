@@ -85,12 +85,10 @@ public class Config
 		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
 		GetEffectiveValue(
 			valueInConfigFile,
-			x => x switch
-			{
-				_ when x.Equals("true", StringComparison.InvariantCultureIgnoreCase) => true,
-				_ when x.Equals("false", StringComparison.InvariantCultureIgnoreCase) => false,
-				_ => throw new ArgumentNullException(key, "must be 'true' or 'false'")
-			},
+			x =>
+				bool.TryParse(x, out var value)
+				? value
+				: throw new ArgumentException("must be 'true' or 'false'.", key),
 			Args,
 			key);
 
