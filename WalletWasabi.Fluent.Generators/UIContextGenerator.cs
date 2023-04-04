@@ -83,7 +83,7 @@ public class UiContextGenerator : IIncrementalGenerator
 
 	private static IEnumerable<ConstructorDeclarationSyntax> GenerateConstructors(SourceProductionContext context, ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel, INamedTypeSymbol classSymbol)
 	{
-		var fileName = classDeclaration.Identifier.ValueText + UiContextAnalyzer.UIContextFileSuffix;
+		var fileName = classDeclaration.Identifier.ValueText + UiContextAnalyzer.UiContextFileSuffix;
 
 		var className = classSymbol.Name;
 		var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();

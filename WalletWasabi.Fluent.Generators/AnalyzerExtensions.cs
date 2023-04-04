@@ -34,7 +34,7 @@ public static class AnalyzerExtensions
 		var filePath = node.SyntaxTree.FilePath;
 
 		return filePath is null ||
-			   filePath.EndsWith(UiContextAnalyzer.UIContextFileSuffix);
+			   filePath.EndsWith(UiContextAnalyzer.UiContextFileSuffix);
 	}
 
 	public static bool IsSubTypeOf(this SyntaxNode node, SemanticModel model, string baseType)
