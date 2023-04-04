@@ -15,7 +15,7 @@ public partial class AddressViewModel : ViewModelBase
 {
 	[AutoNotify] private string _address;
 
-	public AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
+	private AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
@@ -36,7 +36,7 @@ public partial class AddressViewModel : ViewModelBase
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(new WalletModel(wallet), new Address(wallet.KeyManager, model), Services.UiConfig.Autocopy, UIContext)));
+		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(UiContext, new WalletModel(wallet), new Address(wallet.KeyManager, model), Services.UiConfig.Autocopy)));
 	}
 
 	public ICommand CopyAddressCommand { get; }

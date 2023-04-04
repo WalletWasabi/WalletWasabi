@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
-using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -18,9 +17,8 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 {
 	private readonly ObservableAsPropertyHelper<bool[,]> _qrCode;
 
-	public ReceiveAddressViewModel(IWalletModel wallet, IAddress model, bool isAutoCopyEnabled, UIContext uiContext)
+	private ReceiveAddressViewModel(IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
-		UIContext = uiContext;
 		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
@@ -30,7 +28,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UIContext.Clipboard.SetTextAsync(Address));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(Address));
 
 		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(ShowOnHwWalletAsync);
 
@@ -42,7 +40,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		GenerateQrCodeCommand = ReactiveCommand.CreateFromObservable(() => UIContext.QrCodeGenerator.Generate(model.Text));
+		GenerateQrCodeCommand = ReactiveCommand.CreateFromObservable(() => UiContext.QrCodeGenerator.Generate(model.Text));
 		_qrCode = GenerateQrCodeCommand.ToProperty(this, nameof(QrCode));
 
 		if (isAutoCopyEnabled)
@@ -57,7 +55,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		wallet.Addresses
 			.Watch(model.Text)
 			.Where(change => change.Current.IsUsed)
-			.Do(_ => UIContext.Navigate(NavigationTarget.Default).Back())
+			.Do(_ => UiContext.Navigate(NavigationTarget.Default).Back())
 			.Subscribe();
 	}
 

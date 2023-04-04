@@ -24,13 +24,13 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private ObservableCollection<AddressViewModel> _addresses;
 
-	public ReceiveAddressesViewModel(Wallet wallet)
+	private ReceiveAddressesViewModel(Wallet wallet)
 	{
 		Wallet = wallet;
 		Network = wallet.Network;
 		_addresses = new ObservableCollection<AddressViewModel>();
 
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true, escapeGoesBack: true);
 
 		EnableBack = true;
 
@@ -124,7 +124,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 			foreach (HdPubKey key in keys)
 			{
-				_addresses.Add(new AddressViewModel(this, Wallet, key, Network));
+				_addresses.Add(new AddressViewModel(UiContext, this, Wallet, key, Network));
 			}
 		}
 		catch (Exception ex)

@@ -86,7 +86,7 @@ public class AffiliateDataUpdater : BackgroundService
 	private async Task UpdateAffiliateDataAsync(uint256 roundId, BuiltTransactionData builtTransactionData, CancellationToken cancellationToken)
 	{
 		var updateTasks = Clients.Select(
-			x => UpdateAffiliateDataAsync(roundId, builtTransactionData, x.Key, x.Value, cancellationToken));
+			x => UpdateAffiliateDataAsync(roundId, builtTransactionData, affiliationId: x.Key, x.Value, cancellationToken));
 		await Task.WhenAll(updateTasks).ConfigureAwait(false);
 	}
 
@@ -126,7 +126,7 @@ public class AffiliateDataUpdater : BackgroundService
 		Payload payload = new(Header.Instance, body);
 		byte[] signature = Signer.Sign(payload.GetCanonicalSerialization());
 		CoinJoinNotificationRequest coinJoinRequestRequest = new(body, signature);
-		
+
 		using CancellationTokenSource linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
 		CoinJoinNotificationResponse coinJoinNotificationResponse = await client.NotifyCoinJoinAsync(coinJoinRequestRequest, linkedCts.Token).ConfigureAwait(false);
 		return coinJoinNotificationResponse.AffiliateData;

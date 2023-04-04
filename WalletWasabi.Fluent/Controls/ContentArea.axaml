@@ -71,6 +71,7 @@
                           IsVisible="{TemplateBinding EnableBack}">
                     <i:Interaction.Behaviors>
                       <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back" />
+                      <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Escape" />
                     </i:Interaction.Behaviors>
                     <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                   </Button>

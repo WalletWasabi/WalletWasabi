@@ -1,11 +1,10 @@
 using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class Output : IEqualityComparer<Output>
+public record Output
 {
 	private Output(Money amount, ScriptType scriptType, FeeRate feeRate, bool isEffectiveCost)
 	{
@@ -33,30 +32,4 @@ public class Output : IEqualityComparer<Output>
 	{
 		return new Output(amount, scriptType, feeRate, true);
 	}
-
-	public bool Equals(Output? x, Output? y)
-	{
-		if (x is null || y is null)
-		{
-			if (x is null && y is null)
-			{
-				return true;
-			}
-			return false;
-		}
-
-		if (ReferenceEquals(x, y))
-		{
-			return true;
-		}
-
-		if (x.Amount == y.Amount && x.ScriptType == y.ScriptType && x.Fee == y.Fee)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	public int GetHashCode([DisallowNull] Output obj) => HashCode.Combine(Amount, ScriptType, Fee);
 }
