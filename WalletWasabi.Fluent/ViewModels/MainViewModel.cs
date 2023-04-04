@@ -116,7 +116,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public SearchBarViewModel SearchBar { get; }
 
-	public static MainViewModel Instance { get; } = new();
+	public static MainViewModel Instance { get; private set; }
 
 	public bool IsBusy =>
 		MainScreen.CurrentPage is { IsBusy: true } ||
