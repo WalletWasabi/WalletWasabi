@@ -104,6 +104,8 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = CreateSearchBar();
 
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+
+		InitializeSingleton();
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -327,5 +329,15 @@ public partial class MainViewModel : ViewModelBase
 			.Subscribe(filterChanged);
 
 		return searchBar;
+	}
+
+	private void InitializeSingleton()
+	{
+		if (Instance != null)
+		{
+			throw new InvalidOperationException($"MainViewModel instantiated more than once.");
+		}
+
+		Instance = this;
 	}
 }
