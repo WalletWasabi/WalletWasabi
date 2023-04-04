@@ -8,8 +8,8 @@ using System.Linq;
 namespace WalletWasabi.Fluent.Generators;
 
 /// <summary>
-/// Report an error if UIContext is referenced in the constructor directly without being closed on by a lambda expression.
-/// UIContext cannot be referenced in constructor because it hasn't been initialized yet.
+/// Report an error if UiContext is referenced in the constructor directly without being closed on by a lambda expression.
+/// UiContext cannot be referenced in constructor because it hasn't been initialized yet.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class UiContextAnalyzer : DiagnosticAnalyzer

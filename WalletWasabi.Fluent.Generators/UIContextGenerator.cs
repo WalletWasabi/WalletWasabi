@@ -260,7 +260,7 @@ partial class {{className}}
 					SyntaxFactory.SeparatedList(
 					ctor.ParameterList
 						.Parameters
-						.Select(x => x.Type.IsUiContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UIContext property reference
+						.Select(x => x.Type.IsUiContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UiContext property reference
 						.Select(x => SyntaxFactory.ParseExpression(x))
 						.Select(SyntaxFactory.Argument),
 					ctor.ParameterList
