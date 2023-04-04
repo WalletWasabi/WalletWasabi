@@ -80,7 +80,7 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 
 		// if constructor already has a UIContext parameter, leave it be. Don't raise any warnings.
 		var ctorHasUiContextParameter =
-			ctor.ParameterList.Parameters.Any(x => x.Type.IsUIContextType(context.SemanticModel));
+			ctor.ParameterList.Parameters.Any(x => x.Type.IsUiContextType(context.SemanticModel));
 
 		if (ctorHasUiContextParameter)
 		{

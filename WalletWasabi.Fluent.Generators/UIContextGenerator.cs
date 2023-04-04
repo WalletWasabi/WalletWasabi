@@ -103,7 +103,7 @@ public class UiContextGenerator : IIncrementalGenerator
 				}
 			}
 			// if constructor already has a UIContext parameter, leave it be. Don't generate a new ctor and use the current one for FluentNavigation.
-			else if (ctor.ParameterList.Parameters.Any(p => p.Type.IsUIContextType(semanticModel)))
+			else if (ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(semanticModel)))
 			{
 				// it must be public though
 				if (ctor.IsPublic())
