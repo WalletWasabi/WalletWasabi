@@ -14,7 +14,7 @@ public static class AnalyzerExtensions
 		return
 			node.DescendantNodes()
 			 .OfType<IdentifierNameSyntax>()
-			 .Where(x => x.Identifier.ValueText == "UIContext")                                                   // faster verification
+			 .Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
 			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UIContextAnalyzer.UIContextType) // slower, but safer. Only runs if previous verification passed.
 			 .ToList();
 	}
