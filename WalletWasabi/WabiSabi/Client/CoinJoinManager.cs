@@ -352,7 +352,7 @@ public class CoinJoinManager : BackgroundService
 			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
-				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, trackedAutoStarts, stoppingToken).ConfigureAwait(false);
+				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
 
 				NotifyCoinJoinCompletion(finishedCoinJoin);
 
@@ -401,7 +401,7 @@ public class CoinJoinManager : BackgroundService
 		return coinJoinClientStates.ToImmutable();
 	}
 
-	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
+	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
 		try
