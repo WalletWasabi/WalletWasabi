@@ -289,9 +289,9 @@ public class CoinJoinManager : BackgroundService
 	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken stoppingToken)
 	{
 		var skipDelay = false;
-		if (trackedAutoStarts.ContainsKey(walletToStart))
+		if (trackedAutoStarts.TryGetValue(walletToStart, out var trackedAutoStart))
 		{
-			if (stopWhenAllMixed == trackedAutoStarts[walletToStart].StopWhenAllMixed && overridePlebStop == trackedAutoStarts[walletToStart].OverridePlebStop)
+			if (stopWhenAllMixed == trackedAutoStart.StopWhenAllMixed && overridePlebStop == trackedAutoStart.OverridePlebStop)
 			{
 				walletToStart.LogDebug("AutoStart was already scheduled");
 				return;
