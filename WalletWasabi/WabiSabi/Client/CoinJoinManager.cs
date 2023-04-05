@@ -420,33 +420,8 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (CoinJoinClientException clientException)
 		{
-			switch (clientException.CoinjoinError)
-			{
-				case CoinjoinError.UserInSendWorkflow:
-					NotifyCoinJoinStartError(wallet, CoinjoinError.UserInSendWorkflow);
-					break;
-
-				case CoinjoinError.NotEnoughUnprivateBalance:
-					NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
-					break;
-
-				case CoinjoinError.BackendNotSynchronized:
-					NotifyCoinJoinStartError(wallet, CoinjoinError.BackendNotSynchronized);
-					break;
-
-				case CoinjoinError.AllCoinsPrivate:
-					NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
-					break;
-
-				case CoinjoinError.NoCoinsToMix:
-					NotifyCoinJoinStartError(wallet, CoinjoinError.NoCoinsToMix);
-					Logger.LogDebug(clientException);
-					break;
-
-				default:
-					wallet.LogError($"Unkown {nameof(CoinjoinError)}. {nameof(CoinJoinClient)} failed with exception: '{clientException}'");
-					break;
-			}
+			Logger.LogDebug(clientException);
+			NotifyCoinJoinStartError(wallet, clientException.CoinjoinError);
 		}
 		catch (InvalidOperationException ioe)
 		{
