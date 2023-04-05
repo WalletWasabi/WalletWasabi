@@ -644,11 +644,11 @@ public class CoinJoinClient
 		string[] summary = new string[]
 		{
 			"",
-			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
-			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
-			$"\tTotal diff : {totalDifference.ToString(true, false)}",
-			$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
-			$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
+			$"\tInput total : {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetworkFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
+			$"\tOutput total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetworkFee: {outputNetworkFee.ToString(true, false)}",
+			$"\tTotal diff  : {totalDifference.ToString(true, false)}",
+			$"\tEffect diff : {effectiveDifference.ToString(true, false)}",
+			$"\tTotal fee   : {totalNetworkFee.ToString(true, false)}"
 		};
 
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
@@ -754,8 +754,8 @@ public class CoinJoinClient
 				? taprootScripts
 				: segwitScripts;
 
-			var dest = destinationStack.Pop();
-			var txOut = new TxOut(output.Amount, dest.ScriptPubKey);
+			var destination = destinationStack.Pop();
+			var txOut = new TxOut(output.Amount, destination.ScriptPubKey);
 			outputTxOuts.Add(txOut);
 		}
 		return outputTxOuts;
