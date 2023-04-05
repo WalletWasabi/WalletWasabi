@@ -29,7 +29,7 @@ public class BlockchainState
 	}
 
 	[JsonProperty]
-	[JsonConverter(typeof(NetworkJsonConverter))]	
+	[JsonConverter(typeof(NetworkJsonConverter))]
 	public Network Network { get; set; }
 
 	[JsonProperty]
