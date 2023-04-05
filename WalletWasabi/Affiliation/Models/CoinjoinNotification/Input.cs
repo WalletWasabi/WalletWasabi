@@ -1,8 +1,9 @@
+using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Affiliation.Models.CoinJoinNotification;
 
-public record Input(Outpoint Prevout, byte[] ScriptPubkey, long Amount, bool IsAffiliated, bool IsNoFee)
+public record Input(Outpoint Prevout, byte[] ScriptPubkey, [property: CanonicalJsonIgnore] long Amount, bool IsAffiliated, bool IsNoFee)
 {
 	public static Input FromAffiliateInput(AffiliateInput affiliateInput, string affiliationId)
 	{
