@@ -107,7 +107,7 @@ public class UiContextGenerator : ISourceGenerator
 				var ctorString =
 					hasCtorArgs
 					? $": this({ctorArgsString})"
-					: "";
+					: $": this()";
 
 				var parameterUsings =
 					ctor.ParameterList.Parameters
