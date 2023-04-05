@@ -30,6 +30,8 @@ public static class AppBuilderExtension
 							.GetRequiredService<IFontManagerImpl>()
 							.GetDefaultFontFamilyName();
 
+						// No platform implementation can guarantee that the nullability contract won't be violated
+						// by a native API calls. That's why Avalonian FontManager does exactl the same check.
 						if (string.IsNullOrEmpty(systemFontFamily))
 						{
 							Logger.LogWarning("A default system font family cannot be resolved. Using a fallback.");
