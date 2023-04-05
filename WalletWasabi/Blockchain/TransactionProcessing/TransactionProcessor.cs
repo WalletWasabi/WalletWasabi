@@ -265,7 +265,6 @@ public class TransactionProcessor
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
-			
 			if (!alreadyKnown)
 			{
 				result.NewlySpentCoins.Add(coin);

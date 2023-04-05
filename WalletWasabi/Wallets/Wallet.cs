@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -448,7 +449,6 @@ public class Wallet : BackgroundService, IWallet
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
 		KeyManager.AssertNetworkOrClearBlockState(Network);
-		Height bestKeyManagerNonObsoleteHeight = KeyManager.GetBestNonObsoleteHeight();
 		Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
@@ -459,20 +459,13 @@ public class Wallet : BackgroundService, IWallet
 		// Go through the filters and queue to download the matches.
 		try
 		{
-			await BitcoinStore.IndexStore.ForeachFiltersAsync(
-				async (filterModel) =>
-					await ProcessFilterModelAsync(filterModel, true, cancel).ConfigureAwait(false),
-				new Height(bestKeyManagerNonObsoleteHeight.Value + 1),
-				cancel).ConfigureAwait(false);
+			// Perform TurboSync, test only non-obsolete keys (external keys + internal with coins on them at the height of the filter)
+			await PerformWalletSynchronizationAsync(true, cancel).ConfigureAwait(false);
 		}
-		catch (InvalidOperationException ex)
+		catch (TurboSyncDoubleTxProcessException)
 		{
 			// TurboSync has been invalidated, start synchronous full keys testing
-			await BitcoinStore.IndexStore.ForeachFiltersAsync(
-				async (filterModel) =>
-					await ProcessFilterModelAsync(filterModel, false, cancel).ConfigureAwait(false),
-				new Height(bestKeyManagerHeight.Value + 1),
-				cancel).ConfigureAwait(false);
+			await PerformWalletSynchronizationAsync(false, cancel).ConfigureAwait(false);
 		}
 	}
 
@@ -523,18 +516,30 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 		}
 	}
+
+	public async Task PerformWalletSynchronizationAsync(bool? turboSync = null, CancellationToken cancel = default)
+	{
+		var startingHeight = turboSync.GetValueOrDefault() ? 
+			new Height(KeyManager.GetBestNonObsoleteHeight() + 1) : 
+			new Height(KeyManager.GetBestHeight() + 1);
+		
+		await BitcoinStore.IndexStore.ForeachFiltersAsync(
+			async (filterModel) => await ProcessFilterModelAsync(filterModel, turboSync, cancel).ConfigureAwait(false),
+			startingHeight,
+			cancel).ConfigureAwait(false);
+	}
 	
-	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, bool? turboSync = null)
+	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, bool? turboSync = null)
 	{
 		if (turboSync is null)
 		{
-			return KeyManager.GetPubKeyScriptBytes();
+			return KeyManager.GetPubKeyScriptBytes().ToList();
 		}
 		
 		var result = new List<byte[]>();
 		
 		IEnumerable<HdPubKey> keysToTest;
-		if (turboSync.GetValueOrDefault())
+		if (turboSync.Value)
 		{
 			// First sync during TurboSync, test all non-obsolete keys or keys not yet obsoleted at the height.
 			keysToTest = KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= filterHeight);
@@ -549,7 +554,7 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				// TurboSync was invalidated before filter height, test all keys.
-				return KeyManager.GetPubKeyScriptBytes();
+				return KeyManager.GetPubKeyScriptBytes().ToList();
 			}
 		}
 
@@ -568,14 +573,14 @@ public class Wallet : BackgroundService, IWallet
 			}
 		}
 
-		return result;
+		return result.ToList();
 	}
 
-	// TurboSync specifications: https://github.com/zkSNACKs/WalletWasabi/issues/10219
-	public async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync = null, CancellationToken cancel = default)
+	/// <seealso cref="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso >
+	private async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync = null, CancellationToken cancel = default)
 	{
 		var height = new Height(filterModel.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(new Height(filterModel.Header.Height), turboSync).ToList();
+		var toTestKeys = GetScriptPubKeysToTest(new Height(filterModel.Header.Height), turboSync);
 		
 		if (toTestKeys.Count == 0)
 		{
@@ -598,8 +603,7 @@ public class Wallet : BackgroundService, IWallet
 			var result = TransactionProcessor.Process(txsToProcess, turboSync);
 			if (turboSync.GetValueOrDefault() && result.Any(x => x.CancelTurboSync))
 			{
-				// Todo: Implement TurboSyncException
-				throw (new InvalidOperationException("TurboSync was invalidated."));
+				throw new TurboSyncDoubleTxProcessException();
 			}
 			if (turboSync.GetValueOrDefault())
 			{
@@ -619,7 +623,6 @@ public class Wallet : BackgroundService, IWallet
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
-		
 		LastProcessedFilter = filterModel;
 	}
 
