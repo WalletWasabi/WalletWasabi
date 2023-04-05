@@ -102,7 +102,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public IDestinationProvider DestinationProvider { get; }
 
-	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; }= new();
+	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; } = new();
 	
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;

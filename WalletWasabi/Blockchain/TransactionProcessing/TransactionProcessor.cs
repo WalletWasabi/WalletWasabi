@@ -137,6 +137,7 @@ public class TransactionProcessor
 		if (turboSync.GetValueOrDefault() && ShouldCancelTurboSync(tx.Height, tx.Transaction.Inputs, tx.Transaction.Outputs))
 		{
 			result.CancelTurboSync = true;
+			
 			// Don't process the TX because it will be processed again later.
 			return result;
 		}
@@ -313,7 +314,6 @@ public class TransactionProcessor
 
 		return result;
 	}
-	
 
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
 		output.Value <= DustThreshold // the value received is under the dust threshold
