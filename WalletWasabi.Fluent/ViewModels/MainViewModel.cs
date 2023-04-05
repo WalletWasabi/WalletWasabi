@@ -42,8 +42,9 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
 
-	public MainViewModel()
+	public MainViewModel(UiContext uiContext)
 	{
+		UiContext = uiContext;
 		ApplyUiConfigWindowState();
 
 		_dialogScreen = new DialogScreenViewModel();
@@ -105,6 +106,9 @@ public partial class MainViewModel : ViewModelBase
 
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 
+		// TODO: the reason why this MainViewModel singleton is even needed thoughout the codebase is dubious.
+		// Also it causes tight coupling which damages testability.
+		// We should strive to remove it altogether.
 		InitializeSingleton();
 	}
 
