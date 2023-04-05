@@ -356,15 +356,18 @@ public class CoinJoinManager : BackgroundService
 
 				NotifyCoinJoinCompletion(finishedCoinJoin);
 
-				if (!finishedCoinJoin.IsStopped && !stoppingToken.IsCancellationRequested && !(finishedCoinJoin.Wallet.IsWalletPrivate() && finishedCoinJoin.StopWhenAllMixed))
+				// When to stop mixing.
+				if (finishedCoinJoin.IsStopped  // If stop was requested by user.
+					|| stoppingToken.IsCancellationRequested    // If cancellation was requested.
+					|| (finishedCoinJoin.Wallet.IsWalletPrivate() && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
+				{
+					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
+				}
+				else
 				{
 					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
 					ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, stoppingToken);
-				}
-				else
-				{
-					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
 				}
 			}
 
