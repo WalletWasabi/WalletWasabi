@@ -84,7 +84,6 @@ public class ProcessedResult
 	/// </summary>
 	public List<SmartCoin> RestoredCoins { get; } = new List<SmartCoin>();
 
-	
 	/// <summary>
 	/// If during TurboSync we detect that a tx would be processed again during full synchronization,
 	/// we need to stop TurboSync immediately and test all keys directly to avoid issues with the CoinsRegistry.
