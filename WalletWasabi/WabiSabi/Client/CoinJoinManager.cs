@@ -179,7 +179,7 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				// If all coins are already private, then don't mix.
-				if (walletToStart.IsWalletPrivate())
+				if (walletToStart.IsWalletPrivate() && startCommand.StopWhenAllMixed)
 				{
 					walletToStart.LogTrace("All mixed!");
 
@@ -187,9 +187,17 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight);
-				if (!coinCandidates.Any() || coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget))) // If all selectable coins are already private, then don't mix.
+
+				// If there is no available coin candidates, then don't mix.
+				if (!coinCandidates.Any())
 				{
 					throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, "No candidate coins available to mix.");
+				}
+
+				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
+				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
+				{
+					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate, $"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 
 				return coinCandidates;
@@ -415,12 +423,10 @@ public class CoinJoinManager : BackgroundService
 			switch (clientException.CoinjoinError)
 			{
 				case CoinjoinError.UserInSendWorkflow:
-					ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 					NotifyCoinJoinStartError(wallet, CoinjoinError.UserInSendWorkflow);
 					break;
 
 				case CoinjoinError.NotEnoughUnprivateBalance:
-					ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 					NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
 					break;
 
@@ -429,10 +435,6 @@ public class CoinJoinManager : BackgroundService
 					break;
 
 				case CoinjoinError.AllCoinsPrivate:
-					if (!finishedCoinJoin.StopWhenAllMixed)
-					{
-						ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
-					}
 					NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
 					break;
 
