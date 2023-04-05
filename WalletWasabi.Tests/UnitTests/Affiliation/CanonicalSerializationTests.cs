@@ -64,6 +64,16 @@ public class CanonicalSerializationTests
 		Assert.Equal(expected_json, json);
 	}
 
+	[Fact]
+	public void CanonicalJsonIgnoreAttributeSerialization()
+	{
+		string canonical_json = JsonConvert.SerializeObject(new CanonicalJsonIgnoreAttributeSerializationObject(), CanonicalJsonSerializationOptions.Settings);
+		Assert.Equal("{}", canonical_json);
+
+		string json = JsonConvert.SerializeObject(new CanonicalJsonIgnoreAttributeSerializationObject());
+		Assert.Equal("""{"A":0}""", json);
+	}
+
 	private record OrderSerializationJsonObject
 	{
 		[JsonProperty("a")]
@@ -83,5 +93,11 @@ public class CanonicalSerializationTests
 	{
 		[JsonProperty("A")]
 		public int CapitalA { get; } = 0;
+	}
+
+	private record CanonicalJsonIgnoreAttributeSerializationObject
+	{
+		[CanonicalJsonIgnore]
+		public int A { get; } = 0;
 	}
 }

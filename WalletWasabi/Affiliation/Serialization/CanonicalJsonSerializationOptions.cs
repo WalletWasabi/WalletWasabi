@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
@@ -49,6 +50,16 @@ public static class CanonicalJsonSerializationOptions
 			}
 
 			return properties.OrderBy(p => p.PropertyName, StringComparer.Ordinal).ToList();
+		}
+
+		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+		{
+			JsonProperty property = base.CreateProperty(member, memberSerialization);
+			if (property.AttributeProvider.GetAttributes(typeof(CanonicalJsonIgnoreAttribute), true).Any())
+			{
+				property.ShouldSerialize = x => false;
+			}
+			return property;
 		}
 	}
 }
