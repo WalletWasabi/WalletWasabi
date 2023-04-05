@@ -414,7 +414,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
-					await ProcessFilterModelAsync(filterModel).ConfigureAwait(false);
+					await ProcessFilterModelAsync(filterModel, null, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
 
@@ -577,7 +577,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	/// <seealso cref="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso >
-	private async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync = null, CancellationToken cancel = default)
+	private async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync, CancellationToken cancel)
 	{
 		var height = new Height(filterModel.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(new Height(filterModel.Header.Height), turboSync);
