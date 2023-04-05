@@ -356,7 +356,7 @@ public class CoinJoinManager : BackgroundService
 
 				NotifyCoinJoinCompletion(finishedCoinJoin);
 
-				if (!finishedCoinJoin.IsStopped && !stoppingToken.IsCancellationRequested)
+				if (!finishedCoinJoin.IsStopped && !stoppingToken.IsCancellationRequested && !(finishedCoinJoin.Wallet.IsWalletPrivate() && finishedCoinJoin.StopWhenAllMixed))
 				{
 					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
