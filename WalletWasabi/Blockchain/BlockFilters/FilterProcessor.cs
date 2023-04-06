@@ -65,7 +65,7 @@ public class FilterProcessor
 					// Reorg happened
 					// 1. Rollback index
 					FilterModel reorgedFilter = await BitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
-						?? throw new InvalidOperationException("Fatal error: Failed to remove the reorded filter.");
+						?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
 					Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 				}
