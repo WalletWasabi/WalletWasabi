@@ -97,7 +97,7 @@ public record RoundParameters
 			miningFeeRate,
 			coordinationFeeRate,
 			maxSuggestedAmount,
-			wabiSabiConfig.MinInputCountByRound,
+			wabiSabiConfig.MinUniqueInputCountByRound,
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
