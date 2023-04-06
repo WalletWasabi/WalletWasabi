@@ -117,7 +117,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		_ when network == Network.Main => 37129,
 		_ when network == Network.TestNet => 37130,
 		_ when network == Network.RegTest => 37131,
-		_ => throw new Exception($"Network {network} is unknown")
+		_ => throw new ArgumentException($"Network {network} is unknown")
 	};
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)

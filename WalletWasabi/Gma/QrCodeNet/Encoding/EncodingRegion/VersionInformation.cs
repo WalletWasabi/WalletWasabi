@@ -60,7 +60,7 @@ internal static class VersionInformation
 
 		if (result.Count != (LengthECBits + LengthDataBits))
 		{
-			throw new Exception("Version Info creation error. Result is not 18 bits");
+			throw new ArgumentException("Version Info creation error. Result is not 18 bits");
 		}
 
 		return result;

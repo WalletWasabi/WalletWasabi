@@ -83,7 +83,7 @@ internal static class FormatInformation
 
 		if (resultBits.Count != 15)
 		{
-			throw new Exception("FormatInfoBits length is not 15");
+			throw new ArgumentException("FormatInfoBits length is not 15");
 		}
 		else
 		{
