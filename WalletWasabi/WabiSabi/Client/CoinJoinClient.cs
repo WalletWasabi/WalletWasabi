@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -79,10 +80,15 @@ public class CoinJoinClient
 	private bool RedCoinIsolation { get; }
 	private int SemiPrivateThreshold { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
+	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
 		CoinJoinClientProgress.SafeInvoke(this, new WaitingForRound());
+
+		using CancellationTokenSource cts = new(MaxWaitingTimeForRound);
+		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, cts.Token);
+
 		return await RoundStatusUpdater
 			.CreateRoundAwaiterAsync(
 				roundState =>
@@ -92,7 +98,7 @@ public class CoinJoinClient
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
 					&& roundState.Id != excludeRound,
-				token)
+				linkedCts.Token)
 			.ConfigureAwait(false);
 	}
 
@@ -141,16 +147,16 @@ public class CoinJoinClient
 			var _ = coinCandidatesFunc();
 
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
-			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
+			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
 
 			coinCandidates = coinCandidatesFunc();
 
-			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
-			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
+			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters);
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
 
-			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
+			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
 				excludeRound = currentRoundState.Id;
 				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
@@ -158,10 +164,10 @@ public class CoinJoinClient
 				continue;
 			}
 
-			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
+			if (roundParameters.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
-				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameteers.MaxSuggestedAmount}' BTC, biggest coin amount is: '{coins.Select(c => c.Amount).Max()}' BTC.");
+				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{coins.Select(c => c.Amount).Max()}' BTC.");
 
 				continue;
 			}
@@ -172,7 +178,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
@@ -293,7 +299,7 @@ public class CoinJoinClient
 			}
 			catch (Exception ex)
 			{
-				// Make sure that to not generate UnobserverTaskException.
+				// Make sure that to not generate UnobservedTaskException.
 				roundState.LogDebug(ex.Message);
 			}
 
@@ -315,7 +321,7 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new NoCoinsToMixException($"The coordinator rejected all {smartCoins.Count()} inputs.");
+				throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
@@ -644,11 +650,11 @@ public class CoinJoinClient
 		string[] summary = new string[]
 		{
 			"",
-			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
-			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
-			$"\tTotal diff : {totalDifference.ToString(true, false)}",
-			$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
-			$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
+			$"\tInput total : {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetworkFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
+			$"\tOutput total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetworkFee: {outputNetworkFee.ToString(true, false)}",
+			$"\tTotal diff  : {totalDifference.ToString(true, false)}",
+			$"\tEffect diff : {effectiveDifference.ToString(true, false)}",
+			$"\tTotal fee   : {totalNetworkFee.ToString(true, false)}"
 		};
 
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
@@ -754,8 +760,8 @@ public class CoinJoinClient
 				? taprootScripts
 				: segwitScripts;
 
-			var dest = destinationStack.Pop();
-			var txOut = new TxOut(output.Amount, dest.ScriptPubKey);
+			var destination = destinationStack.Pop();
+			var txOut = new TxOut(output.Amount, destination.ScriptPubKey);
 			outputTxOuts.Add(txOut);
 		}
 		return outputTxOuts;

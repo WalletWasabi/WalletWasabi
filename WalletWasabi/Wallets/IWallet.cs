@@ -23,7 +23,7 @@ public interface IWallet
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
 
-	Task<bool> IsWalletPrivateAsync();
+	bool IsWalletPrivate();
 
 	IEnumerable<SmartCoin> GetCoinjoinCoinCandidates();
 
