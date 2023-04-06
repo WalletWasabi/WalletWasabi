@@ -580,7 +580,7 @@ public class Wallet : BackgroundService, IWallet
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync, CancellationToken cancel)
 	{
 		var height = new Height(filterModel.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(new Height(filterModel.Header.Height), turboSync);
+		var toTestKeys = GetScriptPubKeysToTest(height, turboSync);
 		
 		if (toTestKeys.Count == 0)
 		{
