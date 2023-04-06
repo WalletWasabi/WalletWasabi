@@ -14,7 +14,7 @@ public class BlockchainState
 	{
 		Network = network;
 		Height = height;
-		NonObsoleteHeight = height;
+		NonObsoleteHeight = nonObsoleteHeight;
 	}
 
 	public BlockchainState()
