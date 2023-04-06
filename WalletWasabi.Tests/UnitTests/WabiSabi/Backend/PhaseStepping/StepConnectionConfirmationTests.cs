@@ -14,7 +14,7 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task AllConfirmedStepsAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
+		WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinUniqueInputCountByRound = 2 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var a1 = WabiSabiFactory.CreateAlice(round);
 		var a2 = WabiSabiFactory.CreateAlice(round);
@@ -40,7 +40,7 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task NotAllConfirmedStaysAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
+		WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinUniqueInputCountByRound = 2 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var a1 = WabiSabiFactory.CreateAlice(round);
 		var a2 = WabiSabiFactory.CreateAlice(round);
@@ -73,7 +73,7 @@ public class StepConnectionConfirmationTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 4,
-			MinInputCountByRoundMultiplier = 0.5,
+			MinUniqueInputCountByRound = 1,
 			ConnectionConfirmationTimeout = TimeSpan.Zero
 		};
 		var round = WabiSabiFactory.CreateRound(cfg);
@@ -110,7 +110,7 @@ public class StepConnectionConfirmationTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 4,
-			MinInputCountByRoundMultiplier = 0.5,
+			MinUniqueInputCountByRound = 2,
 			ConnectionConfirmationTimeout = TimeSpan.Zero
 		};
 		var round = WabiSabiFactory.CreateRound(cfg);

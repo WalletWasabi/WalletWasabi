@@ -32,7 +32,7 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5,
+			MinUniqueInputCountByRound = 1,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
@@ -67,7 +67,7 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5,
+			MinUniqueInputCountByRound = 1,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
@@ -108,7 +108,7 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5,
+			MinUniqueInputCountByRound = 1,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 
@@ -155,7 +155,7 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 1,
+			MinUniqueInputCountByRound = 2,
 			TransactionSigningTimeout = TimeSpan.Zero,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
@@ -196,7 +196,7 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 1,
+			MinUniqueInputCountByRound = 2,
 			TransactionSigningTimeout = TimeSpan.Zero,
 			OutputRegistrationTimeout = TimeSpan.Zero,
 			FailFastTransactionSigningTimeout = TimeSpan.Zero,
