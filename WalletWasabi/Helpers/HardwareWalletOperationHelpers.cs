@@ -15,7 +15,7 @@ public static class HardwareWalletOperationHelpers
 	{
 		if (device.Fingerprint is null)
 		{
-			throw new ArgumentNullException("Fingerprint cannot be null.");
+			throw new ArgumentNullException(nameof(device.Fingerprint), "Fingerprint cannot be null.");
 		}
 
 		var client = new HwiClient(network);
