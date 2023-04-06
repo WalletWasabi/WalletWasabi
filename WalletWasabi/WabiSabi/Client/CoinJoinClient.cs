@@ -173,14 +173,15 @@ public class CoinJoinClient
 			}
 
 			// Total amount sanity check for the chosen coins.
-			var sumOfCoins = Money.Satoshis(coins.Sum(c => c.EffectiveValue(roundParameteers.MiningFeeRate).Satoshi));
-			var weShouldNotLooseMoreThanThis = Money.Satoshis(sumOfCoins.Satoshi * 0.1m);
+			var sumOfCoins = Money.Satoshis(coins.Sum(c => c.EffectiveValue(roundParameters.MiningFeeRate).Satoshi));
 
 			// AmountDecomposer will not be able to create smaller output than the minimum - it could be a loss, depends on the decomposition.
-			if (roundParameteers.AllowedOutputAmounts.Min > weShouldNotLooseMoreThanThis)
+			var possibleLossRatio = (double)roundParameters.AllowedOutputAmounts.Min.Satoshi / sumOfCoins.Satoshi;
+			const float Threshold = 0.1f;
+			if (possibleLossRatio > Threshold)
 			{
 				excludeRound = currentRoundState.Id;
-				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. The sum of selected coins are below the threshold: {weShouldNotLooseMoreThanThis}/{sumOfCoins} BTC.");
+				currentRoundState.LogInfo($"Mixing not economical. The sum of selected coins is '{sumOfCoins}' BTC. The possible loss ratio '{possibleLossRatio}' is below the threshold: '{Threshold}'.");
 				continue;
 			}
 
