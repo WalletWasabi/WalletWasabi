@@ -13,11 +13,7 @@ namespace WalletWasabi.Fluent.Generators;
 [Generator]
 public class UiContextGenerator : IIncrementalGenerator
 {
-	private static string[] Exclusions =
-		new[]
-		{
-			"RoutableViewModel"
-		};
+	private static string[] Exclusions = { "RoutableViewModel" };
 
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
