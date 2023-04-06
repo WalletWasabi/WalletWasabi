@@ -35,7 +35,7 @@ public class BobClientTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
+		var config = new WabiSabiConfig { MaxInputCountByRound = 1, MinUniqueInputCountByRound = 1 };
 		var round = WabiSabiFactory.CreateRound(config);
 		var km = ServiceFactory.CreateKeyManager("");
 		var key = BitcoinFactory.CreateHdPubKey(km);

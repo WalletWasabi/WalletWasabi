@@ -114,6 +114,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
+		// Make sure that at least one IR fails for WrongPhase.
+		var maxInputCountByRound = inputCount - 1;
+
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
 				coins,
@@ -134,7 +137,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				// services to build everything (WabiSabi controller, arena, etc)
 				services.AddScoped(s => new WabiSabiConfig
 				{
-					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
+					MaxInputCountByRound = maxInputCountByRound,
+					MinUniqueInputCountByRound = maxInputCountByRound / 2,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -214,6 +218,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddScoped(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
+					MinUniqueInputCountByRound = inputCount / 2,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -308,6 +313,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 
+		var maxInputCountByRound = 2 * inputCount;
+
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 		builder.AddMockRpcClient(
 			Enumerable.Concat(coins, badCoins).ToArray(),
@@ -337,7 +344,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				AllowP2trInputs = true,
 				AllowP2trOutputs = true,
-				MaxInputCountByRound = 2 * inputCount,
+				MaxInputCountByRound = maxInputCountByRound,
+				MinUniqueInputCountByRound = maxInputCountByRound / 2,
 				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
@@ -440,6 +448,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				}
 			};
 
+			var maxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness)));
+
 			var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
 				builder.ConfigureServices(services =>
 				{
@@ -449,7 +459,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					services.AddScoped(s => new WabiSabiConfig(Path.GetTempFileName())
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
-						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness))),
+						MaxInputCountByRound = maxInputCountByRound,
+						MinUniqueInputCountByRound = maxInputCountByRound / 2,
 						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(5 * ExpectedInputNumber),
 						BlameInputRegistrationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
 						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
