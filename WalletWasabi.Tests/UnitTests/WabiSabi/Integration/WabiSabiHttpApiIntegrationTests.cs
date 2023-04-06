@@ -267,7 +267,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartCoinJoinAsync(() => coins, cts.Token);
-			throw new Exception("Coinjoin should have never finished successfully.");
+			throw new InvalidOperationException("Coinjoin should have never finished successfully.");
 		}
 		catch (OperationCanceledException)
 		{
@@ -532,24 +532,24 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					}
 					else if (participantsFinishedSuccessully.All(x => x is FailedCoinJoinResult))
 					{
-						throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
+						throw new InvalidOperationException("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 					}
 					else if (!participantsFinishedSuccessully.Any() && !cts.IsCancellationRequested)
 					{
 						var exceptions = tasks
 							.Where(x => x.IsFaulted)
-							.Select(x => new Exception("Something went wrong", x.Exception))
+							.Select(x => new InvalidOperationException("Something went wrong", x.Exception))
 							.ToArray();
 						throw new AggregateException(exceptions);
 					}
 					else
 					{
-						throw new Exception("All participants finished, but CoinJoin still not in the mempool.");
+						throw new InvalidOperationException("All participants finished, but CoinJoin still not in the mempool.");
 					}
 				}
 				else
 				{
-					throw new Exception("This is not so possible.");
+					throw new InvalidOperationException("This is not so possible.");
 				}
 			}
 			catch (OperationCanceledException)
