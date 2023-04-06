@@ -73,7 +73,7 @@ public class StepConnectionConfirmationTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 4,
-			MinUniqueInputCountByRound = 1,
+			MinUniqueInputCountByRound = 2,
 			ConnectionConfirmationTimeout = TimeSpan.Zero
 		};
 		var round = WabiSabiFactory.CreateRound(cfg);
