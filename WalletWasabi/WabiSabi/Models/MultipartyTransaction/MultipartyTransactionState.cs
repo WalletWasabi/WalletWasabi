@@ -36,9 +36,9 @@ public abstract record MultipartyTransactionState
 	[JsonIgnore]
 	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
 	[JsonIgnore]
-	public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
+	public int EstimatedInputsVsize => Inputs.DistinctBy(x => x.ScriptPubKey).Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
 	[JsonIgnore]
-	public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
+	public int OutputsVsize => Outputs.DistinctBy(x => x.ScriptPubKey).Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
 	[JsonIgnore]
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;

@@ -575,8 +575,12 @@ public partial class Arena : PeriodicRunner
 
 	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod)
 	{
+		var blameScriptVsizeToPayFor = coinjoin.Outputs.Any(x => x.ScriptPubKey == blameScript)
+			? 0 // The blame output will be merged with the existing one, no additional fee to pay.
+			: blameScript.EstimateOutputVsize();
+
 		// SharedOverhead calculated into EstimatedVsize.
-		var sizeToPayFor = coinjoin.EstimatedVsize + blameScript.EstimateOutputVsize();
+		var sizeToPayFor = coinjoin.EstimatedVsize + blameScriptVsizeToPayFor;
 		var miningFee = sizeToPayFor == 0
 			? Money.Zero
 			: round.Parameters.MiningFeeRate.GetFee(sizeToPayFor);
