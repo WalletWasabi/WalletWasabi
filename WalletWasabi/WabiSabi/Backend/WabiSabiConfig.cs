@@ -95,7 +95,7 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
 
-	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
+	public int MinUniqueInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
 	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
 	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
