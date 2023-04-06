@@ -17,6 +17,8 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		_backStack = new Stack<T>();
 	}
 
+	protected IEnumerable<T> Stack => _backStack;
+
 	protected virtual void OnNavigated(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 	{
 	}
@@ -51,8 +53,6 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 		UpdateCanNavigateBack();
 	}
-
-	protected IEnumerable<T> Stack => _backStack;
 
 	public virtual void Clear()
 	{
