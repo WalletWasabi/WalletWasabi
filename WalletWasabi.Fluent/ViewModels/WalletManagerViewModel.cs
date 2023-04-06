@@ -125,14 +125,14 @@ public partial class WalletManagerViewModel : ViewModelBase
 			return result;
 		}
 
-		throw new Exception("Wallet not found, invalid api usage");
+		throw new InvalidOperationException("Wallet not found, invalid api usage");
 	}
 
 	public async Task LoadWalletAsync(Wallet wallet)
 	{
 		if (wallet.State != WalletState.Uninitialized)
 		{
-			throw new Exception("Wallet is already being logged in.");
+			throw new InvalidOperationException("Wallet is already being logged in.");
 		}
 
 		try
@@ -171,7 +171,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 	{
 		if (Wallets.Any(x => x.Title == wallet.WalletName))
 		{
-			throw new Exception("Wallet already opened.");
+			throw new InvalidOperationException("Wallet already opened.");
 		}
 
 		var walletViewModel = WalletViewModel.Create(wallet);

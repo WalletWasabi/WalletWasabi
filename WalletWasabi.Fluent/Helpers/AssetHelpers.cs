@@ -16,7 +16,7 @@ public static class AssetHelpers
 			return new Bitmap(image);
 		}
 
-		throw new Exception("Program is not initialised or is in an inconsistent state.");
+		throw new InvalidOperationException("Program is not initialised or is in an inconsistent state.");
 	}
 
 	public static Bitmap GetBitmapAsset(string path)

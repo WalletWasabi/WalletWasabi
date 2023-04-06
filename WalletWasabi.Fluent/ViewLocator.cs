@@ -14,7 +14,7 @@ public partial class ViewLocator : IDataTemplate
 		{
 			return func.Invoke();
 		}
-		throw new Exception($"Unable to create view for type: {type}");
+		throw new InvalidOperationException($"Unable to create view for type: {type}");
 	}
 
 	public bool Match(object data)

@@ -287,7 +287,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 		catch (InvalidOperationException) // wallet not found
 		{
-			throw new Exception($"Wallet '{walletName}' not found.");
+			throw new ArgumentException($"Wallet '{walletName}' not found.");
 		}
 	}
 
@@ -310,7 +310,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
 		{
-			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
+			throw new ArgumentException($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
 		}
 	}
 }

@@ -48,14 +48,14 @@ public static class NavigationManager
 			}
 		}
 
-		throw new Exception("ViewModel metadata not registered.");
+		throw new InvalidOperationException("ViewModel metadata not registered.");
 	}
 
 	public static void RegisterAsyncLazy(NavigationMetaData metaData, Func<Task<RoutableViewModel?>> generator)
 	{
 		if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
 		{
-			throw new Exception("Searchable entries must have both a Category and a Title");
+			throw new ArgumentException("Searchable entries must have both a Category and a Title");
 		}
 
 		if (!NavigationEntries.ContainsKey(metaData))
@@ -68,7 +68,7 @@ public static class NavigationManager
 	{
 		if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
 		{
-			throw new Exception("Searchable entries must have both a Category and a Title");
+			throw new ArgumentException("Searchable entries must have both a Category and a Title");
 		}
 
 		if (!NavigationEntries.ContainsKey(metaData))
@@ -81,7 +81,7 @@ public static class NavigationManager
 	{
 		if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
 		{
-			throw new Exception("Searchable entries must have both a Category and a Title");
+			throw new ArgumentException("Searchable entries must have both a Category and a Title");
 		}
 
 		if (!NavigationEntries.ContainsKey(metaData))
