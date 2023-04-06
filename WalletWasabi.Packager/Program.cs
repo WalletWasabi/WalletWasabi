@@ -138,7 +138,7 @@ public static class Program
 
 				if (!File.Exists(msiPath))
 				{
-					throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
+					throw new ArgumentException(".msi does not exist. Expected path: Wasabi.msi.");
 				}
 
 				File.Move(msiPath, newMsiPath);
@@ -165,7 +165,7 @@ public static class Program
 
 				if (!File.Exists(dmgFilePath))
 				{
-					throw new Exception(".dmg does not exist.");
+					throw new ArgumentException(".dmg does not exist.");
 				}
 
 				File.Move(dmgFilePath, destinationFilePath);
@@ -404,7 +404,7 @@ public static class Program
 
 				if (!Directory.Exists(publishedFolder))
 				{
-					throw new Exception($"{publishedFolder} does not exist.");
+					throw new ArgumentException($"{publishedFolder} does not exist.");
 				}
 
 				var newFolderName = $"Wasabi-{VersionPrefix}";
