@@ -87,9 +87,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
-	[DefaultValue(100)]
+	[DefaultValue(400)]
 	[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int MaxInputCountByRound { get; set; } = 100;
+	public int MaxInputCountByRound { get; set; } = 400;
 
 	[DefaultValue(150)]
 	[JsonProperty(PropertyName = "MinUniqueInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
