@@ -229,7 +229,11 @@ public class TransactionProcessor
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
-				KeyManager.SetKeyState(KeyState.Used, foundKey);
+				if (foundKey.KeyState != KeyState.Obsolete)
+				{
+					KeyManager.SetKeyState(KeyState.Used, foundKey);
+				}
+
 				if (couldBeDustAttack)
 				{
 					result.ReceivedDusts.Add(output);
@@ -295,15 +299,16 @@ public class TransactionProcessor
 				if (spenderKey.KeyState != KeyState.Obsolete)
 				{
 					KeyManager.SetKeyState(KeyState.Obsolete, spenderKey);
+					Logger.LogWarning($"Key {spenderKey.FullKeyPath} is obsolete at height {tx.Height}");
 					spenderKey.ObsoleteHeight = tx.Height;
 				}
 				else
 				{
 					if (spenderKey.ObsoleteHeight < tx.Height)
 					{
-						// We should never reach this point as TurboSync should have been cancelled in ShouldCancelTurboSync().
+						// We can reach this point if TurboSync was cancelled by ShouldCancelTurboSync().
 						spenderKey.ObsoleteHeight = tx.Height;
-						Logger.LogError("TurboSync should have been cancelled but wasn't. TX will probably be processed twice");
+						Logger.LogDebug($"Internal key {spenderKey.FullKeyPath} was reused but and found twice but it was successfully handled by TurboSync");
 					}
 				}
 			}

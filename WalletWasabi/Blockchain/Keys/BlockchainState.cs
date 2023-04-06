@@ -21,7 +21,7 @@ public class BlockchainState
 	{
 		Network = Network.Main;
 		Height = 0;
-		NonObsoleteHeight = Height.Unknown;
+		NonObsoleteHeight = 0;
 	}
 
 	public BlockchainState(Network network) : this(network, 0, Height.Unknown)

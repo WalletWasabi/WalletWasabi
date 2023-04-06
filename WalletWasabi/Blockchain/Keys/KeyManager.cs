@@ -642,6 +642,11 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
+			if (BlockchainState.NonObsoleteHeight < height || BlockchainState.NonObsoleteHeight == Height.Unknown)
+			{
+				// NonObsoleteHeight can't be behind BestHeight
+				BlockchainState.NonObsoleteHeight = height;
+			}
 			ToFile();
 		}
 	}
@@ -663,6 +668,7 @@ public class KeyManager
 			if (prevHeight != newHeight)
 			{
 				SetBestHeight(newHeight);
+				SetBestNonObsoleteHeight(newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
@@ -711,6 +717,7 @@ public class KeyManager
 			{
 				BlockchainState.Network = expectedNetwork;
 				SetBestHeight(0);
+				SetBestNonObsoleteHeight(0);
 
 				if (lastNetwork is { })
 				{

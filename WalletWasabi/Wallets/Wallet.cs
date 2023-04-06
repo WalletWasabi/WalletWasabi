@@ -396,6 +396,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
+				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 			}
@@ -547,7 +548,8 @@ public class Wallet : BackgroundService, IWallet
 		else
 		{
 			// Second sync during TurboSync, test only obsolete keys at the height.
-			if (KeyManager.GetBestNonObsoleteHeight() > filterHeight)
+			var bestNonObsoleteHeight = KeyManager.GetBestNonObsoleteHeight();
+			if (bestNonObsoleteHeight == 0 || bestNonObsoleteHeight > filterHeight)
 			{
 				keysToTest = KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < filterHeight);
 			}
@@ -614,11 +616,6 @@ public class Wallet : BackgroundService, IWallet
 			{
 				// All keys were tested, so we can update the best height.
 				KeyManager.SetBestHeight(height);
-				if (height > KeyManager.GetBestNonObsoleteHeight())
-				{
-					// BestNonObsoleteHeight can't be behind BestHeight.
-					KeyManager.SetBestNonObsoleteHeight(height);
-				}
 			}
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
