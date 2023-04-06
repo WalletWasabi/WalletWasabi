@@ -161,7 +161,7 @@ public partial class Arena : PeriodicRunner
 
 				var uniqueInputsByScript = round.Alices.DistinctBy(alice => alice.Coin.ScriptPubKey);
 
-				if (uniqueInputsByScript.Count() < Config.MinInputCountByRound)
+				if (uniqueInputsByScript.Count() < Config.MinUniqueInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
@@ -170,7 +170,7 @@ public partial class Arena : PeriodicRunner
 
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
+					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinUniqueInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
