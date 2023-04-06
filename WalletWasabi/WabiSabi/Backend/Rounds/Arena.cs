@@ -298,9 +298,13 @@ public partial class Arena : PeriodicRunner
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
+					FeeRate targetFeeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate; // Added for monitoring reasons.
+
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 					round.LogInfo(
 						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					round.LogInfo(
+						$"Target Fee Rate: {targetFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
 					round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
 					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
