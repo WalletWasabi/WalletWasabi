@@ -27,6 +27,82 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="img/favicon.ico">
     <title>Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": " What is a “coinjoin”?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>Coinjoin is a collaborative transaction between multiple peers.</p><p>Usually, but not necessarily, it consists of some standard output denominations that users should break their coins in to. This makes it difficult for outside parties to trace where a particular coin was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p><p>Coinjoins can be done with non-custodial software like Wasabi Wallet, that eliminates the risk of funds disappearing or being stolen. The funds will always be in a bitcoin address that the user controls and not even developers can alter the transaction or redirect the funds.</p><p>Coinjoin basicly means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "What are the fees for coinjoins?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>Coinjoining coins with a value above 0.01 BTC costs 0.3% as a coordinator fee + mining fees. Inputs of 0.01 BTC or below don't pay coordinator fees, nor remixes, even after one transaction. Thus, a payment made with coinjoined funds allows the sender and the recipient to remix their coins without paying any coordinator fees.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "Do I need to trust Wasabi with my coins?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or the coordinator. Since only the user knows the private keys, only he can sign the transaction, which will only be done after verifying that everything is alright. Nobody can neither steal your coins, nor figure out which outputs belong to which inputs.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "Does Wasabi support Hardware wallets?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text":"<p>Wasabi does support hardware wallet usage through the standard Bitcoin-core HWI, although coinjoining straight from or to a hardware wallet is not yet possible.</p><p>Here's a <a href='https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/WasabiCompatibility.md#officially-supported-hardware-wallets' target='_blank'>list</a> of the officially supported hardware wallets.</p>"}
+        }, {
+        "@type": "Question",
+        "name": "Is there an Android/iOS version?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>No, Wasabi and CoinJoin features require considerable computational power, not currently replicable on a smartphone.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "Does Wasabi support altcoins?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>There are countless reasons why it is the only logical choice to be bitcoin-only. With Bitcoin we have a once in a lifetime opportunity to manifest libre sound money. If we succeed, then an utmost beautiful agora of sovereign individuals may emerge. If we fail, then this will conjure up the most horrific Orwellian nightmare. There is no room for wasted time and energy, this great work requires our full attention. Any line of code written to support a random shitcoin takes away scarce developer time to work on real problems.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "What are the minimal requirements to run Wasabi?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>Wasabi runs in most operating systems with 64-bit architecture.</p><p>For the complete list of all the officially supported operating systems, click <a href='https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/WasabiCompatibility.md#officially-supported-operating-systems' target='_blank'>here</a>.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "Do I need to run TOR?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>All Wasabi network traffic goes via Tor by default -there's no need to set up Tor by yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p><p> You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "Why is it important to use a new address for every payment?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>Addresses being used more than once is very damaging to privacy because that links together more blockchain transactions with proof that they were created by the same entity. The most private and secure way to use bitcoin is to send a brand new address to each person who pays you. After an address has received a coin, it should never be used again. Also, a brand new bitcoin address should be demanded from the recipient when sending bitcoin. Wasabi has a user interface which discourages address reuse by removing from the GUI addresses which have received a coin.</p><p>It has been argued that the phrase 'bitcoin address' was a bad name for this object because it implies it can be reused like an email address. A better name would be something like 'bitcoin invoice'.</p><p>Bitcoin isn't anonymous but pseudonymous, and the pseudonyms are bitcoin addresses. Avoiding address reuse is like throwing away a pseudonym after it has been used.</p>"
+        }
+      }, {
+        "@type": "Question",
+        "name": "What is the password used for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "<p>The password you set is used as a 13th seed word (as described in <a href='https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki' target='_blank'>BIP 39</a>) and to encrypt the private key of the extended private key (as described in <a href='https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki' target='_blank'>BIP 38</a>) to get an encrypted secret which is stored on the computer.</p><p>Wasabi Wallet stores only the BIP38 encrypted blob, so you'll need to type in the password to spend or coinjoin from the wallet.</p><p>The password will unlock your bitcoin to anyone who has access to the recovery words backup or the computer! If your backup gets compromised, this password is the only thing protecting your precious sats.</p><p>It is important to use a random and long password.</p>"
+        }
+      }]
+    }
+    </script>
 </head>
 
 <body>

@@ -1,9 +1,9 @@
 using System.Linq;
 using Moq;
 using NBitcoin;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -18,7 +18,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNothingFromEmptySetOfCoins()
 	{
 		// This test is to make sure no coins are selected when there are no coins.
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: Enumerable.Empty<SmartCoin>(),
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
@@ -41,7 +41,7 @@ public class CoinJoinCoinSelectionTests
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
@@ -66,7 +66,7 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(smallerAnonCoin)
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
@@ -90,7 +90,7 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
@@ -115,7 +115,7 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
@@ -139,7 +139,7 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,

@@ -1,8 +1,9 @@
 using System.Collections.Immutable;
 using NBitcoin;
-using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.StrobeProtocol;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.StrobeProtocol;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Crypto.StrobeProtocol;
 
 namespace WalletWasabi.WabiSabi.Crypto;
 
@@ -54,6 +55,6 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, amountCredentialIssuerParameters)
 					   .Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, vsizeCredentialIssuerParameters)
 					   .GetHash();
-		return hash;
+		return new uint256(hash);
 	}
 }
