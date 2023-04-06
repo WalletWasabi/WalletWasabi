@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -177,7 +178,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
@@ -320,7 +321,7 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new NoCoinsToMixException($"The coordinator rejected all {smartCoins.Count()} inputs.");
+				throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");

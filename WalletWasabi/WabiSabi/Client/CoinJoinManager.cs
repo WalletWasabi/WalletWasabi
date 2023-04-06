@@ -9,6 +9,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -158,56 +159,51 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
+			IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
-
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.UserInSendWorkflow);
-				return;
-			}
-
-			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
-			{
-				walletToStart.LogTrace("PlebStop preventing coinjoin.");
-				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
-
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
-				return;
-			}
-
-			if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
-			{
-				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
-
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
-				return;
-			}
-
-			// If all coins are already private, then don't mix.
-			if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
-			{
-				walletToStart.LogTrace("All mixed!");
-				if (!startCommand.StopWhenAllMixed)
+				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 				{
-					ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
+					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 				}
 
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
-				return;
-			}
-
-			IEnumerable<SmartCoin> CoinCandidatesFunc()
-			{
-				var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight);
-				if (!coinCandidates.Any() || coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget))) // If all selectable coins are already private, then don't mix.
+				if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 				{
-					throw new NoCoinsToMixException("No candidate coins available to mix.");
+					walletToStart.LogTrace("PlebStop preventing coinjoin.");
+
+					throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
+				}
+
+				if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
+				{
+					throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
+				}
+
+				// If all coins are already private, then don't mix.
+				if (walletToStart.IsWalletPrivate() && startCommand.StopWhenAllMixed)
+				{
+					walletToStart.LogTrace("All mixed!");
+
+					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
+				}
+
+				var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight);
+
+				// If there is no available coin candidates, then don't mix.
+				if (!coinCandidates.Any())
+				{
+					throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, "No candidate coins available to mix.");
+				}
+
+				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
+				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
+				{
+					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate, $"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, CoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 			NotifyWalletStartedCoinJoin(walletToStart);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
@@ -360,15 +356,18 @@ public class CoinJoinManager : BackgroundService
 
 				NotifyCoinJoinCompletion(finishedCoinJoin);
 
-				if (!finishedCoinJoin.IsStopped && !stoppingToken.IsCancellationRequested)
+				// When to stop mixing.
+				if (finishedCoinJoin.IsStopped  // If stop was requested by user.
+					|| stoppingToken.IsCancellationRequested    // If cancellation was requested.
+					|| (finishedCoinJoin.Wallet.IsWalletPrivate() && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
+				{
+					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
+				}
+				else
 				{
 					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
 					ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, stoppingToken);
-				}
-				else
-				{
-					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
 				}
 			}
 
@@ -408,7 +407,6 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
-
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -423,10 +421,10 @@ public class CoinJoinManager : BackgroundService
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");
 			}
 		}
-		catch (NoCoinsToMixException x)
+		catch (CoinJoinClientException clientException)
 		{
-			NotifyCoinJoinStartError(wallet, CoinjoinError.NoCoinsToMix);
-			Logger.LogDebug(x);
+			Logger.LogDebug(clientException);
+			NotifyCoinJoinStartError(wallet, clientException.CoinjoinError);
 		}
 		catch (InvalidOperationException ioe)
 		{
