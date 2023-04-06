@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto;
@@ -59,6 +60,7 @@ public class Round
 	public CredentialIssuerParameters VsizeCredentialIssuerParameters { get; }
 	public List<Alice> Alices { get; } = new();
 	public int InputCount => Alices.Count;
+	public int UniqueScriptsCount => Alices.DistinctBy(alice => alice.Coin.ScriptPubKey).Count();
 	public List<Bob> Bobs { get; } = new();
 
 	public Phase Phase { get; private set; } = Phase.InputRegistration;
