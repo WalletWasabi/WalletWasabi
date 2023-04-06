@@ -159,7 +159,7 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (round.InputCount < Config.MinInputCountByRound)
+				if (round.UniqueScriptsCount < Config.MinUniqueInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
@@ -168,7 +168,7 @@ public partial class Arena : PeriodicRunner
 
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
+					round.LogInfo($"Not enough inputs with unique scripts ({round.UniqueScriptsCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinUniqueInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
@@ -207,7 +207,7 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
 					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
 					// remove any spent inputs.
-					if (round.InputCount >= Config.MinInputCountByRound)
+					if (round.UniqueScriptsCount >= Config.MinUniqueInputCountByRound)
 					{
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
@@ -219,10 +219,10 @@ public partial class Arena : PeriodicRunner
 						}
 					}
 
-					if (round.InputCount < Config.MinInputCountByRound)
+					if (round.UniqueScriptsCount < Config.MinUniqueInputCountByRound)
 					{
 						EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
+						round.LogInfo($"Not enough inputs with unique scripts ({round.UniqueScriptsCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinUniqueInputCountByRound}).");
 					}
 					else
 					{
@@ -406,7 +406,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByRound)
+		if (round.UniqueScriptsCount >= Config.MinUniqueInputCountByRound)
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -440,7 +440,7 @@ public partial class Arena : PeriodicRunner
 		if (Config.WW200CompatibleLoadBalancing)
 		{
 			// Destroy the round when it reaches this input count and create 2 new ones instead.
-			var roundDestroyerInputCount = Config.MinInputCountByRound * 2 + Config.MinInputCountByRound / 2;
+			var roundDestroyerInputCount = Config.MinUniqueInputCountByRound * 2 + Config.MinUniqueInputCountByRound / 2;
 
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
