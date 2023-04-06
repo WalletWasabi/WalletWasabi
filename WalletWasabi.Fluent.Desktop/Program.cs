@@ -140,7 +140,7 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<ExitErrorCode> RunAsGuiAsync(this WasabiApplication app)
+	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
 			() =>

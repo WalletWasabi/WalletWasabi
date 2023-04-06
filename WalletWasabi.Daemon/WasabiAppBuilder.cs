@@ -11,7 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Daemon;
 
-public enum ExitErrorCode
+public enum ExitCode
 {
 	Ok,
 	FailedAlreadyRunningSignaled,
@@ -34,7 +34,7 @@ public class WasabiApplication
 		SingleInstanceChecker = new(Config.Network);
 	}
 
-	public async Task<ExitErrorCode> RunAsync(Action afterStarting)
+	public async Task<ExitCode> RunAsync(Action afterStarting)
 	{
 		if (AppConfig.MustCheckSingleInstance)
 		{
@@ -42,12 +42,12 @@ public class WasabiApplication
 			if (instanceResult == WasabiInstanceStatus.AnotherInstanceIsRunning)
 			{
 				Logger.LogDebug("Wasabi is already running, signaled the first instance.");
-				return ExitErrorCode.FailedAlreadyRunningSignaled;
+				return ExitCode.FailedAlreadyRunningSignaled;
 			}
-			if (instanceResult == WasabiInstanceStatus.PortIsBeingUser)
+			if (instanceResult == WasabiInstanceStatus.Error)
 			{
 				Logger.LogCritical($"Wasabi is already running, but cannot be signaled");
-				return ExitErrorCode.FailedAlreadyRunningError;
+				return ExitCode.FailedAlreadyRunningError;
 			}
 		}
 
@@ -58,7 +58,7 @@ public class WasabiApplication
 			await BeforeStartingAsync(terminateService);
 
 			afterStarting();
-			return ExitErrorCode.Ok;
+			return ExitCode.Ok;
 		}
 		finally
 		{
@@ -172,7 +172,7 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 
 public static class WasabiAppExtensions
 {
-	public static async Task<ExitErrorCode> RunAsConsoleAsync(this WasabiApplication app)
+	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
 			() =>

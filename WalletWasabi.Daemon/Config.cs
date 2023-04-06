@@ -22,34 +22,38 @@ public class Config
 		Args = args;
 	}
 
-	public Network Network => GetEffectiveValue<Network>(PersistentConfig.Network, x => Network.GetNetwork(x) ?? throw new ArgumentException("Network", $"Unknown network {x}"));
-	public string MainNetBackendUri => GetEffectiveString(PersistentConfig.MainNetBackendUri);
-	public string TestNetBackendUri => GetEffectiveString(PersistentConfig.TestNetBackendUri);
-	public string RegTestBackendUri => GetEffectiveString(PersistentConfig.RegTestBackendUri);
-	public string? MainNetCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.MainNetCoordinatorUri);
-	public string? TestNetCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.TestNetCoordinatorUri);
-	public string? RegTestCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.RegTestCoordinatorUri);
-	public bool UseTor => GetEffectiveBool(PersistentConfig.UseTor);
-	public bool TerminateTorOnExit => GetEffectiveBool(PersistentConfig.TerminateTorOnExit);
-	public bool DownloadNewVersion => GetEffectiveBool(PersistentConfig.DownloadNewVersion);
-	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveBool(PersistentConfig.StartLocalBitcoinCoreOnStartup);
-	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveBool(PersistentConfig.StopLocalBitcoinCoreOnShutdown);
-	public string LocalBitcoinCoreDataDir => GetEffectiveString(PersistentConfig.LocalBitcoinCoreDataDir);
-	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.MainNetBitcoinP2pEndPoint);
-	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.TestNetBitcoinP2pEndPoint);
-	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.RegTestBitcoinP2pEndPoint);
-	public bool JsonRpcServerEnabled => GetEffectiveBool(PersistentConfig.JsonRpcServerEnabled);
-	public string JsonRpcUser => GetEffectiveString(PersistentConfig.JsonRpcUser);
-	public string JsonRpcPassword => GetEffectiveString(PersistentConfig.JsonRpcPassword);
-	public string[] JsonRpcServerPrefixes => GetEffectiveValue(PersistentConfig.JsonRpcServerPrefixes, x => new [] { x });
+	public Network Network => GetEffectiveValue<Network>(
+		PersistentConfig.Network,
+		x => Network.GetNetwork(x) ?? throw new ArgumentException("Network", $"Unknown network {x}"),
+		key: "Network");
+	public string MainNetBackendUri => GetEffectiveString(PersistentConfig.MainNetBackendUri, key: "MainNetBackendUri");
+	public string TestNetBackendUri => GetEffectiveString(PersistentConfig.TestNetBackendUri, key: "TestNetBackendUri");
+	public string RegTestBackendUri => GetEffectiveString(PersistentConfig.RegTestBackendUri, key: "RegTestBackendUri");
+	public string? MainNetCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.MainNetCoordinatorUri, key: "MainNetCoordinatorUri");
+	public string? TestNetCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.TestNetCoordinatorUri, key: "TestNetCoordinatorUri");
+	public string? RegTestCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.RegTestCoordinatorUri, key: "RegTestCoordinatorUri");
+	public bool UseTor => GetEffectiveBool(PersistentConfig.UseTor, key: "UseTor");
+	public bool TerminateTorOnExit => GetEffectiveBool(PersistentConfig.TerminateTorOnExit, key: "TerminateTorOnExit");
+	public bool DownloadNewVersion => GetEffectiveBool(PersistentConfig.DownloadNewVersion, key: "DownloadNewVersion");
+	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveBool(PersistentConfig.StartLocalBitcoinCoreOnStartup, key: "StartLocalBitcoinCoreOnStartup");
+	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveBool(PersistentConfig.StopLocalBitcoinCoreOnShutdown, key: "StopLocalBitcoinCoreOnShutdown");
+	public string LocalBitcoinCoreDataDir => GetEffectiveString(PersistentConfig.LocalBitcoinCoreDataDir, key: "LocalBitcoinCoreDataDir");
+	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.MainNetBitcoinP2pEndPoint, key: "MainNetBitcoinP2pEndPoint");
+	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.TestNetBitcoinP2pEndPoint, key: "TestNetBitcoinP2pEndPoint");
+	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.RegTestBitcoinP2pEndPoint, key: "RegTestBitcoinP2pEndPoint");
+	public bool JsonRpcServerEnabled => GetEffectiveBool(PersistentConfig.JsonRpcServerEnabled, key: "JsonRpcServerEnabled");
+	public string JsonRpcUser => GetEffectiveString(PersistentConfig.JsonRpcUser, key: "JsonRpcUser");
+	public string JsonRpcPassword => GetEffectiveString(PersistentConfig.JsonRpcPassword, key: "JsonRpcPassword");
+	public string[] JsonRpcServerPrefixes => GetEffectiveValue(PersistentConfig.JsonRpcServerPrefixes, x => new [] { x }, key: "JsonRpcServerPrefixes");
 	public Money DustThreshold => GetEffectiveValue(PersistentConfig.DustThreshold, x =>
-	{
-		if (Money.TryParse(x, out var money))
 		{
-			return money;
-		}
-		throw new ArgumentNullException("DustThreshold", "Not a valid money");
-	});
+			if (Money.TryParse(x, out var money))
+			{
+				return money;
+			}
+			throw new ArgumentNullException("DustThreshold", "Not a valid money");
+		},
+		key: "DustThreshold");
 
 	public bool BlockOnlyMode => GetEffectiveBool(false, "blockonly");
 	public string LogLevel => GetEffectiveString("", "loglevel");
@@ -59,13 +63,11 @@ public class Config
 		Environment.GetCommandLineArgs(),
 		"datadir");
 
-	public bool EnableGpu => GetEffectiveBool(PersistentConfig.EnableGpu);
-	public string CoordinatorIdentifier => GetEffectiveString(PersistentConfig.CoordinatorIdentifier);
+	public bool EnableGpu => GetEffectiveBool(PersistentConfig.EnableGpu, key: "EnableGpu");
+	public string CoordinatorIdentifier => GetEffectiveString(PersistentConfig.CoordinatorIdentifier, key: "CoordinatorIdentifier");
 	public ServiceConfiguration ServiceConfiguration => new (GetBitcoinP2pEndPoint(), DustThreshold);
 
-	private EndPoint GetEffectiveEndPoint(
-		EndPoint valueInConfigFile,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
+	private EndPoint GetEffectiveEndPoint(EndPoint valueInConfigFile, string key) =>
 		GetEffectiveValue(
 			valueInConfigFile,
 			x =>
@@ -80,9 +82,7 @@ public class Config
 			Args,
 			key);
 
-	private bool GetEffectiveBool(
-		bool valueInConfigFile,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
+	private bool GetEffectiveBool(bool valueInConfigFile, string key) =>
 		GetEffectiveValue(
 			valueInConfigFile,
 			x =>
@@ -92,39 +92,21 @@ public class Config
 			Args,
 			key);
 
-	private string GetEffectiveString(
-		string valueInConfigFile,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
+	private string GetEffectiveString(string valueInConfigFile, string key) =>
 		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
 
-	private string? GetEffectiveOptionalString(
-		string? valueInConfigFile,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
+	private string? GetEffectiveOptionalString(string? valueInConfigFile, string key) =>
 		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
 
-	private T GetEffectiveValue<T>(
-		T valueInConfigFile,
-		Func<string, T> converter,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
+	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string key) =>
 		GetEffectiveValue(valueInConfigFile, converter, Args, key);
 
-	private static string GetString(
-		string valueInConfigFile,
-		string[] args,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "") =>
+	private static string GetString(string valueInConfigFile, string[] args, string key) =>
 		GetEffectiveValue(valueInConfigFile, x => x, args, key);
 
-	private static T GetEffectiveValue<T>(
-		T valueInConfigFile,
-		Func<string, T> converter,
-		string[] args,
-		[CallerArgumentExpression(nameof(valueInConfigFile))] string key = "")
+	private static T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, string key)
 	{
-		key = key.StartsWith(nameof(PersistentConfig) + ".")
-			? key.Remove(0, nameof(PersistentConfig).Length + 1)
-			: key;
-
-		var cliArgKey = ("--" + key + "=");
+		var cliArgKey = "--" + key + "=";
 		var cliArgOrNull = args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
 		if (cliArgOrNull is { } cliArg)
 		{

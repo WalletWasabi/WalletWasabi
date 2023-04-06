@@ -31,13 +31,13 @@ public class PersistentConfig : ConfigBase
 	[JsonConverter(typeof(NetworkJsonConverter))]
 	public Network Network { get; set; } = Network.Main;
 
-	[DefaultValue("https://wasabiwallet.io/")]
+	[DefaultValue("https://api.wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetBackendUri { get; private set; } = "https://wasabiwallet.io/";
+	public string MainNetBackendUri { get; private set; } = "https://api.wasabiwallet.io/";
 
-	[DefaultValue("https://wasabiwallet.co/")]
+	[DefaultValue("https://api.wasabiwallet.co/")]
 	[JsonProperty(PropertyName = "TestNetClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetBackendUri { get; private set; } = "https://wasabiwallet.co/";
+	public string TestNetBackendUri { get; private set; } = "https://api.wasabiwallet.co/";
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]

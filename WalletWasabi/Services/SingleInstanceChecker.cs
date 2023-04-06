@@ -13,7 +13,7 @@ namespace WalletWasabi.Services;
 
 public enum WasabiInstanceStatus
 {
-	PortIsBeingUser,
+	Error,
 	AnotherInstanceIsRunning,
 	NoOtherInstanceIsRunning,
 }
@@ -57,7 +57,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		// Start single instance checker that is active over the lifetime of the application.
 		try
 		{
-			var singleInstanceResult = await EnsureSingleOrThrowAsync().ConfigureAwait(false);
+			var singleInstanceResult = await CanRunAsSingleInstanceAsync().ConfigureAwait(false);
 			return singleInstanceResult
 				? WasabiInstanceStatus.NoOtherInstanceIsRunning
 				: WasabiInstanceStatus.AnotherInstanceIsRunning;
@@ -65,17 +65,17 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		catch (Exception e)
 		{
 			Logger.LogError(e);
-			return WasabiInstanceStatus.PortIsBeingUser;
+			return WasabiInstanceStatus.Error;
 		}
 	}
 	
 	/// <summary>
-	/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
-	/// we try to signal the first instance before throwing the exception.
-	/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
+	/// This function verifies whether is the only instance running on this machine or not. In case of secondary start
+	/// we try to signal the first instance before returning false.
+	/// On macOS this function will never fail if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 	/// </summary>
-	/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
-	private async Task<bool> EnsureSingleOrThrowAsync()
+	/// <returns>true if this is the only instance running; otherwise false.</returns>
+	private async Task<bool> CanRunAsSingleInstanceAsync()
 	{
 		if (DisposeCts.IsCancellationRequested)
 		{
