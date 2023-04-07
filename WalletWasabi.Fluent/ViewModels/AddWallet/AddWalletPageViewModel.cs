@@ -30,7 +30,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
 	public AddWalletPageViewModel()
 	{
-		SelectionMode = NavBarItemSelectionMode.Button;
+		// SelectionMode = NavBarItemSelectionMode.Button;
 
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
@@ -94,12 +94,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
 	}
 
-	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
-	{
-		MainViewModel.Instance.IsOobeBackgroundVisible = true;
-		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-		MainViewModel.Instance.IsOobeBackgroundVisible = false;
-	}
+	// protected override async Task OnOpen(NavigationMode defaultNavigationMode)
+	// {
+	// 	MainViewModel.Instance.IsOobeBackgroundVisible = true;
+	// 	await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+	// 	MainViewModel.Instance.IsOobeBackgroundVisible = false;
+	// }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
