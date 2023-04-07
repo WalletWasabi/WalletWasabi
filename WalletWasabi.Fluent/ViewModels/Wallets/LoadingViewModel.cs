@@ -7,6 +7,8 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
@@ -14,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class LoadingViewModel : ActivatableViewModel
 {
-	private readonly Wallet _wallet;
+	private readonly NavBarWalletStateViewModel _nbwsvm;
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
@@ -25,19 +27,19 @@ public partial class LoadingViewModel : ActivatableViewModel
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
 
-	public LoadingViewModel(Wallet wallet)
+	public LoadingViewModel(NavBarWalletStateViewModel nbwsvm)
 	{
-		_wallet = wallet;
+		_nbwsvm = nbwsvm;
 		_percent = 0;
 	}
 
-	public string WalletName => _wallet.WalletName;
+	public string WalletName => _nbwsvm.Wallet.WalletName;
 
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
 	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-	protected override void OnActivated(CompositeDisposable disposables)
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_stopwatch = Stopwatch.StartNew();
 
@@ -79,7 +81,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 		}
 
 		uint processedFilters = 0;
-		if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
+		if (_nbwsvm.Wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
 		{
 			processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight - 1;
 		}
@@ -100,12 +102,31 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_nbwsvm.Wallet.KeyManager.SkipSynchronization)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
 
-		await UiServices.WalletManager.LoadWalletAsync(_wallet).ConfigureAwait(false);
+		if (_nbwsvm.Wallet.State != WalletState.Uninitialized)
+		{
+			throw new Exception("Wallet is already being logged in.");
+		}
+
+		try
+		{
+			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_nbwsvm.Wallet));
+
+			_nbwsvm.WalletViewModel = WalletViewModel.Create(_nbwsvm.Wallet);
+			_nbwsvm.CurrentPage = _nbwsvm.WalletViewModel;
+		}
+		catch (OperationCanceledException ex)
+		{
+			Logger.LogTrace(ex);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
@@ -121,8 +142,8 @@ public partial class LoadingViewModel : ActivatableViewModel
 			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 		{
 			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+			var startingHeight = SmartHeader.GetStartingHeader(_nbwsvm.Wallet.Network, IndexType.SegwitTaproot).Height;
+			var bestHeight = (uint)_nbwsvm.Wallet.KeyManager.GetBestHeight().Value;
 			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
 			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
