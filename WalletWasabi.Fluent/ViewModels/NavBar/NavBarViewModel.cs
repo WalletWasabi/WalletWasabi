@@ -21,6 +21,7 @@ public partial class NavBarViewModel : ViewModelBase
 		SetDefaultSelection();
 
 		this.WhenAnyValue(x => x.SelectedWallet)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(x => x?.Activate())
 			.Subscribe();
 	}
@@ -29,7 +30,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 	public ObservableCollection<NavBarWalletStateViewModel> Wallets => UiServices.WalletManager.Wallets;
 
-	[AutoNotify] private NarBarWalletStateViewModel _selectedWallet;
+	[AutoNotify] private NavBarWalletStateViewModel _selectedWallet;
 
 	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
 	{
@@ -41,7 +42,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 	private void SetDefaultSelection()
 	{
-		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
+		var walletToSelect = Wallets.FirstOrDefault(item => item.Wallet.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
 		//
 		//if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
 		//{
