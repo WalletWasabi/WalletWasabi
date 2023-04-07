@@ -89,17 +89,9 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private void LoginWallet(WalletPageViewModel nbwsvm)
 	{
-		//closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-		//closedWalletViewModel.StartLoading();
-
 		nbwsvm.IsLoggedIn = true;
 
 		nbwsvm.CurrentPage = new LoadingViewModel(nbwsvm);
-
-		// if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
-		// {
-		// 	closedWalletViewModel.OpenCommand.Execute(true);
-		// }
 	}
 
 	private async Task<bool> ShowLegalAsync()
