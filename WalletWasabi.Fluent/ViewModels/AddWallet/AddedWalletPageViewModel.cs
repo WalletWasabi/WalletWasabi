@@ -34,8 +34,8 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		Navigate().Clear();
 
-		var wallet = UiServices.WalletManager.Wallets.FirstOrDefault(x => x.WalletName == WalletName);
-		wallet?.OpenCommand.Execute(default);
+		// var wallet = UiServices.WalletManager.Wallets.FirstOrDefault(x => x.WalletName == WalletName);
+		// wallet?.OpenCommand.Execute(default);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
