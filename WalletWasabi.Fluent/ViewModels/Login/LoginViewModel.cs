@@ -19,7 +19,7 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _errorMessage;
 	[AutoNotify] private bool _isForgotPasswordVisible;
 
-	public LoginViewModel(NavBarWalletStateViewModel nbwsvm)
+	public LoginViewModel(WalletPageViewModel nbwsvm)
 	{
 		var wallet = nbwsvm.Wallet;
 		IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
@@ -45,7 +45,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 	public ICommand ForgotPasswordCommand { get; }
 
-	private async Task OnNextAsync(NavBarWalletStateViewModel nbwsvm, Wallet wallet)
+	private async Task OnNextAsync(WalletPageViewModel nbwsvm, Wallet wallet)
 	{
 		string? compatibilityPasswordUsed = null;
 
@@ -87,7 +87,7 @@ public partial class LoginViewModel : RoutableViewModel
 		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 	}
 
-	private void LoginWallet(NavBarWalletStateViewModel nbwsvm)
+	private void LoginWallet(WalletPageViewModel nbwsvm)
 	{
 		//closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 		//closedWalletViewModel.StartLoading();
