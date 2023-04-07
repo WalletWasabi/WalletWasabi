@@ -52,9 +52,9 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public string WalletName { get; }
 
-	public ObservableCollection<WalletViewModelBase> Wallets { get; }
+	public ObservableCollection<WalletViewModel> Wallets { get; }
 
-	public WalletViewModelBase? ExistingWallet { get; set; }
+	public WalletViewModel? ExistingWallet { get; set; }
 
 	public ICommand NavigateToExistingWalletLoginCommand { get; }
 
