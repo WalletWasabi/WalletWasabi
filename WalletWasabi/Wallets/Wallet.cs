@@ -396,7 +396,6 @@ public class Wallet : BackgroundService, IWallet
 				}
 
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
-				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 			}
