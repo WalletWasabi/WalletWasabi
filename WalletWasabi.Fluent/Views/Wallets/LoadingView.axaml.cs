@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets;
 
-public class LoadingControl : UserControl
+public class LoadingView : UserControl
 {
-	public LoadingControl()
+	public LoadingView()
 	{
 		InitializeComponent();
 	}
