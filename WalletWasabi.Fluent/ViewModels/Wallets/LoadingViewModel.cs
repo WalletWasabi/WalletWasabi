@@ -116,7 +116,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 		{
 			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_nbwsvm.Wallet));
 
-			_nbwsvm.WalletViewModel = WalletViewModel.Create(_nbwsvm.Wallet);
+			_nbwsvm.WalletViewModel = WalletViewModel.Create(_nbwsvm);
 			_nbwsvm.CurrentPage = _nbwsvm.WalletViewModel;
 		}
 		catch (OperationCanceledException ex)
