@@ -199,7 +199,12 @@ partial class {{className}}
 			}
 
 			var viewModelTypeInfo =
-				semanticModel.GetDeclaredSymbol(ctor.Parent as ClassDeclarationSyntax);
+				semanticModel.GetDeclaredSymbol(cls);
+
+			if (viewModelTypeInfo == null)
+			{
+				continue;
+			}
 
 			var className = cls.Identifier.ValueText;
 
@@ -224,8 +229,8 @@ partial class {{className}}
 			}
 
 			var navigationMetadata =
-				viewModelTypeInfo?.GetAttributes()
-								  .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
+				viewModelTypeInfo.GetAttributes()
+								 .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
 
 			var defaultNavigationTarget = "DialogScreen";
 
