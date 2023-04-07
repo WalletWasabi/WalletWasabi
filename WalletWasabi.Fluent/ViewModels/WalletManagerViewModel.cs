@@ -85,7 +85,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 					return;
 				}
 
-				if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel?.WalletViewModel is WalletViewModel wvm)
+				if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel?.WalletViewModel is { } wvm)
 				{
 					if (!e.IsOwnCoinJoin)
 					{
