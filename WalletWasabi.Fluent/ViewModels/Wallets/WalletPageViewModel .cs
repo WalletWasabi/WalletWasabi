@@ -7,13 +7,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class NavBarWalletStateViewModel : ViewModelBase, IEquatable<NavBarWalletStateViewModel>, IComparable<NavBarWalletStateViewModel>
+public partial class WalletPageViewModel : ViewModelBase, IEquatable<WalletPageViewModel>, IComparable<WalletPageViewModel>
 {
 	public Wallet Wallet { get; set; }
 
 	public string Title => Wallet.WalletName;
 
-	public NavBarWalletStateViewModel(Wallet wallet)
+	public WalletPageViewModel(Wallet wallet)
 	{
 		Wallet = wallet;
 
@@ -54,12 +54,12 @@ public partial class NavBarWalletStateViewModel : ViewModelBase, IEquatable<NavB
 		CurrentPage?.Navigate().To(CurrentPage, NavigationMode.Clear);
 	}
 
-	public bool Equals(NavBarWalletStateViewModel? other)
+	public bool Equals(WalletPageViewModel? other)
 	{
 		return Wallet == other?.Wallet;
 	}
 
-	public int CompareTo(NavBarWalletStateViewModel? other)
+	public int CompareTo(WalletPageViewModel? other)
 	{
 		if (other is null)
 		{
