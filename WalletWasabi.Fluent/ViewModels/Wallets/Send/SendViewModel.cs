@@ -64,8 +64,6 @@ public partial class SendViewModel : RoutableViewModel
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
-		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
-
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		Balance = new WalletBalanceTileViewModel(walletVm);
@@ -145,7 +143,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
-	public bool IsQrButtonVisible { get; }
+	public bool IsQrButtonVisible => ShowQrCameraDialogViewModel.IsPlatformSupported;
 
 	public ICommand PasteCommand { get; }
 
