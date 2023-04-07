@@ -9,7 +9,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
+public abstract partial class WalletViewModelBase : RoutableViewModel, IComparable<WalletViewModelBase>
 {
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
