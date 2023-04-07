@@ -134,26 +134,12 @@
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
-    <ScrollViewer>
-      <ItemsControl Items="{Binding Wallets}">
-        <ItemsControl.DataTemplates>
-          <DataTemplate DataType="vmw:WalletViewModelBase">
-            <c:NavBarItem ToolTip.Tip="{Binding Title}">
-              <Panel>
-                <Ellipse Classes.isLoading="{Binding IsLoading}"
-                         Classes.isLoggedIn="{Binding IsLoggedIn}"
-                         Classes.isCoinjoining="{Binding IsCoinJoining}" />
-                <StackPanel>
-                  <PathIcon Classes="new size24" />
-                  <LayoutTransformControl>
-                    <c:FadeOutTextBlock Text="{Binding Title}" />
-                  </LayoutTransformControl>
-                </StackPanel>
-              </Panel>
-            </c:NavBarItem>
-          </DataTemplate>
-        </ItemsControl.DataTemplates>
-      </ItemsControl>
-    </ScrollViewer>
+    <ListBox Items="{Binding Wallets}" SelectionMode="AlwaysSelected">
+      <ListBox.DataTemplates>
+        <DataTemplate DataType="vmw:WalletViewModelBase">
+          <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
   </DockPanel>
 </UserControl>
