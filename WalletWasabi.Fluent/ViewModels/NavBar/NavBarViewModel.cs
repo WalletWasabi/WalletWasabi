@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -12,17 +13,23 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public class NavBarViewModel : ViewModelBase
+public partial class NavBarViewModel : ViewModelBase
 {
 	public NavBarViewModel()
 	{
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 		SetDefaultSelection();
+
+		this.WhenAnyValue(x => x.SelectedWallet)
+			.Do(x => x?.Activate())
+			.Subscribe();
 	}
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
-	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
+	public ObservableCollection<NavBarWalletStateViewModel> Wallets => UiServices.WalletManager.Wallets;
+
+	[AutoNotify] private NarBarWalletStateViewModel _selectedWallet;
 
 	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
 	{
@@ -34,12 +41,14 @@ public class NavBarViewModel : ViewModelBase
 
 	private void SetDefaultSelection()
 	{
-		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
+		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
+		//
+		//if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
+		//{
+		//	walletToSelect.OpenCommand.Execute(default);
+		//}
 
-		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
-		{
-			walletToSelect.OpenCommand.Execute(default);
-		}
+		walletToSelect?.Activate();
 	}
 
 	public async Task InitialiseAsync()
