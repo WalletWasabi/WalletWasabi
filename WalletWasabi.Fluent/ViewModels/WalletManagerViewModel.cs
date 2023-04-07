@@ -35,10 +35,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 							.Select(_ => Unit.Default))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SelectMany(_ => Services.WalletManager.GetWallets())
-			.Select(x => new NavBarWalletStateViewModel(x))
-			.Distinct(x => x.Wallet)
-			.ToObservableChangeSet()
- 			.Bind(out _wallets)
+			.ToObservableChangeSet(x => x)
+			.TransformWithInlineUpdate(newModel => new NavBarWalletStateViewModel(newModel))
+			.Bind(out _wallets)
 			.Subscribe();
 
 		Observable
@@ -72,7 +71,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 						NotificationHelpers.Show(wallet, e, OnClick);
 					}
 
-					if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
+					if (walletViewModel.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
 					{
 						await Task.Delay(200);
 						wvm.History.SelectTransaction(e.Transaction.GetHash());
