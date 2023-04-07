@@ -176,11 +176,17 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public static WalletViewModel Create(UiContext uiContext, Wallet wallet)
 	{
-		return wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletViewModel(uiContext, wallet)
-			: wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(uiContext, wallet)
-				: new WalletViewModel(uiContext, wallet);
+		if (wallet.KeyManager.IsHardwareWallet)
+		{
+			return new HardwareWalletViewModel(uiContext, wallet);
+		}
+
+		if (wallet.KeyManager.IsWatchOnly)
+		{
+			return new WatchOnlyWalletViewModel(uiContext, wallet);
+		}
+
+		return new WalletViewModel(uiContext, wallet);
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
