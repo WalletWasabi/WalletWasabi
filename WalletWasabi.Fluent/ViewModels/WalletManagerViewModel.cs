@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 public partial class WalletManagerViewModel : ViewModelBase
 {
 	private readonly SourceList<NavBarWalletStateViewModel> _walletsSourceList = new();
-	private readonly ObservableCollectionExtended<NavBarWalletStateViewModel> _wallets = new();
+	private readonly ReadOnlyObservableCollection<NavBarWalletStateViewModel> _wallets;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 
@@ -27,49 +28,18 @@ public partial class WalletManagerViewModel : ViewModelBase
 	{
 		UiContext = uiContext;
 
-		_walletsSourceList
-			.Connect()
-			.Sort(SortExpressionComparer<NavBarWalletStateViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
+		Observable.Return(Unit.Default)
+				  .Merge(
+						Observable
+							.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+							.Select(_ => Unit.Default))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(_wallets)
+			.SelectMany(_ => Services.WalletManager.GetWallets())
+			.Select(x => new NavBarWalletStateViewModel(x))
+			.Distinct(x => x.Wallet)
+			.ToObservableChangeSet()
+ 			.Bind(out _wallets)
 			.Subscribe();
-
-		//Observable
-		//	.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
-		//	.ObserveOn(RxApp.MainThreadScheduler)
-		//	.Select(x => x.Sender as Wallet)
-		//	.WhereNotNull()
-		//	.Subscribe(wallet =>
-		//	{
-		//		if (!TryGetWalletViewModel(wallet, out var walletViewModel))
-		//		{
-		//			return;
-		//		}
-		//
-		//		if (wallet.State == WalletState.Stopping)
-		//		{
-		//			RemoveWallet(walletViewModel);
-		//		}
-		//		else if (walletViewModel is ClosedWalletViewModel { IsLoggedIn: true } cwvm &&
-		//				 ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
-		//				  cwvm.Wallet.State == WalletState.Started))
-		//		{
-		//			OpenClosedWallet(cwvm);
-		//		}
-		//	});
-		//
-		//Observable
-		//	.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
-		//	.Select(x => x.EventArgs)
-		//	.ObserveOn(RxApp.MainThreadScheduler)
-		//	.Subscribe(wallet =>
-		//	{
-		//		WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-		//			? ClosedWalletViewModel.Create(wallet)
-		//			: WalletViewModel.Create(UiContext, wallet);
-		//
-		//		InsertWallet(vm);
-		//	});
 
 		Observable
 			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
@@ -113,7 +83,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 		EnumerateWallets();
 	}
 
-	public ObservableCollection<NavBarWalletStateViewModel> Wallets => _wallets;
+	public ReadOnlyObservableCollection<NavBarWalletStateViewModel> Wallets => _wallets;
 
 	public bool TryGetSelectedAndLoggedInWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
 	{
@@ -129,24 +99,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 		}
 
 		throw new Exception("Wallet not found, invalid api usage");
-	}
-
-	private void InsertWallet(NavBarWalletStateViewModel wallet)
-	{
-		_walletsSourceList.Add(wallet);
-	}
-
-	private void RemoveWallet(NavBarWalletStateViewModel walletViewModel)
-	{
-		_walletsSourceList.Remove(walletViewModel);
-	}
-
-	private void EnumerateWallets()
-	{
-		foreach (var wallet in Services.WalletManager.GetWallets())
-		{
-			InsertWallet(new NavBarWalletStateViewModel(wallet));
-		}
 	}
 
 	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out NavBarWalletStateViewModel? walletViewModel)
