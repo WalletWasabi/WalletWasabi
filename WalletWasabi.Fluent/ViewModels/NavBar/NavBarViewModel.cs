@@ -46,9 +46,9 @@ public partial class NavBarViewModel : ViewModelBase
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
-	public ReadOnlyObservableCollection<NavBarWalletStateViewModel> Wallets => UiServices.WalletManager.Wallets;
+	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets => UiServices.WalletManager.Wallets;
 
-	[AutoNotify] private NavBarWalletStateViewModel? _selectedWallet;
+	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 
 	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
 	{
