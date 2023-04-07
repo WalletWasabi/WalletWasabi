@@ -27,6 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletViewModel : RoutableViewModel, IComparable<WalletViewModel>
 {
+	private readonly NavBarWalletStateViewModel _parent;
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
 	[AutoNotify] private bool _isPointerOver;
@@ -72,9 +73,10 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		return result;
 	}
 
-	protected WalletViewModel(Wallet wallet)
+	protected WalletViewModel(NavBarWalletStateViewModel parent)
 	{
-		Wallet = wallet;
+		_parent = parent;
+		Wallet = parent.Wallet;
 	}
 
 	private bool _isInitialized;
@@ -192,14 +194,14 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!Wallet.KeyManager.IsWatchOnly || Wallet.KeyManager.IsHardwareWallet));
 
-		//IsMusicBoxVisible =
-		//	this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
-		//		.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-		//		.Select(tuple =>
-		//		{
-		//			var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
-		//			return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
-		//		});
+		IsMusicBoxVisible =
+			this.WhenAnyValue(x => x._parent.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
+				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
+				.Select(tuple =>
+				{
+					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
+					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !Wallet.KeyManager.IsWatchOnly;
+				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
 
@@ -234,19 +236,13 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		Tiles = GetTiles().ToList();
 	}
 
-	public static WalletViewModel Create(UiContext uiContext, Wallet wallet)
+	public static WalletViewModel Create(UiContext uiContext, NavBarWalletStateViewModel parent)
 	{
-		if (wallet.KeyManager.IsHardwareWallet)
-		{
-			return new HardwareWalletViewModel(uiContext, wallet);
-		}
-
-		if (wallet.KeyManager.IsWatchOnly)
-		{
-			return new WatchOnlyWalletViewModel(uiContext, wallet);
-		}
-
-		return new WalletViewModel(uiContext, wallet);
+		return parent.Wallet.KeyManager.IsHardwareWallet
+			? new HardwareWalletViewModel(uiContext, parent)
+			: parent.Wallet.KeyManager.IsWatchOnly
+				? new WatchOnlyWalletViewModel(uiContext, parent)
+				: new WalletViewModel(uiContext, parent);
 	}
 
 	public override string Title
