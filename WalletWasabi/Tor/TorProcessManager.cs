@@ -181,11 +181,12 @@ public class TorProcessManager : IAsyncDisposable
 			}
 			catch (TorControlException ex)
 			{
-				Logger.LogDebug("Tor control failed to initialize. Attempt to recover by killing Tor process.", ex);
+				Logger.LogDebug("Tor control failed to initialize.", ex);
 
 				// If Tor control fails to initialize, we want to try to start Tor again and initialize Tor control again.
 				if (process is not null)
 				{
+					Logger.LogDebug("Attempt to kill the running Tor process.");
 					process.Kill();
 				}
 				else
@@ -193,13 +194,7 @@ public class TorProcessManager : IAsyncDisposable
 					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
 					Process[] torProcesses = GetTorProcesses();
 
-					// Tor was started by another user and we can't kill it.
-					if (torProcesses.Length == 0)
-					{
-						setNewTcs = false;
-						exception = new NotSupportedException(TorProcessStartedByDifferentUser, ex);
-						throw exception;
-					}
+					bool killAttempt = false;
 
 					foreach (Process torProcess in torProcesses)
 					{
@@ -209,12 +204,22 @@ public class TorProcessManager : IAsyncDisposable
 							if (torProcess.MainModule?.FileName == Settings.TorBinaryFilePath)
 							{
 								Logger.LogInfo("Kill running Tor process to restart it again.");
+								killAttempt = true;
 								torProcess.Kill();
 							}
 						}
 						catch
 						{
 						}
+					}
+
+					// Tor was started by another user and we can't kill it.
+					if (torProcesses.Length == 0 || !killAttempt)
+					{
+						Logger.LogDebug("Failed to find the Tor process in the list of processes.");
+						setNewTcs = false;
+						exception = new NotSupportedException(TorProcessStartedByDifferentUser, ex);
+						throw exception;
 					}
 				}
 			}
