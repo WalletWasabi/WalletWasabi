@@ -19,8 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class WalletManagerViewModel : ViewModelBase
 {
-	private readonly SourceList<NavBarWalletStateViewModel> _walletsSourceList = new();
-	private readonly ReadOnlyObservableCollection<NavBarWalletStateViewModel> _wallets;
+	private readonly ReadOnlyObservableCollection<WalletPageViewModel> _wallets;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 
@@ -28,6 +27,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 	{
 		UiContext = uiContext;
 
+		// Convert the Wallet Manager's contents into an observable stream.
 		var walletsObservable = Observable.Return(Unit.Default)
 				  .Merge(
 						Observable
@@ -37,15 +37,18 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.SelectMany(_ => Services.WalletManager.GetWallets());
 
 		walletsObservable
-			.ToObservableChangeSet(x => x.WalletName) // Important to keep this key property so DynamicData knows.
-			.TransformWithInlineUpdate(newWallet => new NavBarWalletStateViewModel(newWallet),
-				(e, wallet) => e.Wallet = wallet)
+			// Important to keep this key property so DynamicData knows.
+			.ToObservableChangeSet(x => x.WalletName)
+			// This converts the Wallet objects into WalletPageViewModel.
+			.TransformWithInlineUpdate(newWallet => new WalletPageViewModel(newWallet), (e, wallet) => e.Wallet = wallet)
+			// Refresh the collection when logged in.
 			.AutoRefresh(x => x.IsLoggedIn)
+			// Sort the list to put the most recently logged in wallet to the top.
 			.Sort(SortExpressionComparer<NavBarWalletStateViewModel>
 				.Descending(i => i.IsLoggedIn)
 				.ThenByAscending(x => x.Title))
-				.Bind(out _wallets)
-				.Subscribe();
+			.Bind(out _wallets)
+			.Subscribe();
 
 		Observable
 			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
@@ -89,7 +92,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 		EnumerateWallets();
 	}
 
-	public ReadOnlyObservableCollection<NavBarWalletStateViewModel> Wallets => _wallets;
+	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets => _wallets;
 
 	public bool TryGetSelectedAndLoggedInWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
 	{
@@ -107,7 +110,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 		throw new Exception("Wallet not found, invalid api usage");
 	}
 
-	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out NavBarWalletStateViewModel? walletViewModel)
+	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out WalletPageViewModel? walletViewModel)
 	{
 		walletViewModel = Wallets.FirstOrDefault(x => x.Wallet == wallet);
 		return walletViewModel is { };
