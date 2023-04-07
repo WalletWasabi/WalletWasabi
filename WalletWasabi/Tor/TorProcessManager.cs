@@ -66,7 +66,8 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="cancellationToken">Application lifetime cancellation token.</param>
 	/// <returns>Cancellation token which is canceled once Tor process terminates (either forcefully or gracefully).</returns>
 	/// <remarks>This method must be called exactly once.</remarks>
-	/// <exception cref="OperationCanceledException">When all attempts are tried.</exception>
+	/// <exception cref="OperationCanceledException">When the operation is cancelled by the user.</exception>
+	/// <exception cref="InvalidOperationException">When all attempts are tried without success.</exception>
 	public async Task<(CancellationToken, TorControlClient)> StartAsync(int attempts, CancellationToken cancellationToken = default)
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
@@ -87,7 +88,7 @@ public class TorProcessManager : IAsyncDisposable
 			}
 		}
 
-		throw new OperationCanceledException("No attempt to start Tor was successful.");
+		throw new InvalidOperationException("No attempt to start Tor was successful.");
 	}
 
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
