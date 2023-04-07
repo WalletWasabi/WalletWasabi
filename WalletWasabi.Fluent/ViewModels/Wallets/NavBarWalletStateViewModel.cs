@@ -16,6 +16,11 @@ public partial class NavBarWalletStateViewModel : ViewModelBase
 	public NavBarWalletStateViewModel(Wallet wallet)
 	{
 		Wallet = wallet;
+
+		this.WhenAnyValue(x => x.IsSelected)
+			.Where(x => !x && _disposable is { })
+			.Do(_ => _disposable!.Dispose())
+			.Subscribe();
 	}
 
 	[AutoNotify] private bool _isLoggedIn;
