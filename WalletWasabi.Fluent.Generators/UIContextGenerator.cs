@@ -118,9 +118,9 @@ public class UiContextGenerator : IIncrementalGenerator
 				var parameterUsings =
 					ctor.ParameterList.Parameters
 									  .Where(p => p.Type is not null)
-									  .Select(p => semanticModel.GetTypeInfo(p.Type))
+									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
 									  .Where(t => t.Type is not null)
-									  .Select(t => $"using {t.Type.ContainingNamespace.ToDisplayString()};")
+									  .Select(t => $"using {t.Type!.ContainingNamespace.ToDisplayString()};")
 									  .ToList();
 
 				var parametersString = "UiContext uiContext";
@@ -165,7 +165,7 @@ partial class {{className}}
 					tree.GetRoot()
 						.DescendantNodes()
 						.OfType<ConstructorDeclarationSyntax>()
-						.FirstOrDefault();
+						.First();
 
 				yield return newConstructor;
 			}
@@ -224,8 +224,8 @@ partial class {{className}}
 			}
 
 			var navigationMetadata =
-				viewModelTypeInfo.GetAttributes()
-						.FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
+				viewModelTypeInfo?.GetAttributes()
+								  .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
 
 			var defaultNavigationTarget = "DialogScreen";
 
