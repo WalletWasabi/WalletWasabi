@@ -16,32 +16,9 @@ public class NavBarViewModel : ViewModelBase
 {
 	public NavBarViewModel()
 	{
-		TopItems = new ObservableCollection<NavBarItemViewModel>();
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
-
 		SetDefaultSelection();
-
-		Observable.Merge(
-				WhenItemSelected(Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel)),
-				WhenItemSelected(BottomItems.ToObservableChangeSet()),
-				WhenItemSelected(TopItems.ToObservableChangeSet()))
-			.Buffer(2, 1)
-			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
-			.Subscribe(x =>
-			{
-				if (x.OldValue is { } old)
-				{
-					old.IsSelected = false;
-				}
-
-				if (x.NewValue is WalletViewModelBase wallet)
-				{
-					Services.UiConfig.LastSelectedWallet = wallet.WalletName;
-				}
-			});
 	}
-
-	public ObservableCollection<NavBarItemViewModel> TopItems { get; }
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
@@ -67,19 +44,7 @@ public class NavBarViewModel : ViewModelBase
 
 	public async Task InitialiseAsync()
 	{
-		var topItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Top);
-
 		var bottomItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Bottom);
-
-		foreach (var item in topItems)
-		{
-			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
-
-			if (viewModel is NavBarItemViewModel navBarItem)
-			{
-				TopItems.Add(navBarItem);
-			}
-		}
 
 		foreach (var item in bottomItems)
 		{
