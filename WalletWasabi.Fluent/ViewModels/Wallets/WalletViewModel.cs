@@ -73,7 +73,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		return result;
 	}
 
-	protected WalletViewModel(WalletPageViewModel parent)
+	private WalletViewModel(WalletPageViewModel parent)
 	{
 		_parent = parent;
 		Wallet = parent.Wallet;
@@ -87,7 +87,8 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
-	public IObservable<bool> IsMusicBoxVisible { get; }
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private IObservable<bool> _isMusicBoxVisible;
 
 	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
 
@@ -163,7 +164,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		Settings = new WalletSettingsViewModel(this);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
 		UiTriggers = new UiTriggers(this);
-		History = new HistoryViewModel(uiContext, this);
+		History = new HistoryViewModel(UiContext, this);
 
 		UiTriggers.TransactionsUpdateTrigger
 			.Subscribe(_ => IsWalletBalanceZero = Wallet.Coins.TotalAmount() == Money.Zero)

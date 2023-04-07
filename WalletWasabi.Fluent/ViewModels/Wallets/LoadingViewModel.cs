@@ -14,7 +14,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class LoadingViewModel : ActivatableViewModel
+[NavigationMetaData(Title = null)]
+public partial class LoadingViewModel : RoutableViewModel
 {
 	private readonly WalletPageViewModel _nbwsvm;
 
@@ -27,7 +28,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
 
-	public LoadingViewModel(WalletPageViewModel nbwsvm)
+	private LoadingViewModel(WalletPageViewModel nbwsvm)
 	{
 		_nbwsvm = nbwsvm;
 		_percent = 0;
@@ -116,7 +117,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 		{
 			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_nbwsvm.Wallet));
 
-			_nbwsvm.WalletViewModel = WalletViewModel.Create(_nbwsvm);
+			_nbwsvm.WalletViewModel = WalletViewModel.Create(UiContext, _nbwsvm);
 			_nbwsvm.CurrentPage = _nbwsvm.WalletViewModel;
 		}
 		catch (OperationCanceledException ex)

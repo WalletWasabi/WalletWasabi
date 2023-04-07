@@ -40,11 +40,11 @@ public partial class WalletManagerViewModel : ViewModelBase
 			// Important to keep this key property so DynamicData knows.
 			.ToObservableChangeSet(x => x.WalletName)
 			// This converts the Wallet objects into WalletPageViewModel.
-			.TransformWithInlineUpdate(newWallet => new WalletPageViewModel(newWallet), (e, wallet) => e.Wallet = wallet)
+			.TransformWithInlineUpdate(newWallet => new WalletPageViewModel(UiContext, newWallet), (e, wallet) => e.Wallet = wallet)
 			// Refresh the collection when logged in.
 			.AutoRefresh(x => x.IsLoggedIn)
 			// Sort the list to put the most recently logged in wallet to the top.
-			.Sort(SortExpressionComparer<NavBarWalletStateViewModel>
+			.Sort(SortExpressionComparer<WalletPageViewModel>
 				.Descending(i => i.IsLoggedIn)
 				.ThenByAscending(x => x.Title))
 			.Bind(out _wallets)
@@ -88,8 +88,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 					}
 				}
 			});
-
-		EnumerateWallets();
 	}
 
 	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets => _wallets;

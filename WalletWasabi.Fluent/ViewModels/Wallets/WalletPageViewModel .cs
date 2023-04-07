@@ -13,7 +13,7 @@ public partial class WalletPageViewModel : ViewModelBase, IEquatable<WalletPageV
 
 	public string Title => Wallet.WalletName;
 
-	public WalletPageViewModel(Wallet wallet)
+	private WalletPageViewModel(Wallet wallet)
 	{
 		Wallet = wallet;
 
@@ -44,7 +44,7 @@ public partial class WalletPageViewModel : ViewModelBase, IEquatable<WalletPageV
 
 		if (!IsLoggedIn && CurrentPage is not { })
 		{
-			CurrentPage = new LoginViewModel(this);
+			CurrentPage = new LoginViewModel(UiContext, this);
 		}
 		else
 		{

@@ -19,7 +19,7 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _errorMessage;
 	[AutoNotify] private bool _isForgotPasswordVisible;
 
-	public LoginViewModel(WalletPageViewModel nbwsvm)
+	private LoginViewModel(WalletPageViewModel nbwsvm)
 	{
 		var wallet = nbwsvm.Wallet;
 		IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
@@ -91,7 +91,7 @@ public partial class LoginViewModel : RoutableViewModel
 	{
 		nbwsvm.IsLoggedIn = true;
 
-		nbwsvm.CurrentPage = new LoadingViewModel(nbwsvm);
+		nbwsvm.CurrentPage = new LoadingViewModel(UiContext, nbwsvm);
 	}
 
 	private async Task<bool> ShowLegalAsync()
