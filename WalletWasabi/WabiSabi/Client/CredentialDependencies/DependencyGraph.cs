@@ -51,7 +51,7 @@ public record DependencyGraph
 	/// and may contain additional nodes if reissuance requests are
 	/// required.</remarks>
 	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feerate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feerate, long vsizeAllocationPerInput)
 	{
 		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue);
 		var inputSizes = effectiveValuesAndSizes.Select(x => x.InputSize);
