@@ -177,8 +177,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		set
 		{
-			// If it's null, let FirstSeen's default to be set.
-			// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
+			// If it's null, let the default of FirstSeen to be set.
+			// If it's not null, then check if FirstSeen has just been recently set to UtcNow which is its default.
 			if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
 			{
 				FirstSeen = value.Value;
@@ -300,7 +300,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
+	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>
@@ -361,7 +361,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		try
 		{
-			// First is redundant txhash serialization.
+			// First is redundant txHash serialization.
 			var heightString = parts[2];
 			var blockHashString = parts[3];
 			var blockIndexString = parts[4];
