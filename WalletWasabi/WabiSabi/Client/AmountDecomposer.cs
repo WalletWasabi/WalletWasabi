@@ -214,7 +214,7 @@ public class AmountDecomposer
 		var maxDenomUsage = Random.Next(2, 8);
 
 		// Create the most naïve decomposition for starter.
-		List<Output> naiveSet = new();
+		List<Output> simpleSet = new();
 		bool end = false;
 		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
 		{
@@ -228,7 +228,7 @@ public class AmountDecomposer
 					break;
 				}
 
-				naiveSet.Add(denom);
+				simpleSet.Add(denom);
 				remaining -= denom.EffectiveCost;
 				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
 				denomUsage++;
@@ -250,7 +250,7 @@ public class AmountDecomposer
 		var loss = Money.Zero;
 		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
-			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
+			simpleSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
 		else
 		{
@@ -259,14 +259,14 @@ public class AmountDecomposer
 		}
 
 		// This can happen when smallest denom is larger than the input sum.
-		if (naiveSet.Count == 0)
+		if (simpleSet.Count == 0)
 		{
-			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
+			simpleSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
 
 		setCandidates.Add(
-			CalculateHash(naiveSet), // Create hash to ensure uniqueness.
-			(naiveSet, loss + CalculateCost(naiveSet)));
+			CalculateHash(simpleSet), // Create hash to ensure uniqueness.
+			(simpleSet, loss + CalculateCost(simpleSet)));
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
