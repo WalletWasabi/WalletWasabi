@@ -457,7 +457,7 @@ public class ChaumianCoinJoinController : ControllerBase
 		}
 
 		RoundPhase phase = round.Phase;
-		if (phase is RoundPhase.InputRegistration)
+		if (phase == RoundPhase.InputRegistration)
 		{
 			round.RemoveAlicesBy(uniqueIdGuid);
 			return NoContent();
