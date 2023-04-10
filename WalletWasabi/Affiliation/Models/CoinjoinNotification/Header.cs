@@ -1,6 +1,6 @@
 namespace WalletWasabi.Affiliation.Models.CoinJoinNotification;
 
-public record Header(string Title, int Version)
+public record Header(string Title, string AffiliationId, int Version)
 {
-	public static readonly Header Instance = new(Title: "coinjoin notification", Version: 1);
+	public static Header Create(string affiliationId) => new(Title: "coinjoin notification", AffiliationId: affiliationId, Version: 1);
 }

@@ -71,7 +71,7 @@ public class Program
 		}
 		catch (OperationCanceledException)
 		{
-			// We have successfully signalled the other instance and that instance should pop up
+			// We have successfully signaled the other instance and that instance should pop up
 			// so user will think he has just run the application.
 			return 1;
 		}
