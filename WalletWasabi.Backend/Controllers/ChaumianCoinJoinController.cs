@@ -462,10 +462,8 @@ public class ChaumianCoinJoinController : ControllerBase
 			round.RemoveAlicesBy(uniqueIdGuid);
 			return NoContent();
 		}
-		else
-		{
-			return Gone($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
-		}
+
+		return Gone($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
 	}
 
 	/// <summary>
@@ -597,16 +595,12 @@ public class ChaumianCoinJoinController : ControllerBase
 			{
 				return Ok(hex);
 			}
-			else
-			{
-				return NotFound("Hex not found. This should never happen.");
-			}
+
+			return NotFound("Hex not found. This should never happen.");
 		}
-		else
-		{
-			TryLogLateRequest(roundId, RoundPhase.Signing);
-			return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
-		}
+
+		TryLogLateRequest(roundId, RoundPhase.Signing);
+		return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
 	}
 
 	/// <summary>
@@ -703,11 +697,9 @@ public class ChaumianCoinJoinController : ControllerBase
 
 			return NoContent();
 		}
-		else
-		{
-			TryLogLateRequest(roundId, RoundPhase.Signing);
-			return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
-		}
+
+		TryLogLateRequest(roundId, RoundPhase.Signing);
+		return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
 	}
 
 	/// <summary>
