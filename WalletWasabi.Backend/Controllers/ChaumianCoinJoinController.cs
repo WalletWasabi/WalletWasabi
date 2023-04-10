@@ -650,7 +650,7 @@ public class ChaumianCoinJoinController : ControllerBase
 				foreach (var signaturePair in signatures)
 				{
 					int index = signaturePair.Key;
-					WitScript witness;
+					WitScript witness = new();
 					try
 					{
 						witness = new WitScript(signaturePair.Value);
