@@ -56,7 +56,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public CoinJoinStateViewModel(WalletViewModel walletVm)
+	private CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
@@ -93,7 +93,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				await UIContext.Navigate().NavigateDialogAsync(new CoinJoinProfilesViewModel(wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
+				await UiContext.Navigate().NavigateDialogAsync(new CoinJoinProfilesViewModel(wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
 			}
 
 			if (wallet.KeyManager.IsCoinjoinProfileSelected)

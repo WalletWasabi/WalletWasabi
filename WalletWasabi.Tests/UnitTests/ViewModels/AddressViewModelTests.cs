@@ -28,9 +28,9 @@ public class AddressViewModelTests
 		Mock.Get(address).Verify(x => x.Hide(), Times.Once);
 	}
 
-	private static UIContext GetUIContext()
+	private static UiContext GetUiContext()
 	{
-		return new UIContext(Mock.Of<IQrCodeGenerator>(), Mock.Of<IClipboard>());
+		return new UiContext(Mock.Of<IQrCodeGenerator>(), Mock.Of<IClipboard>());
 	}
 
 	[Fact]
@@ -39,7 +39,7 @@ public class AddressViewModelTests
 		var testAddress = new TestAddress("ad");
 		var labels = new[] { "Label 1", "Label 2" };
 		testAddress.SetLabels(labels);
-		var sut = new AddressViewModel(_ => Task.CompletedTask, _ => Task.CompletedTask, testAddress, GetUIContext());
+		var sut = new AddressViewModel(_ => Task.CompletedTask, _ => Task.CompletedTask, testAddress, GetUiContext());
 
 		sut.AddressText.Should().Be(testAddress.Text);
 		sut.Label.Should().BeEquivalentTo(labels);

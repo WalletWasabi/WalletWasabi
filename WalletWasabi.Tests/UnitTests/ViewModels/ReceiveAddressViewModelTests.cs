@@ -60,9 +60,9 @@ public class ReceiveAddressViewModelTests
 		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
 	}
 
-	private static UIContext ContextWith(IClipboard clipboard)
+	private static UiContext ContextWith(IClipboard clipboard)
 	{
-		var contextWith = new UIContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), clipboard);
+		var contextWith = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), clipboard);
 		contextWith.RegisterNavigation(Mock.Of<INavigate>());
 		return contextWith;
 	}

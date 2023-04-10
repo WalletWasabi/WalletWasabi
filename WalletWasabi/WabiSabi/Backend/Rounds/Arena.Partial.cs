@@ -1,12 +1,12 @@
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.Affiliation;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
@@ -119,7 +119,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, out _, cancellationToken, oneHop, confirmations);
+			int currentBlockHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+
+			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, confirmations, oneHop: oneHop, currentBlockHeight, cancellationToken);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,
@@ -134,6 +136,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
+			if (alice.IsCoordinationFeeExempted && request.AffiliationId != AffiliationConstants.DefaultAffiliationId)
+			{
+				throw new AffiliationException(
+					"Input is exempted from paying coordination fee and can only use default affiliation id.");
+			}
 			alice.ReadyToSign = true;
 			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationId);
 		}

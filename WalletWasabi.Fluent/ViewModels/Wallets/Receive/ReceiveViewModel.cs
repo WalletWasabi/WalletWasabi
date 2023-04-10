@@ -24,10 +24,9 @@ public partial class ReceiveViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	public ReceiveViewModel(IWalletModel wallet, UIContext context)
+	private ReceiveViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
-		UIContext = context;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
@@ -62,11 +61,11 @@ public partial class ReceiveViewModel : RoutableViewModel
 		var address = _wallet.GetNextReceiveAddress(SuggestionLabels.Labels);
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(_wallet, address, Services.UiConfig.Autocopy, UIContext));
+		Navigate().To(new ReceiveAddressViewModel(UiContext, _wallet, address, Services.UiConfig.Autocopy));
 	}
 
 	private void OnShowExistingAddresses()
 	{
-		UIContext.Navigate(NavigationTarget.DialogScreen).To(new ReceiveAddressesViewModel(_wallet, UIContext));
+		UiContext.Navigate(NavigationTarget.DialogScreen).To(new ReceiveAddressesViewModel(UiContext, _wallet));
 	}
 }

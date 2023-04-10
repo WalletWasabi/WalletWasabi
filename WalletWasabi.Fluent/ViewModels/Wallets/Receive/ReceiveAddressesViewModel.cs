@@ -13,9 +13,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	public ReceiveAddressesViewModel(IWalletModel wallet, UIContext context)
+	private ReceiveAddressesViewModel(IWalletModel wallet)
 	{
-		UIContext = context;
 		_wallet = wallet;
 
 		Source = CreateSource();
@@ -41,7 +40,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
-		return new AddressViewModel(NavigateToAddressEditAsync, NavigateToAddressAsync, address, UIContext.Default);
+		return new AddressViewModel(UiContext, NavigateToAddressEditAsync, NavigateToAddressAsync, address);
 	}
 
 	private async Task NavigateToAddressEditAsync(IAddress address)
@@ -55,6 +54,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private async Task NavigateToAddressAsync(IAddress address)
 	{
-		UIContext.Navigate().To(new ReceiveAddressViewModel(_wallet, address, Services.UiConfig.Autocopy, UIContext));
+		UiContext.Navigate().To(new ReceiveAddressViewModel(UiContext, _wallet, address, Services.UiConfig.Autocopy));
 	}
 }
