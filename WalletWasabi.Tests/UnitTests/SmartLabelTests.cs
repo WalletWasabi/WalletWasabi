@@ -102,12 +102,12 @@ public class SmartLabelTests
 
 		label2 = new SmartLabel("qux", "bar");
 		label = SmartLabel.Merge(label, label2);
-		Assert.Equal(4, label.Labels.Count());
+		Assert.Equal(4, label.Labels.Length);
 		Assert.Equal("bar, buz, foo, qux", label);
 
 		label2 = new SmartLabel("Qux", "Bar");
 		label = SmartLabel.Merge(label, label2, null!);
-		Assert.Equal(4, label.Labels.Count());
+		Assert.Equal(4, label.Labels.Length);
 		Assert.Equal("bar, buz, foo, qux", label);
 	}
 
