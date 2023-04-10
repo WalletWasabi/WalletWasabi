@@ -118,7 +118,7 @@ public class SuggestionLabelsViewModelTests
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
@@ -128,7 +128,7 @@ public class SuggestionLabelsViewModelTests
 
 		public bool IsHardwareWallet()
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 	}
 }
