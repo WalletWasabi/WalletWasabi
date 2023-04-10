@@ -152,7 +152,7 @@ partial class {{className}}
 				var sourceText = SourceText.From(code, Encoding.UTF8);
 				context.AddSource(fileName, sourceText);
 
-				var tree = SyntaxFactory.ParseSyntaxTree(sourceText);
+				var tree = CSharpSyntaxTree.ParseText(sourceText, context.Compilation.SyntaxTrees.First().Options as CSharpParseOptions);
 
 				var newConstructor =
 					tree.GetRoot()
