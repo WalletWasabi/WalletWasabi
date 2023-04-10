@@ -138,7 +138,8 @@
       <c:FadeOutTextBlock DockPanel.Dock="Bottom" Classes="h9" Text="{Binding SelectedWallet.Title}" />
       <ListBox Items="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
-               SelectedItem="{Binding SelectedWallet}">
+               SelectedItem="{Binding SelectedWallet}"
+               Background="Transparent">
         <Interaction.Behaviors>
           <behaviors:ListBoxReselectingBehavior />
         </Interaction.Behaviors>
