@@ -98,12 +98,12 @@ public class ReceiveAddressViewModelTests
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public bool IsHardwareWallet()
@@ -128,12 +128,12 @@ public class ReceiveAddressViewModelTests
 
 		public FluentNavigate To()
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 	}
 }
