@@ -260,7 +260,7 @@ public partial class Arena : PeriodicRunner
 
 					var highestFeeRateTask = async () => (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask, cancellationToken).ConfigureAwait(false);
+					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask).ConfigureAwait(false);
 
 					round.CoinjoinState = FinalizeTransaction(round.Id, coinjoin);
 
@@ -480,9 +480,9 @@ public partial class Arena : PeriodicRunner
 
 						if (foundLargeRound is null)
 						{
-							largeRound.LogInfo($"Mined round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+							largeRound.LogInfo($"Mined round with parameters: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
 						}
-						smallRound.LogInfo($"Mined round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
+						smallRound.LogInfo($"Mined round with parameters: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
 
 						// If it can't create the large round, then don't abort.
 						EndRound(round, EndRoundState.AbortedLoadBalancing);
@@ -502,7 +502,7 @@ public partial class Arena : PeriodicRunner
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			AddRound(r);
-			r.LogInfo($"Created round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+			r.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 		}
 	}
 
@@ -573,7 +573,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod, CancellationToken cancellationToken)
+	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod)
 	{
 		// SharedOverhead calculated into EstimatedVsize.
 		var sizeToPayFor = coinjoin.EstimatedVsize + blameScript.EstimateOutputVsize();
@@ -596,7 +596,7 @@ public partial class Arena : PeriodicRunner
 
 				if (allReady)
 				{
-					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signaled ready. Added amount: '{diffMoney}'.");
 				}
 				else
 				{
