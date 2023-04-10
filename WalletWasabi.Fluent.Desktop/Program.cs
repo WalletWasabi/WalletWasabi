@@ -166,6 +166,9 @@ public static class WasabiAppExtensions
 					.Configure(() => new App(
 						async () =>
 						{
+							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+							await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
+
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup)
 								.ConfigureAwait(false);
@@ -181,6 +184,7 @@ public static class WasabiAppExtensions
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+				return Task.CompletedTask;
 			});
 	}
 

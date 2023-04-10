@@ -24,6 +24,7 @@ public class WasabiApplication
 	public Global? Global { get; private set; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
+	public TerminateService TerminateService { get; }
 
 	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
@@ -32,9 +33,10 @@ public class WasabiApplication
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 		SingleInstanceChecker = new(Config.Network);
+		TerminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
 	}
 
-	public async Task<ExitCode> RunAsync(Action afterStarting)
+	public async Task<ExitCode> RunAsync(Func<Task> afterStarting)
 	{
 		if (AppConfig.MustCheckSingleInstance)
 		{
@@ -51,22 +53,20 @@ public class WasabiApplication
 			}
 		}
 
-		TerminateService terminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
-
 		try
 		{
-			await BeforeStartingAsync(terminateService);
+			BeforeStarting();
 
-			afterStarting();
+			await afterStarting();
 			return ExitCode.Ok;
 		}
 		finally
 		{
-			BeforeStopping(terminateService);
+			BeforeStopping();
 		}
 	}
 
-	private async Task BeforeStartingAsync(TerminateService terminateService)
+	private void BeforeStarting()
 	{
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
@@ -74,16 +74,15 @@ public class WasabiApplication
 		Logger.LogSoftwareStarted($"{AppConfig.AppName} was started.");
 
 		Global = CreateGlobal();
-		await Global.InitializeNoWalletAsync(terminateService);
 	}
 
-	private void BeforeStopping(TerminateService terminateService)
+	private void BeforeStopping()
 	{
 		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
 		// Start termination/disposal of the application.
-		terminateService.Terminate();
+		TerminateService.Terminate();
 		SingleInstanceChecker.Dispose();
 		Logger.LogSoftwareStopped(AppConfig.AppName);
 	}
@@ -175,8 +174,10 @@ public static class WasabiAppExtensions
 	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
-			() =>
+			async () =>
 			{
+				await app.Global!.InitializeNoWalletAsync(app.TerminateService);
+
 				while (true)
 				{
 					Console.Read();
