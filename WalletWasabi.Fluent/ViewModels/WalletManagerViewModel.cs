@@ -21,8 +21,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 {
 	private readonly ReadOnlyObservableCollection<WalletPageViewModel> _wallets;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
-
 	public WalletManagerViewModel(UiContext uiContext)
 	{
 		UiContext = uiContext;
