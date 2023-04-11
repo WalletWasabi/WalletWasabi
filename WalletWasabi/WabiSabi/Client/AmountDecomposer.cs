@@ -213,7 +213,7 @@ public class AmountDecomposer
 		// How many times can we participate with the same denomination.
 		var maxDenomUsage = Random.Next(2, 8);
 
-		// Create the most naïve decomposition for starter.
+		// Create the most naive decomposition for starter.
 		List<Output> naiveSet = new();
 		bool end = false;
 		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
