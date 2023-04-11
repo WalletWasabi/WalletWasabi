@@ -98,8 +98,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		var lastDate = dates.Max().ToLocalTime();
 
 		DateString = firstDate.Day == lastDate.Day
-			? $"{firstDate:MM/dd/yyyy}"
-			: $"{firstDate:MM/dd/yyyy} - {lastDate:MM/dd/yyyy}";
+			? $"{firstDate.ToUserFacingString(withTime: false)}"
+			: $"{firstDate.ToUserFacingString(withTime: false)} - {lastDate.ToUserFacingString(withTime: false)}";
 	}
 
 	public void SetBalance(Money balance)

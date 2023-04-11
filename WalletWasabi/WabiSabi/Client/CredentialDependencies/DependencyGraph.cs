@@ -51,7 +51,7 @@ public record DependencyGraph
 	/// and may contain additional nodes if reissuance requests are
 	/// required.</remarks>
 	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, long vsizeAllocationPerInput)
 	{
 		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue);
 		var inputSizes = effectiveValuesAndSizes.Select(x => x.InputSize);
@@ -410,7 +410,7 @@ public record DependencyGraph
 		// dependencies between different requests, weight credentials
 		// should often be easily satisfiable with parallel edges to the
 		// amount credential edges.
-		if (CredentialType.IsDefined(credentialType + 1))
+		if (Enum.IsDefined(credentialType + 1))
 		{
 			// TODO Limit up to a certain height in the graph, no more than
 			// the initial value, this can sometimes create a deeper graph
