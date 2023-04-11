@@ -5,3 +5,7 @@ name = "csharp"
 
 [[analyzers]]
 name = "shell"
+
+exclude_patterns = [
+  "Dependencies/**"
+]
