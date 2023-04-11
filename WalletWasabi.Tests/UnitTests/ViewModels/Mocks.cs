@@ -8,6 +8,11 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
 public static class Mocks
 {
+	public static UiContext Context()
+	{
+		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
+	}
+
 	public static UiContext ContextWith(INavigate navigation)
 	{
 		var uiContext = GetUiContext();
