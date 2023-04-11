@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +24,7 @@ public class TxPropagationVerifier
 	// Don't throw as this task is not awaited
 	public async Task LogTxAcceptedByThirdPartyAsync(uint256 txid, CancellationToken cancel, int delay = 30000, int attempts = 10)
 	{
+		var counterException = 0;
 		for (int i = 0; i < attempts; i++)
 		{
 			try
@@ -50,7 +50,8 @@ public class TxPropagationVerifier
 					return;
 				}
 
-				if (i + 1 == attempts)
+				counterException++;
+				if (counterException == attempts)
 				{
 					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against third party mempool. Probably API service is unavailable.");
 					return;
