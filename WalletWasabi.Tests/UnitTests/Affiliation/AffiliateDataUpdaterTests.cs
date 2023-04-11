@@ -90,7 +90,7 @@ public class AffiliateDataUpdaterTests
 				CoordinationFeeRate.Zero,
 				Money.Zero);
 
-			notifications.Enqueue(new RoundBuiltTransactionNotification(uint256.One, uint256.Zero, coinjoinData));
+			notifications.Enqueue(new RoundBuiltTransactionNotification(RoundId: uint256.One, TxId: uint256.Zero, coinjoinData));
 			await Task.Delay(500); // this is to give time to the notification to be consumed.
 			var coinjoinRequests = Assert.Single(requestsUpdater.GetAffiliateData());
 
