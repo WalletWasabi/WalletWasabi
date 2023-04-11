@@ -199,7 +199,7 @@ public class WalletManager : IWalletProvider
 			}
 
 			Logger.LogWarning($"Wallet got corrupted.\n" +
-				$"Wallet File path: {walletFullPath}\n" +
+				$"Wallet file path: {walletFullPath}\n" +
 				$"Trying to recover it from backup.\n" +
 				$"Backup path: {walletBackupFullPath}\n" +
 				$"Exception: {ex}");
