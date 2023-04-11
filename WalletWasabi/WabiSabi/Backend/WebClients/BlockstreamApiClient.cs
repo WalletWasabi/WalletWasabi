@@ -15,15 +15,12 @@ public class BlockstreamApiClient : ITxPropagationVerifier
 {
 	public BlockstreamApiClient(Network network, HttpClient httpClient)
 	{
-		Network = network;
 		httpClient.BaseAddress = new Uri(
 			network == Network.TestNet
 				? "https://blockstream.info/testnet/"
 				: "https://blockstream.info/");
 		HttpClient = httpClient;
 	}
-
-	private Network Network { get; }
 	private HttpClient HttpClient { get; }
 	private AsyncLock AsyncLock { get; } = new();
 	

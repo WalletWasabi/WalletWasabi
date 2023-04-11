@@ -15,15 +15,12 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 {
 	public MempoolSpaceApiClient(Network network, HttpClient httpClient)
 	{
-		Network = network;
 		httpClient.BaseAddress = new Uri(
 			network == Network.TestNet
 				? "https://mempool.space/testnet/"
 				: "https://mempool.space/");
 		HttpClient = httpClient;
 	}
-
-	private Network Network { get; }
 	private HttpClient HttpClient { get; }
 	private AsyncLock AsyncLock { get; } = new();
 	public async Task<bool?> GetTransactionStatusAsync(uint256 txid, CancellationToken cancel)

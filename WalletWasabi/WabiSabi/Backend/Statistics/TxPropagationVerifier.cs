@@ -14,14 +14,12 @@ public class TxPropagationVerifier
 {
 	public TxPropagationVerifier(Network network, IHttpClientFactory httpClientFactory)
 	{
-		Network = network;
 		Verifiers = new List<ITxPropagationVerifier>()
 		{
-			new BlockstreamApiClient(Network, httpClientFactory.CreateClient(nameof(BlockstreamApiClient))),
-			new MempoolSpaceApiClient(Network, httpClientFactory.CreateClient(nameof(MempoolSpaceApiClient)))
+			new BlockstreamApiClient(network, httpClientFactory.CreateClient(nameof(BlockstreamApiClient))),
+			new MempoolSpaceApiClient(network, httpClientFactory.CreateClient(nameof(MempoolSpaceApiClient)))
 		};
 	}
-	private Network Network { get; }
 	public List<ITxPropagationVerifier> Verifiers { get; }
 
 	// Don't throw as this task is not awaited
@@ -41,11 +39,11 @@ public class TxPropagationVerifier
 
 				if (results.Any(result => result is not null))
 				{
-					Logger.LogTrace($"Coinjoin TX {txid} was accepted by third party node in less than {delay * (i+1)} seconds.");
+					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {delay * (i+1)} seconds.");
 					return;
 				}
 			}
-			catch (Exception e)
+			catch (Exception)
 			{
 				if (cancel.IsCancellationRequested)
 				{
@@ -54,7 +52,7 @@ public class TxPropagationVerifier
 
 				if (i + 1 == attempts)
 				{
-					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against thrid party mempool. Probably API service is unavailable.");
+					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against third party mempool. Probably API service is unavailable.");
 					return;
 				}
 			}
