@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public class CoinVerifierApiClient : IAsyncDisposable
 {
@@ -42,7 +43,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 
 	private SemaphoreSlim ThrottlingSemaphore { get; } = new(initialCount: MaxParallelRequestCount);
 
-	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
+	public virtual async Task<CoinVerifierApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
 		var address = script.GetDestinationAddress(Network.Main); // API provider doesn't accept testnet/regtest addresses.
 
@@ -103,7 +104,7 @@ public class CoinVerifierApiClient : IAsyncDisposable
 			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		return await response.Content.ReadAsJsonAsync<ApiResponseItem>().ConfigureAwait(false);
+		return await response.Content.ReadAsJsonAsync<CoinVerifierApiResponseItem>().ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

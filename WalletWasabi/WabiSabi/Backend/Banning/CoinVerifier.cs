@@ -9,6 +9,8 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.WebClients;
+using WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -137,7 +139,7 @@ public class CoinVerifier : IAsyncDisposable
 		}
 	}
 
-	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(ApiResponseItem response, int blockchainHeightOfCoin)
+	private (bool ShouldBan, bool ShouldRemove) CheckVerifierResult(CoinVerifierApiResponseItem response, int blockchainHeightOfCoin)
 	{
 		if (WabiSabiConfig.RiskFlags is null)
 		{

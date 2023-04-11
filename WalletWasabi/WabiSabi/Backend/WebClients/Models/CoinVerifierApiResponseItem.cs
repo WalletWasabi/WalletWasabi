@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
 /// <summary>
 /// The basic report we get back from CoinVerifierAPI, within every necessary
 ///  information - and more - we need to verify a coin, mainly <see cref="CscoreSection"/>.
 /// </summary>
-public record ApiResponseItem(
+public record CoinVerifierApiResponseItem(
 	 ReportInfoSection Report_info_section,
 	 CscoreSection Cscore_section,
 	 ProfileSection Profile_section,

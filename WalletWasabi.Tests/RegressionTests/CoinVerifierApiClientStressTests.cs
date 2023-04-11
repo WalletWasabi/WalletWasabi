@@ -3,7 +3,8 @@ using NBitcoin;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.WebClients;
+using WalletWasabi.WabiSabi.Backend.WebClients.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests;
@@ -51,7 +52,7 @@ public class CoinVerifierApiClientStressTests
 
 		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 
-		Task<ApiResponseItem>[] tasks = new Task<ApiResponseItem>[tasksToRun];
+		Task<CoinVerifierApiResponseItem>[] tasks = new Task<CoinVerifierApiResponseItem>[tasksToRun];
 
 		for (int i = 0; i < tasksToRun; i++)
 		{

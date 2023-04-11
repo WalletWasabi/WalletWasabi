@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -49,7 +50,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 		AddLogLineAndFormatCsv(DateTimeOffset.UtcNow, AuditEventType.Round, logAsArray);
 	}
 
-	public void LogVerificationResult(CoinVerifyResult coinVerifyResult, Reason reason, ApiResponseItem? apiResponseItem = null, Exception? exception = null)
+	public void LogVerificationResult(CoinVerifyResult coinVerifyResult, Reason reason, CoinVerifierApiResponseItem? apiResponseItem = null, Exception? exception = null)
 	{
 		string details = "No details";
 
@@ -72,7 +73,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 					categories.Any() ? string.Join(' ', categories) : "Risk categories None"
 			};
 
-			// Separate the different values of the ApiResponseItem with '|', so the details will be one value in the CSV file.
+			// Separate the different values of the CoinVerifierApiResponseItem with '|', so the details will be one value in the CSV file.
 			details = string.Join("|", detailsArray);
 		}
 		else if (exception is not null)

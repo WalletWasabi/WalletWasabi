@@ -36,7 +36,8 @@ public partial class Arena : PeriodicRunner
 		RoundParameterFactory roundParameterFactory,
 		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null,
-		CoinVerifier? coinVerifier = null) : base(period)
+		CoinVerifier? coinVerifier = null,
+		TxPropagationVerifier? txPropagationVerifier = null) : base(period)
 	{
 		Config = config;
 		Rpc = rpc;
@@ -46,6 +47,7 @@ public partial class Arena : PeriodicRunner
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
 		CoinVerifier = coinVerifier;
+		TxPropagationVerifier = txPropagationVerifier;
 		MaxSuggestedAmountProvider = new(Config);
 
 		if (CoinVerifier is not null)
@@ -75,6 +77,7 @@ public partial class Arena : PeriodicRunner
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	public CoinVerifier? CoinVerifier { get; private set; }
+	public TxPropagationVerifier? TxPropagationVerifier { get; private set; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
@@ -298,6 +301,8 @@ public partial class Arena : PeriodicRunner
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
+					// Start task to verify if the transaction was accepted by well known nodes
+					TxPropagationVerifier?.LogTxAcceptedByThirdPartyAsync(coinjoin.GetHash(), cancellationToken);
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 					round.LogInfo(
 						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
