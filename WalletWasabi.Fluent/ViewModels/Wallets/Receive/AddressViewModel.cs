@@ -33,7 +33,7 @@ public partial class AddressViewModel : ViewModelBase
 
 	private async Task PromptHideAddress()
 	{
-		var result = await UiContext.Navigate(NavigationTarget.CompactDialogScreen).NavigateDialogAsync(new ConfirmHideAddressViewModel(_address));
+		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(_address));
 
 		if (result.Result == false)
 		{

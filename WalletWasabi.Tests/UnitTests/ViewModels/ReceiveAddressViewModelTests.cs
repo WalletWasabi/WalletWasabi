@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using Avalonia.Input.Platform;
 using DynamicData;
+using FluentAssertions;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -41,19 +41,18 @@ public class ReceiveAddressViewModelTests
 		mock.Verify(x => x.SetTextAsync("SomeAddress"));
 	}
 
-	// TODO:
 	[Fact]
 	public void When_address_becomes_used_navigation_goes_back()
 	{
-		//var navigationStack = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-		//var uiContext = Mocks.ContextWith(new TestNavigation(navigationStack));
-		//var address = new TestAddress("SomeAddress");
-		//var wallet = WalletWithAddresses(address);
-		//new ReceiveAddressViewModel(wallet, address, true, uiContext);
+		var myNavMock = new NavigationMock();
+		var uiContext = Mocks.ContextWith(myNavMock);
+		var address = new TestAddress("SomeAddress");
+		var wallet = WalletWithAddresses(address);
+		new ReceiveAddressViewModel(uiContext, wallet, address, true);
 
-		//address.IsUsed = true;
+		address.IsUsed = true;
 
-		//Mock.Get(navigationStack).Verify(x => x.Back(), Times.Once);
+		myNavMock.BackCount.Should().Be(1);
 	}
 
 	private static IWalletModel WalletWithAddresses(TestAddress address)
@@ -104,4 +103,3 @@ public class ReceiveAddressViewModelTests
 		}
 	}
 }
-

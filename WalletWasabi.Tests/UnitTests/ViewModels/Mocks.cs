@@ -1,9 +1,7 @@
 using System.Reactive.Linq;
 using Avalonia.Input.Platform;
 using Moq;
-using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;

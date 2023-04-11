@@ -4,6 +4,7 @@ using FluentAssertions;
 using Moq;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using Xunit;
@@ -12,21 +13,20 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
 public class AddressViewModelTests
 {
-	// TODO: Fix this
 	[Fact]
 	public void Hide_command_should_invoke_correct_method()
 	{
-		//var address = Mock.Of<IAddress>(MockBehavior.Loose);
-		//var context = Mocks.ContextWithDialogResult(true);
-		//var sut = new AddressViewModel(
-		//	_ => Task.CompletedTask,
-		//	_ => Task.CompletedTask,
-		//	address,
-		//	context);
+		var address = Mock.Of<IAddress>(MockBehavior.Loose);
+		var context = Mocks.ContextWith(new NavigationMock((true, DialogResultKind.Normal)));
+		var sut = new AddressViewModel(
+			context,
+			_ => Task.CompletedTask,
+			_ => Task.CompletedTask,
+			address);
 
-		//sut.HideAddressCommand.Execute(null);
+		sut.HideAddressCommand.Execute(null);
 
-		//Mock.Get(address).Verify(x => x.Hide(), Times.Once);
+		Mock.Get(address).Verify(x => x.Hide(), Times.Once);
 	}
 
 	private static UiContext GetUiContext()
