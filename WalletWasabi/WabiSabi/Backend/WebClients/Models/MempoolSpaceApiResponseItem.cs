@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
-public class MemPoolSpaceApiResponseItem
+public class MempoolSpaceApiResponseItem
 {
 	public string txid { get; set; }
 	public int version { get; set; }

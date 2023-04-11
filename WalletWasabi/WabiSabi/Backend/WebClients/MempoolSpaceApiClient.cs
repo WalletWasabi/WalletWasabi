@@ -43,7 +43,7 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 
 		if (!response.IsSuccessStatusCode)
 		{
-			// Tx was not received or not accepted into mempool by blockstream's node.
+			// Tx was not received or not accepted into mempool by mempool.space's node.
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
 				return null;
@@ -51,7 +51,7 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 			throw new InvalidOperationException($"There was an unexpected error with request to mempool.space.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		var document = await response.Content.ReadAsJsonAsync<MemPoolSpaceApiResponseItem>().ConfigureAwait(false);
+		var document = await response.Content.ReadAsJsonAsync<MempoolSpaceApiResponseItem>().ConfigureAwait(false);
 
 		// Status has a block height field when the transaction is confirmed which is not extracted here.
 		return document.status.confirmed;
