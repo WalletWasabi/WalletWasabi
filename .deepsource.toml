@@ -1,11 +1,11 @@
 version = 1
 
+exclude_patterns = [
+  "Dependencies/**"
+]
+
 [[analyzers]]
 name = "csharp"
 
 [[analyzers]]
 name = "shell"
-
-exclude_patterns = [
-  "Dependencies/**"
-]
