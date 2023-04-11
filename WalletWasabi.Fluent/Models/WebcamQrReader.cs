@@ -91,6 +91,7 @@ public class WebcamQrReader : PeriodicRunner
 			Bitmap bmp = Camera.GetBitmap();
 			using MemoryStream stream = new();
 			bmp.Save(stream);
+			stream.Position = 0;
 			using SKBitmap bitmap = SKBitmap.Decode(stream);
 			NewImageArrived?.Invoke(this, bmp);
 			Result? result = Decoder?.DecodeBitmap(bitmap);
