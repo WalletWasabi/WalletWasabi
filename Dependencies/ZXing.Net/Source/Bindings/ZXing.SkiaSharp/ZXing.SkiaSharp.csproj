@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '16.0'">
     <TargetFrameworks>net462;netstandard1.3;netstandard2.0;netstandard2.1;netcoreapp3.1</TargetFrameworks>
@@ -63,12 +63,6 @@
     <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
     <DebugType>portable</DebugType>
     <NetStandardImplicitPackageVersion>2.0.0</NetStandardImplicitPackageVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.1'">
-    <DefineConstants>$(DefineConstants);NETCOREAPP3_1</DefineConstants>
-    <UseWindowsForms>true</UseWindowsForms>
-    <UseWPF>true</UseWPF>
   </PropertyGroup>
   
 </Project>
