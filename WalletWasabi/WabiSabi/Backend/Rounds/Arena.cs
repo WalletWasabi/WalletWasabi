@@ -301,8 +301,10 @@ public partial class Arena : PeriodicRunner
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
+					
 					// Start task to verify if the transaction was accepted by well known nodes
 					TxPropagationVerifier?.LogTxAcceptedByThirdPartyAsync(coinjoin.GetHash(), cancellationToken);
+					
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 					round.LogInfo(
 						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
