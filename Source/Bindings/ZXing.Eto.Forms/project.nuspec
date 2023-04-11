@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <version>0.16.4</version>
+    <authors>Michael Jahn</authors>
+    <owners>Michael Jahn</owners>
+    <license type="expression">Apache-2.0</license>
+    <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+    <projectUrl>https://github.com/micjahn/ZXing.Net/</projectUrl>
+    <icon>logo.jpg</icon>
+    <id>ZXing.Net.Bindings.Eto.Forms</id>
+    <title>ZXing.Net.Bindings.Eto.Forms</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>ZXing.Net Bindings for Eto.Forms - use Eto.Forms with ZXing.Net for barcode reading</description>
+    <readme>readme.md</readme>
+    <summary>ZXing.Net Bindings for Eto.Forms</summary>
+    <releaseNotes></releaseNotes>
+    <tags>ZXing Eto</tags>
+    <dependencies>
+      <group targetFramework="netstandard2.0">
+        <dependency id="ZXing.Net" version="0.16.9" exclude="Build,Analyzers" />
+        <dependency id="Eto.Forms" version="2.7.3" exclude="Build,Analyzers" />
+        <dependency id="NETStandard.Library" version="2.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\..\Icons\logo.jpg" target="." />
+    <file src="readme.md" target="." />
+    <file src="bin\Release\netstandard2.0\ZXing.Eto.Forms.dll" target="lib\netstandard2.0\ZXing.Eto.Forms.dll" />
+    <file src="bin\Release\netstandard2.0\ZXing.Eto.Forms.pdb" target="lib\netstandard2.0\ZXing.Eto.Forms.pdb" />
+    <file src="bin\Release\netstandard2.0\ZXing.Eto.Forms.xml" target="lib\netstandard2.0\ZXing.Eto.Forms.xml" />
+  </files>
+</package>
