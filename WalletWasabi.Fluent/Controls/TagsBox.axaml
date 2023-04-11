@@ -39,6 +39,7 @@
             <c:TagsBoxTopItemsPresenter TopItems="{TemplateBinding TopItems}"
                                         AddTagCommand="{Binding $parent[c:TagsBox].AddTag}"
                                         Margin="0,10,0,0"
+                                        IsVisible="{TemplateBinding TopItems, Converter={x:Static ObjectConverters.IsNotNull}}"
                                         DockPanel.Dock="Bottom"
                                         x:CompileBindings="False" />
             <Border x:Name="PART_Border" Background="{TemplateBinding Background}"

@@ -31,7 +31,6 @@
     <Setter Property="Template">
       <ControlTemplate>
         <ItemsControl Items="{TemplateBinding TopItems}"
-                      IsVisible="{TemplateBinding TopItems, Converter={x:Static ObjectConverters.IsNotNull}}"
                       ClipToBounds="False">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
