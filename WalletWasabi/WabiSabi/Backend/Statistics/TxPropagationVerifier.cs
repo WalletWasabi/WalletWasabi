@@ -22,14 +22,17 @@ public class TxPropagationVerifier
 	public List<ITxPropagationVerifier> Verifiers { get; }
 
 	// Don't throw as this task is not awaited
-	public async Task LogTxAcceptedByThirdPartyAsync(uint256 txid, CancellationToken cancel, int delay = 30000, int attempts = 10)
+	public async Task LogTxAcceptedByThirdPartyAsync(uint256 txid, CancellationToken cancel)
 	{
+		const int Delay = 30000;
+		const int Attempts = 10;
+		
 		var counterException = 0;
-		for (int i = 0; i < attempts; i++)
+		for (int i = 0; i < Attempts; i++)
 		{
 			try
 			{
-				await Task.Delay(delay, cancel).ConfigureAwait(false);
+				await Task.Delay(Delay, cancel).ConfigureAwait(false);
 				var tasks = new List<Task<bool?>>();
 				foreach (var txPropagationVerifier in Verifiers)
 				{
@@ -39,7 +42,7 @@ public class TxPropagationVerifier
 
 				if (results.Any(result => result is not null))
 				{
-					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {delay * (i+1)} seconds.");
+					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {Delay * (i+1)} seconds.");
 					return;
 				}
 			}
@@ -51,7 +54,7 @@ public class TxPropagationVerifier
 				}
 
 				counterException++;
-				if (counterException == attempts)
+				if (counterException == Attempts)
 				{
 					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against third party mempool. Probably API service is unavailable.");
 					return;
@@ -59,6 +62,6 @@ public class TxPropagationVerifier
 			}
 		}
 
-		Logger.LogWarning($"Coinjoin TX {txid} hasn't been accepted by third party node after {delay * attempts} seconds.");
+		Logger.LogWarning($"Coinjoin TX {txid} hasn't been accepted by third party node after {Delay * Attempts} seconds.");
 	}
 }
