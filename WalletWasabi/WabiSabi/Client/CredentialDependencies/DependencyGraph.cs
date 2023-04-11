@@ -410,7 +410,7 @@ public record DependencyGraph
 		// dependencies between different requests, weight credentials
 		// should often be easily satisfiable with parallel edges to the
 		// amount credential edges.
-		if (CredentialType.IsDefined(credentialType + 1))
+		if (Enum.IsDefined(credentialType + 1))
 		{
 			// TODO Limit up to a certain height in the graph, no more than
 			// the initial value, this can sometimes create a deeper graph
