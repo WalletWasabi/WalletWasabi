@@ -1,23 +1,21 @@
 using Xunit;
 using System.IO;
 using WalletWasabi.Helpers;
-using System.Runtime.InteropServices;
 using ZXing.QrCode;
+using ZXing;
+using ZXing.Common;
+using ZXing.SkiaSharp;
+using SkiaSharp;
 
 namespace WalletWasabi.Tests.UnitTests.QrDecode;
 
 public class QrCodeDecodingTests
 {
 	private string CommonPartialPath { get; } = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "UnitTests", "QrDecode", "QrResources");
-	private bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 	[Fact]
 	public void GetCorrectAddressFromImages()
 	{
-		if (!IsWindows)
-		{
-			return;
-		}
 		QRCodeReader decoder = new();
 
 		string expectedAddress = "tb1ql27ya3gufs5h0ptgjhjd0tm52fq6q0xrav7xza";
@@ -25,13 +23,13 @@ public class QrCodeDecodingTests
 
 		// First Test
 		string path = Path.Combine(CommonPartialPath, "AddressTest1.png");
-		var result = decoder.DecodeFromImagePath(path);
+		var result = DecodeFromImagePath(decoder, path);
 
 		Assert.Equal(expectedAddress, result.Text);
 
 		// Second Test
 		string path2 = Path.Combine(CommonPartialPath, "AddressTest2.png");
-		var result2 = decoder.DecodeFromImagePath(path2);
+		var result2 = DecodeFromImagePath(decoder, path2);
 
 		Assert.Equal(otherExpectedAddress, result2.Text);
 	}
@@ -39,15 +37,11 @@ public class QrCodeDecodingTests
 	[Fact]
 	public void DecodePictureTakenByPhone()
 	{
-		if (!IsWindows)
-		{
-			return;
-		}
 		QRCodeReader decoder = new();
 		string expectedOutput = "tb1qutgpgraaze3hqnvt2xyw5acsmd3urprk3ff27d";
 
 		string path = Path.Combine(CommonPartialPath, "QrByPhone.jpg");
-		var result = decoder.DecodeFromImagePath(path);
+		var result = DecodeFromImagePath(decoder, path);
 
 		Assert.Equal(expectedOutput, result.Text);
 	}
@@ -55,30 +49,33 @@ public class QrCodeDecodingTests
 	[Fact]
 	public void DecodeDifficultPictureTakenByPhone()
 	{
-		if (!IsWindows)
-		{
-			return;
-		}
 		QRCodeReader decoder = new();
 		string expectedOutput = "Let's see a Zebra.";
 
 		string path = Path.Combine(CommonPartialPath, "QRwithZebraBackground.png");
-		var result = decoder.DecodeFromImagePath(path);
+		var result = DecodeFromImagePath(decoder, path);
 		Assert.Equal(expectedOutput, result.Text);
 	}
 
 	[Fact]
 	public void DecodePictureWithImageInsideTheQR()
 	{
-		if (!IsWindows)
-		{
-			return;
-		}
 		QRCodeReader decoder = new();
 		string expectedOutput = "https://twitter.com/SimonHearne";
 
 		string path = Path.Combine(CommonPartialPath, "qr-embed-logos.png");
-		var result = decoder.DecodeFromImagePath(path);
+		var result = DecodeFromImagePath(decoder, path);
 		Assert.Equal(expectedOutput, result.Text);
+	}
+
+	private static Result DecodeFromImagePath(QRCodeReader reader, string path)
+	{
+		using var bitmap = SKBitmap.Decode(path);
+			
+		SKBitmapLuminanceSource source = new(bitmap);
+		GlobalHistogramBinarizer binarizer = new(source);
+		BinaryBitmap binaryBitmap = new(binarizer);
+
+		return reader.decode(binaryBitmap);
 	}
 }
