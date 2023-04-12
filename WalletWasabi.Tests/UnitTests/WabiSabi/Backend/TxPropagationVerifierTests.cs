@@ -22,14 +22,13 @@ public class TxPropagationVerifierTests
 		{
 			// This TX exists
 			uint256 txid = uint256.Parse("8a6edaae0ed93cf1a84fe727450be383ce53133df1a4438f9b9201b563ea9880");
-			var status = await verifier.GetTransactionStatusAsync(txid, CancellationToken.None);
-			Assert.NotNull(status);
+			var status = await verifier.IsTxAcceptedByNode(txid, CancellationToken.None);
 			Assert.True(status);
 
 			// This TX does not exist
 			txid = uint256.Parse("8a6edaae0ed93cf1a84fe737450be383ce53133df1a4438f9b9201aaaaaaaaaa");
-			status = await verifier.GetTransactionStatusAsync(txid, CancellationToken.None);
-			Assert.Null(status);
+			status = await verifier.IsTxAcceptedByNode(txid, CancellationToken.None);
+			Assert.False(status);
 		}
 	}
 }
