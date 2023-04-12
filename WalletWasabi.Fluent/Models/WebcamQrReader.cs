@@ -9,6 +9,7 @@ using WalletWasabi.Bases;
 using System.IO;
 using ZXing;
 using Avalonia.Media.Imaging;
+using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Models;
 
@@ -90,7 +91,8 @@ public class WebcamQrReader : PeriodicRunner
 			Bitmap bmp = Camera.GetBitmap();
 			using MemoryStream stream = new();
 			bmp.Save(stream);
-			using System.Drawing.Bitmap bitmap = new(stream);
+			stream.Position = 0;
+			using SKBitmap bitmap = SKBitmap.Decode(stream);
 			NewImageArrived?.Invoke(this, bmp);
 			Result? result = Decoder?.DecodeBitmap(bitmap);
 			if (result is { })
