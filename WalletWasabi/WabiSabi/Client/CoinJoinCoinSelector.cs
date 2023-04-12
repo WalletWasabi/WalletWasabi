@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinCoinSelector
 {
-	public const int MaxInputsRegistrableByWallet = 10; // how many
+	public const int MaxInputsRegistrableByWallet = 20; // how many
 	public const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
 
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
