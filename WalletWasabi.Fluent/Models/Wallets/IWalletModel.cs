@@ -14,6 +14,8 @@ public interface IWalletModel
 {
 	public string Name { get; }
 
+	bool IsLoggedIn { get; }
+
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }

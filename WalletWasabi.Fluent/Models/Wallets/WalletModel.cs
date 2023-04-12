@@ -14,7 +14,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-internal class WalletModel : IWalletModel
+internal class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionHistoryBuilder _historyBuilder;
@@ -44,6 +44,8 @@ internal class WalletModel : IWalletModel
 	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
 
 	public string Name => _wallet.WalletName;
+
+	public bool IsLoggedIn => throw new NotImplementedException();
 
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
