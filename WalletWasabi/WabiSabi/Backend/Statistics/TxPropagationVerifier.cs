@@ -48,7 +48,7 @@ public class TxPropagationVerifier
 					return;
 				}
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
 				if (cancel.IsCancellationRequested)
 				{
@@ -58,7 +58,7 @@ public class TxPropagationVerifier
 				counterException++;
 				if (counterException == Attempts)
 				{
-					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against third party mempool. Probably API service is unavailable.");
+					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against third party mempool. Probably API service is unavailable. Last exception: {ex}");
 					return;
 				}
 			}
