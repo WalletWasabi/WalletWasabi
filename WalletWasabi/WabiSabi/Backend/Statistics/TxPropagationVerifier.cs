@@ -33,14 +33,14 @@ public class TxPropagationVerifier
 			try
 			{
 				await Task.Delay(Delay, cancel).ConfigureAwait(false);
-				var tasks = new List<Task<bool?>>();
+				var tasks = new List<Task<bool>>();
 				foreach (var txPropagationVerifier in Verifiers)
 				{
-					tasks.Add(txPropagationVerifier.GetTransactionStatusAsync(txid, cancel));
+					tasks.Add(txPropagationVerifier.IsTxAcceptedByNode(txid, cancel));
 				}
 				var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-				if (results.Any(result => result is not null))
+				if (results.Any(result => result))
 				{
 					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {Delay * (i+1)} seconds.");
 					return;
@@ -61,7 +61,6 @@ public class TxPropagationVerifier
 				}
 			}
 		}
-
 		Logger.LogWarning($"Coinjoin TX {txid} hasn't been accepted by third party node after {Delay * Attempts} seconds.");
 	}
 }

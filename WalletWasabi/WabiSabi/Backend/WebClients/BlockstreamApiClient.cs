@@ -29,7 +29,13 @@ public class BlockstreamApiClient : ITxPropagationVerifier
 	private HttpClient HttpClient { get; }
 	private AsyncLock AsyncLock { get; } = new();
 	
-	public async Task<bool?> GetTransactionStatusAsync(uint256 txid, CancellationToken cancel)
+	public async Task<bool> IsTxAcceptedByNode(uint256 txid, CancellationToken cancel)
+	{
+		BlockstreamApiResponseItem? apiResponse = await GetTransactionInfosAsync(txid, cancel).ConfigureAwait(false);
+		return apiResponse is not null;
+	}
+	
+	private async Task<BlockstreamApiResponseItem?> GetTransactionInfosAsync(uint256 txid, CancellationToken cancel)
 	{
 		HttpResponseMessage response;
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -54,9 +60,6 @@ public class BlockstreamApiClient : ITxPropagationVerifier
 			throw new InvalidOperationException($"There was an unexpected error with request to Blockstream.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		var document = await response.Content.ReadAsJsonAsync<BlockstreamApiResponseItem>().ConfigureAwait(false);
-
-		// Status has a block height field when the transaction is confirmed which is not extracted here.
-		return document.status.confirmed;
+		return await response.Content.ReadAsJsonAsync<BlockstreamApiResponseItem>().ConfigureAwait(false);
 	}
 }

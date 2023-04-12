@@ -28,7 +28,14 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 	}
 	private HttpClient HttpClient { get; }
 	private AsyncLock AsyncLock { get; } = new();
-	public async Task<bool?> GetTransactionStatusAsync(uint256 txid, CancellationToken cancel)
+
+	public async Task<bool> IsTxAcceptedByNode(uint256 txid, CancellationToken cancel)
+	{
+		MempoolSpaceApiResponseItem? apiResponse = await GetTransactionInfosAsync(txid, cancel).ConfigureAwait(false);
+		return apiResponse is { };
+	}
+
+	private async Task<MempoolSpaceApiResponseItem?> GetTransactionInfosAsync(uint256 txid, CancellationToken cancel)
 	{
 		HttpResponseMessage response;
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -53,9 +60,6 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 			throw new InvalidOperationException($"There was an unexpected error with request to mempool.space.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		var document = await response.Content.ReadAsJsonAsync<MempoolSpaceApiResponseItem>().ConfigureAwait(false);
-
-		// Status has a block height field when the transaction is confirmed which is not extracted here.
-		return document.status.confirmed;
+		return await response.Content.ReadAsJsonAsync<MempoolSpaceApiResponseItem>().ConfigureAwait(false);
 	}
 }

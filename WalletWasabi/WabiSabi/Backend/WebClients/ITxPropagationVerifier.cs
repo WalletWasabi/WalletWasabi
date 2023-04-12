@@ -6,5 +6,5 @@ namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
 public interface ITxPropagationVerifier
 {
-	public Task<bool?> GetTransactionStatusAsync(uint256 txid, CancellationToken cancel);
+	public Task<bool> IsTxAcceptedByNode(uint256 txid, CancellationToken cancel);
 }
