@@ -38,7 +38,7 @@ public static class AppBuilderExtension
 
 							AvaloniaLocator.CurrentMutable
 								.Bind<FontManagerOptions>()
-								.ToConstant(new FontManagerOptions { DefaultFamilyName = "DejaVu Sans" });
+								.ToConstant(new FontManagerOptions { DefaultFamilyName = "Inter" });
 						}
 					});
 		}
