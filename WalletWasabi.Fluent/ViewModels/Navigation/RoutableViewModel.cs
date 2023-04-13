@@ -45,7 +45,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		if (_currentDisposable is { })
 		{
-			throw new InvalidOperaionException("Can't navigate to something that has already been navigated to.");
+			throw new InvalidOperationException("Can't navigate to something that has already been navigated to.");
 		}
 
 		_currentDisposable = new CompositeDisposable();
