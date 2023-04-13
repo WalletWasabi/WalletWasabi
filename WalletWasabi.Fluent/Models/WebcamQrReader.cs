@@ -16,8 +16,6 @@ namespace WalletWasabi.Fluent.Models;
 public class WebcamQrReader : PeriodicRunner
 {
 	private const byte DefaultCameraId = 0;
-	private QRCodeReader? Decoder { get; set; }
-	private WindowsCapture? Camera { get; set; }
 
 	public WebcamQrReader(Network network) : base(TimeSpan.FromMilliseconds(100))
 	{
@@ -33,6 +31,9 @@ public class WebcamQrReader : PeriodicRunner
 	public event EventHandler<Exception>? ErrorOccurred;
 
 	private Network Network { get; }
+
+	private QRCodeReader? Decoder { get; set; }
+	private WindowsCapture? Camera { get; set; }
 	public static bool IsOsPlatformSupported => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
