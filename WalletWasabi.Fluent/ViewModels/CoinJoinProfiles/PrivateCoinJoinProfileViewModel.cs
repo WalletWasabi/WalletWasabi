@@ -4,8 +4,9 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	public const int MinAnonScore = 50;
-	public const int MaxAnonScore = 101;
+	// https://github.com/zkSNACKs/WalletWasabi/pull/10468#issuecomment-1506284198
+	public const int MinAnonScore = 27;
+	public const int MaxAnonScore = 76;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
 	{

@@ -81,11 +81,13 @@ public static class HttpResponseMessageExtensions
 		if (me.Content is not null)
 		{
 			var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-			var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
-			{
-				Converters = JsonSerializationOptions.Default.Settings.Converters,
-				Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
-			});
+			var error = JsonConvert.DeserializeObject<Error>(
+				contentString,
+				new JsonSerializerSettings()
+				{
+					Converters = JsonSerializationOptions.Default.Settings.Converters,
+					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
+				});
 			var innerException = error switch
 			{
 				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)

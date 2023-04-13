@@ -278,7 +278,7 @@ public class CoinVerifier : IAsyncDisposable
 
 					Logger.LogError($"Coin verification has failed for coin '{coin.Outpoint}' with '{ex}'.");
 
-					// Do not throw an exception here - unobserverved exception prevention.
+					// Do not throw an exception here - unobserved exception prevention.
 				}
 			},
 			verificationCancellationToken);

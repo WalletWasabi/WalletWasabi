@@ -124,7 +124,7 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x =>
 			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			&& x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 			.ToArray())
 		{
 			try
@@ -159,7 +159,7 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (round.InputCount < Config.MinInputCountByRound)
+				if (round.InputCount < round.Parameters.MinInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
@@ -168,9 +168,9 @@ public partial class Arena : PeriodicRunner
 
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
+					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
-				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					SetRoundPhase(round, Phase.ConnectionConfirmation);
@@ -207,7 +207,7 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
 					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
 					// remove any spent inputs.
-					if (round.InputCount >= Config.MinInputCountByRound)
+					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
@@ -219,10 +219,10 @@ public partial class Arena : PeriodicRunner
 						}
 					}
 
-					if (round.InputCount < Config.MinInputCountByRound)
+					if (round.InputCount < round.Parameters.MinInputCountByRound)
 					{
 						EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
+						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({round.Parameters.MinInputCountByRound}).");
 					}
 					else
 					{
@@ -260,7 +260,7 @@ public partial class Arena : PeriodicRunner
 
 					var highestFeeRateTask = async () => (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask, cancellationToken).ConfigureAwait(false);
+					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask).ConfigureAwait(false);
 
 					round.CoinjoinState = FinalizeTransaction(round.Id, coinjoin);
 
@@ -406,7 +406,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByRound)
+		if (round.InputCount >= round.Parameters.MinInputCountByRound)
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -445,7 +445,7 @@ public partial class Arena : PeriodicRunner
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
 				&& x.InputCount >= roundDestroyerInputCount).ToArray())
 			{
 				feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
@@ -462,7 +462,7 @@ public partial class Arena : PeriodicRunner
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
-									&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+									&& !x.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound)
 									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
@@ -480,9 +480,9 @@ public partial class Arena : PeriodicRunner
 
 						if (foundLargeRound is null)
 						{
-							largeRound.LogInfo($"Mined round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+							largeRound.LogInfo($"Mined round with parameters: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
 						}
-						smallRound.LogInfo($"Mined round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
+						smallRound.LogInfo($"Mined round with parameters: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
 
 						// If it can't create the large round, then don't abort.
 						EndRound(round, EndRoundState.AbortedLoadBalancing);
@@ -502,7 +502,7 @@ public partial class Arena : PeriodicRunner
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			AddRound(r);
-			r.LogInfo($"Created round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+			r.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 		}
 	}
 
@@ -523,7 +523,7 @@ public partial class Arena : PeriodicRunner
 			r = new Round(parameters, SecureRandom.Instance);
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
-				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
 				.ThenBy(x => x.InputCount);
 			times++;
@@ -556,7 +556,7 @@ public partial class Arena : PeriodicRunner
 
 	private void TimeoutAlices()
 	{
-		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
+		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)).ToArray())
 		{
 			var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
 			foreach (var alice in alicesToRemove)
@@ -573,7 +573,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod, CancellationToken cancellationToken)
+	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod)
 	{
 		// SharedOverhead calculated into EstimatedVsize.
 		var sizeToPayFor = coinjoin.EstimatedVsize + blameScript.EstimateOutputVsize();
@@ -596,7 +596,7 @@ public partial class Arena : PeriodicRunner
 
 				if (allReady)
 				{
-					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signaled ready. Added amount: '{diffMoney}'.");
 				}
 				else
 				{
