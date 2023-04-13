@@ -14,8 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.wp7.0", "Source\lib\z
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.wp7.1", "Source\lib\zxing.wp7.1.csproj", "{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.sl4.test", "Source\test\src\zxing.sl4.test.csproj", "{903D3C02-924C-4117-BB2B-91FAB4C87B7A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,16 +54,6 @@ Global
 		{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}.Release|x86.ActiveCfg = Release|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
