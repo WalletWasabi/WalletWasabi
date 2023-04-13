@@ -38,12 +38,11 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		_timeoutMultiplier = timeoutMultiplier;
 	}
 
-	private int Port { get; }
+	public event EventHandler? OtherInstanceStarted;
 
+	private int Port { get; }
 	private CancellationTokenSource DisposeCts { get; } = new();
 	private TaskCompletionSource? TaskStartTcpListener { get; set; }
-
-	public event EventHandler? OtherInstanceStarted;
 
 	/// <summary>
 	/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
@@ -101,6 +100,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
 			await writer.FlushAsync().ConfigureAwait(false);
 			await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
+
 			// I was able to signal to the other instance successfully so just continue.
 		}
 		catch (Exception ex)
@@ -155,6 +155,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 					networkStream.ReadTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds;
 					using var reader = new StreamReader(networkStream, Encoding.UTF8);
+
 					// Make sure the client will be disconnected.
 					using CancellationTokenSource timeOutCts = new(_timeoutMultiplier * ClientTimeOut);
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
