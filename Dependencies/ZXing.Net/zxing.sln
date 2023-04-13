@@ -8,15 +8,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{2D
 		zxing.nunit = zxing.nunit
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{DE3B6078-DB3E-4A14-9AD6-5CC97E4A67ED}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.sl4", "Source\lib\zxing.sl4.csproj", "{03B962BB-7A24-4589-89E5-C42A17DDC376}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.wp7.0", "Source\lib\zxing.wp7.0.csproj", "{7144C757-8CA7-4433-8C6F-072C24C43C62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.wp7.1", "Source\lib\zxing.wp7.1.csproj", "{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsPhoneDemo", "Clients\WindowsPhoneDemo\WindowsPhoneDemo.csproj", "{5D7A75D4-21D5-4690-947F-D0578E9FF757}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.sl4.test", "Source\test\src\zxing.sl4.test.csproj", "{903D3C02-924C-4117-BB2B-91FAB4C87B7A}"
 EndProject
@@ -60,20 +56,6 @@ Global
 		{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{EC6F52B8-AF75-4FA2-85C1-82BF77861FFF}.Release|x86.ActiveCfg = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|Mixed Platforms.Deploy.0 = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757}.Release|x86.ActiveCfg = Release|Any CPU
 		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{903D3C02-924C-4117-BB2B-91FAB4C87B7A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -87,8 +69,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{5D7A75D4-21D5-4690-947F-D0578E9FF757} = {DE3B6078-DB3E-4A14-9AD6-5CC97E4A67ED}
 	EndGlobalSection
 EndGlobal
