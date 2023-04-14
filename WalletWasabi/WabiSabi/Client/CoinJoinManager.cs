@@ -179,7 +179,7 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				// If all coins are already private, then don't mix.
-				if (walletToStart.IsWalletPrivate() && startCommand.StopWhenAllMixed)
+				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false) && startCommand.StopWhenAllMixed)
 				{
 					walletToStart.LogTrace("All mixed!");
 
@@ -359,7 +359,7 @@ public class CoinJoinManager : BackgroundService
 				// When to stop mixing.
 				if (finishedCoinJoin.IsStopped  // If stop was requested by user.
 					|| stoppingToken.IsCancellationRequested    // If cancellation was requested.
-					|| (finishedCoinJoin.Wallet.IsWalletPrivate() && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
+					|| (await finishedCoinJoin.Wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
 				{
 					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
 				}
