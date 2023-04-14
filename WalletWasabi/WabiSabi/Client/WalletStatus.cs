@@ -4,5 +4,5 @@ public enum WalletStatus
 {
 	Idle,
 	InSendWorkFlow,
-	NeedsToRestartAfterSend
+	CjNeedsToRestartAfterSend
 }

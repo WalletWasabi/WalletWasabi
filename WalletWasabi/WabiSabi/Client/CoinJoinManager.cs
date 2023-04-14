@@ -577,7 +577,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsStatuses.TryGetValue(wallet.WalletName, out WalletStatus walletStatus))
 		{
-			if (walletStatus is WalletStatus.NeedsToRestartAfterSend)
+			if (walletStatus is WalletStatus.CjNeedsToRestartAfterSend)
 			{
 				await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
 			}
@@ -590,9 +590,11 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task WalletEnteredTxPreviewAsync(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle || stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase))
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) &&
+			(stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle || // If wallet is idle, there is nothing to stop.
+			stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase))    // Don't try to stop in critical phase, otherwise it won't restart automatically.
 		{
-			WalletEnteredSendWorkflow(wallet.WalletName, WalletStatus.NeedsToRestartAfterSend);
+			WalletEnteredSendWorkflow(wallet.WalletName, WalletStatus.CjNeedsToRestartAfterSend);
 			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
