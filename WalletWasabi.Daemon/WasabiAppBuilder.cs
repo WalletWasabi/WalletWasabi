@@ -148,9 +148,6 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 	internal EventHandler<AggregateException>? UnobservedTaskExceptionsEventHandler { get; init; }
 	internal Action Terminate { get; init; } = () => { };
 
-	public WasabiAppBuilder ApplicationName(string appName) =>
-		this with { AppName = appName };
-
 	public WasabiAppBuilder EnsureSingleInstance(bool ensure = true) =>
 		this with { MustCheckSingleInstance = ensure };
 
@@ -176,7 +173,7 @@ public static class WasabiAppExtensions
 		return await app.RunAsync(
 			async () =>
 			{
-				await app.Global!.InitializeNoWalletAsync(app.TerminateService);
+				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
 
 				while (true)
 				{

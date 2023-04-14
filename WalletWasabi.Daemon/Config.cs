@@ -55,8 +55,8 @@ public class Config
 		},
 		key: "DustThreshold");
 
-	public bool BlockOnlyMode => GetEffectiveBool(false, "blockonly");
-	public string LogLevel => GetEffectiveString("", "loglevel");
+	public bool BlockOnlyMode => GetEffectiveBool(false, "BlockOnly");
+	public string LogLevel => GetEffectiveString("", "LogLevel");
 
 	public static string DataDir => GetString(
 		EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")),

@@ -6,12 +6,12 @@ making it more suitable for running all the time in the background.
 
 ## Configuration
 
-All configuration options available via `Config.json` file are also available as command line switches and environment variables:
+All configuration options available via `Config.json` file are also available as command line arguments and environment variables:
 
 ### Command Line and Environment variables
 
 * Command line switches have the form `--switch_name=value` where _switch_name_ is the same name that is used in the config file (case insensitive).
-* Environment variables have the form `WASABI-SWITCHNAME` where _switch_name_ is the same name that is used in the config file.
+* Environment variables have the form `WASABI-SWITCHNAME` where _SWITCHNAME_ is the same name that is used in the config file.
 
 A few examples:
 
@@ -36,15 +36,15 @@ There are a few special switches that are not present in the `Config.json` file 
 * **DataDir** to specify the path to the directory used during runtime.
 * **BlockOnly** to instruct wasabi to ignore p2p transactions
 
-### examples
+### Examples
 
-Run Wasabi and connect to the testnet bitcoin network with Tor disabled and accept JSON RPC calls. Store everything in $HOME/temp/wasabi-1.
+Run Wasabi and connect to the testnet Bitcoin network with Tor disabled and accept JSON RPC calls. Store everything in `$HOME/temp/wasabi-1`.
 
 ```bash
 $ wasabi.daemon --usetor=false --datadir="$HOME/temp/wasabi-1" --network=testnet --jsonrpcserverenabled=true --blockonly=true
 ```
 
-Run Wasabi Daemon and connect to the testnet bitcoin network.
+Run Wasabi Daemon and connect to the testnet Bitcoin network.
 
 ```bash
 $ WASABI-NETWORK=testnet wasabi.daemon
