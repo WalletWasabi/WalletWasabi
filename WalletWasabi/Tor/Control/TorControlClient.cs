@@ -432,6 +432,10 @@ public class TorControlClient : IAsyncDisposable
 			Logger.LogError($"Exception occurred in the reader loop: {e}.");
 			throw;
 		}
+		finally
+		{
+			SyncChannel.Writer.Complete();
+		}
 	}
 
 	public async ValueTask DisposeAsync()
