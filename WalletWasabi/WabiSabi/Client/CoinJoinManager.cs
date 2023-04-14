@@ -575,31 +575,25 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task WalletLeftSendWorkflowAsync(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsStatuses.TryGetValue(wallet.WalletName, out WalletStatus walletStatus))
 		{
-			if (WalletsStatuses.TryGetValue(wallet.WalletName, out WalletStatus status))
+			if (walletStatus is WalletStatus.NeedsToRestartAfterSend)
 			{
-				if (status is WalletStatus.NeedsToRestartAfterSend)
-				{
-					await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
-				}
-				else
-				{
-					WalletsStatuses[wallet.WalletName] = WalletStatus.Idle;
-				}
+				await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
+			}
+			else
+			{
+				WalletsStatuses[wallet.WalletName] = WalletStatus.Idle;
 			}
 		}
 	}
 
 	public async Task WalletEnteredTxPreviewAsync(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle))
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle || stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase))
 		{
-			if (stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase)
-			{
-				WalletEnteredSendWorkflow(wallet.WalletName, WalletStatus.NeedsToRestartAfterSend);
-				await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
-			}
+			WalletEnteredSendWorkflow(wallet.WalletName, WalletStatus.NeedsToRestartAfterSend);
+			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 
