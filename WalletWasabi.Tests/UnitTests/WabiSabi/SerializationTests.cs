@@ -3,12 +3,14 @@ using System.Threading;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
-using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Groups;
+using WabiSabi;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
@@ -54,7 +56,8 @@ public class SerializationTests
 	{
 		var converters = new JsonConverter[]
 		{
-				new GroupElementJsonConverter()
+			new GroupElementJsonConverter(),
+			new GroupElementVectorJsonConverter()
 		};
 
 		// Serialization collection test.
@@ -66,6 +69,7 @@ public class SerializationTests
 		Assert.Equal(Generators.Gx1, deserializedGroupElements[1]);
 
 		var deserializedGroupElementVector = JsonConvert.DeserializeObject<GroupElementVector>("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", converters);
+		Assert.NotNull(deserializedGroupElementVector);
 		Assert.Equal(deserializedGroupElements, deserializedGroupElementVector);
 	}
 
@@ -74,7 +78,8 @@ public class SerializationTests
 	{
 		var converters = new JsonConverter[]
 		{
-				new GroupElementJsonConverter()
+			new GroupElementJsonConverter(),
+			new IssuanceRequestJsonConverter()
 		};
 
 		// Serialization round test.
@@ -84,6 +89,44 @@ public class SerializationTests
 		var deserializedIssuanceRequest = JsonConvert.DeserializeObject<IssuanceRequest>(serializedIssuanceRequest, converters)!;
 		Assert.Equal(issuanceRequest.Ma, deserializedIssuanceRequest.Ma);
 		Assert.Equal(issuanceRequest.BitCommitments, deserializedIssuanceRequest.BitCommitments);
+
+		// Compatibility test (can be remove in the near future
+		string serializedWithPreviousVersion = "{\"Ma\":\"0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798\",\"BitCommitments\":[\"02A4E32FE4402666F187BA946FCC166ECBCB5C16BDDF1FF05806AF75FC36678244\",\"027B778E4C1D1F33C90C619ED9BDA321BBC5F05CF9F131A326C57FDA87359D3B0B\",\"02B5EF029E52D2996188804B0BCD2242E1D0F042005A4CC5BF1A364BDF346B6434\",\"030DF036B638077D4B8612C0F7454EF59E8F957D8C149B87FA412B0A80A3AC0B89\",\"020D2A12B37E41DD4E8F2D36862D24FEE4C06586A94296E2543ABBBD1A2ABA6E90\"]}";
+		Assert.Equal(serializedWithPreviousVersion, serializedIssuanceRequest);
+	}
+
+	[Fact]
+	public void CredentialResponseSerialization()
+	{
+		var converters = new JsonConverter[]
+		{
+			new ScalarJsonConverter(),
+			new ScalarVectorJsonConverter(),
+			new GroupElementJsonConverter(),
+			new GroupElementVectorJsonConverter(),
+			new MacJsonConverter(),
+			new ProofJsonConverter()
+		};
+
+		var rnd = new InsecureRandom(1234);
+		var points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
+		var scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
+		var issuerKey = new CredentialIssuerSecretKey(rnd);
+
+		var credentialRespose =
+			new CredentialsResponse(
+				new[] { MAC.ComputeMAC(issuerKey, points.First(), scalars.First()) },
+				new[] { new Proof(new GroupElementVector(points.Take(2)), new ScalarVector(scalars.Take(2))) });
+
+		var serializedCredentialsResponse = JsonConvert.SerializeObject(credentialRespose, converters);
+
+		var deserializedCredentialsResponse = JsonConvert.DeserializeObject<CredentialsResponse>(serializedCredentialsResponse, converters)!;
+		Assert.Equal(credentialRespose.IssuedCredentials, deserializedCredentialsResponse.IssuedCredentials);
+		Assert.Equal(credentialRespose.Proofs, deserializedCredentialsResponse.Proofs);
+
+		string serializedAsPreviousVersion =
+			"{\"IssuedCredentials\":[{\"T\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"V\":\"02CE327D741569B1296A6C8BCD428508E86E365881F940BEE86EDC30B7C1C7A6F6\"}],\"Proofs\":[{\"PublicNonces\":[\"03330CFC201A4AC78F9A0D2BC5FD78E22882D5769AE9939502F32A6408FDD08FC7\",\"021F93603DB53BFAD5C92390F735D0CBB8617B4AB8214AE91C5664A3D1E9B009C8\"],\"Responses\":[\"0000000000000000000000000000000000000000000000000000000000000001\",\"0000000000000000000000000000000000000000000000000000000000000002\"]}]}";
+		Assert.Equal(serializedAsPreviousVersion, serializedCredentialsResponse);
 	}
 
 	[Fact]
@@ -122,7 +165,8 @@ public class SerializationTests
 	{
 		var converters = new JsonConverter[]
 		{
-				new ScalarJsonConverter()
+			new ScalarJsonConverter(),
+			new ScalarVectorJsonConverter()
 		};
 
 		// Serialization collection test.
@@ -139,6 +183,7 @@ public class SerializationTests
 		Assert.Equal(three, deserializedScalars[1]);
 
 		var deserializedScalarVector = JsonConvert.DeserializeObject<ScalarVector>("[\"000000000000000000000000000000014551231950B75FC4402DA1732FC9BEC2\",\"0000000000000000000000000000000000000000000000000000000000000003\"]", converters);
+		Assert.NotNull(deserializedScalarVector);
 		Assert.Equal(deserializedScalars, deserializedScalarVector);
 	}
 
@@ -179,15 +224,21 @@ public class SerializationTests
 		var converters = new JsonConverter[]
 		{
 				new ScalarJsonConverter(),
+				new ScalarVectorJsonConverter(),
 				new GroupElementJsonConverter(),
-				new MoneySatoshiJsonConverter()
+				new GroupElementVectorJsonConverter(),
+				new MoneySatoshiJsonConverter(),
+				new CredentialPresentationJsonConverter(),
+				new IssuanceRequestJsonConverter(),
+				new ProofJsonConverter(),
+				new MacJsonConverter()
 		};
 
 		SecureRandom rnd = SecureRandom.Instance;
 		var sk = new CredentialIssuerSecretKey(rnd);
 
-		var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
-		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
+		var issuer = new CredentialIssuer(sk, rnd, 4_300_000_000_000);
+		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4_300_000_000_000);
 		(ICredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 		var credentialResponse = issuer.HandleRequest(credentialRequest);
 		var present = client.HandleResponse(credentialResponse, validationData);

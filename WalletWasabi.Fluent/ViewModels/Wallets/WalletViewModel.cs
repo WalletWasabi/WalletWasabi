@@ -1,45 +1,36 @@
-using ReactiveUI;
 using System.Collections.Generic;
-using System.Reactive;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Helpers;
+using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletViewModel : WalletViewModelBase
 {
-	private readonly double _smallLayoutHeightBreakpoint;
-	private readonly double _wideLayoutWidthBreakpoint;
-	private readonly int _smallLayoutIndex;
-	private readonly int _normalLayoutIndex;
-	private readonly int _wideLayoutIndex;
-	[AutoNotify] private IList<TileViewModel> _tiles;
-	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
-	[AutoNotify] private int _layoutIndex;
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
+	[AutoNotify] private bool _isPointerOver;
+
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
@@ -50,23 +41,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		Settings = new WalletSettingsViewModel(this);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
+		UiTriggers = new UiTriggers(this);
+		History = new HistoryViewModel(this);
 
-		var balanceChanged =
-			Observable.FromEventPattern(
-					Wallet.TransactionProcessor,
-					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-				.Select(_ => Unit.Default)
-				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-					.Select(_ => Unit.Default))
-				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
-				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.Merge(Settings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
-				.Throttle(TimeSpan.FromSeconds(0.1))
-				.ObserveOn(RxApp.MainThreadScheduler));
-
-		History = new HistoryViewModel(this, balanceChanged);
-
-		balanceChanged
+		UiTriggers.TransactionsUpdateTrigger
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
@@ -90,51 +68,21 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 
 		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
-			.Subscribe(x => IsEmptyWallet = x);
-
-		_smallLayoutHeightBreakpoint = double.MaxValue;
-		_wideLayoutWidthBreakpoint = double.MaxValue;
-
-		_smallLayoutIndex = 0;
-		_normalLayoutIndex = 1;
-		_wideLayoutIndex = 2;
-
-		Layouts = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletLayout()
-			: TileHelper.GetNormalWalletLayout();
-
-		LayoutIndex = _normalLayoutIndex;
-
-		_tiles = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
-			: TileHelper.GetNormalWalletTiles(this, balanceChanged);
-
-		this.WhenAnyValue(x => x.LayoutIndex)
-			.Subscribe(x =>
-			{
-				SetLayoutFlag(x);
-				NotifyLayoutChanged();
-				UpdateTiles();
-			});
-
-		this.WhenAnyValue(x => x.WidthSource)
-			.Subscribe(x => LayoutSelector(x, _heightSource));
-
-		this.WhenAnyValue(x => x.HeightSource)
-			.Subscribe(x => LayoutSelector(_widthSource, x));
+			.Subscribe(x => IsTransactionHistoryEmpty = x);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero)
+			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
+				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
 				.Select(tuple =>
 				{
-					var (isSelected, isWalletBalanceZero) = tuple;
-					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly;
+					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
+					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
@@ -154,16 +102,22 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
-		WalletStatisticsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+		WalletStatsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
+
+		Tiles = GetTiles().ToList();
 	}
+
+	public IEnumerable<ActivatableViewModel> Tiles { get; }
+
+	public UiTriggers UiTriggers { get; }
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
 
@@ -185,7 +139,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public ICommand WalletSettingsCommand { get; }
 
-	public ICommand WalletStatisticsCommand { get; }
+	public ICommand WalletStatsCommand { get; }
 
 	public ICommand WalletCoinsCommand { get; }
 
@@ -194,53 +148,6 @@ public partial class WalletViewModel : WalletViewModelBase
 	private CompositeDisposable Disposables { get; }
 
 	public HistoryViewModel History { get; }
-
-	public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
-
-	private void LayoutSelector(double width, double height)
-	{
-		if (height < _smallLayoutHeightBreakpoint)
-		{
-			// Small Layout
-			LayoutIndex = _smallLayoutIndex;
-		}
-		else
-		{
-			if (width < _wideLayoutWidthBreakpoint)
-			{
-				// Normal Layout
-				LayoutIndex = _normalLayoutIndex;
-			}
-			else
-			{
-				// Wide Layout
-				LayoutIndex = _wideLayoutIndex;
-			}
-		}
-	}
-
-	private void NotifyLayoutChanged()
-	{
-		this.RaisePropertyChanged(nameof(CurrentLayout));
-	}
-
-	private void UpdateTiles()
-	{
-		if (Tiles != null)
-		{
-			foreach (var tile in Tiles)
-			{
-				tile.TilePresetIndex = LayoutIndex;
-			}
-		}
-	}
-
-	private void SetLayoutFlag(int layoutIndex)
-	{
-		IsSmallLayout = layoutIndex == _smallLayoutIndex;
-		IsNormalLayout = layoutIndex == _normalLayoutIndex;
-		IsWideLayout = layoutIndex == _wideLayoutIndex;
-	}
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
@@ -257,12 +164,12 @@ public partial class WalletViewModel : WalletViewModelBase
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		foreach (var tile in _tiles)
+		History.Activate(disposables);
+
+		foreach (var tile in Tiles)
 		{
 			tile.Activate(disposables);
 		}
-
-		History.Activate(disposables);
 	}
 
 	public static WalletViewModel Create(Wallet wallet)
@@ -272,5 +179,17 @@ public partial class WalletViewModel : WalletViewModelBase
 			: wallet.KeyManager.IsWatchOnly
 				? new WatchOnlyWalletViewModel(wallet)
 				: new WalletViewModel(wallet);
+	}
+
+	private IEnumerable<ActivatableViewModel> GetTiles()
+	{
+		yield return new WalletBalanceTileViewModel(this);
+
+		if (!IsWatchOnly)
+		{
+			yield return new PrivacyControlTileViewModel(this);
+		}
+
+		yield return new BtcPriceTileViewModel(Wallet);
 	}
 }

@@ -11,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
@@ -83,26 +84,23 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			return;
 		}
 
-		await Task.Run(async () =>
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+		try
 		{
-			try
-			{
-				var client = new HwiClient(network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-
-				await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
-			}
-			catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
-			{
-				// This exception happens everytime on TestNet because of Wasabi Keypath handling.
-				// The user doesn't need to know about it.
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Unable to send the address to the device");
-			}
-		});
+			var client = new HwiClient(network);
+			await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
+		}
+		catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
+		{
+			// This exception happens everytime on TestNet because of Wasabi Keypath handling.
+			// The user doesn't need to know about it.
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			var exMessage = cts.IsCancellationRequested ? "User response didn't arrive in time." : ex.ToUserFriendlyString();
+			await ShowErrorAsync(Title, exMessage, "Unable to send the address to the device");
+		};
 	}
 
 	private async Task OnSaveQrCodeAsync()
@@ -124,11 +122,12 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			{
 				if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
 				{
-					Navigate().Back();
+					Navigate().Clear();
 				}
 			})
 			.DisposeWith(disposables);
 	}
+
 	private void GenerateQrCode()
 	{
 		try

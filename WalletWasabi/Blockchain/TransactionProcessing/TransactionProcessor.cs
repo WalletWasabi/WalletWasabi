@@ -118,7 +118,7 @@ public class TransactionProcessor
 		var result = new ProcessedResult(tx);
 
 		// We do not care about non-witness transactions for other than mempool cleanup.
-		if (!tx.Transaction.PossiblyP2WPKHInvolved())
+		if (!tx.Transaction.SegWitInvolved())
 		{
 			return result;
 		}
@@ -219,9 +219,9 @@ public class TransactionProcessor
 					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
 				}
 
-				foundKey.SetKeyState(KeyState.Used, KeyManager);
-				var areWeSending = myInputs.Any();
-				if (output.Value <= DustThreshold && !areWeSending)
+				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
+				KeyManager.SetKeyState(KeyState.Used, foundKey);
+				if (couldBeDustAttack)
 				{
 					result.ReceivedDusts.Add(output);
 					continue;
@@ -235,9 +235,6 @@ public class TransactionProcessor
 				if (Coins.TryAdd(newCoin))
 				{
 					result.NewlyReceivedCoins.Add(newCoin);
-
-					// Make sure there's always 21 clean keys generated and indexed.
-					KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
 				}
 				else // If we had this coin already.
 				{
@@ -280,6 +277,11 @@ public class TransactionProcessor
 
 		return result;
 	}
+
+	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
+		output.Value <= DustThreshold // the value received is under the dust threshold
+		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
+		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
 
 	public void UndoBlock(Height blockHeight)
 	{

@@ -28,9 +28,10 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		KeyState = keyState;
 
 		P2pkScript = PubKey.ScriptPubKey;
-		P2pkhScript = PubKey.Hash.ScriptPubKey;
-		P2wpkhScript = PubKey.WitHash.ScriptPubKey;
-		P2shOverP2wpkhScript = P2wpkhScript.Hash.ScriptPubKey;
+		P2pkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
+		P2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+		P2shOverP2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH);
+		P2Taproot = PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
 
 		PubKeyHash = PubKey.Hash;
 		HashCode = PubKeyHash.GetHashCode();
@@ -88,6 +89,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public Script P2pkhScript { get; }
 	public Script P2wpkhScript { get; }
 	public Script P2shOverP2wpkhScript { get; }
+	public Script P2Taproot { get; }
 
 	public KeyId PubKeyHash { get; }
 
@@ -147,7 +149,8 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 				P2pkScript,
 				P2pkhScript,
 				P2wpkhScript,
-				P2shOverP2wpkhScript
+				P2shOverP2wpkhScript,
+				P2Taproot
 			};
 
 		return scripts.Contains(scriptPubKey);

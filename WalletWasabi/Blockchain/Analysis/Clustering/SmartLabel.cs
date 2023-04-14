@@ -63,7 +63,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 
 		return string.Compare(this, other, StringComparison.OrdinalIgnoreCase);
 	}
-	
+
 	public override bool Equals(object? obj) => Equals(obj as SmartLabel) || Equals(obj as string);
 
 	public bool Equals(SmartLabel? other) => AreEquivalent(this, other);
@@ -127,7 +127,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 				{
 					return string.Equals(x, y.LabelString, comparison.Value);
 				}
-				
+
 				return x == y.LabelString;
 			}
 		}
@@ -147,7 +147,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 
 	public static implicit operator SmartLabel(string labels) => new(labels);
 
-	public static implicit operator string(SmartLabel label) => label?.LabelString;
+	public static implicit operator string(SmartLabel label) => label.LabelString;
 
 	#endregion Equality
 }

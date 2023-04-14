@@ -30,7 +30,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		Network = wallet.Network;
 		_addresses = new ObservableCollection<AddressViewModel>();
 
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true, escapeGoesBack: true);
 
 		EnableBack = true;
 
@@ -43,42 +43,9 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		{
 			Columns =
 			{
-				// Actions
-				new TemplateColumn<AddressViewModel>(
-					null,
-					new FuncDataTemplate<AddressViewModel>((node, ns) => new ActionsColumnView(), true),
-					options: new ColumnOptions<AddressViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = false
-					},
-					width: new GridLength(90, GridUnitType.Pixel)),
-
-				// Address
-				new TemplateColumn<AddressViewModel>(
-					"Address",
-					new FuncDataTemplate<AddressViewModel>((node, ns) => new AddressColumnView(), true),
-					options: new ColumnOptions<AddressViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = AddressViewModel.SortAscending(x => x.Address),
-						CompareDescending = AddressViewModel.SortDescending(x => x.Address)
-					},
-					width: new GridLength(2, GridUnitType.Star)),
-
-				// Labels
-				new TemplateColumn<AddressViewModel>(
-					"Labels",
-					new FuncDataTemplate<AddressViewModel>((node, ns) => new LabelsColumnView(), true),
-					options: new ColumnOptions<AddressViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = AddressViewModel.SortAscending(x => x.Label),
-						CompareDescending = AddressViewModel.SortDescending(x => x.Label)
-					},
-					width: new GridLength(210, GridUnitType.Pixel))
+				ActionsColumn(),
+				AddressColumn(),
+				LabelsColumn()
 			}
 		};
 
@@ -92,6 +59,49 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 	public Network Network { get; }
 
 	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
+
+	private static IColumn<AddressViewModel> ActionsColumn()
+	{
+		return new TemplateColumn<AddressViewModel>(
+			null,
+			new FuncDataTemplate<AddressViewModel>((node, ns) => new ActionsColumnView(), true),
+			options: new ColumnOptions<AddressViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = false
+			},
+			width: new GridLength(90, GridUnitType.Pixel));
+	}
+
+	private static IColumn<AddressViewModel> AddressColumn()
+	{
+		return new TemplateColumn<AddressViewModel>(
+			"Address",
+			new FuncDataTemplate<AddressViewModel>((node, ns) => new AddressColumnView(), true),
+			options: new ColumnOptions<AddressViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = AddressViewModel.SortAscending(x => x.Address),
+				CompareDescending = AddressViewModel.SortDescending(x => x.Address)
+			},
+			width: new GridLength(2, GridUnitType.Star));
+	}
+
+	private static IColumn<AddressViewModel> LabelsColumn()
+	{
+		return new TemplateColumn<AddressViewModel>(
+			"Labels",
+			new FuncDataTemplate<AddressViewModel>((node, ns) => new LabelsColumnView(), true),
+			options: new ColumnOptions<AddressViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = AddressViewModel.SortAscending(x => x.Label),
+				CompareDescending = AddressViewModel.SortDescending(x => x.Label)
+			},
+			width: new GridLength(210, GridUnitType.Pixel));
+	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -132,7 +142,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			return;
 		}
 
-		model.SetKeyState(KeyState.Locked, Wallet.KeyManager);
+		Wallet.KeyManager.SetKeyState(KeyState.Locked, model);
 		InitializeAddresses();
 
 		if (Application.Current is { Clipboard: { } clipboard })

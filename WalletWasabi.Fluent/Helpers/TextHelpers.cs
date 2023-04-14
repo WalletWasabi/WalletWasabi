@@ -6,13 +6,16 @@ using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public static class TextHelpers
+public static partial class TextHelpers
 {
 	public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
 
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
 	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddSIfPlural(n)}" : "";
+
+	[GeneratedRegex(@"\s+")]
+	private static partial Regex ParseLabelRegex();
 
 	private static void AddIfNotEmpty(List<string> list, string item)
 	{
@@ -49,16 +52,6 @@ public static class TextHelpers
 		return result;
 	}
 
-	public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode, string format = "N2")
-	{
-		return GenerateFiatText(amountBtc * exchangeRate, fiatCode, format);
-	}
-
-	public static string GenerateFiatText(this decimal amountFiat, string fiatCode, string format = "N2")
-	{
-		return $"(≈{(amountFiat).FormattedFiat(format)} {fiatCode}) ";
-	}
-
 	public static string ToFormattedString(this Money money)
 	{
 		const int WholeGroupSize = 3;
@@ -80,10 +73,10 @@ public static class TextHelpers
 		return moneyString;
 	}
 
-	public static string ParseLabel(this string text) => Regex.Replace(text, @"\s+", " ").Trim();
+	public static string ParseLabel(this string text) => ParseLabelRegex().Replace(text, " ").Trim();
 
 	public static string GetPrivacyMask(int repeatCount)
 	{
-		return new string(UIConstants.PrivacyChar, repeatCount);
+		return new string(UiConstants.PrivacyChar, repeatCount);
 	}
 }

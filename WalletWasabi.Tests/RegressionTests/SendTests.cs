@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -49,8 +50,8 @@ public class SendTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 4. Create key manager service.
@@ -59,16 +60,22 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
-		var key2 = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
+		var key2 = keyManager.GetNextReceiveKey("foo label");
 		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 		Assert.NotNull(txId);
 		await rpc.GenerateAsync(1);
@@ -81,7 +88,7 @@ public class SendTests
 			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Wait until the filter our previous transaction is present.
@@ -125,7 +132,7 @@ public class SendTests
 
 			#region Basic
 
-			Script receive = keyManager.GetNextReceiveKey("Basic", out _).P2wpkhScript;
+			Script receive = keyManager.GetNextReceiveKey("Basic").P2wpkhScript;
 			Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 			var res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -173,7 +180,7 @@ public class SendTests
 
 			#region SubtractFeeFromAmount
 
-			receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, subtractFee: true, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -312,7 +319,7 @@ public class SendTests
 
 			#region MaxAmount
 
-			receive = keyManager.GetNextReceiveKey("MaxAmount", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("MaxAmount").P2wpkhScript;
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -333,13 +340,13 @@ public class SendTests
 
 			#region InputSelection
 
-			receive = keyManager.GetNextReceiveKey("InputSelection", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("InputSelection").P2wpkhScript;
 
 			var inputCountBefore = res.SpentCoins.Count();
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
-				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1));
+				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1));
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Empty(res.OuterWalletOutputs);
@@ -359,7 +366,7 @@ public class SendTests
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
-				allowedInputs: new[] { res.SpentCoins.Select(x => x.OutPoint).First() });
+				allowedInputs: new[] { res.SpentCoins.Select(x => x.Outpoint).First() });
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Empty(res.OuterWalletOutputs);
@@ -373,7 +380,7 @@ public class SendTests
 
 			#region Labeling
 
-			Script receive2 = keyManager.GetNextReceiveKey("foo", out _).P2wpkhScript;
+			Script receive2 = keyManager.GetNextReceiveKey("foo").P2wpkhScript;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			Assert.Single(res.InnerWalletOutputs);
@@ -422,9 +429,9 @@ public class SendTests
 
 			inputCountBefore = res.SpentCoins.Count();
 
-			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed", out _).P2wpkhScript;
+			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed").P2wpkhScript;
 
-			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1);
+			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1);
 			PaymentIntent toSend = new(receive, MoneyRequest.CreateAllRemaining(), "fizz");
 
 			// covers:
@@ -527,8 +534,8 @@ public class SendTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 4. Create key manager service.
@@ -537,21 +544,27 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 
 		try
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Wait until the filter our previous transaction is present.
@@ -588,7 +601,7 @@ public class SendTests
 			Assert.Equal(2, tx1Res.OuterWalletOutputs.Count());
 
 			// Spend the unconfirmed coin (send it to ourself)
-			operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));
+			operations = new PaymentIntent(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(0.5m));
 			tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 			eventAwaiter = new EventAwaiter<ProcessedResult>(
 				h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
@@ -612,7 +625,7 @@ public class SendTests
 			Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 			// Spend the unconfirmed and unspent coin (send it to ourself)
-			operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.6m), subtractFee: true);
+			operations = new PaymentIntent(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(0.6m), subtractFee: true);
 			var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			eventAwaiter = new EventAwaiter<ProcessedResult>(
@@ -663,7 +676,7 @@ public class SendTests
 			// Test coin basic count.
 			ICoinsView GetAllCoins() => wallet.TransactionProcessor.Coins.AsAllCoinsView();
 			var coinCount = GetAllCoins().Count();
-			var to = keyManager.GetNextReceiveKey("foo", out _);
+			var to = keyManager.GetNextReceiveKey("foo");
 			var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: "bar"), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 			await broadcaster.SendTransactionAsync(res.Transaction);
 			Assert.Equal(coinCount + 2, GetAllCoins().Count());
@@ -701,8 +714,8 @@ public class SendTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 4. Create key manager service.
@@ -711,9 +724,15 @@ public class SendTests
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -721,13 +740,13 @@ public class SendTests
 		Assert.Empty(wallet.Coins);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 
 		try
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Wait until the filter our previous transaction is present.
@@ -781,5 +800,14 @@ public class SendTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }

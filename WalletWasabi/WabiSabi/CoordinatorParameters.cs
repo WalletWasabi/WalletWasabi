@@ -1,4 +1,5 @@
 using System.IO;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.WabiSabi;
@@ -12,7 +13,7 @@ public class CoordinatorParameters
 
 		var runtimeConfigurationFilePath = Path.Combine(ApplicationDataDir, "WabiSabiConfig.json");
 		RuntimeCoordinatorConfig = new(runtimeConfigurationFilePath);
-		RuntimeCoordinatorConfig.LoadOrCreateDefaultFile();
+		RuntimeCoordinatorConfig.LoadFile(createIfMissing: true);
 	}
 
 	/// <summary>
@@ -29,6 +30,11 @@ public class CoordinatorParameters
 	/// Banned UTXOs are serialized here.
 	/// </summary>
 	public string PrisonFilePath => Path.Combine(CoordinatorDataDir, "Prison.txt");
+
+	/// <summary>
+	/// Whitelisted UTXOs are serialized here.
+	/// </summary>
+	public string WhitelistFilePath => Path.Combine(CoordinatorDataDir, "Whitelist.txt");
 
 	/// <summary>
 	/// File that is storing the hashes of WabiSabi CoinJoins.

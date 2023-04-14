@@ -16,6 +16,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds;
@@ -26,7 +27,7 @@ public class CoordinatorRound
 	private RoundPhase _phase;
 	private CoordinatorRoundStatus _status;
 
-	public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut)
+	public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut, CoinVerifier? coinVerifier = null)
 	{
 		try
 		{
@@ -36,6 +37,7 @@ public class CoordinatorRound
 			UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 			RoundConfig = Guard.NotNull(nameof(config), config);
 
+			CoinVerifier = coinVerifier;
 			AdjustedConfirmationTarget = adjustedConfirmationTarget;
 			ConfiguredConfirmationTarget = configuredConfirmationTarget;
 			ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
@@ -218,7 +220,7 @@ public class CoordinatorRound
 
 	public UtxoReferee UtxoReferee { get; }
 	public CoordinatorRoundConfig RoundConfig { get; }
-
+	public CoinVerifier? CoinVerifier { get; }
 	public RoundNonceProvider NonceProvider { get; }
 
 	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
@@ -336,42 +338,37 @@ public class CoordinatorRound
 						switch (phase)
 						{
 							case RoundPhase.InputRegistration:
+								// Only abort if less than two one Alice is registered.
+								// Do not ban anyone, it's ok if they lost connection.
+								await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
+								int aliceCountAfterInputRegistrationTimeout = CountAlices();
+								if (aliceCountAfterInputRegistrationTimeout < 2)
 								{
-									// Only abort if less than two one Alice is registered.
-									// Do not ban anyone, it's ok if they lost connection.
-									await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
-									int aliceCountAfterInputRegistrationTimeout = CountAlices();
-									if (aliceCountAfterInputRegistrationTimeout < 2)
-									{
-										Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
-									}
-									else
-									{
-										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
-									}
+									Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+								}
+								else
+								{
+									UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+
+									// Progress to the next phase, which will be ConnectionConfirmation
+									await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
 								}
 								break;
 
 							case RoundPhase.ConnectionConfirmation:
+								using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
 								{
-									using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
-									{
-										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
+									IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
-									}
+									await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
 								}
 								break;
 
 							case RoundPhase.OutputRegistration:
-								{
-									// Output registration never aborts.
-									// We do not know which Alice to ban.
-									// Therefore proceed to signing, and whichever Alice does not sign, ban her.
-									await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
-								}
+								// Output registration never aborts.
+								// We do not know which Alice to ban.
+								// Therefore proceed to signing, and whichever Alice does not sign, ban her.
+								await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
 								break;
 
 							case RoundPhase.Signing:
@@ -380,7 +377,7 @@ public class CoordinatorRound
 
 									if (alicesToBan.Any())
 									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: false, toBan: alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
 									}
 
 									Abort($"{alicesToBan.Length} Alices did not sign.");
@@ -413,10 +410,8 @@ public class CoordinatorRound
 		switch (phase)
 		{
 			case RoundPhase.InputRegistration:
-				{
-					SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
-					timeout = InputRegistrationTimeout;
-				}
+				SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
+				timeout = InputRegistrationTimeout;
 				break;
 
 			case RoundPhase.ConnectionConfirmation:
@@ -560,6 +555,7 @@ public class CoordinatorRound
 		}
 
 		var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
+
 		// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 		if (coordinatorFee > Money.Coins(0.0003m))
 		{
@@ -576,6 +572,7 @@ public class CoordinatorRound
 		// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
 		transaction.Inputs.SortByAmount(spentCoins);
 		transaction.Outputs.SortByAmount();
+
 		// Note: We shuffle then sort because inputs and outputs could have equal values
 
 		if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
@@ -624,9 +621,56 @@ public class CoordinatorRound
 
 	private async Task MoveToConnectionConfirmationAsync()
 	{
-		await RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync().ConfigureAwait(false);
-
+		using (BenchmarkLogger.Measure(LogLevel.Info, nameof(RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync)))
+		{
+			await RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync().ConfigureAwait(false);
+		}
+		using (BenchmarkLogger.Measure(LogLevel.Info, nameof(RemoveAliceIfCoinsAreNaughtyAsync)))
+		{
+			await RemoveAliceIfCoinsAreNaughtyAsync().ConfigureAwait(false);
+		}
 		Phase = RoundPhase.ConnectionConfirmation;
+	}
+
+	private async Task RemoveAliceIfCoinsAreNaughtyAsync()
+	{
+		if (CoinVerifier is null)
+		{
+			return;
+		}
+
+		try
+		{
+			Dictionary<Coin, Alice> coinDictionary = new(CoinEqualityComparer.Default);
+			foreach (var alice in Alices)
+			{
+				foreach (var coin in alice.Inputs)
+				{
+					if (!coinDictionary.TryAdd(coin, alice))
+					{
+						Logger.LogWarning($"Duplicated coins were found during the build of {nameof(coinDictionary)}.");
+					}
+				}
+			}
+
+			foreach (var info in await CoinVerifier.VerifyCoinsAsync(coinDictionary.Keys, CancellationToken.None).ConfigureAwait(false))
+			{
+				if (info.ShouldRemove)
+				{
+					var aliceToRemove = coinDictionary[info.Coin];
+					Alices.Remove(aliceToRemove);
+					CoinVerifier.VerifierAuditArchiver.LogRoundEvent(new uint256((ulong)RoundId), $"{info.Coin.Outpoint} got removed from round");
+				}
+			}
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
+			CoinVerifier.VerifierAuditArchiver.LogException(new uint256((ulong)RoundId), exc);
+
+			// Fail hard as VerifyCoinsAsync should handle all exceptions.
+			throw;
+		}
 	}
 
 	private async Task MoveToInputRegistrationAsync()
@@ -662,7 +706,7 @@ public class CoordinatorRound
 
 		if (inputsToBan.Any())
 		{
-			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray()).ConfigureAwait(false);
+			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: false, toBan: inputsToBan.ToArray()).ConfigureAwait(false);
 
 			var alicesConnectionConfirmedAndSpentCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnectionIds).Distinct().Count();
 			if (alicesConnectionConfirmedAndSpentCount > 0)
@@ -688,6 +732,7 @@ public class CoordinatorRound
 				// Adjust anonymity set.
 				UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 			}
+
 			// Progress to the next phase, which will be OutputRegistration
 			await ExecuteNextPhaseAsync(RoundPhase.OutputRegistration).ConfigureAwait(false);
 		}
@@ -1345,8 +1390,10 @@ public class CoordinatorRound
 	{
 		// Check if mempool would accept a fake transaction created with all the registered inputs.
 		var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
+
 		// Add the outputs by denomination level. Add 1 as estimation could be sometimes off by 1.
 		var outputCount = Alices.Sum(alice => EstimateBestMixingLevel(alice) + 1);
+
 		// Add the change outputs.
 		outputCount += Alices.Count;
 

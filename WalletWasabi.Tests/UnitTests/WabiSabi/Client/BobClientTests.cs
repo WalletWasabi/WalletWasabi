@@ -1,12 +1,17 @@
 using Microsoft.Extensions.Caching.Memory;
+using Moq;
 using NBitcoin;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Controllers;
-using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Cache;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
@@ -22,9 +27,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class BobClientTests
 {
+	private TimeSpan TestTimeout { get; } = TimeSpan.FromMinutes(3);
+
 	[Fact]
 	public async Task RegisterOutputTestAsync()
 	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
 		var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 		var round = WabiSabiFactory.CreateRound(config);
 		var km = ServiceFactory.CreateKeyManager("");
@@ -33,13 +43,15 @@ public class BobClientTests
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin);
 		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		await arena.TriggerAndWaitRoundAsync(token);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
+		AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
@@ -56,24 +68,24 @@ public class BobClientTests
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
-		await roundStateUpdater.StartAsync(CancellationToken.None);
+		await roundStateUpdater.StartAsync(token);
 
 		var keyChain = new KeyChain(km, new Kitchen(""));
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, token, token, token);
 
 		do
 		{
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+			await arena.TriggerAndWaitRoundAsync(token);
 		}
 		while (round.Phase != Phase.ConnectionConfirmation);
 
 		var aliceClient = await task;
 
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 		using var destinationKey = new Key();
-		var destination = destinationKey.PubKey.WitHash.ScriptPubKey;
+		var destination = destinationKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
 		var bobClient = new BobClient(round.Id, bobArenaClient);
 
@@ -81,7 +93,7 @@ public class BobClientTests
 			destination,
 			aliceClient.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
-			CancellationToken.None);
+			token);
 
 		var bob = Assert.Single(round.Bobs);
 		Assert.Equal(destination, bob.Script);

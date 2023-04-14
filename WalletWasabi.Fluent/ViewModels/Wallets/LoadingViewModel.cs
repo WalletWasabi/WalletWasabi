@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -16,10 +17,10 @@ public partial class LoadingViewModel : ActivatableViewModel
 	private readonly Wallet _wallet;
 
 	[AutoNotify] private double _percent;
-	[AutoNotify] private string? _statusText;
+	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
+	[AutoNotify] private bool _isLoading;
 
 	private Stopwatch? _stopwatch;
-	private volatile bool _isLoading;
 	private uint _filtersToDownloadCount;
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
@@ -27,23 +28,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 	public LoadingViewModel(Wallet wallet)
 	{
 		_wallet = wallet;
-		_statusText = "";
 		_percent = 0;
-
-		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-			.Where(status => status == BackendStatus.Connected)
-			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
-
-		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-			.SubscribeAsync(async _ =>
-			{
-				if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
-				{
-					return;
-				}
-
-				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
-			});
 	}
 
 	public string WalletName => _wallet.WalletName;
@@ -54,11 +39,26 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
-		base.OnActivated(disposables);
+		_stopwatch = Stopwatch.StartNew();
 
-		Percent = 0;
-		StatusText = "";
-		_stopwatch ??= Stopwatch.StartNew();
+		disposables.Add(Disposable.Create(() => _stopwatch.Stop()));
+
+		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+			.Where(status => status == BackendStatus.Connected)
+			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
+			.DisposeWith(disposables);
+
+		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
+			.SubscribeAsync(async _ =>
+			{
+				if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
+				{
+					return;
+				}
+
+				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
+			})
+			.DisposeWith(disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -91,12 +91,12 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	private async Task LoadWalletAsync(bool isBackendAvailable)
 	{
-		if (_isLoading)
+		if (IsLoading)
 		{
 			return;
 		}
 
-		_isLoading = true;
+		IsLoading = true;
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
@@ -121,7 +121,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 		{
 			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
 			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
 			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
@@ -153,7 +153,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		if (remainingTimeSpan > TimeSpan.FromHours(1))
 		{
- 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+			remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
 		}
 
 		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);

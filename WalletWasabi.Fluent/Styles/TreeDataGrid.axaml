@@ -4,7 +4,7 @@
   <Style Selector="TreeDataGrid">
     <!-- <Setter Property="GridLinesVisibility" Value="Horizontal"/> -->
     <!-- <Setter Property="IsReadOnly" Value="True"/> -->
-    <Setter Property="CanUserResizeColumns" Value="True"/>
+    <Setter Property="CanUserResizeColumns" Value="True" />
   </Style>
 
   <Style Selector="TreeDataGridRow">
@@ -21,7 +21,7 @@
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
-                                        Rows="{TemplateBinding Rows}"/>
+                                        Rows="{TemplateBinding Rows}" />
           </Panel>
         </DockPanel>
       </ControlTemplate>
@@ -59,11 +59,11 @@
   </Style>
 
   <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <Style Selector=":is(TreeDataGridCell)">
-    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Padding" Value="0" />
   </Style>
 
   <Style Selector="TreeDataGridColumnHeader">

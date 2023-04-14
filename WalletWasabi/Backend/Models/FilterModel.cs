@@ -33,21 +33,35 @@ public class FilterModel
 
 	public static FilterModel FromLine(string line)
 	{
-		string[] parts = line.Split(':');
-
-		if (parts.Length < 5)
+		try
 		{
-			throw new ArgumentException(line, nameof(line));
+			// Splitting lines using Split(':') requires allocations. Working with .NET spans is faster.
+			ReadOnlySpan<char> span = line;
+
+			int m1 = line.IndexOf(':', 0);
+			int m2 = line.IndexOf(':', m1 + 1);
+			int m3 = line.IndexOf(':', m2 + 1);
+			int m4 = line.IndexOf(':', m3 + 1);
+
+			if (m1 == -1 || m2 == -1 || m3 == -1 || m4 == -1)
+			{
+				throw new ArgumentException(line, nameof(line));
+			}
+
+			uint blockHeight = uint.Parse(span[0..m1]);
+			uint256 blockHash = new(Convert.FromHexString(span[(m1 + 1)..m2]), lendian: false);
+			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
+
+			Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+			uint256 prevBlockHash = new(Convert.FromHexString(span[(m3 + 1)..m4]), lendian: false);
+			long blockTime = long.Parse(span[(m4 + 1)..]);
+
+			return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
 		}
-
-		uint blockHeight = uint.Parse(parts[0]);
-		uint256 blockHash = uint256.Parse(parts[1]);
-		byte[] filterData = Encoders.Hex.DecodeData(parts[2]);
-		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
-		uint256 prevBlockHash = uint256.Parse(parts[3]);
-		long blockTime = long.Parse(parts[4]);
-
-		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
+		catch (FormatException ex)
+		{
+			throw new FormatException("An error occurred while parsing the block filters.", ex);
+		}
 	}
 
 	public string ToLine()

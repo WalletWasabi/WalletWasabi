@@ -3,10 +3,11 @@
   <Design.PreviewWith>
     <Border Padding="20">
       <StackPanel Spacing="10">
-        <Button Classes="action" Content="Action Button"/>
-        <Button Classes="plain" Content="Plain Button"/>
-        <Button Classes="function" Content="Function Button"/>
-        <Button Classes="invisible" Content="Invisible Button"/>
+        <Button Classes="action" Content="Action Button" />
+        <Button Classes="plain" Content="Plain Button" />
+        <Button Classes="function" Content="Function Button" />
+        <Button Classes="invisible" Content="Invisible Button" />
+        <Button Classes="plainHyperlink" Content="Quick" />
       </StackPanel>
     </Border>
   </Design.PreviewWith>
@@ -31,7 +32,6 @@
   <Style Selector="Button.action:disabled /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
-
 
   <Style Selector="Button.plain">
     <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -74,4 +74,22 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
 
+  <Style Selector="Button.plainHyperlink">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.plainHyperlink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.plainHyperlink:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.plainHyperlink:pointerover TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+  <Style Selector="Button.plainHyperlink:pointerover AccessText">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
 </Styles>

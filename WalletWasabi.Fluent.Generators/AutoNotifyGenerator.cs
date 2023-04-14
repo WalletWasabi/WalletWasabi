@@ -236,9 +236,7 @@ namespace {namespaceName}
 				return fieldName.ToUpper();
 			}
 
-#pragma warning disable IDE0057 // Use range operator
 			return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
-#pragma warning restore IDE0057 // Use range operator
 		}
 	}
 

@@ -181,7 +181,6 @@ public class PubKeyReuseAnonScoreTests
 	[Fact]
 	public void OutputSideAddressReusePunished()
 	{
-		// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
 		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);

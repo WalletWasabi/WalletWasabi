@@ -34,9 +34,10 @@ public class ClipboardCopyButton : TemplatedControl
 
 	private async Task CopyToClipboardAsync()
 	{
-		if (Application.Current is {Clipboard: { } clipboard})
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
 			await clipboard.SetTextAsync(Text);
+			await Task.Delay(1000); // Introduces a delay while the animation is playing (1s). This will make the command 'busy' while being animated, avoiding reentrancy.
 		}
 	}
 }

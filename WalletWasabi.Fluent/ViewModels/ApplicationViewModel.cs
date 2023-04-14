@@ -19,7 +19,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		_mainWindowService = mainWindowService;
 
-		QuitCommand = ReactiveCommand.Create(ShutDown);
+		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
 
 		ShowHideCommand = ReactiveCommand.Create(() =>
 		{
@@ -35,9 +35,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
 
-		AboutCommand = ReactiveCommand.Create(
-			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
-			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage).Select(x => x is null));
+		AboutCommand = ReactiveCommand.Create(AboutExecute, AboutCanExecute());
 
 		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 		TrayIcon = new WindowIcon(bitmap);
@@ -51,15 +49,51 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public ICommand QuitCommand { get; }
 
-	public void ShutDown() => _mainWindowService.Shutdown();
-
-	public void OnShutdownPrevented()
+	private void AboutExecute()
 	{
-		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
-		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this));
+		MainViewModel.Instance.DialogScreen.To(
+			new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null));
 	}
 
-	public bool CanShutdown()
+	private IObservable<bool> AboutCanExecute()
+	{
+		return MainViewModel.Instance.DialogScreen
+			.WhenAnyValue(x => x.CurrentPage)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(x => x is null);
+	}
+
+	public void Shutdown(bool restart) => _mainWindowService.Shutdown(restart);
+
+	public void OnShutdownPrevented(bool restartRequest)
+	{
+		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
+
+		if (!MainViewCanShutdown() && !restartRequest)
+		{
+			MainViewModel.Instance.ShowDialogAlert();
+			return;
+		}
+
+		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
+	}
+
+	public bool CanShutdown(bool restart)
+	{
+		if (!MainViewCanShutdown() && !restart)
+		{
+			return false;
+		}
+
+		return CoinJoinCanShutdown();
+	}
+
+	public bool MainViewCanShutdown()
+	{
+		return !MainViewModel.Instance.IsDialogOpen();
+	}
+
+	public bool CoinJoinCanShutdown()
 	{
 		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
@@ -68,7 +102,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return cjManager.HighestCoinJoinClientState switch
 			{
 				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
+				CoinJoinClientState.Idle or CoinJoinClientState.InSchedule or CoinJoinClientState.InProgress => true,
 				_ => throw new ArgumentOutOfRangeException(),
 			};
 		}

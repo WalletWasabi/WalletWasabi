@@ -7,8 +7,9 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -37,11 +38,11 @@ public static class NotificationHelpers
 		}
 	}
 
-	public static void Show(string walletName, ProcessedResult result, Action onClick)
+	public static void Show(Wallet wallet, ProcessedResult result, Action onClick)
 	{
-		if (TryGetNotificationInputs(result, out var message))
+		if (TryGetNotificationInputs(result, wallet.Synchronizer.UsdExchangeRate, out var message))
 		{
-			Show(walletName, message, onClick);
+			Show(wallet.WalletName, message, onClick);
 		}
 	}
 
@@ -50,7 +51,7 @@ public static class NotificationHelpers
 		NotificationManager?.Show(viewModel);
 	}
 
-	private static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? message)
+	private static bool TryGetNotificationInputs(ProcessedResult result, decimal fiatExchangeRate, [NotNullWhen(true)] out string? message)
 	{
 		message = null;
 
@@ -69,10 +70,11 @@ public static class NotificationHelpers
 				Money incoming = receivedSum - spentSum;
 				Money receiveSpentDiff = incoming.Abs();
 				string amountString = receiveSpentDiff.ToFormattedString();
+				string fiatString = receiveSpentDiff.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
 
 				if (result.Transaction.Transaction.IsCoinBase)
 				{
-					message = $"{amountString} BTC received as Coinbase reward";
+					message = $"{amountString} BTC {fiatString} received as Coinbase reward";
 				}
 				else if (isSpent && receiveSpentDiff == miningFee)
 				{
@@ -80,12 +82,13 @@ public static class NotificationHelpers
 				}
 				else if (incoming > Money.Zero)
 				{
-					message = $"{amountString} BTC received";
+					message = $"{amountString} BTC {fiatString} incoming";
 				}
 				else if (incoming < Money.Zero)
 				{
 					var sentAmount = receiveSpentDiff - miningFee;
-					message = $"{sentAmount.ToFormattedString()} BTC sent";
+					var fiatSentAmount = sentAmount.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
+					message = $"{sentAmount.ToFormattedString()} BTC {fiatSentAmount} sent";
 				}
 			}
 			else if (isConfirmedReceive || isConfirmedSpent)
@@ -95,6 +98,7 @@ public static class NotificationHelpers
 				Money incoming = receivedSum - spentSum;
 				Money receiveSpentDiff = incoming.Abs();
 				string amountString = receiveSpentDiff.ToFormattedString();
+				string fiatString = receiveSpentDiff.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
@@ -102,12 +106,13 @@ public static class NotificationHelpers
 				}
 				else if (incoming > Money.Zero)
 				{
-					message = $"Receiving {amountString} BTC has been confirmed";
+					message = $"Receiving {amountString} BTC {fiatString} has been confirmed";
 				}
 				else if (incoming < Money.Zero)
 				{
 					var sentAmount = receiveSpentDiff - miningFee;
-					message = $"{sentAmount.ToFormattedString()} BTC sent got confirmed";
+					var fiatSentAmount = sentAmount.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
+					message = $"{sentAmount.ToFormattedString()} BTC {fiatSentAmount} sent got confirmed";
 				}
 			}
 		}

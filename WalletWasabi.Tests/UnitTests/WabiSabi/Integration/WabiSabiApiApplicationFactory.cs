@@ -8,13 +8,16 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NBitcoin;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -62,11 +65,10 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
+			services.AddHttpClient();
+			services.AddSingleton<AffiliationManager>();
 		});
-		builder.ConfigureLogging(o =>
-		{
-			o.SetMinimumLevel(LogLevel.Warning);
-		});
+		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
@@ -79,15 +81,21 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	{
 		var rounds = (await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
-		var insecureRandom = new InsecureRandom();
 		var arenaClient = new ArenaClient(
-			round.CreateAmountCredentialClient(insecureRandom),
-			round.CreateVsizeCredentialClient(insecureRandom),
+			round.CreateAmountCredentialClient(InsecureRandom.Instance),
+			round.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			round.CoinjoinState.Parameters.CoordinationIdentifier,
 			wabiSabiHttpApiClient);
 		return arenaClient;
 	}
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
-		new(new HttpClientWrapper(httpClient));
+		new(new ClearnetHttpClient(httpClient));
+
+	private static AffiliationManager NewMockAffiliationManager()
+	{
+		Mock<AffiliationManager> mockManager = new();
+		mockManager.Setup(x => x.GetAffiliateInformation()).Returns(AffiliateInformation.Empty);
+		return mockManager.Object;
+	}
 }

@@ -31,12 +31,12 @@ public partial class LabelViewModel : ViewModelBase
 				owner.OnFade(this);
 			});
 
-		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
+		ClickedCommand = ReactiveCommand.CreateFromTask(async () => await owner.SwapLabelAsync(this));
 
 		_toolTip = label;
 	}
 
-	public  bool IsDangerous { get; set; }
+	public bool IsDangerous { get; set; }
 
 	public string Value { get; }
 

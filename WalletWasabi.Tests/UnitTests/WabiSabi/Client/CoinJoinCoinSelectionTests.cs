@@ -1,9 +1,9 @@
 using System.Linq;
 using Moq;
 using NBitcoin;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -18,12 +18,12 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNothingFromEmptySetOfCoins()
 	{
 		// This test is to make sure no coins are selected when there are no coins.
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: Enumerable.Empty<SmartCoin>(),
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: 10,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -38,15 +38,15 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -59,19 +59,19 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure that we select the non-private coin in the set.
 		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1);
+		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.Prepend(smallerAnonCoin)
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -87,15 +87,15 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
@@ -111,16 +111,16 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
@@ -135,16 +135,16 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
 			.ToList();
 
-		var coins = CoinJoinClient.SelectCoinsForRound(
+		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 

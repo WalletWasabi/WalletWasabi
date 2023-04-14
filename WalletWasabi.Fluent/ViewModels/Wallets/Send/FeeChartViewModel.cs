@@ -5,7 +5,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
-using WalletWasabi.Fluent.Converters;
 using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -250,7 +249,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		SliderMinimum = 0;
 		SliderMaximum = confirmationTargetValues.Length - 1;
-		var confirmationTargetCandidate = ConfirmationTargetValues.LastOrDefault(x => Services.UiConfig.FeeTarget <= x);
+		var confirmationTargetCandidate = ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget));
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);

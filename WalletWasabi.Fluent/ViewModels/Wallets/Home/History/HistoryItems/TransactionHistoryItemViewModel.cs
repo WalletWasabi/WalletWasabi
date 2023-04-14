@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -16,9 +14,8 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	public TransactionHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
-		WalletViewModel walletViewModel,
-		Money balance,
-		IObservable<Unit> updateTrigger)
+		WalletViewModel walletVm,
+		Money balance)
 		: base(orderIndex, transactionSummary)
 	{
 		Label = transactionSummary.Label;
@@ -30,18 +27,11 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 
 		var amount = transactionSummary.Amount;
-		if (amount < Money.Zero)
-		{
-			OutgoingAmount = amount * -1;
-		}
-		else
-		{
-			IncomingAmount = amount;
-		}
+		SetAmount(amount);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
+				new TransactionDetailsViewModel(transactionSummary, walletVm)));
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)
@@ -54,6 +44,6 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			},
 			speedUpTransactionCommandCanExecute);
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
+		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
 }

@@ -14,15 +14,15 @@ public interface IHttpClient
 
 	/// <summary>Sends an HTTP(s) request.</summary>
 	/// <param name="request">HTTP request message to send.</param>
-	/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
+	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
-	Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default);
+	Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default);
 
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="InvalidOperationException"/>
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
-	async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
+	async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancellationToken = default)
 	{
 		if (BaseUriGetter is null)
 		{
@@ -44,6 +44,6 @@ public interface IHttpClient
 			httpRequestMessage.Content = content;
 		}
 
-		return await SendAsync(httpRequestMessage, cancel).ConfigureAwait(false);
+		return await SendAsync(httpRequestMessage, cancellationToken).ConfigureAwait(false);
 	}
 }

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -14,25 +13,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 {
-	private readonly WalletViewModel _walletViewModel;
-	private readonly IObservable<Unit> _updateTrigger;
+	private readonly WalletViewModel _walletVm;
 
 	public CoinJoinsHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary firstItem,
-		WalletViewModel walletViewModel,
-		IObservable<Unit> updateTrigger)
+		WalletViewModel walletVm)
 		: base(orderIndex, firstItem)
 	{
-		_walletViewModel = walletViewModel;
-		_updateTrigger = updateTrigger;
+		_walletVm = walletVm;
 
 		CoinJoinTransactions = new List<TransactionSummary>();
 		IsCoinJoin = true;
+		IsCoinJoinGroup = true;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinsDetailsViewModel(this, _updateTrigger)));
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
+				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
 	}
@@ -52,9 +49,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 			var transaction = new CoinJoinHistoryItemViewModel(
 				i,
 				item,
-				_walletViewModel,
+				_walletVm,
 				balance,
-				_updateTrigger,
 				false);
 
 			balance -= item.Amount;
@@ -90,7 +86,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
 		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
-		OutgoingAmount = CoinJoinTransactions.Sum(x => x.Amount) * -1;
+		SetAmount(CoinJoinTransactions.Sum(x => x.Amount));
+
 		UpdateDateString();
 	}
 
@@ -101,8 +98,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		var lastDate = dates.Max().ToLocalTime();
 
 		DateString = firstDate.Day == lastDate.Day
-			? $"{firstDate:MM/dd/yyyy}"
-			: $"{firstDate:MM/dd/yyyy} - {lastDate:MM/dd/yyyy}";
+			? $"{firstDate.ToUserFacingString(withTime: false)}"
+			: $"{firstDate.ToUserFacingString(withTime: false)} - {lastDate.ToUserFacingString(withTime: false)}";
 	}
 
 	public void SetBalance(Money balance)

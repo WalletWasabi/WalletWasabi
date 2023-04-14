@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
@@ -128,8 +127,8 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 
 	private void CreateSuggestions(int topSuggestionsCount)
 	{
-		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
-			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
+		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
+			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).ToSignal())
 			.Select(_ => SuggestionLabelsFilter());
 
 		_sourceLabels

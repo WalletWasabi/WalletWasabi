@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -8,11 +7,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+[NavigationMetaData(
+	Title = "Wallet Settings",
+	Caption = "Display wallet settings",
+	IconName = "nav_wallet_24_regular",
+	Order = 2,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Settings", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private int _anonScoreTarget;
-	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
@@ -22,8 +28,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
-		                     KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -41,27 +45,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 					_wallet.KeyManager.ToFile();
 					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 				});
-
-		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-
-		this.WhenAnyValue(x => x.AnonScoreTarget)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
 	}
 
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
 
-	public sealed override string Title { get; protected set; }
-
 	public ICommand VerifyRecoveryWordsCommand { get; }
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-	}
 }

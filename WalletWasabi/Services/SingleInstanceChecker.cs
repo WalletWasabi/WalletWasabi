@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -14,6 +15,9 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 {
 	private const string WasabiMagicString = "InBitcoinWeTrust";
 	public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(2);
+
+	/// <summary>Multiplier to be applied to all timeouts in this class.</summary>
+	private readonly int _timeoutMultiplier;
 
 	/// <summary>
 	/// Creates an object to ensure mutual exclusion of Wasabi instances per Network <paramref name="network"/>.
@@ -27,9 +31,11 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// <summary>
 	/// Use this constructor only for testing.
 	/// </summary>
-	public SingleInstanceChecker(int port)
+	/// <param name="timeoutMultiplier">Used for multiplying all specified timeouts. For CI testing purposes only.</param>
+	public SingleInstanceChecker(int port, int timeoutMultiplier = 1)
 	{
 		Port = port;
+		_timeoutMultiplier = timeoutMultiplier;
 	}
 
 	private int Port { get; }
@@ -81,18 +87,18 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 				NoDelay = true
 			};
 
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(_timeoutMultiplier * 10));
 			using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
 
 			await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 			await using NetworkStream networkStream = client.GetStream();
-			networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
+			networkStream.WriteTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds * 2;
 			await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-			await writer.WriteAsync(new StringBuilder(WasabiMagicString), cts.Token).ConfigureAwait(false);
+			await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
 			await writer.FlushAsync().ConfigureAwait(false);
 			await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
 			// I was able to signal to the other instance successfully so just continue.
@@ -147,14 +153,14 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 					await using NetworkStream networkStream = client.GetStream();
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-					networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
+					networkStream.ReadTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds;
 					using var reader = new StreamReader(networkStream, Encoding.UTF8);
 					// Make sure the client will be disconnected.
-					using CancellationTokenSource timeOutCts = new(ClientTimeOut);
+					using CancellationTokenSource timeOutCts = new(_timeoutMultiplier * ClientTimeOut);
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
 
 					// The read operation cancellation will happen on reader disposal.
-					string answer = await reader.ReadToEndAsync().WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
+					string answer = await reader.ReadToEndAsync(cts.Token).ConfigureAwait(false);
 					if (answer == WasabiMagicString)
 					{
 						Logger.LogInfo($"Detected another Wasabi instance.");
@@ -195,7 +201,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		DisposeCts.Cancel();
 
 		// Stopping the execution task and wait until it finishes.
-		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(_timeoutMultiplier * 20));
 
 		// This is added because Dispose is called from the Main and Main cannot be an async function.
 		while (!ExecuteTask.IsCompleted)

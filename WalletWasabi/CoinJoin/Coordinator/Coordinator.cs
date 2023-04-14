@@ -17,6 +17,7 @@ using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 
 namespace WalletWasabi.CoinJoin.Coordinator;
 
@@ -24,14 +25,14 @@ public class Coordinator : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
+	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig, CoinVerifier? coinVerifier = null)
 	{
 		Network = Guard.NotNull(nameof(network), network);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-
+		CoinVerifier = coinVerifier;
 		Rounds = ImmutableList<CoordinatorRound>.Empty;
 
 		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
@@ -126,6 +127,11 @@ public class Coordinator : IDisposable
 		}
 
 		BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
+
+		if (CoinVerifier is { })
+		{
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklistedAsync;
+		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcasted;
@@ -144,7 +150,7 @@ public class Coordinator : IDisposable
 	public IRPCClient RpcClient { get; }
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
-
+	public CoinVerifier? CoinVerifier { get; }
 	public Network Network { get; }
 
 	public BlockNotifier BlockNotifier { get; }
@@ -173,7 +179,7 @@ public class Coordinator : IDisposable
 
 	public async Task ProcessConfirmedTransactionAsync(Transaction tx)
 	{
-		// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
+		// This should not be needed until we would only accept unconfirmed CJ outputs and no other unconfirmed outputs. But it'll be more bulletproof for future extensions.
 		// Turns out you shouldn't accept RBF at all never. (See below.)
 
 		// https://github.com/zkSNACKs/WalletWasabi/issues/145
@@ -207,19 +213,19 @@ public class Coordinator : IDisposable
 					if (RoundConfig.DosSeverity >= newSeverity)
 					{
 						var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-						await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, txCoins.ToArray()).ConfigureAwait(false);
+						await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, forceBan: false, toBan: txCoins.ToArray()).ConfigureAwait(false);
 					}
 				}
 			}
 		}
 	}
 
-	public async Task MakeSureInputregistrableRoundRunningAsync()
+	public async Task MakeSureInputRegistrableRoundRunningAsync()
 	{
 		if (!Rounds.Any(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
 		{
 			int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
-			var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
+			var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout), CoinVerifier);
 			round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 			round.StatusChanged += Round_StatusChangedAsync;
 			await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
@@ -314,12 +320,12 @@ public class Coordinator : IDisposable
 						var feePerInputs = fees.feePerInputs;
 						var feePerOutputs = fees.feePerOutputs;
 
-						Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
-						if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
+						Money newDenominationToGetInWithActiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
+						if (newDenominationToGetInWithActiveOutputs < RoundConfig.Denomination)
 						{
-							if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
+							if (newDenominationToGetInWithActiveOutputs > Money.Coins(0.01m))
 							{
-								RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
+								RoundConfig.Denomination = newDenominationToGetInWithActiveOutputs;
 								RoundConfig.ToFile();
 							}
 						}
@@ -330,12 +336,12 @@ public class Coordinator : IDisposable
 			// If aborted in signing phase, then ban Alices that did not sign.
 			if (status == CoordinatorRoundStatus.Aborted && round.Phase == RoundPhase.Signing)
 			{
-				IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
+				IEnumerable<Alice> alicesDidNotSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
 				if (TryGetCurrentInputRegisterableRound(out CoordinatorRound? nextRound))
 				{
 					int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
-					var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
+					var alicesSignedCount = round.AnonymitySet - alicesDidNotSign.Count();
 
 					// New round's anonset should be the number of alices that signed in this round.
 					// Except if the number of alices in the next round is already larger.
@@ -357,11 +363,11 @@ public class Coordinator : IDisposable
 					}
 				}
 
-				foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
+				foreach (Alice alice in alicesDidNotSign) // Because the event sometimes is raised from inside the lock.
 				{
 					// If it is from any coinjoin, then do not ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
-					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, utxosToBan.ToArray()).ConfigureAwait(false);
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, forceBan: false, toBan: utxosToBan.ToArray()).ConfigureAwait(false);
 				}
 			}
 
@@ -432,6 +438,29 @@ public class Coordinator : IDisposable
 		}
 	}
 
+	private async void CoinVerifier_CoinBlacklistedAsync(object? _, Coin coin)
+	{
+		try
+		{
+			foreach (var round in Rounds)
+			{
+				if (round.ContainsInput(coin.Outpoint, out var alices))
+				{
+					var outPointsToBan = alices.SelectMany(a => a.Inputs).Select(i => i.Outpoint).ToArray();
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, forceBan: true, outPointsToBan).ConfigureAwait(false);
+					return;
+				}
+			}
+
+			// Could be a coin from WW2.
+			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, 0, forceBan: true, coin.Outpoint).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+	}
+
 	#region IDisposable Support
 
 	protected virtual void Dispose(bool disposing)
@@ -443,6 +472,11 @@ public class Coordinator : IDisposable
 				if (BlockNotifier is { })
 				{
 					BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
+				}
+
+				if (CoinVerifier is { })
+				{
+					CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklistedAsync;
 				}
 
 				foreach (CoordinatorRound round in Rounds)

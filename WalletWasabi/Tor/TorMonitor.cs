@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -11,6 +10,7 @@ using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using WalletWasabi.Tor.Control.Messages.Events;
 using WalletWasabi.Tor.Control.Messages.Events.OrEvents;
 using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using WalletWasabi.Tor.Control.Utils;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -34,6 +34,7 @@ public class TorMonitor : PeriodicRunner
 		StatusEvent.EventNameStatusClient,
 		StatusEvent.EventNameStatusServer,
 		CircEvent.EventName,
+		StreamEvent.EventName,
 		OrConnEvent.EventName,
 		NetworkLivenessEvent.EventName,
 	};
@@ -41,22 +42,14 @@ public class TorMonitor : PeriodicRunner
 	/// <remarks>Guards <see cref="ForceTorRestartCts"/>.</remarks>
 	private readonly object _lock = new();
 
-	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
 		HttpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-		TestApiUri = new Uri(fallbackBackendUri, "/api/Software/versions");
 	}
 
 	private CancellationTokenSource LoopCts { get; } = new();
-	public static bool RequestFallbackAddressUsage { get; private set; }
-
-	/// <summary>Simple Backend API endpoint that allows us to test whether Backend is actually running or not.</summary>
-	private Uri TestApiUri { get; }
-
-	/// <summary>When the fallback address was started to be used, <c>null</c> if fallback address is not in use.</summary>
-	private DateTime? FallbackStarted { get; set; }
 
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
@@ -109,7 +102,7 @@ public class TorMonitor : PeriodicRunner
 
 		try
 		{
-			// We can't use linked CTS here because then we would not obtain Tor control client instance to actually shut down Tor if force restart is signalled.
+			// We can't use linked CTS here because then we would not obtain Tor control client instance to actually shut down Tor if force restart is signaled.
 			(CancellationToken torTerminatedCancellationToken, torControlClient) = await TorProcessManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			using CancellationTokenSource linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, torTerminatedCancellationToken);
 
@@ -151,15 +144,20 @@ public class TorMonitor : PeriodicRunner
 				else if (asyncEvent is CircEvent circEvent)
 				{
 					CircuitInfo info = circEvent.CircuitInfo;
-					if (!circuitEstablished && info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
+
+					if (!circuitEstablished && (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT))
 					{
 						Logger.LogInfo("Tor circuit was established.");
 						circuitEstablished = true;
 					}
-					if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
+				}
+				else if (asyncEvent is StreamEvent streamEvent)
+				{
+					StreamInfo info = streamEvent.StreamInfo;
+
+					if (info.UserName is not null)
 					{
-						Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
-						TorHttpPool.ReportCircuitClosed(info.UserName);
+						TorHttpPool.ReportStreamStatus(streamUsername: info.UserName, streamStatus: info.StreamStatus, circuitID: info.CircuitID);
 					}
 				}
 			}
@@ -168,7 +166,7 @@ public class TorMonitor : PeriodicRunner
 		{
 			if (forceTorRestartCts.IsCancellationRequested)
 			{
-				// Attempt to shut down Tor. 
+				// Attempt to shut down Tor.
 				if (torControlClient is not null)
 				{
 					bool success = await ShutDownTorAsync(torControlClient).ConfigureAwait(false);
@@ -235,7 +233,7 @@ public class TorMonitor : PeriodicRunner
 	protected override async Task ActionAsync(CancellationToken token)
 	{
 		// If Tor misbehaves and we have not requested the fallback mechanism yet.
-		if (!RequestFallbackAddressUsage && TorHttpPool.TorDoesntWorkSince is not null)
+		if (TorHttpPool.TorDoesntWorkSince is not null)
 		{
 			TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
@@ -250,8 +248,7 @@ public class TorMonitor : PeriodicRunner
 
 				if (latestTorException is TorConnectCommandFailedException e)
 				{
-					// Tor must be running for us to consider switching to the fallback address.
-					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
+					bool isRunning = await HttpClient.IsTorRunningAsync(token).ConfigureAwait(false);
 
 					if (!isRunning)
 					{
@@ -278,42 +275,12 @@ public class TorMonitor : PeriodicRunner
 					}
 
 					TryTorRestart = true;
-
-					// Check if the fallback address (clearnet through exit nodes) works. It must work.
-					try
-					{
-						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
-						using HttpRequestMessage request = new(HttpMethod.Get, TestApiUri);
-
-						// Any HTTP response is fine (e.g. the response message might have the status code 403, 404, etc.) as we test only that
-						// the transport layer works.
-						using HttpResponseMessage response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						// The fallback address does not work too. We do not want to switch.
-						Logger.LogInfo($"Communication through the fallback URL with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
-						return;
-					}
-
-					Logger.LogInfo("Switching to the fallback URL.");
-					RequestFallbackAddressUsage = true;
-					FallbackStarted = DateTime.UtcNow;
 				}
 				else if (torMisbehavedFor - CheckIfRunningAfterTorMisbehavedFor < Period)
 				{
 					Logger.LogDebug("Latest Tor exception is.", latestTorException);
 				}
 			}
-		}
-
-		// Every two hours try to revert to the original Backend onion Tor address. It might be already fixed.
-		// If not, we will get back to the fallback URI again later on.
-		if (FallbackStarted is not null && DateTime.UtcNow - FallbackStarted > TimeSpan.FromHours(2))
-		{
-			Logger.LogInfo("Attempt to revert to the more private onion address of the Backend server.");
-			FallbackStarted = null;
-			RequestFallbackAddressUsage = false;
 		}
 	}
 

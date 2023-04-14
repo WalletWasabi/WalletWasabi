@@ -3,11 +3,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             Background="Transparent"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
+  <i:Interaction.Behaviors>
+    <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector=":is(TextBlock)">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -43,7 +48,7 @@
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
           <StackPanel.Styles>
             <Style Selector="Button:disabled PathIcon">
-              <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}"/>
+              <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
             </Style>
           </StackPanel.Styles>
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
@@ -53,8 +58,8 @@
                 <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
               </TransitioningContentControl.PageTransition>
               <TransitioningContentControl.DataTemplates>
-                <DataTemplate DataType="wallets:MusicStatusMessageViewModel">
-                  <TextBlock Text="{Binding Message}">
+                <DataTemplate DataType="x:String">
+                  <TextBlock Text="{Binding .}">
                     <TextBlock.OpacityMask>
                       <LinearGradientBrush StartPoint="100%,0%" EndPoint="90%,0%">
                         <LinearGradientBrush.GradientStops>
@@ -78,8 +83,8 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding ElapsedTime}" />
-              <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
+              <TextBlock Text="{Binding LeftText}" />
+              <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>
 
@@ -92,14 +97,12 @@
           </Button>
 
           <Button Classes="plain"
-                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding PauseVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
 
           <Button Classes="plain"
-                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding StopVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource stop_regular}" />

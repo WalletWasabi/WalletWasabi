@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto.Randomness;
 
@@ -6,10 +7,6 @@ public class SecureRandom : WasabiRandom
 {
 	public static readonly SecureRandom Instance = new();
 
-	public SecureRandom()
-	{
-	}
-	
 	public override void GetBytes(byte[] buffer)
 	{
 		RandomNumberGenerator.Fill(buffer);
@@ -22,6 +19,6 @@ public class SecureRandom : WasabiRandom
 
 	public override int GetInt(int fromInclusive, int toExclusive)
 	{
-		return RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);		
+		return RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
 	}
 }

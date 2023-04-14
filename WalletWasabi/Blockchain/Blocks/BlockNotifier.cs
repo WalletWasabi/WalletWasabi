@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Blocks;
@@ -37,7 +38,7 @@ public class BlockNotifier : PeriodicRunner
 	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
-	private object LastInvLock { get; } = new object();
+	private object LastInvLock { get; } = new();
 
 	private void P2pNode_BlockInv(object? sender, uint256 blockHash)
 	{

@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using System.IO;
 using System.Reactive;
@@ -20,9 +18,11 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
-using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
+using System.Net.Sockets;
+using System.Collections.ObjectModel;
+using LogLevel = WalletWasabi.Logging.LogLevel;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -71,7 +71,7 @@ public class Program
 		}
 		catch (OperationCanceledException)
 		{
-			// We have successfully signalled the other instance and that instance should pop up
+			// We have successfully signaled the other instance and that instance should pop up
 			// so user will think he has just run the application.
 			return 1;
 		}
@@ -183,10 +183,16 @@ public class Program
 		Directory.CreateDirectory(dataDir);
 
 		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadOrCreateDefaultFile();
+		uiConfig.LoadFile(createIfMissing: true);
 
 		Config config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadOrCreateDefaultFile();
+		config.LoadFile(createIfMissing: true);
+
+		if (config.MigrateOldDefaultBackendUris())
+		{
+			Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
+			config.ToFile();
+		}
 
 		return (uiConfig, config);
 	}
@@ -219,7 +225,22 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogDebug(e.Exception);
+		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
+
+		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException socketException && socketException.SocketErrorCode == SocketError.OperationAborted)
+		{
+			// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
+			Logger.LogTrace(e.Exception);
+		}
+		else if (innerExceptions.Count == 1 && innerExceptions[0] is OperationCanceledException ex && ex.Message == "The peer has been disconnected")
+		{
+			// Source of this exception is NBitcoin library.
+			Logger.LogTrace(e.Exception);
+		}
+		else
+		{
+			Logger.LogDebug(e.Exception);
+		}
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
@@ -236,9 +257,7 @@ public class Program
 	/// <summary>
 	/// Sets up and initializes the crash reporting UI.
 	/// </summary>
-	/// <param name="serializableException"></param>
-	/// <param name="logPath"></param>
-	/// <returns></returns>
+	/// <param name="serializableException">The serializable exception</param>
 	private static AppBuilder BuildCrashReporterApp(SerializableException serializableException)
 	{
 		var result = AppBuilder

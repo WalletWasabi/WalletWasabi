@@ -1,13 +1,12 @@
 using NBitcoin;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -91,7 +90,7 @@ public class ConfirmConnectionTests
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
 		round.Alices.Add(alice);
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 		foreach (Phase phase in Enum.GetValues(typeof(Phase)))

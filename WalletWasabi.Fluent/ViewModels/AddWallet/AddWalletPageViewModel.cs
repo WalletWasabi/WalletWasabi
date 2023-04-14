@@ -4,10 +4,12 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -19,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	Order = 2,
 	Category = "General",
 	Keywords = new[]
-		{"Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger"},
+		{ "Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 	IconName = "nav_add_circle_24_regular",
 	IconNameFocused = "nav_add_circle_24_filled",
 	NavigationTarget = NavigationTarget.DialogScreen,
@@ -37,13 +39,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
 
 		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
-
-		OpenCommand = ReactiveCommand.Create(async () =>
-		{
-			MainViewModel.Instance.IsOobeBackgroundVisible = true;
-			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-			MainViewModel.Instance.IsOobeBackgroundVisible = false;
-		});
 	}
 
 	public ICommand CreateWalletCommand { get; }
@@ -99,34 +94,11 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
 	}
 
-	private async Task ImportWalletAsync()
+	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
 	{
-		try
-		{
-			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
-
-			if (filePath is null)
-			{
-				return;
-			}
-
-			var walletName = Path.GetFileNameWithoutExtension(filePath);
-
-			var validationError = WalletHelpers.ValidateWalletName(walletName);
-			if (validationError is { })
-			{
-				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
-				return;
-			}
-
-			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
-		}
+		MainViewModel.Instance.IsOobeBackgroundVisible = true;
+		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+		MainViewModel.Instance.IsOobeBackgroundVisible = false;
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

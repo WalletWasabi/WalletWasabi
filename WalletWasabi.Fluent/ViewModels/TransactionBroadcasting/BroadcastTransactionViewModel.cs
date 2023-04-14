@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -32,7 +33,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 
 	public string? InputAmountString { get; set; }
 
-	public string? FeeString { get; set; }
+	public string FeeString { get; set; } = "Unknown";
 
 	public int InputCount { get; set; }
 
@@ -79,7 +80,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 			? null
 			: totalInputValue - totalOutputValue;
 
-		FeeString = networkFee?.ToFeeDisplayUnitString() ?? "Unknown";
+		FeeString = networkFee.ToFeeDisplayUnitFormattedString();
 	}
 
 	private async Task OnNextAsync(SmartTransaction transaction)

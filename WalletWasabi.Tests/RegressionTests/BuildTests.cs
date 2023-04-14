@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -51,8 +52,8 @@ public class BuildTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 4. Create key manager service.
@@ -60,9 +61,16 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			p2PBlockProvider: new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -113,7 +121,7 @@ public class BuildTests
 			false));
 
 		// Get some money, make it confirm.
-		var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network), Money.Coins(1m));
+		var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), Money.Coins(1m));
 
 		// Generate some coins
 		await rpc.GenerateAsync(2);
@@ -122,7 +130,7 @@ public class BuildTests
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 
 			await feeProvider.StartAsync(CancellationToken.None);
 
@@ -147,7 +155,7 @@ public class BuildTests
 			Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 			// Add new money with no confirmation
-			var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
+			var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar").GetP2wpkhAddress(network), Money.Coins(2m));
 			await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 			// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
@@ -204,8 +212,8 @@ public class BuildTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 4. Create key manager service.
@@ -213,9 +221,17 @@ public class BuildTests
 
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
-		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
-			bitcoinStore.BlockRepository);
+
+		using MemoryCache cache = CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
+
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
@@ -226,7 +242,7 @@ public class BuildTests
 		var scp = k.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 		var fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 
 		// Generate some coins
@@ -236,7 +252,7 @@ public class BuildTests
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Wait until the filter our previous transaction is present.
@@ -314,7 +330,7 @@ public class BuildTests
 				{
 					throw;
 				}
-				return; // Occassionally this fails on Linux or OSX, I have no idea why.
+				return; // Occasionally this fails on Linux or OSX, I have no idea why.
 			}
 			// Spend the inputs of the tx so we know
 			var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
@@ -325,7 +341,7 @@ public class BuildTests
 
 			var overwriteTx = Transaction.Create(network);
 			overwriteTx.Inputs.AddRange(invalidSmartTransaction.Transaction.Inputs);
-			var walletAddress = keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network);
+			var walletAddress = keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network);
 			bool onAddress = false;
 			foreach (var invalidOutput in invalidSmartTransaction.Transaction.Outputs)
 			{
@@ -403,5 +419,14 @@ public class BuildTests
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
+	}
+
+	private static MemoryCache CreateMemoryCache()
+	{
+		return new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 }

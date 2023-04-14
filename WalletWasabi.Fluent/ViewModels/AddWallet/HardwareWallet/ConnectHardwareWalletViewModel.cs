@@ -64,7 +64,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public WalletType Trezor => WalletType.Trezor;
 
-	public WalletType Generic => WalletType.Unknown;
+	public WalletType Generic => WalletType.Hardware;
 
 	private void OnNext()
 	{
@@ -79,11 +79,8 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		var navBar = NavigationManager.Get<NavBarViewModel>();
-
-		if (ExistingWallet is { } && navBar is { })
+		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
 		{
-			navBar.SelectedItem = ExistingWallet;
 			Navigate().Clear();
 			ExistingWallet.OpenCommand.Execute(default);
 		}
@@ -109,10 +106,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		try
 		{
-			using CancellationTokenSource cts = new();
-			AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
 			var result = await HardwareWalletOperationHelpers.DetectAsync(Services.WalletManager.Network, cancel);
-			cts.Cancel();
 			EvaluateDetectionResult(result, cancel);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -125,24 +119,11 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task CheckForPassphraseAsync(CancellationToken cancellationToken)
-	{
-		try
-		{
-			await Task.Delay(7000, cancellationToken);
-			Message = "Check your device and enter your passphrase, then click Rescan.";
-		}
-		catch (OperationCanceledException)
-		{
-			// ignored
-		}
-	}
-
 	private void EvaluateDetectionResult(HwiEnumerateEntry[] devices, CancellationToken cancel)
 	{
 		if (devices.Length == 0)
 		{
-			Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
+			Message = "Connect the hardware wallet to the PC / Enter the PIN on the device.";
 			return;
 		}
 

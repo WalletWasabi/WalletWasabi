@@ -126,31 +126,28 @@
     <Style Selector="FlyoutPresenter">
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
-
   </UserControl.Styles>
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Stretch"
            Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 
-      <i:Interaction.Behaviors>
-        <behaviors:TextBoxAutoSelectTextBehavior />
-        <behaviors:SwallowEnterKeyBehavior />
-        <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
-      </i:Interaction.Behaviors>
+    <i:Interaction.Behaviors>
+      <behaviors:TextBoxAutoSelectTextBehavior />
+      <behaviors:SwallowEnterKeyBehavior />
+      <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
+    </i:Interaction.Behaviors>
 
-      <TextBox.InnerLeftContent>
-        <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
-      </TextBox.InnerLeftContent>
-      <TextBox.InnerRightContent>
-        <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
-      </TextBox.InnerRightContent>
+    <TextBox.InnerLeftContent>
+      <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
+    </TextBox.InnerLeftContent>
+    <TextBox.InnerRightContent>
+      <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
+    </TextBox.InnerRightContent>
 
-      <FlyoutBase.AttachedFlyout>
-        <Flyout Placement="Bottom" ShowMode="Transient">
-          <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
-        </Flyout>
-      </FlyoutBase.AttachedFlyout>
-
-    </TextBox>
-
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="Bottom" ShowMode="Transient">
+        <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
+  </TextBox>
 </UserControl>

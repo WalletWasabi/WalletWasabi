@@ -22,7 +22,7 @@ public class PayjoinTests
 		var key = new Key();
 		var tx =
 			Network.Main.CreateTransactionBuilder()
-			.AddCoins(Coin(0.5m, key.PubKey.WitHash.ScriptPubKey))
+			.AddCoins(Coin(0.5m, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)))
 			.AddKeys(key)
 			.Send(BitcoinFactory.CreateScript(), Money.Coins(0.5m))
 			.BuildPSBT(true);
@@ -92,7 +92,7 @@ public class PayjoinTests
 		using Key key = new();
 		PaymentIntent payment = new(key.PubKey, amount);
 
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint), payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.True(tx.Signed);
@@ -116,7 +116,7 @@ public class PayjoinTests
 					input.WitScript = WitScript.Empty;
 				}
 				var serverCoinKey = new Key();
-				var serverCoin = Coin(0.345m, serverCoinKey.PubKey.WitHash.ScriptPubKey);
+				var serverCoin = Coin(0.345m, serverCoinKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 				clientTx.Inputs.Add(serverCoin.Outpoint);
 				var paymentOutput = clientTx.Outputs.First(x => x.Value == amountToPay);
 				paymentOutput.Value += (Money)serverCoin.Amount;
@@ -138,7 +138,7 @@ public class PayjoinTests
 
 		var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint), payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.True(tx.Signed);
@@ -157,7 +157,7 @@ public class PayjoinTests
 			watchOnly: true);
 		allowedCoins = transactionFactory.Coins.ToArray();
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint), payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.False(tx.Signed);
@@ -192,7 +192,7 @@ public class PayjoinTests
 			}));
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		///////
 
@@ -214,7 +214,7 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -232,12 +232,12 @@ public class PayjoinTests
 			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
-				psbt.GlobalXPubs.Add(extPubkey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network)));
+				psbt.GlobalXPubs.Add(extPubkey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit)));
 				return psbt;
 			}));
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -246,11 +246,11 @@ public class PayjoinTests
 			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
-				psbt.Inputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network)));
+				psbt.Inputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit)));
 				return psbt;
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -263,7 +263,7 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -276,7 +276,7 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -286,11 +286,11 @@ public class PayjoinTests
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Inputs.Clear(); // remove all the inputs
-					globalTx.Inputs.Add(GetRandomOutPoint());
+				globalTx.Inputs.Add(GetRandomOutPoint());
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -299,11 +299,11 @@ public class PayjoinTests
 			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
-				psbt.Outputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network)));
+				psbt.Outputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit)));
 				return psbt;
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -316,7 +316,7 @@ public class PayjoinTests
 				return psbt;
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -329,7 +329,7 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -342,7 +342,7 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -367,7 +367,7 @@ public class PayjoinTests
 			}));
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -385,7 +385,7 @@ public class PayjoinTests
 			.Returns((HttpRequestMessage _, CancellationToken _) => PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error"));
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 

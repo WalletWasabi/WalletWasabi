@@ -21,15 +21,21 @@ If applicable, add screenshots to help explain your problem.
 
 ### Operating System
 
-Please consider your privacy, before completing this section.  
+*Please consider your privacy, before completing this section.*
+
 Example: Ubuntu 16.04
 
 ### Logs
 
-Please consider your privacy, before completing this section.  
-You can find the log file by opening it from the main menu: `File/Open/Logs` File or `File/Open/TorLogs` File.
+*Please consider your privacy, before completing this section.*
+
+```
+Insert Your Logs Here
+```
+
+You can find the `Logs.txt` file in the dropdown menu of the search bar or inside your Wasabi data folder or find `%PROFILE_PATH%/WalletWasabi/Client/Logs.txt` file.
 
 ### Wasabi Version
 
 Which wasabi release are you using? Where did you download it from?  
-You can figure out which version you are using from the main menu: `Help/About` or with command line: `wassabee --version`.
+You can figure out which version you are using by choosing `About Wasabi` from the dropdown menu in the search bar.

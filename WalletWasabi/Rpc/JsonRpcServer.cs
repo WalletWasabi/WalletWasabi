@@ -53,7 +53,7 @@ public class JsonRpcServer : BackgroundService
 				if (request.HttpMethod == "POST")
 				{
 					using var reader = new StreamReader(request.InputStream);
-					string body = await reader.ReadToEndAsync().ConfigureAwait(false);
+					string body = await reader.ReadToEndAsync(stoppingToken).ConfigureAwait(false);
 
 					if (IsAuthorized(context))
 					{
@@ -104,7 +104,7 @@ public class JsonRpcServer : BackgroundService
 			return false;
 		}
 
-		var identity = (HttpListenerBasicIdentity?) user.Identity;
+		var identity = (HttpListenerBasicIdentity?)user.Identity;
 		return CheckValidCredentials(identity);
 	}
 

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-using System;
 using System.Collections.Generic;
-using System.Drawing;
+using SkiaSharp;
 using ZXing.Common;
 using ZXing.QrCode.Internal;
+using ZXing.SkiaSharp;
 
 namespace ZXing.QrCode
 {
-	/// <summary>
-	/// This implementation can detect and decode QR Codes in an image.
-	/// <author>Sean Owen</author>
-	/// </summary>
-	public class QRCodeReader : Reader
+    /// <summary>
+    /// This implementation can detect and decode QR Codes in an image.
+    /// <author>Sean Owen</author>
+    /// </summary>
+    public class QRCodeReader : Reader
 	{
-		private static readonly ResultPoint[] NO_POINTS = new ResultPoint[0];
+		private static readonly ResultPoint[] NO_POINTS = System.Array.Empty<ResultPoint>();
 
 		private readonly Decoder decoder = new Decoder();
 
@@ -261,17 +261,15 @@ namespace ZXing.QrCode
 
 		public Result DecodeFromImagePath(string path)
 		{
-			var image = (Bitmap)Image.FromFile(path);
-			var source = new BitmapLuminanceSource(image);
-			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-			return decode(bitmap);
+			var bitmap = SKBitmap.Decode(path);
+			return DecodeBitmap(bitmap);
 		}
 
-		public Result DecodeBitmap(Bitmap image)
+		public Result DecodeBitmap(SKBitmap bitmap)
 		{
-			var source = new BitmapLuminanceSource(image);
-			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-			return decode(bitmap);
+			var source = new SKBitmapLuminanceSource(bitmap);
+			BinaryBitmap binary = new BinaryBitmap(new HybridBinarizer(source));
+			return decode(binary);
 		}
 	}
 }

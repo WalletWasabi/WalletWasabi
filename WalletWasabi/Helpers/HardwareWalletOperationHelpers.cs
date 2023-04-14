@@ -24,13 +24,19 @@ public static class HardwareWalletOperationHelpers
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 		using var genCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancelToken);
 
-		var extPubKey = await client.GetXpubAsync(
+		var segwitExtPubKey = await client.GetXpubAsync(
 			device.Model,
 			device.Path,
-			KeyManager.GetAccountKeyPath(network),
+			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit),
 			genCts.Token).ConfigureAwait(false);
 
-		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, network, walletFilePath);
+		var taprootExtPubKey = await client.GetXpubAsync(
+			device.Model,
+			device.Path,
+			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86),
+			genCts.Token).ConfigureAwait(false);
+
+		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, taprootExtPubKey, network, walletFilePath);
 	}
 
 	public static async Task InitHardwareWalletAsync(HwiEnumerateEntry device, Network network, CancellationToken cancelToken)

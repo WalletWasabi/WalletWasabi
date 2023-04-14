@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Tor;
@@ -57,10 +59,10 @@ public class TorSettings
 	public string CookieAuthFilePath { get; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
-	public IPEndPoint SocksEndpoint { get; } = new(IPAddress.Loopback, 37150);
+	public EndPoint SocksEndpoint { get; } = new IPEndPoint(IPAddress.Loopback, 37150);
 
 	/// <summary>Tor control endpoint.</summary>
-	public IPEndPoint ControlEndpoint { get; } = new(IPAddress.Loopback, 37151);
+	public EndPoint ControlEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37151);
 
 	private string GeoIpPath { get; }
 	private string GeoIp6Path { get; }
@@ -87,13 +89,20 @@ public class TorSettings
 	/// </seealso>
 	public string GetCmdArguments()
 	{
+		if (!ControlEndpoint.TryGetPort(out int? port))
+		{
+			port = 9051; // Standard port for Tor control.
+		}
+
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
 		{
 			$"--LogTimeGranularity 1",
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
+			$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
+			$"--SocksTimeout 30", // Default is 2 minutes.
 			$"--CookieAuthentication 1",
-			$"--ControlPort {ControlEndpoint.Port}",
+			$"--ControlPort {port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
 			$"--GeoIPFile \"{GeoIpPath}\"",

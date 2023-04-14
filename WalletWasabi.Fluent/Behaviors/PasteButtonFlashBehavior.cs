@@ -1,4 +1,3 @@
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -44,8 +43,8 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			var mainWindow = lifetime.MainWindow;
 
 			Observable
-				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).Select(_ => Unit.Default)
-				.Merge(this.WhenAnyValue(x => x.CurrentAddress).Select(_ => Unit.Default))
+				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).ToSignal()
+				.Merge(this.WhenAnyValue(x => x.CurrentAddress).ToSignal())
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.SubscribeAsync(async _ => await CheckClipboardForValidAddressAsync(forceCheck: true))
@@ -98,8 +97,11 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 			clipboardValue = clipboardValue.Trim();
 
+			// ClipboardValue might not match CurrentAddress, but it might be a PayJoin address pointing to the CurrentAddress
+			// Hence we need to compare both string value and parse result
 			if (clipboardValue != CurrentAddress &&
-				AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
+				AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out var address) &&
+				address?.Address?.ToString() != CurrentAddress)
 			{
 				AssociatedObject.Classes.Add(FlashAnimation);
 				_lastFlashedOn = clipboardValue;

@@ -1,5 +1,6 @@
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
 
@@ -16,13 +17,8 @@ public class ScalarJsonConverter : JsonConverter<Scalar>
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, Scalar value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, Scalar scalar, JsonSerializer serializer)
 	{
-		if (value is Scalar scalar)
-		{
-			writer.WriteValue(ByteHelpers.ToHex(scalar.ToBytes()));
-			return;
-		}
-		throw new ArgumentException($"No valid {nameof(Scalar)}.", nameof(value));
+		writer.WriteValue(ByteHelpers.ToHex(scalar.ToBytes()));
 	}
 }

@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class CompletedEventArgs : StatusChangedEventArgs
 {
-	public CompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
+	public CompletedEventArgs(IWallet wallet, CompletionStatus completionStatus)
 		: base(wallet)
 	{
 		CompletionStatus = completionStatus;

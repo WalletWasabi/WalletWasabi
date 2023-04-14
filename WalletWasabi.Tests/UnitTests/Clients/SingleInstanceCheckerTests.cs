@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Services;
 using Xunit;
 
@@ -13,16 +14,14 @@ namespace WalletWasabi.Tests.UnitTests.Clients;
 [Collection("Serial unit tests collection")]
 public class SingleInstanceCheckerTests
 {
-	private static Random Random { get; } = new();
+	/// <summary>Everything takes longer on CI. Timeouts sane on users' machines are too short for CI.</summary>
+	private const int TimeoutMultiplier = 3;
 
 	/// <summary>
 	/// Global port may collide when several PRs are being tested on CI at the same time,
 	/// so we need some sort of non-determinism here (i.e. random numbers).
 	/// </summary>
-	private static int GenerateRandomPort()
-	{
-		return Random.Next(37128, 50000);
-	}
+	private static int GenerateRandomPort() => Random.Shared.Next(37128, 50000);
 
 	[Fact]
 	public async Task SingleInstanceTestsAsync()
@@ -32,26 +31,26 @@ public class SingleInstanceCheckerTests
 		int regTestPort = testNetPort + 1;
 
 		// Disposal test.
-		await using (SingleInstanceChecker sic = new(mainNetPort))
+		await using (SingleInstanceChecker sic = new(mainNetPort, TimeoutMultiplier))
 		{
 			await sic.EnsureSingleOrThrowAsync();
 		}
 
 		// Check different networks.
-		await using SingleInstanceChecker sicMainNet = new(mainNetPort);
+		await using SingleInstanceChecker sicMainNet = new(mainNetPort, TimeoutMultiplier);
 		await sicMainNet.EnsureSingleOrThrowAsync();
-		await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
+		await using SingleInstanceChecker sicMainNet2 = new(mainNetPort, TimeoutMultiplier);
+		await Assert.ThrowsAsync<OperationCanceledException>(sicMainNet2.EnsureSingleOrThrowAsync);
 
-		await using SingleInstanceChecker sicTestNet = new(testNetPort);
+		await using SingleInstanceChecker sicTestNet = new(testNetPort, TimeoutMultiplier);
 		await sicTestNet.EnsureSingleOrThrowAsync();
-		await using SingleInstanceChecker sicTestNet2 = new(testNetPort);
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet2.EnsureSingleOrThrowAsync());
+		await using SingleInstanceChecker sicTestNet2 = new(testNetPort, TimeoutMultiplier);
+		await Assert.ThrowsAsync<OperationCanceledException>(sicTestNet2.EnsureSingleOrThrowAsync);
 
-		await using SingleInstanceChecker sicRegTest = new(regTestPort);
+		await using SingleInstanceChecker sicRegTest = new(regTestPort, TimeoutMultiplier);
 		await sicRegTest.EnsureSingleOrThrowAsync();
-		await using SingleInstanceChecker sicRegTest2 = new(regTestPort);
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest2.EnsureSingleOrThrowAsync());
+		await using SingleInstanceChecker sicRegTest2 = new(regTestPort, TimeoutMultiplier);
+		await Assert.ThrowsAsync<OperationCanceledException>(sicRegTest2.EnsureSingleOrThrowAsync);
 	}
 
 	[Fact]
@@ -60,7 +59,7 @@ public class SingleInstanceCheckerTests
 		int mainNetPort = GenerateRandomPort();
 
 		// Disposal test.
-		await using SingleInstanceChecker firstInstance = new(mainNetPort);
+		await using SingleInstanceChecker firstInstance = new(mainNetPort, TimeoutMultiplier);
 		long eventCalled = 0;
 
 		firstInstance.OtherInstanceStarted += SetCalled;
@@ -70,12 +69,12 @@ public class SingleInstanceCheckerTests
 			// I am the first instance this should be fine.
 			await firstInstance.EnsureSingleOrThrowAsync();
 
-			await using SingleInstanceChecker secondInstance = new(mainNetPort);
+			await using SingleInstanceChecker secondInstance = new(mainNetPort, TimeoutMultiplier);
 
 			for (int i = 0; i < 2; i++)
 			{
 				// I am the second one.
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(secondInstance.EnsureSingleOrThrowAsync);
 			}
 
 			// Overall Timeout.
@@ -126,7 +125,7 @@ public class SingleInstanceCheckerTests
 			}
 
 			// One more to check if the first instance was able to recover from the port scan operation.
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+			await Assert.ThrowsAsync<OperationCanceledException>(secondInstance.EnsureSingleOrThrowAsync);
 
 			while (Interlocked.Read(ref eventCalled) != 3)
 			{

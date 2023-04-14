@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.Models;
@@ -12,14 +11,17 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Helpers;
+using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _walletName = "";
+	[AutoNotify] private string _walletName;
 	private readonly string? _importFilePath;
+	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 
 	public WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
 	{
@@ -41,10 +43,17 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(string walletName, WalletCreationOption creationOption)
 	{
+		IsBusy = true;
+
+		// Makes sure we can create a wallet with this wallet name.
+		await Task.Run(() => WalletGenerator.GetWalletFilePath(walletName, Services.WalletManager.WalletDirectories.WalletsDir));
+
+		IsBusy = false;
+
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				await CreatePasswordAsync(walletName);
+				Navigate().To(new RecoveryWordsViewModel(_mnemonic.Value, walletName));
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:
@@ -75,34 +84,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		{
 			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
 			BackCommand.Execute(null);
-		}
-	}
-
-	private async Task CreatePasswordAsync(string walletName)
-	{
-		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
-			NavigationTarget.CompactDialogScreen);
-
-		if (dialogResult.Result is { } password)
-		{
-			IsBusy = true;
-
-			var (km, mnemonic) = await Task.Run(
-				() =>
-				{
-					var walletGenerator = new WalletGenerator(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network)
-					{
-						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
-					};
-					return walletGenerator.GenerateWallet(walletName, password);
-				});
-
-			Navigate().To(new RecoveryWordsViewModel(km, mnemonic));
-
-			IsBusy = false;
 		}
 	}
 

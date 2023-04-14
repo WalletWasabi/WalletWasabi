@@ -13,10 +13,10 @@ public class SearchItemGroup : IDisposable
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<ISearchItem> _items;
 
-	public SearchItemGroup(string title, IObservableCache<ISearchItem, ComposedKey> groupCache)
+	public SearchItemGroup(string title, IObservable<IChangeSet<ISearchItem, ComposedKey>> changes)
 	{
 		Title = title;
-		groupCache.Connect()
+		changes
 			.Bind(out _items)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)

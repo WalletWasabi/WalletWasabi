@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.WabiSabi;
@@ -15,7 +16,7 @@ namespace WalletWasabi.Tor.Http.Extensions;
 
 public static class HttpResponseMessageExtensions
 {
-	public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken = default)
+	public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3
 		// The normal procedure for parsing an HTTP message is to read the
@@ -52,42 +53,47 @@ public static class HttpResponseMessageExtensions
 		response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 		HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
+
 		if (response.Content is { })
 		{
 			HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 		}
+
 		return response;
 	}
 
-	public static async Task ThrowUnwrapExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
+	public static async Task ThrowUnwrapExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken)
 	{
 		try
 		{
 			await me.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
-		catch (Exception e) when (e.InnerException is {} innerException)
+		catch (Exception e) when (e.InnerException is { } innerException)
 		{
 			throw innerException;
 		}
 	}
-	
-	public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
+
+	public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken)
 	{
 		var errorMessage = "";
 
 		if (me.Content is not null)
 		{
 			var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-			var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
-			{
-				Converters = JsonSerializationOptions.Default.Settings.Converters,
-				Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
-			});
+			var error = JsonConvert.DeserializeObject<Error>(
+				contentString,
+				new JsonSerializerSettings()
+				{
+					Converters = JsonSerializationOptions.Default.Settings.Converters,
+					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
+				});
 			var innerException = error switch
 			{
 				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
 					? new WabiSabiProtocolException(code, error.Description, exceptionData: error.ExceptionData)
 					: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
+				{ Type: AffiliationConstants.RequestSecrecyViolationType } => new AffiliationException(error.Description),
 				{ Type: "unknown" } => new Exception(error.Description),
 				_ => null
 			};

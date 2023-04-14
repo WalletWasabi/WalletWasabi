@@ -60,8 +60,8 @@ public class MockedDeviceTests
 		Assert.Equal("The PIN has already been sent to this device", sendpin.Message);
 		Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, sendpin.ErrorCode);
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		ExtPubKey expectedXpub1;
@@ -144,8 +144,8 @@ public class MockedDeviceTests
 		Assert.Equal("The PIN has already been sent to this device", sendpin.Message);
 		Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, sendpin.ErrorCode);
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		ExtPubKey expectedXpub1;
@@ -240,8 +240,8 @@ public class MockedDeviceTests
 		Assert.Equal("The Coldcard does not need a PIN sent from the host", sendpin.Message);
 		Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		ExtPubKey expectedXpub1;
@@ -330,8 +330,8 @@ public class MockedDeviceTests
 		Assert.Equal("The Ledger Nano S does not need a PIN sent from the host", sendpin.Message);
 		Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		ExtPubKey expectedXpub1;
@@ -420,8 +420,8 @@ public class MockedDeviceTests
 		Assert.Equal("The Ledger Nano X does not need a PIN sent from the host", sendpin.Message);
 		Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		ExtPubKey expectedXpub1;

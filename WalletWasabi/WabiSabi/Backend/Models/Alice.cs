@@ -8,14 +8,14 @@ namespace WalletWasabi.WabiSabi.Backend.Models;
 
 public class Alice
 {
-	public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id, bool isPayingZeroCoordinationFee)
+	public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id, bool isCoordinationFeeExempted)
 	{
 		// TODO init syntax?
 		Round = round;
 		Coin = coin;
 		OwnershipProof = ownershipProof;
 		Id = id;
-		IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
+		IsCoordinationFeeExempted = isCoordinationFeeExempted;
 	}
 
 	public Round Round { get; }
@@ -28,12 +28,12 @@ public class Alice
 
 	public bool ConfirmedConnection { get; set; } = false;
 	public bool ReadyToSign { get; set; }
-	public bool IsPayingZeroCoordinationFee { get; } = false;
+	public bool IsCoordinationFeeExempted { get; } = false;
 
 	public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
 	public Money CalculateRemainingAmountCredentials(FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
-		Coin.EffectiveValue(feeRate, IsPayingZeroCoordinationFee ? CoordinationFeeRate.Zero : coordinationFeeRate);
+		Coin.EffectiveValue(feeRate, IsCoordinationFeeExempted ? CoordinationFeeRate.Zero : coordinationFeeRate);
 
 	public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 	{

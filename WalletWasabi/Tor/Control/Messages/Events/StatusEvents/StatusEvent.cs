@@ -25,7 +25,7 @@ public enum StatusSeverity
 /// <code>
 /// "650" SP StatusType SP StatusSeverity SP StatusAction
 ///                                      [SP StatusArguments] CRLF
-/// 
+///
 /// StatusType = "STATUS_GENERAL" / "STATUS_CLIENT" / "STATUS_SERVER"
 /// StatusSeverity = "NOTICE" / "WARN" / "ERR"
 /// StatusAction = 1*ALPHA

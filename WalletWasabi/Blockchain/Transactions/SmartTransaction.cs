@@ -3,8 +3,11 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -15,6 +18,9 @@ namespace WalletWasabi.Blockchain.Transactions;
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
+
+	private Lazy<long[]> _outputValues;
+	private Lazy<bool> _isWasabi2Cj;
 
 	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, SmartLabel? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
 	{
@@ -35,11 +41,22 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+
+		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
+		_isWasabi2Cj = new Lazy<bool>(
+			() => Transaction.Outputs.Count >= 2 // Sanity check.
+			&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+			&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
+			isThreadSafe: true);
 	}
 
 	#endregion Constructors
 
 	#region Members
+
+	public long[] OutputValues => _outputValues.Value;
+	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletInputsInternal { get; }
@@ -48,10 +65,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private HashSet<SmartCoin> WalletOutputsInternal { get; }
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; }
+	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
 
 	/// <summary>Cached computation of <see cref="ForeignOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; }
+	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="WalletVirtualInputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<WalletVirtualInput>? WalletVirtualInputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="WalletVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<WalletVirtualOutput>? WalletVirtualOutputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; } = null;
 
 	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
 
@@ -63,7 +89,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignInputsCache is null)
 			{
-				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
 				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 			}
 			return ForeignInputsCache;
@@ -76,10 +102,49 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignOutputsCache is null)
 			{
-				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
 				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 			}
 			return ForeignOutputsCache;
+		}
+	}
+
+	/// <summary>Wallet inputs with the same script are virtually considered to be the same by blockchain analysis.</summary>
+	public IReadOnlyCollection<WalletVirtualInput> WalletVirtualInputs
+	{
+		get
+		{
+			WalletVirtualInputsCache ??= WalletInputs
+					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
+					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
+					.ToHashSet();
+			return WalletVirtualInputsCache;
+		}
+	}
+
+	/// <summary>Wallet outputs with the same script are virtually considered to be the same by blockchain analysis.</summary>
+	public IReadOnlyCollection<WalletVirtualOutput> WalletVirtualOutputs
+	{
+		get
+		{
+			WalletVirtualOutputsCache ??= WalletOutputs
+					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
+					.Select(g => new WalletVirtualOutput(g.Key, g.ToHashSet()))
+					.ToHashSet();
+			return WalletVirtualOutputsCache;
+		}
+	}
+
+	/// <summary>Foreign outputs with the same script are virtually considered to be the same by blockchain analysis.</summary>
+	public IReadOnlyCollection<ForeignVirtualOutput> ForeignVirtualOutputs
+	{
+		get
+		{
+			ForeignVirtualOutputsCache ??= ForeignOutputs
+					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
+					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
+					.ToHashSet();
+			return ForeignVirtualOutputsCache;
 		}
 	}
 
@@ -114,8 +179,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		set
 		{
-			// If it's null, let FirstSeen's default to be set.
-			// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
+			// If it's null, let the default of FirstSeen to be set.
+			// If it's not null, then check if FirstSeen has just been recently set to UtcNow which is its default.
 			if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
 			{
 				FirstSeen = value.Value;
@@ -146,6 +211,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		if (WalletInputsInternal.Add(input))
 		{
 			ForeignInputsCache = null;
+			WalletVirtualInputsCache = null;
 			return true;
 		}
 		return false;
@@ -156,6 +222,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		if (WalletOutputsInternal.Add(output))
 		{
 			ForeignOutputsCache = null;
+			WalletVirtualOutputsCache = null;
+			ForeignVirtualOutputsCache = null;
 			return true;
 		}
 		return false;
@@ -166,6 +234,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		if (WalletInputsInternal.Remove(input))
 		{
 			ForeignInputsCache = null;
+			WalletVirtualInputsCache = null;
 			return true;
 		}
 		return false;
@@ -176,6 +245,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		if (WalletOutputsInternal.Remove(output))
 		{
 			ForeignOutputsCache = null;
+			WalletVirtualOutputsCache = null;
+			ForeignVirtualOutputsCache = null;
 			return true;
 		}
 		return false;
@@ -231,7 +302,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
+	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>
@@ -292,7 +363,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		try
 		{
-			// First is redundant txhash serialization.
+			// First is redundant txHash serialization.
 			var heightString = parts[2];
 			var blockHashString = parts[3];
 			var blockIndexString = parts[4];

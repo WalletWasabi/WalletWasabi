@@ -15,25 +15,25 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Wallets;
 
-public class WalletManager
+public class WalletManager : IWalletProvider
 {
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
 	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-			Directory.CreateDirectory(WorkDir);
-			WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		using IDisposable _ = BenchmarkLogger.Measure();
 
-			RefreshWalletList();
-		}
+		Network = Guard.NotNull(nameof(network), network);
+		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		Directory.CreateDirectory(WorkDir);
+		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+
+		RefreshWalletList();
 	}
 
 	/// <summary>
@@ -60,7 +60,7 @@ public class WalletManager
 	private AsyncLock StartStopWalletLock { get; } = new();
 
 	private BitcoinStore BitcoinStore { get; set; }
-	public WasabiSynchronizer? Synchronizer { get; private set; }
+	private WasabiSynchronizer? Synchronizer { get; set; }
 	private ServiceConfiguration ServiceConfiguration { get; set; }
 	private bool IsInitialized { get; set; }
 
@@ -68,7 +68,7 @@ public class WalletManager
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private IBlockProvider BlockProvider { get; set; }
-	public string WorkDir { get; }
+	private string WorkDir { get; }
 
 	private void RefreshWalletList()
 	{
@@ -93,6 +93,8 @@ public class WalletManager
 		}
 	}
 
+	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
+
 	public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
 	{
 		if (refreshWalletList)
@@ -106,13 +108,11 @@ public class WalletManager
 		}
 	}
 
-	public bool HasWallet() => AnyWallet(_ => true);
-
-	public bool AnyWallet(Func<Wallet, bool> predicate)
+	public bool HasWallet()
 	{
 		lock (Lock)
 		{
-			return Wallets.Any(predicate);
+			return Wallets.Count > 0;
 		}
 	}
 
@@ -199,7 +199,7 @@ public class WalletManager
 			}
 
 			Logger.LogWarning($"Wallet got corrupted.\n" +
-				$"Wallet Filepath: {walletFullPath}\n" +
+				$"Wallet file path: {walletFullPath}\n" +
 				$"Trying to recover it from backup.\n" +
 				$"Backup path: {walletBackupFullPath}\n" +
 				$"Exception: {ex}");

@@ -4,13 +4,15 @@ using System.Linq;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation.Models;
+using WabiSabi;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Models.Serialization;
@@ -22,17 +24,17 @@ public class SerializationTests
 {
 	private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 	private static IEnumerable<Scalar> Scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
-	private static CredentialIssuerSecretKey IssuerKey = new(new InsecureRandom());
+	private static CredentialIssuerSecretKey IssuerKey = new(InsecureRandom.Instance);
 
 	[Fact]
 	public void InputRegistrationRequestMessageSerialization()
 	{
 		var message = new InputRegistrationRequest(
-				BitcoinFactory.CreateUint256(),
-				BitcoinFactory.CreateOutPoint(),
-				new OwnershipProof(),
-				CreateZeroCredentialsRequest(),
-				CreateZeroCredentialsRequest());
+			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateOutPoint(),
+			new OwnershipProof(),
+			CreateZeroCredentialsRequest(),
+			CreateZeroCredentialsRequest());
 
 		AssertSerialization(message);
 	}
@@ -177,7 +179,7 @@ public class SerializationTests
 		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
 		var roundState = RoundState.FromRound(round);
 		CoinJoinFeeRateMedian median = new(TimeSpan.FromHours(24), new FeeRate(120m));
-		RoundStateResponse response = new(new[] { roundState }, new[] { median });
+		RoundStateResponse response = new(new[] { roundState }, new[] { median }, AffiliateInformation.Empty);
 
 		AssertSerialization(response);
 	}

@@ -1,14 +1,12 @@
-using System;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -18,20 +16,20 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 {
 	private readonly Wallet _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, TransactionInfo info)
+	public LabelEntryDialogViewModel(Wallet wallet, SmartLabel label)
 	{
 		_wallet = wallet;
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
 		{
-			Labels = { info.UserLabels.Labels }
+			Labels = { label.Labels }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var nextCommandCanExecute =
 			Observable
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
+				.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).ToSignal())
+				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).ToSignal())
 				.Select(_ => SuggestionLabels.Labels.Any() || SuggestionLabels.IsCurrentTextValid);
 
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
@@ -49,7 +47,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
-			.Select(_ => Unit.Default)
+			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())
 			.DisposeWith(disposables);

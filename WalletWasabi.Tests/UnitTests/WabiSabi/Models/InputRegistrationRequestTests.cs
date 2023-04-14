@@ -1,12 +1,13 @@
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using System.Linq;
+using WabiSabi;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Groups;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -103,7 +104,9 @@ public class InputRegistrationRequestTests
 	}
 
 	private static GroupElement NewGroupElement(int i) => Generators.FromText($"T{i}");
+
 	private static GroupElementVector NewGroupElementVector(params int[] arr) => new(arr.Select(i => NewGroupElement(i)));
+
 	private static ScalarVector NewScalarVector(params uint[] arr) => new(arr.Select(i => new Scalar(i)));
 
 	/// <remarks>Each instance represents the same request but a new object instance.</remarks>
@@ -122,6 +125,7 @@ public class InputRegistrationRequestTests
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256 roundHash)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
-			new OwnershipIdentifier(Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main), key.PubKey.WitHash.ScriptPubKey),
-			WabiSabiFactory.CreateCommitmentData(roundHash));
+			new OwnershipIdentifier(Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main), key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)),
+			WabiSabiFactory.CreateCommitmentData(roundHash),
+			ScriptPubKeyType.Segwit);
 }

@@ -86,14 +86,10 @@ public class PreviewItem : ContentControl
 	{
 		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
 
-		var hasBeenJustCopied = Observable.Return(false)
-			.Concat(button.CopyCommand
-				.Select(_ => Observable.Return(true).Concat(Observable.Timer(TimeSpan.FromSeconds(1)).Select(_ => false)))
-				.Switch());
-
-		var isCopyButtonVisible = this
-			.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b))
-			.CombineLatest(hasBeenJustCopied, (over, justCopied) => over || justCopied);
+		var isCopyButtonVisible =
+			button.CopyCommand.IsExecuting
+			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b)))
+			.Select(x => x.First || x.Second);
 
 		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 

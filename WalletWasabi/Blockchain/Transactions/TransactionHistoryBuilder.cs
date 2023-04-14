@@ -76,7 +76,7 @@ public class TransactionHistoryBuilder
 						Label = spenderTransaction.Label,
 						TransactionId = spenderTxId,
 						BlockIndex = spenderTransaction.BlockIndex,
-			BlockHash = spenderTransaction.BlockHash,
+						BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin()
 					});
 				}

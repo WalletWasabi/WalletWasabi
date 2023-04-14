@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
              x:DataType="vm:ChangeAvoidanceSuggestionViewModel"
              ClipToBounds="False"
@@ -18,10 +19,10 @@
 
         <TextBlock TextWrapping="Wrap" Text="Avoid Change by sending:" TextAlignment="Center" />
         <StackPanel Spacing="10">
-          <TextBlock Text="{Binding DifferenceFiat}" FontSize="20" HorizontalAlignment="Center"
+          <TextBlock Text="{Binding DifferenceFiatText}" FontSize="20" HorizontalAlignment="Center"
                      Foreground="{DynamicResource SystemAccentColor}" />
           <TextBlock Text="{Binding Amount}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
-          <TextBlock Text="{Binding AmountFiat}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
+          <TextBlock Text="{Binding AmountFiat, Converter={x:Static converters:MoneyConverters.ToUsd}}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
         </StackPanel>
       </StackPanel>
     </Panel>

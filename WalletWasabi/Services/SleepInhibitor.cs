@@ -34,7 +34,7 @@ public class SleepInhibitor : PeriodicRunner
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			// Either we have systemd or not.
-			bool isSystemd = await LinuxInhibitorTask.IsSystemdInhibitSupportedAsync().ConfigureAwait(false);
+			bool isSystemd = await IsSystemdInhibitSupportedAsync().ConfigureAwait(false);
 			if (!isSystemd)
 			{
 				return null;
@@ -43,16 +43,20 @@ public class SleepInhibitor : PeriodicRunner
 			GraphicalEnvironment gui = GraphicalEnvironment.Other;
 
 			// Specialization for GNOME.
-			if (await LinuxInhibitorTask.IsMateSessionInhibitSupportedAsync().ConfigureAwait(false))
+			if (await IsMateSessionInhibitSupportedAsync().ConfigureAwait(false))
 			{
 				gui = GraphicalEnvironment.Mate;
 			}
-			else if (await LinuxInhibitorTask.IsGnomeSessionInhibitSupportedAsync().ConfigureAwait(false))
+			else if (await IsGnomeSessionInhibitSupportedAsync().ConfigureAwait(false))
 			{
 				gui = GraphicalEnvironment.Gnome;
 			}
 
-			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(Create(InhibitWhat.Idle, Timeout, Reason, gui));
+		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(MacOsInhibitorTask.Create(Timeout, Reason));
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -78,7 +82,7 @@ public class SleepInhibitor : PeriodicRunner
 				await StopTaskAsync().ConfigureAwait(false);
 				break;
 
-			case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
+			case CoinJoinClientState.InSchedule or CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
 				await PreventSleepAsync().ConfigureAwait(false);
 				break;
 
@@ -91,26 +95,19 @@ public class SleepInhibitor : PeriodicRunner
 	{
 		IPowerSavingInhibitorTask? task = _powerSavingTask;
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		if (task is not null)
 		{
-			if (task is not null)
+			if (!task.Prolong(Timeout))
 			{
-				if (!task.Prolong(Timeout))
-				{
-					Logger.LogTrace("Failed to prolong the power saving task.");
-					task = null;
-				}
-			}
-
-			if (task is null)
-			{
-				Logger.LogTrace("Create new power saving prevention task.");
-				_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
+				Logger.LogTrace("Failed to prolong the power saving task.");
+				task = null;
 			}
 		}
-		else
+
+		if (task is null)
 		{
-			await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
+			Logger.LogTrace("Create new power saving prevention task.");
+			_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
 		}
 	}
 

@@ -39,7 +39,7 @@ public static class BitcoinFactory
 		foreach (var (value, anonset, hdpk) in ownInputs)
 		{
 			var sc = CreateSmartCoin(hdpk, value, anonymitySet: anonset);
-			tx.Inputs.Add(sc.OutPoint);
+			tx.Inputs.Add(sc.Outpoint);
 			walletInputs.Add(sc);
 		}
 		foreach (var output in othersOutputs)
@@ -72,19 +72,21 @@ public static class BitcoinFactory
 	public static HdPubKey CreateHdPubKey(KeyManager km)
 		=> km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 
-	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, uint index = 0, bool confirmed = true, int anonymitySet = 1)
-		=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), index, confirmed, anonymitySet);
+	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, bool confirmed = true, int anonymitySet = 1)
+		=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), confirmed, anonymitySet);
 
-	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, Money amount, uint index = 0, bool confirmed = true, int anonymitySet = 1)
+	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
+		=> CreateSmartCoin(Transaction.Create(Network.Main), pubKey, amount, confirmed, anonymitySet);
+
+	public static SmartCoin CreateSmartCoin(Transaction tx, HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
 	{
 		var height = confirmed ? new Height(CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 		pubKey.SetKeyState(KeyState.Used);
-		var tx = Transaction.Create(Network.Main);
-		tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
+		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
-		return new SmartCoin(stx, index, pubKey);
+		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
 	}
 
 	public static OutPoint CreateOutPoint()
@@ -103,11 +105,11 @@ public static class BitcoinFactory
 		if (key is null)
 		{
 			using Key k = new();
-			return k.PubKey.WitHash.ScriptPubKey;
+			return k.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		}
 		else
 		{
-			return key.PubKey.WitHash.ScriptPubKey;
+			return key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		}
 	}
 
@@ -131,6 +133,9 @@ public static class BitcoinFactory
 				Blocks = target,
 				FeeRate = new FeeRate(Money.Satoshis(5000))
 			});
+
+		// We don't use the result, but we need not to throw NotImplementedException.
+		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
 
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 

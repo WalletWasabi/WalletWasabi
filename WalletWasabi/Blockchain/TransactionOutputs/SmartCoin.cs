@@ -5,6 +5,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -12,7 +13,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// An UTXO that knows more.
 /// </summary>
 [DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
-public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination
+public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ISmartCoin
 {
 	private Height _height;
 	private SmartTransaction? _spenderTransaction;
@@ -24,6 +25,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	private bool _confirmed;
 	private bool _isBanned;
+	private bool _isExcludedFromCoinJoin;
 
 	private Lazy<uint256> _transactionId;
 	private Lazy<OutPoint> _outPoint;
@@ -39,9 +41,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 		_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
 		_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
-		_coin = new Lazy<Coin>(() => new Coin(OutPoint, TxOut), true);
+		_coin = new Lazy<Coin>(() => new Coin(Outpoint, TxOut), true);
 
-		_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+		_hashCode = new Lazy<int>(() => Outpoint.GetHashCode(), true);
 
 		_height = transaction.Height;
 		_confirmed = _height.Type == HeightType.Chain;
@@ -55,12 +57,14 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public uint Index { get; }
 	public uint256 TransactionId => _transactionId.Value;
 
-	public OutPoint OutPoint => _outPoint.Value;
+	public OutPoint Outpoint => _outPoint.Value;
 	public TxOut TxOut => _txOut.Value;
 	public Coin Coin => _coin.Value;
 
 	public Script ScriptPubKey => TxOut.ScriptPubKey;
+	public ScriptType ScriptType => ScriptPubKey.GetScriptType();
 	public Money Amount => TxOut.Value;
+	public double AnonymitySet => HdPubKey.AnonymitySet;
 
 	public Height Height
 	{
@@ -77,13 +81,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public SmartTransaction? SpenderTransaction
 	{
 		get => _spenderTransaction;
-		set
-		{
-			if (value?.TryAddWalletInput(this) is true)
-			{
-				RaiseAndSetIfChanged(ref _spenderTransaction, value);
-			}
-		}
+		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
 	public bool RegisterToHdPubKey()
@@ -144,6 +142,12 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	{
 		get => RefreshAndGetIsBanned();
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
+	}
+
+	public bool IsExcludedFromCoinJoin
+	{
+		get => _isExcludedFromCoinJoin;
+		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
 
 	public bool IsImmature(int bestHeight)

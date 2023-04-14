@@ -6,6 +6,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Blockchain.Keys;
 using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Userfacing;
 

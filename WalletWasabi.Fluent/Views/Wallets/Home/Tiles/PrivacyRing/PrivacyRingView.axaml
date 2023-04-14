@@ -1,0 +1,166 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
+             xmlns:ringView="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingView"
+             x:Name="View">
+  <UserControl.Styles>
+    <Style Selector="Path:pointerover">
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="Stroke" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+
+    <Style Selector="Path.private">
+      <Setter Property="Fill" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+    </Style>
+
+    <Style Selector="Path.semiPrivate">
+      <Setter Property="Fill" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+    </Style>
+
+    <Style Selector="Path.nonPrivate">
+      <Setter Property="Fill" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+    </Style>
+
+    <Style Selector="Path.unconfirmed">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+      <Setter Property="IsSelected" Value="{Binding IsPointerOver, Mode=TwoWay}" />
+      <Setter Property="ClipToBounds" Value="False" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Template">
+        <ControlTemplate TargetType="ListBoxItem">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="ListBoxItem:selected">
+      <Setter Property="Background" Value="Red" />
+    </Style>
+
+    <Style Selector="Carousel#Carousel">
+      <Setter Property="Width" Value="250" />
+    </Style>
+
+    <Style Selector="Carousel#Carousel.small">
+      <Setter Property="Width" Value="160" />
+    </Style>
+  </UserControl.Styles>
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Done"
+                 EnableCancel="False"
+                 EnableBack="False"
+                 Caption="Hover over the ring segments to see coin details"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <DockPanel>
+
+      <ItemsControl Items="{Binding References}"
+                    DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 10 0 0" Height="50">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <Path Classes.private="{Binding IsPrivate}"
+                    Classes.semiPrivate="{Binding IsSemiPrivate}"
+                    Classes.nonPrivate="{Binding IsNonPrivate}"
+                    Classes.unconfirmed="{Binding Unconfirmed}"
+                    VerticalAlignment="Center" Margin="5 2 0 0"
+                    IsHitTestVisible="False">
+                <Path.Data>
+                  <EllipseGeometry RadiusX="5" RadiusY="5" Center="2.5,2.5" />
+                </Path.Data>
+              </Path>
+              <TextBlock Text="{Binding Reference}" Margin="5" Classes="h8" VerticalAlignment="Center" Opacity="0.6" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Panel x:Name="Panel">
+        <i:Interaction.Behaviors>
+          <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
+                                            Width="{Binding Width, Mode=TwoWay}"
+                                            Height="{Binding Height, Mode=TwoWay}" />
+          <ir:AdaptiveBehavior>
+            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #Carousel}" />
+          </ir:AdaptiveBehavior>
+        </i:Interaction.Behaviors>
+
+        <ListBox Items="{Binding Items}" ClipToBounds="False"
+                 SelectedItem="{Binding SelectedItem}"
+                 x:Name="Ring" Margin="{Binding Margin}">
+          <i:Interaction.Behaviors>
+            <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="250" />
+            <behaviors:ItemsControlAnimationBehavior />
+          </i:Interaction.Behaviors>
+          <ListBox.Template>
+            <ControlTemplate TargetType="ListBox">
+              <Panel>
+                <!-- "transparent" Border used for MouseMove -->
+                <Border Background="White" Margin="{Binding NegativeMargin}" Opacity="0.0001" />
+                <ItemsPresenter Name="PART_ItemsPresenter"
+                         Items="{TemplateBinding Items}"
+                         ItemsPanel="{TemplateBinding ItemsPanel}"
+                         ItemTemplate="{TemplateBinding ItemTemplate}" />
+              </Panel>
+            </ControlTemplate>
+          </ListBox.Template>
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <Panel />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Path Stretch="None" Height="{Binding Height}" Width="{Binding Width}"
+                    Data="{Binding Data}"
+                    Classes.private="{Binding IsPrivate}"
+                    Classes.semiPrivate="{Binding IsSemiPrivate}"
+                    Classes.nonPrivate="{Binding IsNonPrivate}"
+                    Classes.unconfirmed="{Binding Unconfirmed}">
+              </Path>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Carousel Items="{Binding PreviewItems}" IsVirtualized="False"
+                  SelectedItem="{Binding SelectedItem, Mode=OneWay}"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  x:Name="Carousel">
+          <Carousel.PageTransition>
+            <CrossFade Duration="0.25" />
+          </Carousel.PageTransition>
+          <Carousel.DataTemplates>
+            <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
+              <ringView:PrivacyRingDetailsView VerticalAlignment="Center">
+                <i:Interaction.Behaviors>
+                  <behaviors:FadeInBehavior InitialDelay="0:0:1" />
+                </i:Interaction.Behaviors>
+              </ringView:PrivacyRingDetailsView>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type ring:PrivacyRingItemViewModel}">
+              <ringView:PrivacyRingItemDetailsView />
+            </DataTemplate>
+          </Carousel.DataTemplates>
+        </Carousel>
+      </Panel>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>

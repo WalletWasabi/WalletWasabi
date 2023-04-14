@@ -14,7 +14,6 @@
 * limitations under the License.
 */
 
-using System;
 using ZXing.Common;
 
 namespace ZXing

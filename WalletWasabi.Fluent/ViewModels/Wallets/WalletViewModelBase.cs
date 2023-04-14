@@ -24,16 +24,11 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		_title = WalletName;
 		WalletState = wallet.State;
 
-		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
-
 		SetIcon();
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
-			.Subscribe(_ =>
-			{
-				MainViewModel.Instance.InvalidateIsCoinJoinActive();
-			});
+			.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
 	}
 
 	public override string Title

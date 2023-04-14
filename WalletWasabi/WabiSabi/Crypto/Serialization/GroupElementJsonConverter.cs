@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
-using WalletWasabi.Crypto.Groups;
+using WabiSabi.Crypto.Groups;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
 
@@ -18,7 +19,7 @@ public class GroupElementJsonConverter : JsonConverter<GroupElement>
 	/// <inheritdoc />
 	public override void WriteJson(JsonWriter writer, GroupElement? value, JsonSerializer serializer)
 	{
-		if (value is GroupElement ge)
+		if (value is { } ge)
 		{
 			writer.WriteValue(ByteHelpers.ToHex(ge.ToBytes()));
 			return;
