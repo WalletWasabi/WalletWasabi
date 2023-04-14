@@ -127,6 +127,11 @@ public partial class SendViewModel : RoutableViewModel
 					SubtractFee = amount == _wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
 				};
 
+				if (_coinJoinManager is { } coinJoinManager)
+				{
+					await coinJoinManager.WalletEnteredTxPreviewAsync(_wallet);
+				}
+
 				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
 			},
 			nextCommandCanExecute);
@@ -328,7 +333,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (_coinJoinManager is { } coinJoinManager)
 			{
-				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName);
+				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName, WalletStatus.InSendWorkFlow);
 			}
 		}
 
@@ -350,7 +355,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
 		{
-			coinJoinManager.WalletLeftSendWorkflow(_wallet.WalletName);
+			Task.Run(async () => await coinJoinManager.WalletLeftSendWorkflowAsync(_wallet));
 		}
 	}
 }
