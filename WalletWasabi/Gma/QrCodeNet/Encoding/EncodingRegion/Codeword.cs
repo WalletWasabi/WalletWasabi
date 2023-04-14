@@ -54,7 +54,7 @@ internal static class Codeword
 
 		if (bitIndex != codewordsSize)
 		{
-			throw new ArgumentException($"Not all bits from {nameof(codewords)} consumed by matrix: {bitIndex} / {codewordsSize}.");
+			throw new Exception($"Not all bits from {nameof(codewords)} consumed by matrix: {bitIndex} / {codewordsSize}.");
 		}
 	}
 
