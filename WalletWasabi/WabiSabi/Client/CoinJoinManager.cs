@@ -44,15 +44,14 @@ public class CoinJoinManager : BackgroundService
 
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are in send workflow.
-	/// There is no thread-safe list so the Value of the item in the dictionary is a not used dummy value.
 	/// </summary>
-	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
+	private ConcurrentDictionary<string, WalletStatus> WalletsStatuses { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
-		? CoinJoinClientStates.Values.MaxBy(s => (int)s)
+		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
 
-	private ImmutableDictionary<string, CoinJoinClientState> CoinJoinClientStates { get; set; } = ImmutableDictionary<string, CoinJoinClientState>.Empty;
+	private ImmutableDictionary<string, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<string, CoinJoinClientStateHolder>.Empty;
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
@@ -161,7 +160,7 @@ public class CoinJoinManager : BackgroundService
 
 			IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
+				if (WalletsStatuses.TryGetValue(walletToStart.WalletName, out var state) && state is WalletStatus.InSendWorkFlow)
 				{
 					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 				}
@@ -381,21 +380,24 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private static ImmutableDictionary<string, CoinJoinClientState> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
+	private static ImmutableDictionary<string, CoinJoinClientStateHolder> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
 	{
-		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<string, CoinJoinClientState>();
+		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<string, CoinJoinClientStateHolder>();
 		foreach (var wallet in wallets)
 		{
-			CoinJoinClientState state = CoinJoinClientState.Idle;
+			CoinJoinClientStateHolder state = new(CoinJoinClientState.Idle, StopWhenAllMixed: true, OverridePlebStop: false);
+
 			if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
 			{
-				state = coinJoinTracker.InCriticalCoinJoinState
+				var trackerState = coinJoinTracker.InCriticalCoinJoinState
 					? CoinJoinClientState.InCriticalPhase
 					: CoinJoinClientState.InProgress;
+
+				state = new(trackerState, coinJoinTracker.StopWhenAllMixed, coinJoinTracker.OverridePlebStop);
 			}
-			else if (trackedAutoStarts.TryGetValue(wallet, out _))
+			else if (trackedAutoStarts.TryGetValue(wallet, out var autoStartTracker))
 			{
-				state = CoinJoinClientState.InSchedule;
+				state = new(CoinJoinClientState.InSchedule, autoStartTracker.StopWhenAllMixed, autoStartTracker.OverridePlebStop);
 			}
 
 			coinJoinClientStates.Add(wallet.WalletName, state);
@@ -563,9 +565,43 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public void WalletEnteredSendWorkflow(string walletName) => WalletsInSendWorkflow.TryAdd(walletName, 0);
+	public void WalletEnteredSendWorkflow(string walletName, WalletStatus walletStatus)
+	{
+		if (!WalletsStatuses.TryAdd(walletName, walletStatus))
+		{
+			WalletsStatuses[walletName] = walletStatus;
+		}
+	}
 
-	public void WalletLeftSendWorkflow(string walletName) => WalletsInSendWorkflow.Remove(walletName, out _);
+	public async Task WalletLeftSendWorkflowAsync(Wallet wallet)
+	{
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
+		{
+			if (WalletsStatuses.TryGetValue(wallet.WalletName, out WalletStatus status))
+			{
+				if (status is WalletStatus.NeedsToRestartAfterSend)
+				{
+					await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
+				}
+				else
+				{
+					WalletsStatuses[wallet.WalletName] = WalletStatus.Idle;
+				}
+			}
+		}
+	}
+
+	public async Task WalletEnteredTxPreviewAsync(Wallet wallet)
+	{
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle))
+		{
+			if (stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase)
+			{
+				WalletEnteredSendWorkflow(wallet.WalletName, WalletStatus.NeedsToRestartAfterSend);
+				await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
+			}
+		}
+	}
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{
