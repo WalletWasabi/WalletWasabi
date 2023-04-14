@@ -134,7 +134,7 @@ public class CoinJoinClient
 		return roundState;
 	}
 
-	public async Task<CoinJoinResult> StartCoinJoinAsync(Func<IEnumerable<SmartCoin>> coinCandidatesFunc, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartCoinJoinAsync(Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, CancellationToken cancellationToken)
 	{
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
@@ -144,12 +144,12 @@ public class CoinJoinClient
 		do
 		{
 			// Sanity check if we would get coins at all otherwise this will throw.
-			var _ = coinCandidatesFunc();
+			var _ = await coinCandidatesFunc().ConfigureAwait(false);
 
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
 
-			coinCandidates = coinCandidatesFunc();
+			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters);

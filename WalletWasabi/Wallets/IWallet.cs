@@ -25,7 +25,7 @@ public interface IWallet
 
 	bool IsWalletPrivate();
 
-	IEnumerable<SmartCoin> GetCoinjoinCoinCandidates();
+	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();
 
 	Task<IEnumerable<SmartTransaction>> GetTransactionsAsync();
 }

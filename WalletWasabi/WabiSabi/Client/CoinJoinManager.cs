@@ -159,7 +159,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
+			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
 				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 				{
@@ -186,7 +186,7 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 				}
 
-				var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight);
+				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
 
 				// If there is no available coin candidates, then don't mix.
 				if (!coinCandidates.Any())
@@ -534,8 +534,8 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private IEnumerable<SmartCoin> SelectCandidateCoins(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(openedWallet.GetCoinjoinCoinCandidates())
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)

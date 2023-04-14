@@ -116,6 +116,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
+
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
 	public IEnumerable<SmartTransaction> GetTransactions()
