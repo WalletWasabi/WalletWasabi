@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -55,6 +53,8 @@ public class WasabiApplication
 
 		try
 		{
+			TerminateService.Activate();
+
 			BeforeStarting();
 
 			await afterStarting();
