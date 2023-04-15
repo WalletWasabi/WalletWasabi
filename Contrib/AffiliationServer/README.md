@@ -19,7 +19,7 @@ shared with all the partners acting as affiliates (those running an affiliation 
 Revenue Sharing Calculator
 --------------
 
-An script to calculate the total amount of bitcoins from affiliate.
+A script to calculate the total amount of bitcoins from affiliate.
 
 This script takes the coinjoin notifications provided by the affiliated which proves the affiliation of unmixed inputs and calculates the total amount of
 bitcoins coming from the affiliated. Given Wasabi doesn't store any kind of information related to affiliations, it is the affiliated the one that needs
@@ -40,7 +40,9 @@ $ dotnet fsi revenue.fsx -- --network=TestNet \
       --affiliate=WalletWasabi
 ```
 
-The result can be seen elow:
+Optional argument `coordinationFeeRate` can also be specified and its default value is `0.003`
+
+The result can be seen below:
 
 ```
 coinjoin: 25aaef88eec92b18368c52fc3ef5f602f8dac1caea3cd9d5ee2d80ac81e61784 - Total amount: 6669693 satoshis. Share: 20009

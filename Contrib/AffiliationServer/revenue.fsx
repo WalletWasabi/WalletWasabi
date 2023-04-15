@@ -41,10 +41,9 @@ module CommandLine =
 module Signature =
 
     let verifySignature (pubkey:byte[]) (message:byte[]) signature =
-        let ver = System.Security.Cryptography.ECDsa.Create()
-        let mutable bytesRead = 0
-        ver.ImportSubjectPublicKeyInfo(ReadOnlySpan(pubkey) , &bytesRead)
-        ver.VerifyData(message, signature, HashAlgorithmName.SHA256)
+        let ecdsa = ECDsa.Create()
+        let _ = ecdsa.ImportSubjectPublicKeyInfo(ReadOnlySpan(pubkey))
+        ecdsa.VerifyData(message, signature, HashAlgorithmName.SHA256)
 
     let verifyNotification affiliate pubkey (notification: CoinJoinNotificationRequest) =
          let payload = Payload(Header.Create(affiliate), notification.Body)
@@ -58,13 +57,14 @@ let args = {|
     network = Network.GetNetwork (getArgOrDefault "--network" "Main")
     notificationsPath = getArgOrDefault "--path" "."
     affiliate = getArgOrDefault "--affiliate" "trezor"
-    pubkey = getArgOrFail "--pubkey" |> Convert.FromHexString
+    pubkey = Convert.FromHexString(getArgOrFail "--pubkey")
+    coordinationFeeRate = decimal (getArgOrDefault "--coordinationFeeRate" "0.003")
 |}
 
 let rpc = RPCClient(args.rpcCredentials, args.network)
-let notificationFiles = Directory.EnumerateFiles (args.notificationsPath)
+let notificationFiles = Directory.EnumerateFiles (args.notificationsPath, "*.txt;*.json")
 
-type NotificationProcessResult =
+type NotificationProcessError =
      | ApocryphalNotification of CoinJoinNotificationRequest
      | NonexistentTransaction of uint256 * CoinJoinNotificationRequest
 
@@ -85,7 +85,7 @@ let processNotification notification = result {
         |> List.ofSeq
 
     let affInputSum = List.sumBy fst affInputs
-    let affShare = int64 (0.003M * decimal affInputSum)
+    let affShare = int64 (args.coordinationFeeRate * decimal affInputSum)
 
     return! Ok (txId, affInputs, affInputSum, affShare, notification)
 }
