@@ -344,7 +344,8 @@ public static class HwiParser
 			fullOptions.Insert(0, HwiOption.TestNet);
 		}
 
-		var optionsString = string.Join(" --",
+		var optionsString = string.Join(
+			" --",
 			fullOptions.Select(x =>
 			{
 				string optionString = x.Type switch
