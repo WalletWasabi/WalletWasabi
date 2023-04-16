@@ -86,17 +86,17 @@ public class JsonRpcRequestHandler<TService>
 					parameters.Add(item);
 				}
 			}
-			else if (jsonRpcRequest.Parameters is JObject jobj)
+			else if (jsonRpcRequest.Parameters is JObject jObj)
 			{
 				for (int i = 0; i < methodParameters.Count; i++)
 				{
 					var param = methodParameters[i];
-					if (!jobj.ContainsKey(param.name))
+					if (!jObj.ContainsKey(param.name))
 					{
 						return Error(JsonRpcErrorCodes.InvalidParams,
 							$"A value for the '{param.name}' is missing.", jsonRpcRequest.Id);
 					}
-					parameters.Add(jobj[param.name].ToObject(param.type, DefaultSerializer));
+					parameters.Add(jObj[param.name].ToObject(param.type, DefaultSerializer));
 				}
 			}
 
