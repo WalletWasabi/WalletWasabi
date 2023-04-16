@@ -599,13 +599,7 @@ public static class Program
 			RedirectStandardInput = isWriteToStandardInput,
 			RedirectStandardOutput = redirectStandardOutput,
 			WorkingDirectory = workingDirectory
-		});
-
-		if (process is null)
-		{
-			throw new InvalidOperationException($"Process '{command}' is invalid.");
-		}
-
+		}) ?? throw new InvalidOperationException($"Process '{command}' is invalid.");
 		if (isWriteToStandardInput)
 		{
 			process.StandardInput.WriteLine(writeToStandardInput);
