@@ -311,11 +311,20 @@ public static class HwiParser
 		const string Prefix = "hwi";
 
 		// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-		var prefixToTrim = (hwiResponse.StartsWith(WinPrefix)
-			? WinPrefix
-			: hwiResponse.StartsWith(Prefix)
-				? Prefix
-				: null) ?? throw new FormatException("HWI prefix is missing in the provided version response.");
+		string prefixToTrim;
+		if (hwiResponse.StartsWith(WinPrefix))
+		{
+			prefixToTrim = WinPrefix;
+		}
+		else if (hwiResponse.StartsWith(Prefix))
+		{
+			prefixToTrim = Prefix;
+		}
+		else
+		{
+			throw new FormatException("HWI prefix is missing in the provided version response.");
+		}
+
 		hwiResponse = hwiResponse.TrimStart(prefixToTrim, StringComparison.InvariantCultureIgnoreCase).TrimEnd();
 
 		var onlyVersion = hwiResponse.Split("-")[0];
