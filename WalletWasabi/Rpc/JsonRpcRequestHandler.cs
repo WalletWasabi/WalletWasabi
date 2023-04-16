@@ -80,9 +80,9 @@ public class JsonRpcRequestHandler<TService>
 				var count = methodParameters.Count < jArray.Count ? methodParameters.Count : jArray.Count;
 				for (int i = 0; i < count; i++)
 				{
-					var param = methodParameters[i];
-					var item = jArray[i].ToObject(param.type, DefaultSerializer)
-						?? throw new InvalidOperationException($"Parameter `{param.name}` is null.");
+					var parameter = methodParameters[i];
+					var item = jArray[i].ToObject(parameter.type, DefaultSerializer)
+						?? throw new InvalidOperationException($"Parameter `{parameter.name}` is null.");
 					parameters.Add(item);
 				}
 			}
@@ -90,13 +90,13 @@ public class JsonRpcRequestHandler<TService>
 			{
 				for (int i = 0; i < methodParameters.Count; i++)
 				{
-					var param = methodParameters[i];
-					if (!jObj.ContainsKey(param.name))
+					var parameter = methodParameters[i];
+					if (!jObj.ContainsKey(parameter.name))
 					{
 						return Error(JsonRpcErrorCodes.InvalidParams,
-							$"A value for the '{param.name}' is missing.", jsonRpcRequest.Id);
+							$"A value for the '{parameter.name}' is missing.", jsonRpcRequest.Id);
 					}
-					parameters.Add(jObj[param.name].ToObject(param.type, DefaultSerializer));
+					parameters.Add(jObj[parameter.name].ToObject(parameter.type, DefaultSerializer));
 				}
 			}
 
