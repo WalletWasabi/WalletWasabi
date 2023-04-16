@@ -21,11 +21,7 @@ public class BlockstreamApiClient : ITxPropagationVerifier
 				: "https://blockstream.info/");
 		HttpClient = httpClient;
 	}
-	public BlockstreamApiClient(Uri baseAddress, HttpClient httpClient)
-	{
-		httpClient.BaseAddress = baseAddress;
-		HttpClient = httpClient;
-	}
+	
 	private HttpClient HttpClient { get; }
 	private AsyncLock AsyncLock { get; } = new();
 	

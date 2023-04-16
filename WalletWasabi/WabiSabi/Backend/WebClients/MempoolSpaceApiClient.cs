@@ -21,11 +21,7 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 				: "https://mempool.space/");
 		HttpClient = httpClient;
 	}
-	public MempoolSpaceApiClient(Uri baseAddress, HttpClient httpClient)
-	{
-		httpClient.BaseAddress = baseAddress;
-		HttpClient = httpClient;
-	}
+	
 	private HttpClient HttpClient { get; }
 	private AsyncLock AsyncLock { get; } = new();
 
