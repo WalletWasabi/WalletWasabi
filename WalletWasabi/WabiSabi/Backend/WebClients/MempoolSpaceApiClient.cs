@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
-public class MempoolSpaceApiClient : ITxPropagationVerifier
+public class MempoolSpaceApiClient : ITxPropagationVerifierApiClient
 {
 	public MempoolSpaceApiClient(Network network, HttpClient httpClient)
 	{
@@ -53,7 +53,7 @@ public class MempoolSpaceApiClient : ITxPropagationVerifier
 			{
 				return null;
 			}
-			throw new InvalidOperationException($"There was an unexpected error with request to mempool.space.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+			throw new InvalidOperationException($"There was an unexpected error with request to mempool.space. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
 		return await response.Content.ReadAsJsonAsync<MempoolSpaceApiResponseItem>().ConfigureAwait(false);

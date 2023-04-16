@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Backend.WebClients.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.WebClients;
 
-public class BlockstreamApiClient : ITxPropagationVerifier
+public class BlockstreamApiClient : ITxPropagationVerifierApiClient
 {
 	public BlockstreamApiClient(Network network, HttpClient httpClient)
 	{
@@ -53,7 +53,7 @@ public class BlockstreamApiClient : ITxPropagationVerifier
 			{
 				return null;
 			}
-			throw new InvalidOperationException($"There was an unexpected error with request to Blockstream.{nameof(HttpStatusCode)} was {response?.StatusCode}.");
+			throw new InvalidOperationException($"There was an unexpected error with request to Blockstream. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
 		return await response.Content.ReadAsJsonAsync<BlockstreamApiResponseItem>().ConfigureAwait(false);

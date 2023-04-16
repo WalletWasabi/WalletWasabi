@@ -13,13 +13,13 @@ public class TxPropagationVerifier
 {
 	public TxPropagationVerifier(Network network, IHttpClientFactory httpClientFactory)
 	{
-		Verifiers = new List<ITxPropagationVerifier>()
+		Verifiers = new List<ITxPropagationVerifierApiClient>()
 		{
 			new BlockstreamApiClient(network, httpClientFactory.CreateClient(nameof(BlockstreamApiClient))),
 			new MempoolSpaceApiClient(network, httpClientFactory.CreateClient(nameof(MempoolSpaceApiClient)))
 		};
 	}
-	public List<ITxPropagationVerifier> Verifiers { get; }
+	public List<ITxPropagationVerifierApiClient> Verifiers { get; }
 
 	// Don't throw as this task is not awaited
 	public async Task LogTxAcceptedByThirdPartyAsync(uint256 txid, CancellationToken cancel)
