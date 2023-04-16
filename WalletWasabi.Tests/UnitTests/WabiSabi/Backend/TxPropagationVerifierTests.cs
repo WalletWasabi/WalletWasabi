@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Statistics;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;

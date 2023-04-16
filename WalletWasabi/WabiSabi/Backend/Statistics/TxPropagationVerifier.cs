@@ -28,41 +28,47 @@ public class TxPropagationVerifier
 		const int Attempts = 10;
 
 		var delay = TimeSpan.FromSeconds(RetryEachSeconds);
-		
-		var counterException = 0;
-		for (int i = 0; i < Attempts; i++)
+
+		var lastNegativeResult = 0;
+		for (var i = 0; i < Attempts; i++)
 		{
-			try
+			await Task.Delay(delay, cancel).ConfigureAwait(false);
+			var tasks = new List<Task<bool>>();
+			foreach (var txPropagationVerifier in Verifiers)
 			{
-				await Task.Delay(delay, cancel).ConfigureAwait(false);
-				var tasks = new List<Task<bool>>();
-				foreach (var txPropagationVerifier in Verifiers)
-				{
-					tasks.Add(txPropagationVerifier.IsTxAcceptedByNode(txid, cancel));
-				}
-				var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-
-				if (results.Any(result => result))
-				{
-					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {delay.Seconds * (i+1)} seconds.");
-					return;
-				}
+				tasks.Add(txPropagationVerifier.IsTxAcceptedByNode(txid, cancel));
 			}
-			catch (Exception ex)
+
+			while (tasks.Count > 0)
 			{
-				if (cancel.IsCancellationRequested)
+				var result = await Task.WhenAny(tasks).ConfigureAwait(false);
+				tasks.Remove(result);
+				
+				if (result.Status == TaskStatus.Faulted)
 				{
-					return;
+					if (cancel.IsCancellationRequested)
+					{
+						return;
+					}
+					
+					// Call to this API provider failed, check result for next one.
+					continue;
 				}
 
-				counterException++;
-				if (counterException == Attempts)
+				if (result.Result)
 				{
-					Logger.LogWarning($"Coinjoin TX {txid} couldn't be tested against third party mempool. Probably API service is unavailable. Last exception: {ex}");
+					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {delay.Seconds * (i + 1)} seconds.");
 					return;
 				}
+				
+				// Call to this API provider was successful, but the transaction was not present in its mempool
+				lastNegativeResult = i + 1;
 			}
 		}
-		Logger.LogWarning($"Coinjoin TX {txid} hasn't been accepted by third party node after {delay.Seconds * Attempts} seconds.");
+
+		Logger.LogWarning(
+			lastNegativeResult != 0 ? 
+			$"Coinjoin TX {txid} hasn't been accepted by third party node after {delay.Seconds * (lastNegativeResult)} seconds." : 
+			$"Coinjoin TX {txid} couldn't be tested against any third party node in {delay.Seconds * Attempts} seconds.");
 	}
 }
