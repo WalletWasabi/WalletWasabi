@@ -65,14 +65,14 @@ public class JsonRpcRequestHandler<TService>
 	{
 		var methodName = jsonRpcRequest.Method;
 
-		if (!MetadataProvider.TryGetMetadata(methodName, out var prodecureMetadata))
+		if (!MetadataProvider.TryGetMetadata(methodName, out var procedureMetadata))
 		{
 			return Error(JsonRpcErrorCodes.MethodNotFound, $"'{methodName}' method not found.", jsonRpcRequest.Id);
 		}
 
 		try
 		{
-			var methodParameters = prodecureMetadata.Parameters;
+			var methodParameters = procedureMetadata.Parameters;
 			var parameters = new List<object>();
 
 			if (jsonRpcRequest.Parameters is JArray jArray)
@@ -118,7 +118,7 @@ public class JsonRpcRequestHandler<TService>
 
 			var missingParameters = methodParameters.Count - parameters.Count;
 			parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
-			var result = prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
+			var result = procedureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 			if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
 			{
@@ -126,9 +126,9 @@ public class JsonRpcRequestHandler<TService>
 			}
 
 			JsonRpcResponse? response = null;
-			if (prodecureMetadata.MethodInfo.IsAsync())
+			if (procedureMetadata.MethodInfo.IsAsync())
 			{
-				if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
+				if (!procedureMetadata.MethodInfo.ReturnType.IsGenericType)
 				{
 					await ((Task)result).ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
