@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Daemon;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -20,7 +21,7 @@ public partial class AdvancedSettingsTabViewModel : SettingsTabViewModelBase
 
 	public AdvancedSettingsTabViewModel()
 	{
-		_enableGpu = Services.Config.EnableGpu;
+		_enableGpu = Services.PersistentConfig.EnableGpu;
 
 		this.WhenAnyValue(x => x.EnableGpu)
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -29,8 +30,8 @@ public partial class AdvancedSettingsTabViewModel : SettingsTabViewModelBase
 			.Subscribe(_ => Save());
 	}
 
-	protected override void EditConfigOnSave(Config config)
+	protected override void EditConfigOnSave(PersistentConfig persistentConfig)
 	{
-		config.EnableGpu = EnableGpu;
+		persistentConfig.EnableGpu = EnableGpu;
 	}
 }

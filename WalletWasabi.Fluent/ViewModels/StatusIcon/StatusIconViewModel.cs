@@ -34,9 +34,9 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 	public StatusIconViewModel(TorStatusCheckerModel statusCheckerWrapper)
 	{
-		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+		UseTor = Services.PersistentConfig.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
-		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
+		UseBitcoinCore = Services.PersistentConfig.StartLocalBitcoinCoreOnStartup;
 
 		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 		UpdateCommand = ReactiveCommand.Create(() =>

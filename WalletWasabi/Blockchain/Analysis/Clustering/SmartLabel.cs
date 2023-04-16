@@ -147,7 +147,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 
 	public static implicit operator SmartLabel(string labels) => new(labels);
 
-	public static implicit operator string(SmartLabel label) => label?.LabelString;
+	public static implicit operator string(SmartLabel label) => label.LabelString;
 
 	#endregion Equality
 }
