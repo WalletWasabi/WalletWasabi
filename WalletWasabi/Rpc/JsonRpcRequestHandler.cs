@@ -93,8 +93,10 @@ public class JsonRpcRequestHandler<TService>
 					var param = methodParameters[i];
 					if (!jobj.ContainsKey(param.name))
 					{
-						return Error(JsonRpcErrorCodes.InvalidParams,
-							$"A value for the '{param.name}' is missing.", jsonRpcRequest.Id);
+						return Error(
+							JsonRpcErrorCodes.InvalidParams,
+							$"A value for the '{param.name}' is missing.",
+							jsonRpcRequest.Id);
 					}
 					parameters.Add(jobj[param.name].ToObject(param.type, DefaultSerializer));
 				}
@@ -112,8 +114,10 @@ public class JsonRpcRequestHandler<TService>
 			}
 			if (parameters.Count < methodParameters.Count(x => !x.isOptional))
 			{
-				return Error(JsonRpcErrorCodes.InvalidParams,
-					$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
+				return Error(
+					JsonRpcErrorCodes.InvalidParams,
+					$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.",
+					jsonRpcRequest.Id);
 			}
 
 			var missingParameters = methodParameters.Count - parameters.Count;
