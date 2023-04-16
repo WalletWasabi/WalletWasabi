@@ -354,10 +354,8 @@ public static class HwiParser
 				{
 					return optionString;
 				}
-				else
-				{
-					return $"{optionString} \"{x.Arguments}\"";
-				}
+
+				return $"{optionString} \"{x.Arguments}\"";
 			}));
 
 		optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
