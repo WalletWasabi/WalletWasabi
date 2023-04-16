@@ -75,13 +75,13 @@ public class JsonRpcRequestHandler<TService>
 			var methodParameters = prodecureMetadata.Parameters;
 			var parameters = new List<object>();
 
-			if (jsonRpcRequest.Parameters is JArray jarr)
+			if (jsonRpcRequest.Parameters is JArray jArray)
 			{
-				var count = methodParameters.Count < jarr.Count ? methodParameters.Count : jarr.Count;
+				var count = methodParameters.Count < jArray.Count ? methodParameters.Count : jArray.Count;
 				for (int i = 0; i < count; i++)
 				{
 					var param = methodParameters[i];
-					var item = jarr[i].ToObject(param.type, DefaultSerializer)
+					var item = jArray[i].ToObject(param.type, DefaultSerializer)
 						?? throw new InvalidOperationException($"Parameter `{param.name}` is null.");
 					parameters.Add(item);
 				}

@@ -141,10 +141,10 @@ public static class HwiParser
 
 	public static IEnumerable<HwiEnumerateEntry> ParseHwiEnumerateResponse(string responseString)
 	{
-		var jarr = JArray.Parse(responseString);
+		var jArray = JArray.Parse(responseString);
 
 		var response = new List<HwiEnumerateEntry>();
-		foreach (JObject json in jarr)
+		foreach (JObject json in jArray)
 		{
 			var hwiEntry = ParseHwiEnumerateEntry(json);
 			response.Add(hwiEntry);
