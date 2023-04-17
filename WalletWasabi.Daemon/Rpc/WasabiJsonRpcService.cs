@@ -116,15 +116,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdkey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
+		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
 
 		return new
 		{
-			address = hdkey.GetP2wpkhAddress(Global.Network).ToString(),
-			keyPath = hdkey.FullKeyPath.ToString(),
-			label = hdkey.Label,
-			publicKey = hdkey.PubKey.ToHex(),
-			p2wpkh = hdkey.P2wpkhScript.ToHex()
+			address = hdKey.GetP2wpkhAddress(Global.Network).ToString(),
+			keyPath = hdKey.FullKeyPath.ToString(),
+			label = hdKey.Label,
+			publicKey = hdKey.PubKey.ToHex(),
+			p2wpkh = hdKey.P2wpkhScript.ToHex()
 		};
 	}
 
