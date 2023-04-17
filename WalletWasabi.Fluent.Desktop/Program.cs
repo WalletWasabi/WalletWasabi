@@ -18,6 +18,7 @@ using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
+using Avalonia.Platform;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 
@@ -177,8 +178,8 @@ public static class WasabiAppExtensions
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
 					{
-						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						Logger.LogInfo($"Renderer: {glInterface?.PrimaryContext.GlInterface.Renderer ?? "Avalonia Software"}");
+						var platformGraphics = AvaloniaLocator.CurrentMutable.GetService<IPlatformGraphics>();
+						Logger.LogInfo($"Renderer: {(platformGraphics?.GetSharedContext() as IGlContext)?.GlInterface.Renderer ?? "Avalonia Software"}");
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
