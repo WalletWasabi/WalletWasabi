@@ -33,6 +33,8 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	Task<WalletLoginResult> TryLoginAsync(string password);
 
+	void Login();
+
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
 	bool IEquatable<IWalletModel>.Equals(IWalletModel? other)

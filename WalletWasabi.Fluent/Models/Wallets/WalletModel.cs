@@ -91,4 +91,9 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		return new(isPasswordCorrect, compatibilityPasswordUsed, legalRequired);
 	}
+
+	public void Login()
+	{
+		IsLoggedIn = true;
+	}
 }
