@@ -55,11 +55,6 @@ public partial class NavBarViewModel : ViewModelBase
 		var walletToSelect =
 			Wallets.FirstOrDefault(item => item.Wallet.WalletName == Services.UiConfig.LastSelectedWallet)
 			?? Wallets.FirstOrDefault();
-		//
-		//if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
-		//{
-		//	walletToSelect.OpenCommand.Execute(default);
-		//}
 
 		walletToSelect?.Activate();
 	}
