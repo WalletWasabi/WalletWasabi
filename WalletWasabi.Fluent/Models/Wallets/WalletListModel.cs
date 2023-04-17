@@ -1,6 +1,8 @@
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
@@ -8,8 +10,11 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-internal class WalletListModel : ReactiveObject, IWalletListModel
+public partial class WalletListModel : ReactiveObject, IWalletListModel
 {
+	private ReadOnlyObservableCollection<IWalletModel> _walletCollection;
+	[AutoNotify] private IWalletModel? _selectedWalletModel;
+
 	public WalletListModel()
 	{
 		//Convert the Wallet Manager's contents into an observable stream.
@@ -27,8 +32,22 @@ internal class WalletListModel : ReactiveObject, IWalletListModel
 					  .AutoRefresh(x => x.IsLoggedIn)
 					  // Sort the list to put the most recently logged in wallet to the top.
 					  .Sort(SortExpressionComparer<IWalletModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.Name))
-					  .Transform(x => x as IWalletModel);
+					  .Transform(x => x as IWalletModel)
+					  .Bind(out _walletCollection);
+
+		SelectedWallet = this.WhenAnyValue(x => x.SelectedWalletModel);
+
+		_selectedWalletModel =
+			_walletCollection.FirstOrDefault(item => item.Name == Services.UiConfig.LastSelectedWallet)
+			?? _walletCollection.FirstOrDefault();
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
+
+	public IObservable<IWalletModel?> SelectedWallet { get; }
+
+	public void Select(IWalletModel wallet)
+	{
+		SelectedWalletModel = wallet;
+	}
 }
