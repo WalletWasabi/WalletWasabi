@@ -83,10 +83,11 @@ public class IndexStore : IAsyncDisposable
 
 			Logger.LogDebug($"Loaded {i} lines from the mature index file.");
 		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
+		catch (InvalidOperationException ex)
 		{
 			// We found a corrupted entry. Clear the corrupted database and stop here.
 			Logger.LogError("Filter index got corrupted. Clearing the filter index...");
+			Logger.LogDebug(ex);
 			IndexStorage.Clear();
 			throw;
 		}
