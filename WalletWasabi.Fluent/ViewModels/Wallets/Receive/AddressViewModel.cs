@@ -6,7 +6,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using AddressAction = System.Func<WalletWasabi.Fluent.Models.Wallets.IAddress, System.Threading.Tasks.Task>;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -31,6 +30,14 @@ public partial class AddressViewModel : ViewModelBase
 		NavigateCommand = ReactiveCommand.CreateFromTask(() => onShow(address));
 	}
 
+	public ICommand CopyAddressCommand { get; }
+
+	public ICommand HideAddressCommand { get; }
+
+	public ICommand EditLabelCommand { get; }
+
+	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
+
 	private async Task PromptHideAddress()
 	{
 		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(_address));
@@ -41,7 +48,7 @@ public partial class AddressViewModel : ViewModelBase
 		}
 
 		_address.Hide();
-		
+
 		var isAddressCopied = await UiContext.Clipboard.GetTextAsync() == _address.Text;
 
 		if (isAddressCopied)
@@ -49,12 +56,4 @@ public partial class AddressViewModel : ViewModelBase
 			await UiContext.Clipboard.ClearAsync();
 		}
 	}
-
-	public ICommand CopyAddressCommand { get; }
-
-	public ICommand HideAddressCommand { get; }
-
-	public ICommand EditLabelCommand { get; }
-
-	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 }

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -24,6 +23,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		SetupCancel(true, true, true);
 	}
 
+	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
+
 	private FlatTreeDataGridSource<AddressViewModel> CreateSource()
 	{
 		_wallet
@@ -36,8 +37,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		return source;
 	}
 
-	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
-
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
 		return new AddressViewModel(UiContext, NavigateToAddressEditAsync, NavigateToAddressAsync, address);
@@ -46,7 +45,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 	private async Task NavigateToAddressEditAsync(IAddress address)
 	{
 		var result = await NavigateDialogAsync(new AddressLabelEditViewModel(_wallet, address), NavigationTarget.CompactDialogScreen);
-		if (result is { Kind: DialogResultKind.Normal, Result: { } })
+		if (result is { Kind: DialogResultKind.Normal, Result: not null })
 		{
 			address.SetLabels(result.Result);
 		}
