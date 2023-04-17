@@ -44,7 +44,7 @@ public class NavigationMock : INavigate
 
 		public void To(RoutableViewModel viewmodel, NavigationMode mode = NavigationMode.Normal)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public FluentNavigate To()
