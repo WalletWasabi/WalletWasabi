@@ -183,9 +183,6 @@ public class TagsBox : TemplatedControl
 	{
 		base.OnApplyTemplate(e);
 
-		_compositeDisposable?.Dispose();
-		_compositeDisposable = new CompositeDisposable();
-
 		_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
 		_presenter = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
 
@@ -202,6 +199,9 @@ public class TagsBox : TemplatedControl
 
 	private void Initialize()
 	{
+		_compositeDisposable?.Dispose();
+		_compositeDisposable = new CompositeDisposable();
+
 		if (_presenter is null)
 		{
 			return;
