@@ -9,7 +9,7 @@ public static class AppBuilderExtension
 {
 	public static AppBuilder SetupAppBuilder(this AppBuilder appBuilder)
 	{
-		bool enableGpu = Services.Config is null ? false : Services.Config.EnableGpu;
+		bool enableGpu = Services.PersistentConfig is null ? false : Services.PersistentConfig.EnableGpu;
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{

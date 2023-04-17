@@ -22,6 +22,11 @@ public class TerminateService
 	{
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
+		IsSystemEventsSubscribed = false;
+	}
+
+	public void Activate()
+	{
 		AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 		Console.CancelKeyPress += Console_CancelKeyPress;
 		AssemblyLoadContext.Default.Unloading += Default_Unloading;
@@ -35,8 +40,7 @@ public class TerminateService
 			IsSystemEventsSubscribed = true;
 		}
 	}
-
-	private bool IsSystemEventsSubscribed { get; }
+	private bool IsSystemEventsSubscribed { get; set; }
 
 	private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 	{
