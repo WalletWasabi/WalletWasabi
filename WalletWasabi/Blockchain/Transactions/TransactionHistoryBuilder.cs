@@ -87,7 +87,6 @@ public class TransactionHistoryBuilder
 			BlockTime = transaction.FirstSeen.ToUnixTimeSeconds(),
 			Size = transaction.Transaction.GetSerializedSize(),
 			VirtualSize = transaction.Transaction.GetVirtualSize(),
-			//Weight = ??
 		};
 	}
 
