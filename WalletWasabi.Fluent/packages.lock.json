@@ -585,11 +585,6 @@
           "NBitcoin.Secp256k1": "3.1.0"
         }
       },
-      "ZXing.Net": {
-        "type": "Transitive",
-        "resolved": "0.16.9",
-        "contentHash": "7WaVMHklpT3Ye2ragqRIwlFRsb6kOk63BOGADV0fan3ulVfGLUYkDi5yNUsZS/7FVNkWbtHAlDLmu4WnHGfqvQ=="
-      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
@@ -598,6 +593,9 @@
           "NBitcoin": "[7.0.24, )",
           "WabiSabi": "[1.0.1.2, )"
         }
+      },
+      "zxing.net": {
+        "type": "Project"
       },
       "ZXing.Net.Bindings.SkiaSharp": {
         "type": "Project",
