@@ -64,8 +64,10 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public bool IsWatchOnlyWallet => _wallet.KeyManager.IsWatchOnly;
 
-	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) =>
-		_wallet.GetLabelsWithRanking(intent);
+	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
+	{
+		return _wallet.GetLabelsWithRanking(intent);
+	}
 
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
