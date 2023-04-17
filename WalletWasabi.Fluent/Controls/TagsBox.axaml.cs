@@ -11,6 +11,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
@@ -18,12 +19,27 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
+public class TagsBoxAutoCompleteBox : AutoCompleteBox, IStyleable
+{
+	internal TextBox? _internalTextBox;
+	internal ListBox? _suggestionListBox;
+
+	Type IStyleable.StyleKey => typeof(AutoCompleteBox);
+
+	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+	{
+		base.OnApplyTemplate(e);
+
+		_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
+		_suggestionListBox = e.NameScope.Find<ListBox>("PART_SelectingItemsControl");
+	}
+}
+
 public class TagsBox : TemplatedControl
 {
 	private CompositeDisposable? _compositeDisposable;
 	private ItemsControl? _presenter;
-	private AutoCompleteBox? _autoCompleteBox;
-	private TextBox? _internalTextBox;
+	private TagsBoxAutoCompleteBox? _autoCompleteBox;
 	private TextBlock? _watermark;
 	private Control? _containerControl;
 	private StringComparison _stringComparison;
@@ -208,7 +224,7 @@ public class TagsBox : TemplatedControl
 		}
 
 		_containerControl = _presenter.ItemsPanelRoot;
-		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>()
+		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>()
 			.FirstOrDefault();
 
 		if (_autoCompleteBox is null)
@@ -216,23 +232,16 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		Observable.FromEventPattern<TemplateAppliedEventArgs>(_autoCompleteBox, nameof(TemplateApplied))
-			.Subscribe(args =>
-			{
-				_internalTextBox = args.EventArgs.NameScope.Find<TextBox>("PART_TextBox");
-				var suggestionListBox = args.EventArgs.NameScope.Find<ListBox>("PART_SelectingItemsControl");
-
-				_internalTextBox.WhenAnyValue(x => x.IsFocused)
+		_autoCompleteBox._internalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
 					.Subscribe(_ => RequestAdd = true)
 					.DisposeWith(_compositeDisposable);
 
-				Observable
-					.FromEventPattern(suggestionListBox, nameof(PointerReleased))
-					.Subscribe(_ => RequestAdd = true)
-					.DisposeWith(_compositeDisposable);
-			})
+		Observable
+			.FromEventPattern(_autoCompleteBox._suggestionListBox, nameof(PointerReleased))
+			.Subscribe(_ => RequestAdd = true)
 			.DisposeWith(_compositeDisposable);
+
 
 		_autoCompleteBox
 			.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
@@ -358,7 +367,7 @@ public class TagsBox : TemplatedControl
 	{
 		base.OnGotFocus(e);
 
-		_internalTextBox?.Focus();
+		_autoCompleteBox._internalTextBox?.Focus();
 	}
 
 	private void CheckIsInputEnabled()

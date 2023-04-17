@@ -75,9 +75,9 @@
                     <ItemsPanelTemplate>
                       <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                          <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                           Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}"
-                                           FilterMode="StartsWith" />
+                          <c:TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                  Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}"
+                                                  FilterMode="StartsWith" />
                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                       </c:ConcatenatingWrapPanel>
                     </ItemsPanelTemplate>
