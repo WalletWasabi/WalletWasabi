@@ -90,10 +90,13 @@ let processNotification notification = result {
     return! Ok (txId, affInputs, affInputSum, affShare, notification)
 }
 
+let deserializeCoinJoinNotificationRequest s =
+    JsonConvert.DeserializeObject<CoinJoinNotificationRequest>(s, AffiliationJsonSerializationOptions.Settings)
+
 let notificationProcessResult =
     notificationFiles
     |> Seq.map File.ReadAllText
-    |> Seq.map (fun s -> JsonConvert.DeserializeObject<CoinJoinNotificationRequest>(s, AffiliationJsonSerializationOptions.Settings))
+    |> Seq.map deserializeCoinJoinNotificationRequest
     |> Seq.map processNotification
 
 notificationProcessResult
