@@ -50,14 +50,6 @@ public partial class NavBarViewModel : ViewModelBase
 
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 
-	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
-	{
-		return observable
-			.WhenPropertyChanged(x => x.IsSelected)
-			.Where(x => x.Value)
-			.Select(x => x.Sender);
-	}
-
 	private void SetDefaultSelection()
 	{
 		var walletToSelect =
