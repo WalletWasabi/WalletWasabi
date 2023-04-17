@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ using WalletWasabi.Services.Terminate;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.Rpc;
+namespace WalletWasabi.Daemon.Rpc;
 
 public class WasabiJsonRpcService : IJsonRpcService
 {

@@ -21,6 +21,7 @@ public class RoundData
 			new AffiliateInput(
 				coin.Outpoint,
 				coin.ScriptPubKey,
+				coin.Amount,
 				AffiliationConstants.DefaultAffiliationId,
 				isCoordinationFeeExempted || IsNoFee(coin.Amount));
 	}

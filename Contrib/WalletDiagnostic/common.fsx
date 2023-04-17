@@ -41,7 +41,7 @@ module Rpc =
   open FSharp.Data
   type ListCoinsRpcResponse = JsonProvider<"""{
     "result": [
-      {"txid":"73af1dd","index":0,"amount":2390000,"anonymitySet":"a1.0","confirmed":true,"confirmations":116,"keyPath":"84/0","address":"tb1q","spentBy":"2d7c3f"}
+      {"txid":"73af1dd","index":0,"amount":4300000000000,"anonymitySet":"a1.0","confirmed":true,"confirmations":116,"keyPath":"84/0","address":"tb1q","spentBy":"2d7c3f"}
     ]
   }""">
 
