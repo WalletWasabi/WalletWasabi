@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent.Controls;
 public class TagsBox : TemplatedControl
 {
 	private CompositeDisposable? _compositeDisposable;
+	private ItemsControl? _presenter;
 	private AutoCompleteBox? _autoCompleteBox;
 	private TextBox? _internalTextBox;
 	private TextBlock? _watermark;
@@ -186,9 +187,27 @@ public class TagsBox : TemplatedControl
 		_compositeDisposable = new CompositeDisposable();
 
 		_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
-		var presenter = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
-		presenter.ApplyTemplate();
-		_containerControl = (Control)presenter.ItemsPanelRoot;
+		_presenter = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
+
+		if (_presenter is not null)
+		{
+			_presenter.Loaded += PresenterOnLoaded;
+		}
+	}
+
+	private void PresenterOnLoaded(object? sender, RoutedEventArgs e)
+	{
+		Initialize();
+	}
+
+	private void Initialize()
+	{
+		if (_presenter is null)
+		{
+			return;
+		}
+
+		_containerControl = _presenter.ItemsPanelRoot;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>()
 			.FirstOrDefault();
 
