@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -27,6 +27,7 @@ public static class FriendlyExceptionMessageExtensions
 		{
 			HwiException hwiEx => GetFriendlyHwiExceptionMessage(hwiEx),
 			HttpRequestException httpEx => GetFriendlyHttpRequestExceptionMessage(httpEx),
+			UnauthorizedAccessException uEx => $"Wasabi was unable to perform this action due to a lack of permission. {uEx.Message}",
 			_ => ex.Message
 		};
 	}
