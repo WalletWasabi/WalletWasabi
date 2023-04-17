@@ -67,19 +67,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) =>
 		_wallet.GetLabelsWithRanking(intent);
 
-	private IEnumerable<TransactionSummary> BuildSummary()
-	{
-		return _historyBuilder.BuildHistorySummary();
-	}
-
-	private IEnumerable<IAddress> GetAddresses()
-	{
-		return _wallet.KeyManager
-					  .GetKeys()
-					  .Reverse()
-					  .Select(x => new Address(_wallet.KeyManager, x));
-	}
-
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
 		var compatibilityPassword = "";
@@ -95,5 +82,18 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public void Login()
 	{
 		IsLoggedIn = true;
+	}
+
+	private IEnumerable<TransactionSummary> BuildSummary()
+	{
+		return _historyBuilder.BuildHistorySummary();
+	}
+
+	private IEnumerable<IAddress> GetAddresses()
+	{
+		return _wallet.KeyManager
+					  .GetKeys()
+					  .Reverse()
+					  .Select(x => new Address(_wallet.KeyManager, x));
 	}
 }
