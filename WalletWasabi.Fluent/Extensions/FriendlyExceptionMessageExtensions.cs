@@ -27,7 +27,7 @@ public static class FriendlyExceptionMessageExtensions
 		{
 			HwiException hwiEx => GetFriendlyHwiExceptionMessage(hwiEx),
 			HttpRequestException httpEx => GetFriendlyHttpRequestExceptionMessage(httpEx),
-			UnauthorizedAccessException uEx => $"Wasabi was unable to perform this action due to a lack of permission. {uEx.Message}",
+			UnauthorizedAccessException => "Wasabi was unable to perform this action due to a lack of permission.",
 			_ => ex.Message
 		};
 	}
