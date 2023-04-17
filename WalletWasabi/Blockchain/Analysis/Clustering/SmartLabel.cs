@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLabel>, IEnumerable<string>
+public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLabel>, IReadOnlyCollection<string>
 {
 	private readonly string[]? _labels;
 	
@@ -27,9 +27,11 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 
 	public static SmartLabel Empty { get; } = new();
 	public static char[] Separators { get; } = new[] { ',', ':' };
-	
-	public ReadOnlySpan<string> Labels => _labels;
-	public bool IsEmpty => Labels.IsEmpty;
+
+	public int Count => AsSpan().Length;
+	public bool IsEmpty => AsSpan().IsEmpty;
+
+	public ReadOnlySpan<string> AsSpan() => _labels;
 
 	public override string ToString()
 	{
@@ -68,7 +70,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 	{
 		var hashCode = new HashCode();
 		
-		foreach (var label in Labels)
+		foreach (var label in this)
 		{
 			hashCode.Add(label);
 		}
@@ -82,10 +84,10 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 	}
 
 	public bool Equals(SmartLabel other) =>
-		Labels.SequenceEqual(other.Labels);
+		AsSpan().SequenceEqual(other.AsSpan());
 
 	public bool Equals(SmartLabel other, IEqualityComparer<string> comparer) =>
-		Labels.SequenceEqual(other.Labels, comparer);
+		AsSpan().SequenceEqual(other.AsSpan(), comparer);
 
 	public bool Equals(string? other) =>
 		ToString().Equals(other);
@@ -94,7 +96,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		ToString().Equals(other, comparison);
 
 	public int CompareTo(SmartLabel other) =>
-		Labels.SequenceCompareTo(other.Labels);
+		AsSpan().SequenceCompareTo(other.AsSpan());
 
 	public int CompareTo(SmartLabel other, IComparer<string> comparer)
 	{
@@ -105,8 +107,8 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 
 		// The following code repears what .NET could
 		// if it has SequenceCompareTo accepting a comparer.
-		var thisLabels = Labels;
-		var otherLabels = other.Labels;
+		var thisLabels = AsSpan();
+		var otherLabels = other.AsSpan();
 		
 		return CompareToSlow(
 			ref MemoryMarshal.GetReference(thisLabels),
@@ -144,7 +146,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		string.Compare(ToString(), other, comparison);
 
 	public ReadOnlySpan<string>.Enumerator GetEnumerator() =>
-		Labels.GetEnumerator();
+		AsSpan().GetEnumerator();
 
 	IEnumerator<string> IEnumerable<string>.GetEnumerator() => GetEnumeratorAllocating();
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorAllocating();

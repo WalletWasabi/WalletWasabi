@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -20,7 +21,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 		_wallet = wallet;
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
 		{
-			Labels = { label }
+			Labels = { label.AsEnumerable() }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
