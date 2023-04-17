@@ -1,6 +1,7 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
@@ -9,12 +10,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletPageViewModel : ViewModelBase
 {
+	public IWalletModel WalletModel { get; }
 	public Wallet Wallet { get; set; }
 
 	public string Title => Wallet.WalletName;
 
-	private WalletPageViewModel(Wallet wallet)
+	// TODO: Finish partial refactor
+	// Wallet parameter must be removed
+	private WalletPageViewModel(IWalletModel walletModel, Wallet wallet)
 	{
+		WalletModel = walletModel;
 		Wallet = wallet;
 
 		this.WhenAnyValue(x => x.IsSelected)
@@ -44,7 +49,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 		if (!IsLoggedIn && CurrentPage is not { })
 		{
-			CurrentPage = new LoginViewModel(UiContext, this);
+			CurrentPage = new LoginViewModel(UiContext, WalletModel);
 		}
 		else
 		{
