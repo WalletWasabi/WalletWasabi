@@ -171,7 +171,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to export the PSBT.");
+				await ShowErrorAsync("Transaction Export", ex.ToUserFriendlyString(), "Wasabi was unable to export the PSBT.");
 			}
 
 			if (saved)
