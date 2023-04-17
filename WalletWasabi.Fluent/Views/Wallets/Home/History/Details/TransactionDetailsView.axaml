@@ -37,7 +37,7 @@
       <!-- Fee -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fee"
-                     TextValue="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}">
+                     TextValue="{Binding Fee}">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
