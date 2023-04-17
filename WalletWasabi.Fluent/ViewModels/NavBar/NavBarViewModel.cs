@@ -13,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// </summary>
 public partial class NavBarViewModel : ViewModelBase
 {
+	[AutoNotify] private WalletPageViewModel? _selectedWallet;
+
 	public NavBarViewModel()
 	{
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
@@ -45,8 +47,6 @@ public partial class NavBarViewModel : ViewModelBase
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets => UiServices.WalletManager.Wallets;
-
-	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 
 	private void SetDefaultSelection()
 	{
