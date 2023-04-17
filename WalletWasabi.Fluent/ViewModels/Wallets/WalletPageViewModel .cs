@@ -7,7 +7,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletPageViewModel : ViewModelBase, IEquatable<WalletPageViewModel>, IComparable<WalletPageViewModel>
+public partial class WalletPageViewModel : ViewModelBase
 {
 	public Wallet Wallet { get; set; }
 
@@ -52,27 +52,5 @@ public partial class WalletPageViewModel : ViewModelBase, IEquatable<WalletPageV
 		}
 
 		CurrentPage?.Navigate().To(CurrentPage, NavigationMode.Clear);
-	}
-
-	public bool Equals(WalletPageViewModel? other)
-	{
-		return Wallet == other?.Wallet;
-	}
-
-	public int CompareTo(WalletPageViewModel? other)
-	{
-		if (other is null)
-		{
-			return -1;
-		}
-
-		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
-
-		if (result == 0)
-		{
-			result = string.Compare(Title, other.Title, StringComparison.Ordinal);
-		}
-
-		return result;
 	}
 }
