@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
@@ -29,6 +30,8 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 	WalletType WalletType { get; }
 
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
+
+	Task<(bool Success, bool CompatibilityPasswordUsed)> TryLoginAsync(string password);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -77,5 +78,15 @@ internal class WalletModel : ReactiveObject, IWalletModel
 					  .GetKeys()
 					  .Reverse()
 					  .Select(x => new Address(_wallet.KeyManager, x));
+	}
+
+	public async Task<(bool Success, bool CompatibilityPasswordUsed)> TryLoginAsync(string password)
+	{
+		var compatibilityPassword = "";
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var compatibilityPassword));
+
+		var compatibilityPasswordUsed = compatibilityPassword is { };
+
+		return (isPasswordCorrect, compatibilityPasswordUsed);
 	}
 }
