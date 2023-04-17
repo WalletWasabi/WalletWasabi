@@ -15,7 +15,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-internal class WalletModel : ReactiveObject, IWalletModel
+public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionHistoryBuilder _historyBuilder;
@@ -80,13 +80,15 @@ internal class WalletModel : ReactiveObject, IWalletModel
 					  .Select(x => new Address(_wallet.KeyManager, x));
 	}
 
-	public async Task<(bool Success, bool CompatibilityPasswordUsed)> TryLoginAsync(string password)
+	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
 		var compatibilityPassword = "";
 		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var compatibilityPassword));
 
 		var compatibilityPasswordUsed = compatibilityPassword is { };
 
-		return (isPasswordCorrect, compatibilityPasswordUsed);
+		var legalRequired = Services.LegalChecker.TryGetNewLegalDocs(out _);
+
+		return new(isPasswordCorrect, compatibilityPasswordUsed, legalRequired);
 	}
 }

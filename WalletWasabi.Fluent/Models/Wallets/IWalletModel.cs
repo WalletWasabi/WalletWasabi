@@ -31,7 +31,7 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
-	Task<(bool Success, bool CompatibilityPasswordUsed)> TryLoginAsync(string password);
+	Task<WalletLoginResult> TryLoginAsync(string password);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
