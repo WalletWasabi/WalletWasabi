@@ -35,6 +35,7 @@
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
     <Setter Property="Cursor" Value="IBeam" />
+    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
     <Setter Property="Template">
       <ControlTemplate>
         <DataValidationErrors>
@@ -64,12 +65,12 @@
         </DataValidationErrors>
       </ControlTemplate>
     </Setter>
-    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
   </Style>
 
   <Style Selector="c|TagsBox:readonly">
     <Setter Property="Cursor" Value="Arrow" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
     <Setter Property="Template">
       <ControlTemplate>
         <DataValidationErrors>
@@ -91,7 +92,6 @@
         </DataValidationErrors>
       </ControlTemplate>
     </Setter>
-    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
   </Style>
 
   <Style Selector="c|TagsBox /template/ Border#PART_Border">
