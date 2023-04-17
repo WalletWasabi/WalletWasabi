@@ -21,7 +21,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private string? _amount;
+	[AutoNotify] private Money? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
@@ -51,7 +51,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.Abs().ToString(fplus: false, trimExcessZero: false);
+		Amount = transactionSummary.Amount.Abs();
 		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}

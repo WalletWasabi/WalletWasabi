@@ -37,7 +37,7 @@
                      Label="{Binding AmountText}"
                      TextValue="{Binding Amount}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+          <TextBlock Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
