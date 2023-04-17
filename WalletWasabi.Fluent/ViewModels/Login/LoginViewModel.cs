@@ -45,7 +45,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 	public ICommand ForgotPasswordCommand { get; }
 
-	private async Task OnNextAsync(IWalletModel walletModel, Wallet wallet)
+	private async Task OnNextAsync(IWalletModel walletModel)
 	{
 		var (success, compatibilityPasswordUsed, legalRequired) = await walletModel.TryLoginAsync(Password);
 
@@ -69,7 +69,7 @@ public partial class LoginViewModel : RoutableViewModel
 		}
 		else
 		{
-			wallet.Logout();
+			walletModel.Logout();
 			ErrorMessage = "You must accept the Terms and Conditions!";
 		}
 	}
