@@ -37,6 +37,8 @@ internal class WalletModel : ReactiveObject, IWalletModel
 			.Defer(() => GetAddresses().ToObservable())
 			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
 			.ToObservableChangeSet(x => x.Text);
+
+		WalletType = WalletHelpers.GetType(_wallet.KeyManager);
 	}
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
@@ -48,6 +50,8 @@ internal class WalletModel : ReactiveObject, IWalletModel
 	public bool IsLoggedIn => throw new NotImplementedException();
 
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
+
+	public WalletType WalletType { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{

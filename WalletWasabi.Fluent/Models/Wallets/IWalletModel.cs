@@ -4,6 +4,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -26,6 +27,8 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
 	bool IsHardwareWallet();
+
+	WalletType WalletType { get; }
 
 	bool IEquatable<IWalletModel>.Equals(IWalletModel? other)
 	{
