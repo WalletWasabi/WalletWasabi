@@ -168,11 +168,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
 			}
-			catch (UnauthorizedAccessException uex)
-			{
-				Logger.LogError(uex);
-				await ShowErrorAsync("Transaction Building", uex.ToUserFriendlyString(), "Wasabi was unable to save the PSBT.");
-			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
