@@ -22,15 +22,15 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
-	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
-
-	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
-
 	bool IsHardwareWallet { get; }
 
 	bool IsWatchOnlyWallet { get; }
 
 	WalletType WalletType { get; }
+
+	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
+
+	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
 	bool IEquatable<IWalletModel>.Equals(IWalletModel? other)
 	{
