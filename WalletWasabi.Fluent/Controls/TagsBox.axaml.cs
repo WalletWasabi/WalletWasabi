@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Controls;
 public class TagsBox : TemplatedControl
 {
 	private CompositeDisposable? _compositeDisposable;
-	private AutoCompleteBox? _autoCompleteBox;
+	private TagsBoxAutoCompleteBox? _autoCompleteBox;
 	private TextBox? _internalTextBox;
 	private TextBlock? _watermark;
 	private IControl? _containerControl;
@@ -192,7 +192,7 @@ public class TagsBox : TemplatedControl
 		presenter.ItemsControl.ApplyTemplate();
 		presenter.ItemsControl.Presenter.ApplyTemplate();
 		_containerControl = presenter.ItemsControl.Presenter.Panel;
-		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>().FirstOrDefault();
+		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>().FirstOrDefault();
 
 		if (_autoCompleteBox is null)
 		{
@@ -303,8 +303,8 @@ public class TagsBox : TemplatedControl
 
 	private void ClearInputField()
 	{
-		_autoCompleteBox?.ClearValue(AutoCompleteBox.SelectedItemProperty);
-		Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
+		_autoCompleteBox?.ClearValue(TagsBoxAutoCompleteBox.SelectedItemProperty);
+		Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(TagsBoxAutoCompleteBox.TextProperty));
 	}
 
 	private IEnumerable<string> GetFinalTags(string input, char tagSeparator)
@@ -362,7 +362,7 @@ public class TagsBox : TemplatedControl
 
 	private void OnTextInput(object? sender, TextInputEventArgs e)
 	{
-		if (sender is not AutoCompleteBox autoCompleteBox)
+		if (sender is not TagsBoxAutoCompleteBox autoCompleteBox)
 		{
 			return;
 		}

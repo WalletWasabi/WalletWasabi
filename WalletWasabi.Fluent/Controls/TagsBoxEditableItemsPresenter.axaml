@@ -36,9 +36,9 @@
               <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                 <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                   <!-- TODO: Add property Suggestions instead binding to $parent[c:TagsBox] -->
-                  <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                   Items="{Binding $parent[c:TagsBox].Suggestions}"
-                                   FilterMode="StartsWith" />
+                  <c:TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                            Items="{Binding $parent[c:TagsBox].Suggestions}"
+                                            FilterMode="StartsWith" />
                 </c:ConcatenatingWrapPanel.ConcatenatedChildren>
               </c:ConcatenatingWrapPanel>
             </ItemsPanelTemplate>
