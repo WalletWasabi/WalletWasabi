@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -19,16 +18,17 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _errorMessage;
 	[AutoNotify] private bool _isForgotPasswordVisible;
 
-	private LoginViewModel(WalletPageViewModel nbwsvm)
+	// TODO: finish partial refactor
+	// Wallet parameter must be removed.
+	private LoginViewModel(IWalletModel walletModel, Wallet wallet)
 	{
-		var wallet = nbwsvm.Wallet;
-		IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
-		WalletName = wallet.WalletName;
 		_password = "";
 		_errorMessage = "";
-		WalletType = WalletHelpers.GetType(nbwsvm.Wallet.KeyManager);
+		IsPasswordNeeded = !walletModel.IsWatchOnlyWallet;
+		WalletName = walletModel.Name;
+		WalletType = walletModel.WalletType;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(nbwsvm, wallet));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletModel, wallet));
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
@@ -45,29 +45,27 @@ public partial class LoginViewModel : RoutableViewModel
 
 	public ICommand ForgotPasswordCommand { get; }
 
-	private async Task OnNextAsync(WalletPageViewModel nbwsvm, Wallet wallet)
+	private async Task OnNextAsync(IWalletModel walletModel, Wallet wallet)
 	{
-		string? compatibilityPasswordUsed = null;
+		var (success, compatibilityPasswordUsed, legalRequired) = await walletModel.TryLoginAsync(Password);
 
-		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
-
-		if (!isPasswordCorrect)
+		if (!success)
 		{
 			IsForgotPasswordVisible = true;
 			ErrorMessage = "The password is incorrect! Please try again.";
 			return;
 		}
 
-		if (compatibilityPasswordUsed is { })
+		if (compatibilityPasswordUsed)
 		{
 			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
-		var legalResult = await ShowLegalAsync();
+		var legalResult = !legalRequired || await ShowLegalAsync();
 
 		if (legalResult)
 		{
-			LoginWallet(nbwsvm);
+			LoginWallet(walletModel);
 		}
 		else
 		{
@@ -87,26 +85,20 @@ public partial class LoginViewModel : RoutableViewModel
 		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 	}
 
-	private void LoginWallet(WalletPageViewModel nbwsvm)
+	private void LoginWallet(IWalletModel wallet)
 	{
-		nbwsvm.IsLoggedIn = true;
-
-		nbwsvm.CurrentPage = new LoadingViewModel(UiContext, nbwsvm);
+		wallet.IsLoggedIn = true;
 	}
 
 	private async Task<bool> ShowLegalAsync()
 	{
-		if (!Services.LegalChecker.TryGetNewLegalDocs(out _))
-		{
-			return true;
-		}
-
 		var legalDocs = new TermsAndConditionsViewModel();
 
 		var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
 
 		if (dialogResult.Result)
 		{
+			// TODO: remove direct dependency
 			await Services.LegalChecker.AgreeAsync();
 		}
 
