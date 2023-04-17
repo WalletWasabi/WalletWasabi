@@ -12,7 +12,16 @@
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
-    <StackPanel Spacing="15">
+
+    <c:ContentArea.Styles>
+
+      <Style Selector="StackPanel">
+        <Setter Property="Spacing" Value="15" />
+      </Style>
+
+    </c:ContentArea.Styles>
+
+    <StackPanel>
 
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
@@ -35,15 +44,18 @@
       <Separator />
 
       <!-- Fee -->
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Fee"
-                     TextValue="{Binding Fee}">
-        <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
-      </c:PreviewItem>
+      <StackPanel IsVisible="{Binding Fee, Converter={x:Static ObjectConverters.IsNotNull}}">
+        
+        <c:PreviewItem Icon="{StaticResource btc_logo}"
+                       Label="Fee"
+                       TextValue="{Binding Fee}">
+          <c:PrivacyContentControl>
+            <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
+          </c:PrivacyContentControl>
+        </c:PreviewItem>
 
-      <Separator />
+        <Separator />
+      </StackPanel>
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
