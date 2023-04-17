@@ -12,4 +12,3 @@ public class TagsBoxEditableItemsPresenter : TagsBoxItemsPresenter
 		ItemsControl = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
 	}
 }
-
