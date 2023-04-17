@@ -23,7 +23,7 @@ public static class AppBuilderExtension
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			appBuilder.UsePlatformDetect()
-				.UseManagedSystemDialogs<AppBuilder, Window>()
+				.UseManagedSystemDialogs<Window>()
 				.AfterPlatformServicesSetup(_ =>
 					{
 						var systemFontFamily = AvaloniaLocator.Current
