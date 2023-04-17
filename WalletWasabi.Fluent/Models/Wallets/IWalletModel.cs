@@ -26,7 +26,9 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
-	bool IsHardwareWallet();
+	bool IsHardwareWallet { get; }
+
+	bool IsWatchOnlyWallet { get; }
 
 	WalletType WalletType { get; }
 

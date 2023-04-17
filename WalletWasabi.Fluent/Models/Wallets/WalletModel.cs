@@ -59,7 +59,9 @@ internal class WalletModel : ReactiveObject, IWalletModel
 		return new Address(_wallet.KeyManager, pubKey);
 	}
 
-	public bool IsHardwareWallet() => _wallet.KeyManager.IsHardwareWallet;
+	public bool IsHardwareWallet => _wallet.KeyManager.IsHardwareWallet;
+
+	public bool IsWatchOnlyWallet => _wallet.KeyManager.IsWatchOnly;
 
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) =>
 		_wallet.GetLabelsWithRanking(intent);
