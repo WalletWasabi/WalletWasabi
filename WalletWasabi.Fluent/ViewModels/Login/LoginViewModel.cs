@@ -65,7 +65,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (legalResult)
 		{
-			LoginWallet(walletModel);
+			walletModel.Login();
 		}
 		else
 		{
@@ -83,11 +83,6 @@ public partial class LoginViewModel : RoutableViewModel
 	private void OnForgotPassword(Wallet wallet)
 	{
 		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
-	}
-
-	private void LoginWallet(IWalletModel wallet)
-	{
-		wallet.IsLoggedIn = true;
 	}
 
 	private async Task<bool> ShowLegalAsync()
