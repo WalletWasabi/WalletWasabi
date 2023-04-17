@@ -20,6 +20,8 @@ internal class WalletModel : ReactiveObject, IWalletModel
 	private readonly Wallet _wallet;
 	private readonly TransactionHistoryBuilder _historyBuilder;
 
+	[AutoNotify] private readonly bool _isLoggedIn;
+
 	public WalletModel(Wallet wallet)
 	{
 		_wallet = wallet;
@@ -47,8 +49,6 @@ internal class WalletModel : ReactiveObject, IWalletModel
 	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
 
 	public string Name => _wallet.WalletName;
-
-	public bool IsLoggedIn => throw new NotImplementedException();
 
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
