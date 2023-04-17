@@ -35,6 +35,8 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	void Login();
 
+	void Logout();
+
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
 	bool IEquatable<IWalletModel>.Equals(IWalletModel? other)

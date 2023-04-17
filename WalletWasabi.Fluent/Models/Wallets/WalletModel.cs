@@ -86,6 +86,11 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		IsLoggedIn = true;
 	}
 
+	public void Logout()
+	{
+		_wallet.Logout();
+	}
+
 	private IEnumerable<TransactionSummary> BuildSummary()
 	{
 		return _historyBuilder.BuildHistorySummary();
