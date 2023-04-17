@@ -3,6 +3,7 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
   <Design.PreviewWith>
     <Panel>
       <Border Margin="10">
@@ -18,10 +19,12 @@
       </Border>
     </Panel>
   </Design.PreviewWith>
+
   <Styles.Resources>
     <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
   </Styles.Resources>
+
   <Style Selector="c|TagsBox">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
@@ -52,28 +55,9 @@
                            Padding="15 0"
                            VerticalAlignment="Center"
                            Text="{TemplateBinding Watermark}" />
-                <ItemsControl Name="PART_ItemsPresenter"
-                              Focusable="False"
-                              Items="{TemplateBinding Items}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
-                        <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                          <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                           Items="{Binding $parent[c:TagsBox].Suggestions}"
-                                           FilterMode="StartsWith" />
-                        </c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                      </c:ConcatenatingWrapPanel>
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <c:TagControl Content="{Binding .}"
-                                    EnableCounter="{Binding $parent[c:TagsBox].EnableCounter}"
-                                    EnableDelete="{Binding $parent[c:TagsBox].EnableDelete}" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <c:TagsBoxEditableItemsPresenter Name="PART_ItemsPresenter"
+                                                 Items="{TemplateBinding Items}"
+                                                 Focusable="False" />
               </Panel>
             </Border>
           </DockPanel>
@@ -99,21 +83,9 @@
                          Padding="15 0"
                          VerticalAlignment="Center"
                          Text="{TemplateBinding Watermark}" />
-              <ItemsControl Name="PART_ItemsPresenter"
-                            Focusable="False"
-                            Items="{TemplateBinding Items}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <c:TagControl Content="{Binding .}"
-                                  EnableCounter="{Binding $parent[c:TagsBox].EnableCounter}" />
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+              <c:TagsBoxReadOnlyItemsPresenter Name="PART_ItemsPresenter"
+                                               Items="{TemplateBinding Items}"
+                                               Focusable="False" />
             </Panel>
           </Border>
         </DataValidationErrors>

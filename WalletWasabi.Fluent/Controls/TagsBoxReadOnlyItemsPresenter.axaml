@@ -1,0 +1,51 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+        xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
+  <Design.PreviewWith>
+    <c:TagsBoxReadOnlyItemsPresenter>
+      <c:TagsBoxReadOnlyItemsPresenter.Items>
+        <generic:List x:TypeArguments="system:String">
+          <system:String>Label1</system:String>
+          <system:String>Label2</system:String>
+          <system:String>Label3</system:String>
+        </generic:List>
+      </c:TagsBoxReadOnlyItemsPresenter.Items>
+    </c:TagsBoxReadOnlyItemsPresenter>
+  </Design.PreviewWith>
+
+  <Style Selector="c|TagsBoxReadOnlyItemsPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+    <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+    <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
+    <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
+    <Setter Property="Cursor" Value="IBeam" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ItemsControl Name="PART_ItemsPresenter"
+                      Focusable="False"
+                      Items="{TemplateBinding Items}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <c:TagControl Content="{Binding .}"
+                            EnableCounter="{Binding $parent[c:TagsBox].EnableCounter}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+</Styles>
+
