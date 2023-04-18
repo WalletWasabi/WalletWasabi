@@ -173,7 +173,7 @@ public static class TransactionHelpers
 	public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
 	{
 		var psbtExtension = "psbt";
-		string initialFileName = transaction.Transaction.GetHash().ToString()[..5];
+		string initialFileName = transaction.Transaction.GetHash().ToString();
 		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new[] { psbtExtension }, initialFileName);
 
 		if (!string.IsNullOrWhiteSpace(filePath))
