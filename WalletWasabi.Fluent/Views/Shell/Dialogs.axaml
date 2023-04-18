@@ -55,7 +55,7 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="780" FullScreenHeightThreshold="780">
+              IncreasedWidthThreshold="540" IncreasedHeightThreshold="880" FullScreenHeightThreshold="880">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}" />
