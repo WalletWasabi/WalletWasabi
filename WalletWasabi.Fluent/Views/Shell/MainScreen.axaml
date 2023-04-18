@@ -63,11 +63,10 @@
             <shell:TitleBar DockPanel.Dock="Top" />
             <!-- <statusIcon:StatusIcon DockPanel.Dock="Top"  Margin="10" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Top" /> -->
 
-            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
-                                       HorizontalAlignment="Center" Height="66" />
+            <!--<wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
+                                       HorizontalAlignment="Center" Height="66" />-->
             <!-- <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" /> -->
-            <navbar:NavBar DataContext="{Binding NavBar}"
-                           VerticalAlignment="Stretch"/>
+            <navbar:NavBar VerticalAlignment="Stretch"/>
           </DockPanel>
 
 

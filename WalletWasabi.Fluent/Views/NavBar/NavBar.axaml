@@ -6,9 +6,11 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
+             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             x:DataType="vm:NavBarViewModel"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
+             x:DataType="viewModels:MainViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
@@ -114,7 +116,7 @@
   <DockPanel Margin="0 0 0 5">
 
     <!-- Bottom items -->
-    <ItemsControl ItemsSource="{Binding BottomItems}"
+    <ItemsControl ItemsSource="{Binding NavBar.BottomItems}"
                   DockPanel.Dock="Bottom">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
@@ -138,9 +140,12 @@
     <!-- Separator -->
     <Separator DockPanel.Dock="Bottom" />
 
+    <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
+                               HorizontalAlignment="Center" Height="66" />
+
     <!-- Wallet List -->
     <ScrollViewer>
-      <ItemsControl ItemsSource="{Binding Wallets}">
+      <ItemsControl ItemsSource="{Binding NavBar.Wallets}">
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}">
