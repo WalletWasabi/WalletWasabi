@@ -1,5 +1,5 @@
 using NBitcoin;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+//using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Crypto;
@@ -18,10 +18,10 @@ public record Bip322Signature : IBitcoinSerializable
 	{
 	}
 
-	[ValidateNever]
+	//[ValidateNever]
 	public Script ScriptSig => _scriptSig;
 
-	[ValidateNever]
+	//[ValidateNever]
 	public WitScript Witness { get; private set; } = WitScript.Empty;
 
 	public void ReadWrite(BitcoinStream bitcoinStream)
