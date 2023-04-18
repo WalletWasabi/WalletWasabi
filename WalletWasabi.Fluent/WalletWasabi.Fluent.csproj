@@ -11,7 +11,6 @@
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<InvariantGlobalization>true</InvariantGlobalization>
-		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent</PathMap>
 		<AvaloniaVersion>11.0.0-preview6</AvaloniaVersion>
 		<AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
@@ -32,7 +31,9 @@
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />
+<!--		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />-->
+
+		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 
 		<!-- See explanation of the additional properties here: https://github.com/dotnet/roslyn/issues/60744#issuecomment-1438273464 -->
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
@@ -40,5 +41,23 @@
 
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Include="..\WalletWasabi.Daemon\Config.cs">
+	    <Link>Config.cs</Link>
+	  </Compile>
+	  <Compile Include="..\WalletWasabi.Daemon\Global.cs">
+	    <Link>Global.cs</Link>
+	  </Compile>
+	  <Compile Include="..\WalletWasabi.Daemon\PersistentConfig.cs">
+	    <Link>PersistentConfig.cs</Link>
+	  </Compile>
+	  <Compile Include="..\WalletWasabi.Daemon\Rpc\WasabiJsonRpcService.cs">
+	    <Link>Rpc\WasabiJsonRpcService.cs</Link>
+	  </Compile>
+	  <Compile Include="..\WalletWasabi.Daemon\WasabiAppBuilder.cs">
+	    <Link>WasabiAppBuilder.cs</Link>
+	  </Compile>
 	</ItemGroup>
 </Project>
