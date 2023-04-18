@@ -32,7 +32,8 @@
 
           <Style Selector="Panel.small c|TileButton">
             <!-- <Setter Property="Width" Value="120" /> -->
-            <Setter Property="VerticalContentAlignment" Value="Bottom"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
           </Style>
         </UniformGrid.Styles>
         <c:TileButton Text="Create a new wallet"
