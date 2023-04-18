@@ -10,16 +10,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
-             d:DesignWidth="1000" d:DesignHeight="1000"
+             d:DesignWidth="536" d:DesignHeight="459"
              x:CompileBindings="True">
 
   <DockPanel IsEnabled="{Binding IsMainContentEnabled^}">
-    <shell:TitleBar DockPanel.Dock="Top" />
+
     <DockPanel>
-      <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
+      <!--<navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />-->
       <Border x:Name="ContentPart" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0"
               CornerRadius="10 0 0 0" ClipToBounds="True">
         <Panel>
+
           <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True"
                   IsHitTestVisible="False" />
           <Panel VerticalAlignment="Bottom"
@@ -47,6 +48,7 @@
               </spectrum:SpectrumControl.Transitions>
             </spectrum:SpectrumControl>
           </Panel>
+
           <DockPanel>
             <DockPanel.Styles>
               <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
@@ -57,13 +59,22 @@
                 <Setter Property="Margin" Value="31 26 31 0" />
               </Style>
             </DockPanel.Styles>
+
+            <shell:TitleBar DockPanel.Dock="Top" />
+            <!-- <statusIcon:StatusIcon DockPanel.Dock="Top"  Margin="10" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Top" /> -->
+
             <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
                                        HorizontalAlignment="Center" Height="66" />
-            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
+            <!-- <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" /> -->
+            <navbar:NavBar DataContext="{Binding NavBar}"
+                           VerticalAlignment="Stretch"/>
           </DockPanel>
+
+
           <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True"
                   IsHitTestVisible="False" Margin="0 0 -5 -5" />
-          <statusIcon:StatusIcon Margin="10" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+
+
         </Panel>
       </Border>
     </DockPanel>
