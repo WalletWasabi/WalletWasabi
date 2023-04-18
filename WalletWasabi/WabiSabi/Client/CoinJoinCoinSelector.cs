@@ -341,7 +341,8 @@ public static class CoinJoinCoinSelector
 			}
 			alternating.AddRange(skipped);
 
-			var coin = alternating.BiasedRandomElement(50) ?? throw new NotSupportedException("This is impossible.");
+			var coin = alternating.BiasedRandomElement(50)
+				?? throw new NotSupportedException("This is impossible.");
 			orderedCoins.Add(coin);
 			yield return coin;
 		}

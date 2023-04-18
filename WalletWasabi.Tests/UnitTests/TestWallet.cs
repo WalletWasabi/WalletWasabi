@@ -49,7 +49,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 	public (Transaction, Coin) CreateTemplateTransaction()
 	{
-		var biggestUtxo = Utxos.MaxBy(x => x.Amount) ?? throw new InvalidOperationException("No UTXO is available.");
+		var biggestUtxo = Utxos.MaxBy(x => x.Amount)
+			?? throw new InvalidOperationException("No UTXO is available.");
 		var tx = Rpc.Network.CreateTransaction();
 		tx.Inputs.Add(biggestUtxo.Outpoint);
 		return (tx, biggestUtxo);

@@ -137,7 +137,8 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var task = TaskStartTcpListener ?? throw new InvalidOperationException("This should never happen!");
+		var task = TaskStartTcpListener
+			?? throw new InvalidOperationException("This should never happen!");
 		TcpListener? listener = null;
 		try
 		{
