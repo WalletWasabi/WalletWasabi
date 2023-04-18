@@ -593,6 +593,12 @@
           "NBitcoin": "[7.0.24, )",
           "WabiSabi": "[1.0.1.2, )"
         }
+      },
+      "Wasabi Wallet Daemon": {
+        "type": "Project",
+        "dependencies": {
+          "WalletWasabi": "[1.0.0, )"
+        }
       }
     },
     "net7.0/linux-arm64": {

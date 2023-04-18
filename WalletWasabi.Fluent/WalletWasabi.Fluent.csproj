@@ -29,7 +29,7 @@
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />
 
 		<!-- See explanation of the additional properties here: https://github.com/dotnet/roslyn/issues/60744#issuecomment-1438273464 -->
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />

@@ -7,35 +7,29 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Daemon;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class Config : ConfigBase
+public class PersistentConfig : ConfigBase
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
-	private Uri? _backendUri;
-	private Uri? _coordinatorUri;
-
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
 	/// </summary>
-	public Config() : base()
+	public PersistentConfig() : base()
 	{
-		ServiceConfiguration = null!;
 	}
 
-	public Config(string filePath) : base(filePath)
+	public PersistentConfig(string filePath) : base(filePath)
 	{
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.Main;
+	public Network Network { get; set; } = Network.Main;
 
 	[DefaultValue("https://api.wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -60,26 +54,26 @@ public class Config : ConfigBase
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool UseTor { get; internal set; } = true;
+	public bool UseTor { get; set; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool TerminateTorOnExit { get; internal set; } = false;
+	public bool TerminateTorOnExit { get; set; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "DownloadNewVersion", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool DownloadNewVersion { get; internal set; } = true;
+	public bool DownloadNewVersion { get; set; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StartLocalBitcoinCoreOnStartup { get; internal set; } = false;
+	public bool StartLocalBitcoinCoreOnStartup { get; set; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StopLocalBitcoinCoreOnShutdown { get; internal set; } = true;
+	public bool StopLocalBitcoinCoreOnShutdown { get; set; } = true;
 
 	[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-	public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
+	public string LocalBitcoinCoreDataDir { get; set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
 	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
@@ -114,82 +108,14 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
+	public Money DustThreshold { get; set; } = DefaultDustThreshold;
 
 	[JsonProperty(PropertyName = "EnableGpu")]
-	public bool EnableGpu { get; internal set; } = true;
+	public bool EnableGpu { get; set; } = true;
 
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
-
-	public ServiceConfiguration ServiceConfiguration { get; private set; }
-
-	public Uri GetBackendUri()
-	{
-		if (_backendUri is { })
-		{
-			return _backendUri;
-		}
-
-		if (Network == Network.Main)
-		{
-			_backendUri = new Uri(MainNetBackendUri);
-		}
-		else if (Network == Network.TestNet)
-		{
-			_backendUri = new Uri(TestNetBackendUri);
-		}
-		else if (Network == Network.RegTest)
-		{
-			_backendUri = new Uri(RegTestBackendUri);
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-
-		return _backendUri;
-	}
-
-	public Uri GetCoordinatorUri()
-	{
-		if (_coordinatorUri is { })
-		{
-			return _coordinatorUri;
-		}
-
-		var result = Network switch
-		{
-			{ } n when n == Network.Main => MainNetCoordinatorUri,
-			{ } n when n == Network.TestNet => TestNetCoordinatorUri,
-			{ } n when n == Network.RegTest => RegTestCoordinatorUri,
-			_ => throw new NotSupportedNetworkException(Network)
-		};
-
-		_coordinatorUri = result is null ? GetBackendUri() : new Uri(result);
-		return _coordinatorUri;
-	}
-
-	public EndPoint GetBitcoinP2pEndPoint()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetBitcoinP2pEndPoint;
-		}
-		else if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinP2pEndPoint;
-		}
-		else if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinP2pEndPoint;
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-	}
 
 	public void SetBitcoinP2pEndpoint(EndPoint endPoint)
 	{
@@ -211,12 +137,21 @@ public class Config : ConfigBase
 		}
 	}
 
-	/// <inheritdoc/>
-	public override void LoadFile(bool createIfMissing = false)
+	public EndPoint GetBitcoinP2pEndPoint()
 	{
-		base.LoadFile(createIfMissing);
-
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
+		if (Network == Network.Main)
+		{
+			return MainNetBitcoinP2pEndPoint;
+		}
+		if (Network == Network.TestNet)
+		{
+			return TestNetBitcoinP2pEndPoint;
+		}
+		if (Network == Network.RegTest)
+		{
+			return RegTestBitcoinP2pEndPoint;
+		}
+		throw new NotSupportedNetworkException(Network);
 	}
 
 	public bool MigrateOldDefaultBackendUris()
