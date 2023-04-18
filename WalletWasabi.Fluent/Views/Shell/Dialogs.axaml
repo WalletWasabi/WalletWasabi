@@ -55,8 +55,16 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              MaxContentWidth="800" MaxContentHeight="700"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
+              IncreasedWidthThreshold="740" IncreasedHeightThreshold="780" FullScreenHeightThreshold="780">
+      <c:Dialog.Styles>
+        <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
+          <Setter Property="Background" Value="{DynamicResource RegionColor}" />
+        </Style>
+        <Style Selector="c|Dialog /template/ Border#PART_Border">
+          <Setter Property="Margin" Value="0" />
+          <Setter Property="CornerRadius" Value="0" />
+        </Style>
+      </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog DataContext="{Binding CompactDialogScreen}"
