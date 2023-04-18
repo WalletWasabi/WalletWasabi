@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
+using WalletWasabi.Fluent.Views.Shell;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
@@ -18,13 +19,13 @@ namespace WalletWasabi.Fluent;
 public class ApplicationStateManager : IMainWindowService
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
+	private readonly IApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
+	internal ApplicationStateManager(IApplicationLifetime lifetime, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
@@ -47,7 +48,10 @@ public class ApplicationStateManager : IMainWindowService
 						AppLifetimeHelper.StartAppWithArgs();
 					}
 
-					lifetime.Shutdown();
+					if (lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					{
+						desktop.Shutdown();
+					}
 				})
 			.OnTrigger(
 				Trigger.ShutdownPrevented,
@@ -61,8 +65,12 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow?.Close();
-				_lifetime.MainWindow = null;
+				if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				{
+					desktop.MainWindow?.Close();
+					desktop.MainWindow = null;
+				}
+
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
@@ -75,7 +83,10 @@ public class ApplicationStateManager : IMainWindowService
 			.Permit(Trigger.MainWindowClosed, State.Closed)
 			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
 
-		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			desktop.ShutdownRequested += LifetimeOnShutdownRequested;
+		}
 
 		_stateMachine.Start();
 	}
@@ -112,61 +123,82 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void CreateAndShowMainWindow()
 	{
-		if (_lifetime.MainWindow is { })
+		if (_lifetime is ISingleViewApplicationLifetime single)
 		{
-			return;
+			if (single.MainView is { })
+			{
+				return;
+			}
+
+			var result = new Shell()
+			{
+				DataContext = MainViewModel.Instance
+			};
+
+			_compositeDisposable?.Dispose();
+			_compositeDisposable = new();
+
+			single.MainView = result;
 		}
 
-		var result = new MainWindow
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
 		{
-			DataContext = MainViewModel.Instance
-		};
-
-		_compositeDisposable?.Dispose();
-		_compositeDisposable = new();
-
-		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
-			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
-			.Subscribe(tup =>
+			if (desktop.MainWindow is { })
 			{
-				// _hideRequest flag is used to distinguish what is the user's intent.
-				// It is only true when the request comes from the Tray.
-				if (Services.UiConfig.HideOnClose || _hideRequest)
+				return;
+			}
+
+			var result = new MainWindow
+			{
+				DataContext = MainViewModel.Instance
+			};
+
+			_compositeDisposable?.Dispose();
+			_compositeDisposable = new();
+
+			Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
+				.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
+				.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
+				.Subscribe(tup =>
 				{
-					_hideRequest = false; // request processed, set it back to the default.
-					return;
-				}
+					// _hideRequest flag is used to distinguish what is the user's intent.
+					// It is only true when the request comes from the Tray.
+					if (Services.UiConfig.HideOnClose || _hideRequest)
+					{
+						_hideRequest = false; // request processed, set it back to the default.
+						return;
+					}
 
-				var (e, preventShutdown) = tup;
+					var (e, preventShutdown) = tup;
 
-				_isShuttingDown = !preventShutdown;
-				e.Cancel = preventShutdown;
+					_isShuttingDown = !preventShutdown;
+					e.Cancel = preventShutdown;
 
-				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
-			})
-			.DisposeWith(_compositeDisposable);
+					_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+				})
+				.DisposeWith(_compositeDisposable);
 
-		Observable.FromEventPattern(result, nameof(result.Closed))
-			.Take(1)
-			.Subscribe(_ =>
+			Observable.FromEventPattern(result, nameof(result.Closed))
+				.Take(1)
+				.Subscribe(_ =>
+				{
+					_compositeDisposable?.Dispose();
+					_compositeDisposable = null;
+					_stateMachine.Fire(Trigger.MainWindowClosed);
+				})
+				.DisposeWith(_compositeDisposable);
+
+			desktop.MainWindow = result;
+
+			if (result.WindowState != WindowState.Maximized)
 			{
-				_compositeDisposable?.Dispose();
-				_compositeDisposable = null;
-				_stateMachine.Fire(Trigger.MainWindowClosed);
-			})
-			.DisposeWith(_compositeDisposable);
+				SetWindowSize(result);
+			}
 
-		_lifetime.MainWindow = result;
+			ObserveWindowSize(result, _compositeDisposable);
 
-		if (result.WindowState != WindowState.Maximized)
-		{
-			SetWindowSize(result);
+			result.Show();
 		}
-
-		ObserveWindowSize(result, _compositeDisposable);
-
-		result.Show();
 
 		ApplicationViewModel.IsMainWindowShown = true;
 	}

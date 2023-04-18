@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.Views.Shell;
 
 namespace WalletWasabi.Fluent;
 
@@ -43,6 +44,23 @@ public class App : Application
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+
+						MainViewModel.Instance.Initialize();
+					});
+			}
+			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+			{
+				_applicationStateManager =
+					new ApplicationStateManager(single, _startInBg);
+
+				DataContext = _applicationStateManager.ApplicationViewModel;
+
+				//desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
