@@ -27,7 +27,7 @@
     </Style>
 
     <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
-      <Setter Property="Width" Value="75" />
+      <!--<Setter Property="Width" Value="75" />-->
       <Setter Property="Height" Value="58" />
       <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
@@ -66,12 +66,12 @@
         </Transitions>
       </Setter>
     </Style>
-
+<!--
     <Style Selector="c|NavBarItem:selected StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
-
+-->
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
@@ -118,13 +118,13 @@
                   DockPanel.Dock="Bottom">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <ReversibleStackPanel ReverseOrder="True" />
+          <ReversibleStackPanel ReverseOrder="True" Orientation="Horizontal" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.DataTemplates>
         <DataTemplate DataType="vm:NavBarItemViewModel">
           <c:NavBarItem>
-            <StackPanel>
+            <StackPanel Orientation="Vertical">
               <PathIcon Classes="new size24" />
               <LayoutTransformControl>
                 <c:FadeOutTextBlock Text="{Binding Title}" />
@@ -144,13 +144,13 @@
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}">
-              <Panel>
+              <Panel Margin="12">
                 <Ellipse Classes.isLoading="{Binding IsLoading}"
                          Classes.isLoggedIn="{Binding IsLoggedIn}"
                          Classes.isCoinjoining="{Binding IsCoinJoining}" />
-                <StackPanel>
+                <StackPanel Orientation="Horizontal">
                   <PathIcon Classes="new size24" />
-                  <LayoutTransformControl>
+                  <LayoutTransformControl VerticalAlignment="Center">
                     <c:FadeOutTextBlock Text="{Binding Title}" />
                   </LayoutTransformControl>
                 </StackPanel>
