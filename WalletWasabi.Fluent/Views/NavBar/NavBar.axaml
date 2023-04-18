@@ -117,6 +117,7 @@
 
     <!-- Bottom items -->
     <ItemsControl ItemsSource="{Binding NavBar.BottomItems}"
+                  HorizontalAlignment="Center"
                   DockPanel.Dock="Bottom">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
