@@ -30,7 +30,7 @@ public class FilterModel
 	// is constructed.This ensures the key is deterministic while still varying from block to block.
 	public byte[] FilterKey => Header.BlockHash.ToBytes()[..16];
 
-	public static FilterModel FromParameters(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
+	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
 	{
 		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
 		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
@@ -60,7 +60,7 @@ public class FilterModel
 			uint256 prevBlockHash = new(Convert.FromHexString(span[(m3 + 1)..m4]), lendian: false);
 			long blockTime = long.Parse(span[(m4 + 1)..]);
 
-			return FromParameters(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
+			return Create(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
 		}
 		catch (FormatException ex)
 		{

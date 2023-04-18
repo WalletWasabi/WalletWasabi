@@ -182,7 +182,7 @@ public class BlockFilterSqliteStorage : IDisposable
 		uint256 prevBlockHash = new(reader.GetFieldValue<byte[]>(ordinal: 3));
 		long blockTime = reader.GetInt64(ordinal: 4);
 
-		return FilterModel.FromParameters(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
+		return FilterModel.Create(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
 	}
 
 	/// <summary>
