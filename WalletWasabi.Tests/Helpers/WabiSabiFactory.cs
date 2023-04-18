@@ -338,13 +338,13 @@ public static class WabiSabiFactory
 	{
 		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
 		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
-			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
+			.Returns(CreateRoundParameters(cfg)
 				with
 			{
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
 			});
 		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
-			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
+			.Returns(CreateRoundParameters(cfg)
 				with
 			{
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice

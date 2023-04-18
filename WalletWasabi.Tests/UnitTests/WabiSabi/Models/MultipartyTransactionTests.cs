@@ -399,7 +399,7 @@ public class MultipartyTransactionTests
 
 		// Make sure the the highest fee rate is low, so blame script will be added.
 		var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
-		var coinjoinWithBlame = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask, CancellationToken.None);
+		var coinjoinWithBlame = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask);
 		coinjoinWithBlame.Finalize();
 		Assert.NotSame(coinjoinWithBlame, coinjoin);
 	}

@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain.Blocks;
 /// <summary>
 /// Tests for <see cref="SmartHeaderChain"/>.
 /// </summary>
-public class SmarthHeaderChainTests
+public class SmartHeaderChainTests
 {
 	private static DateTimeOffset BlockTime { get; } = DateTimeOffset.UtcNow;
 

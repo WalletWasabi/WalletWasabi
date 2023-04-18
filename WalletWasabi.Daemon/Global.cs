@@ -1,7 +1,8 @@
+using System;
+using System.IO;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using Nito.AsyncEx;
-using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,20 +32,18 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Fluent.Helpers;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Daemon;
 
 public class Global
 {
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
-	public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
+	public Global(string dataDir, Config config, WalletManager walletManager)
 	{
 		DataDir = dataDir;
 		Config = config;
-		UiConfig = uiConfig;
 		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
 
 		HostedServices = new HostedServices();
@@ -109,8 +108,6 @@ public class Global
 	public UpdateManager UpdateManager { get; set; }
 	public HostedServices HostedServices { get; }
 
-	public UiConfig UiConfig { get; }
-
 	public Network Network => Config.Network;
 
 	public MemoryCache Cache { get; private set; }
@@ -121,7 +118,9 @@ public class Global
 	private IndexStore IndexStore { get; }
 
 	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new(torEndPoint: Config.UseTor ? TorSettings.SocksEndpoint : null, backendUriGetter);
+		new (
+			Config.UseTor ? TorSettings.SocksEndpoint : null,
+			backendUriGetter);
 
 	public async Task InitializeNoWalletAsync(TerminateService terminateService)
 	{
@@ -139,9 +138,6 @@ public class Global
 
 			try
 			{
-				// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-				await StartupHelper.ModifyStartupSettingAsync(UiConfig.RunOnSystemStartup).ConfigureAwait(false);
-
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
@@ -168,7 +164,23 @@ public class Global
 					throw;
 				}
 
-				HostedServices.Register<P2pNetwork>(() => new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? TorSettings.SocksEndpoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
+				HostedServices.Register<P2pNetwork>(
+					() =>
+					{
+						var p2p = new P2pNetwork(
+								Network,
+								Config.GetBitcoinP2pEndPoint(),
+								Config.UseTor ? TorSettings.SocksEndpoint : null,
+								Path.Combine(DataDir, "BitcoinP2pNetwork"),
+								BitcoinStore);
+						if (!Config.BlockOnlyMode)
+						{
+							p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+						}
+
+						return p2p;
+					},
+					"Bitcoin P2P Network");
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
@@ -193,10 +205,10 @@ public class Global
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
-				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
-
 				// TODO: Should this be null for RegTest?
 				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
+
+				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				var blockProvider = new SmartBlockProvider(
 					BitcoinStore.BlockRepository,
@@ -288,7 +300,12 @@ public class Global
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
 		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode), "Full Node Mempool Mirror");
+		if (!Config.BlockOnlyMode)
+		{
+			HostedServices.Register<MempoolMirror>(
+				() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode),
+				"Full Node Mempool Mirror");
+		}
 	}
 
 	private void RegisterFeeRateProviders()

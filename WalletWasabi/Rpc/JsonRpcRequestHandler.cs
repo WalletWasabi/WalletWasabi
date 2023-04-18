@@ -65,38 +65,40 @@ public class JsonRpcRequestHandler<TService>
 	{
 		var methodName = jsonRpcRequest.Method;
 
-		if (!MetadataProvider.TryGetMetadata(methodName, out var prodecureMetadata))
+		if (!MetadataProvider.TryGetMetadata(methodName, out var procedureMetadata))
 		{
 			return Error(JsonRpcErrorCodes.MethodNotFound, $"'{methodName}' method not found.", jsonRpcRequest.Id);
 		}
 
 		try
 		{
-			var methodParameters = prodecureMetadata.Parameters;
+			var methodParameters = procedureMetadata.Parameters;
 			var parameters = new List<object>();
 
-			if (jsonRpcRequest.Parameters is JArray jarr)
+			if (jsonRpcRequest.Parameters is JArray jArray)
 			{
-				var count = methodParameters.Count < jarr.Count ? methodParameters.Count : jarr.Count;
+				var count = methodParameters.Count < jArray.Count ? methodParameters.Count : jArray.Count;
 				for (int i = 0; i < count; i++)
 				{
-					var param = methodParameters[i];
-					var item = jarr[i].ToObject(param.type, DefaultSerializer)
-						?? throw new InvalidOperationException($"Parameter `{param.name}` is null.");
+					var parameter = methodParameters[i];
+					var item = jArray[i].ToObject(parameter.type, DefaultSerializer)
+						?? throw new InvalidOperationException($"Parameter `{parameter.name}` is null.");
 					parameters.Add(item);
 				}
 			}
-			else if (jsonRpcRequest.Parameters is JObject jobj)
+			else if (jsonRpcRequest.Parameters is JObject jObj)
 			{
 				for (int i = 0; i < methodParameters.Count; i++)
 				{
-					var param = methodParameters[i];
-					if (!jobj.ContainsKey(param.name))
+					var parameter = methodParameters[i];
+					if (!jObj.ContainsKey(parameter.name))
 					{
-						return Error(JsonRpcErrorCodes.InvalidParams,
-							$"A value for the '{param.name}' is missing.", jsonRpcRequest.Id);
+						return Error(
+							JsonRpcErrorCodes.InvalidParams,
+							$"A value for the '{parameter.name}' is missing.",
+							jsonRpcRequest.Id);
 					}
-					parameters.Add(jobj[param.name].ToObject(param.type, DefaultSerializer));
+					parameters.Add(jObj[parameter.name].ToObject(parameter.type, DefaultSerializer));
 				}
 			}
 
@@ -112,13 +114,15 @@ public class JsonRpcRequestHandler<TService>
 			}
 			if (parameters.Count < methodParameters.Count(x => !x.isOptional))
 			{
-				return Error(JsonRpcErrorCodes.InvalidParams,
-					$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
+				return Error(
+					JsonRpcErrorCodes.InvalidParams,
+					$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.",
+					jsonRpcRequest.Id);
 			}
 
 			var missingParameters = methodParameters.Count - parameters.Count;
 			parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
-			var result = prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
+			var result = procedureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 			if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
 			{
@@ -126,9 +130,9 @@ public class JsonRpcRequestHandler<TService>
 			}
 
 			JsonRpcResponse? response = null;
-			if (prodecureMetadata.MethodInfo.IsAsync())
+			if (procedureMetadata.MethodInfo.IsAsync())
 			{
-				if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
+				if (!procedureMetadata.MethodInfo.ReturnType.IsGenericType)
 				{
 					await ((Task)result).ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
