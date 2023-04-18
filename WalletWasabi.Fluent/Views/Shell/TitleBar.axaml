@@ -5,7 +5,8 @@
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
-             mc:Ignorable="d" d:DesignWidth="1000"
+             xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
+             mc:Ignorable="d" d:DesignWidth="536"
              x:Class="WalletWasabi.Fluent.Views.Shell.TitleBar"
              x:Name="UserControl">
 
@@ -52,6 +53,35 @@
       <searchBar:SearchBar DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
                            HorizontalAlignment="Stretch"
                            Margin="5" />
+    </DataTemplate>
+
+
+    <DataTemplate x:Key="AndroidLayout">
+      <Grid DataContext="{Binding $parent.DataContext}">
+
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="70" />
+          <ColumnDefinition Width="0" />
+          <ColumnDefinition Width="0" />
+          <ColumnDefinition Width="1*" MaxWidth="400" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="0" />
+        </Grid.ColumnDefinitions>
+
+        <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
+
+        <!--<ContentControl Grid.Column="1" Grid.ColumnSpan="2" Margin="16,8,8,2.5"
+                        VerticalAlignment="Center"
+                        ContentTemplate="{StaticResource Title}" />-->
+
+        <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
+
+        <shell:NetworkBadge VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8 0 8 0" Grid.Column="4" />
+
+        <statusIcon:StatusIcon Grid.Column="5"  Margin="8 8 8 8" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+
+      </Grid>
     </DataTemplate>
 
     <DataTemplate x:Key="WindowsLayout">
@@ -130,5 +160,7 @@
     </DataTemplate>
   </UserControl.Resources>
 
-  <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, Osx={StaticResource MacOSLayout}}" />
+  <!-- <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, Osx={StaticResource MacOSLayout}}" /> -->
+  <ContentControl ContentTemplate="{DynamicResource AndroidLayout}" />
+
 </UserControl>
