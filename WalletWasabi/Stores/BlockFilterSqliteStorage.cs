@@ -15,6 +15,9 @@ namespace WalletWasabi.Stores;
 /// </seealso>
 public class BlockFilterSqliteStorage : IDisposable
 {
+	/// <seealso href="https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/in-memory-databases"/>
+	public const string InMemoryDatabase = ":memory:";
+
 	private bool _disposedValue;
 
 	private BlockFilterSqliteStorage(SqliteConnection connection)
@@ -28,13 +31,13 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <summary>
 	/// Opens a new sqlite connection to the given database file.
 	/// </summary>
-	/// <param name="path">Path to the sqlite database file.</param>
+	/// <param name="dataSource">Path to the sqlite database file, or special <c>:memory:</c> string.</param>
 	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
 	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
-	public static BlockFilterSqliteStorage FromFile(string path, FilterModel? startingFilter = null)
+	public static BlockFilterSqliteStorage FromFile(string dataSource, FilterModel? startingFilter = null)
 	{
-		SqliteConnection connection = new($"Data Source={path}");
+		SqliteConnection connection = new($"Data Source={dataSource}");
 		connection.Open();
 
 		using (SqliteCommand createCommand = connection.CreateCommand())

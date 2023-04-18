@@ -27,7 +27,7 @@ public class IndexStore : IAsyncDisposable
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		string indexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		IndexStorage = BlockFilterSqliteStorage.FromFile(path: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+		IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
 
 		if (network == Network.RegTest)
 		{
