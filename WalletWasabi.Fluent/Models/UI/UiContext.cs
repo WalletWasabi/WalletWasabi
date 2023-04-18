@@ -20,7 +20,21 @@ public class UiContext
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), Application.Current?.Clipboard ?? new NullClipboard());
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), GetCurrentClipboard());
+
+	private static IClipboard GetCurrentClipboard()
+	{
+		try
+		{
+			return Application.Current?.Clipboard ?? new NullClipboard();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
+
+		return new NullClipboard();
+	}
 
 	public void RegisterNavigation(INavigate navigate)
 	{
