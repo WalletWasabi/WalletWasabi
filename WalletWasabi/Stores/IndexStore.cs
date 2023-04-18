@@ -130,8 +130,11 @@ public class IndexStore : IAsyncDisposable
 
 			foreach (FilterModel filter in filters)
 			{
-				// TODO: Should throw?
-				_ = TryProcessFilterNoLock(filter, enqueue: true);
+				if (!TryProcessFilterNoLock(filter, enqueue: true))
+				{
+					sqliteTransaction.Rollback();
+					throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+				}
 			}
 
 			sqliteTransaction.Commit();
