@@ -141,10 +141,10 @@ public static class HwiParser
 
 	public static IEnumerable<HwiEnumerateEntry> ParseHwiEnumerateResponse(string responseString)
 	{
-		var jarr = JArray.Parse(responseString);
+		var jArray = JArray.Parse(responseString);
 
 		var response = new List<HwiEnumerateEntry>();
-		foreach (JObject json in jarr)
+		foreach (JObject json in jArray)
 		{
 			var hwiEntry = ParseHwiEnumerateEntry(json);
 			response.Add(hwiEntry);
@@ -344,25 +344,27 @@ public static class HwiParser
 			fullOptions.Insert(0, HwiOption.TestNet);
 		}
 
-		var optionsString = string.Join(" --", fullOptions.Select(x =>
-		{
-			string optionString = x.Type switch
+		var optionsString = string.Join(
+			" --",
+			fullOptions.Select(x =>
 			{
-				HwiOptions.DeviceType => "device-type",
-				HwiOptions.DevicePath => "device-path",
-				HwiOptions.TestNet => "chain test",
-				_ => x.Type.ToString().ToLowerInvariant(),
-			};
+				string optionString = x.Type switch
+				{
+					HwiOptions.DeviceType => "device-type",
+					HwiOptions.DevicePath => "device-path",
+					HwiOptions.TestNet => "chain test",
+					_ => x.Type.ToString().ToLowerInvariant(),
+				};
 
-			if (string.IsNullOrWhiteSpace(x.Arguments))
-			{
-				return optionString;
-			}
-			else
-			{
-				return $"{optionString} \"{x.Arguments}\"";
-			}
-		}));
+				if (string.IsNullOrWhiteSpace(x.Arguments))
+				{
+					return optionString;
+				}
+				else
+				{
+					return $"{optionString} \"{x.Arguments}\"";
+				}
+			}));
 
 		optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
 		var argumentBuilder = new StringBuilder(optionsString);
