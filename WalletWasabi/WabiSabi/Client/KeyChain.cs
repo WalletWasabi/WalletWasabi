@@ -39,7 +39,7 @@ public class KeyChain : IKeyChain
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		ExtKey? hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), destination.ScriptPubKey).SingleOrDefault()
+		ExtKey hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), destination.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
 		Key masterKey = GetMasterKey();
 		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), destination.ScriptPubKey);
@@ -58,7 +58,7 @@ public class KeyChain : IKeyChain
 
 		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint)
 			?? throw new InvalidOperationException("Missing input.");
-		ExtKey? hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).SingleOrDefault()
+		ExtKey hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
 		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), coin.ScriptPubKey);
 

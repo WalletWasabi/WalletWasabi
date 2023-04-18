@@ -35,7 +35,7 @@ public class LegalDocuments
 				string? filePath = legalDocCandidates.Single();
 				string? content = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
 				string? verString = Path.GetFileNameWithoutExtension(filePath);
-				Version? version = Version.Parse(verString)
+				Version version = Version.Parse(verString)
 					?? throw new InvalidOperationException("Legal documents version is null.");
 				return new LegalDocuments(version, content);
 

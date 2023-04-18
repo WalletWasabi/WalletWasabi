@@ -29,7 +29,7 @@ public interface IHttpClient
 			throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
 		}
 
-		Uri? baseUri = BaseUriGetter.Invoke()
+		Uri baseUri = BaseUriGetter.Invoke()
 			?? throw new InvalidOperationException("Base URI is not set.");
 		Uri requestUri = new(baseUri, relativeUri);
 		using HttpRequestMessage httpRequestMessage = new(method, requestUri);
