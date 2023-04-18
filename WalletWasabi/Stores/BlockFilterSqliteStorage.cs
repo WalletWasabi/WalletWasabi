@@ -37,7 +37,10 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
 	public static BlockFilterSqliteStorage FromFile(string dataSource, FilterModel? startingFilter = null)
 	{
-		SqliteConnection connection = new($"Data Source={dataSource}");
+		SqliteConnectionStringBuilder builder = new();
+		builder.DataSource = dataSource;
+
+		SqliteConnection connection = new(builder.ConnectionString);
 		connection.Open();
 
 		using (SqliteCommand createCommand = connection.CreateCommand())
