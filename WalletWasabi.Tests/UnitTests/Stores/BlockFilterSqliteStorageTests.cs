@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;
 using Xunit;
 
@@ -11,19 +12,21 @@ namespace WalletWasabi.Tests.UnitTests.Stores;
 /// </summary>
 public class BlockFilterSqliteStorageTests
 {
+	private static byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
+
 	[Fact]
 	public void TryAppend()
 	{
-		FilterModel startingFilter = StartingFilters.GetStartingFilter(Network.Main);
+		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
+		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: BlockFilterSqliteStorage.InMemoryDatabase, startingFilter);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: BlockFilterSqliteStorage.InMemoryDatabase, filter0);
 
-		// Starting filter for the testnet and for the mainnet are of different height. Hence, success.
-		bool added = indexStorage.TryAppend(StartingFilters.GetStartingFilter(Network.TestNet));
+		bool added = indexStorage.TryAppend(filter1);
 		Assert.True(added);
 
 		// The filter with the same block height is already present.
-		added = indexStorage.TryAppend(StartingFilters.GetStartingFilter(Network.TestNet));
+		added = indexStorage.TryAppend(filter1);
 		Assert.False(added);
 	}
 
@@ -47,10 +50,8 @@ public class BlockFilterSqliteStorageTests
 	[Fact]
 	public void AppendAndRemove()
 	{
-		byte[] dummyFilterData = Convert.FromHexString("02832810ec08a0");
-
-		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: dummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
-		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: dummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
+		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
+		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
 
 		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: BlockFilterSqliteStorage.InMemoryDatabase, filter0);
 
@@ -65,7 +66,7 @@ public class BlockFilterSqliteStorageTests
 		Assert.Equal(new uint256(2), filterLast.Header.BlockHash);
 		Assert.Equal(uint256.One, filterLast.Header.PrevHash);
 		Assert.Equal(1231006506, filterLast.Header.EpochBlockTime);
-		Assert.Equal(dummyFilterData, filterLast.Filter.ToBytes());
+		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 
 		result = indexStorage.TryRemoveLast(out filterLast);
 		Assert.True(result);
@@ -74,18 +75,16 @@ public class BlockFilterSqliteStorageTests
 		Assert.Equal(uint256.One, filterLast.Header.BlockHash);
 		Assert.Equal(uint256.Zero, filterLast.Header.PrevHash);
 		Assert.Equal(1231006505, filterLast.Header.EpochBlockTime);
-		Assert.Equal(dummyFilterData, filterLast.Filter.ToBytes());
+		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 	}
 
 	[Fact]
 	public void TryRemoveLastIfNewerThan()
 	{
-		byte[] dummyFilterData = Convert.FromHexString("02832810ec08a0");
-
-		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: dummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
-		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: dummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
-		FilterModel filter2 = FilterModel.FromParameters(blockHeight: 2, blockHash: new uint256(3), filterData: dummyFilterData, prevBlockHash: new uint256(2), blockTime: 1231006507);
-		FilterModel filter3 = FilterModel.FromParameters(blockHeight: 3, blockHash: new uint256(4), filterData: dummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006508);
+		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
+		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
+		FilterModel filter2 = FilterModel.FromParameters(blockHeight: 2, blockHash: new uint256(3), filterData: DummyFilterData, prevBlockHash: new uint256(2), blockTime: 1231006507);
+		FilterModel filter3 = FilterModel.FromParameters(blockHeight: 3, blockHash: new uint256(4), filterData: DummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006508);
 
 		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: BlockFilterSqliteStorage.InMemoryDatabase, filter0);
 
@@ -116,10 +115,8 @@ public class BlockFilterSqliteStorageTests
 	[Fact]
 	public void Clear()
 	{
-		byte[] dummyFilterData = Convert.FromHexString("02832810ec08a0");
-
-		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: dummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
-		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: dummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
+		FilterModel filter0 = FilterModel.FromParameters(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
+		FilterModel filter1 = FilterModel.FromParameters(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
 
 		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: BlockFilterSqliteStorage.InMemoryDatabase, filter0);
 
