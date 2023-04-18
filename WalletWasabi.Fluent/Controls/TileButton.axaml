@@ -1,19 +1,24 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
-
+  <Design.PreviewWith>
+    <c:TileButton Text="Create a new wallet"
+                  Classes="action doubleline"
+                  Icon="{StaticResource add_regular}"
+                  IsDefault="False" />
+  </Design.PreviewWith>
   <Style Selector="c|TileButton">
     <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Template">
       <ControlTemplate>
         <Border x:Name="PART_Border"
                 BorderThickness="{TemplateBinding BorderThickness}"
                 BorderBrush="{TemplateBinding BorderBrush}"
-                Background="{TemplateBinding Background}">
-          <DockPanel>
-            <TextBlock x:Name="PART_Text"
-                       Text="{TemplateBinding Text}"
-                       Foreground="{TemplateBinding Foreground}" />
+                Background="{TemplateBinding Background}"
+                Padding="12">
+          <StackPanel Orientation="Horizontal">
             <Panel VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
               <PathIcon x:Name="PART_Icon"
@@ -26,7 +31,14 @@
                                 Height="{TemplateBinding IconSize}"
                                 Width="{TemplateBinding IconSize}" />
             </Panel>
-          </DockPanel>
+            <TextBlock x:Name="PART_Text"
+                       Text="{TemplateBinding Text}"
+                       Foreground="{TemplateBinding Foreground}"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                       DockPanel.Dock="Right"/>
+          </StackPanel>
         </Border>
       </ControlTemplate>
     </Setter>
@@ -59,7 +71,7 @@
   </Style>
 
   <Style Selector="c|TileButton">
-    <Setter Property="Width" Value="150" />
+    <Setter Property="Width" Value="280" />
     <Setter Property="Height" Value="150" />
     <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="BorderThickness" Value="0" />
