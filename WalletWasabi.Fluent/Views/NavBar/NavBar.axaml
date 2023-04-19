@@ -115,6 +115,7 @@
 
   <DockPanel Margin="0 0 0 5">
 
+    <!-- TOD0: Integrate with wallet view -->
     <!-- Bottom items -->
     <ItemsControl ItemsSource="{Binding NavBar.BottomItems}"
                   HorizontalAlignment="Center"
@@ -141,8 +142,9 @@
     <!-- Separator -->
     <Separator DockPanel.Dock="Bottom" />
 
-    <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
-                               HorizontalAlignment="Center" Height="66" />
+    <!-- TOD0: Integrate with wallet view -->
+    <!--<wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
+                               HorizontalAlignment="Center" Height="66" />-->
 
     <!-- Wallet List -->
     <ScrollViewer>
