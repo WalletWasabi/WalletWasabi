@@ -443,7 +443,7 @@ public class CoinJoinManager : BackgroundService
 		if (finishedCoinJoin.IsStopped  // If stop was requested by user.
 			|| cancellationToken.IsCancellationRequested)    // If cancellation was requested.
 		{
-			NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
+			NotifyWalletStoppedCoinJoin(wallet);
 		}
 		else if (wallet.IsUnderPlebStop && !finishedCoinJoin.OverridePlebStop)  // If wallet is under PlebStop threshold and user do not override it.
 		{
@@ -457,7 +457,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
-			ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
+			ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 		}
 
 		if (!trackedCoinJoins.TryRemove(wallet.WalletName, out _))
