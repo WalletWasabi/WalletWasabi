@@ -154,12 +154,21 @@
                 <Ellipse Classes.isLoading="{Binding IsLoading}"
                          Classes.isLoggedIn="{Binding IsLoggedIn}"
                          Classes.isCoinjoining="{Binding IsCoinJoining}" />
-                <StackPanel Orientation="Horizontal">
-                  <PathIcon Classes="new size24" />
-                  <LayoutTransformControl VerticalAlignment="Center">
-                    <c:FadeOutTextBlock Text="{Binding Title}" />
-                  </LayoutTransformControl>
-                </StackPanel>
+                <DockPanel>
+                  <Button Content="Open"
+                          Command="{Binding $parent[ItemsControl].DataContext.OpenWalletView}"
+                          Margin="12,0,12,0"
+                          Classes="plain"
+                          VerticalAlignment="Center"
+                          x:CompileBindings="False"
+                          DockPanel.Dock="Right" />
+                  <StackPanel Orientation="Horizontal">
+                    <PathIcon Classes="new size24" />
+                    <LayoutTransformControl VerticalAlignment="Center">
+                      <c:FadeOutTextBlock Text="{Binding Title}" />
+                    </LayoutTransformControl>
+                  </StackPanel>
+                </DockPanel>
               </Panel>
             </c:NavBarItem>
           </DataTemplate>
