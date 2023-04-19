@@ -70,10 +70,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				IndicatorsColumn(),
 				DateColumn(),
-				LabelsColumn(),
-				IncomingColumn(),
-				OutgoingColumn(),
-				BalanceColumn(),
+				//LabelsColumn(),
+				//IncomingColumn(),
+				//OutgoingColumn(),
+				//BalanceColumn(),
 			}
 		};
 
