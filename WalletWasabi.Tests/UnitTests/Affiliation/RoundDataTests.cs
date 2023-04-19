@@ -27,13 +27,13 @@ public class RoundDataTests
 		cj.Outputs.Add(Money.Coins(2.9999M), BitcoinFactory.CreateScript());
 
 		var transactionData = roundData.FinalizeRoundData(cj);
-		var txNotificationForBlueWallet = transactionData.GetAffiliationData("bluewallet");
+		var txNotificationForBlueWallet = transactionData.GetAffiliationData("bluewallet", cj.GetHash());
 		var reportedAffiliatedCoin = Assert.Single(txNotificationForBlueWallet.Inputs.Where(x => x.IsAffiliated));
 
 		Assert.Equal(unmixedCoin.Outpoint.Hash.ToBytes(), reportedAffiliatedCoin.Prevout.Hash);
 		Assert.Equal(unmixedCoin.Outpoint.N, reportedAffiliatedCoin.Prevout.Index);
 
-		var txNotificationForUnknownWallet = transactionData.GetAffiliationData("unknown");
+		var txNotificationForUnknownWallet = transactionData.GetAffiliationData("unknown", cj.GetHash());
 		Assert.Empty(txNotificationForUnknownWallet.Inputs.Where(x => x.IsAffiliated));
 	}
 }
