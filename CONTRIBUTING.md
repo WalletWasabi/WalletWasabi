@@ -162,7 +162,7 @@ It causes confusion and awkward catch clauses.
 The following is a list of UI specific coding conventions. Follow these any time you are contributing code in the following projects:
  - `WalletWasabi.Fluent`
  - `WalletWasabi.Fluent.Desktop`
- - `WalletWasabi.Flent.Generators`
+ - `WalletWasabi.Fluent.Generators`
 
  ## Disposing Subscriptions in ReactiveObjects
 
