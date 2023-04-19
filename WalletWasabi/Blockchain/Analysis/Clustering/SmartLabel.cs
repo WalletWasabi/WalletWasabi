@@ -96,7 +96,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		ToString().Equals(other, comparison);
 
 	public int CompareTo(SmartLabel other) =>
-		AsSpan().SequenceCompareTo(other.AsSpan());
+		CompareTo(other, StringComparison.OrdinalIgnoreCase);
 
 	public int CompareTo(SmartLabel other, IComparer<string> comparer)
 	{
@@ -140,7 +140,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 	}
 
 	public int CompareTo(string? other) =>
-		string.Compare(ToString(), other);
+		string.Compare(ToString(), other, StringComparison.OrdinalIgnoreCase);
 
 	public int CompareTo(string? other, StringComparison comparison) =>
 		string.Compare(ToString(), other, comparison);
