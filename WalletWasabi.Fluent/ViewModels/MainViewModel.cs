@@ -3,6 +3,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
@@ -105,7 +106,15 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = CreateSearchBar();
 
 		NetworkBadgeName = Services.PersistentConfig.Network == Network.Main ? "" : Services.PersistentConfig.Network.Name;
+
+		OpenWalletViewCommand = ReactiveCommand.Create(OpenWalletView);
+
+		CloseWalletViewCommand = ReactiveCommand.Create(CloseWalletView);
 	}
+
+	public ICommand OpenWalletViewCommand { get; }
+
+	public ICommand CloseWalletViewCommand { get; }
 
 	public IObservable<bool> IsMainContentEnabled { get; }
 
@@ -128,6 +137,11 @@ public partial class MainViewModel : ViewModelBase
 	public void OpenWalletView()
 	{
 		IsWalletVisible = true;
+	}
+
+	public void CloseWalletView()
+	{
+		IsWalletVisible = false;
 	}
 
 	public bool IsDialogOpen()
