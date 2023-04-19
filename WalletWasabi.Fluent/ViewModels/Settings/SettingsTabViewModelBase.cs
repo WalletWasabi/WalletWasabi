@@ -1,5 +1,6 @@
 using System.Reactive.Concurrency;
 using ReactiveUI;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -12,13 +13,13 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 
 	protected SettingsTabViewModelBase()
 	{
-		ConfigOnOpen = new Config(Services.Config.FilePath);
+		ConfigOnOpen = new PersistentConfig(Services.PersistentConfig.FilePath);
 		ConfigOnOpen.LoadFile();
 	}
 
 	public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
-	public static Config? ConfigOnOpen { get; set; }
+	public static PersistentConfig? ConfigOnOpen { get; set; }
 
 	private static object ConfigLock { get; } = new();
 
@@ -29,7 +30,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			return;
 		}
 
-		var config = new Config(ConfigOnOpen.FilePath);
+		var config = new PersistentConfig(ConfigOnOpen.FilePath);
 
 		RxApp.MainThreadScheduler.Schedule(
 			() =>
@@ -52,7 +53,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			});
 	}
 
-	protected abstract void EditConfigOnSave(Config config);
+	protected abstract void EditConfigOnSave(PersistentConfig persistentConfig);
 
 	private static void OnConfigSaved()
 	{
@@ -73,7 +74,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			return false;
 		}
 
-		var currentConfig = new Config(ConfigOnOpen.FilePath);
+		var currentConfig = new PersistentConfig(ConfigOnOpen.FilePath);
 		currentConfig.LoadFile();
 
 		var isRestartNeeded = !ConfigOnOpen.AreDeepEqual(currentConfig);
