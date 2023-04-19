@@ -153,8 +153,8 @@ public class SmartLabelTests
 		var stringLabelToCheck = "fOO";
 		Assert.False(smartLabel.Equals(smartLabelToCheck));
 		Assert.False(smartLabel.Equals(stringLabelToCheck));
-		Assert.True(0 == smartLabel.CompareTo(smartLabelToCheck));
-		Assert.True(0 == smartLabel.CompareTo(stringLabelToCheck));
+		Assert.Equal(0, smartLabel.CompareTo(smartLabelToCheck));
+		Assert.Equal(0, smartLabel.CompareTo(stringLabelToCheck));
 		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
 		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
 		Assert.True(smartLabel.Equals(stringLabelToCheck, StringComparison.OrdinalIgnoreCase));
@@ -165,8 +165,8 @@ public class SmartLabelTests
 		stringLabelToCheck = "buZ, BaR, fOo";
 		Assert.False(smartLabel.Equals(smartLabelToCheck));
 		Assert.False(smartLabel.Equals(stringLabelToCheck));
-		Assert.True(0 == smartLabel.CompareTo(smartLabelToCheck));
-		Assert.True(0 != smartLabel.CompareTo(stringLabelToCheck));
+		Assert.Equal(0, smartLabel.CompareTo(smartLabelToCheck));
+		Assert.NotEqual(0, smartLabel.CompareTo(stringLabelToCheck));
 		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
 		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
 		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.OrdinalIgnoreCase)); // stringLabelToCheck is a string, the order of the element is different, this should be False.
