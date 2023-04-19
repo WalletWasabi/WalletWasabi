@@ -25,6 +25,8 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -68,7 +70,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(walletVm);
+		Balance = new WalletBalanceTileViewModel(new WalletModel(_wallet), new ObservableExchangeRateProvider(_wallet.Synchronizer));
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

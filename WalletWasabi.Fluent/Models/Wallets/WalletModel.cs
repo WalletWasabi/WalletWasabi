@@ -37,9 +37,15 @@ internal class WalletModel : IWalletModel
 			.Defer(() => GetAddresses().ToObservable())
 			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
 			.ToObservableChangeSet(x => x.Text);
+
+		Balance = Observable
+			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
+			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
 	}
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+
+	public IObservable<Money> Balance { get; set; }
 
 	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
 
