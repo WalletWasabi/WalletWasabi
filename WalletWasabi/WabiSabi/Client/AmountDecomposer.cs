@@ -373,9 +373,9 @@ public class AmountDecomposer
 	/// <summary>
 	/// Greedily decomposes an amount to the given denominations.
 	/// </summary>
-	private IEnumerable<Output> BreakDown(Money coininputEffectiveValue, IEnumerable<Output> denominations)
+	private IEnumerable<Output> BreakDown(Money coinInputEffectiveValue, IEnumerable<Output> denominations)
 	{
-		var remaining = coininputEffectiveValue;
+		var remaining = coinInputEffectiveValue;
 
 		List<Output> denoms = new();
 

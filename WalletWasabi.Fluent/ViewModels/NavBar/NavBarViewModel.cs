@@ -73,7 +73,7 @@ public class NavBarViewModel : ViewModelBase
 
 		foreach (var item in topItems)
 		{
-			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
+			var viewModel = await NavigationManager.MaterializeViewModelAsync(item);
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
@@ -83,7 +83,7 @@ public class NavBarViewModel : ViewModelBase
 
 		foreach (var item in bottomItems)
 		{
-			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
+			var viewModel = await NavigationManager.MaterializeViewModelAsync(item);
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
