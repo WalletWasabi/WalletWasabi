@@ -20,8 +20,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private Money? _amount;
+	[AutoNotify] private string _dateString;
+    [AutoNotify] private Money? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
@@ -45,7 +45,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		Date = transactionSummary.DateTime.ToLocalTime();
+		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.TransactionId.ToString();
 		Labels = transactionSummary.Label;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;

@@ -42,16 +42,16 @@ public class StepOutputRegistrationTests
 
 		// Register outputs.
 		var bobClient = new BobClient(round.Id, arenaClient);
-		using var destKey1 = new Key();
+		using var destinationKey1 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			destinationKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			token);
 
-		using var destKey2 = new Key();
+		using var destinationKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			destinationKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			token);
@@ -93,9 +93,9 @@ public class StepOutputRegistrationTests
 
 		// Register outputs.
 		var bobClient = new BobClient(round.Id, arenaClient);
-		using var destKey = new Key();
+		using var destinationKey = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			destinationKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			token);
@@ -133,16 +133,16 @@ public class StepOutputRegistrationTests
 
 		// Register outputs.
 		var bobClient = new BobClient(round.Id, arenaClient);
-		using var destKey1 = new Key();
-		using var destKey2 = new Key();
+		using var destinationKey1 = new Key();
+		using var destinationKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			destinationKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			token);
 
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			destinationKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			token);
@@ -150,8 +150,8 @@ public class StepOutputRegistrationTests
 		// Add another input. The input must be able to pay for itself, but
 		// the remaining amount after deducting the fees needs to be less
 		// than the minimum.
-		var txParams = round.Parameters;
-		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
+		var txParameters = round.Parameters;
+		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParameters.AllowedOutputAmounts.Min - new Money(1L), round);
 		round.Alices.Add(extraAlice);
 		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
@@ -186,9 +186,9 @@ public class StepOutputRegistrationTests
 
 		// Register outputs.
 		var bobClient = new BobClient(round.Id, arenaClient);
-		using var destKey = new Key();
+		using var destinationKey = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			destinationKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			token);

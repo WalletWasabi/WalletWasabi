@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -135,6 +136,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
+			if (alice.IsCoordinationFeeExempted && request.AffiliationId != AffiliationConstants.DefaultAffiliationId)
+			{
+				throw new AffiliationException(
+					"Input is exempted from paying coordination fee and can only use default affiliation id.");
+			}
 			alice.ReadyToSign = true;
 			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationId);
 		}
@@ -379,12 +385,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			}
 		}
 
-		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
-		if (txOutResponse is null)
-		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
-		}
-
+		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false)
+			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);

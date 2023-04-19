@@ -51,7 +51,7 @@ public record DependencyGraph
 	/// and may contain additional nodes if reissuance requests are
 	/// required.</remarks>
 	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feerate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, long vsizeAllocationPerInput)
 	{
 		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue);
 		var inputSizes = effectiveValuesAndSizes.Select(x => x.InputSize);
@@ -62,7 +62,7 @@ public record DependencyGraph
 		}
 
 		var outputSizes = outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize());
-		var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feerate));
+		var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feeRate));
 
 		return ResolveCredentialDependencies(
 			Enumerable.Zip(effectiveValues.Select(a => a.Satoshi), inputSizes.Select(i => (vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<long>>(),
@@ -173,7 +173,7 @@ public record DependencyGraph
 	/// values are sufficient to fill the reissuance node's in edge set and
 	/// requires only one edge to fully drain the (remaining) balance, so
 	/// there will be an extra zero valued credential (requested normally,
-	/// incl. range proof).</para>
+	/// including range proof).</para>
 	///
 	/// <para>New reissuance nodes fully absorb the value of the nodes they
 	/// substitute with no additional dependencies required, so each one
@@ -410,7 +410,7 @@ public record DependencyGraph
 		// dependencies between different requests, weight credentials
 		// should often be easily satisfiable with parallel edges to the
 		// amount credential edges.
-		if (CredentialType.IsDefined(credentialType + 1))
+		if (Enum.IsDefined(credentialType + 1))
 		{
 			// TODO Limit up to a certain height in the graph, no more than
 			// the initial value, this can sometimes create a deeper graph

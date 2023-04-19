@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.AppServices.Tor;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -54,7 +54,7 @@ public partial class MainViewModel : ViewModelBase
 
 		UiServices.Initialize();
 
-		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
+		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -103,7 +103,7 @@ public partial class MainViewModel : ViewModelBase
 
 		SearchBar = CreateSearchBar();
 
-		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+		NetworkBadgeName = Services.PersistentConfig.Network == Network.Main ? "" : Services.PersistentConfig.Network.Name;
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -171,9 +171,9 @@ public partial class MainViewModel : ViewModelBase
 	{
 		StatusIcon.Initialize();
 
-		if (Services.Config.Network != Network.Main)
+		if (Services.PersistentConfig.Network != Network.Main)
 		{
-			Title += $" - {Services.Config.Network}";
+			Title += $" - {Services.PersistentConfig.Network}";
 		}
 	}
 

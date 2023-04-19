@@ -254,7 +254,7 @@ public class ChaumianCoinJoinController : ControllerBase
 				if (!allInputsConfirmed)
 				{
 					// Check if mempool would accept a fake transaction created with the registered inputs.
-					// Fake outputs: mixlevels + 1 maximum, +1 because there can be a change.
+					// Fake outputs: mixLevels + 1 maximum, +1 because there can be a change.
 					var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputCount: round.MixingLevels.Count() + 1, round.FeePerInputs, round.FeePerOutputs, CancellationToken.None);
 					if (!result.accept)
 					{
@@ -264,7 +264,7 @@ public class ChaumianCoinJoinController : ControllerBase
 
 				var acceptedBlindedOutputScripts = new List<BlindedOutputWithNonceIndex>();
 
-				// Calculate expected networkfee to pay after base denomination.
+				// Calculate expected network fee to pay after base denomination.
 				int inputCount = inputs.Count;
 				Money networkFeeToPayAfterBaseDenomination = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
 
@@ -426,7 +426,7 @@ public class ChaumianCoinJoinController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(410)]
-	public IActionResult PostUnconfimation([FromQuery, Required] string uniqueId, [FromQuery, Required] long roundId)
+	public IActionResult PostUnconfirmation([FromQuery, Required] string uniqueId, [FromQuery, Required] long roundId)
 	{
 		if (roundId < 0)
 		{
@@ -528,8 +528,8 @@ public class ChaumianCoinJoinController : ControllerBase
 			return NoContent();
 		}
 
-		MixingLevel mixinglevel = round.MixingLevels.GetLevel(request.Level);
-		Signer signer = mixinglevel.Signer;
+		MixingLevel mixingLevel = round.MixingLevels.GetLevel(request.Level);
+		Signer signer = mixingLevel.Signer;
 
 		if (signer.VerifyUnblindedSignature(request.UnblindedSignature, request.OutputAddress.ScriptPubKey.ToBytes()))
 		{
@@ -537,7 +537,7 @@ public class ChaumianCoinJoinController : ControllerBase
 			{
 				try
 				{
-					var bob = new Bob(request.OutputAddress, mixinglevel);
+					var bob = new Bob(request.OutputAddress, mixingLevel);
 					round.AddBob(bob);
 					round.AddRegisteredUnblindedSignature(request.UnblindedSignature);
 				}
