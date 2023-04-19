@@ -157,7 +157,7 @@
                 <DockPanel>
                   <Button Content="Open"
                           Command="{Binding $parent[ItemsControl].DataContext.OpenWalletViewCommand}"
-                          Margin="12,0,12,0"
+                          Margin="12,0,18,0"
                           Classes="plain"
                           VerticalAlignment="Center"
                           x:CompileBindings="False"
