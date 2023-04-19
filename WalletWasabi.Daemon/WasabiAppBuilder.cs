@@ -84,6 +84,7 @@ public class WasabiApplication
 		// Start termination/disposal of the application.
 		TerminateService.Terminate();
 		SingleInstanceChecker.Dispose();
+
 		Logger.LogSoftwareStopped(AppConfig.AppName);
 	}
 
@@ -164,21 +165,4 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 
 	public static WasabiAppBuilder Create(string appName, string[] args) =>
 		new(appName, args);
-}
-
-public static class WasabiAppExtensions
-{
-	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
-	{
-		return await app.RunAsync(
-			async () =>
-			{
-				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
-
-				while (true)
-				{
-					Console.Read();
-				}
-			});
-	}
 }
