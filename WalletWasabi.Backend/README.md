@@ -27,11 +27,13 @@
 
 #### POST filters
 
-  At the initial synchronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client.  
-  - First block with P2WPKH: dfcec48bb8491856c353306ab5febeb7e99e4d783eedf3de98f3ee0812b92bad
-  - First block with P2WPKH on TestNet: b29fbe96bf737000f8e3536e9b4681a01b1ca6be3ac4bd1f8269cdbd465e6700
+  At the initial synchronization the wallet must specify the hash of the first block that contains native segwit output, both for SegWit and Taproot. This hash must be hard coded into the client.  
+  - First SegWit block with P2WPKH: 0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
+  - First SegWit block with P2WPKH on TestNet: 00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
+  - First Taproot block: 0000000000000000000687bca986194dc2c1f949318629b44bb54ec0a94d8244
+  - First Taproot block TestNet: 00000000000000216dc4eb2bd27764891ec0c961b0da7562fe63678e164d62a0
   
-  Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `p2wpkh` scripts, therefore `p2pkh`, `p2sh`, `p2sh` over `p2wph` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, with that speeds up the wallet.
+  Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `P2WPKH` and `P2TR` scripts, therefore `P2PKH`, `P2SH`, and `P2SH` over `P2WPH` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, which speeds up the wallet filter synchronization.
   When a client acquires a filter, it checks against its own keys and downloads the needed blocks from the Bitcoin P2P network, if needed. 
   
 #### Handling Reorgs
