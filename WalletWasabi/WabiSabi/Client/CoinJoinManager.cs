@@ -200,11 +200,12 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate, $"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 
+				NotifyWalletStartedCoinJoin(walletToStart);
+
 				return coinCandidates;
 			}
 
 			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
-			NotifyWalletStartedCoinJoin(walletToStart);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
