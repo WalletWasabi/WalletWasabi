@@ -114,6 +114,11 @@ public class TerminateService
 		// First caller starts the terminate procedure.
 		Logger.LogDebug("Start shutting down the application.");
 
+		if (!TerminationRequested.Task.IsCompleted)
+		{
+			_terminateApplication();
+		}
+
 		// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
 		// We still need to block the caller so Wait applied.
 		Task.Run(async () =>
