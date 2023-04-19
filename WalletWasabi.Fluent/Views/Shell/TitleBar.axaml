@@ -34,7 +34,7 @@
   <UserControl.Resources>
 
     <DataTemplate x:Key="WasabiLogo">
-      <Viewbox Height="18" Width="18" IsHitTestVisible="False">
+      <Viewbox Height="18" Width="18" IsHitTestVisible="True">
         <Image Source="{DynamicResource wasabi_logo_dynamic}" />
       </Viewbox>
     </DataTemplate>
