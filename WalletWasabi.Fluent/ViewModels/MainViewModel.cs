@@ -41,6 +41,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
+	[AutoNotify] private bool _isWalletVisible;
 
 	public MainViewModel()
 	{
@@ -123,6 +124,11 @@ public partial class MainViewModel : ViewModelBase
 		DialogScreen.CurrentPage is { IsBusy: true } ||
 		FullScreen.CurrentPage is { IsBusy: true } ||
 		CompactDialogScreen.CurrentPage is { IsBusy: true };
+
+	public void OpenWalletView()
+	{
+		IsWalletVisible = true;
+	}
 
 	public bool IsDialogOpen()
 	{
