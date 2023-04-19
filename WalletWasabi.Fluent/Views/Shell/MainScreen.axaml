@@ -66,7 +66,12 @@
             <!--<wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
                                        HorizontalAlignment="Center" Height="66" />-->
             <!-- <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" /> -->
-            <navbar:NavBar VerticalAlignment="Stretch"/>
+            <Panel>
+              <navbar:NavBar VerticalAlignment="Stretch"
+                             IsVisible="{Binding !IsWalletVisible}"/>
+              <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}"
+                              IsVisible="{Binding IsWalletVisible}"/>
+            </Panel>
           </DockPanel>
 
 
