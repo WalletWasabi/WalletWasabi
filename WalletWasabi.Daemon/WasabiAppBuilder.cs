@@ -170,10 +170,32 @@ public static class WasabiAppExtensions
 {
 	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
 	{
+		void ProcessCommands()
+		{
+			var arguments = app.AppConfig.Arguments;
+			string[] Split(string s) => s.Split(",", StringSplitOptions.RemoveEmptyEntries);
+			if (ArgumentHelpers.TryGetValue("wallet", arguments, (Func<string, string[]>) Split, out var walletNames))
+			{
+				foreach (var walletName in walletNames)
+				{
+					try
+					{
+						app.Global!.WalletManager.GetWalletByName(walletName);
+					}
+					catch (InvalidOperationException)
+					{
+						Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring..." );
+					}
+				}
+			}
+		}
+
 		return await app.RunAsync(
 			async () =>
 			{
 				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
+
+				ProcessCommands();
 
 				while (true)
 				{
