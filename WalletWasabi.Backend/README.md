@@ -1,6 +1,6 @@
 # API Specification
 
-**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ. You can find up to date documentation here:
+**ATTENTION:** This document describes the initial specification. The actual implementation may differ significantly. You can find up to date documentation here:
 - TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger
 - Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger
 
@@ -10,20 +10,20 @@
 
 ## HTTP
 
-  Requests and Responses are JSON.
+  Requests and Responses are in JSON.
   Requests have the following format: `/api/v4/{coin}/{controller}/`.
   Currently supported coins: `btc`.
 
   For example requesting exchange rate: `GET /api/v4/btc/offchain/exchange-rates`.
 
-### Controller: Blockchain, Coin: BTC
+### Controller: Blockchain, Coin: btc
 
 | API | Description | Request | Response |
 | --- | ---- | ---- | ---- |
-| GET fees?{comma separated confirmationTargets} | Gets fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
+| GET all-fees?{comma separated confirmationTargets} | Gets fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 | POST broadcast | Attempts to broadcast a transaction. | Hex |  |
-| GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
 | GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
+| GET status | Gets current status of filter and coinjoin creation. |  |  |
 
 #### POST filters
 
