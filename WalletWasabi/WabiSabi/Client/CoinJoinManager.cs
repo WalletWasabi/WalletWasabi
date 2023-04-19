@@ -455,7 +455,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		else
 		{
-			finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
+			wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
 			ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 		}
