@@ -40,14 +40,3 @@
 
   If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization has occurred. 
 
-### Controller: ChaumianCoinJoin, Coin: BTC
-
-| API | Description | Request | Response |
-| --- | ---- | ---- | ---- |
-| GET status | Satoshi gets various status information. | | CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, ForcedRoundStartMinutesLeft, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version |
-| POST inputs | Alice registers her inputs. | Inputs[(Input, Proof)], BlindedOutputHex, ChangeOutputs[] | SignedBlindedOutput, UniqueId |
-| POST confirmation | Alice must confirm her participation periodically in InputRegistration phase and confirm once in ConnectionConfirmation phase. | UniqueId | Phase |
-| POST unconfirmation | Alice can revoke her registration without penalty if the current phase is InputRegistration. | UniqueId | |
-| POST outputs | Bob registers his output. | Output, Signature, RoundId | |
-| GET coinjoin | Alice asks for the final CoinJoin transaction. | UniqueId | Transaction |
-| POST signatures | Alice posts her partial signatures. | UniqueId, Signatures[(Witness, Index)] | |
