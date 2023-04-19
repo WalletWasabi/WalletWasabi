@@ -352,23 +352,7 @@ public class CoinJoinManager : BackgroundService
 			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
-				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
-
-				NotifyCoinJoinCompletion(finishedCoinJoin);
-
-				// When to stop mixing.
-				if (finishedCoinJoin.IsStopped  // If stop was requested by user.
-					|| stoppingToken.IsCancellationRequested    // If cancellation was requested.
-					|| (await finishedCoinJoin.Wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
-				{
-					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
-				}
-				else
-				{
-					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
-
-					ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, stoppingToken);
-				}
+				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, trackedAutoStarts, stoppingToken).ConfigureAwait(false);
 			}
 
 			// Updates coinjoin client states.
@@ -404,7 +388,7 @@ public class CoinJoinManager : BackgroundService
 		return coinJoinClientStates.ToImmutable();
 	}
 
-	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
+	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
 		try
@@ -424,7 +408,6 @@ public class CoinJoinManager : BackgroundService
 		catch (CoinJoinClientException clientException)
 		{
 			Logger.LogDebug(clientException);
-			NotifyCoinJoinStartError(wallet, clientException.CoinjoinError);
 		}
 		catch (InvalidOperationException ioe)
 		{
@@ -452,6 +435,29 @@ public class CoinJoinManager : BackgroundService
 		catch (Exception e)
 		{
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+		}
+
+		NotifyCoinJoinCompletion(finishedCoinJoin);
+
+		// When to stop mixing.
+		if (finishedCoinJoin.IsStopped  // If stop was requested by user.
+			|| cancellationToken.IsCancellationRequested)    // If cancellation was requested.
+		{
+			NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
+		}
+		else if (wallet.IsUnderPlebStop && !finishedCoinJoin.OverridePlebStop)  // If wallet is under PlebStop threshold and user do not override it.
+		{
+			NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
+		}
+		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed)    // If wallet is private and wallet needs to stop CJing when it's private.
+		{
+			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
+		}
+		else
+		{
+			finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
+
+			ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 		}
 
 		if (!trackedCoinJoins.TryRemove(wallet.WalletName, out _))
