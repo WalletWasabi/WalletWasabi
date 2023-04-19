@@ -49,7 +49,7 @@ public class ActionsSearchSource : ISearchSource
 	{
 		return async () =>
 		{
-			var vm = await NavigationManager.MaterialiseViewModelAsync(navigationMetaData);
+			var vm = await NavigationManager.MaterializeViewModelAsync(navigationMetaData);
 			if (vm is null)
 			{
 				return;

@@ -15,9 +15,10 @@
  */
 
 using System.Collections.Generic;
-using System.Drawing;
+using SkiaSharp;
 using ZXing.Common;
 using ZXing.QrCode.Internal;
+using ZXing.SkiaSharp;
 
 namespace ZXing.QrCode
 {
@@ -260,17 +261,15 @@ namespace ZXing.QrCode
 
 		public Result DecodeFromImagePath(string path)
 		{
-			var image = (Bitmap)Image.FromFile(path);
-			var source = new BitmapLuminanceSource(image);
-			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-			return decode(bitmap);
+			var bitmap = SKBitmap.Decode(path);
+			return DecodeBitmap(bitmap);
 		}
 
-		public Result DecodeBitmap(Bitmap image)
+		public Result DecodeBitmap(SKBitmap bitmap)
 		{
-			var source = new BitmapLuminanceSource(image);
-			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-			return decode(bitmap);
+			var source = new SKBitmapLuminanceSource(bitmap);
+			BinaryBitmap binary = new BinaryBitmap(new HybridBinarizer(source));
+			return decode(binary);
 		}
 	}
 }

@@ -76,9 +76,19 @@ public partial class NavBarViewModel : ViewModelBase
 	{
 		var bottomItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Bottom);
 
-		foreach (var item in bottomItems)
+		foreach (var item in topItems)
 		{
 			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
+
+			if (viewModel is NavBarItemViewModel navBarItem)
+			{
+				TopItems.Add(navBarItem);
+			}
+		}
+
+		foreach (var item in bottomItems)
+		{
+			var viewModel = await NavigationManager.MaterializeViewModelAsync(item);
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{

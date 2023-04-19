@@ -134,11 +134,8 @@ public class UpdateManager : IDisposable
 	private async Task<string> GetHashFromSha256SumsFileAsync(string installerFileName, string sha256SumsFilePath)
 	{
 		string[] lines = await File.ReadAllLinesAsync(sha256SumsFilePath).ConfigureAwait(false);
-		var correctLine = lines.FirstOrDefault(line => line.Contains(installerFileName));
-		if (correctLine == null)
-		{
-			throw new InvalidOperationException($"{installerFileName} was not found.");
-		}
+		var correctLine = lines.FirstOrDefault(line => line.Contains(installerFileName))
+			?? throw new InvalidOperationException($"{installerFileName} was not found.");
 		return correctLine.Split(" ")[0];
 	}
 
