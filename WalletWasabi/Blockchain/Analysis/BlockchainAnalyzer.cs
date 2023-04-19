@@ -138,7 +138,7 @@ public class BlockchainAnalyzer
 			if (!tx.ForeignVirtualOutputs.Any(x => x.Amount == virtualOutput.Amount))
 			{
 				// When WW2 denom output isn't too large, then it's not change.
-				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
+				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi))
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 					startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
