@@ -57,6 +57,20 @@
         <Separator />
       </StackPanel>
 
+      <!-- Fee -->
+      <StackPanel IsVisible="{Binding Fee, Converter={x:Static ObjectConverters.IsNotNull}}">
+        
+        <c:PreviewItem Icon="{StaticResource btc_logo}"
+                       Label="Destination"
+                       TextValue="{Binding Destination}">
+          <c:PrivacyContentControl>
+            <TextBlock Text="{Binding Destination}" />
+          </c:PrivacyContentControl>
+        </c:PreviewItem>
+
+        <Separator />
+      </StackPanel>
+
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
                      Label="Status">

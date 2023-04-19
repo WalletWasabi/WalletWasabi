@@ -16,16 +16,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
+	[AutoNotify] private Money? _amount;
+	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private int _blockHeight;
+	[AutoNotify] private int _confirmations;
+	[AutoNotify] private string _dateString;
 
 	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string _dateString;
-    [AutoNotify] private Money? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
-	[AutoNotify] private string? _blockHash;
-	[AutoNotify] private string? _amountText = "";
 
 	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -35,13 +35,26 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		var model = TransactionModel.Create(transactionSummary);
 
 		Fee = model.Fee();
+		Destination = model.Destination();
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(false, true, true);
 
 		UpdateValues(transactionSummary);
 	}
 
+	public string? Destination { get; set; }
+
 	public Money? Fee { get; set; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		_walletVm.UiTriggers.TransactionsUpdateTrigger
+			.DoAsync(async _ => await UpdateCurrentTransactionAsync())
+			.Subscribe()
+			.DisposeWith(disposables);
+	}
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -61,16 +74,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Navigate().Clear();
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		_walletVm.UiTriggers.TransactionsUpdateTrigger
-			.DoAsync(async _ => await UpdateCurrentTransactionAsync())
-			.Subscribe()
-			.DisposeWith(disposables);
-	}
-
 	private async Task UpdateCurrentTransactionAsync()
 	{
 		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
@@ -78,7 +81,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		var currentTransaction = txRecordList.FirstOrDefault(x => x.TransactionId.ToString() == TransactionId);
 
-		if (currentTransaction is { })
+		if (currentTransaction is not null)
 		{
 			UpdateValues(currentTransaction);
 		}
