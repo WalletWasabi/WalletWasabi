@@ -6,6 +6,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="536"
              x:Class="WalletWasabi.Fluent.Views.Shell.TitleBar"
              x:Name="UserControl">
@@ -69,7 +71,11 @@
           <ColumnDefinition Width="0" />
         </Grid.ColumnDefinitions>
 
-        <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
+        <ContentControl ContentTemplate="{StaticResource WasabiLogo}" >
+          <i:Interaction.Behaviors>
+            <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding CloseWalletViewCommand, Mode=OneWay}" />
+          </i:Interaction.Behaviors>
+        </ContentControl>
 
         <!--<ContentControl Grid.Column="1" Grid.ColumnSpan="2" Margin="16,8,8,2.5"
                         VerticalAlignment="Center"
