@@ -21,7 +21,7 @@
               CornerRadius="0 0 0 0" ClipToBounds="True">
         <Panel>
 
-          <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True"
+          <Border CornerRadius="0 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True"
                   IsHitTestVisible="False" />
           <Panel VerticalAlignment="Bottom"
                  Height="100">
