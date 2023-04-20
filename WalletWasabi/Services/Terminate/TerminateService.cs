@@ -18,6 +18,8 @@ public class TerminateService
 	private readonly Action _terminateApplication;
 	private long _terminateStatus;
 
+	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
+	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
 	public TaskCompletionSource TerminationRequested { get; } = new();
 
 	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
@@ -46,13 +48,13 @@ public class TerminateService
 
 	private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 	{
-		Logger.LogInfo("Process domain unloading requested by the OS.");
+		Logger.LogInfo($"Process domain unloading requested by the OS.");
 		Terminate();
 	}
 
 	private void Default_Unloading(AssemblyLoadContext obj)
 	{
-		Logger.LogInfo("Process context unloading requested by the OS.");
+		Logger.LogInfo($"Process context unloading requested by the OS.");
 		Terminate();
 	}
 
@@ -114,6 +116,7 @@ public class TerminateService
 		// First caller starts the terminate procedure.
 		Logger.LogDebug("Start shutting down the application.");
 
+		// We want to call the callback once. Not multiple times.
 		if (!TerminationRequested.Task.IsCompleted)
 		{
 			_terminateApplication();

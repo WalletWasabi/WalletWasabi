@@ -1,9 +1,17 @@
 using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Net.Sockets;
-using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
+using WalletWasabi.Wallets;
+using System.Net.Sockets;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using NBitcoin;
+using LogLevel = WalletWasabi.Logging.LogLevel;
 
 namespace WalletWasabi.Daemon;
 
@@ -42,44 +50,4 @@ public class Program
 
 	private static void LogUnhandledException(object? sender, Exception e) =>
 		Logger.LogWarning(e);
-}
-
-public static class WasabiAppExtensions
-{
-	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
-	{
-		void ProcessCommands()
-		{
-			var arguments = app.AppConfig.Arguments;
-			var walletNames = ArgumentHelpers
-				.GetValues("wallet", arguments, x => x)
-				.Distinct();
-
-			foreach (var walletName in walletNames)
-			{
-				try
-				{
-					var wallet = app.Global!.WalletManager.GetWalletByName(walletName);
-					app.Global!.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
-				}
-				catch (InvalidOperationException)
-				{
-					Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring...");
-				}
-			}
-		}
-
-		return await app.RunAsync(
-			async () =>
-			{
-				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
-
-				ProcessCommands();
-
-				while (true)
-				{
-					Console.Read();
-				}
-			});
-	}
 }
