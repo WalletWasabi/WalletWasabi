@@ -442,15 +442,19 @@ public class CoinJoinManager : BackgroundService
 
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
-		// When to stop mixing.
-		if (finishedCoinJoin.IsStopped  // If stop was requested by user.
-			|| cancellationToken.IsCancellationRequested)    // If cancellation was requested.
+		// When to stop mixing:
+		// - If stop was requested by user.
+		// - If cancellation was requested.
+		if (finishedCoinJoin.IsStopped
+			|| cancellationToken.IsCancellationRequested)
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (cjClientException is not null)	// If there was a CjClient exception, for example PlebStop or no coins to mix.
+		// - If there was a CjClient exception, for example PlebStop or no coins to mix.
+		else if (cjClientException is not null)
 		{
-			ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);	// Keep trying, so CJ start automatically when the wallet becomes mixable again.
+			// Keep trying, so CJ start automatically when the wallet becomes mixable again.
+			ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 			NotifyCoinJoinStartError(wallet, cjClientException.CoinjoinError);
 		}
 		else
