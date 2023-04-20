@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -28,13 +29,14 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	[AutoNotify] private Thickness _margin;
 	[AutoNotify] private Thickness _negativeMargin;
 
-	public PrivacyRingViewModel(WalletViewModel walletViewModel)
+	public PrivacyRingViewModel(UiContext uiContext, WalletViewModel walletViewModel)
 	{
+		UiContext = uiContext;
 		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
-		PrivacyTile = new PrivacyControlTileViewModel(walletViewModel, false);
+		PrivacyTile = new PrivacyControlTileViewModel(UiContext, walletViewModel, false);
 		PrivacyTile.Activate(_disposables);
 
 		PreviewItems.Add(PrivacyTile);
