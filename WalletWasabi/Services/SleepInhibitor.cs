@@ -34,7 +34,7 @@ public class SleepInhibitor : PeriodicRunner
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			// Either we have systemd or not.
-			bool isSystemd = await LinuxInhibitorTask.IsSystemdInhibitSupportedAsync().ConfigureAwait(false);
+			bool isSystemd = await IsSystemdInhibitSupportedAsync().ConfigureAwait(false);
 			if (!isSystemd)
 			{
 				return null;
@@ -43,16 +43,16 @@ public class SleepInhibitor : PeriodicRunner
 			GraphicalEnvironment gui = GraphicalEnvironment.Other;
 
 			// Specialization for GNOME.
-			if (await LinuxInhibitorTask.IsMateSessionInhibitSupportedAsync().ConfigureAwait(false))
+			if (await IsMateSessionInhibitSupportedAsync().ConfigureAwait(false))
 			{
 				gui = GraphicalEnvironment.Mate;
 			}
-			else if (await LinuxInhibitorTask.IsGnomeSessionInhibitSupportedAsync().ConfigureAwait(false))
+			else if (await IsGnomeSessionInhibitSupportedAsync().ConfigureAwait(false))
 			{
 				gui = GraphicalEnvironment.Gnome;
 			}
 
-			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(Create(InhibitWhat.Idle, Timeout, Reason, gui));
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
