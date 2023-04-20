@@ -20,7 +20,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	private readonly Wallet _wallet;
 	private readonly TransactionHistoryBuilder _historyBuilder;
 
-	[AutoNotify] private readonly bool _isLoggedIn;
+	[AutoNotify] private bool _isLoggedIn;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -42,6 +42,10 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			.ToObservableChangeSet(x => x.Text);
 
 		WalletType = WalletHelpers.GetType(_wallet.KeyManager);
+
+		State = Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
+						  .ObserveOn(RxApp.MainThreadScheduler)
+						  .Select(_ => _wallet.State);
 	}
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
@@ -49,6 +53,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
 
 	public string Name => _wallet.WalletName;
+
+	public IObservable<WalletState> State { get; }
 
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
@@ -71,8 +77,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
-		var compatibilityPassword = "";
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var compatibilityPassword));
+		string? compatibilityPassword = null;
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out compatibilityPassword));
 
 		var compatibilityPasswordUsed = compatibilityPassword is { };
 

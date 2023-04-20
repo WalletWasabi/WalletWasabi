@@ -19,6 +19,8 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	bool IsLoggedIn { get; }
 
+	IObservable<WalletState> State { get; }
+
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
