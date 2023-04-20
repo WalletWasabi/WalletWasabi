@@ -134,20 +134,20 @@ public class UiContextGenerator : ISourceGenerator
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
 
 				var code =
-	$$"""
-{{usings}}
-using WalletWasabi.Fluent.Models.UI;
+					$$"""
+					{{usings}}
+					using WalletWasabi.Fluent.Models.UI;
 
-namespace {{namespaceName}};
+					namespace {{namespaceName}};
 
-partial class {{className}}
-{
-    public {{className}}({{parametersString}}){{ctorString}}
-    {
-	    UiContext = uiContext;
-    }
-}
-""";
+					partial class {{className}}
+					{
+						public {{className}}({{parametersString}}){{ctorString}}
+						{
+							UiContext = uiContext;
+						}
+					}
+					""";
 
 				var sourceText = SourceText.From(code, Encoding.UTF8);
 				context.AddSource(fileName, sourceText);
@@ -272,13 +272,13 @@ partial class {{className}}
 			var methodName = className.Replace("ViewModel", "");
 
 			var methodString =
-$$"""
-    public void {{methodName}}{{methodParams}}
-	{
-	    UiContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
-    }
+				$$"""
+					public void {{methodName}}{{methodParams}}
+					{
+						UiContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
+					}
 
-""";
+				""";
 			methods.Add(methodString);
 		}
 
@@ -295,17 +295,17 @@ $$"""
 			string.Join(Environment.NewLine, methods);
 
 		var sourceText =
-$$"""
-{{usingsString}}
+			$$"""
+			{{usingsString}}
 
-namespace WalletWasabi.Fluent.ViewModels.Navigation;
+			namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
-public partial class FluentNavigate
-{
-{{methodsString}}
-}
+			public partial class FluentNavigate
+			{
+			{{methodsString}}
+			}
 
-""";
+			""";
 		context.AddSource("FluentNavigate.g.cs", SourceText.From(sourceText, Encoding.UTF8));
 	}
 
