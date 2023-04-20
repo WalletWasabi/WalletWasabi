@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -36,6 +37,12 @@ public class WasabiApplication
 
 	public async Task<ExitCode> RunAsync(Func<Task> afterStarting)
 	{
+		if (AppConfig.Arguments.Contains("--version"))
+		{
+			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+			return ExitCode.Ok;
+		}
+
 		if (AppConfig.MustCheckSingleInstance)
 		{
 			var instanceResult = await SingleInstanceChecker.CheckSingleInstanceAsync();

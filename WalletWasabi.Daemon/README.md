@@ -56,3 +56,10 @@ Run Wasabi and open two wallets: AliceWallet and BobWallet
 ```bash
 $ wasabi.daemon --wallet=AliceWallet --wallet=BobWallet
 ```
+
+### Version
+
+```bash
+$ wasabi.daemon --version
+Wasabi Daemon 2.0.3.0
+```
