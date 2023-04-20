@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [NavigationMetaData(Title = null)]
 public partial class LoadingViewModel : RoutableViewModel
 {
-	private readonly WalletPageViewModel _nbwsvm;
+	private readonly Wallet _wallet;
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
@@ -28,13 +28,13 @@ public partial class LoadingViewModel : RoutableViewModel
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
 
-	private LoadingViewModel(WalletPageViewModel nbwsvm)
+	public LoadingViewModel(Wallet wallet)
 	{
-		_nbwsvm = nbwsvm;
+		_wallet = wallet;
 		_percent = 0;
 	}
 
-	public string WalletName => _nbwsvm.Wallet.WalletName;
+	public string WalletName => _wallet.WalletName;
 
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
@@ -82,7 +82,7 @@ public partial class LoadingViewModel : RoutableViewModel
 		}
 
 		uint processedFilters = 0;
-		if (_nbwsvm.Wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
+		if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
 		{
 			processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight - 1;
 		}
@@ -103,22 +103,19 @@ public partial class LoadingViewModel : RoutableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_nbwsvm.Wallet.KeyManager.SkipSynchronization)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
 
-		if (_nbwsvm.Wallet.State != WalletState.Uninitialized)
+		if (_wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");
 		}
 
 		try
 		{
-			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_nbwsvm.Wallet));
-
-			_nbwsvm.WalletViewModel = WalletViewModel.Create(UiContext, _nbwsvm);
-			_nbwsvm.CurrentPage = _nbwsvm.WalletViewModel;
+			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_wallet));
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -143,8 +140,8 @@ public partial class LoadingViewModel : RoutableViewModel
 			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 		{
 			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_nbwsvm.Wallet.Network, IndexType.SegwitTaproot).Height;
-			var bestHeight = (uint)_nbwsvm.Wallet.KeyManager.GetBestHeight().Value;
+			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
 			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
 			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
