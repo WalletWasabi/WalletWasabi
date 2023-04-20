@@ -67,7 +67,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, _resultToReturn), nextCommandCanExecute);
 	}
 
-	public bool IsQrButtonVisible => ShowQrCameraDialogViewModel.IsPlatformSupported;
+	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
 	public ICommand PasteCommand { get; }
 
