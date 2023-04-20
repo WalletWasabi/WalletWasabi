@@ -149,8 +149,7 @@ public class UiContextGenerator : IIncrementalGenerator
 
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
 
-				var code =
-	$$"""
+				var code = $$"""
 {{usings}}
 using WalletWasabi.Fluent.Models.UI;
 
@@ -286,8 +285,7 @@ partial class {{className}}
 
 			var methodName = className.Replace("ViewModel", "");
 
-			var methodString =
-$$"""
+			var methodString = $$"""
     public void {{methodName}}{{methodParams}}
 	{
 	    UiContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
@@ -309,8 +307,7 @@ $$"""
 		var methodsString =
 			string.Join(Environment.NewLine, methods);
 
-		var sourceText =
-$$"""
+		var sourceText = $$"""
 {{usingsString}}
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
