@@ -107,7 +107,6 @@
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
-
     <!-- Bottom items -->
     <ItemsControl Items="{Binding BottomItems}"
                   DockPanel.Dock="Bottom">
@@ -135,7 +134,6 @@
 
     <!-- Wallet List -->
     <DockPanel MaxWidth="75" LastChildFill="True">
-      <c:FadeOutTextBlock DockPanel.Dock="Bottom" Classes="h9" Text="{Binding SelectedWallet.Title}" />
       <ListBox Items="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
                SelectedItem="{Binding SelectedWallet}"
@@ -145,10 +143,19 @@
         </Interaction.Behaviors>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <StackPanel>
-              <c:FadeOutTextBlock Classes="h9" Text="{Binding IsSelected}" />
-              <c:FadeOutTextBlock Classes="h9" Text="{Binding Title}" />
-            </StackPanel>
+            <c:NavBarItem ToolTip.Tip="{Binding Title}">
+              <Panel>
+                <Ellipse Classes.isLoading="{Binding IsLoading}"
+                         Classes.isLoggedIn="{Binding IsLoggedIn}"
+                         Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
+                <StackPanel>
+                  <PathIcon Classes="new size24" />
+                  <LayoutTransformControl>
+                    <c:FadeOutTextBlock Text="{Binding Title}" />
+                  </LayoutTransformControl>
+                </StackPanel>
+              </Panel>
+            </c:NavBarItem>
           </DataTemplate>
         </ListBox.DataTemplates>
       </ListBox>
