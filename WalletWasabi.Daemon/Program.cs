@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -47,13 +48,38 @@ public static class WasabiAppExtensions
 {
 	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
 	{
+		void ProcessCommands()
+		{
+			var arguments = app.AppConfig.Arguments;
+			var walletNames = ArgumentHelpers
+				.GetValues("wallet", arguments, x => x)
+				.Distinct();
+
+			foreach (var walletName in walletNames)
+			{
+				try
+				{
+					var wallet = app.Global!.WalletManager.GetWalletByName(walletName);
+					app.Global!.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+				}
+				catch (InvalidOperationException)
+				{
+					Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring...");
+				}
+			}
+		}
+
 		return await app.RunAsync(
-			afterStarting: async () =>
+			async () =>
 			{
 				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
 
-				// Wait until user asks to close the application.
-				await app.TerminateService.TerminationRequested.Task.ConfigureAwait(false);
+				ProcessCommands();
+
+				while (true)
+				{
+					Console.Read();
+				}
 			});
 	}
 }
