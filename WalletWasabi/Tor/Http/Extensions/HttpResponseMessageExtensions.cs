@@ -115,6 +115,6 @@ public static class HttpResponseMessageExtensions
 			}
 		}
 
-		throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
+		throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}", inner: null, statusCode: me.StatusCode);
 	}
 }
