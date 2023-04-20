@@ -28,7 +28,7 @@ public partial class LoginViewModel : RoutableViewModel
 		WalletName = walletModel.Name;
 		WalletType = walletModel.WalletType;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletModel, wallet));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletModel));
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
@@ -82,7 +82,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private void OnForgotPassword(Wallet wallet)
 	{
-		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
+		UiContext.Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 	}
 
 	private async Task<bool> ShowLegalAsync()
