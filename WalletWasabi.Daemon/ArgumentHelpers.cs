@@ -10,7 +10,7 @@ public static class ArgumentHelpers
 	{
 		var values = GetValues(key, args, converter);
 		value = values.FirstOrDefault();
-		return value != null;
+		return !Equals(value, default(T));
 	}
 
 	public static T[] GetValues<T>(string key, string[] args, Func<string, T> converter)
