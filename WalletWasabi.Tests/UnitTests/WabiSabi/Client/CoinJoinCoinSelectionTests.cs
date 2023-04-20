@@ -4,6 +4,7 @@ using NBitcoin;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -41,7 +42,7 @@ public class CoinJoinCoinSelectionTests
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
 
-		var coins = CoinJoinCoinSelector.SelectCoinsForRound(
+		var selectCoinsTask = () => CoinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
@@ -50,7 +51,7 @@ public class CoinJoinCoinSelectionTests
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
-		Assert.Empty(coins);
+		Assert.Throws<CoinJoinClientException>(selectCoinsTask);
 	}
 
 	[Fact]

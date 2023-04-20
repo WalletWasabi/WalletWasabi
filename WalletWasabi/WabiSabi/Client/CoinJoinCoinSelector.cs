@@ -45,6 +45,11 @@ public static class CoinJoinCoinSelector
 			liquidityClue = Constants.MaximumNumberOfBitcoinsMoney;
 		}
 
+		if (!coins.Any())
+		{
+			return ImmutableList<TCoin>.Empty;
+		}
+
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputScriptTypes.Contains(x.ScriptType))
