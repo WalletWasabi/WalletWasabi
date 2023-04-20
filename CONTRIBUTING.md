@@ -162,7 +162,7 @@ It causes confusion and awkward catch clauses.
 The following is a list of UI specific coding conventions. Follow these any time you are contributing code in the following projects:
  - `WalletWasabi.Fluent`
  - `WalletWasabi.Fluent.Desktop`
- - `WalletWasabi.Flent.Generators`
+ - `WalletWasabi.Fluent.Generators`
 
  ## Disposing Subscriptions in ReactiveObjects
 
@@ -316,6 +316,7 @@ In order to minimize the amount of boilerplate required for such initialization,
 
 Example:
 
+```csharp
     // ❌ BAD, constructor should be private
     public AddressViewModel(IAddress address)
 	{
@@ -332,9 +333,11 @@ Example:
 		//✔️ GOOD, UiContext is already initialized when the Command runs
 		NextCommand = ReactiveCommand.Create(() => UiContext.Navigate().To(someOtherViewModel))); 
 	}
+```
 
 If you absolutely must reference `UiContext` in the constructor, you can create a public constructor explicitly taking `UiContext` as a parameter:
 
+```csharp
     // ✔️ GOOD, 
     public AddressViewModel(UiContext uiContext, IAddress address)
 	{
@@ -342,6 +345,7 @@ If you absolutely must reference `UiContext` in the constructor, you can create 
 		
 		// ✔️Other code here can safely use the UiContext since it's explicitly initialized above.
 	}
+```
 
 In this case, no additional constructors will be generated, and the analyzer will be satisfied.
 
