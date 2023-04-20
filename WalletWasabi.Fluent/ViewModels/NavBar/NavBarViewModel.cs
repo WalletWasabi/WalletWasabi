@@ -2,7 +2,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -15,14 +17,20 @@ public partial class NavBarViewModel : ViewModelBase
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 
-	public NavBarViewModel()
+	public NavBarViewModel(UiContext uiContext)
 	{
+		UiContext = uiContext;
+
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-		this.WhenAnyValue(x => x.SelectedWallet)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(x => x?.Activate())
-			.Subscribe();
+		UiContext.WalletList
+				 .Wallets
+				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
+				 .Bind(out var wallets)
+				 .Subscribe();
+
+		Wallets = wallets;
+
 		this.WhenAnyValue(x => x.SelectedWallet)
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
@@ -31,21 +39,22 @@ public partial class NavBarViewModel : ViewModelBase
 			{
 				if (x.OldValue is { } a)
 				{
-					a.IsSelected = false;
+					a.Deactivate();
 				}
 
 				if (x.NewValue is { } b)
 				{
-					b.IsSelected = true;
 					b.Activate();
 				}
 			})
 			.Subscribe();
+
+		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletList.DefaultWallet?.Name);
 	}
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
-	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets => UiServices.WalletManager.Wallets;
+	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets { get; }
 
 	public async Task InitialiseAsync()
 	{
