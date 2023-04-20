@@ -173,19 +173,20 @@ public static class WasabiAppExtensions
 		void ProcessCommands()
 		{
 			var arguments = app.AppConfig.Arguments;
-			string[] Split(string s) => s.Split(",", StringSplitOptions.RemoveEmptyEntries);
-			if (ArgumentHelpers.TryGetValue("wallet", arguments, (Func<string, string[]>) Split, out var walletNames))
+			var walletNames = ArgumentHelpers
+				.GetValues("wallet", arguments, x => x)
+				.Distinct();
+
+			foreach (var walletName in walletNames)
 			{
-				foreach (var walletName in walletNames)
+				try
 				{
-					try
-					{
-						app.Global!.WalletManager.GetWalletByName(walletName);
-					}
-					catch (InvalidOperationException)
-					{
-						Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring..." );
-					}
+					var wallet = app.Global!.WalletManager.GetWalletByName(walletName);
+					app.Global!.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+				}
+				catch (InvalidOperationException)
+				{
+					Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring..." );
 				}
 			}
 		}

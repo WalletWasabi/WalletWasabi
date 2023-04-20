@@ -8,15 +8,17 @@ public static class ArgumentHelpers
 {
 	public static bool TryGetValue<T>(string key, string[] args, Func<string, T> converter, [NotNullWhen(true)] out T? value)
 	{
-		var cliArgKey = "--" + key + "=";
-		var cliArgOrNull = args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
-		if (cliArgOrNull is { } cliArg)
-		{
-			value = converter(cliArg[cliArgKey.Length..]);
-			return value != null;
-		}
+		var values = GetValues(key, args, converter);
+		value = values.FirstOrDefault();
+		return value != null;
+	}
 
-		value = default;
-		return false;
+	public static T[] GetValues<T>(string key, string[] args, Func<string, T> converter)
+	{
+		var cliArgKey = "--" + key + "=";
+		return args
+			.Where(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase))
+			.Select(x => converter(x[cliArgKey.Length..]))
+			.ToArray();
 	}
 }
