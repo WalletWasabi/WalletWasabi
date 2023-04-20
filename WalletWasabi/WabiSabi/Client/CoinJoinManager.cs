@@ -590,9 +590,11 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task WalletEnteredTxPreviewAsync(Wallet wallet)
 	{
+		// If wallet is idle, there is nothing to stop.
+		// Don't try to stop in critical phase, otherwise it won't restart automatically.
 		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) &&
-			stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle && // If wallet is idle, there is nothing to stop.
-			stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase)    // Don't try to stop in critical phase, otherwise it won't restart automatically.
+			stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle &&
+			stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase)
 		{
 			WalletEnteredSendWorkflow(wallet.WalletName, WalletStatus.CjNeedsToRestartAfterSend);
 			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
