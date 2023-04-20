@@ -11,68 +11,52 @@ using System.Text;
 namespace WalletWasabi.Fluent.Generators;
 
 [Generator]
-public class UiContextGenerator : IIncrementalGenerator
+public class UiContextGenerator : ISourceGenerator
 {
 	private static readonly string[] Exclusions =
 		{
 			"RoutableViewModel"
 		};
 
-	public void Initialize(IncrementalGeneratorInitializationContext context)
+	public void Initialize(GeneratorInitializationContext context)
 	{
-		var viewModels =
-			context.SyntaxProvider.CreateSyntaxProvider(static (node, _) =>
-			node is ClassDeclarationSyntax c &&
-			c.Identifier.Text.EndsWith("ViewModel") &&
-			!Exclusions.Contains(c.Identifier.Text) &&
-			!node.IsSourceGenerated(),
-			static (ctx, _) => ctx);
-
-		var combined =
-			context.CompilationProvider.Combine(viewModels.Collect());
-
-		context.RegisterSourceOutput(combined, Generate);
+		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 	}
 
-	private static void Generate(SourceProductionContext context, (Compilation, ImmutableArray<GeneratorSyntaxContext>) args)
+	public void Execute(GeneratorExecutionContext context)
 	{
-		var (compilation, _) = args;
+		if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
+		{
+			return;
+		}
 
 		var ctors =
-			ProcessViewModels(context, args)
+			ProcessViewModels(context, receiver.ClassDeclarations)
 				.OrderBy(x => x.Identifier.ValueText)
 				.ToList();
 
-		GenerateFluentNavigation(context, compilation, ctors);
+		GenerateFluentNavigation(context, ctors);
 	}
 
-	private static List<ConstructorDeclarationSyntax> ProcessViewModels(SourceProductionContext context, (Compilation, ImmutableArray<GeneratorSyntaxContext>) args)
+	private static List<ConstructorDeclarationSyntax> ProcessViewModels(GeneratorExecutionContext context, List<ClassDeclarationSyntax> classDeclarations)
 	{
 		var result = new List<ConstructorDeclarationSyntax>();
 
-		var (compilation, items) = args;
-
 		var toGenerate =
-			from i in items
-			let cls = i.Node as ClassDeclarationSyntax
-			where cls != null
-			group i by cls.Identifier.ValueText into g
+			from cls in classDeclarations
+			group cls by cls.Identifier.ValueText into g
 			select g.First();
 
-		foreach (var item in toGenerate)
+		foreach (var cls in toGenerate)
 		{
-			var (node, model) = (item.Node, item.SemanticModel);
-			if (node is not ClassDeclarationSyntax classDeclaration)
+			var model = context.Compilation.GetSemanticModel(cls.SyntaxTree);
+
+			if (model.GetDeclaredSymbol(cls) is not INamedTypeSymbol classSymbol)
 			{
 				continue;
 			}
 
-			if (model.GetDeclaredSymbol(classDeclaration) is not INamedTypeSymbol classSymbol)
-			{
-				continue;
-			}
-
-			var ctors = GenerateConstructors(context, classDeclaration, model, classSymbol).ToList();
+			var ctors = GenerateConstructors(context, cls, model, classSymbol).ToList();
 
 			result.AddRange(ctors);
 		}
@@ -80,7 +64,7 @@ public class UiContextGenerator : IIncrementalGenerator
 		return result;
 	}
 
-	private static IEnumerable<ConstructorDeclarationSyntax> GenerateConstructors(SourceProductionContext context, ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel, INamedTypeSymbol classSymbol)
+	private static IEnumerable<ConstructorDeclarationSyntax> GenerateConstructors(GeneratorExecutionContext context, ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel, INamedTypeSymbol classSymbol)
 	{
 		var fileName = classDeclaration.Identifier.ValueText + UiContextAnalyzer.UiContextFileSuffix;
 
@@ -132,19 +116,12 @@ public class UiContextGenerator : IIncrementalGenerator
 									  .Select(t => $"using {t.Type!.ContainingNamespace.ToDisplayString()};")
 									  .ToList();
 
-				var parametersString = "UiContext uiContext";
-
 				var uiContextParameter =
 					SyntaxFactory.Parameter(SyntaxFactory.Identifier("uiContext")
 														 .WithLeadingTrivia(SyntaxFactory.Space))
 								 .WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
-				if (hasCtorArgs)
-				{
-					parametersString += ", ";
-				}
-
-				parametersString =
+				var parametersString =
 					ctor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
 
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
@@ -168,7 +145,7 @@ public class UiContextGenerator : IIncrementalGenerator
 				var sourceText = SourceText.From(code, Encoding.UTF8);
 				context.AddSource(fileName, sourceText);
 
-				var tree = SyntaxFactory.ParseSyntaxTree(sourceText);
+				var tree = CSharpSyntaxTree.ParseText(sourceText, context.Compilation.SyntaxTrees.First().Options as CSharpParseOptions);
 
 				var newConstructor =
 					tree.GetRoot()
@@ -181,8 +158,9 @@ public class UiContextGenerator : IIncrementalGenerator
 		}
 	}
 
-	private static void GenerateFluentNavigation(SourceProductionContext context, Compilation compilation, IEnumerable<ConstructorDeclarationSyntax> ctors)
+	private static void GenerateFluentNavigation(GeneratorExecutionContext context, IEnumerable<ConstructorDeclarationSyntax> ctors)
 	{
+		var compilation = context.Compilation;
 		var namespaces = new List<string>();
 		var methods = new List<string>();
 
@@ -322,5 +300,30 @@ public class UiContextGenerator : IIncrementalGenerator
 
 			""";
 		context.AddSource("FluentNavigate.g.cs", SourceText.From(sourceText, Encoding.UTF8));
+	}
+
+	private class SyntaxReceiver : ISyntaxContextReceiver
+	{
+		public List<ClassDeclarationSyntax> ClassDeclarations { get; } = new();
+
+		public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
+		{
+			var node = context.Node;
+
+			if (node is not ClassDeclarationSyntax c)
+			{
+				return;
+			}
+
+			var isValidClass =
+				c.Identifier.Text.EndsWith("ViewModel") &&
+				!Exclusions.Contains(c.Identifier.Text) &&
+				!node.IsSourceGenerated();
+
+			if (isValidClass)
+			{
+				ClassDeclarations.Add(c);
+			}
+		}
 	}
 }
