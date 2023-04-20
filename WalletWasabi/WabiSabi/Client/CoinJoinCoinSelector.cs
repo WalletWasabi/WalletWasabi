@@ -6,10 +6,12 @@ using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -63,8 +65,7 @@ public static class CoinJoinCoinSelector
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			// Let's not mess up the logs when this function gets called many times.
-			return ImmutableList<TCoin>.Empty;
+			throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate, "No red coins or semi private coins in the wallet.");
 		}
 
 		Logger.LogDebug($"Coin selection started:");
