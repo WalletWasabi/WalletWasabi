@@ -450,6 +450,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
+
 		// - If there was a CjClient exception, for example PlebStop or no coins to mix.
 		else if (cjClientException is not null)
 		{
