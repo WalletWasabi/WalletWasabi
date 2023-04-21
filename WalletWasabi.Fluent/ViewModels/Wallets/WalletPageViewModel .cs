@@ -13,6 +13,7 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 {
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isSelected;
+	[AutoNotify] private bool _isLoading;
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
 
@@ -50,6 +51,7 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 				else if (isLoggedIn && CurrentPage is LoginViewModel)
 				{
 					CurrentPage = new LoadingViewModel(Wallet);
+					IsLoading = true;
 				}
 			})
 			.Subscribe()
@@ -75,5 +77,6 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 	{
 		WalletViewModel = WalletViewModel.Create(UiContext, this);
 		CurrentPage = WalletViewModel;
+		IsLoading = false;
 	}
 }
