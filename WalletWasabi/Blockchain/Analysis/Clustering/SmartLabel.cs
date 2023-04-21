@@ -105,8 +105,8 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 			return CompareTo(other);
 		}
 
-		// The following code repears what .NET could
-		// if it has SequenceCompareTo accepting a comparer.
+		// The following code repeats what .NET could have
+		// if SequenceCompareTo is accepted and implemented`.
 		var thisLabels = AsSpan();
 		var otherLabels = other.AsSpan();
 		
