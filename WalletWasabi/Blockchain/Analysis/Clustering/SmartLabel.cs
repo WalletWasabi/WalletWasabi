@@ -132,7 +132,9 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 					Unsafe.Add(ref second, i));
 					
                 if (result != 0)
+				{
                     return result;
+				}
             }
 			
             return firstLength.CompareTo(secondLength);
