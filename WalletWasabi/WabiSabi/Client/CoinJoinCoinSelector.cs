@@ -51,8 +51,10 @@ public static class CoinJoinCoinSelector
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
+		// Sanity check.
 		if (!filteredCoins.Any())
 		{
+			Logger.LogInfo("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -70,7 +72,8 @@ public static class CoinJoinCoinSelector
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate, "No red coins or semi private coins in the wallet.");
+			Logger.LogInfo("No suitable coins for this round.");
+			return ImmutableList<TCoin>.Empty;
 		}
 
 		Logger.LogDebug($"Coin selection started:");
