@@ -198,10 +198,7 @@ public static class WasabiAppExtensions
 
 				ProcessCommands();
 
-				while (true)
-				{
-					Console.Read();
-				}
+				await app.TerminateService.TerminationRequested.Task.ConfigureAwait(false);
 			});
 	}
 }
