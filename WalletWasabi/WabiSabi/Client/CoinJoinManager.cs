@@ -159,7 +159,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
+			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
 				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 				{
@@ -179,14 +179,14 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				// If all coins are already private, then don't mix.
-				if (walletToStart.IsWalletPrivate() && startCommand.StopWhenAllMixed)
+				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false) && startCommand.StopWhenAllMixed)
 				{
 					walletToStart.LogTrace("All mixed!");
 
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 				}
 
-				var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight);
+				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
 
 				// If there is no available coin candidates, then don't mix.
 				if (!coinCandidates.Any())
@@ -359,7 +359,7 @@ public class CoinJoinManager : BackgroundService
 				// When to stop mixing.
 				if (finishedCoinJoin.IsStopped  // If stop was requested by user.
 					|| stoppingToken.IsCancellationRequested    // If cancellation was requested.
-					|| (finishedCoinJoin.Wallet.IsWalletPrivate() && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
+					|| (await finishedCoinJoin.Wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed))  // If wallet is private and the wallet needs to stop mixing when it becomes private.
 				{
 					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
 				}
@@ -534,8 +534,8 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private IEnumerable<SmartCoin> SelectCandidateCoins(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(openedWallet.GetCoinjoinCoinCandidates())
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)

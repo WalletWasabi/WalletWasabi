@@ -380,6 +380,8 @@ public class TorControlClient : IAsyncDisposable
 	/// </summary>
 	private async Task ReaderLoopAsync()
 	{
+		Exception? exception = null;
+
 		try
 		{
 			while (!ReaderCts.IsCancellationRequested)
@@ -414,23 +416,31 @@ public class TorControlClient : IAsyncDisposable
 				}
 			}
 		}
-		catch (OperationCanceledException)
+		catch (OperationCanceledException e)
 		{
 			Logger.LogTrace("Reader loop was stopped.");
+			exception = e;
 		}
 		catch (IOException e)
 		{
 			Logger.LogError("Reply reader failed to read from pipe. Internal stream was most likely forcefully closed.", e);
+			exception = e;
 		}
 		catch (TorControlReplyParseException e) when (e.Message == "No reply line was received.")
 		{
 			Logger.LogError("Incomplete Tor control reply was received. Tor probably terminated abruptly.", e);
+			exception = e;
 		}
 		catch (Exception e)
 		{
 			// This is an unrecoverable issue.
 			Logger.LogError($"Exception occurred in the reader loop: {e}.");
+			exception = e;
 			throw;
+		}
+		finally
+		{
+			SyncChannel.Writer.Complete(exception);
 		}
 	}
 

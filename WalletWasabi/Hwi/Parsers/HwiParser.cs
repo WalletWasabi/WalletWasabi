@@ -141,10 +141,10 @@ public static class HwiParser
 
 	public static IEnumerable<HwiEnumerateEntry> ParseHwiEnumerateResponse(string responseString)
 	{
-		var jarr = JArray.Parse(responseString);
+		var jArray = JArray.Parse(responseString);
 
 		var response = new List<HwiEnumerateEntry>();
-		foreach (JObject json in jarr)
+		foreach (JObject json in jArray)
 		{
 			var hwiEntry = ParseHwiEnumerateEntry(json);
 			response.Add(hwiEntry);
@@ -311,13 +311,16 @@ public static class HwiParser
 		const string Prefix = "hwi";
 
 		// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-		var prefixToTrim = hwiResponse.StartsWith(WinPrefix)
-			? WinPrefix
-			: hwiResponse.StartsWith(Prefix)
-				? Prefix
-				: null;
-
-		if (prefixToTrim is null)
+		string prefixToTrim;
+		if (hwiResponse.StartsWith(WinPrefix))
+		{
+			prefixToTrim = WinPrefix;
+		}
+		else if (hwiResponse.StartsWith(Prefix))
+		{
+			prefixToTrim = Prefix;
+		}
+		else
 		{
 			throw new FormatException("HWI prefix is missing in the provided version response.");
 		}
@@ -360,10 +363,8 @@ public static class HwiParser
 				{
 					return optionString;
 				}
-				else
-				{
-					return $"{optionString} \"{x.Arguments}\"";
-				}
+
+				return $"{optionString} \"{x.Arguments}\"";
 			}));
 
 		optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
