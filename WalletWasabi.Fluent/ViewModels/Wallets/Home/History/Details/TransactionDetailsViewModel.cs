@@ -32,9 +32,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-		var model = TransactionModel.Create(transactionSummary);
 
-		Fee = model.Fee();
+		Fee = transactionSummary.Fee();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
