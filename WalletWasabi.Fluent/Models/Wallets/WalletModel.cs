@@ -45,7 +45,7 @@ internal class WalletModel : IWalletModel
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
-	public IObservable<Money> Balance { get; set; }
+	public IObservable<Money> Balance { get; }
 
 	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
 
