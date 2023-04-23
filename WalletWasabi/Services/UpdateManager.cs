@@ -176,9 +176,9 @@ public class UpdateManager : IDisposable
 		}
 
 		// Get all asset names and download URLs to find the correct one.
-		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
+		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
 		List<string> assetDownloadURLs = new();
-		foreach (JToken asset in assetsInfos)
+		foreach (JToken asset in assetsInfo)
 		{
 			assetDownloadURLs.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
