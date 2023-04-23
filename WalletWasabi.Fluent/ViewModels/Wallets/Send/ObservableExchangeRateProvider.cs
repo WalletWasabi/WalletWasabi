@@ -6,14 +6,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public class ObservableExchangeRateProvider : IObservableExchangeRateProvider
 {
-	public WasabiSynchronizer Synchronizer { get; }
-
 	public ObservableExchangeRateProvider(WasabiSynchronizer synchronizer)
 	{
 		Synchronizer = synchronizer;
 
 		BtcToUsdRate = this.WhenAnyValue(x => x.Synchronizer.UsdExchangeRate);
 	}
+
+	public WasabiSynchronizer Synchronizer { get; }
 
 	public IObservable<decimal> BtcToUsdRate { get; }
 }
