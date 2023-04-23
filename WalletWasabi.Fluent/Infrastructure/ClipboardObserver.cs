@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
-	public ClipboardObserver(WalletBalances walletBalances)
+	public ClipboardObserver(IWalletBalancesModel walletBalances)
 	{
 		WalletBalances = walletBalances;
 	}
 
-	private WalletBalances WalletBalances { get; }
+	private IWalletBalancesModel WalletBalances { get; }
 
 	public IObservable<string?> ClipboardUsdContentChanged(IScheduler scheduler)
 	{

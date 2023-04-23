@@ -26,7 +26,6 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -70,7 +69,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(new WalletModel(_wallet), new ObservableExchangeRateProvider(_wallet.Synchronizer));
+		var balances = new WalletBalancesModel(new WalletModel(_wallet), new ObservableExchangeRateProvider(_wallet.Synchronizer));
+		Balances = balances;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -137,11 +137,10 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		var exchangeRates = this.WhenAnyValue(x => x.WalletVm.Wallet.Synchronizer.UsdExchangeRate);
-		var balances = this.WhenAnyValue(x => x.WalletVm.UiTriggers.BalanceUpdateTrigger).Select(_ => walletVm.Wallet.Coins.TotalAmount());
-
-		_clipboardObserver = new ClipboardObserver(new WalletBalances(exchangeRates, balances));
+		_clipboardObserver = new ClipboardObserver(balances);
 	}
+
+	public WalletBalancesModel Balances { get; set; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 
@@ -340,8 +339,6 @@ public partial class SendViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
-
-		Balance.Activate(disposables);
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}

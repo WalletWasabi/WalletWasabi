@@ -193,14 +193,16 @@ public partial class WalletViewModel : WalletViewModelBase
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
 		var rateProvider = new ObservableExchangeRateProvider(Wallet.Synchronizer);
+		var walletModel = new WalletModel(Wallet);
+		var balances = new WalletBalancesModel(walletModel, rateProvider);
 
-		yield return new WalletBalanceTileViewModel(new WalletModel(Wallet), rateProvider);
+		yield return new WalletBalanceTileViewModel(balances);
 
 		if (!IsWatchOnly)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, this);
 		}
 
-		yield return new BtcPriceTileViewModel(rateProvider);
+		yield return new BtcPriceTileViewModel(balances);
 	}
 }

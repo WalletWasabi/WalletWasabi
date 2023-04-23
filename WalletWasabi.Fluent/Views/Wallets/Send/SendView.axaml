@@ -58,11 +58,11 @@
           <!-- Balance -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
             <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-              <TextBlock DataContext="{Binding Balance}">
+              <TextBlock DataContext="{Binding Balances}">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-                    <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
+                    <Binding Path="BtcBalance^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
+                    <Binding Path="UsdBalance^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
