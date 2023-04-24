@@ -450,11 +450,14 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-
-		// - If there was a CjClient exception, for example PlebStop or no coins to mix.
+		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed)
+		{
+			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
+		}
 		else if (cjClientException is not null)
 		{
-			// Keep trying, so CJ start automatically when the wallet becomes mixable again.
+			// - If there was a CjClient exception, for example PlebStop or no coins to mix,
+			// Keep trying, so CJ starts automatically when the wallet becomes mixable again.
 			ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
 			NotifyCoinJoinStartError(wallet, cjClientException.CoinjoinError);
 		}
