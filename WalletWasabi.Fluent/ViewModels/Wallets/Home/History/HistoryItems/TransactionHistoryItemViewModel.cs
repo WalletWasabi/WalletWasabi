@@ -4,14 +4,13 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
+public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public TransactionHistoryItemViewModel(
+	private TransactionHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
 		WalletViewModel walletVm,

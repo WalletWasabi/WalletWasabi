@@ -56,7 +56,7 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 		var words =
 			MnemonicWords.Select(x => x.Word).ToArray();
 
-		var text = string.Join(", ", words);
+		var text = string.Join(" ", words);
 
 		await Application.Current.Clipboard.SetTextAsync(text);
 
