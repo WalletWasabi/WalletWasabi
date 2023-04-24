@@ -116,19 +116,12 @@ public class UiContextGenerator : ISourceGenerator
 									  .Select(t => $"using {t.Type!.ContainingNamespace.ToDisplayString()};")
 									  .ToList();
 
-				var parametersString = "UiContext uiContext";
-
 				var uiContextParameter =
 					SyntaxFactory.Parameter(SyntaxFactory.Identifier("uiContext")
 														 .WithLeadingTrivia(SyntaxFactory.Space))
 								 .WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
-				if (hasCtorArgs)
-				{
-					parametersString += ", ";
-				}
-
-				parametersString =
+				var parametersString =
 					ctor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
 
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
