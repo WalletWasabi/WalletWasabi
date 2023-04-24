@@ -55,7 +55,7 @@ public class TagsBoxItemsControl : ItemsControl, IStyleable
 			{
 				if (container.ContainerControl is TagControl tagControl)
 				{
-					tagControl.OrdinalIndex = container.Index;
+					tagControl.OrdinalIndex = container.Index + 1;
 					tagControl.EnableCounter = EnableCounter;
 					tagControl.EnableDelete = EnableDelete;
 					tagControl.RemoveTagCommand = RemoveTagCommand;
@@ -83,7 +83,7 @@ public class TagsBoxItemsControl : ItemsControl, IStyleable
 			{
 				if (container.ContainerControl is TagControl tagControl)
 				{
-					tagControl.OrdinalIndex = container.Index;
+					tagControl.OrdinalIndex = container.Index + 1;
 					tagControl.EnableCounter = EnableCounter;
 					tagControl.EnableDelete = EnableDelete;
 					tagControl.RemoveTagCommand = RemoveTagCommand;
