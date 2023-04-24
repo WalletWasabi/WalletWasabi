@@ -2,9 +2,9 @@ using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Transactions.Summary;
 
-public class UnknownInput : Input
+public class ForeignInput : Input
 {
-	public UnknownInput(uint256 transactionId)
+	public ForeignInput(uint256 transactionId, Money amount) : base(amount)
 	{
 		TransactionId = transactionId;
 	}
