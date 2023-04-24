@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -26,8 +26,12 @@ public class IndexStore : IAsyncDisposable
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
-		string indexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+		// Migration data.
+		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
+		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+		RunMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath);
+
+		IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
 
 		if (network == Network.RegTest)
 		{
@@ -37,6 +41,16 @@ public class IndexStore : IAsyncDisposable
 
 	public event EventHandler<FilterModel>? Reorged;
 	public event EventHandler<FilterModel>? NewFilter;
+
+	/// <summary>Mature index path for migration purposes.</summary>
+	private string OldIndexFilePath { get; }
+
+	/// <summary>Sqlite file path for migration purposes.</summary>
+	private string NewIndexFilePath { get; }
+
+	/// <summary>Run migration if sqlite file does not exist.</summary>
+	private bool RunMigration { get; }
+
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Filter disk storage.</summary>
@@ -54,7 +68,67 @@ public class IndexStore : IAsyncDisposable
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
+			// Migration code.
+			if (RunMigration)
+			{
+				await MigrateToSqliteNoLockAsync().ConfigureAwait(false);
+			}
+
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task MigrateToSqliteNoLockAsync()
+	{
+		int i = 0;
+
+		try
+		{
+			Stopwatch stopwatch = Stopwatch.StartNew();
+			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
+			using StreamReader sr = File.OpenText(OldIndexFilePath);
+
+			while (true)
+			{
+				i++;
+				string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
+
+				if (line is null)
+				{
+					break;
+				}
+
+				// Starting filter is already added at this point.
+				if (i == 1)
+				{
+					continue;
+				}
+
+				if (i % 50000 == 0)
+				{
+					Logger.LogInfo($"Migration to SQLite: Processed {i} records so far. Do not terminate the application.");
+				}
+
+				FilterModel filter = FilterModel.FromLine(line);
+
+				if (!IndexStorage.TryAppend(filter))
+				{
+					throw new InvalidOperationException("Failed to append filter to the database.");
+				}
+			}
+
+			sqliteTransaction.Commit();
+
+			Logger.LogInfo($"Migration to SQLite was finished in {stopwatch.Elapsed.Seconds} seconds.");
+			 
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+
+			// Do not run migration code again if it fails.
+			File.Delete(NewIndexFilePath);
+			File.Delete(OldIndexFilePath);
 		}
 	}
 
