@@ -333,7 +333,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (_coinJoinManager is { } coinJoinManager)
 			{
-				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName, WalletStatus.InSendWorkFlow);
+				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName);
 			}
 		}
 
