@@ -39,8 +39,10 @@
               <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                 <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                   <!-- TODO: Add property Suggestions instead binding to $parent[c:TagsBox] -->
+                  <!-- TODO: Do not use $parent[c:TagsBox] binding for IsTextCompletionEnabled -->
                   <c:TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
                                             Items="{Binding $parent[c:TagsBox].Suggestions}"
+                                            IsTextCompletionEnabled="{Binding $parent[c:TagsBox].RestrictInputToSuggestions}"
                                             FilterMode="StartsWith" />
                 </c:ConcatenatingWrapPanel.ConcatenatedChildren>
               </c:ConcatenatingWrapPanel>

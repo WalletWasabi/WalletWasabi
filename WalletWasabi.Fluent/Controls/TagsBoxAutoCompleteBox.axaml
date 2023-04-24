@@ -13,8 +13,6 @@
     <Setter Property="MaxDropDownHeight" Value="90" />
     <Setter Property="MinimumPrefixLength" Value="1" />
     <Setter Property="Focusable" Value="False" />
-    <!-- TODO: Do not use $parent[c:TagsBox] binding -->
-    <Setter Property="IsTextCompletionEnabled" Value="{Binding $parent[c:TagsBox].RestrictInputToSuggestions}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid Name="PART_LayoutRoot">
