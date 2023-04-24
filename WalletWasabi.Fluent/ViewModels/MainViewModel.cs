@@ -52,7 +52,7 @@ public partial class MainViewModel : ViewModelBase
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
 
-		UiServices.Initialize();
+		UiServices.Initialize(UiContext);
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 

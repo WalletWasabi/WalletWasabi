@@ -44,7 +44,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		Port = port;
 		_timeoutMultiplier = timeoutMultiplier;
 	}
-	
+
 	public event EventHandler? OtherInstanceStarted;
 
 	private int Port { get; }
@@ -68,7 +68,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			return WasabiInstanceStatus.Error;
 		}
 	}
-	
+
 	/// <summary>
 	/// This function verifies whether is the only instance running on this machine or not. In case of secondary start
 	/// we try to signal the first instance before returning false.
@@ -122,7 +122,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
 		await writer.FlushAsync().ConfigureAwait(false);
 		await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
-		
+
 		// I was able to signal to the other instance successfully so just continue.
 		return false;
 	}
@@ -137,12 +137,8 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var task = TaskStartTcpListener;
-		if (task is null)
-		{
-			throw new InvalidOperationException("This should never happen!");
-		}
-
+		var task = TaskStartTcpListener
+			?? throw new InvalidOperationException("This should never happen!");
 		TcpListener? listener = null;
 		try
 		{
@@ -170,7 +166,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 					networkStream.ReadTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds;
 					using var reader = new StreamReader(networkStream, Encoding.UTF8);
-					
+
 					// Make sure the client will be disconnected.
 					using CancellationTokenSource timeOutCts = new(_timeoutMultiplier * ClientTimeOut);
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
