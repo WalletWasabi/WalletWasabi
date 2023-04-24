@@ -240,7 +240,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 				CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
 				CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
 			},
-			width: new GridLength(50, GridUnitType.Pixel));
+			width: new GridLength(55, GridUnitType.Pixel));
 	}
 
 	private static IColumn<WalletCoinViewModel> LabelsColumn()
