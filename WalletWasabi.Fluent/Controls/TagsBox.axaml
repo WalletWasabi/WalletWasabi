@@ -41,7 +41,7 @@
         <DataValidationErrors>
           <DockPanel>
             <c:TagsBoxTopItemsPresenter TopItems="{TemplateBinding TopItems}"
-                                        AddTagCommand="{Binding $parent[c:TagsBox].AddTag}"
+                                        AddTagCommand="{Binding $parent[c:TagsBox].AddTagCommand}"
                                         Margin="0,10,0,0"
                                         IsVisible="{TemplateBinding TopItems, Converter={x:Static ObjectConverters.IsNotNull}}"
                                         DockPanel.Dock="Bottom"

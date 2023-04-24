@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -31,6 +32,7 @@ public class TagsBox : TemplatedControl
 	private IEnumerable<string>? _items;
 	private IEnumerable<string>? _topItems;
 	private bool _requestAdd;
+	private ICommand? _addTagCommand;
 
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
@@ -84,6 +86,17 @@ public class TagsBox : TemplatedControl
 
 	public static readonly StyledProperty<bool> EnableDeleteProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
+
+	public static readonly DirectProperty<TagsBox, ICommand?> AddTagCommandProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
+			nameof(AddTagCommand),
+			o => o.AddTagCommand,
+			(o, v) => o.AddTagCommand = v);
+
+	public TagsBox()
+	{
+		AddTagCommand = ReactiveCommand.Create<string>(AddTag);
+	}
 
 	[Content]
 	public IEnumerable<string>? Items
@@ -174,6 +187,12 @@ public class TagsBox : TemplatedControl
 	{
 		get => GetValue(MaxTextLengthProperty);
 		set => SetValue(MaxTextLengthProperty, value);
+	}
+
+	public ICommand? AddTagCommand
+	{
+		get => _addTagCommand;
+		set => SetAndRaise(AddTagCommandProperty, ref _addTagCommand, value);
 	}
 
 	private string CurrentText => _autoCompleteBox?.Text ?? "";
@@ -443,7 +462,7 @@ public class TagsBox : TemplatedControl
 		InvalidateWatermark();
 	}
 
-	public void AddTag(string tag)
+	private void AddTag(string tag)
 	{
 		var inputTag = tag;
 
