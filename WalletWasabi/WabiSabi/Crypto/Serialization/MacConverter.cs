@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
-using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
@@ -14,7 +12,9 @@ public class MacJsonConverter : JsonConverter<MAC>
 	{
 		reader.Expect(JsonToken.StartObject);
 		var t = reader.ReadProperty<Scalar>(serializer, "T");
-		var v = reader.ReadProperty<GroupElement>(serializer, "V");
+		var v = reader.ReadProperty<GroupElement>(serializer, "V")
+			?? throw new ArgumentException("'V' cannot be null.");
+
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 		return ReflectionUtils.CreateInstance<MAC>(new object[] { t, v });

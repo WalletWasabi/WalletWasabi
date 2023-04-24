@@ -14,6 +14,12 @@ public class ProofJsonConverter : JsonConverter<Proof>
 		reader.Expect(JsonToken.StartObject);
 		var publicNonces = reader.ReadProperty<GroupElementVector>(serializer, "PublicNonces");
 		var responses = reader.ReadProperty<ScalarVector>(serializer, "Responses");
+
+		if (publicNonces is null || responses is null)
+		{
+			throw new ArgumentException("'PublicNonces' and 'Responses' cannot be null.");
+		}
+
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 		return ReflectionUtils.CreateInstance<Proof>(new object[] { publicNonces, responses });

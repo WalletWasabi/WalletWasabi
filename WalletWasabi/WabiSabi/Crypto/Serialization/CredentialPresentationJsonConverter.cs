@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
@@ -16,6 +15,12 @@ public class CredentialPresentationJsonConverter : JsonConverter<CredentialPrese
 		var cx1 = reader.ReadProperty<GroupElement>(serializer, "Cx1");
 		var cV = reader.ReadProperty<GroupElement>(serializer, "CV");
 		var s = reader.ReadProperty<GroupElement>(serializer, "S");
+
+		if (ca is null || cx0 is null || cx1 is null || cV is null || s is null)
+		{
+			throw new ArgumentException("'Ca', 'Cx0', 'Cx1', 'CV', and 'S' cannot be null.");
+		}
+
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 
