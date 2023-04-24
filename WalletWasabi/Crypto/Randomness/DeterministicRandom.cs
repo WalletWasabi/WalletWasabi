@@ -16,4 +16,6 @@ public class DeterministicRandom : WasabiRandom
 	public override void GetBytes(Span<byte> buffer) => Random.NextBytes(buffer);
 
 	public override int GetInt(int fromInclusive, int toExclusive) => Random.Next(fromInclusive, toExclusive);
+
+	public long GetLongInt(long fromInclusive, long toExclusive) => Random.NextInt64(fromInclusive, toExclusive);
 }

@@ -5,12 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public static class DenominationBuilder
 {
-	public static IOrderedEnumerable<Output> CreateDenominations(Money minAllowedOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, bool isTaprootAllowed, Random random)
+	public static IOrderedEnumerable<Output> CreateDenominations(Money minAllowedOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, bool isTaprootAllowed, WasabiRandom random)
 	{
 		var denominations = new HashSet<Output>();
 

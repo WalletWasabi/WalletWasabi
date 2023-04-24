@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
@@ -26,6 +27,7 @@ public class CoordinatorRound
 	public static long RoundCount;
 	private RoundPhase _phase;
 	private CoordinatorRoundStatus _status;
+	private readonly WasabiRandom _random;
 
 	public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut, CoinVerifier? coinVerifier = null)
 	{
@@ -75,6 +77,7 @@ public class CoordinatorRound
 				$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
 				$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 				$"{nameof(AnonymitySet)}: {AnonymitySet}.");
+			_random = new SecureRandom();
 		}
 		catch (Exception ex)
 		{
@@ -566,8 +569,8 @@ public class CoordinatorRound
 		await TryOptimizeFeesAsync(transaction, spentCoins).ConfigureAwait(false);
 
 		// 8. Shuffle.
-		transaction.Inputs.Shuffle();
-		transaction.Outputs.Shuffle();
+		transaction.Inputs.Shuffle(_random);
+		transaction.Outputs.Shuffle(_random);
 
 		// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
 		transaction.Inputs.SortByAmount(spentCoins);
