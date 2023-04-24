@@ -42,6 +42,7 @@
           </DockPanel>
           <Button Name="PART_DeleteButton"
                   Command="{TemplateBinding RemoveTagCommand}"
+                  CommandParameter="{TemplateBinding DataContext}"
                   IsVisible="{TemplateBinding EnableDelete}"
                   KeyboardNavigation.IsTabStop="False"
                   Focusable="{TemplateBinding Focusable}">
