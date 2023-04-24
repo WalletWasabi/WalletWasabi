@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -83,7 +84,7 @@ public class P2pNetwork : BackgroundService
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 
-			var userAgent = Constants.UserAgents.RandomElement();
+			var userAgent = Constants.UserAgents.RandomElement(new InsecureRandom());
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
 			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
