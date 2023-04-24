@@ -28,10 +28,13 @@
     <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="Template">
       <ControlTemplate>
-        <ItemsControl Name="PART_ItemsPresenter"
-                      Focusable="False"
-                      Items="{TemplateBinding Items}">
-          <ItemsControl.ItemsPanel>
+        <c:TagsBoxItemsControl Name="PART_ItemsPresenter"
+                               Focusable="False"
+                               Items="{TemplateBinding Items}"
+                               EnableCounter="{TemplateBinding EnableCounter}"
+                               EnableDelete="{TemplateBinding EnableDelete}"
+                               RemoveTagCommand="{TemplateBinding RemoveTagCommand}">
+          <c:TagsBoxItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                 <c:ConcatenatingWrapPanel.ConcatenatedChildren>
@@ -42,15 +45,8 @@
                 </c:ConcatenatingWrapPanel.ConcatenatedChildren>
               </c:ConcatenatingWrapPanel>
             </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <c:TagControl Content="{Binding .}"
-                            EnableCounter="{Binding $parent[c:TagsBox].EnableCounter}"
-                            EnableDelete="{Binding $parent[c:TagsBox].EnableDelete}" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+          </c:TagsBoxItemsControl.ItemsPanel>
+        </c:TagsBoxItemsControl>
       </ControlTemplate>
     </Setter>
   </Style>

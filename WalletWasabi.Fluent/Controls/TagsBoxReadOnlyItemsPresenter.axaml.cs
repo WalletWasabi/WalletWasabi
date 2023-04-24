@@ -9,6 +9,6 @@ public class TagsBoxReadOnlyItemsPresenter : TagsBoxItemsPresenter
 	{
 		base.OnApplyTemplate(e);
 
-		ItemsControl = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
+		ItemsControl = e.NameScope.Find<TagsBoxItemsControl>("PART_ItemsPresenter");
 	}
 }

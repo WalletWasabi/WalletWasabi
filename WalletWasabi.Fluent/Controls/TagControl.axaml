@@ -41,6 +41,7 @@
             </DockPanel>
           </DockPanel>
           <Button Name="PART_DeleteButton"
+                  Command="{TemplateBinding RemoveTagCommand}"
                   IsVisible="{TemplateBinding EnableDelete}"
                   KeyboardNavigation.IsTabStop="False"
                   Focusable="{TemplateBinding Focusable}">

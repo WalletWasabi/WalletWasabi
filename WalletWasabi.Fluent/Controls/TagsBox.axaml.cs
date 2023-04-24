@@ -6,14 +6,12 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -33,6 +31,7 @@ public class TagsBox : TemplatedControl
 	private IEnumerable<string>? _topItems;
 	private bool _requestAdd;
 	private ICommand? _addTagCommand;
+	private ICommand? _removeTagCommand;
 
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
@@ -93,9 +92,16 @@ public class TagsBox : TemplatedControl
 			o => o.AddTagCommand,
 			(o, v) => o.AddTagCommand = v);
 
+	public static readonly DirectProperty<TagsBox, ICommand?> RemoveTagCommandProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
+			nameof(RemoveTagCommand),
+			o => o.RemoveTagCommand,
+			(o, v) => o.RemoveTagCommand = v);
+
 	public TagsBox()
 	{
 		AddTagCommand = ReactiveCommand.Create<string>(AddTag);
+		RemoveTagCommand = ReactiveCommand.Create<string>(RemoveTag);
 	}
 
 	[Content]
@@ -195,6 +201,12 @@ public class TagsBox : TemplatedControl
 		set => SetAndRaise(AddTagCommandProperty, ref _addTagCommand, value);
 	}
 
+	public ICommand? RemoveTagCommand
+	{
+		get => _removeTagCommand;
+		set => SetAndRaise(RemoveTagCommandProperty, ref _removeTagCommand, value);
+	}
+
 	private string CurrentText => _autoCompleteBox?.Text ?? "";
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -208,9 +220,9 @@ public class TagsBox : TemplatedControl
 		var presenter = e.NameScope.Find<TagsBoxItemsPresenter>("PART_ItemsPresenter");
 
 		presenter.ApplyTemplate();
-		presenter.ItemsControl.ApplyTemplate();
-		presenter.ItemsControl.Presenter.ApplyTemplate();
-		_containerControl = presenter.ItemsControl.Presenter.Panel;
+		presenter.ItemsControl?.ApplyTemplate();
+		presenter.ItemsControl?.Presenter?.ApplyTemplate();
+		_containerControl = presenter.ItemsControl?.Presenter?.Panel;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>().FirstOrDefault();
 
 		if (_autoCompleteBox is null)
@@ -243,8 +255,6 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox
 			.AddDisposableHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 			.DisposeWith(_compositeDisposable);
-
-		LayoutUpdated += OnLayoutUpdated;
 
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.WhereNotNull()
@@ -322,8 +332,8 @@ public class TagsBox : TemplatedControl
 
 	private void ClearInputField()
 	{
-		_autoCompleteBox?.ClearValue(TagsBoxAutoCompleteBox.SelectedItemProperty);
-		Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(TagsBoxAutoCompleteBox.TextProperty));
+		_autoCompleteBox?.ClearValue(AutoCompleteBox.SelectedItemProperty);
+		Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
 	}
 
 	private IEnumerable<string> GetFinalTags(string input, char tagSeparator)
@@ -338,21 +348,6 @@ public class TagsBox : TemplatedControl
 			{
 				yield return correctedTag;
 			}
-		}
-	}
-
-	private void OnLayoutUpdated(object? sender, EventArgs e)
-	{
-		UpdateCounters();
-	}
-
-	private void UpdateCounters()
-	{
-		var tagItems = _containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
-
-		for (var i = 0; i < tagItems.Length; i++)
-		{
-			tagItems[i].OrdinalIndex = i + 1;
 		}
 	}
 
@@ -501,6 +496,27 @@ public class TagsBox : TemplatedControl
 		}
 
 		items.Add(inputTag);
+		CheckIsInputEnabled();
+		InvalidateWatermark();
+	}
+
+
+	private void RemoveTag(string tag)
+	{
+		var inputTag = tag;
+
+		if (Items is not IList items)
+		{
+			return;
+		}
+
+		var index = items.IndexOf(inputTag);
+		if (index < 0)
+		{
+			return;
+		}
+
+		items.RemoveAt(index);
 		CheckIsInputEnabled();
 		InvalidateWatermark();
 	}

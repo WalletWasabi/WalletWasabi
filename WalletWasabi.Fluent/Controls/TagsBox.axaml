@@ -58,6 +58,9 @@
                            Text="{TemplateBinding Watermark}" />
                 <c:TagsBoxEditableItemsPresenter Name="PART_ItemsPresenter"
                                                  Items="{TemplateBinding Items}"
+                                                 EnableCounter="{TemplateBinding EnableCounter}"
+                                                 EnableDelete="{TemplateBinding EnableDelete}"
+                                                 RemoveTagCommand="{TemplateBinding RemoveTagCommand}"
                                                  Focusable="False" />
               </Panel>
             </Border>
@@ -86,6 +89,9 @@
                          Text="{TemplateBinding Watermark}" />
               <c:TagsBoxReadOnlyItemsPresenter Name="PART_ItemsPresenter"
                                                Items="{TemplateBinding Items}"
+                                               EnableCounter="{TemplateBinding EnableCounter}"
+                                               EnableDelete="{TemplateBinding EnableDelete}"
+                                               RemoveTagCommand="{TemplateBinding RemoveTagCommand}"
                                                Focusable="False" />
             </Panel>
           </Border>

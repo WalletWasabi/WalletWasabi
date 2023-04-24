@@ -1,16 +1,12 @@
-using System.Reactive.Disposables;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public class TagControl : ContentControl
 {
-	private IDisposable? _subscription;
-	private TagsBox? _parentTagBox;
+	private ICommand? _removeTagCommand;
 
 	public static readonly StyledProperty<bool> EnableCounterProperty =
 		AvaloniaProperty.Register<TagControl, bool>(nameof(EnableCounter));
@@ -20,6 +16,12 @@ public class TagControl : ContentControl
 
 	public static readonly StyledProperty<int> OrdinalIndexProperty =
 		AvaloniaProperty.Register<TagControl, int>(nameof(OrdinalIndex));
+
+	public static readonly DirectProperty<TagControl, ICommand?> RemoveTagCommandProperty =
+		AvaloniaProperty.RegisterDirect<TagControl, ICommand?>(
+			nameof(RemoveTagCommand),
+			o => o.RemoveTagCommand,
+			(o, v) => o.RemoveTagCommand = v);
 
 	public bool EnableCounter
 	{
@@ -39,27 +41,9 @@ public class TagControl : ContentControl
 		set => SetValue(OrdinalIndexProperty, value);
 	}
 
-	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+	public ICommand? RemoveTagCommand
 	{
-		base.OnApplyTemplate(e);
-
-		_parentTagBox = this.FindLogicalAncestorOfType<TagsBox>();
-
-		var deleteButton = e.NameScope.Find<Button>("PART_DeleteButton");
-
-		if (deleteButton is null)
-		{
-			return;
-		}
-
-		deleteButton.Click += OnDeleteTagClicked;
-
-		_subscription?.Dispose();
-		_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
-	}
-
-	private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
-	{
-		_parentTagBox?.RemoveAt(OrdinalIndex - 1);
+		get => _removeTagCommand;
+		set => SetAndRaise(RemoveTagCommandProperty, ref _removeTagCommand, value);
 	}
 }
