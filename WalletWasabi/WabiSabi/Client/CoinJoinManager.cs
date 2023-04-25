@@ -45,7 +45,7 @@ public class CoinJoinManager : BackgroundService
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are in send workflow.
 	/// </summary>
-	private List<string> WalletsStoppedBecauseSendWorkflow { get; } = new();
+	private ConcurrentDictionary<string, bool> WalletsInSendWorkflow { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
 		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
@@ -160,7 +160,8 @@ public class CoinJoinManager : BackgroundService
 
 			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				if (WalletsStoppedBecauseSendWorkflow.Contains(walletToStart.WalletName))
+				if (WalletsInSendWorkflow.TryGetValue(walletToStart.WalletName, out var isInSendWorkflow) &&
+				    isInSendWorkflow)
 				{
 					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 				}
@@ -567,20 +568,20 @@ public class CoinJoinManager : BackgroundService
 
 	public void WalletEnteredSendWorkflow(string walletName)
 	{
-		if (CoinJoinClientStates.TryGetValue(walletName, out var stateHolder) && 
-		    stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle &&
-		    stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase && 
-		    !WalletsStoppedBecauseSendWorkflow.Contains(walletName))
+		if (CoinJoinClientStates.TryGetValue(walletName, out _) &&
+		    !WalletsInSendWorkflow.TryAdd(walletName, true))
 		{
-			WalletsStoppedBecauseSendWorkflow.Add(walletName);
+			WalletsInSendWorkflow[walletName] = true;
 		}
 	}
 
 	public async Task WalletLeftSendWorkflowAsync(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsStoppedBecauseSendWorkflow.Contains(wallet.WalletName))
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && 
+		    WalletsInSendWorkflow.TryGetValue(wallet.WalletName, out var isInSendWorkflow) &&
+		    isInSendWorkflow)
 		{
-			WalletsStoppedBecauseSendWorkflow.Remove(wallet.WalletName);
+			WalletsInSendWorkflow[wallet.WalletName] = false;
 			await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
@@ -589,12 +590,15 @@ public class CoinJoinManager : BackgroundService
 	{
 		// If wallet is idle, there is nothing to stop.
 		// Don't try to stop in critical phase, otherwise it won't restart automatically.
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) &&
-			stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle &&
-			stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase)
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) )
 		{
 			WalletEnteredSendWorkflow(wallet.WalletName);
-			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
+
+			if (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle &&
+				stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase)
+			{
+				await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
+			}
 		}
 	}
 
