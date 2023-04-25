@@ -304,7 +304,9 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo(
 						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
 					round.LogInfo(
-						$"Target Fee Rate: {targetFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
+						$"Desired Fee Rate: {round.Parameters.MiningFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					round.LogInfo(
+						$"Current Fee Rate on the Network: {targetFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
 					round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
 					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
