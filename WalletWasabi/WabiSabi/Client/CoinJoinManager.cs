@@ -179,7 +179,7 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				// If all coins are already private, then don't mix.
-				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false) && startCommand.StopWhenAllMixed)
+				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
 				{
 					walletToStart.LogTrace("All mixed!");
 
@@ -450,9 +450,14 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed)
+		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false))
 		{
 			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
+			if (!finishedCoinJoin.StopWhenAllMixed)
+			{
+				// In auto CJ mode we never stop trying.
+				ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
+			}
 		}
 		else if (cjClientException is not null)
 		{
