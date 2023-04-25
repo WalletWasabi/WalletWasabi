@@ -99,7 +99,7 @@ public class IndexStore : IAsyncDisposable
 			Stopwatch stopwatch = Stopwatch.StartNew();
 			using StreamReader sr = File.OpenText(OldIndexFilePath);
 
-			List<FilterModel> filters = new();
+			List<string> filters = new();
 
 			while (true)
 			{
@@ -117,14 +117,13 @@ public class IndexStore : IAsyncDisposable
 					continue;
 				}
 
-				FilterModel filter = FilterModel.FromLine(line);
-				filters.Add(filter);
+				filters.Add(line);
 			}
 
-			Logger.LogInfo($"Filters to add is {filters.Count}. Elapsed seconds {stopwatch.Elapsed.Seconds}.");
+			Logger.LogInfo($"There are {filters.Count} filters to add. Elapsed seconds {stopwatch.Elapsed}.");
 			IndexStorage.BulkAppend(filters);
 
-			Logger.LogInfo($"Migration to SQLite was finished in {stopwatch.Elapsed.Seconds} seconds.");
+			Logger.LogInfo($"Migration to SQLite was finished in {stopwatch.Elapsed} seconds.");
 		}
 		catch (Exception ex)
 		{
