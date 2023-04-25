@@ -98,26 +98,15 @@ public class TransactionHistoryBuilder
 				var amount = txOut.Value;
 				var address = txOut.ScriptPubKey.GetDestinationAddress(network);
 				var associatedCoin = smartTransaction.WalletOutputs.FirstOrDefault(smartCoin => smartCoin.TxOut == txOut);
-				var features = GetFeatures(txOut, associatedCoin);
-				return new Output(amount, address, associatedCoin?.IsSpent() ?? false, features);
+				return new Output(amount, address, associatedCoin?.IsSpent() ?? false);
 			});
 
 		return txOutList;
 	}
 
-	private static IEnumerable<Feature> GetFeatures(TxOut txOut, SmartCoin? associatedCoin)
-	{
-		if (associatedCoin != null && associatedCoin.IsReplaceable())
-		{
-			yield return Feature.RBF;
-		}
-
-		yield return txOut.ScriptPubKey.IsScriptType(ScriptType.Taproot) ? Feature.Taproot : Feature.SegWit;
-	}
-
 	private static IEnumerable<Input> GetInputs(Network network, SmartTransaction transaction)
 	{
-		var known = transaction.WalletInputs.Select(x => (Input)new InputAmount(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
+		var known = transaction.WalletInputs.Select(x => (Input)new KnownInput(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
 		var unknown = transaction.ForeignInputs.Select(x => (Input)new ForeignInput(x.Transaction.GetHash(), x.Transaction.TotalOut));
 
 		return known.Concat(unknown);

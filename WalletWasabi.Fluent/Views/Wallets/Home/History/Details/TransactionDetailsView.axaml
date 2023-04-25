@@ -44,7 +44,7 @@
       <Separator />
 
       <!-- Fee -->
-      <StackPanel IsVisible="{Binding Fee, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <StackPanel IsVisible="{Binding !IsSelfSpend}">
         
         <c:PreviewItem Icon="{StaticResource btc_logo}"
                        Label="Fee"

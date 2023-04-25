@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions.Summary;
@@ -22,5 +23,7 @@ public class TransactionSummary
 	public int Version { get; set; }
 	public long BlockTime { get; set; }
 	public int Size { get; set; }
-	public double Weight { get; set; }
+	public Money OutputAmount => Outputs.Sum(x => x.Amount);
+	public Money InputAmount => Inputs.Sum(x => x.Amount);
+	public Money Fee => InputAmount - OutputAmount;
 }

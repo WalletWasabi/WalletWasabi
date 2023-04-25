@@ -2,9 +2,9 @@ using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Transactions.Summary;
 
-public class InputAmount : Input
+public class KnownInput : Input
 {
-	public InputAmount(Money amount, BitcoinAddress address) : base(amount)
+	public KnownInput(Money amount, BitcoinAddress address) : base(amount)
 	{
 		Address = address;
 	}
