@@ -4,10 +4,6 @@
 - TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger
 - Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger
 
-## Related Documents:
-
-[Backend Deployment And Update Instructions](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md)
-
 ## HTTP
 
   Requests and Responses are JSON.

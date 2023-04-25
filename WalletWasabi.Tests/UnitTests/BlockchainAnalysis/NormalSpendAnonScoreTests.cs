@@ -12,13 +12,13 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInOneOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
 		key.SetAnonymitySet(3, tx.GetHash());
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt our input,
 		// so its anonset should become 1.
@@ -29,7 +29,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInOneOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 0);
 
 		foreach (var coin in tx.WalletInputs)
@@ -37,7 +37,7 @@ public class NormalSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt our inputs,
 		// so its anonset should become 1.
@@ -48,13 +48,13 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInManyOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
 		key.SetAnonymitySet(3, tx.GetHash());
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt our input,
 		// so its anonset should become 1.
@@ -65,7 +65,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInOneOutOneOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
 
 		foreach (var coin in tx.WalletInputs)
@@ -73,7 +73,7 @@ public class NormalSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our input and output,
 		// so its anonset should become 1.
@@ -85,7 +85,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInManyOutManyOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 3);
 
 		foreach (var coin in tx.WalletInputs)
@@ -93,7 +93,7 @@ public class NormalSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our input and output,
 		// so its anonset should become 1.
@@ -104,7 +104,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInOneOutOneOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 1);
 
 		foreach (var coin in tx.WalletInputs)
@@ -112,7 +112,7 @@ public class NormalSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our inputs and output,
 		// so its anonset should become 1.
@@ -123,7 +123,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInManyOutManyOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 3, 3);
 
 		foreach (var coin in tx.WalletInputs)
@@ -131,7 +131,7 @@ public class NormalSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		analyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our inputs and outputs,
 		// so its anonset should become 1.

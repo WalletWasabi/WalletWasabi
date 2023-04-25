@@ -163,7 +163,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (Transaction is { })
 		{
-			var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+			bool saved = false;
+			try
+			{
+				saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync("Transaction Export", ex.ToUserFriendlyString(), "Wasabi was unable to export the PSBT.");
+			}
 
 			if (saved)
 			{
