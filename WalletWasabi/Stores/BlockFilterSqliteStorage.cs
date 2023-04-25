@@ -81,7 +81,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			if (startingFilter is not null)
 			{
 				using SqliteCommand isEmptyCommand = connection.CreateCommand();
-				isEmptyCommand.CommandText = "SELECT count(*) FROM filter";
+				isEmptyCommand.CommandText = "SELECT COUNT(*) FROM filter";
 				int count = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
 
 				if (count == 0)
@@ -216,7 +216,10 @@ public class BlockFilterSqliteStorage : IDisposable
 		try
 		{
 			using SqliteCommand insertCommand = Connection.CreateCommand();
-			insertCommand.CommandText = "INSERT INTO filter VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)";
+			insertCommand.CommandText = """
+				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
+				VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
+				""";
 			insertCommand.Parameters.AddWithValue("$block_height", filter.Header.Height);
 			insertCommand.Parameters.AddWithValue("$block_hash", filter.Header.BlockHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$filter_data", filter.Filter.ToBytes());
