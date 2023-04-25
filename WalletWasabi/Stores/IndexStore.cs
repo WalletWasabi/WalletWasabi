@@ -83,14 +83,14 @@ public class IndexStore : IAsyncDisposable
 			// Migration code.
 			if (RunMigration)
 			{
-				await MigrateToSqliteNoLockAsync().ConfigureAwait(false);
+				MigrateToSqliteNoLock();
 			}
 
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private async Task MigrateToSqliteNoLockAsync()
+	private void MigrateToSqliteNoLock()
 	{
 		int i = 0;
 
@@ -104,7 +104,7 @@ public class IndexStore : IAsyncDisposable
 			while (true)
 			{
 				i++;
-				string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
+				string? line = sr.ReadLine();
 
 				if (line is null)
 				{
