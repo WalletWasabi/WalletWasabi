@@ -27,7 +27,20 @@ public class IndexStore : IAsyncDisposable
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		string indexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+
+		try
+		{
+			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{indexFilePath}'.");
+
+			// The database file can still be in use, clear all pools to unlock the filter database file.
+			SqliteConnection.ClearAllPools();
+			File.Delete(indexFilePath);
+			throw;
+		}
 
 		if (network == Network.RegTest)
 		{

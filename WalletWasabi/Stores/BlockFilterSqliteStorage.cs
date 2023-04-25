@@ -37,55 +37,74 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
 	public static BlockFilterSqliteStorage FromFile(string dataSource, FilterModel? startingFilter = null)
 	{
-		SqliteConnectionStringBuilder builder = new();
-		builder.DataSource = dataSource;
+		// In case there is an exception, we need to dispose things properly.
+		SqliteConnection? connectionToDispose = null;
+		BlockFilterSqliteStorage? storageToDispose = null;
 
-		SqliteConnection connection = new(builder.ConnectionString);
-		connection.Open();
-
-		using (SqliteCommand createCommand = connection.CreateCommand())
+		try
 		{
-			createCommand.CommandText = """
-				CREATE TABLE IF NOT EXISTS filter (
-					block_height INTEGER NOT NULL PRIMARY KEY,
-					block_hash BLOB NOT NULL,
-					filter_data BLOB NOT NULL,
-					previous_block_hash BLOB NOT NULL,
-					epoch_block_time INTEGER NOT NULL
-				)
-				""";
-			createCommand.ExecuteNonQuery();
-		}
+			SqliteConnectionStringBuilder builder = new();
+			builder.DataSource = dataSource;
 
-		// Enable write-ahead logging.
-		using (SqliteCommand walCommand = connection.CreateCommand())
-		{
-			walCommand.CommandText = """
-				PRAGMA journal_mode = 'wal';
-				PRAGMA synchronous  = 'NORMAL';
-				""";
-			walCommand.ExecuteNonQuery();
-		}
+			SqliteConnection connection = new(builder.ConnectionString);
+			connectionToDispose = connection;
+			connection.Open();
 
-		BlockFilterSqliteStorage storage = new(connection);
-
-		if (startingFilter is not null)
-		{
-			using SqliteCommand isEmptyCommand = connection.CreateCommand();
-			isEmptyCommand.CommandText = "SELECT count(*) FROM filter";
-			int count = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
-
-			if (count == 0)
+			using (SqliteCommand createCommand = connection.CreateCommand())
 			{
-				if (!storage.TryAppend(startingFilter))
+				createCommand.CommandText = """
+					CREATE TABLE IF NOT EXISTS filter (
+						block_height INTEGER NOT NULL PRIMARY KEY,
+						block_hash BLOB NOT NULL,
+						filter_data BLOB NOT NULL,
+						previous_block_hash BLOB NOT NULL,
+						epoch_block_time INTEGER NOT NULL
+					)
+					""";
+				createCommand.ExecuteNonQuery();
+			}
+
+			// Enable write-ahead logging.
+			using (SqliteCommand walCommand = connection.CreateCommand())
+			{
+				walCommand.CommandText = """
+					PRAGMA journal_mode = 'wal';
+					PRAGMA synchronous  = 'NORMAL';
+					""";
+				walCommand.ExecuteNonQuery();
+			}
+
+			BlockFilterSqliteStorage storage = new(connection);
+			storageToDispose = storage;
+			connectionToDispose = null;
+
+			if (startingFilter is not null)
+			{
+				using SqliteCommand isEmptyCommand = connection.CreateCommand();
+				isEmptyCommand.CommandText = "SELECT count(*) FROM filter";
+				int count = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
+
+				if (count == 0)
 				{
-					// Unrecoverable error.
-					throw new InvalidOperationException("Failed to add the first filter to the database.");
+					if (!storage.TryAppend(startingFilter))
+					{
+						// Unrecoverable error.
+						throw new InvalidOperationException("Failed to add the first filter to the database.");
+					}
 				}
 			}
-		}
 
-		return storage;
+			storageToDispose = null;
+			connectionToDispose = null;
+
+			return storage;
+		}
+		finally
+		{
+			storageToDispose?.Dispose();
+			connectionToDispose?.Close();
+			connectionToDispose?.Dispose();
+		}
 	}
 
 	/// <summary>
