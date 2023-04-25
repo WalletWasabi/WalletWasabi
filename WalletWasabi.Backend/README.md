@@ -33,7 +33,7 @@
   - First Taproot block: 0000000000000000000687bca986194dc2c1f949318629b44bb54ec0a94d8244
   - First Taproot block TestNet: 00000000000000216dc4eb2bd27764891ec0c961b0da7562fe63678e164d62a0
   
-  Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `P2WPKH` and `P2TR` scripts, therefore `P2PKH`, `P2SH`, and `P2SH` over `P2WPH` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, which speeds up the wallet filter synchronization.
+  Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `P2WPKH` and `P2TR` scripts, therefore `P2PKH`, `P2SH`, and `P2WPKH` over `P2SH` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, which speeds up the wallet filter synchronization.
   When a client acquires a filter, it checks against its own keys and downloads the needed blocks from the Bitcoin P2P network, if needed. 
   
 #### Handling Reorgs
