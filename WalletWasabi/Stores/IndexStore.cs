@@ -97,8 +97,9 @@ public class IndexStore : IAsyncDisposable
 		try
 		{
 			Stopwatch stopwatch = Stopwatch.StartNew();
-			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 			using StreamReader sr = File.OpenText(OldIndexFilePath);
+
+			List<FilterModel> filters = new();
 
 			while (true)
 			{
@@ -116,26 +117,20 @@ public class IndexStore : IAsyncDisposable
 					continue;
 				}
 
-				if (i % 50000 == 0)
-				{
-					Logger.LogInfo($"Migration to SQLite: Processed {i} records so far. Do not terminate the application.");
-				}
-
 				FilterModel filter = FilterModel.FromLine(line);
-
-				if (!IndexStorage.TryAppend(filter))
-				{
-					throw new InvalidOperationException("Failed to append filter to the database.");
-				}
+				filters.Add(filter);
 			}
 
-			sqliteTransaction.Commit();
+			Logger.LogInfo($"Filters to add is {filters.Count}. Elapsed seconds {stopwatch.Elapsed.Seconds}.");
+			IndexStorage.BulkAppend(filters);
 
 			Logger.LogInfo($"Migration to SQLite was finished in {stopwatch.Elapsed.Seconds} seconds.");
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
+
+			SqliteConnection.ClearAllPools();
 
 			// Do not run migration code again if it fails.
 			File.Delete(NewIndexFilePath);
