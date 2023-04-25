@@ -96,34 +96,45 @@ public class IndexStore : IAsyncDisposable
 
 		try
 		{
+			Logger.LogWarning("Migration of block filters to SQLite format is about to begin. Please wait a moment.");
+
 			Stopwatch stopwatch = Stopwatch.StartNew();
-			using StreamReader sr = File.OpenText(OldIndexFilePath);
 
-			List<string> filters = new();
+			List<string> filters = new(capacity: 100_000);
 
-			while (true)
+			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+			using (BufferedStream bs = new(fs))
+			using (StreamReader sr = new(bs))
 			{
-				i++;
-				string? line = sr.ReadLine();
-
-				if (line is null)
+				while (true)
 				{
-					break;
-				}
+					i++;
+					string? line = sr.ReadLine();
 
-				// Starting filter is already added at this point.
-				if (i == 1)
-				{
-					continue;
-				}
+					if (line is null)
+					{
+						break;
+					}
 
-				filters.Add(line);
+					// Starting filter is already added at this point.
+					if (i == 1)
+					{
+						continue;
+					}
+
+					filters.Add(line);
+
+					if (i % 100_000 == 0)
+					{
+						IndexStorage.BulkAppend(filters);
+						filters.Clear();
+					}
+				}
 			}
 
-			Logger.LogInfo($"There are {filters.Count} filters to add. Elapsed seconds {stopwatch.Elapsed}.");
 			IndexStorage.BulkAppend(filters);
 
-			Logger.LogInfo($"Migration to SQLite was finished in {stopwatch.Elapsed} seconds.");
+			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
 		}
 		catch (Exception ex)
 		{
