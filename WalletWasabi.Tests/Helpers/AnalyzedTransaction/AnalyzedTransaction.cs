@@ -99,7 +99,7 @@ public class AnalyzedTransaction : SmartTransaction
 
 	public void AnalyzeRecursively()
 	{
-		var analyser = new BlockchainAnalyzer();
+		var analyzer = new BlockchainAnalyzer();
 		HashSet<SmartTransaction> analyzedTransactions = new();
 
 		// Analyze transactions in topological sorting
@@ -112,7 +112,7 @@ public class AnalyzedTransaction : SmartTransaction
 				{
 					AnalyzeRecursivelyHelper(walletInput.Transaction);
 				}
-				analyser.Analyze(transaction);
+				analyzer.Analyze(transaction);
 			}
 		}
 

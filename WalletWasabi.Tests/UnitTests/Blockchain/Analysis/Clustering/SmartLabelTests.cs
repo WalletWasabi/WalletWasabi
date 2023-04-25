@@ -3,7 +3,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Blockchain.Analysis.Clustering;
 
 public class SmartLabelTests
 {
