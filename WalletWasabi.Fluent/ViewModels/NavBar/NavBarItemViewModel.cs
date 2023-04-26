@@ -5,11 +5,37 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar;
 
-public enum NavBarItemSelectionMode
+public partial class NavBarItemViewModel1 : ViewModelBase
 {
-	Selected = 0,
-	Button = 1,
-	Toggle = 2
+	private readonly INavBarItem _item;
+	[AutoNotify] private string? _title;
+	[AutoNotify] private string? _iconName;
+	[AutoNotify] private string? _iconNameFocused;
+
+	public NavBarItemViewModel1(INavBarItem item)
+	{
+		item.WhenAnyValue(x => x.Title)
+			.BindTo(this, x => x.Title);
+
+		item.WhenAnyValue(x => x.IconName)
+			.BindTo(this, x => x.IconName);
+
+		item.WhenAnyValue(x => x.IconNameFocused)
+			.BindTo(this, x => x.IconNameFocused);
+		_item = item;
+	}
+
+	public void Activate()
+	{
+		if (_item is INavBarToggle toggle)
+		{
+			toggle.Toggle();
+		}
+		if (_item is INavBarButton button)
+		{
+			button.Activate();
+		}
+	}
 }
 
 public abstract class NavBarItemViewModel : RoutableViewModel

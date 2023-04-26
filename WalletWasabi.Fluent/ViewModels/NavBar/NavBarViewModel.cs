@@ -21,7 +21,7 @@ public partial class NavBarViewModel : ViewModelBase
 	{
 		UiContext = uiContext;
 
-		BottomItems = new ObservableCollection<NavBarItemViewModel>();
+		BottomItems = new ObservableCollection<NavBarItemViewModel1>();
 
 		UiContext.WalletList
 				 .Wallets
@@ -52,7 +52,7 @@ public partial class NavBarViewModel : ViewModelBase
 		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletList.DefaultWallet?.Name);
 	}
 
-	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
+	public ObservableCollection<NavBarItemViewModel1> BottomItems { get; }
 
 	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets { get; }
 
@@ -60,23 +60,13 @@ public partial class NavBarViewModel : ViewModelBase
 	{
 		var bottomItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Bottom);
 
-		foreach (var item in topItems)
-		{
-			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
-
-			if (viewModel is NavBarItemViewModel navBarItem)
-			{
-				TopItems.Add(navBarItem);
-			}
-		}
-
 		foreach (var item in bottomItems)
 		{
 			var viewModel = await NavigationManager.MaterializeViewModelAsync(item);
 
-			if (viewModel is NavBarItemViewModel navBarItem)
+			if (viewModel is INavBarItem navBarItem)
 			{
-				BottomItems.Add(navBarItem);
+				BottomItems.Add(new NavBarItemViewModel1(navBarItem));
 			}
 		}
 	}
