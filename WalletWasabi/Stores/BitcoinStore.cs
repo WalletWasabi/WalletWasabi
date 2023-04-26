@@ -44,9 +44,6 @@ public class BitcoinStore
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		// Switch to a different thread so that we can confinue with other initialization tasks and UI can show up.
-		await Task.Yield();
-
 		using IDisposable _ = BenchmarkLogger.Measure();
 
 		var initTasks = new[]
