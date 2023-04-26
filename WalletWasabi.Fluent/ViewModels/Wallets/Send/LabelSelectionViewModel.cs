@@ -114,8 +114,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 				.Select(pocket =>
 				{
 					var containedRecipientLabelsCount = pocket.Labels.Count(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
-					var totalPocketLabelsCount = pocket.Labels.Count();
-					var totalRecipientLabelsCount = recipient.Count();
+					var totalPocketLabelsCount = pocket.Labels.Count;
+					var totalRecipientLabelsCount = recipient.Count;
 					var index = ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
 
 					return (acceptabilityIndex: index, pocket);
@@ -147,7 +147,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		// Privacy ordered pockets: [A - 3 BTC] [B - 1 BTC] [C - 2 BTC] (A is the best for privacy, C is the worst)
 		// Target amount is 4.5 BTC so the algorithm will select all because it happened in privacy order.
 		// But B is unnecessary because A and C can cover the case, so remove it.
-		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
+		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count).ToImmutableArray())
 		{
 			if (await IsPocketEnoughAsync(bestPockets.Except(new[] { p }).ToArray()))
 			{
@@ -202,7 +202,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		if (labelViewModel.IsBlackListed)
 		{
-			var associatedPocketLabels = NonPrivatePockets.OrderBy(x => x.Labels.Count()).First(x => x.Labels.Contains(labelViewModel.Value)).Labels;
+			var associatedPocketLabels = NonPrivatePockets.OrderBy(x => x.Labels.Count).First(x => x.Labels.Contains(labelViewModel.Value)).Labels;
 			return LabelsBlackList.Where(x => associatedPocketLabels.Contains(x.Value)).ToArray();
 		}
 		else

@@ -12,7 +12,7 @@ public class FilterModel
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
-		_filter = new Lazy<GolombRiceFilter>(filter);
+		_filter = new(filter);
 		FilterData = filter.ToBytes();
 	}
 
