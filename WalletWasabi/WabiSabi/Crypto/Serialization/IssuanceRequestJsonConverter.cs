@@ -13,12 +13,6 @@ public class IssuanceRequestJsonConverter : JsonConverter<IssuanceRequest>
 		reader.Expect(JsonToken.StartObject);
 		var ma = reader.ReadProperty<GroupElement>(serializer, "Ma");
 		var bitCommitments = reader.ReadProperty<IEnumerable<GroupElement>>(serializer, "BitCommitments");
-
-		if (ma is null || bitCommitments is null)
-		{
-			throw new ArgumentException("'Ma' and 'BitCommitments' cannot be null.");
-		}
-
 		reader.Read();
 		reader.Expect(JsonToken.EndObject);
 		return ReflectionUtils.CreateInstance<IssuanceRequest>(new object[] { ma, bitCommitments });

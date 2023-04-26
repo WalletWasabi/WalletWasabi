@@ -12,9 +12,7 @@ public class GroupElementVectorJsonConverter : JsonConverter<GroupElementVector>
 	{
 		if (reader.TokenType == JsonToken.StartArray)
 		{
-			GroupElement[] ges = serializer.Deserialize<GroupElement[]>(reader)
-				?? throw new ArgumentException("Vector cannot be null.");
-
+			var ges = serializer.Deserialize<GroupElement[]>(reader);
 			return ReflectionUtils.CreateInstance<GroupElementVector>(ges);
 		}
 		throw new ArgumentException($"No valid serialized {nameof(GroupElement)} passed.");
