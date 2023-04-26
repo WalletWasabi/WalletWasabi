@@ -124,7 +124,7 @@ public class CoinVerifier : IAsyncDisposable
 		{
 			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout)
 			{
-				CoinVerifyItems.TryRemove(coin, out var _);
+				CoinVerifyItems.TryRemove(coin, out _);
 
 				// This should never happen.
 				if (!item.Task.IsCompleted)
