@@ -22,6 +22,7 @@ using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -35,6 +36,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
+	private readonly CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
@@ -50,6 +52,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
+		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
@@ -411,10 +414,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
+		if (_coinJoinManager is { } coinJoinManager)
+		{
+			Task.Run(async () => await coinJoinManager.WalletEnteredTxPreviewAsync(_wallet));
+		}
+
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
 			.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
-			.DisposeWith(disposables);
+		.DisposeWith(disposables);
 
 		if (!isInHistory)
 		{
