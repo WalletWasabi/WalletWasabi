@@ -115,11 +115,13 @@ public class Global : IDisposable
 					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
 				}
 
-				HttpClient.BaseAddress = url;
-				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
+				var cvHttpClient = HttpClientFactory.CreateClient(nameof(CoinVerifier));
+
+				cvHttpClient.BaseAddress = url;
+				cvHttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
 				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
+				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, cvHttpClient);
 				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
 
 				Logger.LogInfo("CoinVerifier created successfully.");
