@@ -193,7 +193,7 @@ public static class WasabiAppExtensions
 				}
 				catch (InvalidOperationException)
 				{
-					Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring..." );
+					Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring...");
 				}
 			}
 		}
@@ -205,10 +205,7 @@ public static class WasabiAppExtensions
 
 				ProcessCommands();
 
-				while (true)
-				{
-					Console.Read();
-				}
+				await app.TerminateService.TerminationRequested.Task.ConfigureAwait(false);
 			});
 	}
 }
