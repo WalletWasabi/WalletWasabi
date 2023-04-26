@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DynamicData;
 using FluentAssertions;
+using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -30,6 +31,26 @@ public class SuggestionLabelsViewModelTests
 		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, maxSuggestions);
 
 		sut.TopSuggestions.Count.Should().Be(expectedSuggestionsCount);
+	}
+
+	[Fact]
+	public void Top_suggestion_is_taken_removes_it()
+	{
+		var wallet = new TestWallet(
+			new List<(string Label, int Score)>
+			{
+				("Label 1", 1),
+				("Label 2", 2),
+				("Label 3", 3),
+				("Label 4", 4),
+				("Label 5", 5),
+			});
+
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 3);
+
+		sut.Labels.Add("Label 3");
+
+		sut.TopSuggestions.Should().ContainInOrder("Label 5", "Label 4", "Label 2");
 	}
 	
 	[Fact]
