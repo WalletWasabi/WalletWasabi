@@ -24,6 +24,7 @@ public class TransactionSummary
 	public long BlockTime { get; set; }
 	public int Size { get; set; }
 	public Money OutputAmount => Outputs.Sum(x => x.Amount);
-	public Money InputAmount => Inputs.Sum(x => x.Amount);
-	public Money Fee => InputAmount - OutputAmount;
+	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
+	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
+	public bool IsSelfSpend => Fee != null && -Amount == Fee;
 }

@@ -34,16 +34,16 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 
 		Fee = transactionSummary.Fee;
-		IsSelfSpend = transactionSummary.Fee.Abs().Equals(transactionSummary.Amount.Abs());
+		IsFeeVisible = transactionSummary.Fee != null && !transactionSummary.IsSelfSpend;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
 
-	public bool IsSelfSpend { get; set; }
+	public bool IsFeeVisible { get; set; }
 
-	public Money Fee { get; set; }
+	public Money? Fee { get; set; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -65,7 +65,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 			return "Incoming";
 		}
 
-		if (IsSelfSpend)
+		if (transactionSummary.IsSelfSpend)
 		{
 			return "Outgoing (transaction fee)";
 		}

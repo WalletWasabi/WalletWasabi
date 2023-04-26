@@ -44,7 +44,7 @@
       <Separator />
 
       <!-- Fee -->
-      <StackPanel IsVisible="{Binding !IsSelfSpend}">
+      <StackPanel IsVisible="{Binding IsFeeVisible}">
         
         <c:PreviewItem Icon="{StaticResource btc_logo}"
                        Label="Fee"
