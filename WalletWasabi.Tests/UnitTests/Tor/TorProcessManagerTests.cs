@@ -1,4 +1,5 @@
 using Moq;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -78,8 +79,10 @@ public class TorProcessManagerTests
 	/// Simulates: Tor OS process is started but by a different OS user. We should throw an exception
 	/// in this case as it is an unsupported scenario at the moment.
 	/// </summary>
-	[Fact]
-	public async Task TorProcessStartedByDifferentUserAsync()
+	[Theory]
+	[InlineData(0)] // No process is returned as Tor is running under a different user (on linux/mac you can's see processes of other users)
+	[InlineData(1)] // Single dummy Tor process is found but cannot be killed
+	public async Task TorProcessStartedByDifferentUserAsync(int runningTorOsProcesses)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
 
@@ -101,12 +104,11 @@ public class TorProcessManagerTests
 
 		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory.Object) { CallBase = true };
 
-		// No process is returned as Tor is running under a different user.
 		mockTorProcessManager.Setup(c => c.GetTorProcesses())
-			.Returns(Array.Empty<Process>());
+			.Returns(runningTorOsProcesses == 0 ? Array.Empty<Process>() : new[] { new Process() /* Dummy process */ });
 
 		// Cookie file is stored in the profile of that different user, not ours.
-		mockTorProcessManager.SetupSequence(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
+		mockTorProcessManager.Setup(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new TorControlException("Cookie file does not exist."));
 
 		await using (TorProcessManager torProcessManager = mockTorProcessManager.Object)

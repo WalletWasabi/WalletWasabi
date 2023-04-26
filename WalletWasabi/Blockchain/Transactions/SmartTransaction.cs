@@ -43,10 +43,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
 		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
-		_isWasabi2Cj = new Lazy<bool>(() => Transaction.Outputs.Count >= 2 // Sanity check.
-					&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
-					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), true); // Outputs are ordered descending.
+		_isWasabi2Cj = new Lazy<bool>(
+			() => Transaction.Outputs.Count >= 2 // Sanity check.
+			&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+			&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
+			isThreadSafe: true);
 	}
 
 	#endregion Constructors
@@ -177,8 +179,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		set
 		{
-			// If it's null, let FirstSeen's default to be set.
-			// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
+			// If it's null, let the default of FirstSeen to be set.
+			// If it's not null, then check if FirstSeen has just been recently set to UtcNow which is its default.
 			if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
 			{
 				FirstSeen = value.Value;
@@ -300,7 +302,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
+	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>
@@ -361,7 +363,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		try
 		{
-			// First is redundant txhash serialization.
+			// First is redundant txHash serialization.
 			var heightString = parts[2];
 			var blockHashString = parts[3];
 			var blockIndexString = parts[4];

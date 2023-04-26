@@ -104,7 +104,7 @@ public partial class MainViewModel : ViewModelBase
 
 		SearchBar = CreateSearchBar();
 
-		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+                NetworkBadgeName = Services.PersistentConfig.Network == Network.Main ? "" : Services.PersistentConfig.Network.Name;
 
 		// TODO: the reason why this MainViewModel singleton is even needed thoughout the codebase is dubious.
 		// Also it causes tight coupling which damages testability.
@@ -177,9 +177,9 @@ public partial class MainViewModel : ViewModelBase
 	{
 		StatusIcon.Initialize();
 
-		if (Services.Config.Network != Network.Main)
+		if (Services.PersistentConfig.Network != Network.Main)
 		{
-			Title += $" - {Services.Config.Network}";
+			Title += $" - {Services.PersistentConfig.Network}";
 		}
 	}
 
