@@ -593,18 +593,18 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public async Task WalletLeftSendWorkflowAsync(Wallet wallet)
+	public void WalletLeftSendWorkflow(Wallet wallet)
 	{
 		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsStatuses.TryRemove(wallet.WalletName, out bool needRestart))
 		{
 			if (needRestart)
 			{
-				await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
+				Task.Run(async () => await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false));
 			}
 		}
 	}
 
-	public async Task WalletEnteredTxPreviewAsync(Wallet wallet)
+	public void WalletEnteredTxPreview(Wallet wallet)
 	{
 		// If wallet is idle, there is nothing to stop.
 		// Don't try to stop in critical phase, otherwise it won't restart automatically.
@@ -614,7 +614,7 @@ public class CoinJoinManager : BackgroundService
 			WalletsStatuses.ContainsKey(wallet.WalletName))
 		{
 			WalletsStatuses[wallet.WalletName] = true;
-			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
+			Task.Run(async () => await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false));
 		}
 	}
 

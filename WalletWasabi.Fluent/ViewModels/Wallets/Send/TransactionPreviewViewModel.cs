@@ -416,7 +416,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (_coinJoinManager is { } coinJoinManager)
 		{
-			Task.Run(async () => await coinJoinManager.WalletEnteredTxPreviewAsync(_wallet));
+			coinJoinManager.WalletEnteredTxPreview(_wallet);
 		}
 
 		Observable

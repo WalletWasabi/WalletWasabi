@@ -350,7 +350,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
 		{
-			Task.Run(async () => await coinJoinManager.WalletLeftSendWorkflowAsync(_wallet));
+			coinJoinManager.WalletLeftSendWorkflow(_wallet);
 		}
 	}
 }
