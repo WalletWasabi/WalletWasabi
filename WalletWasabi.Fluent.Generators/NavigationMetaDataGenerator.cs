@@ -164,15 +164,15 @@ namespace {namespaceName}
 				}
 			}
 
-			//if (attributeData.NamedArguments.Any(x => x.Key == "IconName"))
-			//{
-			//	source.AppendLine($@"        public override string IconName => MetaData.IconName;");
-			//}
+			if (attributeData.NamedArguments.Any(x => x.Key == "IconName"))
+			{
+				source.AppendLine($@"        public string IconName => MetaData.IconName;");
+			}
 
-			//if (attributeData.NamedArguments.Any(x => x.Key == "IconNameFocused"))
-			//{
-			//	source.AppendLine($@"        public override string IconNameFocused => MetaData.IconNameFocused;");
-			//}
+			if (attributeData.NamedArguments.Any(x => x.Key == "IconNameFocused"))
+			{
+				source.AppendLine($@"        public string IconNameFocused => MetaData.IconNameFocused;");
+			}
 		}
 
 

@@ -14,6 +14,7 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isLoading;
+	[AutoNotify] private string? _iconName;
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
 

@@ -276,7 +276,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 			_ => "wallet_24"
 		};
 
-		IconName = $"nav_{baseResourceName}_regular";
-		IconNameFocused = $"nav_{baseResourceName}_filled";
+		//IconName = $"nav_{baseResourceName}_regular";
+		//IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
 }

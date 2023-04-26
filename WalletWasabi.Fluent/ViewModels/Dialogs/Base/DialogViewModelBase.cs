@@ -1,4 +1,3 @@
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -6,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 /// <summary>
 /// CommonBase class.
 /// </summary>
-public abstract partial class DialogViewModelBase : NavBarItemViewModel
+public abstract partial class DialogViewModelBase : RoutableViewModel
 {
 	[AutoNotify] private bool _isDialogOpen;
 }

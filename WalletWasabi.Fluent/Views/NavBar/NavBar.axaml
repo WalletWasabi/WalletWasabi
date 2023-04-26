@@ -28,8 +28,6 @@
       <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
-      <Setter Property="IsSelected" Value="{Binding IsSelected}" />
       <Setter Property="Command" Value="{Binding OpenCommand}" />
     </Style>
 
@@ -143,19 +141,21 @@
         </Interaction.Behaviors>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <c:NavBarItem ToolTip.Tip="{Binding Title}">
-              <Panel>
-                <Ellipse Classes.isLoading="{Binding IsLoading}"
-                         Classes.isLoggedIn="{Binding IsLoggedIn}"
-                         Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
-                <StackPanel>
-                  <PathIcon Classes="new size24" />
-                  <LayoutTransformControl>
-                    <c:FadeOutTextBlock Text="{Binding Title}" />
-                  </LayoutTransformControl>
-                </StackPanel>
-              </Panel>
-            </c:NavBarItem>
+            <Panel ToolTip.Tip="{Binding Title}">
+              <Ellipse Classes.isLoading="{Binding IsLoading}"
+                       Classes.isLoggedIn="{Binding IsLoggedIn}"
+                       Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
+              <StackPanel>
+                <PathIcon Classes="new size24"
+                          Width="24" Height="24"
+                          VerticalAlignment="Center" HorizontalAlignment="Center"
+                          Foreground="{DynamicResource AcrylicTrimForeground}"
+                          Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                <LayoutTransformControl>
+                  <c:FadeOutTextBlock Text="{Binding Title}" />
+                </LayoutTransformControl>
+              </StackPanel>
+            </Panel>
           </DataTemplate>
         </ListBox.DataTemplates>
       </ListBox>
