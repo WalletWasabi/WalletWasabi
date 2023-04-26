@@ -205,7 +205,7 @@ public class IndexStore : IAsyncDisposable
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
 		// <migration-code>
-		// Run migration code once. 
+		// Run migration code once.
 		long runMigration = Interlocked.Exchange(ref _runMigration, 0);
 
 		if (runMigration == 1)
@@ -225,8 +225,8 @@ public class IndexStore : IAsyncDisposable
 
 			return;
 		}
-		// </migration-code>
 
+		// </migration-code>
 		if (NewFilter is null)
 		{
 			// Lock once.
