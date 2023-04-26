@@ -299,8 +299,7 @@ public partial class Arena : PeriodicRunner
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
-					round.LogInfo(
-						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					round.LogInfo($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
 					round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
 					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
