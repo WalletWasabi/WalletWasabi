@@ -33,7 +33,6 @@ public class Global : IDisposable
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
-		HttpClient = new();
 		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
@@ -63,8 +62,6 @@ public class Global : IDisposable
 
 	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
 	public IndexBuilderService TaprootIndexBuilderService { get; }
-
-	private HttpClient HttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Coordinator? Coordinator { get; private set; }
@@ -235,8 +232,6 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
-				HttpClient.Dispose();
-
 				if (Coordinator is { } coordinator)
 				{
 					coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;
