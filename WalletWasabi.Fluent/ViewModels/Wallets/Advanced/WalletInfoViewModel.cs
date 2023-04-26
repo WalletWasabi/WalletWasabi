@@ -7,12 +7,12 @@ using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
-	Title = "Wallet InfoItems",
+	Title = "Wallet Info",
 	Caption = "Display wallet info",
 	IconName = "nav_wallet_24_regular",
 	Order = 4,
 	Category = "Wallet",
-	Keywords = new[] { "Wallet", "InfoItems", },
+	Keywords = new[] { "Wallet", "Info", },
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletInfoViewModel : RoutableViewModel
