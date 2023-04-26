@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -49,6 +48,13 @@ public static class CoinJoinCoinSelector
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
+		// Sanity check.
+		if (!filteredCoins.Any())
+		{
+			Logger.LogInfo("No suitable coins for this round.");
+			return ImmutableList<TCoin>.Empty;
+		}
+
 		var privateCoins = filteredCoins
 			.Where(x => x.IsPrivate(anonScoreTarget))
 			.ToArray();
@@ -63,7 +69,7 @@ public static class CoinJoinCoinSelector
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			// Let's not mess up the logs when this function gets called many times.
+			Logger.LogInfo("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
