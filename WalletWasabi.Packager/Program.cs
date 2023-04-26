@@ -359,7 +359,7 @@ public static class Program
 			}
 			else if (target.StartsWith("osx"))
 			{
-				// Add permission to wassabeehidden.command?
+				// Add permission to wassabeehidden?
 
 				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
