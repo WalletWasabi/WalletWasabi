@@ -57,7 +57,8 @@ public class JsonRpcServer : BackgroundService
 
 					if (IsAuthorized(context))
 					{
-						var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
+						var path = request.Url?.LocalPath ?? string.Empty;
+						var result = await handler.HandleAsync(path, body, stoppingToken).ConfigureAwait(false);
 
 						// result is null only when the request is a notification.
 						if (!string.IsNullOrEmpty(result))

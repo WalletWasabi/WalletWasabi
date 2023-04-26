@@ -1,8 +1,6 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using NBitcoin;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -106,11 +104,9 @@ public class Config
 
 	private static T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, string key)
 	{
-		var cliArgKey = "--" + key + "=";
-		var cliArgOrNull = args.FirstOrDefault(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase));
-		if (cliArgOrNull is { } cliArg)
+		if (ArgumentHelpers.TryGetValue(key, args, converter, out var cliArg))
 		{
-			return converter(cliArg[cliArgKey.Length..]);
+			return cliArg;
 		}
 
 		var envKey = "WASABI-" + key.ToUpperInvariant();

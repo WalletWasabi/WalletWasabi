@@ -20,6 +20,8 @@ using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -60,7 +62,7 @@ public class Program
 
 			var exitCode = await app.RunAsGuiAsync();
 
-			if (exitCode == ExitCode.Ok && Services.UpdateManager.DoUpdateOnClose)
+			if (exitCode == ExitCode.Ok && (Services.UpdateManager?.DoUpdateOnClose ?? false))
 			{
 				Services.UpdateManager.StartInstallingNewVersion();
 			}
@@ -80,8 +82,15 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		MainViewModel.Instance.ClearStacks();
-		MainViewModel.Instance.StatusIcon.Dispose();
+		Dispatcher.UIThread.Post(() =>
+		{
+			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow.Close();
+
+			MainViewModel.Instance.ClearStacks();
+			MainViewModel.Instance.StatusIcon.Dispose();
+
+			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
+		});		
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -143,7 +152,7 @@ public static class WasabiAppExtensions
 	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(
-			() =>
+			afterStarting: () =>
 			{
 				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 				{
@@ -164,15 +173,14 @@ public static class WasabiAppExtensions
 
 				AppBuilder
 					.Configure(() => new App(
-						async () =>
+						backendInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
 							await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
 
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup)
-								.ConfigureAwait(false);
-						}, runGuiInBackground))
+							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+						}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
