@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
-	private RecoveryWordsViewModel(Mnemonic mnemonic, string walletName)
+	public RecoveryWordsViewModel(Mnemonic mnemonic, string walletName)
 	{
 		MnemonicWords = new List<RecoveryWordViewModel>();
 
@@ -55,19 +55,29 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnCopyToClipboardAsync()
 	{
+		if (Application.Current?.Clipboard is null)
+		{
+			return;
+		}
+
 		var text = GetRecoveryWordsString();
 
-		await UiContext.Clipboard.SetTextAsync(text);
+		await Application.Current.Clipboard.SetTextAsync(text);
 	}
 
 	private async Task ClearRecoveryWordsFromClipboardAsync()
 	{
-		var currentText = await UiContext.Clipboard.GetTextAsync();
+		if (Application.Current?.Clipboard is null)
+		{
+			return;
+		}
+
+		var currentText = await Application.Current.Clipboard.GetTextAsync();
 		var recoveryWordsString = GetRecoveryWordsString();
 
 		if (currentText == recoveryWordsString)
 		{
-			await UiContext.Clipboard.ClearAsync();
+			await Application.Current.Clipboard.ClearAsync();
 		}
 	}
 
