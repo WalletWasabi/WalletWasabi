@@ -6,7 +6,7 @@ namespace WalletWasabi.JsonConverters;
 public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
 {
 	/// <inheritdoc />
-	public override SmartLabel? ReadJson(JsonReader reader, Type objectType, SmartLabel? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override SmartLabel ReadJson(JsonReader reader, Type objectType, SmartLabel existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		if (reader.Value is string serialized)
 		{
@@ -17,9 +17,9 @@ public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, SmartLabel? value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, SmartLabel value, JsonSerializer serializer)
 	{
 		var label = value;
-		writer.WriteValue(label ?? "");
+		writer.WriteValue(label);
 	}
 }

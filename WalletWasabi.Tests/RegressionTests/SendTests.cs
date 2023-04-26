@@ -397,17 +397,17 @@ public class SendTests
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Equal(2, res.OuterWalletOutputs.Count());
-			IEnumerable<string> change = res.InnerWalletOutputs.Single().HdPubKey.Label.Labels;
+			IEnumerable<string> change = res.InnerWalletOutputs.Single().HdPubKey.Label;
 			Assert.Contains("outgoing", change);
 			Assert.Contains("outgoing2", change);
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
 			IEnumerable<SmartCoin> unconfirmedCoins = wallet.Coins.Where(x => x.Height == Height.Mempool).ToArray();
-			IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.HdPubKey.Label.Labels).ToArray();
+			IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.HdPubKey.Label).ToArray();
 			Assert.Contains("outgoing", unconfirmedCoinLabels);
 			Assert.Contains("outgoing2", unconfirmedCoinLabels);
-			IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
+			IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label);
 			Assert.Contains("outgoing", allKeyLabels);
 			Assert.Contains("outgoing2", allKeyLabels);
 
@@ -416,10 +416,10 @@ public class SendTests
 			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 			var bestHeight = new Height(bitcoinStore.SmartHeaderChain.TipHeight);
-			IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.HdPubKey.Label.Labels);
+			IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.HdPubKey.Label);
 			Assert.Contains("outgoing", confirmedCoinLabels);
 			Assert.Contains("outgoing2", confirmedCoinLabels);
-			allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
+			allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label);
 			Assert.Contains("outgoing", allKeyLabels);
 			Assert.Contains("outgoing2", allKeyLabels);
 

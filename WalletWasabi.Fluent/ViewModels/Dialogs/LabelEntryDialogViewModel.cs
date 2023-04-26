@@ -21,7 +21,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 		_wallet = wallet;
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
 		{
-			Labels = { label.Labels }
+			Labels = { label.AsEnumerable() }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

@@ -48,7 +48,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 
 		// Make recent and receive labels count more for the current wallet
 		var multiplier = 100;
-		foreach (var label in KeyManager.GetReceiveLabels().Reverse().SelectMany(x => x.Labels))
+		foreach (var label in KeyManager.GetReceiveLabels().Reverse().SelectMany(x => x))
 		{
 			var score = (Intent == Intent.Receive ? 100 : 1) * multiplier;
 			if (!labelPool.TryAdd(label, score))
@@ -63,7 +63,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 		}
 
 		// Receive addresses should be more dominant.
-		foreach (var label in WalletHelpers.GetReceiveAddressLabels().SelectMany(x => x.Labels))
+		foreach (var label in WalletHelpers.GetReceiveAddressLabels().SelectMany(x => x))
 		{
 			var score = Intent == Intent.Receive ? 100 : 1;
 			if (!labelPool.TryAdd(label, score))
@@ -73,7 +73,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 		}
 
 		// Change addresses shouldn't be much dominant, but should be present.
-		foreach (var label in WalletHelpers.GetChangeAddressLabels().SelectMany(x => x.Labels))
+		foreach (var label in WalletHelpers.GetChangeAddressLabels().SelectMany(x => x))
 		{
 			var score = 1;
 			if (!labelPool.TryAdd(label, score))
@@ -83,7 +83,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 		}
 
 		multiplier = 100; // Make recent labels count more.
-		foreach (var label in WalletHelpers.GetTransactionLabels().SelectMany(x => x.Labels).Reverse())
+		foreach (var label in WalletHelpers.GetTransactionLabels().SelectMany(x => x).Reverse())
 		{
 			var score = (Intent == Intent.Send ? 100 : 1) * multiplier;
 			if (!labelPool.TryAdd(label, score))
