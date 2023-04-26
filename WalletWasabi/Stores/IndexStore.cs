@@ -153,8 +153,7 @@ public class IndexStore : IAsyncDisposable
 	{
 		try
 		{
-			// TODO: Replace the message with a new one. Staying with this one to allow comparisons.
-			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading");
+			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "Block filters loading");
 
 			int i = 0;
 
