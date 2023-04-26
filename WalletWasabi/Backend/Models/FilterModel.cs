@@ -55,7 +55,7 @@ public class FilterModel
 				throw new ArgumentException(line, nameof(line));
 			}
 
-			uint blockHeight = uint.Parse(span[0..m1]);
+			uint blockHeight = uint.Parse(span[..m1]);
 			uint256 blockHash = new(Convert.FromHexString(span[(m1 + 1)..m2]), lendian: false);
 			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
 

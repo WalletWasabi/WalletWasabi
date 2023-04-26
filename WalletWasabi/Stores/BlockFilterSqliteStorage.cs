@@ -334,7 +334,7 @@ public class BlockFilterSqliteStorage : IDisposable
 				throw new ArgumentException(line, nameof(line));
 			}
 
-			uint blockHeight = uint.Parse(span[0..m1]);
+			uint blockHeight = uint.Parse(span[..m1]);
 			byte[] blockHash = Convert.FromHexString(span[(m1 + 1)..m2]);
 			Array.Reverse(blockHash);
 			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
