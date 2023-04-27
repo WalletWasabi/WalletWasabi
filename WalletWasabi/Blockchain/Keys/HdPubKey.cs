@@ -111,8 +111,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public void SetLabel(SmartLabel label, KeyManager? kmToFile = null)
 	{
-		label ??= SmartLabel.Empty;
-
 		if (Label == label)
 		{
 			return;
