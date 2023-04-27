@@ -585,13 +585,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public void WalletEnteredSendWorkflow(string walletName)
-	{
-		if (!WalletsInSendWorkflow.TryAdd(walletName, false))
-		{
-			WalletsInSendWorkflow[walletName] = false;
-		}
-	}
+	public void WalletEnteredSendWorkflow(string walletName) => WalletsInSendWorkflow.TryAdd(walletName, false);
 
 	public void WalletLeftSendWorkflow(Wallet wallet)
 	{
