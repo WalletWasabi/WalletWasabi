@@ -35,6 +35,9 @@ public class JsonRpcServer : BackgroundService
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
+
+		// HttpListener is disposable but the dispose method is not public.
+		// That's a quirk of the HttpListener implementation.
 		Listener.Stop();
 	}
 
@@ -46,7 +49,7 @@ public class JsonRpcServer : BackgroundService
 		{
 			try
 			{
-				var context = await GetHttpContextAsync(stoppingToken).ConfigureAwait(false);
+				var context = await Listener.GetContextAsync().WaitAsync(stoppingToken).ConfigureAwait(false);
 				var request = context.Request;
 				var response = context.Response;
 
@@ -107,21 +110,6 @@ public class JsonRpcServer : BackgroundService
 
 		var identity = (HttpListenerBasicIdentity?)user.Identity;
 		return CheckValidCredentials(identity);
-	}
-
-	private async Task<HttpListenerContext> GetHttpContextAsync(CancellationToken cancellationToken)
-	{
-		var getHttpContextTask = Listener.GetContextAsync();
-		var tcs = new TaskCompletionSource<bool>();
-		using (cancellationToken.Register(state => ((TaskCompletionSource<bool>)state).TrySetResult(true), tcs))
-		{
-			var firstTaskToComplete = await Task.WhenAny(getHttpContextTask, tcs.Task).ConfigureAwait(false);
-			if (getHttpContextTask != firstTaskToComplete)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-			}
-		}
-		return await getHttpContextTask.ConfigureAwait(false);
 	}
 
 	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity)
