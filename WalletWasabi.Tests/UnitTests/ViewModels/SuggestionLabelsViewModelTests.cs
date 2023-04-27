@@ -15,7 +15,7 @@ public class SuggestionLabelsViewModelTests
 	[InlineData(3, 3)]
 	[InlineData(100, 5)]
 	[Theory]
-	public void Given_max_top_suggestions_the_suggestion_count_should_match(int maxSuggestions, int expectedSuggestionsCount)
+	public void GivenMaxTopSuggestionsTheSuggestionCountShouldMatch(int maxSuggestions, int expectedSuggestionsCount)
 	{
 		var wallet = new TestWallet(
 			new List<(string Label, int Score)>
@@ -32,7 +32,7 @@ public class SuggestionLabelsViewModelTests
 	}
 
 	[Fact]
-	public void Top_suggestion_is_taken_removes_it()
+	public void WhenLabelIsTakenItShouldNotBeSuggested()
 	{
 		var wallet = new TestWallet(
 			new List<(string Label, int Score)>
@@ -52,7 +52,7 @@ public class SuggestionLabelsViewModelTests
 	}
 
 	[Fact]
-	public void No_labels_have_no_suggestions()
+	public void NoLabelsShouldHaveNoSuggestions()
 	{
 		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
 
@@ -60,7 +60,7 @@ public class SuggestionLabelsViewModelTests
 	}
 
 	[Fact]
-	public void No_labels_have_no_top_suggestions()
+	public void NoLabelsShouldHaveNoTopSuggestions()
 	{
 		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
 
@@ -68,7 +68,7 @@ public class SuggestionLabelsViewModelTests
 	}
 	
 	[Fact]
-	public void Suggestions_should_be_in_correct_order_according_to_score()
+	public void SuggestionsShouldBeInCorrectOrderAccordingToScore()
 	{
 		var mostUsedLabels = new List<(string Label, int Score)>
 		{
@@ -100,7 +100,7 @@ public class SuggestionLabelsViewModelTests
 	}
 
 	[Fact]
-	public void Top_suggestions_should_not_contain_labels_already_chosen()
+	public void SuggestionsShouldNotContainLabelsAlreadyChosen()
 	{
 		var mostUsedLabels = new List<(string Label, int Score)>
 		{
@@ -119,7 +119,7 @@ public class SuggestionLabelsViewModelTests
 	}
 
 	[Fact]
-	public void Top_suggestions_should_be_empty_when_all_labels_are_chosen()
+	public void TopSuggestionsShouldBeEmptyWhenAllLabelsAreChosen()
 	{
 		var mostUsedLabels = new List<(string Label, int Score)>
 		{
