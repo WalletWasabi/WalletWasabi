@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using DynamicData;
-using FluentAssertions;
-using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -30,7 +28,7 @@ public class SuggestionLabelsViewModelTests
 			});
 		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, maxSuggestions);
 
-		sut.TopSuggestions.Count.Should().Be(expectedSuggestionsCount);
+		Assert.Equal(expectedSuggestionsCount, sut.TopSuggestions.Count);
 	}
 
 	[Fact]
@@ -50,7 +48,7 @@ public class SuggestionLabelsViewModelTests
 
 		sut.Labels.Add("Label 3");
 
-		sut.TopSuggestions.Should().ContainInOrder("Label 5", "Label 4", "Label 2");
+		Assert.Equal(new [] { "Label 5", "Label 4", "Label 2" }, sut.TopSuggestions);
 	}
 
 	[Fact]
@@ -58,7 +56,7 @@ public class SuggestionLabelsViewModelTests
 	{
 		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
 
-		sut.Suggestions.Count.Should().Be(0);
+		Assert.Empty(sut.Suggestions);
 	}
 
 	[Fact]
@@ -66,7 +64,7 @@ public class SuggestionLabelsViewModelTests
 	{
 		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
 
-		sut.TopSuggestions.Count.Should().Be(0);
+		Assert.Empty(sut.Suggestions);
 	}
 	
 	[Fact]
@@ -81,7 +79,7 @@ public class SuggestionLabelsViewModelTests
 		var wallet = new TestWallet(mostUsedLabels);
 		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
 
-		sut.Suggestions.Should().ContainInOrder("Label 2", "Label 3", "Label 1");
+		Assert.Equal(new[] { "Label 2", "Label 3", "Label 1" }, sut.Suggestions);
 	}
 
 	[Fact]
@@ -98,7 +96,7 @@ public class SuggestionLabelsViewModelTests
 
 		sut.Labels.Add("Label 3");
 
-		sut.Suggestions.Should().NotContain("Label 3");
+		Assert.DoesNotContain("Label 3, ", sut.Suggestions);
 	}
 
 	[Fact]
@@ -116,7 +114,8 @@ public class SuggestionLabelsViewModelTests
 		sut.Labels.Add("Label 3");
 		sut.Labels.Add("Label 1");
 
-		sut.TopSuggestions.Should().NotContain(new[] { "Label 3", "Label 1" });
+		Assert.DoesNotContain("Label 3", sut.TopSuggestions);
+		Assert.DoesNotContain("Label 1", sut.TopSuggestions);
 	}
 
 	[Fact]
@@ -135,7 +134,7 @@ public class SuggestionLabelsViewModelTests
 		sut.Labels.Add("Label 2");
 		sut.Labels.Add("Label 3");
 
-		sut.TopSuggestions.Should().BeEmpty();
+		Assert.Empty(sut.TopSuggestions);
 	}
 
 	private class TestWallet : IWalletModel
