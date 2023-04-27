@@ -52,6 +52,22 @@ public class SuggestionLabelsViewModelTests
 
 		sut.TopSuggestions.Should().ContainInOrder("Label 5", "Label 4", "Label 2");
 	}
+
+	[Fact]
+	public void No_labels_have_no_suggestions()
+	{
+		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+
+		sut.Suggestions.Count.Should().Be(0);
+	}
+
+	[Fact]
+	public void No_labels_have_no_top_suggestions()
+	{
+		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+
+		sut.TopSuggestions.Count.Should().Be(0);
+	}
 	
 	[Fact]
 	public void Suggestions_should_be_in_correct_order_according_to_score()
