@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using DynamicData;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -67,7 +66,7 @@ public class SuggestionLabelsViewModelTests
 
 		Assert.Empty(sut.Suggestions);
 	}
-	
+
 	[Fact]
 	public void SuggestionsShouldBeInCorrectOrderAccordingToScore()
 	{
