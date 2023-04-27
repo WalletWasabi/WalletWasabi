@@ -13,13 +13,15 @@ public class JsonRpcServer : BackgroundService
 	public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config)
 	{
 		Config = config;
+		Service = service;
+
 		Listener = new HttpListener();
 		Listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
+
 		foreach (var prefix in Config.Prefixes)
 		{
 			Listener.Prefixes.Add(prefix);
 		}
-		Service = service;
 	}
 
 	private HttpListener Listener { get; }
