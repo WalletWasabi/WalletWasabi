@@ -41,6 +41,12 @@ public class IndexStore : IAsyncDisposable
 			File.Delete(indexFilePath);
 			throw;
 		}
+
+		if (network == Network.RegTest)
+		{
+			IndexStorage.Clear(); // RegTest is not a global ledger, better to delete it.
+			IndexStorage.TryAppend(StartingFilters.GetStartingFilter(Network.RegTest));
+		}
 	}
 
 	public event EventHandler<FilterModel>? Reorged;
