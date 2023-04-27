@@ -102,6 +102,18 @@
     <Style Selector="c|NavBarItem Ellipse.isLoggedIn.isCoinjoining">
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
+
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="PathIcon.wallet" x:DataType="vmw:WalletPageViewModel">
+      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
+
+    <Style Selector="PathIcon.wallet.isfocused" x:DataType="vmw:WalletPageViewModel">
+      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
@@ -141,18 +153,29 @@
         </Interaction.Behaviors>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <Panel ToolTip.Tip="{Binding Title}">
+            <Panel ToolTip.Tip="{Binding Title}"
+                   Width="75"
+                   Height="58"
+                   Margin="4 1"
+                   Cursor="Hand">
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
-              <StackPanel>
-                <PathIcon Classes="new size24"
+              <StackPanel VerticalAlignment="Center" Spacing="2">
+                <PathIcon Classes="new size24 wallet"
+                          Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}"
                           Width="24" Height="24"
                           VerticalAlignment="Center" HorizontalAlignment="Center"
-                          Foreground="{DynamicResource AcrylicTrimForeground}"
-                          Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-                <LayoutTransformControl>
-                  <c:FadeOutTextBlock Text="{Binding Title}" />
+                          Foreground="{DynamicResource AcrylicTrimForeground}" />
+                <LayoutTransformControl LayoutTransform="scaleY(1)"
+                                        Opacity="1">
+                  <LayoutTransformControl.Transitions>
+                    <Transitions>
+                      <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
+                    </Transitions>
+                  </LayoutTransformControl.Transitions>
+                  <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
                 </LayoutTransformControl>
               </StackPanel>
             </Panel>

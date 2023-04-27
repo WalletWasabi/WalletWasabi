@@ -151,8 +151,6 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	{
 		_title = WalletName;
 
-		SetIcon();
-
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
 			.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
@@ -262,21 +260,5 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		}
 
 		yield return new BtcPriceTileViewModel(Wallet);
-	}
-
-	private void SetIcon()
-	{
-		var walletType = WalletHelpers.GetType(Wallet.KeyManager);
-
-		var baseResourceName = walletType switch
-		{
-			WalletType.Coldcard => "coldcard_24",
-			WalletType.Trezor => "trezor_24",
-			WalletType.Ledger => "ledger_24",
-			_ => "wallet_24"
-		};
-
-		//IconName = $"nav_{baseResourceName}_regular";
-		//IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
 }

@@ -15,6 +15,7 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isLoading;
 	[AutoNotify] private string? _iconName;
+	[AutoNotify] private string? _iconNameFocused;
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
 
@@ -25,6 +26,8 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 		// TODO: Finish partial refactor
 		// Wallet property must be removed
 		Wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
+
+		SetIcon();
 	}
 
 	public IWalletModel WalletModel { get; }
@@ -79,5 +82,21 @@ public partial class WalletPageViewModel : StandaloneActivatableViewModel
 		WalletViewModel = WalletViewModel.Create(UiContext, this);
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
+	}
+
+	private void SetIcon()
+	{
+		var walletType = WalletModel.WalletType;
+
+		var baseResourceName = walletType switch
+		{
+			WalletType.Coldcard => "coldcard_24",
+			WalletType.Trezor => "trezor_24",
+			WalletType.Ledger => "ledger_24",
+			_ => "wallet_24"
+		};
+
+		IconName = $"nav_{baseResourceName}_regular";
+		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
 }
