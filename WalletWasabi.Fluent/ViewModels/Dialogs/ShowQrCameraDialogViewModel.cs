@@ -41,12 +41,14 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.Subscribe(args => Close(DialogResultKind.Normal, args.EventArgs))
 			.DisposeWith(disposables);
 
-		Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
+		Observable.FromEventPattern<(string, string)>(_qrReader, nameof(_qrReader.InvalidAddressFound))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(args =>
 			{
-				ErrorMessage = "No valid Bitcoin address found";
-				QrContent = args.EventArgs;
+				(string errorMessage, string qrContent) = args.EventArgs;
+
+				ErrorMessage = errorMessage;
+				QrContent = qrContent;
 			})
 			.DisposeWith(disposables);
 

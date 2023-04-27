@@ -36,11 +36,16 @@ public static class AddressStringParser
 	}
 
 	public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
+		=> TryParseBitcoinUrl(text, expectedNetwork, out _, out url);
+
+	public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
 	{
+		errorMessage = null;
 		url = null;
 
 		if (text is null || expectedNetwork is null)
 		{
+			errorMessage = "Internal error.";
 			return false;
 		}
 
@@ -48,36 +53,71 @@ public static class AddressStringParser
 
 		if (text.Length is > 1000 or < 20)
 		{
+			errorMessage = "Input length is invalid.";
 			return false;
 		}
 
-		try
+		if (!text.StartsWith("bitcoin:", true, CultureInfo.InvariantCulture))
 		{
-			if (!text.StartsWith("bitcoin:", true, CultureInfo.InvariantCulture))
-			{
-				return false;
-			}
+			errorMessage = "'bitcoin:' prefix is missing.";
+			return false;
+		}
 
-			BitcoinUrlBuilder bitcoinUrl = new(text, expectedNetwork);
-			if (bitcoinUrl.Address is { } address && address.Network == expectedNetwork)
+		if (TryGetBitcoinUrlBuilder(text, expectedNetwork, out BitcoinUrlBuilder? builder))
+		{
+			if (builder.Address is { } address && address.Network == expectedNetwork)
 			{
-				url = bitcoinUrl;
+				url = builder;
 				return true;
+			}
+			else
+			{
+				errorMessage = "Failed to parse a Bitcoin address.";
 			}
 
 			return false;
+		}
+
+		Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
+
+		if (TryGetBitcoinUrlBuilder(text, networkGuess, out builder))
+		{
+			if (builder.Address is { } address)
+			{
+				errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
+				return false; 
+			}
+		}
+
+		errorMessage = "Failed to parse Bitcoin URI.";
+		return false;
+	}
+
+	private static bool TryGetBitcoinUrlBuilder(string text, Network network, [NotNullWhen(true)] out BitcoinUrlBuilder? builder)
+	{
+		try
+		{
+			builder = new(text, network);
+			return true;
 		}
 		catch (FormatException)
 		{
+			builder = null;
 			return false;
 		}
 	}
 
 	public static bool TryParse(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? result)
+		=> TryParse(text, expectedNetwork, out _, out result);
+
+	public static bool TryParse(string text, Network expectedNetwork, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out BitcoinUrlBuilder? result)
 	{
+		errorMessage = null;
 		result = null;
+
 		if (string.IsNullOrWhiteSpace(text) || text.Length > 1000)
 		{
+			errorMessage = "Input is too long.";
 			return false;
 		}
 
@@ -88,12 +128,13 @@ public static class AddressStringParser
 		}
 		else
 		{
-			if (TryParseBitcoinUrl(text, expectedNetwork, out BitcoinUrlBuilder? urlResult))
+			if (TryParseBitcoinUrl(text, expectedNetwork, out errorMessage, out BitcoinUrlBuilder? urlResult))
 			{
 				result = urlResult;
 				return true;
 			}
 		}
+
 		return false;
 	}
 }

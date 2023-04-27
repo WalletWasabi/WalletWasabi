@@ -26,7 +26,7 @@ public class WebcamQrReader : PeriodicRunner
 
 	public event EventHandler<string>? CorrectAddressFound;
 
-	public event EventHandler<string>? InvalidAddressFound;
+	public event EventHandler<(string errorMessage, string qrContent)>? InvalidAddressFound;
 
 	public event EventHandler<Exception>? ErrorOccurred;
 
@@ -98,13 +98,13 @@ public class WebcamQrReader : PeriodicRunner
 			Result? result = Decoder?.DecodeBitmap(bitmap);
 			if (result is { })
 			{
-				if (AddressStringParser.TryParse(result.Text, Network, out _))
+				if (AddressStringParser.TryParse(result.Text, Network, out string? errorMessage, out _))
 				{
 					CorrectAddressFound?.Invoke(this, result.Text);
 				}
 				else
 				{
-					InvalidAddressFound?.Invoke(this, result.Text);
+					InvalidAddressFound?.Invoke(this, (errorMessage, result.Text));
 				}
 			}
 		}
