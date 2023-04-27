@@ -48,7 +48,7 @@ public class SuggestionLabelsViewModelTests
 
 		sut.Labels.Add("Label 3");
 
-		Assert.Equal(new [] { "Label 5", "Label 4", "Label 2" }, sut.TopSuggestions);
+		Assert.Equal(new[] { "Label 5", "Label 4", "Label 2" }, sut.TopSuggestions);
 	}
 
 	[Fact]
