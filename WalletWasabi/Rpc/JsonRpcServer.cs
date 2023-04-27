@@ -13,7 +13,7 @@ public class JsonRpcServer : BackgroundService
 	public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config)
 	{
 		Config = config;
-		Service = service;
+		RequestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service);
 
 		Listener = new HttpListener();
 		Listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
@@ -25,7 +25,7 @@ public class JsonRpcServer : BackgroundService
 	}
 
 	private HttpListener Listener { get; }
-	private IJsonRpcService Service { get; }
+	private JsonRpcRequestHandler<IJsonRpcService> RequestHandler { get; }
 	private JsonRpcServerConfiguration Config { get; }
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
@@ -45,8 +45,6 @@ public class JsonRpcServer : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var handler = new JsonRpcRequestHandler<IJsonRpcService>(Service);
-
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			try
@@ -63,7 +61,7 @@ public class JsonRpcServer : BackgroundService
 					if (IsAuthorized(context))
 					{
 						var path = request.Url?.LocalPath ?? string.Empty;
-						var result = await handler.HandleAsync(path, body, stoppingToken).ConfigureAwait(false);
+						var result = await RequestHandler.HandleAsync(path, body, stoppingToken).ConfigureAwait(false);
 
 						// result is null only when the request is a notification.
 						if (!string.IsNullOrEmpty(result))
