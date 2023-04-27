@@ -41,15 +41,12 @@ public class IndexStore : IAsyncDisposable
 			File.Delete(indexFilePath);
 			throw;
 		}
-
-		if (network == Network.RegTest)
-		{
-			IndexStorage.Clear(); // RegTest is not a global ledger, better to delete it.
-		}
 	}
 
 	public event EventHandler<FilterModel>? Reorged;
+
 	public event EventHandler<FilterModel>? NewFilter;
+
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Filter disk storage.</summary>
