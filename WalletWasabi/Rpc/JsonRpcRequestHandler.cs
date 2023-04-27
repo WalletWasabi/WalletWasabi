@@ -16,6 +16,7 @@ namespace WalletWasabi.Rpc;
 /// methods and handles the errors.
 /// </summary>
 public class JsonRpcRequestHandler<TService>
+	where TService : notnull
 {
 	private static readonly JsonSerializerSettings DefaultSettings = new()
 	{
