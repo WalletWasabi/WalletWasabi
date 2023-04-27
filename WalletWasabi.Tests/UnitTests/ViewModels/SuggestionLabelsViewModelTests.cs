@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DynamicData;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -146,11 +147,10 @@ public class SuggestionLabelsViewModelTests
 			_mostUsedLabels = mostUsedLabels;
 		}
 
-		public string Name { get; }
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
-
-		public IObservable<Money> Balance { get; }
-		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+		public string Name => throw new NotSupportedException();
+		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
+		public IObservable<Money> Balance => throw new NotSupportedException();
+		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
