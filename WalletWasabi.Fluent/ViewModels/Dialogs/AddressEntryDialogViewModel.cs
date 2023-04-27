@@ -30,7 +30,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 	private bool _amountUrlFound;
 	private BitcoinUrlBuilder? _resultToReturn;
 
-	public AddressEntryDialogViewModel(Network network)
+	private AddressEntryDialogViewModel(Network network)
 	{
 		_network = network;
 
@@ -46,7 +46,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 		QrCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			ShowQrCameraDialogViewModel dialog = new(_network);
+			ShowQrCameraDialogViewModel dialog = new(UiContext, _network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 			if (!string.IsNullOrWhiteSpace(result.Result))
 			{

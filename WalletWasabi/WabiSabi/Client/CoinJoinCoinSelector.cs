@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -49,6 +48,13 @@ public static class CoinJoinCoinSelector
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
+		// Sanity check.
+		if (!filteredCoins.Any())
+		{
+			Logger.LogInfo("No suitable coins for this round.");
+			return ImmutableList<TCoin>.Empty;
+		}
+
 		var privateCoins = filteredCoins
 			.Where(x => x.IsPrivate(anonScoreTarget))
 			.ToArray();
@@ -56,14 +62,14 @@ public static class CoinJoinCoinSelector
 			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
 			.ToArray();
 
-		// redCoins will only fill up if redCoinIsolaton is turned on. Otherwise the coin will be in semiPrivateCoins.
+		// redCoins will only fill up if redCoinIsolation is turned on. Otherwise the coin will be in semiPrivateCoins.
 		var redCoins = filteredCoins
 			.Where(x => x.IsRedCoin(semiPrivateThreshold))
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			// Let's not mess up the logs when this function gets called many times.
+			Logger.LogInfo("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -259,7 +265,7 @@ public static class CoinJoinCoinSelector
 		{
 			List<TCoin> bestReducedWinner = winner;
 			var bestAnonLoss = winnerAnonLoss;
-			bool winnerchanged = false;
+			bool winnerChanged = false;
 
 			// We always want to keep the non-private coins.
 			foreach (TCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
@@ -271,11 +277,11 @@ public static class CoinJoinCoinSelector
 				{
 					bestAnonLoss = anonLoss;
 					bestReducedWinner = reducedWinner.ToList();
-					winnerchanged = true;
+					winnerChanged = true;
 				}
 			}
 
-			if (!winnerchanged)
+			if (!winnerChanged)
 			{
 				break;
 			}

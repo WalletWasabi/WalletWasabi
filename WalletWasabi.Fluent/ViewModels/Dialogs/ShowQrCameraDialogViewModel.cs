@@ -5,6 +5,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;
 
@@ -18,11 +19,12 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	[AutoNotify] private string _errorMessage = "";
 	[AutoNotify] private string _qrContent = "";
 
-	public ShowQrCameraDialogViewModel(Network network)
+	public ShowQrCameraDialogViewModel(UiContext context, Network network)
 	{
 		_network = network;
 		
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		UiContext = context;
 	}
 
 	private CancellationTokenSource CancellationTokenSource { get; } = new();
