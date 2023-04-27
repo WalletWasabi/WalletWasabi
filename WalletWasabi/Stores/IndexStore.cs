@@ -28,6 +28,11 @@ public class IndexStore : IAsyncDisposable
 
 		string indexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
 
+		if (network == Network.RegTest)
+		{
+			File.Delete(indexFilePath);
+		}
+
 		try
 		{
 			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
@@ -40,12 +45,6 @@ public class IndexStore : IAsyncDisposable
 			SqliteConnection.ClearAllPools();
 			File.Delete(indexFilePath);
 			throw;
-		}
-
-		if (network == Network.RegTest)
-		{
-			IndexStorage.Clear(); // RegTest is not a global ledger, better to delete it.
-			IndexStorage.TryAppend(StartingFilters.GetStartingFilter(Network.RegTest));
 		}
 	}
 
