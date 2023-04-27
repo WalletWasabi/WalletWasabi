@@ -46,7 +46,7 @@ public class CoinJoinManager : BackgroundService
 	/// The Dictionary is used for tracking the wallets that are in send workflow.
 	/// The boolean value indicates if the CJ needs to be restarted or not after the send workflow.
 	/// </summary>
-	private ConcurrentDictionary<string, bool> WalletsStatuses { get; } = new();
+	private ConcurrentDictionary<string, bool> WalletsInSendWorkflow { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
 		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
@@ -161,7 +161,7 @@ public class CoinJoinManager : BackgroundService
 
 			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				if (WalletsStatuses.TryGetValue(walletToStart.WalletName, out bool needRestart) && !needRestart)
+				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 				{
 					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 				}
@@ -587,15 +587,15 @@ public class CoinJoinManager : BackgroundService
 
 	public void WalletEnteredSendWorkflow(string walletName)
 	{
-		if (!WalletsStatuses.TryAdd(walletName, false))
+		if (!WalletsInSendWorkflow.TryAdd(walletName, false))
 		{
-			WalletsStatuses[walletName] = false;
+			WalletsInSendWorkflow[walletName] = false;
 		}
 	}
 
 	public void WalletLeftSendWorkflow(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsStatuses.TryRemove(wallet.WalletName, out bool needRestart))
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsInSendWorkflow.TryRemove(wallet.WalletName, out bool needRestart))
 		{
 			if (needRestart)
 			{
@@ -611,9 +611,9 @@ public class CoinJoinManager : BackgroundService
 		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) &&
 			stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle &&
 			stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase &&
-			WalletsStatuses.ContainsKey(wallet.WalletName))
+			WalletsInSendWorkflow.ContainsKey(wallet.WalletName))
 		{
-			WalletsStatuses[wallet.WalletName] = true;
+			WalletsInSendWorkflow[wallet.WalletName] = true;
 			Task.Run(async () => await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false));
 		}
 	}
