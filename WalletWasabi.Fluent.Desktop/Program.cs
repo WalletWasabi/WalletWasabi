@@ -187,7 +187,10 @@ public static class WasabiAppExtensions
 					.AfterSetup(_ =>
 					{
 						var platformGraphics = AvaloniaLocator.CurrentMutable.GetService<IPlatformGraphics>();
-						Logger.LogInfo($"Renderer: {(platformGraphics?.GetSharedContext() as IGlContext)?.GlInterface.Renderer ?? "Avalonia Software"}");
+						var renderer = platformGraphics?.UsesSharedContext == true
+							? (platformGraphics?.GetSharedContext() as IGlContext)?.GlInterface.Renderer
+							: null;
+						Logger.LogInfo($"Renderer: {renderer ?? "Avalonia Software"}");
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
