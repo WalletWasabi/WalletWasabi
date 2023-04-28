@@ -43,10 +43,8 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
+		CoinJoinCoinSelector coinJoinCoinSelector,
 		LiquidityClueProvider liquidityClueProvider,
-		int anonScoreTarget = int.MaxValue,
-		bool consolidationMode = false,
-		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
@@ -54,11 +52,9 @@ public class CoinJoinClient
 		KeyChain = keyChain;
 		DestinationProvider = destinationProvider;
 		RoundStatusUpdater = roundStatusUpdater;
-		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
-		ConsolidationMode = consolidationMode;
-		SemiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
+		CoinJoinCoinSelector = coinJoinCoinSelector;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -73,12 +69,9 @@ public class CoinJoinClient
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
-	private int AnonScoreTarget { get; }
+	private CoinJoinCoinSelector CoinJoinCoinSelector { get; } 
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
-	private bool ConsolidationMode { get; set; }
-	private bool RedCoinIsolation { get; }
-	private int SemiPrivateThreshold { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
@@ -154,7 +147,7 @@ public class CoinJoinClient
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters);
 
-			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
+			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, liquidityClue);
 
 			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{

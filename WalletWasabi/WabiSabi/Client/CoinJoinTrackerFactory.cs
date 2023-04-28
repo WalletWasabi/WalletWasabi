@@ -41,16 +41,15 @@ public class CoinJoinTrackerFactory
 			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
+		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			wallet.KeyChain,
 			wallet.DestinationProvider,
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
+			coinSelector,
 			LiquidityClueProvider,
-			wallet.AnonScoreTarget,
-			consolidationMode: wallet.ConsolidationMode,
-			redCoinIsolation: wallet.RedCoinIsolation,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
