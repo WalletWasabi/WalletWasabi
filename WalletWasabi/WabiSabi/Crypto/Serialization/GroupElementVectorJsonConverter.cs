@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Text.Json;
 using Newtonsoft.Json;
 using WabiSabi.Crypto.Groups;
-using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
