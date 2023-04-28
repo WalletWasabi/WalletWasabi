@@ -470,6 +470,14 @@ public class TagsBox : TemplatedControl
 		InvalidateWatermark();
 	}
 
+	public void AddTag(object? value)
+	{
+		if (value is string tag)
+		{
+			AddTag(tag);
+		}
+	}
+
 	public void AddTag(string tag)
 	{
 		var inputTag = tag;
