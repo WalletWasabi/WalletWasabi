@@ -52,7 +52,7 @@
                           Margin="0,0,6,0"
                           Focusable="False"
                           Content="{Binding}"
-                          Command="{Binding #PART_DockPanel.TemplatedParent.AddTag}"
+                          Command="{Binding $parent[TextBox].AddTag}"
                           CommandParameter="{Binding }"
                           x:CompileBindings="False" />
                 </DataTemplate>
@@ -76,7 +76,7 @@
                       <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                           <c:TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                  Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}"
+                                                  Items="{Binding $parent[TextBox].Suggestions}"
                                                   FilterMode="StartsWith" />
                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                       </c:ConcatenatingWrapPanel>
@@ -85,8 +85,8 @@
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <c:TagControl Content="{Binding .}"
-                                    EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}"
-                                    EnableDelete="{Binding #PART_DockPanel.TemplatedParent.EnableDelete}" />
+                                    EnableCounter="{Binding $parent[TextBox].EnableCounter}"
+                                    EnableDelete="{Binding $parent[TextBox].EnableDelete}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -126,7 +126,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <c:TagControl Content="{Binding .}"
-                                  EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}" />
+                                  EnableCounter="{Binding $parent[TextBox].EnableCounter}" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
