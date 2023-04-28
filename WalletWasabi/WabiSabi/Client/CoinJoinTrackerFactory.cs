@@ -40,7 +40,7 @@ public class CoinJoinTrackerFactory
 		}
 
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
-		var outputProvider = new OutputProvider(outputWallet.DestinationProvider, InsecureRandom.Instance);
+		var outputProvider = new PaymentAwareOutputProvider(outputWallet.DestinationProvider);
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			wallet.KeyChain,
