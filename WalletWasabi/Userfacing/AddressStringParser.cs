@@ -70,23 +70,17 @@ public static class AddressStringParser
 				url = builder;
 				return true;
 			}
-			else
-			{
-				errorMessage = "Failed to parse a Bitcoin address.";
-			}
 
+			errorMessage = "Failed to parse a Bitcoin address.";
 			return false;
 		}
 
 		Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
 
-		if (TryGetBitcoinUrlBuilder(text, networkGuess, out builder))
+		if (TryGetBitcoinUrlBuilder(text, networkGuess, out builder) && builder.Address is { })
 		{
-			if (builder.Address is { } address)
-			{
-				errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
-				return false; 
-			}
+			errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
+			return false;
 		}
 
 		errorMessage = "Failed to parse Bitcoin URI.";
