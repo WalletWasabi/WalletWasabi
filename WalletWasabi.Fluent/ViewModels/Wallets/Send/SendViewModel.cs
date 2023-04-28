@@ -127,6 +127,11 @@ public partial class SendViewModel : RoutableViewModel
 					SubtractFee = amount == _wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
 				};
 
+				if (_coinJoinManager is { } coinJoinManager)
+				{
+					coinJoinManager.WalletEnteredSending(_wallet);
+				}
+
 				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
 			},
 			nextCommandCanExecute);

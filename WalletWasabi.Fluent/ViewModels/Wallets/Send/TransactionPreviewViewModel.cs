@@ -33,7 +33,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
 	private readonly WalletViewModel _walletViewModel;
-	private readonly CoinJoinManager? _coinJoinManager;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
@@ -52,7 +51,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
-		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
@@ -413,11 +411,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
-
-		if (_coinJoinManager is { } coinJoinManager)
-		{
-			coinJoinManager.WalletEnteredSending(_wallet);
-		}
 
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
