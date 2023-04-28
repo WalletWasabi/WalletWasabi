@@ -598,7 +598,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public void WalletEnteredSending(Wallet wallet)
+	public async Task WalletEnteredSendingAsync(Wallet wallet)
 	{
 		// If wallet is idle, there is nothing to stop.
 		// Don't try to stop in critical phase, otherwise it won't restart automatically.
@@ -608,7 +608,7 @@ public class CoinJoinManager : BackgroundService
 			WalletsInSendWorkflow.ContainsKey(wallet.WalletName))
 		{
 			WalletsInSendWorkflow[wallet.WalletName] = true;
-			Task.Run(async () => await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false));
+			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 
