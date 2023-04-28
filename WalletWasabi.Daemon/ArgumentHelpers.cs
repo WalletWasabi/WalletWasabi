@@ -9,8 +9,14 @@ public static class ArgumentHelpers
 	public static bool TryGetValue<T>(string key, string[] args, Func<string, T> converter, [NotNullWhen(true)] out T? value)
 	{
 		var values = GetValues(key, args, converter);
-		value = values.FirstOrDefault();
-		return !Equals(value, default(T));
+		if (values.Length > 0)
+		{
+			value = values[0];
+			return value != null;
+		}
+
+		value = default;
+		return false;
 	}
 
 	public static T[] GetValues<T>(string key, string[] args, Func<string, T> converter)
