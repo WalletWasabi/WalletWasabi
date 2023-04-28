@@ -30,10 +30,9 @@ public class UiContextGenerator : ISourceGenerator
 			return;
 		}
 
-		var ctors =
-			ProcessViewModels(context, receiver.ClassDeclarations)
-				.OrderBy(x => x.Identifier.ValueText)
-				.ToList();
+		var ctors = ProcessViewModels(context, receiver.ClassDeclarations)
+						.OrderBy(x => x.Identifier.ValueText)
+						.ToList();
 
 		GenerateFluentNavigation(context, ctors);
 	}
