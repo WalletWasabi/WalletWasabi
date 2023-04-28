@@ -598,7 +598,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public void WalletEnteredTxPreview(Wallet wallet)
+	public void WalletEnteredSending(Wallet wallet)
 	{
 		// If wallet is idle, there is nothing to stop.
 		// Don't try to stop in critical phase, otherwise it won't restart automatically.
