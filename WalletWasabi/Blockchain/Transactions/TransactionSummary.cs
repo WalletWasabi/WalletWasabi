@@ -19,10 +19,6 @@ public class TransactionSummary
 	public bool IsOwnCoinjoin { get; set; }
 	public IEnumerable<Output> Outputs { get; set; }
 	public IEnumerable<Input> Inputs { get; set; }
-	public int VirtualSize { get; set; }
-	public int Version { get; set; }
-	public long BlockTime { get; set; }
-	public int Size { get; set; }
 	public Money OutputAmount => Outputs.Sum(x => x.Amount);
 	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
