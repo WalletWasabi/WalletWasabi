@@ -40,7 +40,7 @@ public class CoinJoinClient
 	public CoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
-		IDestinationProvider destinationProvider,
+		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
@@ -50,7 +50,7 @@ public class CoinJoinClient
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
-		DestinationProvider = destinationProvider;
+		OutputProvider = outputProvider;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
@@ -65,7 +65,7 @@ public class CoinJoinClient
 	private SecureRandom SecureRandom { get; }
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
-	private IDestinationProvider DestinationProvider { get; }
+	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
@@ -695,17 +695,11 @@ public class CoinJoinClient
 		// Calculate outputs values
 		var constructionState = roundState.Assert<ConstructionState>();
 
-		// Get the output's size and its of the input that will spend it in the future.
-		// Here we assume all the outputs share the same scriptpubkey type.
-		var isTaprootAllowed = roundParameters.AllowedOutputTypes.Contains(ScriptType.Taproot);
-
-		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, (int)availableVsize, isTaprootAllowed);
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 
-		var outputTxOuts = GetTxOuts(outputValues, DestinationProvider).ToArray();
+		var outputTxOuts = OutputProvider.GetOutputs(roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsize).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
@@ -735,28 +729,6 @@ public class CoinJoinClient
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
-		return outputTxOuts;
-	}
-
-	internal static IEnumerable<TxOut> GetTxOuts(IEnumerable<Output> outputValues, IDestinationProvider destinationProvider)
-	{
-		// Get as many destinations as outputs we need.
-		var taprootOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.Taproot);
-		var taprootScripts = new Stack<IDestination>(destinationProvider.GetNextDestinations(taprootOutputCount, preferTaproot: true));
-		var segwitOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.P2WPKH);
-		var segwitScripts = new Stack<IDestination>(destinationProvider.GetNextDestinations(segwitOutputCount, preferTaproot: false));
-
-		List<TxOut> outputTxOuts = new();
-		foreach (var output in outputValues)
-		{
-			var destinationStack = output.ScriptType is ScriptType.Taproot
-				? taprootScripts
-				: segwitScripts;
-
-			var destination = destinationStack.Pop();
-			var txOut = new TxOut(output.Amount, destination.ScriptPubKey);
-			outputTxOuts.Add(txOut);
-		}
 		return outputTxOuts;
 	}
 
