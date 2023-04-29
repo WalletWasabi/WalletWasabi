@@ -88,6 +88,11 @@ public class TerminateService
 		e.Cancel = true;
 
 		// ... instead signal back that the app should terminate.
+		SignalTerminate();
+	}
+
+	public void SignalTerminate()
+	{
 		if (TerminationRequested.TrySetResult())
 		{
 			// Run this callback just once.

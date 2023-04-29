@@ -293,10 +293,17 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("stop", initializable: false)]
-	public async Task StopAsync()
+	public Task StopAsync()
 	{
 		// RPC terminating itself so it should not block this call while the RPC interface is stopping.
-		await Task.Run(() => TerminateService.Terminate());
+		Task.Run(async () =>
+		{
+			// Give some breathing room to send response to the user.
+			await Task.Delay(500).ConfigureAwait(false);
+			TerminateService.SignalTerminate();
+		});
+
+		return Task.CompletedTask;
 	}
 
 	private void AssertWalletIsLoaded()
