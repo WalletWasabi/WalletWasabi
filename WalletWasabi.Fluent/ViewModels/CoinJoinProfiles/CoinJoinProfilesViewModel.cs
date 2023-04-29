@@ -46,10 +46,18 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		var currentProfile = new ManualCoinJoinProfileViewModel(keyManager);
 		var result = DefaultProfiles.FirstOrDefault(x => x == currentProfile) ?? currentProfile;
 
-		// Edge case: Update the PrivateCJProfile anonscore target, otherwise the randomly selected value will be displayed all time.
+		// Update the anonscore target, otherwise the randomly selected value will be displayed all time.
 		if (result is PrivateCoinJoinProfileViewModel)
 		{
 			result = new PrivateCoinJoinProfileViewModel(keyManager.AnonScoreTarget);
+		}
+		else if (result is SpeedyCoinJoinProfileViewModel)
+		{
+			result = new SpeedyCoinJoinProfileViewModel(keyManager.AnonScoreTarget);
+		}
+		else if (result is EconomicCoinJoinProfileViewModel)
+		{
+			result = new EconomicCoinJoinProfileViewModel(keyManager.AnonScoreTarget);
 		}
 
 		return result;

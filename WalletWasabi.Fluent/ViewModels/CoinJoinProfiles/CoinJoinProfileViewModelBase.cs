@@ -1,3 +1,5 @@
+using WalletWasabi.Crypto.Randomness;
+
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public abstract class CoinJoinProfileViewModelBase : ViewModelBase
@@ -6,11 +8,16 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public abstract string Description { get; }
 
-	public virtual int AnonScoreTarget { get; } = 5;
+	public virtual int AnonScoreTarget { get; }
 
 	public virtual bool RedCoinIsolation { get; } = false;
 
 	public virtual int FeeRateMedianTimeFrameHours { get; }
+
+	protected static int GetRandom(int minInclusive, int maxExclusive)
+	{
+		return SecureRandom.Instance.GetInt(minInclusive, maxExclusive);
+	}
 
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
 	{
