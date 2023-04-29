@@ -7,7 +7,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	// https://github.com/zkSNACKs/WalletWasabi/pull/10468#issuecomment-1506284198
 	public const int MinAnonScore = 27;
 
-	public const int MaxAnonScore = 76;
+	public const int MaxAnonScore = 75;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
 	{
@@ -16,7 +16,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public PrivateCoinJoinProfileViewModel()
 	{
-		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore);
+		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore + 1);
 	}
 
 	public override string Title => "Maximize Privacy";

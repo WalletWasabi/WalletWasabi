@@ -12,7 +12,7 @@ internal class EconomicCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public EconomicCoinJoinProfileViewModel()
 	{
-		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore);
+		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore + 1);
 	}
 
 	public override string Title => "Minimize Costs";

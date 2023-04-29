@@ -12,7 +12,7 @@ internal class SpeedyCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public SpeedyCoinJoinProfileViewModel()
 	{
-		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore);
+		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore + 1);
 	}
 
 	public override string Title => "Maximize Speed";
