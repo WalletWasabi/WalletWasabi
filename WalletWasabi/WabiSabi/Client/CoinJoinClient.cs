@@ -156,6 +156,14 @@ public class CoinJoinClient
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
 
+			if (SecureRandom.Instance.GetInt(1, 11) == 1)
+			{
+				excludeRound = currentRoundState.Id;
+				currentRoundState.LogInfo($"Skipping the round randomly.");
+
+				continue;
+			}
+
 			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
 				excludeRound = currentRoundState.Id;
