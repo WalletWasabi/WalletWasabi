@@ -107,7 +107,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
-		KeyManager keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
 
 		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
 
