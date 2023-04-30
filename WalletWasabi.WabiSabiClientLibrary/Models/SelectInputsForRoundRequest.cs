@@ -22,5 +22,6 @@ public record SelectInputsForRoundRequest(
 	int AnonScoreTarget,
 	int SemiPrivateThreshold,
 	Money LiquidityClue,
-	bool ConsolidationMode = false
+	bool ConsolidationMode = false,
+	bool DoNotSelectPrivateCoins = false
 );
