@@ -16,12 +16,13 @@ public class AmountDecomposer
 	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
 	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int availableVsize, bool isTaprootAllowed, WasabiRandom random)
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int availableVsize, bool isTaprootAllowed, WasabiRandom random, bool isSegwitAllowed = true)
 	{
 		FeeRate = feeRate;
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
+		IsSegwitAllowed = isSegwitAllowed;
 		MinAllowedOutputAmount = allowedOutputAmount.Min;
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
@@ -36,6 +37,7 @@ public class AmountDecomposer
 	public FeeRate FeeRate { get; }
 	public int AvailableVsize { get; }
 	public bool IsTaprootAllowed { get; }
+	public bool IsSegwitAllowed { get; }
 	public Money MinAllowedOutputAmount { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
@@ -46,7 +48,17 @@ public class AmountDecomposer
 
 	private ScriptType GetNextScriptType()
 	{
-		if (!IsTaprootAllowed)
+		if (!IsTaprootAllowed && !IsSegwitAllowed)
+		{
+			throw new Exception("One of taproot or segwit must be allowed.");
+		}
+
+		if (IsTaprootAllowed && !IsSegwitAllowed)
+		{
+			return ScriptType.Taproot;
+		}
+
+		if (!IsTaprootAllowed && IsSegwitAllowed)
 		{
 			return ScriptType.P2WPKH;
 		}
