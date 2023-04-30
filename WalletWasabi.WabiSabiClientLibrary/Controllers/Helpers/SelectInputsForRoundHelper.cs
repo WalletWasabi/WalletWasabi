@@ -16,8 +16,9 @@ public class SelectInputsForRoundHelper
 	public static SelectInputsForRoundResponse SelectInputsForRound(SelectInputsForRoundRequest request, WasabiRandom random)
 	{
 		UtxoSelectionParameters utxoSelectionParameters = new(request.AllowedInputAmounts, request.AllowedOutputAmounts, request.CoordinationFeeRate, request.MiningFeeRate, request.AllowedInputTypes.ToImmutableSortedSet());
+		IEnumerable<Utxo> utxos = request.DoNotSelectPrivateCoins ? request.Utxos.Where(x => x.AnonymitySet < request.AnonScoreTarget) : request.Utxos;
 		CoinJoinCoinSelector coinJoinCoinSelector = new(request.ConsolidationMode, request.AnonScoreTarget, request.SemiPrivateThreshold, random);
-		ImmutableList<Utxo> coins = coinJoinCoinSelector.SelectCoinsForRound<Utxo>(request.Utxos, utxoSelectionParameters, request.LiquidityClue);
+		ImmutableList<Utxo> coins = coinJoinCoinSelector.SelectCoinsForRound<Utxo>(utxos, utxoSelectionParameters, request.LiquidityClue);
 
 		Dictionary<ISmartCoin, int> coinIndices = request.Utxos
 			.Select((x, i) => ((ISmartCoin)x, i))
