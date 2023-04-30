@@ -162,7 +162,7 @@ public static class RPCClientExtensions
 		// Splits multi-megabyte fee rate groups in 1mb chunk
 		// We need to count blocks (or 1MvB transaction chunks) so, in case fee
 		// groups are bigger than 1MvB we split those in multiple 1MvB chunks.
-		var splittedFeeGroups = relevantFeeGroups.SelectMany(x => SplitFeeGroupInBlocks(x));
+		var splittedFeeGroups = relevantFeeGroups.SelectMany(SplitFeeGroupInBlocks);
 
 		// Assigns the corresponding confirmation target to the set of fee groups.
 		// We have multiple fee rate groups which size are in the range [0..1MvB)

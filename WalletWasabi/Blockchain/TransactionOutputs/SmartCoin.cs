@@ -37,13 +37,13 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	{
 		Transaction = transaction;
 		Index = outputIndex;
-		_transactionId = new Lazy<uint256>(() => Transaction.GetHash(), true);
+		_transactionId = new Lazy<uint256>(Transaction.GetHash, true);
 
 		_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
 		_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
 		_coin = new Lazy<Coin>(() => new Coin(Outpoint, TxOut), true);
 
-		_hashCode = new Lazy<int>(() => Outpoint.GetHashCode(), true);
+		_hashCode = new Lazy<int>(Outpoint.GetHashCode, true);
 
 		_height = transaction.Height;
 		_confirmed = _height.Type == HeightType.Chain;

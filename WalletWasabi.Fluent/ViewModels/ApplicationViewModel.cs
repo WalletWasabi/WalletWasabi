@@ -33,7 +33,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			}
 		});
 
-		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
+		ShowCommand = ReactiveCommand.Create(_mainWindowService.Show);
 
 		AboutCommand = ReactiveCommand.Create(AboutExecute, AboutCanExecute());
 

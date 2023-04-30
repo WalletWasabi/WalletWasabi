@@ -24,7 +24,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonStandardInput);
 		}
 
-		if (!Parameters.AllowedInputTypes.Any(x => prevout.ScriptPubKey.IsScriptType(x)))
+		if (!Parameters.AllowedInputTypes.Any(prevout.ScriptPubKey.IsScriptType))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 		}
@@ -90,7 +90,7 @@ public record ConstructionState : MultipartyTransactionState
 		// Only one OP_RETURN is allowed per standard transaction, but this
 		// check is not implemented since there is no OP_RETURN ScriptType,
 		// which means no OP_RETURN outputs can be registered at all.
-		if (!Parameters.AllowedOutputTypes.Any(x => output.ScriptPubKey.IsScriptType(x)))
+		if (!Parameters.AllowedOutputTypes.Any(output.ScriptPubKey.IsScriptType))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 		}

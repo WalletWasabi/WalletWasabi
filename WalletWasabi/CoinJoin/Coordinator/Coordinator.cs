@@ -298,8 +298,8 @@ public class Coordinator : IDisposable
 						if (mempoolHashes is { })
 						{
 							var fallOuts = UnconfirmedCoinJoins.Where(x => !mempoolHashes.Contains(x)).ToHashSet();
-							CoinJoins.RemoveAll(x => fallOuts.Contains(x));
-							UnconfirmedCoinJoins.RemoveAll(x => fallOuts.Contains(x));
+							CoinJoins.RemoveAll(fallOuts.Contains);
+							UnconfirmedCoinJoins.RemoveAll(fallOuts.Contains);
 						}
 
 						CoinJoins.Add(coinJoinHash);

@@ -260,7 +260,7 @@ public partial class LineChart : Control
 		yAxisScaler.CalculateFrom(yAxisValuesLogScaledMax, 0, 0, state.AreaHeight);
 
 		var yAxisValuesScaled = yAxisValuesLogScaled
-			.Select(y => yAxisScaler.GetYforX(y))
+			.Select(yAxisScaler.GetYforX)
 			.ToList();
 
 		var xAxisValuesEnumerable = xAxisValues as IEnumerable<double>;
@@ -274,7 +274,7 @@ public partial class LineChart : Control
 				var xAxisScaler = new StraightLineFormula();
 				xAxisScaler.CalculateFrom(min, max, 0, state.AreaWidth);
 
-				xAxisValuesEnumerable = xAxisValuesEnumerable.Select(x => xAxisScaler.GetYforX(x));
+				xAxisValuesEnumerable = xAxisValuesEnumerable.Select(xAxisScaler.GetYforX);
 				break;
 
 			case AxisPlotMode.EvenlySpaced:

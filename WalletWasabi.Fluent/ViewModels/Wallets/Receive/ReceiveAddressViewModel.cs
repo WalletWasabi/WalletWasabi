@@ -50,7 +50,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
 
-		SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
+		SaveQrCodeCommand = ReactiveCommand.CreateFromTask(OnSaveQrCodeAsync);
 
 		SaveQrCodeCommand.ThrownExceptions
 			.ObserveOn(RxApp.TaskpoolScheduler)

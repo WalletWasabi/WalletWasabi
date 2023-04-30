@@ -35,7 +35,7 @@ public class CoinJoinScriptStore
 	public static CoinJoinScriptStore LoadFromFile(string filePath)
 	{
 		var scripts = File.Exists(filePath)
-			? File.ReadAllLines(filePath).Select(x => Script.FromHex(x))
+			? File.ReadAllLines(filePath).Select(Script.FromHex)
 			: Enumerable.Empty<Script>();
 
 		CoinJoinScriptStore coinJoinScriptStore = new(scripts);

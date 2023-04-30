@@ -296,7 +296,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public async Task StopAsync()
 	{
 		// RPC terminating itself so it should not block this call while the RPC interface is stopping.
-		await Task.Run(() => TerminateService.Terminate());
+		await Task.Run(TerminateService.Terminate);
 	}
 
 	private void AssertWalletIsLoaded()

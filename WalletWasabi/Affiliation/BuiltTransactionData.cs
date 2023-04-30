@@ -32,7 +32,7 @@ public class BuiltTransactionData
 	public Body GetAffiliationData(string affiliationId, uint256 txId)
 	{
 		IEnumerable<Input> inputs = Inputs.Select(x => Input.FromAffiliateInput(x, affiliationId));
-		IEnumerable<Output> outputs = Outputs.Select(x => Output.FromTxOut(x));
+		IEnumerable<Output> outputs = Outputs.Select(Output.FromTxOut);
 
 		return new Body(txId.ToString(), inputs, outputs, Network.ToSlip44CoinType(), CoordinationFeeRate.Rate, CoordinationFeeRate.PlebsDontPayThreshold.Satoshi, MinRegistrableAmount.Satoshi, GetUnixTimestamp());
 	}

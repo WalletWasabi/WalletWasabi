@@ -34,7 +34,7 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(indexer.GetLastFilter);  // There are no filters
 	}
 
 	[Fact]
@@ -61,7 +61,7 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(indexer.GetLastFilter);  // There are no filters
 		Assert.True(called > 1);
 	}
 
@@ -188,7 +188,7 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(indexer.GetLastFilter);  // There are no filters
 	}
 
 	[Fact]
@@ -215,7 +215,7 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(indexer.GetLastFilter);  // There are no filters
 		Assert.True(called > 1);
 	}
 

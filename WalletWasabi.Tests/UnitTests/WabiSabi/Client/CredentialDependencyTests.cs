@@ -113,7 +113,7 @@ public class CredentialDependencyTests
 		Assert.Empty(inFlightRequests);
 		Assert.Empty(pendingCredentialsToPresent);
 
-		Assert.True(g.Vertices.All(v => sent.Contains(v)));
+		Assert.True(g.Vertices.All(sent.Contains));
 
 		ct.Dispose();
 	}

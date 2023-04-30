@@ -203,7 +203,7 @@ public class BlockchainController : ControllerBase
 			}
 
 			// Order hexes according to the order of the query.
-			var orderedResult = parsedIds.Where(x => hexes.ContainsKey(x)).Select(x => hexes[x]);
+			var orderedResult = parsedIds.Where(hexes.ContainsKey).Select(x => hexes[x]);
 			return Ok(orderedResult);
 		}
 		catch (Exception ex)

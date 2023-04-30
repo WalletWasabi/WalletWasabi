@@ -34,10 +34,10 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 			.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 		ImportTransactionCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnImportTransactionAsync(),
+			OnImportTransactionAsync,
 			outputScheduler: RxApp.MainThreadScheduler);
 
-		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
+		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
 	}
 
 	private async Task OnImportTransactionAsync()

@@ -41,7 +41,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 	{
 		_stopwatch = Stopwatch.StartNew();
 
-		disposables.Add(Disposable.Create(() => _stopwatch.Stop()));
+		disposables.Add(Disposable.Create(_stopwatch.Stop));
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)

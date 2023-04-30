@@ -23,7 +23,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		Profiles = DefaultProfiles.ToList();
 
-		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
+		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
 		if (isNewWallet)
 		{

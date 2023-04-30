@@ -123,21 +123,21 @@ public record CredentialEdgeSet
 	public (RequestNode largestMagnitudeNode, IEnumerable<RequestNode> smallMagnitudeNodes, bool fanIn) MatchNodesToDischarge(IEnumerable<RequestNode> nodesWithRemainingOutDegree, IEnumerable<RequestNode> nodesWithRemainingInDegree)
 	{
 		ImmutableArray<RequestNode> sources = nodesWithRemainingOutDegree
-			.OrderByDescending(v => Balance(v))
-			.ThenByDescending(v => RemainingOutDegree(v))
-			.ThenByDescending(v => AvailableZeroOutDegree(v))
+			.OrderByDescending(Balance)
+			.ThenByDescending(RemainingOutDegree)
+			.ThenByDescending(AvailableZeroOutDegree)
 			.ToImmutableArray();
 
 		ImmutableArray<RequestNode> sinks = nodesWithRemainingInDegree
-			.OrderBy(v => Balance(v))
-			.ThenByDescending(v => RemainingInDegree(v))
+			.OrderBy(Balance)
+			.ThenByDescending(RemainingInDegree)
 			.ToImmutableArray();
 
 		var nSources = 1;
 		var nSinks = 1;
 
-		long SourcesSum() => sources.Take(nSources).Sum(v => Balance(v));
-		long SinksSum() => sinks.Take(nSinks).Sum(v => Balance(v));
+		long SourcesSum() => sources.Take(nSources).Sum(Balance);
+		long SinksSum() => sinks.Take(nSinks).Sum(Balance);
 		long CompareSums() => SourcesSum().CompareTo(-1 * SinksSum());
 
 		// We want to fully discharge the larger (in absolute magnitude) of

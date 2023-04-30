@@ -44,7 +44,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 			.Subscribe(ParseToField);
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 		QrCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(UiContext, _network);

@@ -233,7 +233,7 @@ public record DependencyGraph
 
 		var maxCount = (fanIn ? edgeSet.RemainingInDegree(largestMagnitudeNode) : edgeSet.RemainingOutDegree(largestMagnitudeNode));
 
-		switch (Math.Abs(edgeSet.Balance(largestMagnitudeNode)).CompareTo(Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x)))))
+		switch (Math.Abs(edgeSet.Balance(largestMagnitudeNode)).CompareTo(Math.Abs(smallMagnitudeNodes.Sum(edgeSet.Balance))))
 		{
 			case 1:
 				// When we are draining a positive valued node into multiple
@@ -304,7 +304,7 @@ public record DependencyGraph
 		var edgeSet = EdgeSets[credentialType];
 
 		// Evaluate the linq query eagerly since edgeSet is reassigned
-		IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v)).ToImmutableArray();
+		IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(edgeSet.Balance).ToImmutableArray();
 
 		if (!negative.Any())
 		{
@@ -319,11 +319,11 @@ public record DependencyGraph
 		// The remaining outdegree > 1 condition is equivalent to == K for
 		// K=2, so that also implies the positive valued nodes haven't been
 		// used for this credential type yet.
-		var unconstrainedPositive = Vertices.Where(v => edgeSet.Balance(v) > 0 && edgeSet.RemainingOutDegree(v) > 1).OrderByDescending(v => edgeSet.Balance(v)).ToImmutableArray();
+		var unconstrainedPositive = Vertices.Where(v => edgeSet.Balance(v) > 0 && edgeSet.RemainingOutDegree(v) > 1).OrderByDescending(edgeSet.Balance).ToImmutableArray();
 
 		// First special case, if the unconstrained inputs have uniform values (should be the
 		// common case for vbyte credentials)...
-		if (unconstrainedPositive.Select(v => edgeSet.Balance(v)).Distinct().Count() == 1)
+		if (unconstrainedPositive.Select(edgeSet.Balance).Distinct().Count() == 1)
 		{
 			// And if the total amount of the uniform unconstrained nodes is
 			// larger than the negative nodes, with room to spare
@@ -443,7 +443,7 @@ public record DependencyGraph
 		// - discharge all remaining in degree >0 nodes by topological order
 
 		var edgeSet = EdgeSets[credentialType];
-		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
+		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(edgeSet.AvailableZeroOutDegree);
 
 		if (!unresolvedNodes.Any())
 		{
@@ -471,7 +471,7 @@ public record DependencyGraph
 		// connection confirmation and reissuance requests both have an out
 		// degree of K^2 when accounting for their extra zero credentials.
 		var edgeSet = EdgeSets[credentialType];
-		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
+		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0).OrderByDescending(edgeSet.AvailableZeroOutDegree);
 
 		if (!unresolvedNodes.Any())
 		{

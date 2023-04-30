@@ -32,7 +32,7 @@ public class ZeroCredentialsRequestTests
 
 	private static GroupElement NewGroupElement(int i) => Generators.FromText($"T{i}");
 
-	private static GroupElementVector NewGroupElementVector(params int[] arr) => new(arr.Select(i => NewGroupElement(i)));
+	private static GroupElementVector NewGroupElementVector(params int[] arr) => new(arr.Select(NewGroupElement));
 
 	private static ScalarVector NewScalarVector(params uint[] arr) => new(arr.Select(i => new Scalar(i)));
 

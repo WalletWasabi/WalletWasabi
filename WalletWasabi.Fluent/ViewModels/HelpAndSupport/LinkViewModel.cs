@@ -10,8 +10,7 @@ public class LinkViewModel : ViewModelBase
 	public LinkViewModel()
 	{
 		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
-			async (link) =>
-				await IoHelpers.OpenBrowserAsync(link));
+			IoHelpers.OpenBrowserAsync);
 
 		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
 			async (link) =>

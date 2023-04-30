@@ -103,7 +103,7 @@ public class Mempool
 	{
 		HashSet<OutPoint> txOutsSet = txOuts.ToHashSet();
 
-		return txOutsSet.Where(prevOut => PrevOutsIndex.ContainsKey(prevOut))
+		return txOutsSet.Where(PrevOutsIndex.ContainsKey)
 			.Select(prevOut => PrevOutsIndex[prevOut])
 			.ToHashSet();
 	}

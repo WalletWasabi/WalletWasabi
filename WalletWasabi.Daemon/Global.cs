@@ -57,8 +57,8 @@ public class Global
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
-		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
-		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
+		HttpClientFactory = BuildHttpClientFactory(Config.GetBackendUri);
+		CoordinatorHttpClientFactory = BuildHttpClientFactory(Config.GetCoordinatorUri);
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together

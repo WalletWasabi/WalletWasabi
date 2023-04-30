@@ -25,7 +25,7 @@ public record RoundStateAwaiter
 		Predicate = predicate;
 		RoundId = roundId;
 		Phase = phase;
-		cancellationToken.Register(() => Cancel());
+		cancellationToken.Register(Cancel);
 	}
 
 	private TaskCompletionSource<RoundState> TaskCompletionSource { get; }

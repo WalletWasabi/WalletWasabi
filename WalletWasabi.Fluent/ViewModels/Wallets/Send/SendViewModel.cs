@@ -85,7 +85,7 @@ public partial class SendViewModel : RoutableViewModel
 			.Subscribe(endPoint => IsPayJoin = endPoint is { });
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
 		QrCommand = ReactiveCommand.Create(async () =>
 		{

@@ -102,7 +102,7 @@ public class CoreConfig
 	{
 		configString = Guard.Correct(configString);
 		var allLines = configString.Split('\n', StringSplitOptions.None);
-		var allCorrectedLines = allLines.Select(x => Guard.Correct(x))
+		var allCorrectedLines = allLines.Select(Guard.Correct)
 			.Where((x, i) => i == 0 || x != allLines[i - 1]);
 
 		var retLines = new List<string>();

@@ -95,7 +95,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		var stats = !File.Exists(filePath)
 			? Enumerable.Empty<CoinJoinFeeRateStat>()
 			: File.ReadAllLines(filePath)
-				.Select(x => CoinJoinFeeRateStat.FromLine(x))
+				.Select(CoinJoinFeeRateStat.FromLine)
 				.Where(x => x.DateTimeOffset >= from);
 
 		var store = new CoinJoinFeeRateStatStore(config, rpc, stats);

@@ -14,7 +14,7 @@ public class ProcessedResult
 	public ProcessedResult(SmartTransaction transaction)
 	{
 		Transaction = Guard.NotNull(nameof(transaction), transaction);
-		_isOwnCoinJoin = new Lazy<bool>(() => Transaction.IsOwnCoinjoin(), true);
+		_isOwnCoinJoin = new Lazy<bool>(Transaction.IsOwnCoinjoin, true);
 	}
 
 	public SmartTransaction Transaction { get; }

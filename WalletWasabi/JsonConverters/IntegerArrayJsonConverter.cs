@@ -23,7 +23,7 @@ public class IntegerArrayJsonConverter : JsonConverter<IEnumerable<int>>
 			return Enumerable.Empty<int>();
 		}
 
-		return stringValue.Split(',').Select(strValue => int.Parse(strValue));
+		return stringValue.Split(',').Select(int.Parse);
 	}
 
 	public override void WriteJson(JsonWriter writer, IEnumerable<int>? value, JsonSerializer serializer)

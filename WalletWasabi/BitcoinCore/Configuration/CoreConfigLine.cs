@@ -14,7 +14,7 @@ public class CoreConfigLine
 			return;
 		}
 
-		var parts = Line.Split('=', StringSplitOptions.RemoveEmptyEntries).Select(x => Guard.Correct(x)).ToArray();
+		var parts = Line.Split('=', StringSplitOptions.RemoveEmptyEntries).Select(Guard.Correct).ToArray();
 
 		if (parts.Length != 2 || parts.Any(x => x.Length == 0))
 		{

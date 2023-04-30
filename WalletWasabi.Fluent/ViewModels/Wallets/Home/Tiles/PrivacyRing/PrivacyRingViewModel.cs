@@ -90,7 +90,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		SetMargins();
 
-		list.Edit(list => CreateSegments(list));
+		list.Edit(CreateSegments);
 
 		PreviewItems.RemoveMany(PreviewItems.OfType<PrivacyRingItemViewModel>());
 		PreviewItems.AddRange(list.Items);

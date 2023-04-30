@@ -52,7 +52,7 @@ public class SpecificNodeBlockProviderTests
 		// Mock connected node.
 		TaskCompletionSource nodeConnectedTcs = new();
 		_ = mockNode.Setup(c => c.WaitUntilDisconnectedAsync(It.IsAny<CancellationToken>()))
-			.Callback(() => nodeConnectedTcs.SetResult())
+			.Callback(nodeConnectedTcs.SetResult)
 			.CallBase();
 
 		_ = mockNode.Setup(c => c.ToString())
