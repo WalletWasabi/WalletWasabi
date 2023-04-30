@@ -1,18 +1,21 @@
+using Microsoft.Extensions.Hosting;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Rpc;
 
 public class JsonRpcServer : BackgroundService
 {
-	public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config)
+	public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config, TerminateService terminateService)
 	{
 		Config = config;
+		TerminateService = terminateService;
 		RequestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service);
 
 		Listener = new HttpListener();
@@ -24,6 +27,7 @@ public class JsonRpcServer : BackgroundService
 		}
 	}
 
+	private TerminateService TerminateService { get; }
 	private HttpListener Listener { get; }
 	private JsonRpcRequestHandler<IJsonRpcService> RequestHandler { get; }
 	private JsonRpcServerConfiguration Config { get; }
@@ -45,6 +49,8 @@ public class JsonRpcServer : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		bool stopRpcRequestReceived = false;
+
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			try
@@ -61,16 +67,40 @@ public class JsonRpcServer : BackgroundService
 					if (IsAuthorized(context))
 					{
 						var path = request.Url?.LocalPath ?? string.Empty;
-						var result = await RequestHandler.HandleAsync(path, body, stoppingToken).ConfigureAwait(false);
+						string jsonResponse;
 
-						// result is null only when the request is a notification.
-						if (!string.IsNullOrEmpty(result))
+						if (!JsonRpcRequest.TryParse(body, out var allRpcRequests, out var isBatch))
 						{
-							response.ContentType = "application/json-rpc";
-							var output = response.OutputStream;
-							var buffer = Encoding.UTF8.GetBytes(result);
-							await output.WriteAsync(buffer.AsMemory(0, buffer.Length), stoppingToken).ConfigureAwait(false);
-							await output.FlushAsync(stoppingToken).ConfigureAwait(false);
+							jsonResponse = RequestHandler.CreateParseErrorResponse();
+						}
+						else
+						{
+							JsonRpcRequest[] requestsToProcess = allRpcRequests.Where(x =>
+							{
+								bool isStopRequest = x.Method == IJsonRpcService.StopRpcRequest;
+
+								if (isStopRequest)
+								{
+									stopRpcRequestReceived = true;
+								}
+
+								return !isStopRequest;
+							}).ToArray();
+
+							if (requestsToProcess.Length > 0)
+							{
+								jsonResponse = await RequestHandler.HandleRequestsAsync(path, requestsToProcess, isBatch, stoppingToken).ConfigureAwait(false);
+
+								// result is null only when the request is a notification.
+								if (!string.IsNullOrEmpty(jsonResponse))
+								{
+									response.ContentType = "application/json-rpc";
+									var output = response.OutputStream;
+									var buffer = Encoding.UTF8.GetBytes(jsonResponse);
+									await output.WriteAsync(buffer.AsMemory(0, buffer.Length), stoppingToken).ConfigureAwait(false);
+									await output.FlushAsync(stoppingToken).ConfigureAwait(false);
+								}
+							}
 						}
 					}
 					else
@@ -82,7 +112,13 @@ public class JsonRpcServer : BackgroundService
 				{
 					response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
 				}
+
 				response.Close();
+
+				if (stopRpcRequestReceived)
+				{
+					break;
+				}
 			}
 			catch (OperationCanceledException)
 			{
@@ -92,6 +128,17 @@ public class JsonRpcServer : BackgroundService
 			{
 				Logger.LogError(ex);
 			}
+		}
+
+		if (stopRpcRequestReceived)
+		{
+			Logger.LogDebug($"User sent '{IJsonRpcService.StopRpcRequest}' command. Terminating application.");
+			_ = Task.Run(async () =>
+				{
+					await Task.Yield();
+					TerminateService.SignalTerminate();
+				}, 
+				CancellationToken.None);
 		}
 	}
 

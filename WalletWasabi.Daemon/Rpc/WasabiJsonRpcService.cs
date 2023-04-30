@@ -1,8 +1,8 @@
+using NBitcoin;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -13,7 +13,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
-using WalletWasabi.Services.Terminate;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
@@ -21,14 +20,14 @@ namespace WalletWasabi.Daemon.Rpc;
 
 public class WasabiJsonRpcService : IJsonRpcService
 {
-	public WasabiJsonRpcService(Global global, TerminateService terminateService)
+	public const string StopRpcRequest = "stop";
+
+	public WasabiJsonRpcService(Global global)
 	{
 		Global = global;
-		TerminateService = terminateService;
 	}
 
 	private Global Global { get; }
-	public TerminateService TerminateService { get; }
 	private Wallet? ActiveWallet { get; set; }
 
 	[JsonRpcMethod("listunspentcoins")]
@@ -292,18 +291,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 	}
 
-	[JsonRpcMethod("stop", initializable: false)]
+	[JsonRpcMethod(StopRpcRequest, initializable: false)]
 	public Task StopAsync()
 	{
-		// RPC terminating itself so it should not block this call while the RPC interface is stopping.
-		Task.Run(async () =>
-		{
-			// Give some breathing room to send response to the user.
-			await Task.Delay(500).ConfigureAwait(false);
-			TerminateService.SignalTerminate();
-		});
-
-		return Task.CompletedTask;
+		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
 	}
 
 	private void AssertWalletIsLoaded()
