@@ -19,9 +19,6 @@ namespace WalletWasabi.Stores;
 /// </summary>
 public class IndexStore : IAsyncDisposable
 {
-	/// <summary>Run migration if SQLite file does not exist.</summary>
-	private long _runMigration;
-
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		SmartHeaderChain = smartHeaderChain;
@@ -32,7 +29,7 @@ public class IndexStore : IAsyncDisposable
 		// Migration data.
 		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
 		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		_runMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath) ? 1 : 0;
+		RunMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath);
 
 		if (network == Network.RegTest)
 		{
@@ -64,6 +61,9 @@ public class IndexStore : IAsyncDisposable
 	/// <summary>SQLite file path for migration purposes.</summary>
 	private string NewIndexFilePath { get; }
 
+	/// <summary>Run migration if sqlite file does not exist.</summary>
+	private bool RunMigration { get; }
+
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Filter disk storage.</summary>
@@ -80,6 +80,12 @@ public class IndexStore : IAsyncDisposable
 		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			cancellationToken.ThrowIfCancellationRequested();
+
+			// Migration code.
+			if (RunMigration)
+			{
+				MigrateToSqliteNoLock();
+			}
 
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
@@ -205,29 +211,6 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		// <migration-code>
-		// Run migration code once.
-		long runMigration = Interlocked.Exchange(ref _runMigration, 0);
-
-		if (runMigration == 1)
-		{
-			using IDisposable lockDisposable = await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false);
-
-			MigrateToSqliteNoLock();
-
-			// Remove the initial element that was added in InitializeFiltersNoLockAsync.
-			SmartHeaderChain.RemoveTip();
-
-			// Fix the header chain.
-			foreach (FilterModel filter in IndexStorage.FetchLast(n: 5000))
-			{
-				SmartHeaderChain.AppendTip(filter.Header);
-			}
-
-			return;
-		}
-
-		// </migration-code>
 		if (NewFilter is null)
 		{
 			// Lock once.
