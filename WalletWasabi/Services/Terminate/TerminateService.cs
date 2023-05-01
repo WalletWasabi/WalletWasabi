@@ -29,6 +29,8 @@ public class TerminateService
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
 	public TaskCompletionSource TerminationRequested { get; } = new();
 
+	private bool IsSystemEventsSubscribed { get; set; }
+
 	public void Activate()
 	{
 		AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
@@ -44,17 +46,16 @@ public class TerminateService
 			IsSystemEventsSubscribed = true;
 		}
 	}
-	private bool IsSystemEventsSubscribed { get; set; }
 
 	private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 	{
-		Logger.LogInfo($"Process domain unloading requested by the OS.");
+		Logger.LogInfo("Process domain unloading requested by the OS.");
 		Terminate();
 	}
 
 	private void Default_Unloading(AssemblyLoadContext obj)
 	{
-		Logger.LogInfo($"Process context unloading requested by the OS.");
+		Logger.LogInfo("Process context unloading requested by the OS.");
 		Terminate();
 	}
 
