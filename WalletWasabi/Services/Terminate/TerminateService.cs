@@ -27,7 +27,7 @@ public class TerminateService
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
-	public TaskCompletionSource TerminationRequested { get; } = new();
+	public TaskCompletionSource TerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 	public void Activate()
 	{

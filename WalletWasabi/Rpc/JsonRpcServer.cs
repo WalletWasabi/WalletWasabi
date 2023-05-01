@@ -133,12 +133,7 @@ public class JsonRpcServer : BackgroundService
 		if (stopRpcRequestReceived)
 		{
 			Logger.LogDebug($"User sent '{IJsonRpcService.StopRpcRequest}' command. Terminating application.");
-			_ = Task.Run(async () =>
-				{
-					await Task.Yield();
-					TerminateService.SignalTerminate();
-				}, 
-				CancellationToken.None);
+			TerminateService.SignalTerminate();
 		}
 	}
 
