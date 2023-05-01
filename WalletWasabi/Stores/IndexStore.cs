@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -84,16 +85,19 @@ public class IndexStore : IAsyncDisposable
 			// Migration code.
 			if (RunMigration)
 			{
-				MigrateToSqliteNoLock();
+				await MigrateToSqliteNoLockAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private void MigrateToSqliteNoLock()
+	private async Task MigrateToSqliteNoLockAsync(CancellationToken cancellationToken)
 	{
 		int i = 0;
+
+		// Helps to avoid UI freezing.
+		await Task.Delay(10_000, cancellationToken).ConfigureAwait(false);
 
 		try
 		{
