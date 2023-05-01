@@ -589,12 +589,9 @@ public class CoinJoinManager : BackgroundService
 
 	public void WalletLeftSendWorkflow(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsInSendWorkflow.TryRemove(wallet.WalletName, out bool needRestart))
+		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsInSendWorkflow.TryRemove(wallet.WalletName, out bool needRestart) && needRestart)
 		{
-			if (needRestart)
-			{
-				Task.Run(async () => await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false));
-			}
+			Task.Run(async () => await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false));
 		}
 	}
 
