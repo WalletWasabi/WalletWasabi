@@ -62,7 +62,7 @@ public class IndexStore : IAsyncDisposable
 	/// <summary>SQLite file path for migration purposes.</summary>
 	private string NewIndexFilePath { get; }
 
-	/// <summary>Run migration if sqlite file does not exist.</summary>
+	/// <summary>Run migration if SQLite file does not exist.</summary>
 	private bool RunMigration { get; }
 
 	public SmartHeaderChain SmartHeaderChain { get; }
@@ -97,7 +97,7 @@ public class IndexStore : IAsyncDisposable
 		int i = 0;
 
 		// Helps to avoid UI freezing.
-		await Task.Delay(10_000, cancellationToken).ConfigureAwait(false);
+		await Task.Delay(5_000, cancellationToken).ConfigureAwait(false);
 
 		try
 		{
