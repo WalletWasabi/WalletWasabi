@@ -3,5 +3,5 @@ namespace WalletWasabi.Rpc;
 public interface IJsonRpcService
 {
 	/// <summary>Command to stop the whole application.</summary>
-	const string StopRpcRequest = "stop";
+	const string StopRpcCommand = "stop";
 }

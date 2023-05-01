@@ -289,7 +289,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 	}
 
-	[JsonRpcMethod(IJsonRpcService.StopRpcRequest, initializable: false)]
+	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
 	public Task StopAsync()
 	{
 		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");

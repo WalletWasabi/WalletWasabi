@@ -77,7 +77,7 @@ public class JsonRpcServer : BackgroundService
 						{
 							JsonRpcRequest[] requestsToProcess = allRpcRequests.Where(x =>
 							{
-								bool isStopRequest = x.Method == IJsonRpcService.StopRpcRequest;
+								bool isStopRequest = x.Method == IJsonRpcService.StopRpcCommand;
 
 								if (isStopRequest)
 								{
@@ -132,7 +132,7 @@ public class JsonRpcServer : BackgroundService
 
 		if (stopRpcRequestReceived)
 		{
-			Logger.LogDebug($"User sent '{IJsonRpcService.StopRpcRequest}' command. Terminating application.");
+			Logger.LogDebug($"User sent '{IJsonRpcService.StopRpcCommand}' command. Terminating application.");
 			TerminateService.SignalTerminate();
 		}
 	}
