@@ -16,6 +16,7 @@ namespace WalletWasabi.Rpc;
 /// methods and handles the errors.
 /// </summary>
 public class JsonRpcRequestHandler<TService>
+	where TService : notnull
 {
 	private static readonly JsonSerializerSettings DefaultSettings = new()
 	{
@@ -23,9 +24,9 @@ public class JsonRpcRequestHandler<TService>
 		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 		Converters = new JsonConverter[]
 		{
-				new Uint256JsonConverter(),
-				new OutPointAsTxoRefJsonConverter(),
-				new BitcoinAddressJsonConverter()
+			new Uint256JsonConverter(),
+			new OutPointAsTxoRefJsonConverter(),
+			new BitcoinAddressJsonConverter()
 		}
 	};
 
