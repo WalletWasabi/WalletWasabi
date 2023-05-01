@@ -20,8 +20,6 @@ namespace WalletWasabi.Daemon.Rpc;
 
 public class WasabiJsonRpcService : IJsonRpcService
 {
-	public const string StopRpcRequest = "stop";
-
 	public WasabiJsonRpcService(Global global)
 	{
 		Global = global;
@@ -291,7 +289,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 	}
 
-	[JsonRpcMethod(StopRpcRequest, initializable: false)]
+	[JsonRpcMethod(IJsonRpcService.StopRpcRequest, initializable: false)]
 	public Task StopAsync()
 	{
 		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
