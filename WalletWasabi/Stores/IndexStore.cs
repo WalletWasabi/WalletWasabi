@@ -34,6 +34,11 @@ public class IndexStore : IAsyncDisposable
 		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
 		_runMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath) ? 1 : 0;
 
+		if (network == Network.RegTest)
+		{
+			File.Delete(NewIndexFilePath);
+		}
+
 		try
 		{
 			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
@@ -47,14 +52,10 @@ public class IndexStore : IAsyncDisposable
 			File.Delete(NewIndexFilePath);
 			throw;
 		}
-
-		if (network == Network.RegTest)
-		{
-			IndexStorage.Clear(); // RegTest is not a global ledger, better to delete it.
-		}
 	}
 
 	public event EventHandler<FilterModel>? Reorged;
+
 	public event EventHandler<FilterModel>? NewFilter;
 
 	/// <summary>Mature index path for migration purposes.</summary>
