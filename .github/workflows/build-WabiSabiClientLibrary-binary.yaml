@@ -1,0 +1,34 @@
+name: "[Build] WabiSabiClientLibrary binary"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_WabiSabiClientLibrary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build linux-x64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Debug --runtime linux-x64
+      - name: Build linux-arm64
+        run: |
+          dotnet publish WalletWasabi.WabiSabiClientLibrary --self-contained --configuration Debug --runtime linux-arm64
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: WabiSabiClientLibrary-bin
+          path: |
+            ./WalletWasabi.WabiSabiClientLibrary/bin/Debug/linux-x64/publish/WalletWasabi.WabiSabiClientLibrary
+            ./WalletWasabi.WabiSabiClientLibrary/bin/Debug/linux-x64/publish/WalletWasabi.WabiSabiClientLibrary.xml
+            ./WalletWasabi.WabiSabiClientLibrary/bin/Debug/linux-arm64/publish/WalletWasabi.WabiSabiClientLibrary
+            ./WalletWasabi.WabiSabiClientLibrary/bin/Debug/linux-arm64/publish/WalletWasabi.WabiSabiClientLibrary.xml
