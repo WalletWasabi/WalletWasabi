@@ -55,7 +55,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	public SendViewModel(WalletViewModel walletVm)
+	private SendViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;
 		_to = "";
@@ -89,7 +89,7 @@ public partial class SendViewModel : RoutableViewModel
 		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
-			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
+			ShowQrCameraDialogViewModel dialog = new(UiContext, _wallet.Network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 			if (!string.IsNullOrWhiteSpace(result.Result))
 			{
