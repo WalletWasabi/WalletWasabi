@@ -32,7 +32,7 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" />
 		<PackageReference Include="NBitcoin" />
-		<PackageReference Include="WabiSabi" />
+		<ProjectReference Include="../NWabiSabi/WabiSabi/WabiSabi.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

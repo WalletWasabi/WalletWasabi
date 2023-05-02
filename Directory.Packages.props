@@ -14,7 +14,6 @@
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" />
 		<PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
 		<!-- Core libraries. -->
-		<PackageVersion Include="WabiSabi" Version="1.0.1.2" />
 		<PackageVersion Include="NBitcoin" Version="7.0.24" />
 		<!-- Backend. -->
 		<PackageVersion Include="Swashbuckle.AspNetCore" Version="6.4.0" />
