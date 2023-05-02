@@ -1,0 +1,3 @@
+[submodule "NWabiSabi"]
+	path = NWabiSabi
+	url = https://github.com/trezor/NWabiSabi

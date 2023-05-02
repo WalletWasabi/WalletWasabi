@@ -322,12 +322,10 @@
           "System.Runtime": "4.1.0"
         }
       },
-      "WabiSabi": {
-        "type": "Transitive",
-        "resolved": "1.0.1.2",
-        "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
+      "wabisabi": {
+        "type": "Project",
         "dependencies": {
-          "NBitcoin.Secp256k1": "3.1.0"
+          "NBitcoin.Secp256k1": "[3.1.0, )"
         }
       },
       "walletwasabi": {
@@ -337,7 +335,7 @@
           "Microsoft.Data.Sqlite": "[7.0.3, )",
           "Microsoft.Win32.SystemEvents": "[7.0.0, )",
           "NBitcoin": "[7.0.24, )",
-          "WabiSabi": "[1.0.1.2, )"
+          "WabiSabi": "[1.0.0, )"
         }
       }
     },

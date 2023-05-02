@@ -39,15 +39,6 @@
           "Newtonsoft.Json": "13.0.1"
         }
       },
-      "WabiSabi": {
-        "type": "Direct",
-        "requested": "[1.0.1.2, )",
-        "resolved": "1.0.1.2",
-        "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
-        "dependencies": {
-          "NBitcoin.Secp256k1": "3.1.0"
-        }
-      },
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
         "resolved": "7.0.0",
@@ -333,6 +324,12 @@
           "Microsoft.NETCore.Platforms": "1.0.1",
           "Microsoft.NETCore.Targets": "1.0.1",
           "System.Runtime": "4.1.0"
+        }
+      },
+      "wabisabi": {
+        "type": "Project",
+        "dependencies": {
+          "NBitcoin.Secp256k1": "[3.1.0, )"
         }
       }
     },
