@@ -107,6 +107,13 @@
       <Setter Property="Padding" Value="0" />
     </Style>
 
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background">
+        <SolidColorBrush Color="#FFFFFF" Opacity="0.05" />
+      </Setter>
+      <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
     <Style Selector="PathIcon.wallet" x:DataType="vmw:WalletPageViewModel">
       <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
