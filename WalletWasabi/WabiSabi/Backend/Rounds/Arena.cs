@@ -302,9 +302,10 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
 					round.LogInfo($"Desired Fee Rate: {round.Parameters.MiningFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
 
+					// Added for monitoring reasons.
 					try
 					{
-						FeeRate targetFeeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate; // Added for monitoring reasons.
+						FeeRate targetFeeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 						round.LogInfo($"Current Fee Rate on the Network: {targetFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
 					}
 					catch (Exception ex)
