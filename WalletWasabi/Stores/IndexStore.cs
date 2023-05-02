@@ -85,19 +85,16 @@ public class IndexStore : IAsyncDisposable
 			// Migration code.
 			if (RunMigration)
 			{
-				await MigrateToSqliteNoLockAsync(cancellationToken).ConfigureAwait(false);
+				await Task.Run(MigrateToSqliteNoLock, cancellationToken).ConfigureAwait(false);
 			}
 
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private async Task MigrateToSqliteNoLockAsync(CancellationToken cancellationToken)
+	private void MigrateToSqliteNoLock()
 	{
 		int i = 0;
-
-		// Helps to avoid UI freezing.
-		await Task.Delay(5_000, cancellationToken).ConfigureAwait(false);
 
 		try
 		{
