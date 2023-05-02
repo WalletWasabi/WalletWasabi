@@ -19,4 +19,11 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
+
+  <!-- Embed documentation -->
+  <ItemGroup>
+    <EmbeddedResource Include="IntegrationTests/TestVectors/GetCredentials.json" />
+    <EmbeddedResource Include="IntegrationTests/TestVectors/GetZeroCredentialRequests.json" />
+    <EmbeddedResource Include="IntegrationTests/TestVectors/GetRealCredentialRequests.json" />
+  </ItemGroup>
 </Project>
