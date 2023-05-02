@@ -13,12 +13,15 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
 
-public class IoTests
+/// <summary>
+/// Tests for <see cref="SafeIoManager"/>
+/// </summary>
+public class SafeIoManagerTests
 {
 	[Fact]
 	public async Task IoManagerTestsAsync()
 	{
-		var file = Path.Combine(Common.GetWorkDir(), $"file1.dat");
+		var file = Path.Combine(Common.GetWorkDir(), "file1.dat");
 
 		List<string> lines = new();
 		for (int i = 0; i < 1000; i++)
@@ -29,20 +32,15 @@ public class IoTests
 		}
 
 		// Single thread file operations.
-		DigestableSafeIoManager ioman1 = new(file);
+		SafeIoManager ioman1 = new(file);
 
 		// Delete the file if Exist.
 		ioman1.DeleteMe();
 		Assert.False(ioman1.Exists());
 
-		Assert.False(File.Exists(ioman1.DigestFilePath));
-
 		// Write the data to the file.
 		await ioman1.WriteAllLinesAsync(lines);
 		Assert.True(ioman1.Exists());
-
-		// Check if the digest file is created.
-		Assert.True(File.Exists(ioman1.DigestFilePath));
 
 		// Read back the content and check.
 		static bool IsStringArraysEqual(string[] lines1, string[] lines2)
@@ -69,23 +67,12 @@ public class IoTests
 
 		Assert.True(IsStringArraysEqual(readLines, lines.ToArray()));
 
-		// Check digest file, and write only differ logic.
-		// Write the same content, file should not be written.
+		// Write the same content, file should be rewritten.
 		var currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 		await Task.Delay(500);
 		await ioman1.WriteAllLinesAsync(lines);
 		var noChangeDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
-		Assert.Equal(currentDate, noChangeDate);
-
-		// Write different content, file should be written.
-		currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
-		await Task.Delay(500);
-		lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
-		await ioman1.WriteAllLinesAsync(lines);
-		var newContentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
-		Assert.NotEqual(currentDate, newContentDate);
-
-		await ioman1.WriteAllLinesAsync(lines);
+		Assert.NotEqual(currentDate, noChangeDate);
 
 		// Simulate file write error and recovery logic.
 		// We have only *.new and *.old files.
@@ -120,8 +107,8 @@ public class IoTests
 		var dummyFilePath = $"{ioman1.FilePath}dummy";
 		var dummyContent = new string[]
 		{
-				"banana",
-				"peach"
+			"banana",
+			"peach"
 		};
 		await File.WriteAllLinesAsync(dummyFilePath, dummyContent);
 
@@ -141,10 +128,10 @@ public class IoTests
 	[Fact]
 	public async Task IoTestsAsync()
 	{
-		var file = Path.Combine(Common.GetWorkDir(), $"file.dat");
+		var file = Path.Combine(Common.GetWorkDir(), "file.dat");
 
 		AsyncLock asyncLock = new();
-		DigestableSafeIoManager ioman = new(file);
+		SafeIoManager ioman = new(file);
 		ioman.DeleteMe();
 		await ioman.WriteAllLinesAsync(Array.Empty<string>());
 		Assert.False(File.Exists(ioman.FilePath));

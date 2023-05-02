@@ -38,7 +38,7 @@ public static class CoinPocketHelper
 
 		foreach (var cluster in clusters)
 		{
-			string[] allLabels = cluster.Key.Labels.ToArray();
+			string[] allLabels = cluster.Key.ToArray();
 			SmartCoin[] coins = cluster.Value.ToArray();
 
 			if (allLabels.Length == 0)
