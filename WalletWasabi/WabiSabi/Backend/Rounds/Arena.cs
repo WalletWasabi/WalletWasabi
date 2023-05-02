@@ -309,7 +309,7 @@ public partial class Arena : PeriodicRunner
 					}
 					catch (Exception ex)
 					{
-						Logger.LogDebug($"Could not log feeRate monitoring: '{ex.Message}'.");
+						Logger.LogDebug($"Could not log fee rate monitoring: '{ex.Message}'.");
 					}
 
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
