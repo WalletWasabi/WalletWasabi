@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
@@ -151,6 +153,16 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<Money> Balance => throw new NotSupportedException();
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
 
+		public bool IsLoggedIn => throw new NotImplementedException();
+
+		public IObservable<WalletState> State => throw new NotImplementedException();
+
+		bool IWalletModel.IsHardwareWallet => throw new NotImplementedException();
+
+		public bool IsWatchOnlyWallet => throw new NotImplementedException();
+
+		public WalletType WalletType => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
@@ -164,6 +176,21 @@ public class SuggestionLabelsViewModelTests
 		public bool IsHardwareWallet()
 		{
 			throw new NotSupportedException();
+		}
+
+		public Task<WalletLoginResult> TryLoginAsync(string password)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Login()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Logout()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
