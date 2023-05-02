@@ -589,7 +589,13 @@ public class CoinJoinManager : BackgroundService
 
 	public void WalletLeftSendWorkflow(Wallet wallet)
 	{
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && WalletsInSendWorkflow.TryRemove(wallet.WalletName, out bool needRestart) && needRestart)
+		if (!WalletsInSendWorkflow.TryRemove(wallet.WalletName, out bool needRestart))
+		{
+			Logger.LogDebug("Wallet was not in send workflow but left it.");
+			return;
+		}
+
+		if (needRestart && CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
 		{
 			Task.Run(async () => await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false));
 		}
@@ -597,16 +603,25 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task WalletEnteredSendingAsync(Wallet wallet)
 	{
-		// If wallet is idle, there is nothing to stop.
-		// Don't try to stop in critical phase, otherwise it won't restart automatically.
-		if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) &&
-			stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle &&
-			stateHolder.CoinJoinClientState is not CoinJoinClientState.InCriticalPhase &&
-			WalletsInSendWorkflow.ContainsKey(wallet.WalletName))
+		if (!WalletsInSendWorkflow.ContainsKey(wallet.WalletName))
+		{
+			Logger.LogDebug("Wallet tried to enter sending but it was not in the send workflow.");
+			return;
+		}
+
+		if (!CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
+		{
+			Logger.LogDebug("Wallet tried to enter sending but state was missing.");
+			return;
+		}
+
+		// Evaluate and set if we should restart after the send workflow.
+		if (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
 		{
 			WalletsInSendWorkflow[wallet.WalletName] = true;
-			await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
 		}
+
+		await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
