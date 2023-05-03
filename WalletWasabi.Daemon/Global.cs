@@ -61,8 +61,8 @@ public class Global
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory);
+
+		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync: 30_000, BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
