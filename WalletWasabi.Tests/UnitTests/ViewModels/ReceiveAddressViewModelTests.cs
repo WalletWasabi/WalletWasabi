@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels;
 public class ReceiveAddressViewModelTests
 {
 	[Fact]
-	public void Copy_command_should_set_address_in_clipboard()
+	public void CopyCommandShouldSetAddressInClipboard()
 	{
 		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
 		var context = ContextWith(clipboard);
@@ -34,7 +34,7 @@ public class ReceiveAddressViewModelTests
 	}
 
 	[Fact]
-	public void Auto_copy_enabled_should_copy_to_clipboard()
+	public void AutoCopyEnabledShouldCopyToClipboard()
 	{
 		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
 		var context = ContextWith(clipboard);
@@ -44,7 +44,7 @@ public class ReceiveAddressViewModelTests
 	}
 
 	[Fact]
-	public void When_address_becomes_used_navigation_goes_back()
+	public void WhenAddressBecomesUsedNavigationGoesBack()
 	{
 		var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
 		var uiContext = ContextWith(ns);
@@ -90,10 +90,12 @@ public class ReceiveAddressViewModelTests
 			Addresses = new SourceCache<IAddress, string>(address => address.Text).Connect();
 		}
 
-		public string Name { get; }
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
+		public string Name => throw new NotImplementedException();
 
-		public IObservable<Money> Balance { get; }
+		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotImplementedException();
+
+		public IObservable<Money> Balance => throw new NotImplementedException();
+
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
