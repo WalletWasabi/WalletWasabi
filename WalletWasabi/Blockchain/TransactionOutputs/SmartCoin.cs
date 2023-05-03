@@ -85,12 +85,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
-
 	public bool CoinJoinInProgress
 	{
 		get => _coinJoinInProgress;
@@ -168,6 +162,12 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	{
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
 	}
+
+	public bool RegisterToHdPubKey()
+		=> HdPubKey.Coins.Add(this);
+
+	public bool UnregisterFromHdPubKey()
+		=> HdPubKey.Coins.Remove(this);
 
 	public bool RefreshAndGetIsBanned()
 	{
