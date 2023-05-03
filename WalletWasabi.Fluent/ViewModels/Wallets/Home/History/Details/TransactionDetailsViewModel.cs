@@ -21,7 +21,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private string _dateString;
 	[AutoNotify] private string? _amount;
-	[AutoNotify] private SmartLabel? _labels;
+	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";

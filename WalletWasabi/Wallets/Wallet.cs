@@ -139,7 +139,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
-		return KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
+		return KeyManager.GetNextReceiveKey(new LabelsArray(destinationLabels));
 	}
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
@@ -554,7 +554,7 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
 	}
 
-	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
+	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)
 	{
 		if (!hdPubKeysWithLabels.Any())
 		{

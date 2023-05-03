@@ -13,11 +13,11 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Recipient")]
-public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?>
+public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray?>
 {
 	private readonly Wallet _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, SmartLabel label)
+	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray label)
 	{
 		_wallet = wallet;
 		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
@@ -40,7 +40,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 
 	private void OnNext()
 	{
-		Close(DialogResultKind.Normal, new SmartLabel(SuggestionLabels.Labels.ToArray()));
+		Close(DialogResultKind.Normal, new LabelsArray(SuggestionLabels.Labels.ToArray()));
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

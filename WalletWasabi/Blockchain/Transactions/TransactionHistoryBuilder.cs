@@ -38,7 +38,7 @@ public class TransactionHistoryBuilder
 			{
 				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
 				found.Amount += coin.Amount;
-				found.Label = SmartLabel.Merge(found.Label, containingTransaction.Label);
+				found.Label = LabelsArray.Merge(found.Label, containingTransaction.Label);
 			}
 			else
 			{

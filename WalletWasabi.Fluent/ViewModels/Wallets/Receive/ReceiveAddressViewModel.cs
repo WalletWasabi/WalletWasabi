@@ -69,7 +69,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	public string Address { get; }
 
-	public SmartLabel Labels { get; }
+	public LabelsArray Labels { get; }
 
 	public bool[,]? QrCode { get; set; }
 

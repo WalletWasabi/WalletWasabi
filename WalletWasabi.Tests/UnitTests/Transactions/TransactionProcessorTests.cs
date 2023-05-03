@@ -913,7 +913,7 @@ public class TransactionProcessorTests
 		var spendingTx = CreateSpendingTransaction(
 			Enumerable.Repeat(receivedCoin.Coin, 1),
 			destinationKey.GetScriptPubKey(ScriptPubKeyType.Legacy),
-			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone")).P2wpkhScript);
+			transactionProcessor.KeyManager.GetNextReceiveKey(new LabelsArray("someone")).P2wpkhScript);
 		relevant = transactionProcessor.Process(spendingTx);
 		Assert.True(relevant.IsNews);
 

@@ -113,7 +113,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
+		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new LabelsArray(label));
 
 		return new
 		{
@@ -167,7 +167,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		AssertWalletIsLoaded();
 		var sync = Global.Synchronizer;
 		var payment = new PaymentIntent(payments.Select(p =>
-			new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
+			new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
 		var result = activeWallet.BuildTransaction(
 			password,

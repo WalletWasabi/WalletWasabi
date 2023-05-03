@@ -219,11 +219,11 @@ public class AllTransactionStoreTests
 				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: "buz, qux").ToLine(),
 				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: "foo, bar").ToLine(),
 				uTx3.ToLine(),
-				new SmartTransaction(cTx1.Transaction, Height.Mempool, label: new SmartLabel("buz", "qux")).ToLine()
+				new SmartTransaction(cTx1.Transaction, Height.Mempool, label: new LabelsArray("buz", "qux")).ToLine()
 			};
 		var txFileContent = new[]
 		{
-				new SmartTransaction(cTx1.Transaction, cTx1.Height, label: new SmartLabel("foo", "bar")).ToLine(),
+				new SmartTransaction(cTx1.Transaction, cTx1.Height, label: new LabelsArray("foo", "bar")).ToLine(),
 				cTx2.ToLine(),
 				cTx3.ToLine(),
 				new SmartTransaction(uTx1.Transaction, new Height(2), label: "foo, bar").ToLine()

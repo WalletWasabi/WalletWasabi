@@ -179,8 +179,8 @@ public class KeyManagementTests
 		var network = Network.Main;
 		var manager = KeyManager.CreateNew(out _, password, network);
 
-		var k1 = manager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true);
-		Assert.Equal(SmartLabel.Empty, k1.Label);
+		var k1 = manager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, true);
+		Assert.Equal(LabelsArray.Empty, k1.Label);
 
 		for (int i = 0; i < 1000; i++)
 		{

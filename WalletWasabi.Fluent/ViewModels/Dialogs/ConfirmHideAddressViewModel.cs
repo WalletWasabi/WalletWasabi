@@ -8,7 +8,7 @@ public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 {
 	private string _title;
 
-	public ConfirmHideAddressViewModel(SmartLabel label)
+	public ConfirmHideAddressViewModel(LabelsArray label)
 	{
 		Label = label;
 		_title = "Hide Address";
@@ -19,7 +19,7 @@ public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	public SmartLabel Label { get; }
+	public LabelsArray Label { get; }
 
 	public override string Title
 	{

@@ -63,9 +63,9 @@ public class MempoolService
 		}
 	}
 
-	public SmartLabel TryGetLabel(uint256 txid)
+	public LabelsArray TryGetLabel(uint256 txid)
 	{
-		var label = SmartLabel.Empty;
+		var label = LabelsArray.Empty;
 		if (TryGetFromBroadcastStore(txid, out var entry))
 		{
 			label = entry.Transaction.Label;

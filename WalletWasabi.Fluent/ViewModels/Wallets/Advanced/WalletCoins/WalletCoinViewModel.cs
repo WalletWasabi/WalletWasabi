@@ -16,7 +16,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private int _anonymitySet;
-	[AutoNotify] private SmartLabel _smartLabel = "";
+	[AutoNotify] private LabelsArray _smartLabel = "";
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
 	[AutoNotify] private bool _isSelected;

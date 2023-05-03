@@ -138,7 +138,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			return;
 		}
 
-		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? SmartLabel.Empty);
+		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? LabelsArray.Empty);
 		var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 		if (result.Result is not { } label)
 		{

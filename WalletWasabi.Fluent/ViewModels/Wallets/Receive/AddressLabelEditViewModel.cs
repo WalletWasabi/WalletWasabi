@@ -31,7 +31,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(
 			() =>
 			{
-				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
+				hdPubKey.SetLabel(new LabelsArray(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
 				Navigate().Back();
 			},

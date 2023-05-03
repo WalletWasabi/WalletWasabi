@@ -45,5 +45,5 @@ public partial class AddressViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
-	public SmartLabel Label { get; }
+	public LabelsArray Label { get; }
 }

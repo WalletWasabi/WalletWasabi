@@ -315,7 +315,7 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	internal HdPubKey GenerateNewKey(LabelsArray label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
 							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
@@ -330,7 +330,7 @@ public class KeyManager
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(SmartLabel label)
+	public HdPubKey GetNextReceiveKey(LabelsArray label)
 	{
 		if (label.IsEmpty)
 		{
@@ -709,7 +709,7 @@ public class KeyManager
 	#endregion BlockchainState
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
-		new(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
+		new(x.ExtPubKey.PubKey, x.KeyPath, LabelsArray.Empty, KeyState.Clean);
 
 	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
 	{
