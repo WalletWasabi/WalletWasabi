@@ -18,6 +18,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private Height _height;
 	private SmartTransaction? _spenderTransaction;
 	private bool _coinJoinInProgress;
+	private bool _coinJoinInCriticalPhase;
 	private DateTimeOffset? _bannedUntilUtc;
 	private bool _spentAccordingToBackend;
 
@@ -93,7 +94,20 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool CoinJoinInProgress
 	{
 		get => _coinJoinInProgress;
-		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+		set
+		{
+			if (value is false)
+			{
+				CoinJoinInCriticalPhase = false;
+			}
+			RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+		}
+	}
+
+	public bool CoinJoinInCriticalPhase
+	{
+		get => _coinJoinInCriticalPhase;
+		set => RaiseAndSetIfChanged(ref _coinJoinInCriticalPhase, value);
 	}
 
 	public DateTimeOffset? BannedUntilUtc
