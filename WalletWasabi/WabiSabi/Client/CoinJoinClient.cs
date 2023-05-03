@@ -692,6 +692,11 @@ public class CoinJoinClient
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 
+		foreach (var aliceClient in registeredAliceClients)
+		{
+			aliceClient.SmartCoin.CoinJoinInCriticalPhase = true;
+		}
+
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
