@@ -278,6 +278,27 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
+	private void LoadBannedCoins()
+	{
+		bool isUpdateRequired = false;
+		foreach (var bannedCoin in KeyManager.BannedCoinsFromCoinJoin)
+		{
+			var coin = Coins.SingleOrDefault(c => c.Outpoint == bannedCoin.OutPoint);
+			if (coin != null)
+			{
+				coin.BannedUntilUtc = bannedCoin.BannedUntil;
+			}
+			else
+			{
+				isUpdateRequired = true;
+			}
+		}
+		if (isUpdateRequired)
+		{
+			UpdateBannedCoinsFromCoinJoin();
+		}
+	}
+
 	/// <inheritdoc />
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 
@@ -552,6 +573,12 @@ public class Wallet : BackgroundService, IWallet
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
+	}
+
+	public void UpdateBannedCoinsFromCoinJoin()
+	{
+		var bannedOutpoints = Coins.Where(c => c.IsBanned).Select(c => (c.Outpoint, c.BannedUntilUtc));
+		KeyManager.SetBannedCoinsFromCoinJoin(bannedOutpoints);
 	}
 
 	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
