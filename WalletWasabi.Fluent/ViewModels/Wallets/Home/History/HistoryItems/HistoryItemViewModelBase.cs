@@ -104,17 +104,17 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		return (x, y) =>
 		{
 			var ordering = reverse ? -1 : 1;
-			
+
 			if (x is null && y is null)
 			{
 				return 0;
 			}
-			
+
 			if (x is null)
 			{
 				return -ordering;
 			}
-			
+
 			if (y is null)
 			{
 				return ordering;
@@ -127,7 +127,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				result = Comparer<T>.Default.Compare(selector(x), selector(y));
 				result *= ordering;
 			}
-			
+
 			return result;
 		};
 	}
