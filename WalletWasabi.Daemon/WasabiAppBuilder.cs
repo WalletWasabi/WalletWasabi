@@ -206,6 +206,6 @@ public static class WasabiAppExtensions
 				ProcessCommands();
 
 				await app.TerminateService.TerminationRequested.Task.ConfigureAwait(false);
-			});
+			}).ConfigureAwait(false);
 	}
 }
