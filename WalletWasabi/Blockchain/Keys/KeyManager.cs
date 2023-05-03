@@ -206,6 +206,9 @@ public class KeyManager
 	[JsonProperty(ItemConverterType = typeof(OutPointJsonConverter), PropertyName = "ExcludedCoinsFromCoinJoin")]
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
+	[JsonProperty(ItemConverterType = typeof(OutPointDateTimeJsonConverter), PropertyName = "BannedCoinsFromCoinJoin")]
+	public List<(OutPoint OutPoint, DateTimeOffset? BannedUntil)> BannedCoinsFromCoinJoin { get; private set; } = new();
+
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
@@ -713,6 +716,12 @@ public class KeyManager
 	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
 	{
 		ExcludedCoinsFromCoinJoin = excludedOutpoints.ToList();
+		ToFile();
+	}
+
+	internal void SetBannedCoinsFromCoinJoin(IEnumerable<(OutPoint OutPoint, DateTimeOffset? BannedUntil)> bannedOutpoints)
+	{
+		BannedCoinsFromCoinJoin = bannedOutpoints.ToList();
 		ToFile();
 	}
 }
