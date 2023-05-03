@@ -259,6 +259,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return smartTx.Transaction.ToHex();
 	}
 
+	[JsonRpcMethod("payincoinjoin")]
+	public string PayInCoinJoin(BitcoinAddress address, Money amount)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		return activeWallet.BatchPayment(address, amount);
+	}
+
 	[JsonRpcMethod("send")]
 	public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
 	{

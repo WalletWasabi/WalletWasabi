@@ -5,15 +5,8 @@ using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
-public record PendingPayment(IDestination Destination, Money Amount)
-{
-	public TxOut ToTxOut() =>
-		new (Amount, Destination);
-
-	public Money EffectiveCost(FeeRate feeRate) =>
-		ToTxOut().EffectiveCost(feeRate);
-}
-
+// Represents a set (or subset) of pending payments. This is an auxiliary class that is
+// useful to keep the code of the PaymentAwareOutputProvider cleaner.
 public record PaymentSet(IEnumerable<PendingPayment> Payments, FeeRate MiningFeeRate)
 {
 	public static readonly PaymentSet Empty = new(Enumerable.Empty<PendingPayment>(), FeeRate.Zero);
@@ -21,4 +14,7 @@ public record PaymentSet(IEnumerable<PendingPayment> Payments, FeeRate MiningFee
 	public Money TotalAmount { get; } = Payments.Sum(x => x.EffectiveCost(MiningFeeRate));
 	public int TotalVSize { get; } = Payments.Sum(x => x.Destination.ScriptPubKey.EstimateOutputVsize());
 	public int PaymentCount { get; } = Payments.Count();
+
+	public IEnumerable<InProgressPayment> MoveToInProgress(PaymentBatch batch) =>
+		Payments.Select (batch.MoveToInProgress);
 }

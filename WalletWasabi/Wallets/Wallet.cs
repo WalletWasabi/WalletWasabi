@@ -21,6 +21,8 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
@@ -59,6 +61,8 @@ public class Wallet : BackgroundService, IWallet
 		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
 		Coins = TransactionProcessor.Coins;
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
+		BatchedPayments = new PaymentBatch();
+		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -109,6 +113,9 @@ public class Wallet : BackgroundService, IWallet
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
+
+	public OutputProvider OutputProvider { get; }
+	public PaymentBatch BatchedPayments { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode { get; set; } = false;
@@ -343,6 +350,13 @@ public class Wallet : BackgroundService, IWallet
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
+	}
+
+	public string BatchPayment(IDestination destination, Money amount)
+	{
+		var payment = new PendingPayment(destination, amount);
+		BatchedPayments.AddPendingPayment(payment);
+		return payment.Id.ToString();
 	}
 
 	/// <inheritdoc/>
