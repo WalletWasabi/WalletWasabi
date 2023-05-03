@@ -91,63 +91,44 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return -1;
-			}
-			else if (y is null)
-			{
-				return 1;
-			}
-			else
-			{
-				if (!x.IsConfirmed && y.IsConfirmed)
-				{
-					return -1;
-				}
-				else if (x.IsConfirmed && !y.IsConfirmed)
-				{
-					return 1;
-				}
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
-		};
+		return Sort(selector, reverse: false);
 	}
 
 	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
+		return Sort(selector, reverse: true);
+	}
+
+	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, bool reverse)
+	{
 		return (x, y) =>
 		{
+			var ordering = reverse ? -1 : 1;
+			
 			if (x is null && y is null)
 			{
 				return 0;
 			}
-			else if (x is null)
+			
+			if (x is null)
 			{
-				return 1;
+				return -ordering;
 			}
-			else if (y is null)
+			
+			if (y is null)
 			{
-				return -1;
+				return ordering;
 			}
-			else
+
+			// Confirmation comparison must be the same for both sort directions..
+			var result = x.IsConfirmed.CompareTo(y.IsConfirmed);
+			if (result == 0)
 			{
-				if (!x.IsConfirmed && y.IsConfirmed)
-				{
-					return -1;
-				}
-				else if (x.IsConfirmed && !y.IsConfirmed)
-				{
-					return 1;
-				}
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
+				result = Comparer<T>.Default.Compare(selector(x), selector(y));
+				result *= ordering;
 			}
+			
+			return result;
 		};
 	}
 }
