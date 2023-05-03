@@ -17,10 +17,11 @@ public class RoundData
 
 	public void AddInputCoin(Coin coin, bool isCoordinationFeeExempted)
 	{
-		AffiliateInputsByOutpoint[coin.Outpoint] = 
+		AffiliateInputsByOutpoint[coin.Outpoint] =
 			new AffiliateInput(
 				coin.Outpoint,
 				coin.ScriptPubKey,
+				coin.Amount,
 				AffiliationConstants.DefaultAffiliationId,
 				isCoordinationFeeExempted || IsNoFee(coin.Amount));
 	}

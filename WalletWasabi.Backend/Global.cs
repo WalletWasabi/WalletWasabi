@@ -68,6 +68,7 @@ public class Global : IDisposable
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Coordinator? Coordinator { get; private set; }
+	private CoinVerifierApiClient? CoinVerifierApiClient { get; set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
 
 	public Config Config { get; }
@@ -96,7 +97,7 @@ public class Global : IDisposable
 
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
 		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
-		CoinVerifier? coinVerifier = null;
+
 		if (coinVerifierEnabled)
 		{
 			try
@@ -115,12 +116,12 @@ public class Global : IDisposable
 				}
 
 				HttpClient.BaseAddress = url;
+				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
-				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
-				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
-				CoinVerifier = coinVerifier;
-				WhiteList = whitelist;
+				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
+				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
+				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
+
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
@@ -129,7 +130,7 @@ public class Global : IDisposable
 			}
 		}
 
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? coinVerifier : null);
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? CoinVerifier : null);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
 		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
@@ -157,7 +158,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
@@ -207,12 +208,8 @@ public class Global : IDisposable
 			{
 				if (blocks < 101)
 				{
-					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken);
-					if (generateBlocksResponse is null)
-					{
-						throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
-					}
-
+					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken)
+						?? throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
 					blockchainInfo = await rpcClient.GetBlockchainInfoAsync(cancellationToken);
 					blocks = blockchainInfo.Blocks;
 					if (blocks == 0)
@@ -280,6 +277,11 @@ public class Global : IDisposable
 		if (CoinVerifier is { } coinVerifier)
 		{
 			await coinVerifier.DisposeAsync().ConfigureAwait(false);
+		}
+
+		if (CoinVerifierApiClient is { } coinVerifierApiClient)
+		{
+			await coinVerifierApiClient.DisposeAsync().ConfigureAwait(false);
 		}
 	}
 

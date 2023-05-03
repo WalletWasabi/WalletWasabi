@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -78,9 +79,7 @@ public class Wallet : BackgroundService, IWallet
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
-	/// <summary>
-	/// Unspent Transaction Outputs
-	/// </summary>
+	/// <summary>Unspent Transaction Outputs</summary>
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
@@ -96,33 +95,33 @@ public class Wallet : BackgroundService, IWallet
 	public bool IsLoggedIn { get; private set; }
 
 	public Kitchen Kitchen { get; } = new();
-	
+
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
-	
+
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
-	
+
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
 		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
 		&& Kitchen.HasIngredients;
-	
+
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
-	
+
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
-
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
+
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
-	
+
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
@@ -137,7 +136,12 @@ public class Wallet : BackgroundService, IWallet
 		}
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
-	
+
+	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
+	{
+		return KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
+	}
+
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
 		var privateAmount = coins.FilterBy(x => x.IsPrivate(privateThreshold)).TotalAmount();
@@ -424,7 +428,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
+			var task = BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
 
 			if (task is { })
 			{
@@ -449,9 +453,9 @@ public class Wallet : BackgroundService, IWallet
 
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
-			async (filterModel) => 
-				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false), 
-			new Height(bestKeyManagerHeight.Value + 1), 
+			async (filterModel) =>
+				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
+			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
 	}
 
@@ -548,5 +552,20 @@ public class Wallet : BackgroundService, IWallet
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
+	}
+
+	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
+	{
+		if (!hdPubKeysWithLabels.Any())
+		{
+			return;
+		}
+
+		foreach (var item in hdPubKeysWithLabels)
+		{
+			item.Key.SetLabel(item.Value);
+		}
+
+		KeyManager.ToFile();
 	}
 }

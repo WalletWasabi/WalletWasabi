@@ -31,7 +31,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			.GroupBy(x => x.Range, y => y, (x, y) => (Range: x, BestEstimation: y.Last()))
 			.Select(x => (ConfirmationTarget: x.Range.End, x.BestEstimation.FeeRate));
 
-		// Make sure values are unique and in the correct order and feerates are consistently decreasing.
+		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
 		Estimations = new Dictionary<int, int>();
 		var lastFeeRate = int.MaxValue;
 		foreach (var estimation in filteredEstimations)

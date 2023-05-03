@@ -1,153 +1,172 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerable<string>, IComparable<SmartLabel>
+public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLabel>, IReadOnlyCollection<string>
 {
+	private readonly string[]? _labels;
+	
 	public SmartLabel(params string[] labels) : this(labels as IEnumerable<string>)
 	{
 	}
 
-	public SmartLabel(IEnumerable<string> labels)
+	public SmartLabel(IEnumerable<string>? labels)
 	{
-		labels ??= Enumerable.Empty<string>();
-		Labels = labels
-			   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
-			   .Select(x => x.Trim())
-			   .Where(x => x.Length != 0)
-			   .Distinct(StringComparer.OrdinalIgnoreCase)
-			   .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-			   .ToArray();
-
-		IsEmpty = !Labels.Any();
-
-		LabelString = string.Join(", ", Labels);
+		_labels = (labels ?? Array.Empty<string>())
+		   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
+		   .Select(x => x.Trim())
+		   .Where(x => x.Length != 0)
+		   .Distinct(StringComparer.OrdinalIgnoreCase)
+		   .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+		   .ToArray();
 	}
 
-	public static SmartLabel Empty { get; } = new SmartLabel();
+	public static SmartLabel Empty { get; } = new();
 	public static char[] Separators { get; } = new[] { ',', ':' };
-	public IEnumerable<string> Labels { get; }
-	public bool IsEmpty { get; }
 
-	private string LabelString { get; }
+	public int Count => AsSpan().Length;
+	public bool IsEmpty => AsSpan().IsEmpty;
 
-	public override string ToString() => LabelString;
+	public ReadOnlySpan<string> AsSpan() => _labels;
 
-	public static SmartLabel Merge(IEnumerable<SmartLabel> labels)
+	public override string ToString()
 	{
-		labels ??= Enumerable.Empty<SmartLabel>();
-
-		IEnumerable<string> labelStrings = labels
-			.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
-			.Where(x => x is { });
-
-		return new SmartLabel(labelStrings);
-	}
-
-	public static SmartLabel Merge(params SmartLabel[] labels) => Merge(labels as IEnumerable<SmartLabel>);
-
-	public IEnumerator<string> GetEnumerator() => Labels.GetEnumerator();
-
-	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-	#region Equality
-
-	public int CompareTo(SmartLabel? other)
-	{
-		if (other is null)
+		const string Separator = ", ";
+		int length = 0;
+		
+		foreach (var label in this)
 		{
-			return -1;
+			length += label.Length + Separator.Length;
 		}
 
-		return string.Compare(this, other, StringComparison.OrdinalIgnoreCase);
-	}
-
-	public override bool Equals(object? obj) => Equals(obj as SmartLabel) || Equals(obj as string);
-
-	public bool Equals(SmartLabel? other) => AreEquivalent(this, other);
-
-	public bool Equals(string? other) => AreEquivalent(other, this);
-
-	public bool Equals(string? other, StringComparison comparison) => AreEquivalent(other, this, comparison);
-
-	public bool Equals(SmartLabel? other, IEqualityComparer<string> comparer) => AreEquivalent(this, other, comparer);
-
-	public override int GetHashCode() => ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
-
-	private static bool AreEquivalent(SmartLabel? x, SmartLabel? y, IEqualityComparer<string>? comparer = null)
-	{
-		if (x is null)
+		if (length == 0)
 		{
-			if (y is null)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return string.Empty;
 		}
-		else
+		
+		return string.Create(length - Separator.Length, this, static (span, self) =>
 		{
-			if (y is null)
-			{
-				return false;
-			}
-			else
-			{
-				return x.Labels.SequenceEqual(y.Labels, comparer);
-			}
-		}
-	}
+			var index = 0;
 
-	private static bool AreEquivalent(string? x, SmartLabel? y, StringComparison? comparison = null)
-	{
-		if (x is null)
-		{
-			if (y is null)
+			foreach (var label in self)
 			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			if (y is null)
-			{
-				return false;
-			}
-			else
-			{
-				if (comparison is { })
-				{
-					return string.Equals(x, y.LabelString, comparison.Value);
+				label.CopyTo(span[index..]);
+				index += label.Length;
+
+				if (index < span.Length)
+				{					
+					Separator.CopyTo(span[index..]);
+					index += Separator.Length;
 				}
-
-				return x == y.LabelString;
 			}
+		});
+	}
+
+	public override int GetHashCode()
+	{
+		var hashCode = new HashCode();
+		
+		foreach (var label in this)
+		{
+			hashCode.Add(label);
+		}
+
+		return hashCode.ToHashCode();
+	}
+
+	public override bool Equals(object? other)
+	{
+		return other is SmartLabel label && label.Equals(this);
+	}
+
+	public bool Equals(SmartLabel other) =>
+		AsSpan().SequenceEqual(other.AsSpan());
+
+	public bool Equals(SmartLabel other, IEqualityComparer<string> comparer) =>
+		AsSpan().SequenceEqual(other.AsSpan(), comparer);
+
+	public bool Equals(string? other) =>
+		ToString().Equals(other);
+
+	public bool Equals(string? other, StringComparison comparison) =>
+		ToString().Equals(other, comparison);
+
+	public int CompareTo(SmartLabel other) =>
+		CompareTo(other, StringComparison.OrdinalIgnoreCase);
+
+	public int CompareTo(SmartLabel other, IComparer<string> comparer)
+	{
+		if (comparer is null)
+		{
+			return CompareTo(other);
+		}
+
+		// The following code repeats what .NET could have
+		// if SequenceCompareTo is accepted and implemented`.
+		var thisLabels = AsSpan();
+		var otherLabels = other.AsSpan();
+		
+		return CompareToSlow(
+			ref MemoryMarshal.GetReference(thisLabels),
+			thisLabels.Length,
+			ref MemoryMarshal.GetReference(otherLabels),
+			otherLabels.Length,
+			comparer);
+
+		static int CompareToSlow(ref string first, int firstLength, ref string second, int secondLength, IComparer<string> comparer)
+		{
+			int minLength = firstLength;
+            if (minLength > secondLength)
+			{
+                minLength = secondLength;
+			}
+			
+            for (int i = 0; i < minLength; i++)
+            {
+                int result = comparer.Compare(
+					Unsafe.Add(ref first, i),
+					Unsafe.Add(ref second, i));
+					
+                if (result != 0)
+				{
+                    return result;
+				}
+            }
+			
+            return firstLength.CompareTo(secondLength);
 		}
 	}
 
-	public static bool operator ==(SmartLabel? x, SmartLabel? y) => AreEquivalent(x, y);
+	public int CompareTo(string? other) =>
+		string.Compare(ToString(), other, StringComparison.OrdinalIgnoreCase);
 
-	public static bool operator ==(string? x, SmartLabel? y) => AreEquivalent(x, y);
+	public int CompareTo(string? other, StringComparison comparison) =>
+		string.Compare(ToString(), other, comparison);
 
-	public static bool operator ==(SmartLabel? x, string? y) => y == x;
+	public ReadOnlySpan<string>.Enumerator GetEnumerator() =>
+		AsSpan().GetEnumerator();
 
-	public static bool operator !=(SmartLabel? x, SmartLabel? y) => !(x == y);
+	IEnumerator<string> IEnumerable<string>.GetEnumerator() => GetEnumeratorAllocating();
+	IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorAllocating();
 
-	public static bool operator !=(string? x, SmartLabel? y) => !(x == y);
+	private IEnumerator<string> GetEnumeratorAllocating() =>
+		(_labels ?? Enumerable.Empty<string>()).GetEnumerator();
+	
+	public static SmartLabel Merge(params SmartLabel[] labels) =>
+		Merge(labels as IEnumerable<SmartLabel>);
 
-	public static bool operator !=(SmartLabel? x, string? y) => !(x == y);
+	public static SmartLabel Merge(IEnumerable<SmartLabel> labels) =>
+		new(labels?.SelectMany(x => x));
+
+	public static bool operator ==(SmartLabel x, SmartLabel y) => x.Equals(y);
+
+	public static bool operator !=(SmartLabel x, SmartLabel y) => !(x == y);
 
 	public static implicit operator SmartLabel(string labels) => new(labels);
 
-	public static implicit operator string(SmartLabel label) => label?.LabelString;
-
-	#endregion Equality
+	public static implicit operator string(SmartLabel label) => label.ToString();
 }

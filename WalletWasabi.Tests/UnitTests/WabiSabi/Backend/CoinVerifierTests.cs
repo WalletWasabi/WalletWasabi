@@ -20,6 +20,8 @@ public class CoinVerifierTests
 
 	private WabiSabiConfig _wabisabiTestConfig = new() { RiskFlags = new List<int>() { 11 } };
 
+	private int _mockBlockchainHeight = 733947; // Same as the example JSON report block height, otherwise we kick out the coin.
+
 	[Fact]
 	public async Task CanHandleBlacklistedUtxosTestAsync()
 	{
@@ -36,7 +38,7 @@ public class CoinVerifierTests
 		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
 
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(98);
@@ -79,14 +81,14 @@ public class CoinVerifierTests
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
 		List<Coin> removedCoins = new();
 		List<Coin> checkedCoins = new();
 
-		ScheduleVerifications(coinVerifier, generatedCoins, TimeSpan.FromSeconds(2));
+		ScheduleVerifications(coinVerifier, generatedCoins);
 		coinVerifier.CancelSchedule(generatedCoins[9]);
 
 		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
@@ -114,7 +116,7 @@ public class CoinVerifierTests
 		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() =>
 			{
-				string content = "{\"error\": \"User roles access forbidden.\" }";
+				string content = """{"error": "User roles access forbidden." }""";
 				HttpResponseMessage response = new(System.Net.HttpStatusCode.Forbidden);
 				response.Content = new StringContent(content);
 				return response;
@@ -123,7 +125,7 @@ public class CoinVerifierTests
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(5);
@@ -161,7 +163,7 @@ public class CoinVerifierTests
 
 		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
@@ -188,7 +190,7 @@ public class CoinVerifierTests
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		CoinVerifierApiClient apiClient = new("token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
 		Whitelist whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig());
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig, whitelist);
 
@@ -230,11 +232,11 @@ public class CoinVerifierTests
 		return coins;
 	}
 
-	private void ScheduleVerifications(CoinVerifier coinVerifier, IEnumerable<Coin> coins, TimeSpan? delay = null)
+	private void ScheduleVerifications(CoinVerifier coinVerifier, IEnumerable<Coin> coins)
 	{
 		foreach (Coin coin in coins)
 		{
-			coinVerifier.TryScheduleVerification(coin, out _, CancellationToken.None, delay, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations);
+			coinVerifier.TryScheduleVerification(coin, delayedStart: TimeSpan.Zero, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations, oneHop: false, currentBlockHeight: _mockBlockchainHeight, CancellationToken.None);
 		}
 	}
 }

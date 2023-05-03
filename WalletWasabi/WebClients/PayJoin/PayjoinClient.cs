@@ -57,7 +57,7 @@ public class PayjoinClient : IPayjoinClient
 		var oldGlobalTx = originalTx.GetGlobalTransaction();
 
 		var cloned = originalTx.Clone();
-		if (!cloned.TryFinalize(out var _))
+		if (!cloned.TryFinalize(out _))
 		{
 			throw new InvalidOperationException("The original PSBT could not be finalized.");
 		}

@@ -36,27 +36,27 @@ public static class ServiceFactory
 			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
-		var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
-		foreach (var coin in scoins)
+		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+		foreach (var coin in sCoins)
 		{
-			foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
+			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
 			{
 				sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 			}
 		}
 
-		var uniqueCoins = scoins.Distinct().Count();
-		if (uniqueCoins != scoins.Length)
+		var uniqueCoins = sCoins.Distinct().Count();
+		if (uniqueCoins != sCoins.Length)
 		{
-			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{scoins.Length}, unique coins:{uniqueCoins}.");
+			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Length}, unique coins:{uniqueCoins}.");
 		}
 
-		var coinsView = new CoinsView(scoins);
+		var coinsView = new CoinsView(sCoins);
 		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
 	}
 
-	public static KeyManager CreateKeyManager(string password = "blahblahblah")
+	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)
 	{
 		var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey(password);
@@ -67,7 +67,14 @@ public static class ServiceFactory
 		KeyPath segwitAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit);
 		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
 
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, null, skipSynchronization: true, 21, blockchainState, null, segwitAccountKeyPath, null);
+		ExtPubKey? taprootExtPubKey = null;
+		if (isTaprootAllowed)
+		{
+			KeyPath taprootAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86);
+			taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+		}
+
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, 21, blockchainState, null, segwitAccountKeyPath, null);
 	}
 
 	public static KeyManager CreateWatchOnlyKeyManager()

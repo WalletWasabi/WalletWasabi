@@ -98,7 +98,7 @@ public class P2pTests
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		await using HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
@@ -109,11 +109,13 @@ public class P2pTests
 		});
 
 		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfig, httpClientFactory.TorEndpoint);
+
 		IBlockProvider blockProvider = new SmartBlockProvider(
 			blockRepository,
-			null,
-			new SpecificNodeBlockProvider(network, serviceConfig, httpClientFactory),
-			new P2PBlockProvider(network, nodes, httpClientFactory),
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
 		using Wallet wallet = Wallet.CreateAndRegisterServices(

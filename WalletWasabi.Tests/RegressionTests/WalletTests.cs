@@ -51,13 +51,15 @@ public class WalletTests
 	[Fact]
 	public async Task FilterDownloaderTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(1), 1000, bitcoinStore, httpClientFactory);
 		try
 		{
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), 1000);
+			synchronizer.Start();
 
 			var blockCount = await rpc.GetBlockCountAsync() + 1; // Plus one because of the zeroth.
 																 // Test initial synchronization.
@@ -98,7 +100,7 @@ public class WalletTests
 				filterList.Add(x);
 				await Task.CompletedTask;
 			},
-			new Height(0));
+			new Height(0), testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 			for (int i = 0; i < 101; i++)
 			{
@@ -118,6 +120,8 @@ public class WalletTests
 	[Fact]
 	public async Task ReorgTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		(string password, IRPCClient rpc, Network network, _, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -137,11 +141,11 @@ public class WalletTests
 		var node = RegTestFixture.BackendRegTestNode;
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 
 		try
 		{
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000);
+			synchronizer.Start();
 
 			var reorgAwaiter = new EventsAwaiter<FilterModel>(
 				h => bitcoinStore.IndexStore.Reorged += h,
@@ -178,7 +182,7 @@ public class WalletTests
 				filterList.Add(x);
 				await Task.CompletedTask;
 			},
-			new Height(0));
+			new Height(0), testDeadlineCts.Token);
 			var filterTip = filterList.Last();
 			Assert.Equal(tip, filterTip.Header.BlockHash);
 
@@ -191,7 +195,7 @@ public class WalletTests
 				filterList.Add(x);
 				await Task.CompletedTask;
 			},
-			new Height(0));
+			new Height(0), testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 			for (int i = 0; i < blockCountIncludingGenesis; i++)
 			{
@@ -239,7 +243,7 @@ public class WalletTests
 
 		// 2. Create wasabi synchronizer service.
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 3. Create key manager service.
@@ -256,11 +260,13 @@ public class WalletTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		SmartBlockProvider blockProvider = new SmartBlockProvider(
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		SmartBlockProvider blockProvider = new(
 			bitcoinStore.BlockRepository,
-			null,
-			new SpecificNodeBlockProvider(network, serviceConfiguration, httpClientFactory: httpClientFactory),
-			new P2PBlockProvider(network, nodes, httpClientFactory),
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
@@ -276,7 +282,7 @@ public class WalletTests
 			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000); // Start wasabi synchronizer service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Wait until the filter our previous transaction is present.

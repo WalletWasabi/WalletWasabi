@@ -14,7 +14,7 @@ public class SmartBlockProvider : IBlockProvider
 {
 	private static MemoryCacheEntryOptions CacheOptions = new()
 	{
-		Size = 10, // Unit size of an item (CacheSize/Size = number of possible items in cache)
+		Size = 10, // Unit size of an item (CacheSize/Size = number of possible items in cache).
 		SlidingExpiration = TimeSpan.FromSeconds(5)
 	};
 
@@ -32,14 +32,14 @@ public class SmartBlockProvider : IBlockProvider
 		P2PProvider = p2PBlockProvider;
 		Cache = new(cache);
 	}
-	
-	/// <seealso cref="RpcProvider"/>
+
+	/// <seealso cref="RpcBlockProvider"/>
 	private IBlockProvider? RpcProvider { get; }
 
-	/// <seealso cref="SpecificNodeProvider"/>
+	/// <seealso cref="SpecificNodeBlockProvider"/>
 	private IBlockProvider? SpecificNodeProvider { get; }
 
-	/// <seealso cref="P2PProvider"/>
+	/// <seealso cref="P2PBlockProvider"/>
 	private IBlockProvider? P2PProvider { get; }
 	private IdempotencyRequestCache Cache { get; }
 	private IRepository<uint256, Block> BlockRepository { get; }
@@ -83,15 +83,17 @@ public class SmartBlockProvider : IBlockProvider
 	private async Task<Block?> GetBlockNoCacheAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		Block? result = null;
-		
+
 		if (RpcProvider is not null)
 		{
 			result = await RpcProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 		}
+
 		if (result is null && SpecificNodeProvider is not null)
 		{
 			result = await SpecificNodeProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 		}
+
 		if (result is null && P2PProvider is not null)
 		{
 			result = await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);

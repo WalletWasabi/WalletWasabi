@@ -3,14 +3,13 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
+public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public CoinJoinHistoryItemViewModel(
+	private CoinJoinHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
 		WalletViewModel walletVm,
@@ -32,10 +31,10 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		SetAmount(amount);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
+		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
 
 	public bool IsSingleCoinJoinTransaction { get; }

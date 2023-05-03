@@ -46,7 +46,7 @@ public class JsonRpcServer : BackgroundService
 		{
 			try
 			{
-				var context = await GetHttpContextAsync(stoppingToken).ConfigureAwait(false);
+				var context = await Listener.GetContextAsync().WaitAsync(stoppingToken).ConfigureAwait(false);
 				var request = context.Request;
 				var response = context.Response;
 
@@ -57,7 +57,8 @@ public class JsonRpcServer : BackgroundService
 
 					if (IsAuthorized(context))
 					{
-						var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
+						var path = request.Url?.LocalPath ?? string.Empty;
+						var result = await handler.HandleAsync(path, body, stoppingToken).ConfigureAwait(false);
 
 						// result is null only when the request is a notification.
 						if (!string.IsNullOrEmpty(result))
@@ -106,21 +107,6 @@ public class JsonRpcServer : BackgroundService
 
 		var identity = (HttpListenerBasicIdentity?)user.Identity;
 		return CheckValidCredentials(identity);
-	}
-
-	private async Task<HttpListenerContext> GetHttpContextAsync(CancellationToken cancellationToken)
-	{
-		var getHttpContextTask = Listener.GetContextAsync();
-		var tcs = new TaskCompletionSource<bool>();
-		using (cancellationToken.Register(state => ((TaskCompletionSource<bool>)state).TrySetResult(true), tcs))
-		{
-			var firstTaskToComplete = await Task.WhenAny(getHttpContextTask, tcs.Task).ConfigureAwait(false);
-			if (getHttpContextTask != firstTaskToComplete)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-			}
-		}
-		return await getHttpContextTask.ConfigureAwait(false);
 	}
 
 	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity)

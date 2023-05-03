@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -14,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(
 	Title = "Receive",
-	Caption = "Displays wallet receive dialog",
+	Caption = "Display wallet receive dialog",
 	IconName = "wallet_action_receive",
 	Order = 6,
 	Category = "Wallet",
@@ -33,7 +34,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Receive, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels

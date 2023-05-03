@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -13,6 +12,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
 using WalletWasabi.Extensions;
 using System.Net.Http;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -57,6 +57,8 @@ public class AliceClient
 	private TimeSpan ConfirmationTimeout { get; }
 	public bool IsCoordinationFeeExempted { get; }
 
+	public DateTimeOffset LastSuccessfulInputConnectionConfirmation { get; private set; } = DateTimeOffset.UtcNow;
+
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
 		ArenaClient arenaClient,
@@ -67,23 +69,38 @@ public class AliceClient
 		CancellationToken registrationCancellationToken,
 		CancellationToken confirmationCancellationToken)
 	{
-		AliceClient? aliceClient = null;
+		var aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 		try
 		{
-			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode
+			is WabiSabiProtocolErrorCode.RoundNotFound
+			or WabiSabiProtocolErrorCode.WrongPhase
+			or WabiSabiProtocolErrorCode.AliceAlreadyRegistered
+			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection)
 		{
-			if (aliceClient is { })
-			{
-				// Unregistering coins is only possible before connection confirmation phase.
-				await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-			}
-
+			// Do not unregister.
 			throw;
+		}
+		catch (UnexpectedRoundPhaseException)
+		{
+			// Do not unregister.
+			throw;
+		}
+		catch (Exception) when (aliceClient is { })
+		{
+            var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+
+            // We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
+            if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
+            {
+                // Unregistering coins is only possible before connection confirmation phase.
+                await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
+            }
+            throw;
 		}
 
 		return aliceClient;
@@ -194,6 +211,8 @@ public class AliceClient
 		IssuedAmountCredentials = response.IssuedAmountCredentials;
 		IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
+		LastSuccessfulInputConnectionConfirmation = DateTimeOffset.UtcNow;
+
 		var isConfirmed = response.Value;
 		return isConfirmed;
 	}
@@ -209,27 +228,16 @@ public class AliceClient
 			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
-		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
+		catch (OperationCanceledException e)
 		{
 			Logger.LogTrace(e);
 		}
+		catch (Exception e) when (e is HttpRequestException or WabiSabiProtocolException)
+		{
+			Logger.LogDebug($"Unregistration failed for coin '{SmartCoin.Coin.Outpoint}'.", e);
+		}
 		catch (Exception e)
 		{
-			if (e is HttpRequestException && e.InnerException is WabiSabiProtocolException wpe)
-			{
-				switch (wpe.ErrorCode)
-				{
-					case WabiSabiProtocolErrorCode.RoundNotFound:
-						SmartCoin.CoinJoinInProgress = false;
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} the round was not found. Nothing to unregister.");
-						break;
-
-					case WabiSabiProtocolErrorCode.WrongPhase:
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
-						break;
-				}
-			}
-
 			// Log and swallow the exception because there is nothing else that can be done here.
 			Logger.LogWarning($"{SmartCoin.Coin.Outpoint} unregistration failed with {e}.");
 		}

@@ -23,7 +23,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	private IDictionary<string, AffiliateServerHttpApiClient> Clients { get; }
 	private HashSet<string> RunningAffiliateServers { get; } = new();
 	private object RunningAffiliateServersLock { get; } = new();
-	
+
 	public ImmutableArray<string> GetRunningAffiliateServers()
 	{
 		lock (RunningAffiliateServersLock)
@@ -54,7 +54,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	private async Task UpdateRunningAffiliateServersAsync(string affiliationId, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		using var linkedCts = cancellationToken.CreateLinkedTokenSourceWithTimeout(AffiliateServerTimeout);
-		
+
 		if (await IsAffiliateServerRunningAsync(affiliateServerHttpApiClient, linkedCts.Token).ConfigureAwait(false))
 		{
 			lock (RunningAffiliateServersLock)

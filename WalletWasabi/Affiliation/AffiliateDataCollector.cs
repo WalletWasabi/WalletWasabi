@@ -12,7 +12,7 @@ public interface IRoundNotifier : IDisposable
 }
 
 public abstract record RoundNotification(uint256 RoundId);
-public record RoundBuiltTransactionNotification(uint256 RoundId, BuiltTransactionData BuiltTransactionData) : RoundNotification(RoundId);
+public record RoundBuiltTransactionNotification(uint256 RoundId, uint256 TxId, BuiltTransactionData BuiltTransactionData) : RoundNotification(RoundId);
 public record RoundEndedNotification(uint256 RoundId) : RoundNotification(RoundId);
 
 // This is an extension of Arena. The internal state is updated as result of an event raised by Arena
@@ -30,9 +30,9 @@ public class AffiliateDataCollector : IRoundNotifier
 	private Dictionary<uint256, RoundData> RoundData { get; } = new();
 	private AsyncQueue<RoundNotification> RoundsToUpdate { get; } = new();
 
-	public IAsyncEnumerable<RoundNotification> GetRoundNotifications(CancellationToken cancellationToken) => 
+	public IAsyncEnumerable<RoundNotification> GetRoundNotifications(CancellationToken cancellationToken) =>
 		RoundsToUpdate.GetAsyncIterator(cancellationToken);
-	
+
 	private void Arena_InputAdded(object? sender, InputAddedEventArgs args) =>
 		GetRoundDataOrFail(args.RoundId)
 			.AddInputCoin(args.Coin, args.IsCoordinationFeeExempted);
@@ -51,7 +51,7 @@ public class AffiliateDataCollector : IRoundNotifier
 
 	private void ArenaCoinJoinTransactionAdded(object? sender, CoinJoinTransactionCreatedEventArgs args) =>
 		RoundsToUpdate.Enqueue(
-			new RoundBuiltTransactionNotification(args.RoundId, GetRoundDataOrFail(args.RoundId).FinalizeRoundData(args.Transaction)));
+			new RoundBuiltTransactionNotification(args.RoundId, args.Transaction.GetHash(), GetRoundDataOrFail(args.RoundId).FinalizeRoundData(args.Transaction)));
 
 	private void Arena_RoundPhaseChanged(object? sender, RoundPhaseChangedEventArgs args)
 	{
@@ -75,7 +75,7 @@ public class AffiliateDataCollector : IRoundNotifier
 
 		return roundData;
 	}
-	
+
 	private void AddHandlers()
 	{
 		Arena.RoundCreated += Arena_RoundCreated;

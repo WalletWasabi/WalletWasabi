@@ -67,11 +67,33 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented(bool restartRequest)
 	{
-		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
+		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
+
+		if (!MainViewCanShutdown() && !restartRequest)
+		{
+			MainViewModel.Instance.ShowDialogAlert();
+			return;
+		}
+
 		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 
-	public bool CanShutdown()
+	public bool CanShutdown(bool restart)
+	{
+		if (!MainViewCanShutdown() && !restart)
+		{
+			return false;
+		}
+
+		return CoinJoinCanShutdown();
+	}
+
+	public bool MainViewCanShutdown()
+	{
+		return !MainViewModel.Instance.IsDialogOpen();
+	}
+
+	public bool CoinJoinCanShutdown()
 	{
 		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
@@ -80,7 +102,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return cjManager.HighestCoinJoinClientState switch
 			{
 				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
+				CoinJoinClientState.Idle or CoinJoinClientState.InSchedule or CoinJoinClientState.InProgress => true,
 				_ => throw new ArgumentOutOfRangeException(),
 			};
 		}

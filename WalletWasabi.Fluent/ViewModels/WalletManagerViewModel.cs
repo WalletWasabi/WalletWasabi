@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -22,8 +23,10 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 
-	public WalletManagerViewModel()
+	public WalletManagerViewModel(UiContext uiContext)
 	{
+		UiContext = uiContext;
+
 		_walletsSourceList
 			.Connect()
 			.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
@@ -63,7 +66,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			{
 				WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 					? ClosedWalletViewModel.Create(wallet)
-					: WalletViewModel.Create(wallet);
+					: WalletViewModel.Create(UiContext, wallet);
 
 				InsertWallet(vm);
 			});
@@ -86,7 +89,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						void OnClick()
 						{
 							if (MainViewModel.Instance.IsBusy)
 							{
@@ -94,7 +97,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 							}
 
 							wvm.NavigateAndHighlight(e.Transaction.GetHash());
-						});
+						}
+
+						NotificationHelpers.Show(wallet, e, OnClick);
 					}
 
 					if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
@@ -172,7 +177,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			throw new Exception("Wallet already opened.");
 		}
 
-		var walletViewModel = WalletViewModel.Create(wallet);
+		var walletViewModel = WalletViewModel.Create(UiContext, wallet);
 
 		InsertWallet(walletViewModel);
 

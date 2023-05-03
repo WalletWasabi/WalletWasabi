@@ -23,6 +23,7 @@
     </ExperimentalAcrylicBorder>
     <c:Dialog DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
               IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
               IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
@@ -45,6 +46,7 @@
     </c:Dialog>
     <c:Dialog DataContext="{Binding DialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
               IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
               IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
@@ -59,6 +61,7 @@
     </c:Dialog>
     <c:Dialog DataContext="{Binding CompactDialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
               IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
               IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
