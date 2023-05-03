@@ -13,78 +13,78 @@ public class RpcTests
 	public static IEnumerable<object[]> RequestResponse =>
 		new[]
 		{
-				new[]
-				{
-					"Invalid (broken) request",
-					Request("1", "substract").Replace("\"id\":", "\"id\","),
-					Error(null!, -32700, "Parse error")
-				},
-				new[]
-				{
-					"Invalid (missing jsonrpc) request",
-					Request("1", "substract", 42, 23).Replace("\"jsonrpc\":\"2.0\",", ""),
-					Ok("1", 19)
-				},
-				new[]
-				{
-					"Invalid (missing method) request",
-					Request("1", "", "[42, 23]").Replace("\"method\":\"\",", ""),
-					Error(null!, -32700, "Parse error")
-				},
-				new[]
-				{
-					"Invalid (wrong number of arguments) request",
-					Request("3", "substract", new { subtrahend = 23 }),
-					Error("3", -32602, "A value for the 'minuend' is missing.")
-				},
-				new[]
-				{
-					"Invalid (wrong number of arguments) request",
-					Request("3", "substract", 23 ),
-					Error("3", -32602, "2 parameters were expected but 1 were received.")
-				},
-				new[]
-				{
-					"Valid request with params by order",
-					Request("1", "substract", 42, 23),
-					Ok("1", 19)
-				},
-				new[]
-				{
-					"Valid request with params by name",
-					Request("2", "substract", new { minuend = 42, subtrahend = 23 }),
-					Ok("2", 19)
-				},
-				new[]
-				{
-					"Valid request (Notification)",
-					Request(null!, "substract", 42, 23),
-					""
-				},
-				new[]
-				{
-					"Valid request for void procedure",
-					Request("log-id-01", "writelog", "blah blah blah" ),
-					Ok("log-id-01", null!)
-				},
-				new[]
-				{
-					"Valid request for async procedure with cancellation token",
-					Request("1", "format", "c:" ),
-					Ok("1", null!)
-				},
-				new[]
-				{
-					"Valid request but internal server error",
-					Request("1", "fail", "c:" ),
-					Error("1", -32603, "the error")
-				},
-				new[]
-				{
-					"Valid request to async method",
-					Request("7", "substractasync", new { minuend = 42, subtrahend = 23 }),
-					Ok("7", 19)
-				}
+			new[]
+			{
+				"Invalid (broken) request",
+				Request("1", "substract").Replace("\"id\":", "\"id\","),
+				Error(null!, -32700, "Parse error")
+			},
+			new[]
+			{
+				"Invalid (missing jsonrpc) request",
+				Request("1", "substract", 42, 23).Replace("\"jsonrpc\":\"2.0\",", ""),
+				Ok("1", 19)
+			},
+			new[]
+			{
+				"Invalid (missing method) request",
+				Request("1", "", "[42, 23]").Replace("\"method\":\"\",", ""),
+				Error(null!, -32700, "Parse error")
+			},
+			new[]
+			{
+				"Invalid (wrong number of arguments) request",
+				Request("3", "substract", new { subtrahend = 23 }),
+				Error("3", -32602, "A value for the 'minuend' is missing.")
+			},
+			new[]
+			{
+				"Invalid (wrong number of arguments) request",
+				Request("3", "substract", 23 ),
+				Error("3", -32602, "2 parameters were expected but 1 were received.")
+			},
+			new[]
+			{
+				"Valid request with params by order",
+				Request("1", "substract", 42, 23),
+				Ok("1", 19)
+			},
+			new[]
+			{
+				"Valid request with params by name",
+				Request("2", "substract", new { minuend = 42, subtrahend = 23 }),
+				Ok("2", 19)
+			},
+			new[]
+			{
+				"Valid request (Notification)",
+				Request(null!, "substract", 42, 23),
+				""
+			},
+			new[]
+			{
+				"Valid request for void procedure",
+				Request("log-id-01", "writelog", "blah blah blah" ),
+				Ok("log-id-01", null!)
+			},
+			new[]
+			{
+				"Valid request for async procedure with cancellation token",
+				Request("1", "format", "c:" ),
+				Ok("1", null!)
+			},
+			new[]
+			{
+				"Valid request but internal server error",
+				Request("1", "fail", "c:" ),
+				Error("1", -32603, "the error")
+			},
+			new[]
+			{
+				"Valid request to async method",
+				Request("7", "substractasync", new { minuend = 42, subtrahend = 23 }),
+				Ok("7", 19)
+			}
 		}
 		.Select(x => x.Skip(1).ToArray());
 
@@ -94,7 +94,7 @@ public class RpcTests
 	{
 		var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
 
-		var response = await handler.HandleAsync(request, CancellationToken.None);
+		var response = await handler.HandleAsync("", request, CancellationToken.None);
 		Assert.Equal(expectedResponse, response);
 	}
 

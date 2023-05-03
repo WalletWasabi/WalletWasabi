@@ -51,7 +51,7 @@ public class UpdateManager : IDisposable
 				{
 					(string installerPath, Version newVersion) = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
 					InstallerPath = installerPath;
-					Logger.LogInfo($"Version {newVersion} downloaded successfuly.");
+					Logger.LogInfo($"Version {newVersion} downloaded successfully.");
 					updateStatus.IsReadyToInstall = true;
 					updateStatus.ClientVersion = newVersion;
 					break;
@@ -134,11 +134,8 @@ public class UpdateManager : IDisposable
 	private async Task<string> GetHashFromSha256SumsFileAsync(string installerFileName, string sha256SumsFilePath)
 	{
 		string[] lines = await File.ReadAllLinesAsync(sha256SumsFilePath).ConfigureAwait(false);
-		var correctLine = lines.FirstOrDefault(line => line.Contains(installerFileName));
-		if (correctLine == null)
-		{
-			throw new InvalidOperationException($"{installerFileName} was not found.");
-		}
+		var correctLine = lines.FirstOrDefault(line => line.Contains(installerFileName))
+			?? throw new InvalidOperationException($"{installerFileName} was not found.");
 		return correctLine.Split(" ")[0];
 	}
 
@@ -170,7 +167,7 @@ public class UpdateManager : IDisposable
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
-		// "tag_name" will have a 'v' at the beggining, needs to be removed.
+		// "tag_name" will have a 'v' at the beginning, needs to be removed.
 		Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
@@ -178,18 +175,18 @@ public class UpdateManager : IDisposable
 			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
 		}
 
-		// Get all asset names and download urls to find the correct one.
-		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
-		List<string> assetDownloadUrls = new();
-		foreach (JToken asset in assetsInfos)
+		// Get all asset names and download URLs to find the correct one.
+		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
+		List<string> assetDownloadURLs = new();
+		foreach (JToken asset in assetsInfo)
 		{
-			assetDownloadUrls.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
+			assetDownloadURLs.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
-		string sha256SumsUrl = assetDownloadUrls.Where(url => url.Contains("SHA256SUMS.asc")).First();
-		string wasabiSigUrl = assetDownloadUrls.Where(url => url.Contains("SHA256SUMS.wasabisig")).First();
+		string sha256SumsUrl = assetDownloadURLs.First(url => url.Contains("SHA256SUMS.asc"));
+		string wasabiSigUrl = assetDownloadURLs.First(url => url.Contains("SHA256SUMS.wasabisig"));
 
-		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
+		(string url, string fileName) = GetAssetToDownload(assetDownloadURLs);
 
 		return (githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
@@ -235,11 +232,11 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	private (string url, string fileName) GetAssetToDownload(List<string> urls)
+	private (string url, string fileName) GetAssetToDownload(List<string> assetDownloadURLs)
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			var url = urls.Where(url => url.Contains(".msi")).First();
+			var url = assetDownloadURLs.First(url => url.Contains(".msi"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -247,10 +244,10 @@ public class UpdateManager : IDisposable
 			var cpu = RuntimeInformation.ProcessArchitecture;
 			if (cpu.ToString() == "Arm64")
 			{
-				var arm64url = urls.Where(url => url.Contains("arm64.dmg")).First();
+				var arm64url = assetDownloadURLs.First(url => url.Contains("arm64.dmg"));
 				return (arm64url, arm64url.Split("/").Last());
 			}
-			var url = urls.Where(url => url.Contains(".dmg") && !url.Contains("arm64")).First();
+			var url = assetDownloadURLs.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

@@ -14,7 +14,7 @@ public class CoinJoinTracker : IDisposable
 	public CoinJoinTracker(
 		IWallet wallet,
 		CoinJoinClient coinJoinClient,
-		IEnumerable<SmartCoin> coinCandidates,
+		Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc,
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
 		CancellationToken cancellationToken)
@@ -23,11 +23,10 @@ public class CoinJoinTracker : IDisposable
 		CoinJoinClient = coinJoinClient;
 		CoinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
 
-		CoinCandidates = coinCandidates;
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, CancellationTokenSource.Token);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
@@ -37,7 +36,6 @@ public class CoinJoinTracker : IDisposable
 
 	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
-	public IEnumerable<SmartCoin> CoinCandidates { get; }
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
 

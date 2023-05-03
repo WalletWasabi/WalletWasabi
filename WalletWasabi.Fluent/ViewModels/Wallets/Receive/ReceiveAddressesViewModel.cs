@@ -19,7 +19,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
-[NavigationMetaData(Title = "Receive Addresses")]
+[NavigationMetaData(Title = "Addresses Awaiting Payment")]
 public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private ObservableCollection<AddressViewModel> _addresses;
@@ -30,7 +30,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		Network = wallet.Network;
 		_addresses = new ObservableCollection<AddressViewModel>();
 
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true, escapeGoesBack: true);
 
 		EnableBack = true;
 

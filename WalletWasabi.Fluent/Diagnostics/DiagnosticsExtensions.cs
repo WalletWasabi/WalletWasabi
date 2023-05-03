@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Diagnostics;
 
 public static class DiagnosticsExtensions
 {
-	private static readonly Dictionary<TopLevel, DiagnosticsWindow> Open = new ();
+	private static readonly Dictionary<TopLevel, DiagnosticsWindow> Open = new();
 
 	public static void AttachDiagnostics(this TopLevel root)
 	{

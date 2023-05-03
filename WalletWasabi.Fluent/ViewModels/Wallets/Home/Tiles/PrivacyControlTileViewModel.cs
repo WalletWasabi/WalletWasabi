@@ -5,7 +5,6 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 using WalletWasabi.Wallets;
 
@@ -21,7 +20,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	[AutoNotify] private bool _hasPrivateBalance;
 	[AutoNotify] private bool _showPrivacyBar;
 
-	public PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
+	private PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
 	{
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
@@ -56,7 +55,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void ShowDetails()
 	{
-		NavigationState.Instance.DialogScreenNavigation.To(new PrivacyRingViewModel(_walletVm));
+		UiContext.Navigate(NavigationTarget.DialogScreen).To(new PrivacyRingViewModel(UiContext, _walletVm));
 	}
 
 	private void Update()

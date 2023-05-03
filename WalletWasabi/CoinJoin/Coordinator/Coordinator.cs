@@ -179,7 +179,7 @@ public class Coordinator : IDisposable
 
 	public async Task ProcessConfirmedTransactionAsync(Transaction tx)
 	{
-		// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
+		// This should not be needed until we would only accept unconfirmed CJ outputs and no other unconfirmed outputs. But it'll be more bulletproof for future extensions.
 		// Turns out you shouldn't accept RBF at all never. (See below.)
 
 		// https://github.com/zkSNACKs/WalletWasabi/issues/145
@@ -220,7 +220,7 @@ public class Coordinator : IDisposable
 		}
 	}
 
-	public async Task MakeSureInputregistrableRoundRunningAsync()
+	public async Task MakeSureInputRegistrableRoundRunningAsync()
 	{
 		if (!Rounds.Any(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
 		{
@@ -320,12 +320,12 @@ public class Coordinator : IDisposable
 						var feePerInputs = fees.feePerInputs;
 						var feePerOutputs = fees.feePerOutputs;
 
-						Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
-						if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
+						Money newDenominationToGetInWithActiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
+						if (newDenominationToGetInWithActiveOutputs < RoundConfig.Denomination)
 						{
-							if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
+							if (newDenominationToGetInWithActiveOutputs > Money.Coins(0.01m))
 							{
-								RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
+								RoundConfig.Denomination = newDenominationToGetInWithActiveOutputs;
 								RoundConfig.ToFile();
 							}
 						}
@@ -336,12 +336,12 @@ public class Coordinator : IDisposable
 			// If aborted in signing phase, then ban Alices that did not sign.
 			if (status == CoordinatorRoundStatus.Aborted && round.Phase == RoundPhase.Signing)
 			{
-				IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
+				IEnumerable<Alice> alicesDidNotSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
 				if (TryGetCurrentInputRegisterableRound(out CoordinatorRound? nextRound))
 				{
 					int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
-					var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
+					var alicesSignedCount = round.AnonymitySet - alicesDidNotSign.Count();
 
 					// New round's anonset should be the number of alices that signed in this round.
 					// Except if the number of alices in the next round is already larger.
@@ -363,7 +363,7 @@ public class Coordinator : IDisposable
 					}
 				}
 
-				foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
+				foreach (Alice alice in alicesDidNotSign) // Because the event sometimes is raised from inside the lock.
 				{
 					// If it is from any coinjoin, then do not ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);

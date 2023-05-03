@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
@@ -14,7 +15,8 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 
 	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{
-		SuggestionLabels = new SuggestionLabelsViewModel(keyManager, Intent.Receive, 3, hdPubKey.Label);
+		var wallet = new WalletModel(owner.Wallet);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, hdPubKey.Label);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

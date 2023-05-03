@@ -48,7 +48,7 @@ public class AffiliateDataUpdater : BackgroundService
 					{
 						case RoundBuiltTransactionNotification notification:
 							AddCoinJoinRequestFor(notification.RoundId);
-							await UpdateAffiliateDataAsync(notification.RoundId, notification.BuiltTransactionData, cancellationToken).ConfigureAwait(false);
+							await UpdateAffiliateDataAsync(notification.RoundId, notification.TxId, notification.BuiltTransactionData, cancellationToken).ConfigureAwait(false);
 							break;
 						case RoundEndedNotification notification:
 							RemoveCoinJoinRequestForRound(notification.RoundId);
@@ -83,19 +83,19 @@ public class AffiliateDataUpdater : BackgroundService
 		}
 	}
 
-	private async Task UpdateAffiliateDataAsync(uint256 roundId, BuiltTransactionData builtTransactionData, CancellationToken cancellationToken)
+	private async Task UpdateAffiliateDataAsync(uint256 roundId, uint256 txId, BuiltTransactionData builtTransactionData, CancellationToken cancellationToken)
 	{
 		var updateTasks = Clients.Select(
-			x => UpdateAffiliateDataAsync(roundId, builtTransactionData, x.Key, x.Value, cancellationToken));
+			x => UpdateAffiliateDataAsync(roundId, txId, builtTransactionData, x.Key, x.Value, cancellationToken));
 		await Task.WhenAll(updateTasks).ConfigureAwait(false);
 	}
 
-	private async Task UpdateAffiliateDataAsync(uint256 roundId, BuiltTransactionData builtTransactionData, string affiliationId, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
+	private async Task UpdateAffiliateDataAsync(uint256 roundId, uint256 txId, BuiltTransactionData builtTransactionData, string affiliationId, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
 		try
 		{
-			Body body = builtTransactionData.GetAffiliationData(affiliationId);
-			byte[] result = await GetCoinJoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
+			Body body = builtTransactionData.GetAffiliationData(affiliationId, txId);
+			byte[] result = await GetCoinJoinRequestAsync(affiliateServerHttpApiClient, affiliationId, body, cancellationToken).ConfigureAwait(false);
 
 			RegisterReceivedCoinJoinRequest(roundId, affiliationId, result);
 		}
@@ -121,9 +121,9 @@ public class AffiliateDataUpdater : BackgroundService
 		}
 	}
 
-	private async Task<byte[]> GetCoinJoinRequestAsync(AffiliateServerHttpApiClient client, Body body, CancellationToken cancellationToken)
+	private async Task<byte[]> GetCoinJoinRequestAsync(AffiliateServerHttpApiClient client, string affiliationId, Body body, CancellationToken cancellationToken)
 	{
-		Payload payload = new(Header.Instance, body);
+		Payload payload = new(Header.Create(affiliationId), body);
 		byte[] signature = Signer.Sign(payload.GetCanonicalSerialization());
 		CoinJoinNotificationRequest coinJoinRequestRequest = new(body, signature);
 

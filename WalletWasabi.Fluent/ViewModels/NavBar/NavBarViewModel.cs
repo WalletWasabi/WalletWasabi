@@ -22,12 +22,9 @@ public class NavBarViewModel : ViewModelBase
 		SetDefaultSelection();
 
 		Observable.Merge(
-				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
-				TopItems.ToObservableChangeSet(),
-				BottomItems.ToObservableChangeSet())
-			.WhenPropertyChanged(x => x.IsSelected)
-			.Where(x => x.Value)
-			.Select(x => x.Sender)
+				WhenItemSelected(Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel)),
+				WhenItemSelected(BottomItems.ToObservableChangeSet()),
+				WhenItemSelected(TopItems.ToObservableChangeSet()))
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
 			.Subscribe(x =>
@@ -50,6 +47,14 @@ public class NavBarViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
+	private IObservable<NavBarItemViewModel> WhenItemSelected(IObservable<IChangeSet<NavBarItemViewModel>> observable)
+	{
+		return observable
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Where(x => x.Value)
+			.Select(x => x.Sender);
+	}
+
 	private void SetDefaultSelection()
 	{
 		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
@@ -68,7 +73,7 @@ public class NavBarViewModel : ViewModelBase
 
 		foreach (var item in topItems)
 		{
-			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
+			var viewModel = await NavigationManager.MaterializeViewModelAsync(item);
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
@@ -78,7 +83,7 @@ public class NavBarViewModel : ViewModelBase
 
 		foreach (var item in bottomItems)
 		{
-			var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
+			var viewModel = await NavigationManager.MaterializeViewModelAsync(item);
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
