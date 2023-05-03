@@ -85,18 +85,13 @@ public class ReceiveAddressViewModelTests
 
 	private class TestWallet : IWalletModel
 	{
-		public TestWallet()
-		{
-			Addresses = new SourceCache<IAddress, string>(address => address.Text).Connect();
-		}
+		public string Name => throw new NotSupportedException();
 
-		public string Name => throw new NotImplementedException();
+		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotImplementedException();
+		public IObservable<Money> Balance => throw new NotSupportedException();
 
-		public IObservable<Money> Balance => throw new NotImplementedException();
-
-		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
