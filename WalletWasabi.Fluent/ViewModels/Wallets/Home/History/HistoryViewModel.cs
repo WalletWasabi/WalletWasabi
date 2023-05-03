@@ -12,6 +12,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -136,8 +137,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label),
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase),
 				MinWidth = new GridLength(100, GridUnitType.Pixel)
 			},
 			width: new GridLength(1, GridUnitType.Star));

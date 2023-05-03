@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public readonly struct LabelsArray : IEquatable<LabelsArray>, IComparable<LabelsArray>, IReadOnlyCollection<string>
+public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<LabelsArray>, IComparable<LabelsArray>
 {
 	private readonly string[]? _labels;
 	
@@ -66,13 +66,15 @@ public readonly struct LabelsArray : IEquatable<LabelsArray>, IComparable<Labels
 		});
 	}
 
-	public override int GetHashCode()
+	public override int GetHashCode() => GetHashCode(null);
+
+	public int GetHashCode(IEqualityComparer<string>? comparer)
 	{
 		var hashCode = new HashCode();
 		
 		foreach (var label in this)
 		{
-			hashCode.Add(label);
+			hashCode.Add(label, comparer);
 		}
 
 		return hashCode.ToHashCode();
@@ -86,19 +88,13 @@ public readonly struct LabelsArray : IEquatable<LabelsArray>, IComparable<Labels
 	public bool Equals(LabelsArray other) =>
 		AsSpan().SequenceEqual(other.AsSpan());
 
-	public bool Equals(LabelsArray other, IEqualityComparer<string> comparer) =>
+	public bool Equals(LabelsArray other, IEqualityComparer<string>? comparer) =>
 		AsSpan().SequenceEqual(other.AsSpan(), comparer);
 
-	public bool Equals(string? other) =>
-		ToString().Equals(other);
-
-	public bool Equals(string? other, StringComparison comparison) =>
-		ToString().Equals(other, comparison);
-
 	public int CompareTo(LabelsArray other) =>
-		CompareTo(other, StringComparison.OrdinalIgnoreCase);
+		AsSpan().SequenceCompareTo(other.AsSpan());
 
-	public int CompareTo(LabelsArray other, IComparer<string> comparer)
+	public int CompareTo(LabelsArray other, IComparer<string>? comparer)
 	{
 		if (comparer is null)
 		{
@@ -140,12 +136,6 @@ public readonly struct LabelsArray : IEquatable<LabelsArray>, IComparable<Labels
             return firstLength.CompareTo(secondLength);
 		}
 	}
-
-	public int CompareTo(string? other) =>
-		string.Compare(ToString(), other, StringComparison.OrdinalIgnoreCase);
-
-	public int CompareTo(string? other, StringComparison comparison) =>
-		string.Compare(ToString(), other, comparison);
 
 	public ReadOnlySpan<string>.Enumerator GetEnumerator() =>
 		AsSpan().GetEnumerator();

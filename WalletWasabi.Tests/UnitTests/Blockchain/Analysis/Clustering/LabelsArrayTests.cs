@@ -149,27 +149,17 @@ public class LabelsArrayTests
 	{
 		var smartLabel = new LabelsArray("Foo");
 		var smartLabelToCheck = new LabelsArray("fOO");
-		var stringLabelToCheck = "fOO";
+
 		Assert.False(smartLabel.Equals(smartLabelToCheck));
-		Assert.False(smartLabel.Equals(stringLabelToCheck));
-		Assert.Equal(0, smartLabel.CompareTo(smartLabelToCheck));
-		Assert.Equal(0, smartLabel.CompareTo(stringLabelToCheck));
-		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
 		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
-		Assert.True(smartLabel.Equals(stringLabelToCheck, StringComparison.OrdinalIgnoreCase));
-		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.Ordinal));
+		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
+		Assert.Equal(0, LabelsArrayComparer.OrdinalIgnoreCase.Compare(smartLabel, smartLabelToCheck));
 
 		smartLabel = new LabelsArray("bAr, FOO, Buz");
 		smartLabelToCheck = new LabelsArray("buZ, BaR, fOo");
-		stringLabelToCheck = "buZ, BaR, fOo";
 		Assert.False(smartLabel.Equals(smartLabelToCheck));
-		Assert.False(smartLabel.Equals(stringLabelToCheck));
-		Assert.Equal(0, smartLabel.CompareTo(smartLabelToCheck));
-		Assert.NotEqual(0, smartLabel.CompareTo(stringLabelToCheck));
-		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
 		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
-		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.OrdinalIgnoreCase)); // stringLabelToCheck is a string, the order of the element is different, this should be False.
-		Assert.True(smartLabel.Equals(smartLabelToCheck.ToString(), StringComparison.OrdinalIgnoreCase)); // SmartLabel.cs sorts the elements, this should be True.
-		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.Ordinal));
+		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
+		Assert.Equal(0, LabelsArrayComparer.OrdinalIgnoreCase.Compare(smartLabel, smartLabelToCheck));
 	}
 }

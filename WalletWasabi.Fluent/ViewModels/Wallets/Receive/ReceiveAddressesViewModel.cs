@@ -10,6 +10,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -98,8 +99,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Label),
-				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Label)
+				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase)
 			},
 			width: new GridLength(210, GridUnitType.Pixel));
 	}
