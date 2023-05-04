@@ -229,6 +229,9 @@ public class TransactionProcessor
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
+				
+				// Mark the key as Used, except if it is a reused internal key so it's still checked during 2nd sync of TurboSync.
+				// Changing back the state from Spent to Used would result in the key not being tested during either of the two syncs.
 				if (foundKey.KeyState != KeyState.Spent)
 				{
 					KeyManager.SetKeyState(KeyState.Used, foundKey);
