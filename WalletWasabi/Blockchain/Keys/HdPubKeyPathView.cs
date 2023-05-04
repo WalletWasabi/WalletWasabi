@@ -16,7 +16,7 @@ public class HdPubKeyPathView : IEnumerable<HdPubKey>
 	public IEnumerable<HdPubKey> CleanKeys => GetKeysByState(KeyState.Clean);
 	public IEnumerable<HdPubKey> LockedKeys => GetKeysByState(KeyState.Locked);
 	public IEnumerable<HdPubKey> UsedKeys => GetKeysByState(KeyState.Used);
-	public IEnumerable<HdPubKey> ObsoleteKeys => GetKeysByState(KeyState.Obsolete);
+	public IEnumerable<HdPubKey> SpentKeys => GetKeysByState(KeyState.Spent);
 	public IEnumerable<HdPubKey> UnusedKeys => Keys.Except(UsedKeys);
 
 	private IEnumerable<HdPubKey> GetKeysByState(KeyState keyState) =>

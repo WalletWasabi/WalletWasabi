@@ -10,18 +10,18 @@ namespace WalletWasabi.Blockchain.Keys;
 public class BlockchainState
 {
 	[JsonConstructor]
-	public BlockchainState(Network network, Height height, Height nonObsoleteHeight)
+	public BlockchainState(Network network, Height height, Height turboSyncHeight)
 	{
 		Network = network;
 		Height = height;
-		NonObsoleteHeight = nonObsoleteHeight;
+		TurboSyncHeight = turboSyncHeight;
 	}
 
 	public BlockchainState()
 	{
 		Network = Network.Main;
 		Height = 0;
-		NonObsoleteHeight = 0;
+		TurboSyncHeight = 0;
 	}
 
 	public BlockchainState(Network network) : this(network, 0, Height.Unknown)
@@ -38,5 +38,5 @@ public class BlockchainState
 	
 	[JsonProperty]
 	[JsonConverter(typeof(WalletHeightJsonConverter))]
-	public Height NonObsoleteHeight { get; set; }
+	public Height TurboSyncHeight { get; set; }
 }

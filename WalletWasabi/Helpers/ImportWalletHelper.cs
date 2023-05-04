@@ -32,7 +32,7 @@ public static class ImportWalletHelper
 		}
 
 		km.SetBestHeight(0);
-		km.SetBestNonObsoleteHeight(0);
+		km.SetBestTurboSyncHeight(0);
 
 		return km;
 	}

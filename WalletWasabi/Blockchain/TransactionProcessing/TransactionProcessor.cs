@@ -229,7 +229,7 @@ public class TransactionProcessor
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
-				if (foundKey.KeyState != KeyState.Obsolete)
+				if (foundKey.KeyState != KeyState.Spent)
 				{
 					KeyManager.SetKeyState(KeyState.Used, foundKey);
 				}
@@ -296,18 +296,18 @@ public class TransactionProcessor
 					continue;
 				}
 
-				if (spenderKey.KeyState != KeyState.Obsolete)
+				if (spenderKey.KeyState != KeyState.Spent)
 				{
-					KeyManager.SetKeyState(KeyState.Obsolete, spenderKey);
+					KeyManager.SetKeyState(KeyState.Spent, spenderKey);
 					Logger.LogWarning($"Key {spenderKey.FullKeyPath} is obsolete at height {tx.Height}");
-					spenderKey.ObsoleteHeight = tx.Height;
+					spenderKey.LatestSpentHeight = tx.Height;
 				}
 				else
 				{
-					if (spenderKey.ObsoleteHeight < tx.Height)
+					if (spenderKey.LatestSpentHeight < tx.Height)
 					{
 						// We can reach this point if TurboSync was cancelled by ShouldCancelTurboSync().
-						spenderKey.ObsoleteHeight = tx.Height;
+						spenderKey.LatestSpentHeight = tx.Height;
 						Logger.LogDebug($"Internal key {spenderKey.FullKeyPath} was reused but and found twice but it was successfully handled by TurboSync");
 					}
 				}
@@ -329,7 +329,7 @@ public class TransactionProcessor
 		// If during first sync of TurboSync we find that an input uses a key that should be used later on, then perform a full sync.
 		// This is the case when a coin is received on/spent from an Obsolete in the same TX/block block than a coin on a non-obsolete key.
 		// Without invalidation, TX would be processed twice which would lead to an incorrect synchronization.
-		var shouldNotFindInputOutputOnTheseKeys = KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < new Height(txHeight)).ToList();
+		var shouldNotFindInputOutputOnTheseKeys = KeyManager.GetKeys(KeyState.Spent).Where(hdPubKey => hdPubKey.LatestSpentHeight < new Height(txHeight)).ToList();
 
 		foreach (var txin in inputs)
 		{

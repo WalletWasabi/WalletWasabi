@@ -89,7 +89,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	
 	[JsonProperty(Order = 5)]
 	[JsonConverter(typeof(ObsoleteHeightJsonConverter))]
-	public Height ObsoleteHeight { get; set; } = Height.Unknown;
+	public Height LatestSpentHeight { get; set; } = Height.Unknown;
 
 	public Script P2pkScript { get; }
 	public Script P2pkhScript { get; }

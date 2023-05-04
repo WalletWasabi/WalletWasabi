@@ -5,5 +5,5 @@ public enum KeyState
 	Clean,
 	Locked,
 	Used,
-	Obsolete
+	Spent
 }

@@ -518,7 +518,7 @@ public class Wallet : BackgroundService, IWallet
 	public async Task PerformWalletSynchronizationAsync(bool? turboSync = null, CancellationToken cancel = default)
 	{
 		var startingHeight = turboSync.GetValueOrDefault() ? 
-			new Height(KeyManager.GetBestNonObsoleteHeight() + 1) : 
+			new Height(KeyManager.GetBestTurboSyncHeight() + 1) : 
 			new Height(KeyManager.GetBestHeight() + 1);
 		
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
@@ -540,15 +540,15 @@ public class Wallet : BackgroundService, IWallet
 		if (turboSync.Value)
 		{
 			// First sync during TurboSync, test all non-obsolete keys or keys not yet obsoleted at the height.
-			keysToTest = KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Obsolete || hdPubKey.ObsoleteHeight >= filterHeight);
+			keysToTest = KeyManager.GetKeys().Where(hdPubKey => hdPubKey.KeyState != KeyState.Spent || hdPubKey.LatestSpentHeight >= filterHeight);
 		}
 		else
 		{
 			// Second sync during TurboSync, test only obsolete keys at the height.
-			var bestNonObsoleteHeight = KeyManager.GetBestNonObsoleteHeight();
+			var bestNonObsoleteHeight = KeyManager.GetBestTurboSyncHeight();
 			if (bestNonObsoleteHeight == 0 || bestNonObsoleteHeight > filterHeight)
 			{
-				keysToTest = KeyManager.GetKeys(KeyState.Obsolete).Where(hdPubKey => hdPubKey.ObsoleteHeight < filterHeight);
+				keysToTest = KeyManager.GetKeys(KeyState.Spent).Where(hdPubKey => hdPubKey.LatestSpentHeight < filterHeight);
 			}
 			else
 			{
@@ -607,7 +607,7 @@ public class Wallet : BackgroundService, IWallet
 			if (turboSync.GetValueOrDefault())
 			{
 				// We are testing non-obsolete keys, so we can update the best non obsolete height.
-				KeyManager.SetBestNonObsoleteHeight(height);
+				KeyManager.SetBestTurboSyncHeight(height);
 			}
 			else
 			{
