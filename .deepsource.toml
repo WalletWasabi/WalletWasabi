@@ -1,7 +1,6 @@
 version = 1
 
 exclude_patterns = [
-  "WalletWasabi.Fluent/FlashCap/**",
   "WalletWasabi.Fluent/ZXing/**"
 
 ]
