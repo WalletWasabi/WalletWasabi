@@ -1,6 +1,5 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -35,11 +34,18 @@ public static class ApplicationHelper
 
 	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default)
 	{
+		if (Application.Current?.Clipboard == null)
+		{
+			return Observable.Return<string?>(null);
+		}
+
 		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
-			.SelectMany(
-				_ => Application.Current?.Clipboard?.GetTextAsync()
-					.ToObservable() ?? Observable.Return<string?>(null)
-					.WhereNotNull())
+			.Select(_ => Observable.FromAsync(async () =>
+			{
+				var text = await Application.Current.Clipboard.GetTextAsync();
+				return text;
+			}, RxApp.MainThreadScheduler))
+			.Merge(1)
 			.DistinctUntilChanged();
 	}
 }

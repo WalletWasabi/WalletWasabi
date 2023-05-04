@@ -1,6 +1,6 @@
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -11,16 +11,21 @@ namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
+	private readonly IObservable<string?> _textChanged;
+
 	public ClipboardObserver(WalletBalances walletBalances)
 	{
 		WalletBalances = walletBalances;
+		_textChanged = ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
+			.Replay()
+			.RefCount();
 	}
 
 	private WalletBalances WalletBalances { get; }
 
-	public IObservable<string?> ClipboardUsdContentChanged(IScheduler scheduler)
+	public IObservable<string?> ClipboardUsdContentChanged()
 	{
-		return ApplicationHelper.ClipboardTextChanged(scheduler)
+		return _textChanged
 			.CombineLatest(
 				WalletBalances.UsdBalance,
 				(text, balanceUsd) => ParseToUsd(text)
@@ -30,9 +35,9 @@ internal class ClipboardObserver
 			.Select(money => money?.ToString("0.00"));
 	}
 
-	public IObservable<string?> ClipboardBtcContentChanged(IScheduler scheduler)
+	public IObservable<string?> ClipboardBtcContentChanged()
 	{
-		return ApplicationHelper.ClipboardTextChanged(scheduler)
+		return _textChanged
 			.CombineLatest(
 				WalletBalances.BtcBalance,
 				(text, balance) => ParseToMoney(text).Ensure(m => m <= balance))
