@@ -121,7 +121,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 					return (acceptabilityIndex: index, pocket);
 				})
 				.OrderByDescending(tup => tup.acceptabilityIndex)
-				.ThenBy(tup => tup.pocket.Labels.Count())
+				.ThenBy(tup => tup.pocket.Labels.Count)
 				.ThenByDescending(tup => tup.pocket.Amount)
 				.Select(tup => tup.pocket)
 				.ToArray();

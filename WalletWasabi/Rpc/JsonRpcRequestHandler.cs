@@ -51,14 +51,29 @@ public class JsonRpcRequestHandler<TService>
 	{
 		if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequests, out var isBatch))
 		{
-			return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+			return CreateParseErrorResponse();
 		}
+
+		return await HandleRequestsAsync(path, jsonRpcRequests, isBatch, cancellationToken).ConfigureAwait(false);
+	}
+
+	public string CreateParseErrorResponse()
+	{
+		return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+	}
+
+	public async Task<string> HandleRequestsAsync(string path, JsonRpcRequest[] jsonRpcRequests, bool isBatch, CancellationToken cancellationToken)
+	{
 		var results = new List<string>();
+
 		foreach (var jsonRpcRequest in jsonRpcRequests)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			results.Add(await HandleRequestAsync(path, jsonRpcRequest, cancellationToken).ConfigureAwait(false));
+
+			string jsonResult = await HandleRequestAsync(path, jsonRpcRequest, cancellationToken).ConfigureAwait(false);
+			results.Add(jsonResult);
 		}
+
 		return isBatch ? $"[{string.Join(",", results)}]" : results[0];
 	}
 

@@ -19,7 +19,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
-[NavigationMetaData(Title = "Receive Addresses")]
+[NavigationMetaData(Title = "Addresses Awaiting Payment")]
 public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private ObservableCollection<AddressViewModel> _addresses;
