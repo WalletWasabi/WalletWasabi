@@ -35,8 +35,6 @@ public class CoinJoinClient
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
-	/// <param name="anonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
-	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
@@ -69,7 +67,7 @@ public class CoinJoinClient
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
-	private CoinJoinCoinSelector CoinJoinCoinSelector { get; } 
+	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	private TimeSpan FeeRateMedianTimeFrame { get; }
