@@ -70,7 +70,7 @@
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse">
+    <Style Selector="Ellipse.loadingindicator">
       <Setter Property="Fill" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Width" Value="8" />
       <Setter Property="Height" Value="8" />
@@ -85,11 +85,11 @@
       </Setter>
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse:not(.isLoading).isLoggedIn">
+    <Style Selector="Ellipse:not(.isLoading).isLoggedIn">
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse.isLoading.isLoggedIn">
+    <Style Selector="Ellipse.isLoading.isLoggedIn">
       <Style.Animations>
         <Animation IterationCount="Infinite" Duration="0:0:1">
           <KeyFrame Cue="50%">
@@ -99,7 +99,7 @@
       </Style.Animations>
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse.isLoggedIn.isCoinjoining">
+    <Style Selector="Ellipse.isLoggedIn.isCoinjoining">
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
@@ -165,7 +165,8 @@
                    Height="58"
                    Margin="4 1"
                    Cursor="Hand">
-              <Ellipse Classes.isLoading="{Binding IsLoading}"
+              <Ellipse Classes="loadingindicator"
+                       Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
               <StackPanel VerticalAlignment="Center" Spacing="2">

@@ -39,12 +39,12 @@ public partial class NavBarViewModel : ViewModelBase
 			{
 				if (x.OldValue is { } a)
 				{
-					a.Deactivate();
+					a.IsSelected = false;
 				}
 
 				if (x.NewValue is { } b)
 				{
-					b.Activate();
+					b.IsSelected = true;
 				}
 			})
 			.Subscribe();
