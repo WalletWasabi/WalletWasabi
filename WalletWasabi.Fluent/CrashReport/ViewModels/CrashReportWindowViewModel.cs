@@ -17,7 +17,7 @@ public class CrashReportWindowViewModel : ViewModelBase
 		CancelCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));
 		NextCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false));
 
-		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
+		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.BugReportLink));
 
 		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
