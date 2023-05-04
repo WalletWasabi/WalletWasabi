@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 

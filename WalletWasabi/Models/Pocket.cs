@@ -2,9 +2,8 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
 
-namespace WalletWasabi.Fluent.Models;
+namespace WalletWasabi.Models;
 
 public class Pocket
 {

@@ -3,7 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 

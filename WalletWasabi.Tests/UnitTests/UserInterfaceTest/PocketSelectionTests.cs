@@ -5,9 +5,9 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 

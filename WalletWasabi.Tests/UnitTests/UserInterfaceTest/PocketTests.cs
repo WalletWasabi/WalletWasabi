@@ -1,5 +1,5 @@
 using System.Linq;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;

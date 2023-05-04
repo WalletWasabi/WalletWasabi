@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
