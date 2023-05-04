@@ -15,6 +15,6 @@ public record PendingPayment(IDestination Destination, Money Amount)
 		allowedOutputTypes.Contains(Destination.ScriptPubKey.GetScriptType()) &&
 		allowedOutputAmounts.Contains(Amount);
 
-	public InProgressPayment ToInprogressPayment() =>
-		new InProgressPayment(Destination, Amount);
+	public InProgressPayment ToInprogressPayment(uint256 roundId) =>
+		new (Destination, Amount, roundId);
 }

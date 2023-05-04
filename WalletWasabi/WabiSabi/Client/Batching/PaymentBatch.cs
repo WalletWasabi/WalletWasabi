@@ -13,6 +13,7 @@ public class PaymentBatch
 	private readonly List<Payment> _payments = new();
 
 	private IEnumerable<PendingPayment> PendingPayments => _payments.OfType<PendingPayment>();
+	private IEnumerable<InProgressPayment> InProgressPayments => _payments.OfType<InProgressPayment>();
 	
 	public void AddPendingPayment(PendingPayment payment)
 	{
@@ -45,16 +46,28 @@ public class PaymentBatch
 		return bestPaymentSet;
 	}
 
-	public InProgressPayment MoveToInProgress(PendingPayment payment)
+	public IEnumerable<InProgressPayment> MovePaymentsToInProgress(IEnumerable<PendingPayment> payments, uint256 roundId)
 	{
-		if (!_payments.Remove(payment))
-		{
-			throw new InvalidOperationException("The pending payment was not found.");
-		}
+		MovePaymentsTo(payments, p => p.ToInprogressPayment(roundId));
+		return InProgressPayments;
+	}
 
-		var inProgressPayment = payment.ToInprogressPayment();
-		_payments.Add(inProgressPayment);
-		return inProgressPayment;
+	public void MovePaymentsToFinished(uint256 txId) =>
+		MovePaymentsTo(InProgressPayments, p => p.ToFinished(txId));
+
+	public void MovePaymentsToPending() =>
+		MovePaymentsTo(InProgressPayments, p => p.ToPending());
+	
+	private void MovePaymentsTo<TOldState, TNewState>(
+		IEnumerable<TOldState> payments, 
+		Func<TOldState, TNewState> move) where TOldState : Payment where TNewState : Payment
+	{
+		var paymentsToMove = payments.ToArray();
+		foreach (var payment in paymentsToMove)
+		{
+			_payments.Remove(payment);
+			_payments.Add(move (payment));
+		}
 	}
 	
 	private static void LogPaymentSetDetails(PaymentSet paymentSet)

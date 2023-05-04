@@ -19,6 +19,7 @@ public class OutputProvider
 	private WasabiRandom Random { get; }
 
 	public virtual IEnumerable<TxOut> GetOutputs(
+		uint256 roundId,
 		RoundParameters roundParameters,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,

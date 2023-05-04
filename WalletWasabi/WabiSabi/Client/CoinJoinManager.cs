@@ -487,6 +487,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
+		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		try
 		{
@@ -494,6 +495,7 @@ public class CoinJoinManager : BackgroundService
 			if (result is SuccessfulCoinJoinResult successfulCoinjoin)
 			{
 				CoinRefrigerator.Freeze(successfulCoinjoin.Coins);
+				batchedPayments.MovePaymentsToFinished(successfulCoinjoin.UnsignedCoinJoin.GetHash());
 				await MarkDestinationsUsedAsync(successfulCoinjoin.OutputScripts).ConfigureAwait(false);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
@@ -540,6 +542,10 @@ public class CoinJoinManager : BackgroundService
 		catch (Exception e)
 		{
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+		}
+		finally
+		{
+			batchedPayments.MovePaymentsToPending();
 		}
 
 		// If any coins were marked for banning, store them to file

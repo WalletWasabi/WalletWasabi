@@ -21,6 +21,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 	private PaymentBatch BatchedPayments { get; }
 	
 	public override IEnumerable<TxOut> GetOutputs(
+		uint256 roundId,
 		RoundParameters roundParameters,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
@@ -33,12 +34,12 @@ public class PaymentAwareOutputProvider : OutputProvider
 		var bestPaymentSet = BatchedPayments.GetBestPaymentSet (availableAmount, availableVsize, roundParameters);
 		
 		// Return the payments.
-		foreach (var payment in bestPaymentSet.MoveToInProgress(BatchedPayments))
+		foreach (var payment in BatchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId))
 		{
 			yield return payment.ToTxOut();
 		}
 		availableVsize -= bestPaymentSet.TotalVSize;
-		//availableAmount -= bestPaymentSet.TotalAmount;
+		availableAmount -= bestPaymentSet.TotalAmount;
 			
 		// Decompose and return the rest. But before doing that it is important to minimize the impact
 		// on the AmountDecomposer by removing those coins that sum enough to make the payments.
@@ -53,14 +54,14 @@ public class PaymentAwareOutputProvider : OutputProvider
 		var availableValues = orderedValues.Skip(usedValues.Length);
 		
 		// in case we over consumed money we reintroduce a virtual coin for the the difference.
-		var totalValueUsedForPayment = availableAmount - bestPaymentSet.TotalAmount - availableValues.Sum();
+		var totalValueUsedForPayment = availableAmount - availableValues.Sum();
 		if (totalValueUsedForPayment > 0)
 		{
 			availableValues = availableValues.Append(totalValueUsedForPayment).ToArray();
 		}
 
 		// Decompose the available values and return them.
-		var decomposedOutputs = base.GetOutputs(roundParameters, availableValues, theirCoinEffectiveValues, availableVsize);
+		var decomposedOutputs = base.GetOutputs(roundId, roundParameters, availableValues, theirCoinEffectiveValues, availableVsize);
 		foreach (var txOut in decomposedOutputs)
 		{
 			yield return txOut;

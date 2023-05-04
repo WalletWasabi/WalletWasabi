@@ -14,7 +14,4 @@ public record PaymentSet(IEnumerable<PendingPayment> Payments, FeeRate MiningFee
 	public Money TotalAmount { get; } = Payments.Sum(x => x.EffectiveCost(MiningFeeRate));
 	public int TotalVSize { get; } = Payments.Sum(x => x.Destination.ScriptPubKey.EstimateOutputVsize());
 	public int PaymentCount { get; } = Payments.Count();
-
-	public IEnumerable<InProgressPayment> MoveToInProgress(PaymentBatch batch) =>
-		Payments.Select (batch.MoveToInProgress);
 }

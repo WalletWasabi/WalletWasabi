@@ -24,6 +24,7 @@ public class PaymentAwareOutputProviderTests
 
 		var outputs =
 			outputProvider.GetOutputs(
+			uint256.Zero,
 			roundParameters,
 			new[] { Money.Coins(0.00484323m), Money.Coins(0.003m), Money.Coins(0.00004323m) },
 			new[] { Money.Coins(0.2m), Money.Coins(0.1m), Money.Coins(0.05m), Money.Coins(0.0025m), Money.Coins(0.0001m) },
