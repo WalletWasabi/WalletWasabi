@@ -11,12 +11,18 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(List<SmartCoin> unspentCoins)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins, SmartLabel recipient, int privateThreshold, int semiPrivateThreshold)
 	{
 		UnspentCoins = unspentCoins.Distinct().ToList();
+		Recipient = recipient;
+		PrivateThreshold = privateThreshold;
+		SemiPrivateThreshold = semiPrivateThreshold;
 	}
 
 	private List<SmartCoin> UnspentCoins { get; }
+	public SmartLabel Recipient { get; }
+	public int PrivateThreshold { get; }
+	public int SemiPrivateThreshold { get; }
 	private int IterationCount { get; set; }
 	private Exception? LastTransactionSizeException { get; set; }
 

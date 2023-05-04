@@ -101,7 +101,7 @@ public class TransactionFactory
 		}
 
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
-		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
+		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs, new SmartLabel(payments.Requests.SelectMany(x => x.Label)), KeyManager.AnonScoreTarget, Constants.SemiPrivateThreshold));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 		builder.SetLockTime(lockTimeSelector());
 
