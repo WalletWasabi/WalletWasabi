@@ -35,9 +35,9 @@ internal static class LabelTestExtensions
 		return key;
 	}
 
-	public static SmartCoin CreateCoin(decimal amount, string label = "", int anonymitySet = 1)
+	public static SmartCoin CreateCoin(decimal amount, string label = "", int anonymitySet = 1, bool isConfirmed = true)
 	{
-		var coin = BitcoinFactory.CreateSmartCoin(NewKey(label: label, anonymitySet: anonymitySet), amount);
+		var coin = BitcoinFactory.CreateSmartCoin(NewKey(label: label, anonymitySet: anonymitySet), amount, isConfirmed);
 		coin.HdPubKey.SetAnonymitySet(anonymitySet);
 
 		return coin;
