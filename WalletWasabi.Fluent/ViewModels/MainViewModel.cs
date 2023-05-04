@@ -81,8 +81,8 @@ public partial class MainViewModel : ViewModelBase
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
-			.WhereNotNull()
-			.OfType<WalletViewModel>();
+				.WhereNotNull()
+				.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
