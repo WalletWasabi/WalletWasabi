@@ -71,4 +71,12 @@ public static class CoinPocketHelper
 	}
 
 	public static IEnumerable<Pocket> GetPockets(this Wallet wallet) => wallet.Coins.GetPockets(wallet.AnonScoreTarget).Select(x => new Pocket(x));
+
+	public static IEnumerable<Pocket> ToPockets(this IEnumerable<SmartCoin> coins, int anonScoreTarget)
+	{
+		var coinsView = new CoinsView(coins);
+		var pockets = coinsView.GetPockets(anonScoreTarget).Select(x => new Pocket(x));
+
+		return pockets;
+	}
 }
