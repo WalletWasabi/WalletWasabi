@@ -101,7 +101,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 			State = activeWallet.State.ToString(),
 			extendedAccountPublicKey = km.SegwitExtPubKey.ToString(Global.Network),
 			extendedAccountZpub = km.SegwitExtPubKey.ToZpub(Global.Network),
-			accountKeyPath = $"m/{km.SegwitAccountKeyPath}",
+			SegWitaccountKeyPath = $"m/{km.SegwitAccountKeyPath}",
+			TaprootAccountKeyPath = $"m/{km.TaprootAccountKeyPath}",
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
