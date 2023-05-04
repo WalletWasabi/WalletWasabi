@@ -126,6 +126,7 @@ public class BlockNotifier : PeriodicRunner
 
 		// Else let's sort out things.
 		var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
+
 		// Missed notifications on some previous blocks.
 		if (foundPrevBlock is { })
 		{
