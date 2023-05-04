@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.Helpers;
 
 public static class Sort<T>
 {
