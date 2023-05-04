@@ -19,17 +19,15 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
-	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
-		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Kitchen.SaltSoup(), _transactionInfo, isSilent);
+		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Kitchen.SaltSoup(), _transactionInfo);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -71,13 +69,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			if (!isInHistory)
 			{
 				await InitializeLabelsAsync();
-			}
-
-			if (_isSilent)
-			{
-				var autoSelectedPockets = await LabelSelection.AutoSelectPocketsAsync();
-
-				Complete(autoSelectedPockets);
 			}
 
 			IsBusy = false;

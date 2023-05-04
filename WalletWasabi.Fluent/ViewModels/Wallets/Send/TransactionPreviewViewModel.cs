@@ -8,13 +8,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -23,7 +20,6 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -232,7 +228,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnChangePocketsAsync()
 	{
 		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins));
 
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
@@ -279,17 +275,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (!_info.Coins.Any())
 		{
-			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: true));
-			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { } coins)
-			{
-				_info.Coins = coins;
-			}
-			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
-			}
+			_info.Coins = _wallet.Coins;
 		}
 
 		return true;
@@ -335,14 +321,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (canSelectMoreCoins)
 			{
-				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
-
-				if (selectPocketsDialog.Result is { } newCoins)
-				{
-					_info.Coins = newCoins;
-					return await BuildTransactionAsync();
-				}
+				_info.Coins = _wallet.Coins;
+				return await BuildTransactionAsync();
 			}
 			else if (isMaxFeeRateFound)
 			{
@@ -416,7 +396,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
 			.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
-		.DisposeWith(disposables);
+			.DisposeWith(disposables);
 
 		if (!isInHistory)
 		{
@@ -527,7 +507,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
-		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info);
 		await labelSelection.ResetAsync(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);

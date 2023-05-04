@@ -17,7 +17,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private readonly KeyManager _keyManager;
 	private readonly string _password;
 	private readonly TransactionInfo _info;
-	private readonly bool _isSilent;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
 
 	[AutoNotify] private bool _enoughSelected;
@@ -26,12 +25,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info, bool isSilent)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info)
 	{
 		_keyManager = keyManager;
 		_password = password;
 		_info = info;
-		_isSilent = isSilent;
 	}
 
 	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
@@ -54,113 +52,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			allowedCoins: coins,
 			password: _password,
 			minimumAmount: out _));
-	}
-
-	public async Task<Pocket[]> AutoSelectPocketsAsync()
-	{
-		var privateAndSemiPrivatePockets = new[] { _privatePocket, _semiPrivatePocket };
-
-		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
-		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
-
-		var privateAndSemiPrivateAndUnknownPockets = privateAndSemiPrivatePockets.Union(unknownPockets).ToArray();
-		var privateAndSemiPrivateAndKnownPockets = privateAndSemiPrivatePockets.Union(knownPockets).ToArray();
-
-		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => _info.Recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
-		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(_info.Recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
-
-		if (await IsPocketEnoughAsync(onlyKnownByRecipientPockets))
-		{
-			return onlyKnownByRecipientPockets;
-		}
-
-		if (await IsPocketEnoughAsync(_privatePocket))
-		{
-			return new[] { _privatePocket };
-		}
-
-		if (await IsPocketEnoughAsync(privateAndSemiPrivatePockets))
-		{
-			return privateAndSemiPrivatePockets;
-		}
-
-		var (result, pockets) = await TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePocketsAsync(knownByRecipientPockets, privateAndSemiPrivatePockets, _info.Recipient);
-		if (result)
-		{
-			return pockets;
-		}
-
-		if (await IsPocketEnoughAsync(privateAndSemiPrivateAndKnownPockets))
-		{
-			return privateAndSemiPrivateAndKnownPockets;
-		}
-
-		if (await IsPocketEnoughAsync(privateAndSemiPrivateAndUnknownPockets))
-		{
-			return privateAndSemiPrivateAndUnknownPockets;
-		}
-
-		return _allPockets.ToArray();
-	}
-
-	private async Task<(bool, Pocket[] pockets)> TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePocketsAsync(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, SmartLabel recipient)
-	{
-		if (!await IsPocketEnoughAsync(Pocket.Merge(knownByRecipientPockets, privateAndSemiPrivatePockets)))
-		{
-			return (false, Array.Empty<Pocket>());
-		}
-
-		var privacyRankedPockets =
-			knownByRecipientPockets
-				.Select(pocket =>
-				{
-					var containedRecipientLabelsCount = pocket.Labels.Count(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
-					var totalPocketLabelsCount = pocket.Labels.Count;
-					var totalRecipientLabelsCount = recipient.Count;
-					var index = ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
-
-					return (acceptabilityIndex: index, pocket);
-				})
-				.OrderByDescending(tup => tup.acceptabilityIndex)
-				.ThenBy(tup => tup.pocket.Labels.Count)
-				.ThenByDescending(tup => tup.pocket.Amount)
-				.Select(tup => tup.pocket)
-				.ToArray();
-
-		var bestPockets = new List<Pocket>();
-		bestPockets.AddRange(privateAndSemiPrivatePockets);
-
-		// Iterate through the ordered by privacy pockets and add them one by one until the total amount covers the payment.
-		// The first one is the best from the privacy point of view, and the last one is the worst.
-		foreach (var p in privacyRankedPockets)
-		{
-			bestPockets.Add(p);
-
-			if (await IsPocketEnoughAsync(bestPockets.ToArray()))
-			{
-				break;
-			}
-		}
-
-		// It can happen that there are unnecessary selected pockets, so remove the ones that are not needed.
-		// Use Except to make sure the private and semi private pockets never get removed.
-		// Example for an over selection:
-		// Privacy ordered pockets: [A - 3 BTC] [B - 1 BTC] [C - 2 BTC] (A is the best for privacy, C is the worst)
-		// Target amount is 4.5 BTC so the algorithm will select all because it happened in privacy order.
-		// But B is unnecessary because A and C can cover the case, so remove it.
-		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count).ToImmutableArray())
-		{
-			if (await IsPocketEnoughAsync(bestPockets.Except(new[] { p }).ToArray()))
-			{
-				bestPockets.Remove(p);
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		return (true, bestPockets.ToArray());
 	}
 
 	public Pocket[] GetUsedPockets() =>
@@ -193,10 +84,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			unlabelledViewModel.ToolTip = "There is no information about these people, only use it when necessary!";
 		}
 
-		if (!_isSilent)
-		{
-			await OnSelectionChangedAsync();
-		}
+		await OnSelectionChangedAsync();
 	}
 
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
