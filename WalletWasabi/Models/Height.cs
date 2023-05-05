@@ -59,21 +59,15 @@ public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable
 			: int.MaxValue;
 	}
 
-	/// <summary>
-	/// Gets a new Height instance for mempool
-	/// </summary>
+	/// <summary>Gets a new Height instance for mempool</summary>
 	public static Height Mempool { get; } = new Height(HeightType.Mempool);
 
-	/// <summary>
-	/// Gets a new Height instance for unknown (no chain, no mempool)
-	/// </summary>
+	/// <summary>Gets a new Height instance for unknown (no chain, no mempool)</summary>
 	public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
 	public HeightType Type { get; }
 
-	/// <summary>
-	/// Gets the height value according to the Height type.
-	/// </summary>
+	/// <summary>Gets the height value according to the Height type.</summary>
 	public int Value { get; }
 
 	/// <param name="heightOrHeightType">The height numerical value as its string representation
