@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
-	private readonly IObservable<string?> _textChanged;
+	private readonly IObservable<string?> _clipboardTextChanged;
 
 	public ClipboardObserver(WalletBalances walletBalances)
 	{
 		WalletBalances = walletBalances;
-		_textChanged = ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
+		_clipboardTextChanged = ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
 			.Replay()
 			.RefCount();
 	}
@@ -25,7 +25,7 @@ internal class ClipboardObserver
 
 	public IObservable<string?> ClipboardUsdContentChanged()
 	{
-		return _textChanged
+		return _clipboardTextChanged
 			.CombineLatest(
 				WalletBalances.UsdBalance,
 				(text, balanceUsd) => ParseToUsd(text)
@@ -37,7 +37,7 @@ internal class ClipboardObserver
 
 	public IObservable<string?> ClipboardBtcContentChanged()
 	{
-		return _textChanged
+		return _clipboardTextChanged
 			.CombineLatest(
 				WalletBalances.BtcBalance,
 				(text, balance) => ParseToMoney(text).Ensure(m => m <= balance))

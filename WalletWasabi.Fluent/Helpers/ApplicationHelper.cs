@@ -9,6 +9,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class ApplicationHelper
 {
+	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
 	public static IObservable<bool> MainWindowActivated
@@ -39,12 +40,9 @@ public static class ApplicationHelper
 			return Observable.Return<string?>(null);
 		}
 
-		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
-			.Select(_ => Observable.FromAsync(async () =>
-			{
-				var text = await Application.Current.Clipboard.GetTextAsync();
-				return text;
-			}, RxApp.MainThreadScheduler))
+		return Observable.Timer(PollingInterval, scheduler ?? Scheduler.Default)
+			.Repeat()
+			.Select(_ => Observable.FromAsync(() => Application.Current.Clipboard.GetTextAsync(), RxApp.MainThreadScheduler))
 			.Merge(1)
 			.DistinctUntilChanged();
 	}
