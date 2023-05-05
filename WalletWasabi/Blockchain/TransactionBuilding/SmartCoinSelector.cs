@@ -80,9 +80,10 @@ public class SmartCoinSelector : ICoinSelector
 		// Finally it sorts the solutions by amount and coins (those with less coins on the top).
 		var candidates = coinsGroup
 			.Select(x => x.SelectMany(y => y.Coins))
-			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
+			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount), AnonScoreAverage: x.Sum(y => y.AnonymitySet) / x.Count()))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
-			.OrderBy(x => x.Total)              // the closer we are to the target the better
+			.OrderBy(x => x.Total) // the closer we are to the target the better
+			// .ThenByDescending(x => x.AnonScoreAverage) // Higher number means better privacy
 			.ThenBy(x => x.Coins.Count());      // prefer lesser coin selection on the same amount
 
 		IterationCount++;
@@ -122,13 +123,17 @@ public class SmartCoinSelector : ICoinSelector
 	/// </summary>
 	private Pocket GetBestCombination(Pocket[] pockets, Money targetMoney)
 	{
-		if (pockets.Length >= 10)
+		var pocketsWithEnoughAmount = pockets.Where(x => x.Amount >= targetMoney).ToArray();
+		var pocketWithNotEnoughAmount = pockets.Except(pocketsWithEnoughAmount).ToArray();
+
+		if (pocketWithNotEnoughAmount.Length >= 10)
 		{
 			return Pocket.Merge(pockets);
 		}
 
-		return pockets
-			.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
+		return pocketWithNotEnoughAmount
+			.CombinationsWithoutRepetition(ofLength: 2, upToLength: 6)
+			.Union(pocketsWithEnoughAmount.Select(x => new[] { x }))
 			.Select(pocketCombination =>
 				(Score: pocketCombination.Max(GetPrivacyScore),
 					Pocket: Pocket.Merge(pocketCombination.ToArray()),
