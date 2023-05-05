@@ -151,10 +151,10 @@ public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable
 	public static int operator +(int value, Height height) => height.Value + value;
 
 	/// <summary>
-	/// Unary or binary operator for substracting a value to height.
+	/// Unary or binary operator for subtracting a value to height.
 	/// </summary>
 	/// <param name="value">The Int32 value.</param>
-	/// <param name="height">The height value to be substracted from.</param>
+	/// <param name="height">The height value to be subtracted from.</param>
 	public static int operator -(int value, Height height) => value - height.Value;
 
 	/// <summary>
@@ -165,9 +165,9 @@ public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable
 	public static int operator +(Height height, int value) => height.Value + value;
 
 	/// <summary>
-	/// Unary or binary operator for substracting a value to height.
+	/// Unary or binary operator for subtracting a value to height.
 	/// </summary>
-	/// <param name="height">The height value to be substracted from.</param>
+	/// <param name="height">The height value to be subtracted from.</param>
 	/// <param name="value">The Int32 value.</param>
 	public static int operator -(Height height, int value) => height.Value - value;
 
