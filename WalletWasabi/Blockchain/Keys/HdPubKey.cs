@@ -144,12 +144,12 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	{
 		var scripts = new[]
 		{
-				P2pkScript,
-				P2pkhScript,
-				P2wpkhScript,
-				P2shOverP2wpkhScript,
-				P2Taproot
-			};
+			P2pkScript,
+			P2pkhScript,
+			P2wpkhScript,
+			P2shOverP2wpkhScript,
+			P2Taproot
+		};
 
 		return scripts.Contains(scriptPubKey);
 	}
