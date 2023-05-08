@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -38,7 +39,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 		Index = (int)FullKeyPath.Indexes[4];
 		NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
-
+		
 		int change = (int)FullKeyPath.Indexes[3];
 		if (change == 0)
 		{
@@ -84,6 +85,12 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
+
+	/// <summary>Height of the block where all coins associated with the key were spent, or <c>null</c> if not yet spent.</summary>
+	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
+	[JsonProperty(Order = 5)]
+	[JsonConverter(typeof(HeightJsonConverter))]
+	public Height? LatestSpendingHeight { get; set; }
 
 	public Script P2pkScript { get; }
 	public Script P2pkhScript { get; }

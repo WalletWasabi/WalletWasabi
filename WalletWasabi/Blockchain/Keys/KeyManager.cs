@@ -623,17 +623,52 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
+	
+	public Height GetBestTurboSyncHeight()
+	{
+		lock (CriticalStateLock)
+		{
+			return BlockchainState.TurboSyncHeight;
+		}
+	}
 
 	public Network GetNetwork()
 	{
 		return BlockchainState.Network;
 	}
 
-	public void SetBestHeight(Height height)
+	public void SetBestHeight(Height height, bool toFile = true)
 	{
 		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
+			EnsureTurboSyncHeightConsistency(false);
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+
+	public void SetBestTurboSyncHeight(Height height, bool toFile = true)
+	{
+		lock (CriticalStateLock)
+		{
+			BlockchainState.TurboSyncHeight = height;
+			
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+
+	public void SetBestHeights(Height height, Height turboSyncHeight)
+	{
+		lock (CriticalStateLock)
+		{
+			SetBestTurboSyncHeight(turboSyncHeight, false);
+			SetBestHeight(height, false);
 			ToFile();
 		}
 	}
@@ -646,12 +681,29 @@ public class KeyManager
 			var newHeight = Math.Min(prevHeight, height);
 			if (prevHeight != newHeight)
 			{
-				SetBestHeight(newHeight);
+				SetBestHeights(newHeight, newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
 	}
 
+	public void EnsureTurboSyncHeightConsistency(bool toFile = true)
+	{
+		lock (CriticalStateLock)
+		{
+			if (BlockchainState.TurboSyncHeight < BlockchainState.Height)
+			{
+				// TurboSyncHeight can't be behind BestHeight
+				BlockchainState.TurboSyncHeight = BlockchainState.Height;
+			}
+
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+	
 	public void SetIcon(string icon)
 	{
 		Icon = icon;
@@ -694,7 +746,7 @@ public class KeyManager
 			if (lastNetwork is null || lastNetwork != expectedNetwork)
 			{
 				BlockchainState.Network = expectedNetwork;
-				SetBestHeight(0);
+				SetBestHeights(0, 0);
 
 				if (lastNetwork is { })
 				{
