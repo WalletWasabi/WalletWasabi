@@ -147,19 +147,19 @@ public class LabelsArrayTests
 	[Fact]
 	public void CaseSensitivityTests()
 	{
-		var smartLabel = new LabelsArray("Foo");
-		var smartLabelToCheck = new LabelsArray("fOO");
+		var label = new LabelsArray("Foo");
+		var labelToCheck = new LabelsArray("fOO");
 
-		Assert.False(smartLabel.Equals(smartLabelToCheck));
-		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
-		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
-		Assert.Equal(0, LabelsArrayComparer.OrdinalIgnoreCase.Compare(smartLabel, smartLabelToCheck));
+		Assert.False(label.Equals(labelToCheck));
+		Assert.False(label.Equals(labelToCheck, StringComparer.Ordinal));
+		Assert.True(label.Equals(labelToCheck, StringComparer.OrdinalIgnoreCase));
+		Assert.Equal(0, LabelsArrayComparer.OrdinalIgnoreCase.Compare(label, labelToCheck));
 
-		smartLabel = new LabelsArray("bAr, FOO, Buz");
-		smartLabelToCheck = new LabelsArray("buZ, BaR, fOo");
-		Assert.False(smartLabel.Equals(smartLabelToCheck));
-		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
-		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
-		Assert.Equal(0, LabelsArrayComparer.OrdinalIgnoreCase.Compare(smartLabel, smartLabelToCheck));
+		label = new LabelsArray("bAr, FOO, Buz");
+		labelToCheck = new LabelsArray("buZ, BaR, fOo");
+		Assert.False(label.Equals(labelToCheck));
+		Assert.False(label.Equals(labelToCheck, StringComparer.Ordinal));
+		Assert.True(label.Equals(labelToCheck, StringComparer.OrdinalIgnoreCase));
+		Assert.Equal(0, LabelsArrayComparer.OrdinalIgnoreCase.Compare(label, labelToCheck));
 	}
 }

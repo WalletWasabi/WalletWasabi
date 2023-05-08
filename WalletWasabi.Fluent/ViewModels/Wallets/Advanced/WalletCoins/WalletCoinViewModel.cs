@@ -16,7 +16,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private int _anonymitySet;
-	[AutoNotify] private LabelsArray _smartLabel = "";
+	[AutoNotify] private LabelsArray _labels = "";
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
 	[AutoNotify] private bool _isSelected;
@@ -32,7 +32,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 
 		Coin.WhenAnyValue(c => c.IsExcludedFromCoinJoin).Subscribe(x => IsExcludedFromCoinJoin = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => Labels = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);

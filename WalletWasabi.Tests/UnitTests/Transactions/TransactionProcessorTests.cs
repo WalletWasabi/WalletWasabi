@@ -1363,16 +1363,16 @@ public class TransactionProcessorTests
 		privateCoin2.SetAnonymitySet(targetAnonSet, 0);
 
 		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
-		var aPocket = pockets.Single(x => x.SmartLabel == "A");
+		var aPocket = pockets.Single(x => x.Labels == "A");
 
 		Assert.Equal(3, aPocket.Coins.Count());
 		Assert.Equal(Money.Coins(3.0m), aPocket.Coins.TotalAmount());
-		Assert.Single(pockets.Single(x => x.SmartLabel == "B").Coins);
-		Assert.Equal(2, pockets.Single(x => x.SmartLabel == "C").Coins.Count());
-		Assert.Single(pockets.Single(x => x.SmartLabel == "A, B").Coins);
-		Assert.Single(pockets.Single(x => x.SmartLabel == CoinPocketHelper.SemiPrivateFundsText).Coins);
-		Assert.Equal(3, pockets.Single(x => x.SmartLabel == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
-		Assert.Equal(2, pockets.Single(x => x.SmartLabel == CoinPocketHelper.PrivateFundsText).Coins.Count());
+		Assert.Single(pockets.Single(x => x.Labels == "B").Coins);
+		Assert.Equal(2, pockets.Single(x => x.Labels == "C").Coins.Count());
+		Assert.Single(pockets.Single(x => x.Labels == "A, B").Coins);
+		Assert.Single(pockets.Single(x => x.Labels == CoinPocketHelper.SemiPrivateFundsText).Coins);
+		Assert.Equal(3, pockets.Single(x => x.Labels == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
+		Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
 	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)

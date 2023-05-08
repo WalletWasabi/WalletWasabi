@@ -14,9 +14,9 @@ public static class CoinPocketHelper
 	public static readonly LabelsArray PrivateFundsText = new("Private Funds");
 	public static readonly LabelsArray SemiPrivateFundsText = new("Semi-private Funds");
 
-	public static IEnumerable<(LabelsArray SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
+	public static IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
-		List<(LabelsArray SmartLabel, ICoinsView Coins)> pockets = new();
+		List<(LabelsArray Labels, ICoinsView Coins)> pockets = new();
 		var clusters = new Dictionary<LabelsArray, List<SmartCoin>>();
 
 		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold))
