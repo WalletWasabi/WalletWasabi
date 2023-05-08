@@ -12,6 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 [NavigationMetaData(Title = "Password Finder")]
 public partial class SearchPasswordViewModel : RoutableViewModel
 {
+	private readonly IPasswordFinderModel _model;
 	[AutoNotify] private int _percentage;
 	[AutoNotify] private int _remainingHour;
 	[AutoNotify] private int _remainingMin;
@@ -23,7 +24,7 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 
 	private SearchPasswordViewModel(IPasswordFinderModel model)
 	{
-		Options = model;
+		_model = model;
 		_hourText = "";
 		_minText = "";
 		_secText = "";
@@ -36,8 +37,6 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 			 .Do(t => SetStatus(t.Percentage, t.RemainingTime))
 			 .Subscribe();
 	}
-
-	public IPasswordFinderModel Options { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -60,14 +59,14 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		try
 		{
-			var (result, foundPassword) = await Options.FindPasswordAsync(token);
+			var (result, foundPassword) = await _model.FindPasswordAsync(token);
 			if (result && foundPassword is { })
 			{
 				UiContext.Navigate().To().PasswordFound(foundPassword, navigationMode: NavigationMode.Clear);
 			}
 			else
 			{
-				UiContext.Navigate().To().PasswordNotFound(Options.Wallet, navigationMode: NavigationMode.Clear);
+				UiContext.Navigate().To().PasswordNotFound(_model.Wallet, navigationMode: NavigationMode.Clear);
 			}
 		}
 		catch (OperationCanceledException)
