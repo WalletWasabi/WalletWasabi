@@ -1,6 +1,5 @@
 using NBitcoin;
 using ReactiveUI;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -48,52 +47,6 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	public ICommand ToggleSelectCommand { get; }
 
 	public SmartCoin Coin { get; }
-
-	public static Comparison<WalletCoinViewModel?> SortAscending<T>(Func<WalletCoinViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return -1;
-			}
-			else if (y is null)
-			{
-				return 1;
-			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
-		};
-	}
-
-	public static Comparison<WalletCoinViewModel?> SortDescending<T>(Func<WalletCoinViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return 1;
-			}
-			else if (y is null)
-			{
-				return -1;
-			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
-			}
-		};
-	}
 
 	public void Dispose()
 	{
