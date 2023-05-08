@@ -17,12 +17,12 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 {
 	private readonly Wallet _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray label)
+	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
 		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
 		{
-			Labels = { label.AsEnumerable() }
+			Labels = { labels.AsEnumerable() }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
