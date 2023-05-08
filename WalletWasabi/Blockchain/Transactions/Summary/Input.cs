@@ -2,7 +2,7 @@ using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Transactions.Summary;
 
-public abstract class Input
+public interface IInput
 {
-	public abstract Money? Amount { get; }
+	Money? Amount { get; }
 }

@@ -18,7 +18,7 @@ public class TransactionSummary
 	public int BlockIndex { get; set; }
 	public bool IsOwnCoinjoin { get; set; }
 	public IEnumerable<Output> Outputs { get; set; }
-	public IEnumerable<Input> Inputs { get; set; }
+	public IEnumerable<IInput> Inputs { get; set; }
 	public Money OutputAmount => Outputs.Sum(x => x.Amount);
 	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;

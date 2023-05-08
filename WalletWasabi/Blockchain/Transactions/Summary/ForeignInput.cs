@@ -2,7 +2,7 @@ using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Transactions.Summary;
 
-public class ForeignInput : Input
+public class ForeignInput : IInput
 {
 	public ForeignInput(uint256 transactionId)
 	{
@@ -10,5 +10,5 @@ public class ForeignInput : Input
 	}
 
 	public uint256 TransactionId { get; }
-	public override Money? Amount => null;
+	public virtual Money? Amount => null;
 }

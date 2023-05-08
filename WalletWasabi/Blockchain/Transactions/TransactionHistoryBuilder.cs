@@ -99,16 +99,16 @@ public class TransactionHistoryBuilder
 				var amount = txOut.Value;
 				var address = txOut.ScriptPubKey.GetDestinationAddress(network);
 				var associatedCoin = smartTransaction.WalletOutputs.FirstOrDefault(smartCoin => smartCoin.TxOut == txOut);
-				return new Output(amount, address, associatedCoin?.IsSpent() ?? false);
+				return new Output(amount, address, associatedCoin?.IsSpent() == true);
 			});
 
 		return txOutList;
 	}
 
-	private static IEnumerable<Input> GetInputs(Network network, SmartTransaction transaction)
+	private static IEnumerable<IInput> GetInputs(Network network, SmartTransaction transaction)
 	{
-		var known = transaction.WalletInputs.Select(x => (Input)new KnownInput(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
-		var unknown = transaction.ForeignInputs.Select(x => (Input)new ForeignInput(x.Transaction.GetHash()));
+		var known = transaction.WalletInputs.Select(x => (IInput)new KnownInput(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
+		var unknown = transaction.ForeignInputs.Select(x => (IInput)new ForeignInput(x.Transaction.GetHash()));
 
 		return known.Concat(unknown);
 	}
