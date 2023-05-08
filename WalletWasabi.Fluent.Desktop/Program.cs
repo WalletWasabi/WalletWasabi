@@ -141,7 +141,7 @@ public class Program
 
 		return result
 			.With(new Win32PlatformOptions { AllowEglInitialization = false })
-			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
+			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Report" })
 			.With(new AvaloniaNativePlatformOptions { UseGpu = false })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));

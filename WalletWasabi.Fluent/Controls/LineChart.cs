@@ -62,8 +62,7 @@ public partial class LineChart : Control
 		return geometry;
 	}
 
-	private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment,
-		double fontSize, Size constraint)
+	private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
 	{
 		var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, null);
 
@@ -577,9 +576,7 @@ public partial class LineChart : Control
 		{
 			formattedTextLabels[i].MaxTextHeight = constraintMax.Height;
 			formattedTextLabels[i].MaxTextWidth = constraintMax.Width;
-
-			var origin = new Point(i * state.XAxisLabelStep + constraintMax.Width / 2 + state.AreaMargin.Left,
-				originTop);
+			var origin = new Point(i * state.XAxisLabelStep + constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 			offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Width, i,
 				formattedTextLabels.Count, alignment);
@@ -758,7 +755,8 @@ public partial class LineChart : Control
 			formattedTextLabels[i].MaxTextHeight = constraintMax.Height;
 			formattedTextLabels[i].MaxTextWidth = constraintMax.Width;
 
-			var origin = new Point(originLeft,
+			var origin = new Point(
+				originLeft,
 				i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 			offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Height, i,
