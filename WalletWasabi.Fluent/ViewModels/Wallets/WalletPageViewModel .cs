@@ -63,7 +63,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowLogin()
 	{
-		CurrentPage = new LoginViewModel(UiContext, WalletModel, Wallet);
+		CurrentPage = new LoginViewModel(UiContext, WalletModel);
 	}
 
 	private void ShowWalletLoading()
