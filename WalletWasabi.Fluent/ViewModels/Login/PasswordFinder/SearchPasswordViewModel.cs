@@ -21,7 +21,7 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 	[AutoNotify] private string _secText;
 	[AutoNotify] private bool _remainingTimeReceived;
 
-	public SearchPasswordViewModel(IPasswordFinderModel model)
+	private SearchPasswordViewModel(IPasswordFinderModel model)
 	{
 		Options = model;
 		_hourText = "";
@@ -63,11 +63,11 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 			var (result, foundPassword) = await Options.FindPasswordAsync(token);
 			if (result && foundPassword is { })
 			{
-				Navigate().To().PasswordFound(foundPassword, navigationMode: NavigationMode.Clear);
+				UiContext.Navigate().To().PasswordFound(foundPassword, navigationMode: NavigationMode.Clear);
 			}
 			else
 			{
-				Navigate().To().PasswordNotFound(Options.Wallet, navigationMode: NavigationMode.Clear);
+				UiContext.Navigate().To().PasswordNotFound(Options.Wallet, navigationMode: NavigationMode.Clear);
 			}
 		}
 		catch (OperationCanceledException)
