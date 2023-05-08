@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -25,6 +24,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public WalletModel(Wallet wallet)
 	{
 		_wallet = wallet;
+
 		_historyBuilder = new TransactionHistoryBuilder(_wallet);
 
 		RelevantTransactionProcessed =
@@ -46,7 +46,20 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		State = Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
+
+		Auth = new WalletAuthModel(_wallet);
+		Loader = new WalletLoadWorkflow(_wallet);
+
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
+			.Where(x => x)
+			.Take(1)
+			.Do(_ => Loader.Start())
+			.Subscribe();
 	}
+
+	public IWalletAuthModel Auth { get; }
+
+	public IWalletLoadWorkflow Loader { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
@@ -73,28 +86,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return _wallet.GetLabelsWithRanking(intent);
-	}
-
-	public async Task<WalletLoginResult> TryLoginAsync(string password)
-	{
-		string? compatibilityPassword = null;
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out compatibilityPassword));
-
-		var compatibilityPasswordUsed = compatibilityPassword is { };
-
-		var legalRequired = Services.LegalChecker.TryGetNewLegalDocs(out _);
-
-		return new(isPasswordCorrect, compatibilityPasswordUsed, legalRequired);
-	}
-
-	public void Login()
-	{
-		IsLoggedIn = true;
-	}
-
-	public void Logout()
-	{
-		_wallet.Logout();
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()

@@ -47,7 +47,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(IWalletModel walletModel)
 	{
-		var (success, compatibilityPasswordUsed, legalRequired) = await walletModel.TryLoginAsync(Password);
+		var (success, compatibilityPasswordUsed) = await walletModel.Auth.TryLoginAsync(Password);
 
 		if (!success)
 		{
@@ -61,16 +61,23 @@ public partial class LoginViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
-		var legalResult = !legalRequired || await ShowLegalAsync();
-
-		if (legalResult)
+		if (walletModel.Auth.IsLegalRequired)
 		{
-			walletModel.Login();
+			var accepted = await ShowLegalAsync();
+			if (accepted)
+			{
+				await walletModel.Auth.AcceptTermsAndConditions();
+				walletModel.Auth.CompleteLogin();
+			}
+			else
+			{
+				walletModel.Auth.Logout();
+				ErrorMessage = "You must accept the Terms and Conditions!";
+			}
 		}
 		else
 		{
-			walletModel.Logout();
-			ErrorMessage = "You must accept the Terms and Conditions!";
+			walletModel.Auth.CompleteLogin();
 		}
 	}
 
@@ -90,12 +97,6 @@ public partial class LoginViewModel : RoutableViewModel
 		var legalDocs = new TermsAndConditionsViewModel();
 
 		var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
-
-		if (dialogResult.Result)
-		{
-			// TODO: remove direct dependency
-			await Services.LegalChecker.AgreeAsync();
-		}
 
 		return dialogResult.Result;
 	}

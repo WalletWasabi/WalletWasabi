@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -17,8 +15,6 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 {
 	public string Name { get; }
 
-	bool IsLoggedIn { get; }
-
 	IObservable<WalletState> State { get; }
 
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
@@ -31,13 +27,11 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 
 	WalletType WalletType { get; }
 
+	IWalletAuthModel Auth { get; }
+
+	IWalletLoadWorkflow Loader { get; }
+
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
-
-	Task<WalletLoginResult> TryLoginAsync(string password);
-
-	void Login();
-
-	void Logout();
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
@@ -53,7 +47,7 @@ public interface IWalletModel : IEquatable<IWalletModel>, IComparable<IWalletMod
 			return -1;
 		}
 
-		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
+		var result = other.Auth.IsLoggedIn.CompareTo(Auth.IsLoggedIn);
 
 		if (result == 0)
 		{

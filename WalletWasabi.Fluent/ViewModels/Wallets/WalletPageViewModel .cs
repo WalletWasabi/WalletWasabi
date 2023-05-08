@@ -40,7 +40,7 @@ public partial class WalletPageViewModel : ViewModelBase
 			})
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.WalletModel.IsLoggedIn)
+		this.WhenAnyValue(x => x.WalletModel.Auth.IsLoggedIn)
 			.BindTo(this, x => x.IsLoggedIn);
 
 		this.WhenAnyObservable(x => x.WalletModel.State)
@@ -68,7 +68,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWalletLoading()
 	{
-		CurrentPage = new LoadingViewModel(Wallet);
+		CurrentPage = new LoadingViewModel(WalletModel);
 		IsLoading = true;
 	}
 

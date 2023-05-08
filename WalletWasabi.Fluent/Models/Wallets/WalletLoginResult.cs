@@ -1,3 +1,3 @@
-﻿namespace WalletWasabi.Fluent.Models.Wallets;
+namespace WalletWasabi.Fluent.Models.Wallets;
 
-public record WalletLoginResult(bool Success, bool CompatibilityPasswordUsed, bool LegalRequired);
+public record WalletLoginResult(bool Success, bool CompatibilityPasswordUsed);
