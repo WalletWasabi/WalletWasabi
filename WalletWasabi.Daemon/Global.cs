@@ -154,6 +154,9 @@ public class Global
 				{
 					await bstoreInitTask.ConfigureAwait(false);
 
+					// Make sure that TurboSyncHeight is not higher than BestHeight
+					WalletManager.EnsureTurboSyncHeightConsistency();
+
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
 					WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
 				}
