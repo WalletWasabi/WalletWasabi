@@ -18,15 +18,15 @@ public class HeightJsonConverter : JsonConverter<Height?>
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, Height? value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, Height? height, JsonSerializer serializer)
 	{
-		if (value is null)
+		if (height is null)
 		{
 			writer.WriteNull();
 		}
 		else
 		{
-			writer.WriteValue(value.Value.Value.ToString());
+			writer.WriteValue(height.Value.Value.ToString());
 		}
 	}
 }
