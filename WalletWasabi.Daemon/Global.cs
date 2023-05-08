@@ -231,8 +231,8 @@ public class Global
 		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, Config.JsonRpcServerPrefixes);
 		if (jsonRpcServerConfig.IsEnabled)
 		{
-			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(this, terminateService);
-			RpcServer = new JsonRpcServer(wasabiJsonRpcService, jsonRpcServerConfig);
+			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(global: this);
+			RpcServer = new JsonRpcServer(wasabiJsonRpcService, jsonRpcServerConfig, terminateService);
 			try
 			{
 				await RpcServer.StartAsync(cancel).ConfigureAwait(false);
