@@ -19,7 +19,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
 		UiContext = uiContext;
-			Model = model;
+		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
 		IsHardwareWallet = wallet.IsHardwareWallet();
@@ -32,12 +32,13 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(ShowOnHwWalletAsync);
 
-		SaveQrCodeCommand = ReactiveCommand.CreateFromTask(OnSaveQrCodeAsync);
-
-		SaveQrCodeCommand.ThrownExceptions
+		var saveQrCodeCommand = ReactiveCommand.CreateFromTask(OnSaveQrCodeAsync);
+		saveQrCodeCommand.ThrownExceptions
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(ex => Logger.LogError(ex));
 
+		SaveQrCodeCommand = saveQrCodeCommand;
+		
 		NextCommand = CancelCommand;
 
 		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
@@ -60,7 +61,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	public ICommand CopyAddressCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SaveQrCodeCommand { get; }
+	public ICommand SaveQrCodeCommand { get; }
 
 	public ICommand ShowOnHwWalletCommand { get; }
 
