@@ -10,25 +10,21 @@ public partial class ContainsSymbolsViewModel : RoutableViewModel
 {
 	private ContainsSymbolsViewModel(IPasswordFinderModel model)
 	{
-		Options = model;
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = true;
 
-		YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
-		NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
+		YesCommand = ReactiveCommand.Create(() => SetAnswer(model, true));
+		NoCommand = ReactiveCommand.Create(() => SetAnswer(model, false));
 	}
-
-	public IPasswordFinderModel Options { get; }
 
 	public ICommand YesCommand { get; }
 
 	public ICommand NoCommand { get; }
 
-	private void SetAnswer(bool ans)
+	private void SetAnswer(IPasswordFinderModel model, bool ans)
 	{
-		Options.UseSymbols = ans;
-		UiContext.Navigate().To().SearchPassword(Options);
+		model.UseSymbols = ans;
+		UiContext.Navigate().To().SearchPassword(model);
 	}
 }
