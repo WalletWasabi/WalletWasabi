@@ -5,12 +5,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public interface INavigate
 {
-	INavigationStack<RoutableViewModel> Navigate(NavigationTarget target);
-
-	FluentNavigate To();
-
-	Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal);
-
 	INavigationStack<RoutableViewModel> HomeScreen { get; }
 
 	INavigationStack<RoutableViewModel> DialogScreen { get; }
@@ -20,4 +14,10 @@ public interface INavigate
 	INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
 
 	IObservable<bool> IsDialogOpen { get; }
+
+	INavigationStack<RoutableViewModel> Navigate(NavigationTarget target);
+
+	FluentNavigate To();
+
+	Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal);
 }
