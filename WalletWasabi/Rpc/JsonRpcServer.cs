@@ -67,7 +67,7 @@ public class JsonRpcServer : BackgroundService
 					if (IsAuthorized(context))
 					{
 						var path = request.Url?.LocalPath ?? string.Empty;
-						string jsonResponse;
+						string jsonResponse = string.Empty;
 
 						if (!JsonRpcRequest.TryParse(body, out var allRpcRequests, out var isBatch))
 						{
@@ -90,17 +90,17 @@ public class JsonRpcServer : BackgroundService
 							if (requestsToProcess.Length > 0)
 							{
 								jsonResponse = await RequestHandler.HandleRequestsAsync(path, requestsToProcess, isBatch, stoppingToken).ConfigureAwait(false);
-
-								// result is null only when the request is a notification.
-								if (!string.IsNullOrEmpty(jsonResponse))
-								{
-									response.ContentType = "application/json-rpc";
-									var output = response.OutputStream;
-									var buffer = Encoding.UTF8.GetBytes(jsonResponse);
-									await output.WriteAsync(buffer.AsMemory(0, buffer.Length), stoppingToken).ConfigureAwait(false);
-									await output.FlushAsync(stoppingToken).ConfigureAwait(false);
-								}
 							}
+						}
+
+						// result is null only when the request is a notification.
+						if (!string.IsNullOrEmpty(jsonResponse))
+						{
+							response.ContentType = "application/json-rpc";
+							var output = response.OutputStream;
+							var buffer = Encoding.UTF8.GetBytes(jsonResponse);
+							await output.WriteAsync(buffer.AsMemory(0, buffer.Length), stoppingToken).ConfigureAwait(false);
+							await output.FlushAsync(stoppingToken).ConfigureAwait(false);
 						}
 					}
 					else
