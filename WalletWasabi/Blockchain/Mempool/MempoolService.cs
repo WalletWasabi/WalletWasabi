@@ -20,10 +20,6 @@ public class MempoolService
 	private long _totalReceives = 0;
 	private long _duplicatedReceives = 0;
 
-	public MempoolService()
-	{
-	}
-
 	public event EventHandler<SmartTransaction>? TransactionReceived;
 
 	/// <remarks>Guarded by <see cref="ProcessedLock"/>.</remarks>
