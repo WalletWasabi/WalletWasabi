@@ -47,7 +47,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
 
-		Auth = new WalletAuthModel(_wallet);
+		Auth = new WalletAuthModel(this, _wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
 
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)

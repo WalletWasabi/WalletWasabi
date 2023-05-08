@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets.PasswordFinder;
+using WalletWasabi.Fluent.Models.Wallets;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 
@@ -20,9 +21,9 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 	[AutoNotify] private string _secText;
 	[AutoNotify] private bool _remainingTimeReceived;
 
-	public SearchPasswordViewModel(PasswordFinderOptions options)
+	public SearchPasswordViewModel(IPasswordFinderModel model)
 	{
-		Options = options;
+		Options = model;
 		_hourText = "";
 		_minText = "";
 		_secText = "";
@@ -30,9 +31,13 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
+
+		model.Progress
+			 .Do(t => SetStatus(t.Percentage, t.RemainingTime))
+			 .Subscribe();
 	}
 
-	public PasswordFinderOptions Options { get; }
+	public IPasswordFinderModel Options { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -40,7 +45,7 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 
 		var cts = new CancellationTokenSource();
 
-		var t = FindPasswordAsync(Options, cts.Token);
+		var t = FindPasswordAsync(cts.Token);
 
 		disposables.Add(Disposable.Create(async () =>
 		{
@@ -51,19 +56,18 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 		disposables.Add(cts);
 	}
 
-	private async Task FindPasswordAsync(PasswordFinderOptions options, CancellationToken token)
+	private async Task FindPasswordAsync(CancellationToken token)
 	{
 		try
 		{
-			string? foundPassword = null;
-			var result = await Task.Run(() => PasswordFinderHelper.TryFind(options, out foundPassword, SetStatus, token));
+			var (result, foundPassword) = await Options.FindPasswordAsync(token);
 			if (result && foundPassword is { })
 			{
-				Navigate().To(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
+				Navigate().To().PasswordFound(foundPassword, navigationMode: NavigationMode.Clear);
 			}
 			else
 			{
-				Navigate().To(new PasswordNotFoundViewModel(options.Wallet), NavigationMode.Clear);
+				Navigate().To().PasswordNotFound(Options.Wallet, navigationMode: NavigationMode.Clear);
 			}
 		}
 		catch (OperationCanceledException)

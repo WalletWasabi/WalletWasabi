@@ -1,16 +1,16 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 
 [NavigationMetaData(Title = "Password Finder")]
 public partial class ContainsSymbolsViewModel : RoutableViewModel
 {
-	public ContainsSymbolsViewModel(PasswordFinderOptions options)
+	private ContainsSymbolsViewModel(IPasswordFinderModel model)
 	{
-		Options = options;
+		Options = model;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -20,7 +20,7 @@ public partial class ContainsSymbolsViewModel : RoutableViewModel
 		NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
 	}
 
-	public PasswordFinderOptions Options { get; }
+	public IPasswordFinderModel Options { get; }
 
 	public ICommand YesCommand { get; }
 
@@ -29,6 +29,6 @@ public partial class ContainsSymbolsViewModel : RoutableViewModel
 	private void SetAnswer(bool ans)
 	{
 		Options.UseSymbols = ans;
-		Navigate().To(new SearchPasswordViewModel(Options));
+		UiContext.Navigate().To().SearchPassword(Options);
 	}
 }

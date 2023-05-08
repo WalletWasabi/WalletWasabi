@@ -1,16 +1,15 @@
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 
 [NavigationMetaData(Title = "Password Finder")]
 public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 {
-	public PasswordFinderIntroduceViewModel(Wallet wallet)
+	public PasswordFinderIntroduceViewModel(IWalletModel wallet)
 	{
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -19,7 +18,7 @@ public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet));
 	}
 
-	private async Task OnNextAsync(Wallet wallet)
+	private async Task OnNextAsync(IWalletModel wallet)
 	{
 		var dialogResult =
 			await NavigateDialogAsync(
@@ -28,8 +27,8 @@ public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 
 		if (dialogResult.Result is { } password)
 		{
-			var options = new PasswordFinderOptions(wallet, password);
-			Navigate().To(new SelectCharsetViewModel(options));
+			var passwordFinder = wallet.Auth.GetPasswordFinder(password);
+			Navigate().To().SelectCharset(passwordFinder);
 		}
 	}
 }
