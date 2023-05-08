@@ -16,8 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
-	private readonly ObservableAsPropertyHelper<bool[,]> _qrCode;
-
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
 		UiContext = uiContext;
@@ -42,17 +40,12 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		GenerateQrCodeCommand = ReactiveCommand.CreateFromObservable(() => UiContext.QrCodeGenerator.Generate(model.Text));
-		_qrCode = GenerateQrCodeCommand.ToProperty(this, nameof(QrCode));
+		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
 
 		if (isAutoCopyEnabled)
 		{
 			CopyAddressCommand.Execute(null);
 		}
-
-		GenerateQrCodeCommand
-			.Execute()
-			.Subscribe();
 
 		wallet.Addresses
 			.Watch(model.Text)
@@ -60,8 +53,6 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			.Do(_ => UiContext.Navigate(NavigationTarget.Default).Back())
 			.Subscribe();
 	}
-
-	public ReactiveCommand<Unit, bool[,]> GenerateQrCodeCommand { get; }
 
 	private IAddress Model { get; }
 
@@ -79,8 +70,8 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	public bool IsHardwareWallet { get; }
 
-	public bool[,] QrCode => _qrCode.Value;
-
+	public IObservable<bool[,]> QrCode { get; }
+	
 	private async Task ShowOnHwWalletAsync()
 	{
 		try
