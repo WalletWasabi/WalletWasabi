@@ -54,7 +54,7 @@ public class TransactionHistoryBuilder
 					BlockHash = containingTransaction.BlockHash,
 					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
 					Inputs = GetInputs(wallet.Network, containingTransaction),
-					Outputs = GetOutputs(containingTransaction, wallet.Network),
+					Outputs = GetOutputs(containingTransaction),
 				});
 			}
 
@@ -82,7 +82,7 @@ public class TransactionHistoryBuilder
 						BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
 						Inputs = GetInputs(wallet.Network, spenderTransaction),
-						Outputs = GetOutputs(spenderTransaction, wallet.Network),
+						Outputs = GetOutputs(spenderTransaction),
 					});
 				}
 			}
@@ -91,18 +91,16 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private static IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
+	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction)
 	{
-		var txOutList = smartTransaction.Transaction.Outputs.Select(
-			txOut =>
-			{
-				var amount = txOut.Value;
-				var address = txOut.ScriptPubKey.GetDestinationAddress(network);
-				var associatedCoin = smartTransaction.WalletOutputs.FirstOrDefault(smartCoin => smartCoin.TxOut == txOut);
-				return new Output(amount, address, associatedCoin?.IsSpent() == true);
-			});
+		return smartTransaction.Transaction.Outputs.Select(GetOutput);
+	}
 
-		return txOutList;
+	private Output GetOutput(TxOut txOut)
+	{
+		var amount = txOut.Value;
+		var address = txOut.ScriptPubKey.GetDestinationAddress(Wallet.Network);
+		return new Output(amount, address);
 	}
 
 	private static IEnumerable<IInput> GetInputs(Network network, SmartTransaction transaction)
