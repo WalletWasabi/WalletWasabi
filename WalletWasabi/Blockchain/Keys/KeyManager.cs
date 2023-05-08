@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
@@ -111,7 +109,7 @@ public class KeyManager
 	}
 
 	[OnSerializing]
-	private void OnSerializingdMethod(StreamingContext context)
+	private void OnSerializingMethod(StreamingContext context)
 	{
 		HdPubKeys.Clear();
 		HdPubKeys.AddRange(HdPubKeyCache);
@@ -142,9 +140,11 @@ public class KeyManager
 
 	#region Properties
 
+	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
 	[JsonProperty(PropertyName = "EncryptedSecret")]
 	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
+	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
 	[JsonProperty(PropertyName = "ChainCode")]
 	public byte[]? ChainCode { get; }
 
@@ -209,6 +209,7 @@ public class KeyManager
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
+	[MemberNotNullWhen(returnValue: false, nameof(ChainCode))]
 	public bool IsWatchOnly => EncryptedSecret is null;
 
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
