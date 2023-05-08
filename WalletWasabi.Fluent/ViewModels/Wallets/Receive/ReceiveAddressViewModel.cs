@@ -23,6 +23,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Address = model.Text;
 		Labels = model.Labels;
 		IsHardwareWallet = wallet.IsHardwareWallet();
+		IsAutoCopyEnabled = isAutoCopyEnabled;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -43,7 +44,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
 
-		if (isAutoCopyEnabled)
+		if (IsAutoCopyEnabled)
 		{
 			CopyAddressCommand.Execute(null);
 		}
@@ -55,7 +56,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			.Subscribe();
 	}
 
-	private IAddress Model { get; }
+	public bool IsAutoCopyEnabled { get; }
 
 	public ReactiveCommand<string, Unit>? QrCodeCommand { get; set; }
 
@@ -72,7 +73,9 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	public bool IsHardwareWallet { get; }
 
 	public IObservable<bool[,]> QrCode { get; }
-	
+
+	private IAddress Model { get; }
+
 	private async Task ShowOnHwWalletAsync()
 	{
 		try
