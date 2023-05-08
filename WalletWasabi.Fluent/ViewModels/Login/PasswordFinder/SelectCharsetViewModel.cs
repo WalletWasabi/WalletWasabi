@@ -11,15 +11,12 @@ public partial class SelectCharsetViewModel : RoutableViewModel
 {
 	private SelectCharsetViewModel(IPasswordFinderModel model)
 	{
-		Options = model;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = true;
 
 		Charsets = Enum.GetValues(typeof(Charset)).Cast<Charset>().Select(x => new CharsetViewModel(UiContext, model, x));
 	}
-
-	public IPasswordFinderModel Options { get; }
 
 	public IEnumerable<CharsetViewModel> Charsets { get; }
 }
