@@ -12,17 +12,20 @@ public class FilterModel
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
-		_filter = new Lazy<GolombRiceFilter>(filter);
+		_filter = new(filter);
+		FilterData = filter.ToBytes();
 	}
 
-	public FilterModel(SmartHeader header, Lazy<GolombRiceFilter> filter)
+	public FilterModel(SmartHeader header, byte[] filterData)
 	{
 		Header = header;
-		_filter = filter;
+		FilterData = filterData;
+		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public SmartHeader Header { get; }
 
+	public byte[] FilterData { get; }
 	public GolombRiceFilter Filter => _filter.Value;
 
 	// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
@@ -32,8 +35,7 @@ public class FilterModel
 
 	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
 	{
-		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
-		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
+		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filterData);
 	}
 
 	public static FilterModel FromLine(string line)
@@ -53,7 +55,7 @@ public class FilterModel
 				throw new ArgumentException(line, nameof(line));
 			}
 
-			uint blockHeight = uint.Parse(span[0..m1]);
+			uint blockHeight = uint.Parse(span[..m1]);
 			uint256 blockHash = new(Convert.FromHexString(span[(m1 + 1)..m2]), lendian: false);
 			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
 
