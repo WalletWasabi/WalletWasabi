@@ -58,6 +58,8 @@ public class CoinJoinClient
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
+	public ImmutableList<SmartCoin> CoinsUsedInCoinjoin { get; private set; } = ImmutableList<SmartCoin>.Empty;
+
 	private SecureRandom SecureRandom { get; }
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
@@ -316,6 +318,8 @@ public class CoinJoinClient
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
+
+			CoinsUsedInCoinjoin = registeredAliceClients.Select(aliceClient => aliceClient.SmartCoin).ToImmutableList();
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
