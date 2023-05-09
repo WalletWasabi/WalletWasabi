@@ -319,8 +319,6 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			CoinsUsedInCoinjoin = registeredAliceClients.Select(aliceClient => aliceClient.SmartCoin).ToImmutableList();
-
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
@@ -489,6 +487,8 @@ public class CoinJoinClient
 				return await RegisterInputAsync(coin).ConfigureAwait(false);
 			})
 			.ToImmutableArray();
+
+		CoinsUsedInCoinjoin = smartCoins.ToImmutableList();
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
