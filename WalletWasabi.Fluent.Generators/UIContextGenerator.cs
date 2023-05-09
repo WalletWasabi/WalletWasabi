@@ -282,6 +282,7 @@ public class UiContextGenerator : ISourceGenerator
 
 							return new FluentDialog<{{dialogReturnType}}>(target.NavigateDialogAsync(dialog, navigationMode));
 						}
+
 					""";
 				methods.Add(dialogString);
 			}
