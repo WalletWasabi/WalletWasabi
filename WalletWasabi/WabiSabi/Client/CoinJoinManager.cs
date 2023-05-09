@@ -34,6 +34,8 @@ public class CoinJoinManager : BackgroundService
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
+	public ImmutableDictionary<string, ImmutableList<SmartCoin>> CoinsUsedInCoinjoins { get; set; } = ImmutableDictionary<string, ImmutableList<SmartCoin>>.Empty;
+
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
 	public IWalletProvider WalletProvider { get; }
@@ -360,10 +362,30 @@ public class CoinJoinManager : BackgroundService
 			var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
 
 			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
+			CoinsUsedInCoinjoins = GetCoinsUsedInCoinjoins(wallets, trackedCoinJoins);
 			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
+	}
+
+	private ImmutableDictionary<string, ImmutableList<SmartCoin>> GetCoinsUsedInCoinjoins(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins)
+	{
+		var coinsUsedInCoinjoins = ImmutableDictionary.CreateBuilder<string, ImmutableList<SmartCoin>>();
+
+		foreach (var wallet in wallets)
+		{
+			ImmutableList<SmartCoin> coinsInCoinjoin = ImmutableList<SmartCoin>.Empty;
+
+			if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
+			{
+				coinsInCoinjoin = coinJoinTracker.GetCoinsUsedInCoinjoin;
+			}
+
+			coinsUsedInCoinjoins.Add(wallet.WalletName, coinsInCoinjoin);
+		}
+
+		return coinsUsedInCoinjoins.ToImmutable();
 	}
 
 	private static ImmutableDictionary<string, CoinJoinClientStateHolder> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
