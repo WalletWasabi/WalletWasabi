@@ -263,7 +263,31 @@ public class UiContextGenerator : ISourceGenerator
 
 			var methodName = className.Replace("ViewModel", "");
 
-			var methodString =
+			var (dialogReturnType, dialogReturnTypeNamespace) = cls.GetDialogResultType(semanticModel);
+
+			foreach (var ns in dialogReturnTypeNamespace)
+			{
+				namespaces.Add(ns);
+			}
+
+			if (dialogReturnType is { })
+			{
+				var dialogString =
+					$$"""
+						public FluentDialog<{{dialogReturnType}}> {{methodName}}{{methodParams}}
+						{
+						    var dialog = new {{className}}{{ctorArgs.ToFullString()}};
+							var target = UiContext.Navigate(navigationTarget);
+							target.To(dialog, navigationMode);
+
+							return new FluentDialog<{{dialogReturnType}}>(target.NavigateDialogAsync(dialog, navigationMode));
+						}
+					""";
+				methods.Add(dialogString);
+			}
+			else
+			{
+				var methodString =
 				$$"""
 					public void {{methodName}}{{methodParams}}
 					{
@@ -271,7 +295,8 @@ public class UiContextGenerator : ISourceGenerator
 					}
 
 				""";
-			methods.Add(methodString);
+				methods.Add(methodString);
+			}
 		}
 
 		var usings =

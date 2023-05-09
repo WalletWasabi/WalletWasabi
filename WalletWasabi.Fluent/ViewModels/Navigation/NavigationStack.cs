@@ -195,7 +195,10 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 		var t = dialog as T;
 
-		To(t, navigationMode);
+		if (CurrentPage != t)
+		{
+			To(t, navigationMode);
+		}
 
 		var result = await dialogTask;
 
