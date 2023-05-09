@@ -100,7 +100,7 @@ public record RoundParameters
 			wabiSabiConfig.MinInputCountByRound,
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
-			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
+			new MoneyRange(Money.Satoshis(wabiSabiConfig.MinRegistrableAmount.Satoshi * wabiSabiConfig.MinOutputMultiplier), wabiSabiConfig.MaxRegistrableAmount),
 			wabiSabiConfig.AllowedInputTypes,
 			wabiSabiConfig.AllowedOutputTypes,
 			wabiSabiConfig.StandardInputRegistrationTimeout,

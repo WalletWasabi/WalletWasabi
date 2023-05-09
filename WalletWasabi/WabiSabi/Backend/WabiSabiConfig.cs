@@ -44,6 +44,13 @@ public class WabiSabiConfig : ConfigBase
 	public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
 
 	/// <summary>
+	/// Minimum output in a round = MinRegistrableAmount * MinOutputMultiplier
+	/// </summary>
+	[DefaultValue(1.0)]
+	[JsonProperty(PropertyName = "MinOutputMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public decimal MinOutputMultiplier { get; set; } = 1.0m;
+	
+	/// <summary>
 	/// The width of the range proofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
 	[DefaultValueMoneyBtc("43000")]
