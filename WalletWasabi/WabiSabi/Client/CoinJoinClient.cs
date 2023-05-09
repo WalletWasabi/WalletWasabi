@@ -330,14 +330,8 @@ public class CoinJoinClient
 		}
 		finally
 		{
-			foreach (var coins in smartCoins)
-			{
-				coins.CoinJoinInProgress = false;
-			}
-
 			foreach (var aliceClientAndCircuit in registeredAliceClientAndCircuits)
 			{
-				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
 		}

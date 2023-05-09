@@ -92,15 +92,15 @@ public class AliceClient
 		}
 		catch (Exception) when (aliceClient is { })
 		{
-            var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
-            // We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
-            if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
-            {
-                // Unregistering coins is only possible before connection confirmation phase.
-                await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-            }
-            throw;
+			// We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
+			if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
+			{
+				// Unregistering coins is only possible before connection confirmation phase.
+				await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
+			}
+			throw;
 		}
 
 		return aliceClient;
@@ -117,7 +117,6 @@ public class AliceClient
 
 			var (response, isCoordinationFeeExempted) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isCoordinationFeeExempted);
-			coin.CoinJoinInProgress = true;
 
 			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
 		}
@@ -225,7 +224,6 @@ public class AliceClient
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, cancellationToken);
 
 			await RemoveInputAsync(linkedCts.Token).ConfigureAwait(false);
-			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
 		catch (OperationCanceledException e)
@@ -243,15 +241,9 @@ public class AliceClient
 		}
 	}
 
-	public void Finish()
-	{
-		SmartCoin.CoinJoinInProgress = false;
-	}
-
 	public async Task RemoveInputAsync(CancellationToken cancellationToken)
 	{
 		await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
-		SmartCoin.CoinJoinInProgress = false;
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 	}
 
