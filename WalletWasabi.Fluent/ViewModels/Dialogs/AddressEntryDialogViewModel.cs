@@ -33,7 +33,6 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 	private AddressEntryDialogViewModel(Network network)
 	{
 		_network = network;
-		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -68,7 +67,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, _resultToReturn), nextCommandCanExecute);
 	}
 
-	public bool IsQrButtonVisible { get; }
+	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
 	public ICommand PasteCommand { get; }
 
