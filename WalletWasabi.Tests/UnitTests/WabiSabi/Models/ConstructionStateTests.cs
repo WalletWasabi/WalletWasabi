@@ -1,9 +1,11 @@
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -35,5 +37,31 @@ public class ConstructionStateTests
 
 		var signingState = state.Finalize();
 		Assert.Equal(miningFeeRate, signingState.EffectiveFeeRate);
+	}
+
+	[Theory]
+	[InlineData(1)]
+	[InlineData(2)]
+	[InlineData(4)]
+	[InlineData(50)]
+	[InlineData(200)]
+	[InlineData(500)]
+	public void ConstructionStateMinimumOutputAmountTest(decimal minimgFeePerByte)
+	{
+		var miningFeeRate = new FeeRate(minimgFeePerByte);
+		var cfg = new WabiSabiConfig();
+		var roundParameters = RoundParameters.Create(
+			cfg,
+			Network.Main,
+			miningFeeRate,
+			cfg.CoordinationFeeRate,
+			Money.Coins(10));
+
+		var smallestAllowed = StandardDenominations
+			.Create(cfg.MaxRegistrableAmount)
+			.First(d => d >= roundParameters.AllowedOutputAmounts.Min);
+
+		Assert.True(roundParameters.AllowedOutputAmounts.Min >= cfg.MinRegistrableAmount);
+		Assert.True(smallestAllowed > 3 * miningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize));
 	}
 }
