@@ -623,6 +623,19 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
+	public bool IsCoinInCoinJoin(SmartCoin coin)
+	{
+		foreach (var participatingCoins in CoinsUsedInCoinjoins.Values)
+		{
+			if (participatingCoins.Contains(coin))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public async Task WalletEnteredSendingAsync(Wallet wallet)
 	{
 		if (!WalletsInSendWorkflow.ContainsKey(wallet.WalletName))
