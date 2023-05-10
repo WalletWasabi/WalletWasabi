@@ -180,7 +180,7 @@ public static class WasabiAppExtensions
 
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-						}, startInBg: runGuiInBackground))
+						}, startInBg: runGuiInBackground, bip21Uri: null))
 					.UseReactiveUI()
 					.SetupAppBuilder()
 					.AfterSetup(_ =>

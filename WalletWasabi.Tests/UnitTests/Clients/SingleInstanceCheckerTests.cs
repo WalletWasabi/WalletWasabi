@@ -33,34 +33,34 @@ public class SingleInstanceCheckerTests
 		// Disposal test.
 		await using (SingleInstanceChecker sic = new(mainNetPort, TimeoutMultiplier))
 		{
-			await sic.CheckSingleInstanceAsync();
+			await sic.CheckSingleInstanceAsync(null);
 		}
 
 		// Check different networks.
 		await using SingleInstanceChecker sicMainNet = new(mainNetPort, TimeoutMultiplier);
-		var status = await sicMainNet.CheckSingleInstanceAsync();
+		var status = await sicMainNet.CheckSingleInstanceAsync(null);
 		Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
 
 		await using SingleInstanceChecker sicMainNet2 = new(mainNetPort, TimeoutMultiplier);
-		status = await sicMainNet.CheckSingleInstanceAsync();
+		status = await sicMainNet.CheckSingleInstanceAsync(null);
 		Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, status);
 
 		// testnet
 		await using SingleInstanceChecker sicTestNet1 = new(testNetPort, TimeoutMultiplier);
-		status = await sicTestNet1.CheckSingleInstanceAsync();
+		status = await sicTestNet1.CheckSingleInstanceAsync(null);
 		Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
 
 		await using SingleInstanceChecker sicTestNet2 = new(testNetPort, TimeoutMultiplier);
-		status = await sicTestNet2.CheckSingleInstanceAsync();
+		status = await sicTestNet2.CheckSingleInstanceAsync(null);
 		Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, status);
 
 		// regtest
 		await using SingleInstanceChecker sicRegNet1 = new(regTestPort, TimeoutMultiplier);
-		status = await sicRegNet1.CheckSingleInstanceAsync();
+		status = await sicRegNet1.CheckSingleInstanceAsync(null);
 		Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
 
 		await using SingleInstanceChecker sicRegNet2 = new(regTestPort, TimeoutMultiplier);
-		status = await sicRegNet2.CheckSingleInstanceAsync();
+		status = await sicRegNet2.CheckSingleInstanceAsync(null);
 		Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, status);
 	}
 
@@ -78,7 +78,7 @@ public class SingleInstanceCheckerTests
 		try
 		{
 			// I am the first instance this should be fine.
-			var status = await firstInstance.CheckSingleInstanceAsync();
+			var status = await firstInstance.CheckSingleInstanceAsync(null);
 			Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
 
 			await using SingleInstanceChecker secondInstance = new(mainNetPort, TimeoutMultiplier);
@@ -86,7 +86,7 @@ public class SingleInstanceCheckerTests
 			for (int i = 0; i < 2; i++)
 			{
 				// I am the second one.
-				var secondInstanceStatus = await secondInstance.CheckSingleInstanceAsync();
+				var secondInstanceStatus = await secondInstance.CheckSingleInstanceAsync(null);
 				Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, secondInstanceStatus);
 			}
 
@@ -138,7 +138,7 @@ public class SingleInstanceCheckerTests
 			}
 
 			// One more to check if the first instance was able to recover from the port scan operation.
-			var statusAfterPortScan = await secondInstance.CheckSingleInstanceAsync();
+			var statusAfterPortScan = await secondInstance.CheckSingleInstanceAsync(null);
 			Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, statusAfterPortScan);
 
 			while (Interlocked.Read(ref eventCalled) != 3)

@@ -1,11 +1,9 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
-using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
@@ -33,6 +31,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		UiContext = uiContext;
 		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
+
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable

@@ -84,7 +84,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
+		SendCommand = ReactiveCommand.Create<string>(to => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this) { To = to }));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
