@@ -28,7 +28,7 @@ public class Address : ReactiveObject, IAddress
 	public Network Network { get; }
 	public HDFingerprint? HdFingerprint { get; }
 	public BitcoinAddress BitcoinAddress { get; }
-	public IEnumerable<string> Labels => HdPubKey.Label;
+	public IEnumerable<string> Labels => HdPubKey.Labels;
 	public PubKey PubKey => HdPubKey.PubKey;
 	public KeyPath FullKeyPath => HdPubKey.FullKeyPath;
 	public string Text => BitcoinAddress.ToString();

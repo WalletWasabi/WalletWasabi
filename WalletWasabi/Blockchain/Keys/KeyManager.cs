@@ -315,7 +315,7 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	internal HdPubKey GenerateNewKey(LabelsArray label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	internal HdPubKey GenerateNewKey(LabelsArray labels, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
 							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
@@ -324,15 +324,15 @@ public class KeyManager
 		{
 			var view = HdPubKeyCache.GetView(hdPubKeyRegistry.KeyPath);
 			var (keyPath, extPubKey) = hdPubKeyRegistry.GenerateNewKey(view);
-			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, label, keyState);
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, labels, keyState);
 			HdPubKeyCache.AddKey(hdPubKey, scriptPubKeyType);
 			return hdPubKey;
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(LabelsArray label)
+	public HdPubKey GetNextReceiveKey(LabelsArray labels)
 	{
-		if (label.IsEmpty)
+		if (labels.IsEmpty)
 		{
 			throw new InvalidOperationException("Label is required.");
 		}
@@ -341,7 +341,7 @@ public class KeyManager
 		{
 			// Find the next clean external key with empty label.
 			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-			if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
+			if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is not { } newKey)
 			{
 				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
 				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
@@ -349,7 +349,7 @@ public class KeyManager
 
 				newKey = newHdPubKeys.First();
 			}
-			newKey.SetLabel(label);
+			newKey.SetLabel(labels);
 
 			SkipSynchronization = false;
 
@@ -580,7 +580,7 @@ public class KeyManager
 		var availableCandidates = HdPubKeyCache
 			.GetView(hdPubKeyGenerator.KeyPath)
 			.CleanKeys
-			.Where(x => x.Label.IsEmpty)
+			.Where(x => x.Labels.IsEmpty)
 			.Take(missingLockedKeys)
 			.ToList();
 

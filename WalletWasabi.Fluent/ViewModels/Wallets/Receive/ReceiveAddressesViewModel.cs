@@ -99,8 +99,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase),
-				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase)
+				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase)
 			},
 			width: new GridLength(210, GridUnitType.Pixel));
 	}
@@ -122,7 +122,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		{
 			_addresses.Clear();
 
-			IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+			IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Labels.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 
 			foreach (HdPubKey key in keys)
 			{
@@ -137,7 +137,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	public async Task HideAddressAsync(HdPubKey model, string address)
 	{
-		var result = await NavigateDialogAsync(new ConfirmHideAddressViewModel(model.Label));
+		var result = await NavigateDialogAsync(new ConfirmHideAddressViewModel(model.Labels));
 
 		if (result.Result == false)
 		{

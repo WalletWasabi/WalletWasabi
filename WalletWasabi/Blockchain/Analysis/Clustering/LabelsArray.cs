@@ -158,5 +158,5 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 
 	public static implicit operator LabelsArray(string labels) => new(labels);
 
-	public static implicit operator string(LabelsArray label) => label.ToString();
+	public static implicit operator string(LabelsArray labels) => labels.ToString();
 }

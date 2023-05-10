@@ -137,8 +137,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
 				MinWidth = new GridLength(100, GridUnitType.Pixel)
 			},
 			width: new GridLength(1, GridUnitType.Star));

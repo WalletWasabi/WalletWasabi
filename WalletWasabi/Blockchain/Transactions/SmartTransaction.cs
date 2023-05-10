@@ -22,14 +22,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
-	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, LabelsArray? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
+	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, LabelsArray? labels = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
 
 		// Because we don't modify those transactions, we can cache the hash
 		Transaction.PrecomputeHash(false, true);
 
-		Label = label ?? LabelsArray.Empty;
+		Labels = labels ?? LabelsArray.Empty;
 
 		Height = height;
 		BlockHash = blockHash;
@@ -163,9 +163,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
-	[JsonProperty]
+	[JsonProperty(PropertyName = "Label")]
 	[JsonConverter(typeof(LabelsArrayJsonConverter))]
-	public LabelsArray Label { get; set; }
+	public LabelsArray Labels { get; set; }
 
 	[JsonProperty]
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
@@ -288,9 +288,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 
 		// Merge labels.
-		if (Label != tx.Label)
+		if (Labels != tx.Labels)
 		{
-			Label = LabelsArray.Merge(Label, tx.Label);
+			Labels = LabelsArray.Merge(Labels, tx.Labels);
 			updated = true;
 		}
 
@@ -349,7 +349,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			Height,
 			BlockHash,
 			BlockIndex,
-			Label,
+			Labels,
 			FirstSeen.ToUnixTimeSeconds(),
 			IsReplacement);
 	}

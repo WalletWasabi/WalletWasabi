@@ -42,7 +42,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public LabelsArray Label { get; init; } = LabelsArray.Empty;
+	public LabelsArray Labels { get; init; }
 
 	public bool IsCoinJoin { get; protected set; }
 

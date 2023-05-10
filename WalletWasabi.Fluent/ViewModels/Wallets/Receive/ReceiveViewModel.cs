@@ -68,6 +68,6 @@ public partial class ReceiveViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposable);
 
-		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
+		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Labels.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 	}
 }

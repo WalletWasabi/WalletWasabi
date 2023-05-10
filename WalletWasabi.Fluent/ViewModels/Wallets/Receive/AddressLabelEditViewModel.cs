@@ -16,7 +16,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{
 		var wallet = new WalletModel(owner.Wallet);
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, hdPubKey.Label);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, hdPubKey.Labels);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

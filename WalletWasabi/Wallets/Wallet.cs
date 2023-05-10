@@ -519,7 +519,7 @@ public class Wallet : BackgroundService, IWallet
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
 				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
 
 			TransactionProcessor.Process(txsToProcess);

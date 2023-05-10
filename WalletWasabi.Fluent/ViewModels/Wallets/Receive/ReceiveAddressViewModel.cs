@@ -30,7 +30,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		_wallet = wallet;
 		_model = model;
 		Address = _model.GetP2wpkhAddress(_wallet.Network).ToString();
-		Labels = _model.Label;
+		Labels = _model.Labels;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsAutoCopyEnabled = Services.UiConfig.Autocopy;
 

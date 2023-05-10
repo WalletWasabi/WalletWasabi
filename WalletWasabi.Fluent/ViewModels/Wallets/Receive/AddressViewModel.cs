@@ -17,7 +17,7 @@ public partial class AddressViewModel : ViewModelBase
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
-		Label = model.Label;
+		Labels = model.Labels;
 
 		CopyAddressCommand =
 			ReactiveCommand.CreateFromTask(async () =>
@@ -45,5 +45,5 @@ public partial class AddressViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
-	public LabelsArray Label { get; }
+	public LabelsArray Labels { get; }
 }

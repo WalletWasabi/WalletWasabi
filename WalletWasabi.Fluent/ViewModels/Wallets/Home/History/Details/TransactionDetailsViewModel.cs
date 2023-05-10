@@ -41,7 +41,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.TransactionId.ToString();
-		Labels = transactionSummary.Label;
+		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
