@@ -7,6 +7,7 @@ using System.Windows.Input;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
@@ -29,12 +30,13 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin = coin;
 		Amount = Coin.Amount;
 		IsExcludedFromCoinJoin = coin.IsExcludedFromCoinJoin;
+		CoinJoinManager cjManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		Coin.WhenAnyValue(c => c.IsExcludedFromCoinJoin).Subscribe(x => IsExcludedFromCoinJoin = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
+		CoinJoinInProgress = cjManager.IsCoinInCoinJoin(coin);
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").DisposeWith(_disposables);
