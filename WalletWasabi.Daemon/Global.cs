@@ -32,6 +32,10 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Models;
+using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Daemon;
 
@@ -44,6 +48,8 @@ public class Global
 	{
 		DataDir = dataDir;
 		Config = config;
+		PrisonClient = new(Config.DataDir);
+		TestPrison();
 		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
 
 		HostedServices = new HostedServices();
@@ -77,6 +83,18 @@ public class Global
 		});
 	}
 
+	private void TestPrison()
+	{
+		var km = KeyManager.CreateNew(out _, "", Network);
+		var hpk = km.GenerateNewKey(new(""), KeyState.Clean, false);
+		var tx = Transaction.Create(Network);
+		SmartTransaction sm = new(tx, Height.Unknown);
+		SmartCoin sc = new(sm, 1, hpk);
+		PrisonClient.TryAddCoin(sc, DateTimeOffset.UtcNow);
+		PrisonClient.ToFile();
+		var pc = PrisonClient.CreateOrLoadFromFile(DataDir);
+	}
+
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 	public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
@@ -97,6 +115,7 @@ public class Global
 
 	public LegalChecker LegalChecker { get; private set; }
 	public Config Config { get; }
+	public PrisonClient PrisonClient { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
@@ -118,7 +137,7 @@ public class Global
 	private IndexStore IndexStore { get; }
 
 	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new (
+		new(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 

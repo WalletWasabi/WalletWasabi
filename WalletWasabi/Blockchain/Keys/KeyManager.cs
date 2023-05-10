@@ -315,7 +315,7 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
 							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
@@ -624,7 +624,7 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
-	
+
 	public Height GetBestTurboSyncHeight()
 	{
 		lock (CriticalStateLock)
@@ -656,7 +656,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.TurboSyncHeight = height;
-			
+
 			if (toFile)
 			{
 				ToFile();
@@ -704,7 +704,7 @@ public class KeyManager
 			}
 		}
 	}
-	
+
 	public void SetIcon(string icon)
 	{
 		Icon = icon;
