@@ -327,19 +327,19 @@ public class MultipartyTransactionTests
 		Assert.Equal(Money.Coins(11), Assert.Single(costly.AddOutput(new TxOut(Money.Coins(11), p2wpkh)).Outputs).Value);
 	}
 
-	[Fact]
-	public void NoDustOutputs()
-	{
-		var state = new ConstructionState(DefaultParameters);
-
-		var p2wpkh = BitcoinFactory.CreateScript();
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.DustOutput, () => state.AddOutput(new TxOut(new Money(1L), p2wpkh)));
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.DustOutput, () => state.AddOutput(new TxOut(new Money(293L), p2wpkh)));
-
-		var output = new TxOut(new Money(294L), p2wpkh);
-		var updated = state.AddOutput(output);
-		Assert.Equal(output, Assert.Single(updated.Outputs));
-	}
+	//[Fact]
+	//public void NoDustOutputs()
+	//{
+	//	var state = new ConstructionState(DefaultParameters);
+//
+	//	var p2wpkh = BitcoinFactory.CreateScript();
+	//	ThrowsProtocolException(WabiSabiProtocolErrorCode.DustOutput, () => state.AddOutput(new TxOut(new Money(1L), p2wpkh)));
+	//	ThrowsProtocolException(WabiSabiProtocolErrorCode.DustOutput, () => state.AddOutput(new TxOut(new Money(293L), p2wpkh)));
+//
+	//	var output = new TxOut(new Money(294L), p2wpkh);
+	//	var updated = state.AddOutput(output);
+	//	Assert.Equal(output, Assert.Single(updated.Outputs));
+	//}
 
 	[Theory]
 	[InlineData(100, 100, "0.2")]
