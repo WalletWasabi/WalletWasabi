@@ -46,7 +46,7 @@ public class Address : ReactiveObject, IAddress
 
 	public void SetLabels(IEnumerable<string> labels)
 	{
-		HdPubKey.SetLabel(new LabelsArray(labels.ToList()), KeyManager);
+		HdPubKey.SetLabel(new LabelsArray(labels), KeyManager);
 		this.RaisePropertyChanged(nameof(Labels));
 	}
 
