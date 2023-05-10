@@ -71,17 +71,17 @@ public class NavBarItem : Button
 
 		if (change.Property == IndicatorOrientationProperty)
 		{
-			UpdateIndicatorOrientationPseudoClasses(change.NewValue as Orientation? ?? default);
+			UpdateIndicatorOrientationPseudoClasses(change.GetNewValue<Orientation>());
 		}
 
 		if (change.Property == IsSelectableProperty)
 		{
-			UpdatePseudoClass(":selectable", change.NewValue as bool? ?? default);
+			UpdatePseudoClass(":selectable", change.GetNewValue<bool>());
 		}
 
 		if (change.Property == IsSelectedProperty)
 		{
-			UpdatePseudoClass(":selected", change.NewValue as bool? ?? default);
+			UpdatePseudoClass(":selected", change.GetNewValue<bool>());
 		}
 	}
 
