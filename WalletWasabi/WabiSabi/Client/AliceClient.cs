@@ -76,7 +76,11 @@ public class AliceClient
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
-		catch (WabiSabiProtocolException)
+		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode
+			is WabiSabiProtocolErrorCode.RoundNotFound
+			or WabiSabiProtocolErrorCode.WrongPhase
+			or WabiSabiProtocolErrorCode.AliceAlreadyRegistered
+			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection)
 		{
 			// Do not unregister.
 			throw;
