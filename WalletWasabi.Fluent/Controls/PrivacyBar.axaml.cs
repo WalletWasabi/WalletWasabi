@@ -25,6 +25,11 @@ public class PrivacyBar : ItemsControl
 		return new PrivacyBarSegment();
 	}
 
+	protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)
+	{
+		return NeedsContainer<PrivacyBarSegment>(item, out recycleKey);
+	}
+
 	protected override void PrepareContainerForItemOverride(Control element, object? item, int index)
 	{
 		base.PrepareContainerForItemOverride(element, item, index);
