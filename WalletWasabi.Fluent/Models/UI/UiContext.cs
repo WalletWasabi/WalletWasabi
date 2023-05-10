@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Input.Platform;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.Models.UI;
@@ -20,7 +21,7 @@ public class UiContext
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), Application.Current?.Clipboard ?? new NullClipboard());
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), ApplicationHelper.Clipboard ?? new NullClipboard());
 
 	public void RegisterNavigation(INavigate navigate)
 	{

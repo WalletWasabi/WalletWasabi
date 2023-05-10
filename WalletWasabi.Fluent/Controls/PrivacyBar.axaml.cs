@@ -20,7 +20,7 @@ public class PrivacyBar : ItemsControl
 		set => SetValue(TotalAmountProperty, value);
 	}
 
-	protected override Control CreateContainerForItemOverride()
+	protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
 	{
 		return new PrivacyBarSegment();
 	}

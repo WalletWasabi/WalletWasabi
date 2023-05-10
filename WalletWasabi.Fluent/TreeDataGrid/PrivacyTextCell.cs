@@ -12,6 +12,8 @@ internal class PrivacyTextCell : ICell
 
 	public bool CanEdit => false;
 
+	public bool SingleTapEdit => false;
+
 	public string? Value { get; }
 
 	public int NumberOfPrivacyChars { get; }

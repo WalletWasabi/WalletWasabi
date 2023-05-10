@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -22,7 +23,7 @@ public partial class AddressViewModel : ViewModelBase
 		CopyAddressCommand =
 			ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (Application.Current is { Clipboard: { } clipboard })
+				if (ApplicationHelper.Clipboard is { } clipboard)
 				{
 					await clipboard.SetTextAsync(Address);
 				}

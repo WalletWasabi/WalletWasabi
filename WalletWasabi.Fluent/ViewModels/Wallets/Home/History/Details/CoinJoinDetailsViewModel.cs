@@ -6,6 +6,7 @@ using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -34,7 +35,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 		CopyCommand = ReactiveCommand.CreateFromTask<uint256>(async txid =>
 		{
-			if (Application.Current is { Clipboard: { } clipboard })
+			if (ApplicationHelper.Clipboard is { } clipboard)
 			{
 				await clipboard.SetTextAsync(txid.ToString());
 			}

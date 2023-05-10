@@ -47,7 +47,7 @@
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
-		<AvaloniaVersion>11.0.0-preview6</AvaloniaVersion>
+		<AvaloniaVersion>11.0.0-preview8</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -65,6 +65,7 @@
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.999-build20230510.4" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />

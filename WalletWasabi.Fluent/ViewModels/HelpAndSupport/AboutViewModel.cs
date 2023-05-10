@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using Avalonia;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
@@ -106,7 +107,7 @@ public partial class AboutViewModel : RoutableViewModel
 		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
 			async (link) =>
 				{
-					if (Application.Current is { Clipboard: { } clipboard })
+					if (ApplicationHelper.Clipboard is { } clipboard)
 					{
 						await clipboard.SetTextAsync(link);
 					}

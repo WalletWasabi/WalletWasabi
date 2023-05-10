@@ -26,6 +26,7 @@ public static class AppBuilderExtension
 				.UseManagedSystemDialogs<Window>()
 				.AfterPlatformServicesSetup(_ =>
 					{
+						/* TODO: Fix setting FontManagerOptions
 						var systemFontFamily = AvaloniaLocator.Current
 							.GetRequiredService<IFontManagerImpl>()
 							.GetDefaultFontFamilyName();
@@ -39,7 +40,7 @@ public static class AppBuilderExtension
 							AvaloniaLocator.CurrentMutable
 								.Bind<FontManagerOptions>()
 								.ToConstant(new FontManagerOptions { DefaultFamilyName = "Inter" });
-						}
+						}*/
 					});
 		}
 		else

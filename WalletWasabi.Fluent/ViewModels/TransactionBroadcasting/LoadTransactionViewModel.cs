@@ -61,7 +61,7 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 	{
 		try
 		{
-			if (Application.Current is { Clipboard: { } clipboard })
+			if (ApplicationHelper.Clipboard is { } clipboard)
 			{
 				var textToPaste = await clipboard.GetTextAsync();
 

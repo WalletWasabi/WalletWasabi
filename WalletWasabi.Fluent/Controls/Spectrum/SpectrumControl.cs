@@ -200,11 +200,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	bool ICustomDrawOperation.HitTest(Point p) => Bounds.Contains(p);
 
-	void ICustomDrawOperation.Render(IDrawingContextImpl context)
+	void ICustomDrawOperation.Render(ImmediateDrawingContext context)
 	{
 		var bounds = Bounds;
 
-		var leaseFeature = context.GetFeature<ISkiaSharpApiLeaseFeature>();
+		var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
 
 		if (leaseFeature == null)
 		{

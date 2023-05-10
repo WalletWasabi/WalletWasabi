@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -34,7 +35,7 @@ public class ClipboardCopyButton : TemplatedControl
 
 	private async Task CopyToClipboardAsync()
 	{
-		if (Application.Current is { Clipboard: { } clipboard })
+		if (ApplicationHelper.Clipboard is { } clipboard)
 		{
 			await clipboard.SetTextAsync(Text);
 			await Task.Delay(1000); // Introduces a delay while the animation is playing (1s). This will make the command 'busy' while being animated, avoiding reentrancy.

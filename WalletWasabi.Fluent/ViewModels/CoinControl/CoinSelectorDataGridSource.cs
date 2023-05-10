@@ -86,7 +86,7 @@ public static class CoinSelectorDataGridSource
 			"",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new IndicatorsCellView(), true),
 			GridLength.Auto,
-			new ColumnOptions<CoinControlItemViewModelBase>
+			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
 				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(GetIndicatorPriority),
 				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(GetIndicatorPriority)
@@ -112,7 +112,7 @@ public static class CoinSelectorDataGridSource
 			"Pocket",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new LabelsCellView(), true),
 			GridLength.Star,
-			new ColumnOptions<CoinControlItemViewModelBase>
+			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
 				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(GetLabelPriority),
 				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(GetLabelPriority)

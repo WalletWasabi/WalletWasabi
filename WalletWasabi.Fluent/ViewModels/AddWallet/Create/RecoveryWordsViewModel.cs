@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using Dispatcher = Avalonia.Threading.Dispatcher;
 
@@ -55,29 +56,29 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnCopyToClipboardAsync()
 	{
-		if (Application.Current?.Clipboard is null)
+		if (ApplicationHelper.Clipboard is null)
 		{
 			return;
 		}
 
 		var text = GetRecoveryWordsString();
 
-		await Application.Current.Clipboard.SetTextAsync(text);
+		await ApplicationHelper.Clipboard.SetTextAsync(text);
 	}
 
 	private async Task ClearRecoveryWordsFromClipboardAsync()
 	{
-		if (Application.Current?.Clipboard is null)
+		if (ApplicationHelper.Clipboard is null)
 		{
 			return;
 		}
 
-		var currentText = await Application.Current.Clipboard.GetTextAsync();
+		var currentText = await ApplicationHelper.Clipboard.GetTextAsync();
 		var recoveryWordsString = GetRecoveryWordsString();
 
 		if (currentText == recoveryWordsString)
 		{
-			await Application.Current.Clipboard.ClearAsync();
+			await ApplicationHelper.Clipboard.ClearAsync();
 		}
 	}
 

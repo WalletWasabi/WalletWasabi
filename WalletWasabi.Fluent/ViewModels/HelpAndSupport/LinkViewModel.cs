@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using Avalonia;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -16,7 +17,7 @@ public class LinkViewModel : ViewModelBase
 		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
 			async (link) =>
 				{
-					if (Application.Current is { Clipboard: { } clipboard })
+					if (ApplicationHelper.Clipboard is { } clipboard)
 					{
 						await clipboard.SetTextAsync(link);
 					}

@@ -11,6 +11,8 @@ internal class PlainTextCell : ICell
 
 	public bool CanEdit => false;
 
+	public bool SingleTapEdit => false;
+
 	public string? Value { get; }
 
 	object? ICell.Value => Value;

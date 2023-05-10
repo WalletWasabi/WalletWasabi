@@ -12,6 +12,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
@@ -42,7 +43,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		CopyAddressCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (Application.Current is { Clipboard: { } clipboard })
+			if (ApplicationHelper.Clipboard is { } clipboard)
 			{
 				await clipboard.SetTextAsync(Address);
 			}

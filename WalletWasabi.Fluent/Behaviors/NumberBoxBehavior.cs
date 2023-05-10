@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -35,7 +36,7 @@ public class NumberBoxBehavior : DisposingBehavior<TextBox>
 			{
 				e.Handled = true;
 
-				if (Application.Current is { Clipboard: { } clipboard })
+				if (ApplicationHelper.Clipboard is { } clipboard)
 				{
 					AssociatedObject.Text = CorrectInput(await clipboard.GetTextAsync());
 				}

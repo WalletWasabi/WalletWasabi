@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -64,7 +65,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	private async Task CopyToClipboardAsync(string text)
 	{
-		if (Application.Current is { Clipboard: { } clipboard })
+		if (ApplicationHelper.Clipboard is { } clipboard)
 		{
 			await clipboard.SetTextAsync(text);
 		}

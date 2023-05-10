@@ -66,7 +66,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		return new TemplateColumn<AddressViewModel>(
 			null,
 			new FuncDataTemplate<AddressViewModel>((node, ns) => new ActionsColumnView(), true),
-			options: new ColumnOptions<AddressViewModel>
+			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = false
@@ -79,7 +79,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		return new TemplateColumn<AddressViewModel>(
 			"Address",
 			new FuncDataTemplate<AddressViewModel>((node, ns) => new AddressColumnView(), true),
-			options: new ColumnOptions<AddressViewModel>
+			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
@@ -94,7 +94,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		return new TemplateColumn<AddressViewModel>(
 			"Labels",
 			new FuncDataTemplate<AddressViewModel>((node, ns) => new LabelsColumnView(), true),
-			options: new ColumnOptions<AddressViewModel>
+			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
@@ -146,7 +146,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		Wallet.KeyManager.SetKeyState(KeyState.Locked, model);
 		InitializeAddresses();
 
-		if (Application.Current is { Clipboard: { } clipboard })
+		if (ApplicationHelper.Clipboard is { } clipboard)
 		{
 			var isAddressCopied = await clipboard.GetTextAsync() == address;
 
