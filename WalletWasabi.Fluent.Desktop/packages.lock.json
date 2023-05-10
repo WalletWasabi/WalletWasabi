@@ -447,6 +447,11 @@
           "Newtonsoft.Json": "12.0.1"
         }
       },
+      "QRackers": {
+        "type": "Transitive",
+        "resolved": "0.1.0",
+        "contentHash": "epJXKWWGaijgn6gMI4itu/M1j8U1hiNQs1M2BJ0JR3Ok+QOBQCYUQkxOlxOOqjqkMygv/lBuJT+zXsLlNZJnCA=="
+      },
       "ReactiveUI": {
         "type": "Transitive",
         "resolved": "18.3.1",
@@ -808,6 +813,7 @@
           "Avalonia.Skia": "[11.0.0-preview8, )",
           "Avalonia.Themes.Fluent": "[11.0.0-preview8, )",
           "Avalonia.Xaml.Behaviors": "[11.0.0-preview8, )",
+          "QRackers": "[0.1.0, )",
           "System.Runtime": "[4.3.1, )",
           "Wasabi Wallet Daemon": "[1.0.0, )"
         }

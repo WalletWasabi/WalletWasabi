@@ -30,10 +30,9 @@ public class UiContextGenerator : ISourceGenerator
 			return;
 		}
 
-		var ctors =
-			ProcessViewModels(context, receiver.ClassDeclarations)
-				.OrderBy(x => x.Identifier.ValueText)
-				.ToList();
+		var ctors = ProcessViewModels(context, receiver.ClassDeclarations)
+						.OrderBy(x => x.Identifier.ValueText)
+						.ToArray();
 
 		GenerateFluentNavigation(context, ctors);
 	}
@@ -56,7 +55,7 @@ public class UiContextGenerator : ISourceGenerator
 				continue;
 			}
 
-			var ctors = GenerateConstructors(context, cls, model, classSymbol).ToList();
+			var ctors = GenerateConstructors(context, cls, model, classSymbol).ToArray();
 
 			result.AddRange(ctors);
 		}
@@ -74,7 +73,7 @@ public class UiContextGenerator : ISourceGenerator
 		var ctors =
 			classDeclaration.ChildNodes()
 							.OfType<ConstructorDeclarationSyntax>()
-							.ToList();
+							.ToArray();
 
 		foreach (var ctor in ctors)
 		{
@@ -99,14 +98,14 @@ public class UiContextGenerator : ISourceGenerator
 				var ctorArgs =
 					  ctor.ParameterList.Parameters
 						  .Select(x => x.Identifier.ValueText)
-						  .ToList();
+						  .ToArray();
 
 				var hasCtorArgs = ctorArgs.Any();
 				var ctorArgsString = string.Join(",", ctorArgs);
 				var ctorString =
 					hasCtorArgs
 					? $": this({ctorArgsString})"
-					: "";
+					: $": this()";
 
 				var parameterUsings =
 					ctor.ParameterList.Parameters
@@ -114,7 +113,7 @@ public class UiContextGenerator : ISourceGenerator
 									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
 									  .Where(t => t.Type is not null)
 									  .Select(t => $"using {t.Type!.ContainingNamespace.ToDisplayString()};")
-									  .ToList();
+									  .ToArray();
 
 				var uiContextParameter =
 					SyntaxFactory.Parameter(SyntaxFactory.Identifier("uiContext")
@@ -167,7 +166,7 @@ public class UiContextGenerator : ISourceGenerator
 		var newSyntaxTrees =
 			ctors.Select(x => x.SyntaxTree)
 				 .Where(x => !compilation.ContainsSyntaxTree(x))
-				 .ToList();
+				 .ToArray();
 
 		compilation = compilation.AddSyntaxTrees(newSyntaxTrees);
 
@@ -201,7 +200,7 @@ public class UiContextGenerator : ISourceGenerator
 									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
 									  .Where(t => t.Type is not null)
 									  .SelectMany(t => t.Type.GetNamespaces())
-									  .ToList();
+									  .ToArray();
 
 			var uiContextParam =
 				ctor.ParameterList
@@ -279,7 +278,7 @@ public class UiContextGenerator : ISourceGenerator
 			namespaces.Distinct()
 					  .OrderBy(x => x)
 					  .Select(n => $"using {n};")
-					  .ToList();
+					  .ToArray();
 
 		var usingsString =
 			string.Join(Environment.NewLine, usings);

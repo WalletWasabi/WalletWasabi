@@ -99,6 +99,12 @@
           "Avalonia.Xaml.Interactivity": "11.0.0-preview8"
         }
       },
+      "QRackers": {
+        "type": "Direct",
+        "requested": "[0.1.0, )",
+        "resolved": "0.1.0",
+        "contentHash": "epJXKWWGaijgn6gMI4itu/M1j8U1hiNQs1M2BJ0JR3Ok+QOBQCYUQkxOlxOOqjqkMygv/lBuJT+zXsLlNZJnCA=="
+      },
       "System.Runtime": {
         "type": "Direct",
         "requested": "[4.3.1, )",

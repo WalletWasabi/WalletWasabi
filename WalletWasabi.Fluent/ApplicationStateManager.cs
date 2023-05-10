@@ -1,11 +1,13 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
@@ -24,11 +26,13 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
+	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
-		ApplicationViewModel = new ApplicationViewModel(this);
+
+		UiContext = uiContext;
+		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
@@ -98,6 +102,7 @@ public class ApplicationStateManager : IMainWindowService
 		Open,
 	}
 
+	internal UiContext UiContext { get; }
 	internal ApplicationViewModel ApplicationViewModel { get; }
 
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
