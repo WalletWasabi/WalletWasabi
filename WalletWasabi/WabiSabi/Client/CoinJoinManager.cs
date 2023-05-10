@@ -624,6 +624,14 @@ public class CoinJoinManager : BackgroundService
 		await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
+	public async Task SignalToStopCoinjoinsAsync()
+	{
+		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		{
+			await StopAsync((Wallet)wallet, CancellationToken.None).ConfigureAwait(false);
+		}
+	}
+
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{
 		if (sender is not IWallet wallet)

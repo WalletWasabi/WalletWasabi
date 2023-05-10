@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls;
 using ReactiveUI;
@@ -73,6 +74,13 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	public void OnShutdownPrevented(bool restartRequest)
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
+
+		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+
+		if (cjManager is { })
+		{
+			Task.Run(cjManager.SignalToStopCoinjoinsAsync);
+		}
 
 		if (!MainViewCanShutdown() && !restartRequest)
 		{
