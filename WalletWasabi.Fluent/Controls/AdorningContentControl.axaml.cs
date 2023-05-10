@@ -52,11 +52,11 @@ public class AdorningContentControl : ContentControl
 		}
 		else if (change.Property == AdornmentProperty)
 		{
-			InvalidateAdornmentVisible(change.OldValue as Control, change.NewValue as Control);
+			InvalidateAdornmentVisible(change.GetOldValue<Control>(), change.GetNewValue<Control>());
 		}
 		else if (change.Property == IsAdornmentVisibleProperty)
 		{
-			if (change.NewValue as bool? ?? false)
+			if (change.GetNewValue<bool>())
 			{
 				AdornerHelper.AddAdorner(this, Adornment);
 			}
