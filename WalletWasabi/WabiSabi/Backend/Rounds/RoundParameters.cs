@@ -98,7 +98,7 @@ public record RoundParameters
 		var minimumRegistrableOutputAmount = Money.Max(
 			wabiSabiConfig.MinRegistrableAmount,
 			CalculateMinimumEconomicalOutput(0.3f, miningFeeRate, wabiSabiConfig));
-		
+
 		return new RoundParameters(
 			network,
 			miningFeeRate,
@@ -121,17 +121,17 @@ public record RoundParameters
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
 
-	private static Money CalculateMinimumEconomicalOutput(float maximumCostPercentange, FeeRate miningFeeRate, WabiSabiConfig cfg)
+	private static Money CalculateMinimumEconomicalOutput(float maximumCostPercentage, FeeRate miningFeeRate, WabiSabiConfig cfg)
 	{
-		var stddemons = StandardDenominations.Create(cfg.MaxRegistrableAmount);
+		var standardDenominations = StandardDenominations.Create(cfg.MaxRegistrableAmount);
 		var biggestAllowedOutputSize = Math.Max(
 			cfg.AllowP2wpkhOutputs ? Constants.P2wpkhOutputVirtualSize : 0,
 			cfg.AllowP2trOutputs ? Constants.P2trOutputVirtualSize : 0);
-		
+
 		var outputCost = miningFeeRate.GetFee(biggestAllowedOutputSize);
 		var costInStas = outputCost.Satoshi;
 
-		var smallest = stddemons.First(d => (float)d * maximumCostPercentange > costInStas);
+		var smallest = standardDenominations.First(d => d * maximumCostPercentage > costInStas);
 		return Money.Satoshis(smallest);
 	}
 }
