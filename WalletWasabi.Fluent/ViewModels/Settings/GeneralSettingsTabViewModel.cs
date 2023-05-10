@@ -109,14 +109,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Subscribe(_ => Save());
 	}
 
-	private void ChangeTheme(bool isDark)
-	{
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			ThemeHelper.ApplyTheme(isDark ? Theme.Dark : Theme.Light);
-		});
-	}
-
 	public ICommand StartupCommand { get; }
 
 	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
@@ -127,5 +119,13 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		persistentConfig.UseTor = UseTor;
 		persistentConfig.TerminateTorOnExit = TerminateTorOnExit;
 		persistentConfig.DownloadNewVersion = DownloadNewVersion;
+	}
+
+	private void ChangeTheme(bool isDark)
+	{
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			ThemeHelper.ApplyTheme(isDark ? Theme.Dark : Theme.Light);
+		});
 	}
 }
