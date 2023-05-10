@@ -101,6 +101,8 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 	
 	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; } = new();
+	public IEnumerable<HdPubKey> KeysCache { get; set; } = Enumerable.Empty<HdPubKey>();
+
 	
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
@@ -527,20 +529,25 @@ public class Wallet : BackgroundService, IWallet
 
 		var result = new List<byte[]>();
 
+		if (!KeysCache.Any())
+		{
+			KeysCache = KeyManager.GetKeys();
+		}
+		
 		IEnumerable<HdPubKey> keysToTest;
 		if (turboSync.Value)
 		{
 			// First sync during TurboSync, test all non-obsolete keys or keys not yet obsoleted at the height.
-			keysToTest = KeyManager.GetKeys().Where(
+			keysToTest = KeysCache
+				.Where(
 				hdPubKey => 
-					hdPubKey.KeyState != KeyState.Used || 
 					hdPubKey.LatestSpendingHeight is null || 
 					(Height) hdPubKey.LatestSpendingHeight >= filterHeight);
 		}
 		else
 		{
 			// Second sync during TurboSync, test only obsolete keys at the height.
-			keysToTest = KeyManager.GetKeys(KeyState.Used).Where(
+			keysToTest = KeysCache.Where(
 				hdPubKey => 
 					hdPubKey.LatestSpendingHeight is not null && 
 					(Height)hdPubKey.LatestSpendingHeight < filterHeight);
@@ -588,6 +595,8 @@ public class Wallet : BackgroundService, IWallet
 			}
 
 			TransactionProcessor.Process(txsToProcess);
+			KeysCache = KeyManager.GetKeys();
+			
 			if (turboSync.GetValueOrDefault())
 			{
 				// We are testing non-obsolete keys, so we can update the best non obsolete height.
