@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
@@ -14,6 +15,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 	public PocketCoinControlItemViewModel(Pocket pocket)
 	{
 		var pocketCoins = pocket.Coins.ToList();
+		CoinJoinManager cjManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		var unconfirmedCount = pocketCoins.Count(x => !x.Confirmed);
 		IsConfirmed = unconfirmedCount == 0;
@@ -21,7 +23,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		IsBanned = pocketCoins.Any(x => x.IsBanned);
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
-		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
+		IsCoinjoining = pocketCoins.Any(cjManager.IsCoinInCoinJoin);
 		AnonymityScore = (int)pocketCoins.Min(coin => coin.AnonymitySet);
 		Labels = pocket.Labels;
 		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
