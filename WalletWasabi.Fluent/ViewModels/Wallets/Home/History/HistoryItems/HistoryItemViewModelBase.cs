@@ -99,7 +99,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		return Sort(selector, comparer, reverse: true);
 	}
 
-	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer,  bool reverse)
+	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer, bool reverse)
 	{
 		return (x, y) =>
 		{
