@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -55,8 +56,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				x =>
 				{
 					Services.UiConfig.DarkModeEnabled = x;
-					new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light).ChangeTheme();
-					//Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
+					ChangeTheme(x);
 				});
 
 		this.WhenAnyValue(x => x.AutoCopy)
@@ -107,6 +107,14 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
 			.Subscribe(_ => Save());
+	}
+
+	private void ChangeTheme(bool isDark)
+	{
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			ThemeHelper.ApplyTheme(isDark ? Theme.Dark : Theme.Light);
+		});
 	}
 
 	public ICommand StartupCommand { get; }
