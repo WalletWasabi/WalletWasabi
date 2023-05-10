@@ -88,7 +88,7 @@ public class QuestionControl : ContentControl
 
 		if (change.Property == HighlightButtonProperty)
 		{
-			UpdateHighlightedButton(change.NewValue as HighlightedButton? ?? default);
+			UpdateHighlightedButton(change.GetNewValue<HighlightedButton>());
 		}
 	}
 
