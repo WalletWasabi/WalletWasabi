@@ -11,31 +11,7 @@ $ ./wcli.sh [-wallet=<WALLET-NAME>] command [ARGS,...]
 ## Examples
 
 ```bash
-$ ./wcli.sh -wallet=MyWallet getwalletinfo
-
-{
-  "walletName": "MyWallet",
-  "walletFile": "/home/ricardo/.walletwasabi/client/Wallets/MyWallet.json",
-  "state": "Started",
-  "masterKeyFingerprint": "d415c529",
-  "accounts": [
-    {
-      "name": "segwit",
-      "publicKey": "tpubDDJNwA959utxokPfGjcvV39BAaGoc16YbF1dL3XC7rY388rS1EcG5BjefhzuP4pzMKAhft4X1d6NHRzUL7emJiLwd2xBmeZ9gR3cAcUEB7G",
-      "keyPath": "m/84'/0'/0'"
-    },
-    {
-      "name": "taproot",
-      "publicKey": "tpubDCVGimU14EWpRjZnbLGDp6uH5St5HWZTcMapVkhb8tWuajRcg99HMbxtSQ9CpSnVHoNGMHMwx3FigonS85iuNmrNEbb2wecB15q1XHTs3br",
-      "keyPath": "m/86'/0'/0'"
-    }
-  ],
-  "balance": 198738301
-}
-```
-
-```bash
-$ ./wcli.sh -wallet=MyWallet getstatus
+$ ./wcli.sh getstatus
 
 {
   "torStatus": "Running",
@@ -79,8 +55,32 @@ $ ./wcli.sh -wallet=MyWallet getstatus
     }
   ]
 }
-
 ```
+
+```bash
+$ ./wcli.sh -wallet=MyWallet getwalletinfo
+
+{
+  "walletName": "MyWallet",
+  "walletFile": "/home/ricardo/.walletwasabi/client/Wallets/MyWallet.json",
+  "state": "Started",
+  "masterKeyFingerprint": "d415c529",
+  "accounts": [
+    {
+      "name": "segwit",
+      "publicKey": "tpubDDJNwA959utxokPfGjcvV39BAaGoc16YbF1dL3XC7rY388rS1EcG5BjefhzuP4pzMKAhft4X1d6NHRzUL7emJiLwd2xBmeZ9gR3cAcUEB7G",
+      "keyPath": "m/84'/0'/0'"
+    },
+    {
+      "name": "taproot",
+      "publicKey": "tpubDCVGimU14EWpRjZnbLGDp6uH5St5HWZTcMapVkhb8tWuajRcg99HMbxtSQ9CpSnVHoNGMHMwx3FigonS85iuNmrNEbb2wecB15q1XHTs3br",
+      "keyPath": "m/86'/0'/0'"
+    }
+  ],
+  "balance": 198738301
+}
+```
+
 ```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
