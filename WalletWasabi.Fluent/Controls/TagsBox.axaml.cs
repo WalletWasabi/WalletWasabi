@@ -11,29 +11,12 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
-
-public class TagsBoxAutoCompleteBox : AutoCompleteBox, IStyleable
-{
-	internal TextBox? _internalTextBox;
-	internal ListBox? _suggestionListBox;
-
-	Type IStyleable.StyleKey => typeof(AutoCompleteBox);
-
-	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-	{
-		base.OnApplyTemplate(e);
-
-		_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
-		_suggestionListBox = e.NameScope.Find<ListBox>("PART_SelectingItemsControl");
-	}
-}
 
 public class TagsBox : TemplatedControl
 {
@@ -232,13 +215,13 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		_autoCompleteBox._internalTextBox.WhenAnyValue(x => x.IsFocused)
+		_autoCompleteBox.InternalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
 					.Subscribe(_ => RequestAdd = true)
 					.DisposeWith(_compositeDisposable);
 
 		Observable
-			.FromEventPattern(_autoCompleteBox._suggestionListBox, nameof(PointerReleased))
+			.FromEventPattern(_autoCompleteBox.SuggestionListBox, nameof(PointerReleased))
 			.Subscribe(_ => RequestAdd = true)
 			.DisposeWith(_compositeDisposable);
 
@@ -367,7 +350,7 @@ public class TagsBox : TemplatedControl
 	{
 		base.OnGotFocus(e);
 
-		_autoCompleteBox._internalTextBox?.Focus();
+		_autoCompleteBox.InternalTextBox?.Focus();
 	}
 
 	private void CheckIsInputEnabled()
