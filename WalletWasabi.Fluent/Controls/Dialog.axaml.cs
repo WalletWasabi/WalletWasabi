@@ -298,7 +298,7 @@ public class Dialog : ContentControl
 
 		if (change.Property == IsBusyProperty)
 		{
-			PseudoClasses.Set(":busy", change.NewValue as bool? ?? false);
+			PseudoClasses.Set(":busy", change.GetNewValue<bool>());
 		}
 
 		if (change.Property == ShowAlertProperty)
