@@ -410,6 +410,11 @@ public class Wallet : BackgroundService, IWallet
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
+					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+					{
+						var filterHeight = new Height(filterModel.Header.Height);
+						KeyManager.SetBestHeights(filterHeight, filterHeight);
+					}
 				}
 			}
 
