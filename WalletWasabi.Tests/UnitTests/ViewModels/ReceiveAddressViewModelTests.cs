@@ -64,14 +64,14 @@ public class ReceiveAddressViewModelTests
 
 	private static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
-		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IClipboard>());
+		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>());
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
 	}
 
 	private static UiContext ContextWith(IClipboard clipboard)
 	{
-		var contextWith = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), clipboard);
+		var contextWith = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), clipboard);
 		contextWith.RegisterNavigation(Mock.Of<INavigate>());
 		return contextWith;
 	}
@@ -117,6 +117,12 @@ public class ReceiveAddressViewModelTests
 		{
 			_ns = ns;
 		}
+
+		public INavigationStack<RoutableViewModel> HomeScreen => throw new NotSupportedException();
+		public INavigationStack<RoutableViewModel> DialogScreen => throw new NotSupportedException();
+		public INavigationStack<RoutableViewModel> FullScreen => throw new NotSupportedException();
+		public INavigationStack<RoutableViewModel> CompactDialogScreen => throw new NotSupportedException();
+		public IObservable<bool> IsDialogOpen => throw new NotSupportedException();
 
 		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
 		{
