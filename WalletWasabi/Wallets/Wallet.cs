@@ -612,8 +612,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 		LastProcessedFilter = filterModel;
 	}
-
-
+	
 	public void SetWaitingForInitState()
 	{
 		if (State != WalletState.Uninitialized)

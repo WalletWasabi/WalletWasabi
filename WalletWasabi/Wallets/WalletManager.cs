@@ -161,6 +161,7 @@ public class WalletManager : IWalletProvider
 				cancel.ThrowIfCancellationRequested();
 
 				var cancelNonAwaited = CancelAllInitialization.Token;
+				
 				// Continue wallet synchronization in the background for all keys skipped by TurboSync.
 				_ = Task.Run(
 					async () => 
