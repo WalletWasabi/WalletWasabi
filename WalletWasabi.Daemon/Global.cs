@@ -227,6 +227,7 @@ public class Global
 					Cache);
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+				WalletManager.SetPrisonClient(PrisonClient);
 			}
 			finally
 			{
@@ -328,7 +329,7 @@ public class Global
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier, PrisonClient), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()

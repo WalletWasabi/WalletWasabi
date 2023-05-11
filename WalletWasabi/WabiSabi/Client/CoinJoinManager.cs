@@ -13,6 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -23,13 +24,14 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinManager : BackgroundService
 {
-	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
+	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier, Banning.PrisonClient prisonClient)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		PrisonClient = prisonClient;
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -40,6 +42,7 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
+	public PrisonClient PrisonClient { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	/// <summary>
@@ -205,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, PrisonClient).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
