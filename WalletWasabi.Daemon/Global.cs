@@ -49,7 +49,6 @@ public class Global
 		DataDir = dataDir;
 		Config = config;
 		PrisonClient = new(Config.DataDir);
-		TestPrison();
 		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
 
 		HostedServices = new HostedServices();
@@ -81,18 +80,6 @@ public class Global
 			SizeLimit = 1_000,
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
-	}
-
-	private void TestPrison()
-	{
-		var km = KeyManager.CreateNew(out _, "", Network);
-		var hpk = km.GenerateNewKey(new(""), KeyState.Clean, false);
-		var tx = Transaction.Create(Network);
-		SmartTransaction sm = new(tx, Height.Unknown);
-		SmartCoin sc = new(sm, 1, hpk);
-		PrisonClient.TryAddCoin(sc, DateTimeOffset.UtcNow);
-		PrisonClient.ToFile();
-		var pc = PrisonClient.CreateOrLoadFromFile(DataDir);
 	}
 
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";

@@ -315,7 +315,7 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
 							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
