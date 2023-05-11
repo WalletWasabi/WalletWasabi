@@ -322,8 +322,8 @@ public static class WabiSabiFactory
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
 			coinSelector,
-			new PrisonClient(),
 			new LiquidityClueProvider(),
+			new PrisonClient(),
 			TimeSpan.Zero,
 			TimeSpan.Zero);
 
