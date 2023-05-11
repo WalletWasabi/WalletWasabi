@@ -10,9 +10,10 @@ public class UiContext
 	private INavigate? _navigate;
 	private static UiContext? DefaultInstance;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IClipboard clipboard, IWalletListModel walletList)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IClipboard clipboard, IWalletListModel walletList)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
+		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
 		WalletList = walletList ?? throw new ArgumentNullException(nameof(walletList));
 	}
@@ -20,10 +21,11 @@ public class UiContext
 	public IClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 	public IWalletListModel WalletList { get; }
+	public IQrCodeReader QrCodeReader { get; }
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), Application.Current?.Clipboard ?? new NullClipboard(), new WalletListModel());
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), Application.Current?.Clipboard ?? new NullClipboard(), new WalletListModel());
 
 	public void RegisterNavigation(INavigate navigate)
 	{
