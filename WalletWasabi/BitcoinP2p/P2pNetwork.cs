@@ -27,12 +27,16 @@ public class P2pNetwork : BackgroundService
 		BitcoinStore = bitcoinStore;
 		AddressManagerFilePath = Path.Combine(workDir, $"AddressManager{Network}.dat");
 
+		var userAgent = Constants.UserAgents.RandomElement();
+		var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
+		connectionParameters.ConnectCancellation = ConnectCts.Token;
+
 		if (Network == Network.RegTest)
 		{
 			AddressManager = new AddressManager();
 			Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
 
-			Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
+			Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 		}
 		else
 		{
@@ -83,13 +87,9 @@ public class P2pNetwork : BackgroundService
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 
-			var userAgent = Constants.UserAgents.RandomElement();
-			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
 			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
-			connectionParameters.ConnectCancellation = ConnectCts.Token;
 
 			if (torSocks5EndPoint is not null)
 			{
