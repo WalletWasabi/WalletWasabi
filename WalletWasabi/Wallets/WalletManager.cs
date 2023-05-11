@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Wallets;
 
@@ -68,6 +69,7 @@ public class WalletManager : IWalletProvider
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private IBlockProvider BlockProvider { get; set; }
+	public PrisonClient PrisonClient { get; private set; }
 	private string WorkDir { get; }
 
 	private void RefreshWalletList()
@@ -157,6 +159,7 @@ public class WalletManager : IWalletProvider
 				var cancel = CancelAllInitialization.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
+				wallet.LoadPrisonedCoinsState(PrisonClient.PrisonedCoins);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				cancel.ThrowIfCancellationRequested();
 
@@ -396,6 +399,7 @@ public class WalletManager : IWalletProvider
 			km.EnsureTurboSyncHeightConsistency();
 		}
 	}
+
 	public void SetMaxBestHeight(uint bestHeight)
 	{
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
@@ -415,5 +419,10 @@ public class WalletManager : IWalletProvider
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
 		}
+	}
+
+	public void SetPrisonClient(PrisonClient prisonClient)
+	{
+		PrisonClient = prisonClient;
 	}
 }

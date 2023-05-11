@@ -21,6 +21,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
@@ -567,5 +568,16 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+
+	public void LoadPrisonedCoinsState(List<PrisonedCoinRecord> prisonedCoinRecords)
+	{
+		foreach (var coin in Coins)
+		{
+			if (prisonedCoinRecords.FirstOrDefault(record => record.Outpoint.Equals(coin.Outpoint)) is { } record)
+			{
+				coin.BannedUntilUtc = record.BannedUntil;
+			}
+		}
 	}
 }
