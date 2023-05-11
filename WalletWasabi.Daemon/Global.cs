@@ -152,6 +152,7 @@ public class Global
 				UpdateManager.Initialize(updateChecker, cancel);
 				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
 
+				await PrisonClient.StartAsync(cancel).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
 
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
@@ -226,8 +227,7 @@ public class Global
 					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 					Cache);
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
-				WalletManager.SetPrisonClient(PrisonClient);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider, PrisonClient);
 			}
 			finally
 			{
