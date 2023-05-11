@@ -75,13 +75,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
 
-		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
-
-		if (cjManager is { })
-		{
-			Task.Run(cjManager.SignalToStopCoinjoinsAsync);
-		}
-
 		if (!MainViewCanShutdown() && !restartRequest)
 		{
 			MainViewModel.Instance.ShowDialogAlert();
