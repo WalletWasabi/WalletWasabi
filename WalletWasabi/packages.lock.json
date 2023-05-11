@@ -29,11 +29,11 @@
         "resolved": "7.0.0",
         "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
       },
-      "NBitcoin": {
+      "NBitcoin.Kimi": {
         "type": "Direct",
-        "requested": "[7.0.24, )",
-        "resolved": "7.0.24",
-        "contentHash": "+K8o9WH09/o8oTl0aV/IR2y+1leR7e1vvZ2S6A7IozvMsWGh/Wi3TYWhasAskEYryQJr2f4gQsy67eAO7YExAg==",
+        "requested": "[7.0.25.1, )",
+        "resolved": "7.0.25.1",
+        "contentHash": "kQECjHNKxSZycPLLuFu9iqtg9IKa12Vhz/b+4Bk6SOQRGxPnsS0Ot7dM8c/7YzbB9f0q+xlDzYQKXqvUbnz6TQ==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "13.0.1"
