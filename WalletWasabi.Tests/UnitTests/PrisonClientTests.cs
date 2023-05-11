@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests;
 public class PrisonClientTests
 {
 	[Fact]
-	private void CanCreateAndLoadPrisonClientDataTest()
+	public void CanCreateAndLoadPrisonClientDataTest()
 	{
 		var workDir = Common.GetWorkDir();
 		PrisonClient pc = PrisonClient.CreateOrLoadFromFile(workDir);
@@ -29,6 +29,8 @@ public class PrisonClientTests
 			var sc = BitcoinFactory.CreateSmartCoin(hpk, 1m);
 			pc.TryAddCoin(sc, DateTimeOffset.UtcNow);
 		}
+		Assert.Equal(5, pc.PrisonedCoins.Count);
+
 		pc = PrisonClient.CreateOrLoadFromFile(workDir);
 		Assert.NotNull(pc.FilePath);
 		Assert.Equal(5, pc.PrisonedCoins.Count);
