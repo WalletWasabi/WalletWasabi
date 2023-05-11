@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -43,6 +44,11 @@ public class PrisonClient
 			IoHelpers.EnsureFileExists(prisonFilePath);
 
 			string data = File.ReadAllText(prisonFilePath);
+			if (string.IsNullOrWhiteSpace(data))
+			{
+				Logger.LogDebug("Prisoned coins file is empty.");
+				return new(containingDirectory);
+			}
 			prisonedCoins = JsonConvert.DeserializeObject<List<PrisonedCoinRecord>>(data)
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
 		}

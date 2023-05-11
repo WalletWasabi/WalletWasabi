@@ -19,7 +19,8 @@ public class PrisonClientTests
 	private void CanCreateAndLoadPrisonClientDataTest()
 	{
 		var workDir = Common.GetWorkDir();
-		PrisonClient pc = new(workDir);
+		PrisonClient pc = PrisonClient.CreateOrLoadFromFile(workDir);
+		Assert.Empty(pc.PrisonedCoins);
 
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		for (int i = 0; i < 5; i++)

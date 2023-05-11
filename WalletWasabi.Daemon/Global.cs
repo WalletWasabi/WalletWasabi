@@ -48,7 +48,7 @@ public class Global
 	{
 		DataDir = dataDir;
 		Config = config;
-		PrisonClient = new(Config.DataDir);
+		PrisonClient = PrisonClient.CreateOrLoadFromFile(Config.DataDir);
 		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
 
 		HostedServices = new HostedServices();
