@@ -43,7 +43,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		wallet.Addresses
 			.Watch(model.Text)
 			.Where(change => change.Current.IsUsed)
-			.Do(_ => UiContext.Navigate(NavigationTarget.Default).Back())
+			.Do(_ => UiContext.Navigate(CurrentTarget).Back())
 			.Subscribe();
 	}
 
