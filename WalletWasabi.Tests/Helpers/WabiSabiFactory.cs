@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -321,6 +322,7 @@ public static class WabiSabiFactory
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
 			coinSelector,
+			new PrisonClient(),
 			new LiquidityClueProvider(),
 			TimeSpan.Zero,
 			TimeSpan.Zero);
