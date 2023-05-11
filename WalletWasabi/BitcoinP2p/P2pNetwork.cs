@@ -89,6 +89,7 @@ public class P2pNetwork : BackgroundService
 			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
+			connectionParameters.ConnectCancellation = ConnectCts.Token;
 
 			if (torSocks5EndPoint is not null)
 			{
@@ -110,6 +111,7 @@ public class P2pNetwork : BackgroundService
 	private Node? RegTestMempoolServingNode { get; set; }
 	private string AddressManagerFilePath { get; }
 	private AddressManager? AddressManager { get; set; }
+	private CancellationTokenSource ConnectCts { get; } = new();
 
 	/// <inheritdoc />
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -163,6 +165,8 @@ public class P2pNetwork : BackgroundService
 
 		cancellationToken.ThrowIfCancellationRequested();
 
+		ConnectCts.Cancel();
+
 		Nodes.Disconnect();
 		while (Nodes.ConnectedNodes.Any(x => x.IsConnected))
 		{
@@ -189,6 +193,7 @@ public class P2pNetwork : BackgroundService
 		}
 
 		Nodes.Dispose();
+		ConnectCts.Dispose();
 		base.Dispose();
 	}
 }
