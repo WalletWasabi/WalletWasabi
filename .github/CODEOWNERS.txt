@@ -1,0 +1,2 @@
+WalletWasabi/Wallets/IWallet.cs @onvej-sl @andrewkozlik
+WalletWasabi/Wallets/Wallet.cs @onvej-sl @andrewkozlik
