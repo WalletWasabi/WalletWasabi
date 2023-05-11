@@ -89,6 +89,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
+	public PrisonClient PrisonClient { get; private set; }
 	public FilterModel LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
@@ -185,7 +186,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		IBlockProvider blockProvider,
+		PrisonClient prisonClient)
 	{
 		if (State > WalletState.WaitingForInit)
 		{
@@ -198,6 +200,7 @@ public class Wallet : BackgroundService, IWallet
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+			PrisonClient = prisonClient;
 
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
 			Coins = TransactionProcessor.Coins;
@@ -244,6 +247,7 @@ public class Wallet : BackgroundService, IWallet
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
+					LoadPrisonedCoinsState();
 				}
 			}
 
@@ -545,7 +549,7 @@ public class Wallet : BackgroundService, IWallet
 	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
-		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new PrisonClient());
 		return wallet;
 	}
 
@@ -570,8 +574,10 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.ToFile();
 	}
 
-	public void LoadPrisonedCoinsState(List<PrisonedCoinRecord> prisonedCoinRecords)
+	private void LoadPrisonedCoinsState()
 	{
+		//thread safety?
+		var prisonedCoinRecords = PrisonClient.PrisonedCoins;
 		foreach (var coin in Coins)
 		{
 			if (prisonedCoinRecords.FirstOrDefault(record => record.Outpoint.Equals(coin.Outpoint)) is { } record)

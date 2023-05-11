@@ -149,7 +149,7 @@ public class WalletManager : IWalletProvider
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, PrisonClient);
 		}
 
 		using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -159,7 +159,6 @@ public class WalletManager : IWalletProvider
 				var cancel = CancelAllInitialization.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
-				wallet.LoadPrisonedCoinsState(PrisonClient.PrisonedCoins);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				cancel.ThrowIfCancellationRequested();
 
@@ -376,17 +375,18 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider, PrisonClient prisonClient)
 	{
 		BitcoinStore = bitcoinStore;
 		Synchronizer = synchronizer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
+		PrisonClient = prisonClient;
 
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, PrisonClient);
 		}
 
 		IsInitialized = true;
