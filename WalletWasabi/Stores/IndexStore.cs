@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -309,6 +310,11 @@ public class IndexStore : IAsyncDisposable
 				await todo(filter).ConfigureAwait(false);
 			}
 		}
+	}
+
+	public FilterModel? GetLastFilter()
+	{
+		return IndexStorage.FetchLast(1).First();
 	}
 
 	/// <inheritdoc/>

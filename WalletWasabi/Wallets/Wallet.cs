@@ -457,6 +457,14 @@ public class Wallet : BackgroundService, IWallet
 				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
+
+		// Set BestHeight as the last filter tested.
+		var lastFilter = BitcoinStore.IndexStore.GetLastFilter();
+		if (lastFilter is { })
+		{
+			var maxFilterHeight = new Height(lastFilter.Header.Height);
+			KeyManager.SetBestHeights(maxFilterHeight, maxFilterHeight);
+		}
 	}
 
 	private async Task LoadDummyMempoolAsync()
