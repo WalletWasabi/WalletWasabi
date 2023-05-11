@@ -101,7 +101,7 @@ public class UiContextGenerator : ISourceGenerator
 						  .ToArray();
 
 				var hasCtorArgs = ctorArgs.Any();
-				var ctorArgsString = string.Join(",", ctorArgs);
+				var ctorArgsString = string.Join(", ", ctorArgs);
 				var ctorString =
 					hasCtorArgs
 					? $": this({ctorArgsString})"
