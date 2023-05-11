@@ -644,7 +644,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 		{
-			if (WalletsBlockedByUi.TryGetValue(wallet.WalletName, out bool needRestart) && needRestart)
+			if (WalletsBlockedByUi.TryRemove(wallet.WalletName, out bool needRestart) && needRestart)
 			{
 				if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
 				{
