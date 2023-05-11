@@ -67,7 +67,7 @@ public class GetAnonymityScoresHelper
 		}
 	}
 
-	private class TransactionLabelProvider
+	internal class TransactionLabelProvider
 	{
 		private Dictionary<string, TransactionLabel> AddressToTransactionLabel { get; }
 
@@ -101,7 +101,7 @@ public class GetAnonymityScoresHelper
 		}
 	}
 
-	private class TransactionLabel
+	internal class TransactionLabel
 	{
 		public HdPubKey HdPubKey { get; }
 
@@ -111,7 +111,7 @@ public class GetAnonymityScoresHelper
 		}
 	}
 
-	private class AnalyzedTransaction : SmartTransaction
+	internal class AnalyzedTransaction : SmartTransaction
 	{
 		static private Network Network { get; } = Network.Main;
 
@@ -208,7 +208,7 @@ public class GetAnonymityScoresHelper
 
 	}
 
-	private class OutPointGenerator
+	internal class OutPointGenerator
 	{
 		private ulong _counter;
 
