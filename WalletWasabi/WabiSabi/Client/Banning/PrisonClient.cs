@@ -1,50 +1,56 @@
-using NBitcoin;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class PrisonClient
 {
-	public PrisonClient(string dataDir)
+	public PrisonClient(string containingDirectory)
 	{
-		FilePath = Path.Combine(dataDir, "PrisonClient.json");
+		FilePath = Path.Combine(containingDirectory, "PrisonedCoins.json");
 	}
 
 	[JsonIgnore]
 	public string FilePath { get; set; }
 
-	[JsonProperty(ItemConverterType = typeof(OutPointWithDateConverter), PropertyName = "BannedCoinsFromCoinJoin")]
-	public Dictionary<OutPoint, DateTimeOffset> BannedCoins { get; set; } = new();
+	public List<PrisonedCoinRecord> PrisonedCoins { get; set; } = new();
 
 	public bool TryAddCoin(SmartCoin coin, DateTimeOffset bannedUntil)
 	{
-		BannedCoins.Add(coin.Outpoint, bannedUntil);
+		PrisonedCoins.Add(new(coin.Outpoint, bannedUntil));
 		ToFile();
 		return true;
 	}
 
 	public void ToFile()
 	{
-		var json = JsonConvert.SerializeObject(this);
+		IoHelpers.EnsureFileExists(FilePath);
+
+		var json = JsonConvert.SerializeObject(PrisonedCoins, Formatting.Indented);
 		File.WriteAllText(FilePath, json);
 	}
 
-	public static PrisonClient CreateOrLoadFromFile(string dataDir)
+	public static PrisonClient CreateOrLoadFromFile(string containingDirectory)
 	{
-		string prisonFilePath = Path.Combine(dataDir, "PrisonClient.json");
-		IoHelpers.EnsureFileExists(prisonFilePath);
-		var data = File.ReadAllText(prisonFilePath);
-		var prisonClient = JsonConvert.DeserializeObject<PrisonClient>(data);
-		return prisonClient;
+		string prisonFilePath = Path.Combine(containingDirectory, "PrisonedCoins.json");
+		List<PrisonedCoinRecord> prisonedCoins = new();
+		try
+		{
+			IoHelpers.EnsureFileExists(prisonFilePath);
+
+			string data = File.ReadAllText(prisonFilePath);
+			prisonedCoins = JsonConvert.DeserializeObject<List<PrisonedCoinRecord>>(data)
+				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError($"There was an error during loading {nameof(PrisonClient)}. Reseting file.", exc);
+			File.Delete(prisonFilePath);
+		}
+		return new(containingDirectory) { PrisonedCoins = prisonedCoins };
 	}
 }
