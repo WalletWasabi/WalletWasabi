@@ -448,7 +448,7 @@ public class Wallet : BackgroundService, IWallet
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
 		KeyManager.AssertNetworkOrClearBlockState(Network);
-		Height bestKeyManagerHeight = KeyManager.GetBestHeight();
+		Height bestKeyManagerHeight = KeyManager.GetBestTurboSyncHeight();
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
