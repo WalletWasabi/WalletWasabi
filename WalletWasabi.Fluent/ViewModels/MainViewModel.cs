@@ -42,8 +42,9 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
 
-	public MainViewModel()
+	public MainViewModel(UiContext uiContext)
 	{
+		UiContext = uiContext;
 		ApplyUiConfigWindowState();
 
 		_dialogScreen = new DialogScreenViewModel();
@@ -104,6 +105,16 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = CreateSearchBar();
 
 		NetworkBadgeName = Services.PersistentConfig.Network == Network.Main ? "" : Services.PersistentConfig.Network.Name;
+
+		// TODO: the reason why this MainViewModel singleton is even needed thoughout the codebase is dubious.
+		// Also it causes tight coupling which damages testability.
+		// We should strive to remove it altogether.
+		if (Instance != null)
+		{
+			throw new InvalidOperationException($"MainViewModel instantiated more than once.");
+		}
+
+		Instance = this;
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -116,7 +127,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public SearchBarViewModel SearchBar { get; }
 
-	public static MainViewModel Instance { get; } = new();
+	public static MainViewModel Instance { get; private set; }
 
 	public bool IsBusy =>
 		MainScreen.CurrentPage is { IsBusy: true } ||

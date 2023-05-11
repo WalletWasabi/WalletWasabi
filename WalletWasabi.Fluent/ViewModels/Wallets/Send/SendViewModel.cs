@@ -10,7 +10,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -63,8 +62,6 @@ public partial class SendViewModel : RoutableViewModel
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
-
-		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
@@ -150,7 +147,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
-	public bool IsQrButtonVisible { get; }
+	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
 	public ICommand PasteCommand { get; }
 
@@ -278,23 +275,10 @@ public partial class SendViewModel : RoutableViewModel
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
 			result = true;
-			if (url.Label is { } label)
-			{
-				_parsedLabel = new SmartLabel(label);
-			}
-			else
-			{
-				_parsedLabel = SmartLabel.Empty;
-			}
 
-			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
-			{
-				PayJoinEndPoint = endPoint;
-			}
-			else
-			{
-				PayJoinEndPoint = null;
-			}
+			_parsedLabel = url.Label is { } label ? new SmartLabel(label) : SmartLabel.Empty;
+
+			PayJoinEndPoint = url.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
 			if (url.Address is { })
 			{

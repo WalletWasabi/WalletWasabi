@@ -11,6 +11,7 @@ using Avalonia.Controls.Templates;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Views.Wallets.Receive.Columns;
@@ -82,8 +83,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = AddressViewModel.SortAscending(x => x.Address),
-				CompareDescending = AddressViewModel.SortDescending(x => x.Address)
+				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Address),
+				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Address)
 			},
 			width: new GridLength(2, GridUnitType.Star));
 	}
@@ -97,8 +98,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = AddressViewModel.SortAscending(x => x.Label),
-				CompareDescending = AddressViewModel.SortDescending(x => x.Label)
+				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Label),
+				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Label)
 			},
 			width: new GridLength(210, GridUnitType.Pixel));
 	}
