@@ -167,6 +167,7 @@ public class WalletManager : IWalletProvider
 					{
 						await wallet.PerformWalletSynchronizationAsync(false, cancelNonAwaited).ConfigureAwait(false);
 						wallet.KeysCache = Enumerable.Empty<HdPubKey>();
+						Logger.LogInfo("Wallet is fully synchronized.");
 					},
 					cancel);
 				

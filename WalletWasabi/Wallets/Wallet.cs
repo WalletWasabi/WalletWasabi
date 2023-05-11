@@ -537,7 +537,7 @@ public class Wallet : BackgroundService, IWallet
 		IEnumerable<HdPubKey> keysToTest;
 		if (turboSync.Value)
 		{
-			// First sync during TurboSync, test all non-obsolete keys or keys not yet obsoleted at the height.
+			// First sync during TurboSync: test only external keys or internal that never received or still had coins at filter height.
 			keysToTest = KeysCache
 				.Where(
 				hdPubKey => 
@@ -546,14 +546,14 @@ public class Wallet : BackgroundService, IWallet
 		}
 		else
 		{
-			// Second sync during TurboSync, test only obsolete keys at the height.
+			// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
 			keysToTest = KeysCache.Where(
 				hdPubKey => 
 					hdPubKey.LatestSpendingHeight is not null && 
 					(Height)hdPubKey.LatestSpendingHeight < filterHeight);
 		}
 
-		// Compute and save HdPubKey/ScriptPubKey pair for all keys
+		// Compute and save HdPubKey/ScriptPubKey pair for all keys.
 		foreach (var hdPubKey in keysToTest)
 		{
 			if (HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
@@ -599,12 +599,12 @@ public class Wallet : BackgroundService, IWallet
 			
 			if (turboSync.GetValueOrDefault())
 			{
-				// We are testing non-obsolete keys, so we can update the best non obsolete height.
+				// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
 				KeyManager.SetBestTurboSyncHeight(height);
 			}
 			else
 			{
-				// All keys were tested, so we can update the best height.
+				// All keys were tested at this height, update the Height.
 				KeyManager.SetBestHeight(height);
 			}
 
