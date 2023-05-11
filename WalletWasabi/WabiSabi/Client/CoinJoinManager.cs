@@ -43,10 +43,11 @@ public class CoinJoinManager : BackgroundService
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	/// <summary>
-	/// The Dictionary is used for tracking the wallets that are in send workflow.
-	/// The boolean value indicates if the CJ needs to be restarted or not after the send workflow.
+	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
+	/// The boolean value indicates if the CJ needs to be restarted or not after leaving the blocking UI dialogs.
+	/// Right now, the Shutdown prevention and the Send workflow can block the CJs.
 	/// </summary>
-	private ConcurrentDictionary<string, bool> WalletsInSendWorkflow { get; } = new();
+	private ConcurrentDictionary<string, bool> WalletsBlockedByUi { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
 		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
@@ -161,7 +162,7 @@ public class CoinJoinManager : BackgroundService
 
 			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
+				if (WalletsBlockedByUi.ContainsKey(walletToStart.WalletName))
 				{
 					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 				}
@@ -585,11 +586,11 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public void WalletEnteredSendWorkflow(string walletName) => WalletsInSendWorkflow.TryAdd(walletName, false);
+	public void WalletEnteredSendWorkflow(string walletName) => WalletsBlockedByUi.TryAdd(walletName, false);
 
 	public void WalletLeftSendWorkflow(Wallet wallet)
 	{
-		if (!WalletsInSendWorkflow.TryRemove(wallet.WalletName, out bool needRestart))
+		if (!WalletsBlockedByUi.TryRemove(wallet.WalletName, out bool needRestart))
 		{
 			Logger.LogDebug("Wallet was not in send workflow but left it.");
 			return;
@@ -603,7 +604,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task WalletEnteredSendingAsync(Wallet wallet)
 	{
-		if (!WalletsInSendWorkflow.ContainsKey(wallet.WalletName))
+		if (!WalletsBlockedByUi.ContainsKey(wallet.WalletName))
 		{
 			Logger.LogDebug("Wallet tried to enter sending but it was not in the send workflow.");
 			return;
@@ -618,7 +619,7 @@ public class CoinJoinManager : BackgroundService
 		// Evaluate and set if we should restart after the send workflow.
 		if (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
 		{
-			WalletsInSendWorkflow[wallet.WalletName] = true;
+			WalletsBlockedByUi[wallet.WalletName] = true;
 		}
 
 		await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
@@ -630,20 +631,20 @@ public class CoinJoinManager : BackgroundService
 		{
 			if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
 			{
-				if (!WalletsInSendWorkflow.TryAdd(wallet.WalletName, true))
+				if (!WalletsBlockedByUi.TryAdd(wallet.WalletName, true))
 				{
-					WalletsInSendWorkflow[wallet.WalletName] = true;
+					WalletsBlockedByUi[wallet.WalletName] = true;
 				}
-			await StopAsync((Wallet)wallet, CancellationToken.None).ConfigureAwait(false);
+				await StopAsync((Wallet)wallet, CancellationToken.None).ConfigureAwait(false);
+			}
 		}
-	}
 	}
 
 	public async Task RestartAbortedCoinjoinsAsync()
 	{
 		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 		{
-			if (WalletsInSendWorkflow.TryGetValue(wallet.WalletName, out bool needRestart) && needRestart)
+			if (WalletsBlockedByUi.TryGetValue(wallet.WalletName, out bool needRestart) && needRestart)
 			{
 				if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
 				{
