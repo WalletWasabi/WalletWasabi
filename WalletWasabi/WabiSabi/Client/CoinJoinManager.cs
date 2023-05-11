@@ -637,6 +637,21 @@ public class CoinJoinManager : BackgroundService
 			await StopAsync((Wallet)wallet, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
+	}
+
+	public async Task RestartAbortedCoinjoinsAsync()
+	{
+		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		{
+			if (WalletsInSendWorkflow.TryGetValue(wallet.WalletName, out bool needRestart) && needRestart)
+			{
+				if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder))
+				{
+					await StartAsync(wallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
+				}
+			}
+		}
+	}
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{
