@@ -628,6 +628,12 @@ public class CoinJoinManager : BackgroundService
 	{
 		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 		{
+			if (CoinJoinClientStates.TryGetValue(wallet.WalletName, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
+			{
+				if (!WalletsInSendWorkflow.TryAdd(wallet.WalletName, true))
+				{
+					WalletsInSendWorkflow[wallet.WalletName] = true;
+				}
 			await StopAsync((Wallet)wallet, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
