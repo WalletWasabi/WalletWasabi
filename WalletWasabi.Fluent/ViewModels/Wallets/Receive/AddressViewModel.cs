@@ -57,18 +57,18 @@ public partial class AddressViewModel : ViewModelBase
 			{
 				return 0;
 			}
-			else if (x is null)
+
+			if (x is null)
 			{
 				return -1;
 			}
-			else if (y is null)
+
+			if (y is null)
 			{
 				return 1;
 			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
+
+			return Comparer<T>.Default.Compare(selector(x), selector(y));
 		};
 	}
 
@@ -80,18 +80,18 @@ public partial class AddressViewModel : ViewModelBase
 			{
 				return 0;
 			}
-			else if (x is null)
+
+			if (x is null)
 			{
 				return 1;
 			}
-			else if (y is null)
+
+			if (y is null)
 			{
 				return -1;
 			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
-			}
+
+			return Comparer<T>.Default.Compare(selector(y), selector(x));
 		};
 	}
 }
