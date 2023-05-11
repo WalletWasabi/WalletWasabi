@@ -468,7 +468,10 @@ public class Wallet : BackgroundService, IWallet
 		if (lastFilter is { })
 		{
 			var maxFilterHeight = new Height(lastFilter.Header.Height);
-			KeyManager.SetBestHeights(maxFilterHeight, maxFilterHeight);
+			if (KeyManager.GetBestHeight() < maxFilterHeight)
+			{
+				KeyManager.SetBestHeights(maxFilterHeight, maxFilterHeight);
+			}
 		}
 	}
 
