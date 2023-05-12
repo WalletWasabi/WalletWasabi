@@ -103,7 +103,6 @@ public class Wallet : BackgroundService, IWallet
 	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; } = new();
 	public IEnumerable<HdPubKey> KeysCache { get; set; } = Enumerable.Empty<HdPubKey>();
 
-	
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
 
