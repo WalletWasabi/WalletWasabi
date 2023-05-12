@@ -42,7 +42,6 @@ public class CoinJoinClient
 		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		LiquidityClueProvider liquidityClueProvider,
-		PrisonClient prisonClient,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
@@ -56,7 +55,6 @@ public class CoinJoinClient
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
-		PrisonClient = prisonClient;
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -70,7 +68,6 @@ public class CoinJoinClient
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-	private PrisonClient PrisonClient { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
@@ -447,7 +444,6 @@ public class CoinJoinClient
 						}
 						var banUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
 						coin.BannedUntilUtc = banUntilUtc;
-						PrisonClient.AddCoin(coin, banUntilUtc);
 						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 						break;
 

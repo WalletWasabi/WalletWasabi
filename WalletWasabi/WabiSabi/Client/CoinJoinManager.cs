@@ -208,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, PrisonClient).ConfigureAwait(false);
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
@@ -446,6 +446,8 @@ public class CoinJoinManager : BackgroundService
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 
+		FindAndPrisonBannedCoins(wallet);
+
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
 		// When to stop mixing:
@@ -487,6 +489,18 @@ public class CoinJoinManager : BackgroundService
 		{
 			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
 			finishedCoinJoin.Dispose();
+		}
+	}
+
+	private void FindAndPrisonBannedCoins(IWallet iwallet)
+	{
+		Wallet? wallet = iwallet as Wallet;
+
+		var coinsToPrison = wallet?.Coins.Where(coin => coin.IsBanned) ?? new List<SmartCoin>();
+		foreach (var coin in coinsToPrison)
+		{
+			DateTimeOffset bannedUntil = coin.BannedUntilUtc ?? throw new InvalidOperationException($"Coin was banned but {nameof(coin.BannedUntilUtc)} was null. This is impossible.");
+			PrisonClient.AddCoin(coin, bannedUntil);
 		}
 	}
 

@@ -1,10 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
@@ -32,7 +29,7 @@ public class CoinJoinTrackerFactory
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop, Banning.PrisonClient prisonClient)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
@@ -51,7 +48,6 @@ public class CoinJoinTrackerFactory
 			CoordinatorIdentifier,
 			coinSelector,
 			LiquidityClueProvider,
-			prisonClient,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
