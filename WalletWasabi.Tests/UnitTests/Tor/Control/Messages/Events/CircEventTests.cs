@@ -28,9 +28,9 @@ public class CircEventTests
 
 		CircuitInfo info = circEvent.CircuitInfo;
 		Assert.Equal("5", info.CircuitID);
-		Assert.Equal(CircStatus.EXTENDED, info.CircStatus);
+		Assert.Equal(CircuitStatus.EXTENDED, info.CircStatus);
 
-		CircPath circPath = Assert.Single(info.CircPaths);
+		CircuitPath circPath = Assert.Single(info.CircuitPaths);
 		Assert.Equal("$51BD782616C3EBA543B0D4EE34D7C1CE1ED2291D", circPath.FingerPrint);
 		Assert.Equal("Geodude", circPath.Nickname);
 
@@ -53,7 +53,7 @@ public class CircEventTests
 
 		CircuitInfo info = circEvent.CircuitInfo;
 		Assert.Equal("16", info.CircuitID);
-		Assert.Equal(CircStatus.LAUNCHED, info.CircStatus);
+		Assert.Equal(CircuitStatus.LAUNCHED, info.CircStatus);
 		Assert.Equal(new List<BuildFlag>() { BuildFlag.NEED_CAPACITY }, info.BuildFlags);
 		Assert.Equal(Purpose.GENERAL, info.Purpose);
 		Assert.Equal("2021-06-10T05:42:43.808915", info.TimeCreated);
