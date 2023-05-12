@@ -43,6 +43,10 @@ public class PrisonClient : PeriodicRunner
 	{
 		lock (Lock)
 		{
+			if (PrisonedCoins.Any(record => record.Outpoint == coin.Outpoint))
+			{
+				return;
+			}
 			PrisonedCoins.Add(new(coin.Outpoint, bannedUntil));
 			ChangeId = Guid.NewGuid();
 		}
