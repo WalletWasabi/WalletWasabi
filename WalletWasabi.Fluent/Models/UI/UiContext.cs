@@ -25,7 +25,7 @@ public class UiContext
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), Application.Current?.Clipboard ?? new NullClipboard(), new WalletListModel());
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), Application.Current?.Clipboard ?? new NullClipboard(), CreateWalletListModel());
 
 	public void RegisterNavigation(INavigate navigate)
 	{
@@ -42,5 +42,17 @@ public class UiContext
 		return
 			_navigate?.Navigate(target)
 			?? throw new InvalidOperationException($"{GetType().Name} {nameof(_navigate)} hasn't been initialized.");
+	}
+
+	private static IWalletListModel CreateWalletListModel()
+	{
+		if (Services.WalletManager is { })
+		{
+			return new WalletListModel();
+		}
+		else
+		{
+			return new NullWalletList();
+		}
 	}
 }
