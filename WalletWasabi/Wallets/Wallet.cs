@@ -555,17 +555,14 @@ public class Wallet : BackgroundService, IWallet
 		// Compute and save HdPubKey/ScriptPubKey pair for all keys.
 		foreach (var hdPubKey in keysToTest)
 		{
-			if (HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
-			{
-				result.Add(scriptBytes);
-			}
-			else
+			if (!HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
 			{
 				scriptBytes = hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes();
 				HdPubKeysWithScriptBytes.Add(hdPubKey, scriptBytes);
-				result.Add(scriptBytes);
 			}
+			result.Add(scriptBytes);
 		}
+		
 		return result.ToList();
 	}
 	
