@@ -480,7 +480,7 @@ public static class HttpMessageHelper
 		{
 			if (contentHeaders.ContentLength < 0)
 			{
-				throw new HttpRequestException("Content-Length MUST be greater than or equal to zero.");
+				throw new HttpRequestException("Content-Length MUST be greater than or equal to zero.", inner: null, statusCode: HttpStatusCode.BadGateway);
 			}
 		}
 	}

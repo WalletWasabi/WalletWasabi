@@ -100,7 +100,7 @@ public static class HttpResponseMessageExtensions
 
 			if (innerException is not null)
 			{
-				throw new HttpRequestException("Remote coordinator responded with an error.", innerException, me.StatusCode);
+				throw new HttpRequestException("Remote coordinator responded with an error.", innerException, statusCode: me.StatusCode);
 			}
 
 			// Remove " from beginning and end to ensure backwards compatibility and it's kind of trash, too.
@@ -115,6 +115,6 @@ public static class HttpResponseMessageExtensions
 			}
 		}
 
-		throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
+		throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}", inner: null, statusCode: me.StatusCode);
 	}
 }

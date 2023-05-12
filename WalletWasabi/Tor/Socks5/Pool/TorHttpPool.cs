@@ -175,20 +175,20 @@ public class TorHttpPool : IAsyncDisposable
 					if (i == attemptsNo)
 					{
 						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
-						throw new HttpRequestException("Failed to handle the HTTP request via Tor (write failure).", e);
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor (write failure).", e, statusCode: HttpStatusCode.InternalServerError);
 					}
 				}
 				catch (TorConnectionReadException e)
 				{
 					Logger.LogTrace($"['{connection}'] Could not get/read an HTTP response from Tor.", e);
 
-					throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
+					throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e, statusCode: HttpStatusCode.BadGateway);
 				}
 				catch (TorCircuitExpiredException e)
 				{
 					Logger.LogTrace($"['{connection}'] Circuit '{namedCircuit.Name}' has expired and cannot be used again.", e);
 
-					throw new HttpRequestException($"Circuit '{namedCircuit.Name}' has expired and cannot be used again.", e);
+					throw new HttpRequestException($"Circuit '{namedCircuit.Name}' has expired and cannot be used again.", e, statusCode: HttpStatusCode.GatewayTimeout);
 				}
 				catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 				{
@@ -200,7 +200,7 @@ public class TorHttpPool : IAsyncDisposable
 					if (i == attemptsNo)
 					{
 						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
-						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e, statusCode: HttpStatusCode.GatewayTimeout);
 					}
 				}
 				catch (TorConnectionException e)
@@ -210,7 +210,7 @@ public class TorHttpPool : IAsyncDisposable
 					if (i == attemptsNo)
 					{
 						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
-						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e, statusCode: HttpStatusCode.InternalServerError);
 					}
 				}
 				catch (IOException e)
@@ -219,13 +219,13 @@ public class TorHttpPool : IAsyncDisposable
 
 					// NetworkStream may throw IOException.
 					TorConnectionException innerException = new("Failed to read/write HTTP(s) request.", e);
-					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
+					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException, statusCode: HttpStatusCode.InternalServerError);
 				}
 				catch (SocketException e) when (e.ErrorCode == (int)SocketError.ConnectionRefused)
 				{
 					Logger.LogTrace($"['{connection}'] Connection was refused.", e);
 					TorConnectionException innerException = new("Connection was refused.", e);
-					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
+					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException, statusCode: HttpStatusCode.Forbidden);
 				}
 				catch (OperationCanceledException)
 				{

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using static WalletWasabi.Tor.Http.Constants;
 
@@ -15,7 +16,7 @@ public class RequestLine : StartLine
 		// A sender MUST NOT generate an "http" URI with an empty host identifier.
 		if (string.IsNullOrEmpty(uri.DnsSafeHost))
 		{
-			throw new HttpRequestException("Host identifier is empty.");
+			throw new HttpRequestException("Host identifier is empty.", inner: null, statusCode: HttpStatusCode.BadGateway);
 		}
 
 		URI = uri;
