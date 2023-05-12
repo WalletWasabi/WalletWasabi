@@ -420,9 +420,4 @@ public class WalletManager : IWalletProvider
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
 		}
 	}
-
-	public void SetPrisonClient(PrisonClient prisonClient)
-	{
-		PrisonClient = prisonClient;
-	}
 }

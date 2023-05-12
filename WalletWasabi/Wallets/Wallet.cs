@@ -576,7 +576,6 @@ public class Wallet : BackgroundService, IWallet
 
 	private void LoadPrisonedCoinsState()
 	{
-		//thread safety?
 		var prisonedCoinRecords = PrisonClient.PrisonedCoins;
 		foreach (var coin in Coins)
 		{
