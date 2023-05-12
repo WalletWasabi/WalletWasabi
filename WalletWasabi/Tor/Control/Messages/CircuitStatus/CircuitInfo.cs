@@ -61,7 +61,7 @@ public record CircuitInfo
 		Reason? remoteReason = null;
 		string? userName = null;
 		string? userPassword = null;
-		List<CircPath> circPaths = new();
+		List<CircPath> circuitPaths = new();
 
 		// Optional arguments.
 		while (remainder != "")
@@ -71,7 +71,7 @@ public record CircuitInfo
 			{
 				string pathVal;
 				(pathVal, remainder) = Tokenizer.ReadUntilSeparator(remainder);
-				circPaths = ParseCircPath(pathVal);
+				circuitPaths = ParseCircPath(pathVal);
 
 				continue;
 			}
@@ -129,7 +129,7 @@ public record CircuitInfo
 
 		CircuitInfo circuitInfo = new(circuitId, circStatus)
 		{
-			CircPaths = circPaths,
+			CircPaths = circuitPaths,
 			BuildFlags = buildFlags,
 			Purpose = purpose,
 			HsState = hsState,
