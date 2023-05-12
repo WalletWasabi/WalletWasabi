@@ -105,8 +105,13 @@ public class TransactionHistoryBuilder
 
 	private static IEnumerable<IInput> GetInputs(Network network, SmartTransaction transaction)
 	{
-		var known = transaction.WalletInputs.Select(x => (IInput)new KnownInput(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
-		var unknown = transaction.ForeignInputs.Select(x => (IInput)new ForeignInput(x.Transaction.GetHash()));
+		var known = transaction.WalletInputs
+		                       .Select(x => new KnownInput(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)))
+		                       .OfType<IInput>();
+
+		var unknown = transaction.ForeignInputs
+	                             .Select(x => new ForeignInput(x.Transaction.GetHash()))
+	                             .OfType<IInput>();
 
 		return known.Concat(unknown);
 	}
