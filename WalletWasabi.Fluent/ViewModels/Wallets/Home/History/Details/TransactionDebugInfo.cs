@@ -13,10 +13,8 @@ public class InputTransactionDebugInfo
 	}
 
 	public OutPoint OutPoint => _knownInput.Outpoint;
-
 	public Money Amount => _knownInput.Amount;
-
 	public uint Index => _knownInput.Index;
-
 	public string Address => _knownInput.Address.ToString();
+	public double Anonscore => _knownInput.Anonscore;
 }
