@@ -175,7 +175,6 @@ namespace {namespaceName}
 			}
 		}
 
-
 		source.Append($@"    }}
 }}");
 
