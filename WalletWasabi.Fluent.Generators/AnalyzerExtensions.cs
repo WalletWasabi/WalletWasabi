@@ -13,10 +13,10 @@ public static class AnalyzerExtensions
 	{
 		return
 			node.DescendantNodes()
-			 .OfType<IdentifierNameSyntax>()
-			 .Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
-			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
-			 .ToList();
+				.OfType<IdentifierNameSyntax>()
+				.Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
+				.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
+				.ToList();
 	}
 
 	public static bool IsPrivate(this ConstructorDeclarationSyntax node)
