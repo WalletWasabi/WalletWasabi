@@ -276,7 +276,7 @@ public class UiContextGenerator : ISourceGenerator
 					$$"""
 						public FluentDialog<{{dialogReturnType}}> {{methodName}}{{methodParams}}
 						{
-						    var dialog = new {{className}}{{ctorArgs.ToFullString()}};
+						    var dialog = new {{className}}{{constructorArgs.ToFullString()}};
 							var target = UiContext.Navigate(navigationTarget);
 							target.To(dialog, navigationMode);
 
