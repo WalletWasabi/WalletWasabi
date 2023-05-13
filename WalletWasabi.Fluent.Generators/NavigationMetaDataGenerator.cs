@@ -107,7 +107,6 @@ namespace {namespaceName}
     {{
 ");
 
-
 		source.Append($@"        public static {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
         {{
 ");
