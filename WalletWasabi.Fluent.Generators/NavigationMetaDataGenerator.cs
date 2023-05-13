@@ -107,7 +107,6 @@ namespace {namespaceName}
     {{
 ");
 
-
 		source.Append($@"        public static {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
         {{
 ");
@@ -174,7 +173,6 @@ namespace {namespaceName}
 				source.AppendLine($@"        public string IconNameFocused => MetaData.IconNameFocused;");
 			}
 		}
-
 
 		source.Append($@"    }}
 }}");
