@@ -18,4 +18,7 @@ public static class MoneyConverters
 
 	public static readonly IValueConverter ToBtc =
 		new FuncValueConverter<Money, string>(n => n?.ToFormattedString() + " BTC");
+
+	public static readonly IValueConverter ToFee =
+		new FuncValueConverter<Money, string?>(n => n?.ToFeeDisplayUnitFormattedString());
 }
