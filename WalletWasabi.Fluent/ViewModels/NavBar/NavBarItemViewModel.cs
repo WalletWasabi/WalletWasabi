@@ -34,6 +34,8 @@ public partial class NavBarItemViewModel : RoutableViewModel
 		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
+	public ICommand OpenCommand { get; }
+
 	public async Task ActivateAsync()
 	{
 		if (_item is INavBarToggle toggle)
@@ -45,6 +47,4 @@ public partial class NavBarItemViewModel : RoutableViewModel
 			await button.Activate();
 		}
 	}
-
-	public ICommand OpenCommand { get; }
 }
