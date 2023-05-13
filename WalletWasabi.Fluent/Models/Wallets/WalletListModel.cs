@@ -14,7 +14,7 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 {
 	public WalletListModel()
 	{
-		//Convert the Wallet Manager's contents into an observable stream of IWalletModels.
+		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
 			Observable.Return(Unit.Default)
 					  .Merge(Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
@@ -23,8 +23,10 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
 					  .Transform(wallet => new WalletModel(wallet))
+
 					  // Refresh the collection when logged in.
 					  .AutoRefresh(x => x.IsLoggedIn)
+
 					  // Sort the list to put the most recently logged in wallet to the top.
 					  .Sort(SortExpressionComparer<IWalletModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.Name))
 					  .Transform(x => x as IWalletModel);
