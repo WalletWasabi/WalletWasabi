@@ -30,11 +30,11 @@ public class UiContextGenerator : ISourceGenerator
 			return;
 		}
 
-		var ctors = ProcessViewModels(context, receiver.ClassDeclarations)
+		var constructors = ProcessViewModels(context, receiver.ClassDeclarations)
 						.OrderBy(x => x.Identifier.ValueText)
 						.ToArray();
 
-		GenerateFluentNavigation(context, ctors);
+		GenerateFluentNavigation(context, constructors);
 	}
 
 	private static List<ConstructorDeclarationSyntax> ProcessViewModels(GeneratorExecutionContext context, List<ClassDeclarationSyntax> classDeclarations)
@@ -55,9 +55,9 @@ public class UiContextGenerator : ISourceGenerator
 				continue;
 			}
 
-			var ctors = GenerateConstructors(context, cls, model, classSymbol).ToArray();
+			var constructors = GenerateConstructors(context, cls, model, classSymbol).ToArray();
 
-			result.AddRange(ctors);
+			result.AddRange(constructors);
 		}
 
 		return result;
@@ -70,45 +70,45 @@ public class UiContextGenerator : ISourceGenerator
 		var className = classSymbol.Name;
 		var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
-		var ctors =
+		var constructors =
 			classDeclaration.ChildNodes()
 							.OfType<ConstructorDeclarationSyntax>()
 							.ToArray();
 
-		foreach (var ctor in ctors)
+		foreach (var constructor in constructors)
 		{
 			if (!classDeclaration.GetUiContextReferences(semanticModel).Any())
 			{
-				if (!classDeclaration.IsAbstractClass(semanticModel) && ctor.IsPublic())
+				if (!classDeclaration.IsAbstractClass(semanticModel) && constructor.IsPublic())
 				{
-					yield return ctor;
+					yield return constructor;
 				}
 			}
-			// if constructor already has a UIContext parameter, leave it be. Don't generate a new ctor and use the current one for FluentNavigation.
-			else if (ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(semanticModel)))
+			// if constructor already has a UIContext parameter, leave it be. Don't generate a new constructor and use the current one for FluentNavigation.
+			else if (constructor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(semanticModel)))
 			{
 				// it must be public though
-				if (ctor.IsPublic())
+				if (constructor.IsPublic())
 				{
-					yield return ctor;
+					yield return constructor;
 				}
 			}
 			else
 			{
-				var ctorArgs =
-					  ctor.ParameterList.Parameters
+				var constructorArgs =
+					  constructor.ParameterList.Parameters
 						  .Select(x => x.Identifier.ValueText)
 						  .ToArray();
 
-				var hasCtorArgs = ctorArgs.Any();
-				var ctorArgsString = string.Join(", ", ctorArgs);
-				var ctorString =
-					hasCtorArgs
-					? $": this({ctorArgsString})"
+				var hasConstructorArgs = constructorArgs.Any();
+				var constructorArgsString = string.Join(", ", constructorArgs);
+				var constructorString =
+					hasConstructorArgs
+					? $": this({constructorArgsString})"
 					: $": this()";
 
 				var parameterUsings =
-					ctor.ParameterList.Parameters
+					constructor.ParameterList.Parameters
 									  .Where(p => p.Type is not null)
 									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
 									  .Where(t => t.Type is not null)
@@ -121,7 +121,7 @@ public class UiContextGenerator : ISourceGenerator
 								 .WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
 				var parametersString =
-					ctor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
+					constructor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
 
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
 
@@ -134,7 +134,7 @@ public class UiContextGenerator : ISourceGenerator
 
 					partial class {{className}}
 					{
-						public {{className}}({{parametersString}}){{ctorString}}
+						public {{className}}({{parametersString}}){{constructorString}}
 						{
 							UiContext = uiContext;
 						}
@@ -157,24 +157,24 @@ public class UiContextGenerator : ISourceGenerator
 		}
 	}
 
-	private static void GenerateFluentNavigation(GeneratorExecutionContext context, IEnumerable<ConstructorDeclarationSyntax> ctors)
+	private static void GenerateFluentNavigation(GeneratorExecutionContext context, IEnumerable<ConstructorDeclarationSyntax> constructors)
 	{
 		var compilation = context.Compilation;
 		var namespaces = new List<string>();
 		var methods = new List<string>();
 
 		var newSyntaxTrees =
-			ctors.Select(x => x.SyntaxTree)
+			constructors.Select(x => x.SyntaxTree)
 				 .Where(x => !compilation.ContainsSyntaxTree(x))
 				 .ToArray();
 
 		compilation = compilation.AddSyntaxTrees(newSyntaxTrees);
 
-		foreach (var ctor in ctors)
+		foreach (var constructor in constructors)
 		{
-			var semanticModel = compilation.GetSemanticModel(ctor.SyntaxTree);
+			var semanticModel = compilation.GetSemanticModel(constructor.SyntaxTree);
 
-			if (ctor.Parent is not ClassDeclarationSyntax cls)
+			if (constructor.Parent is not ClassDeclarationSyntax cls)
 			{
 				continue;
 			}
@@ -194,8 +194,8 @@ public class UiContextGenerator : ISourceGenerator
 
 			var className = cls.Identifier.ValueText;
 
-			var ctorNamespaces =
-					ctor.ParameterList.Parameters
+			var constructorNamespaces =
+					constructor.ParameterList.Parameters
 									  .Where(p => p.Type is not null)
 									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
 									  .Where(t => t.Type is not null)
@@ -203,11 +203,11 @@ public class UiContextGenerator : ISourceGenerator
 									  .ToArray();
 
 			var uiContextParam =
-				ctor.ParameterList
+				constructor.ParameterList
 					.Parameters
 					.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
 
-			var methodParams = ctor.ParameterList;
+			var methodParams = constructor.ParameterList;
 
 			if (uiContextParam != null)
 			{
@@ -245,21 +245,21 @@ public class UiContextGenerator : ISourceGenerator
 
 			methodParams = methodParams.AddParameters(SyntaxFactory.ParseParameterList(additionalMethodParams).Parameters.ToArray());
 
-			var ctorArgs =
+			var constructorArgs =
 				SyntaxFactory.ArgumentList(
 					SyntaxFactory.SeparatedList(
-					ctor.ParameterList
+					constructor.ParameterList
 						.Parameters
 						.Select(x => x.Type.IsUiContextType(semanticModel) ? "UiContext" : x.Identifier.ValueText) // replace uiContext argument for UiContext property reference
 						.Select(x => SyntaxFactory.ParseExpression(x))
 						.Select(SyntaxFactory.Argument),
-					ctor.ParameterList
+					constructor.ParameterList
 						.Parameters
 						.Skip(1)
 						.Select(x => SyntaxFactory.Token(SyntaxKind.CommaToken))));
 
 			namespaces.Add(viewModelTypeInfo.ContainingNamespace.ToDisplayString());
-			namespaces.AddRange(ctorNamespaces);
+			namespaces.AddRange(constructorNamespaces);
 
 			var methodName = className.Replace("ViewModel", "");
 
@@ -267,7 +267,7 @@ public class UiContextGenerator : ISourceGenerator
 				$$"""
 					public void {{methodName}}{{methodParams}}
 					{
-						UiContext.Navigate(navigationTarget).To(new {{className}}{{ctorArgs.ToFullString()}}, navigationMode);
+						UiContext.Navigate(navigationTarget).To(new {{className}}{{constructorArgs.ToFullString()}}, navigationMode);
 					}
 
 				""";
