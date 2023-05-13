@@ -26,11 +26,14 @@ public partial class WalletManagerViewModel : ViewModelBase
 		UiContext = uiContext;
 
 		UiContext.WalletList.Wallets
+
 			// This converts the Wallet objects into WalletPageViewModel.
 			// TODO: remove WalletManager code
 			.TransformWithInlineUpdate(newWallet => new WalletPageViewModel(UiContext, newWallet))
+
 			// Refresh the collection when logged in.
 			.AutoRefresh(x => x.IsLoggedIn)
+
 			// Sort the list to put the most recently logged in wallet to the top.
 			.Sort(SortExpressionComparer<WalletPageViewModel>
 				.Descending(i => i.IsLoggedIn)
