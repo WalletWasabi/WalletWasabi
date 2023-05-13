@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -24,6 +25,7 @@ public class DebugInfoViewModel : ViewModelBase
 			{
 				new PlainTextColumn<InputTransactionDebugInfo>("Amount", x => x.Amount.ToFormattedString(), GridLength.Auto, new ColumnOptions<InputTransactionDebugInfo>()),
 				new PlainTextColumn<InputTransactionDebugInfo>("Index", x => x.Index.ToString(), GridLength.Auto, new ColumnOptions<InputTransactionDebugInfo>()),
+				new PlainTextColumn<InputTransactionDebugInfo>("Anonscore", x => x.Anonscore.ToString(CultureInfo.InvariantCulture), GridLength.Auto, new ColumnOptions<InputTransactionDebugInfo>()),
 				new PlainTextColumn<InputTransactionDebugInfo>("Address", x => x.Address.ToString(), GridLength.Auto, new ColumnOptions<InputTransactionDebugInfo>()),
 				new PlainTextColumn<InputTransactionDebugInfo>("OutPoint", x => x.OutPoint.ToString(), GridLength.Auto, new ColumnOptions<InputTransactionDebugInfo>())
 			}
@@ -34,7 +36,7 @@ public class DebugInfoViewModel : ViewModelBase
 			{
 				new PlainTextColumn<OutputTransactionDebugInfo>("Amount", x => x.Amount.ToFormattedString(), GridLength.Auto, new ColumnOptions<OutputTransactionDebugInfo>()),
 				new PlainTextColumn<OutputTransactionDebugInfo>("Index", x => x.Index.ToString(), GridLength.Auto, new ColumnOptions<OutputTransactionDebugInfo>()),
-				new PlainTextColumn<OutputTransactionDebugInfo>("Anonscore", x => x.Anonscore.ToString(), GridLength.Auto, new ColumnOptions<OutputTransactionDebugInfo>()),
+				new PlainTextColumn<OutputTransactionDebugInfo>("Anonscore", x => x.Anonscore.ToString(CultureInfo.InvariantCulture), GridLength.Auto, new ColumnOptions<OutputTransactionDebugInfo>()),
 				new PlainTextColumn<OutputTransactionDebugInfo>("Equal outputs", x => x.EqualOutputs.ToString(), GridLength.Auto, new ColumnOptions<OutputTransactionDebugInfo>()),
 				new PlainTextColumn<OutputTransactionDebugInfo>("Address", x => x.Address.ToString(), GridLength.Auto, new ColumnOptions<OutputTransactionDebugInfo>()),
 			}
