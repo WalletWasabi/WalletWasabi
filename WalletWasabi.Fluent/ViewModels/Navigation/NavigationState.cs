@@ -16,41 +16,50 @@ public class NavigationState : ReactiveObject, INavigate
 		INavigationStack<RoutableViewModel> compactDialogScreenNavigation)
 	{
 		UiContext = uiContext;
-		HomeScreenNavigation = homeScreenNavigation;
-		DialogScreenNavigation = dialogScreenNavigation;
-		FullScreenNavigation = fullScreenNavigation;
-		CompactDialogScreenNavigation = compactDialogScreenNavigation;
+		HomeScreen = homeScreenNavigation;
+		DialogScreen = dialogScreenNavigation;
+		FullScreen = fullScreenNavigation;
+		CompactDialogScreen = compactDialogScreenNavigation;
 
 		this.WhenAnyValue(
-				x => x.DialogScreenNavigation.CurrentPage,
-				x => x.CompactDialogScreenNavigation.CurrentPage,
-				x => x.FullScreenNavigation.CurrentPage,
-				x => x.HomeScreenNavigation.CurrentPage,
+				x => x.DialogScreen.CurrentPage,
+				x => x.CompactDialogScreen.CurrentPage,
+				x => x.FullScreen.CurrentPage,
+				x => x.HomeScreen.CurrentPage,
 				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(OnCurrentPageChanged)
 			.Subscribe();
+
+		IsDialogOpen =
+			this.WhenAnyValue(
+				x => x.DialogScreen.CurrentPage,
+				x => x.CompactDialogScreen.CurrentPage,
+				x => x.FullScreen.CurrentPage,
+				(d, c, f) => (d ?? c ?? f) != null);
 	}
 
 	public UiContext UiContext { get; }
 
-	public INavigationStack<RoutableViewModel> HomeScreenNavigation { get; }
+	public INavigationStack<RoutableViewModel> HomeScreen { get; }
 
-	public INavigationStack<RoutableViewModel> DialogScreenNavigation { get; }
+	public INavigationStack<RoutableViewModel> DialogScreen { get; }
 
-	public INavigationStack<RoutableViewModel> FullScreenNavigation { get; }
+	public INavigationStack<RoutableViewModel> FullScreen { get; }
 
-	public INavigationStack<RoutableViewModel> CompactDialogScreenNavigation { get; }
+	public INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
+
+	public IObservable<bool> IsDialogOpen { get; }
 
 	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 	{
 		return currentTarget switch
 		{
-			NavigationTarget.HomeScreen => HomeScreenNavigation,
-			NavigationTarget.DialogScreen => DialogScreenNavigation,
-			NavigationTarget.FullScreen => FullScreenNavigation,
-			NavigationTarget.CompactDialogScreen => CompactDialogScreenNavigation,
+			NavigationTarget.HomeScreen => HomeScreen,
+			NavigationTarget.DialogScreen => DialogScreen,
+			NavigationTarget.FullScreen => FullScreen,
+			NavigationTarget.CompactDialogScreen => CompactDialogScreen,
 			_ => throw new NotSupportedException(),
 		};
 	}
@@ -62,22 +71,22 @@ public class NavigationState : ReactiveObject, INavigate
 
 	private void OnCurrentPageChanged(RoutableViewModel page)
 	{
-		if (HomeScreenNavigation.CurrentPage is { } homeScreen)
+		if (HomeScreen.CurrentPage is { } homeScreen)
 		{
 			homeScreen.IsActive = false;
 		}
 
-		if (DialogScreenNavigation.CurrentPage is { } dialogScreen)
+		if (DialogScreen.CurrentPage is { } dialogScreen)
 		{
 			dialogScreen.IsActive = false;
 		}
 
-		if (FullScreenNavigation.CurrentPage is { } fullScreen)
+		if (FullScreen.CurrentPage is { } fullScreen)
 		{
 			fullScreen.IsActive = false;
 		}
 
-		if (CompactDialogScreenNavigation.CurrentPage is { } compactDialogScreen)
+		if (CompactDialogScreen.CurrentPage is { } compactDialogScreen)
 		{
 			compactDialogScreen.IsActive = false;
 		}

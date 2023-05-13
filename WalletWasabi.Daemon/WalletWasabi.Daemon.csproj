@@ -33,7 +33,6 @@
 		<Copyright>MIT</Copyright>
 		<PackageId>Wasabi Wallet Daemon</PackageId>
 		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
-		<Company>zkSNACKs</Company>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
 		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>

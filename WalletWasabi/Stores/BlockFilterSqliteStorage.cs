@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata;
 using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Stores;
@@ -222,7 +223,7 @@ public class BlockFilterSqliteStorage : IDisposable
 				""";
 			insertCommand.Parameters.AddWithValue("$block_height", filter.Header.Height);
 			insertCommand.Parameters.AddWithValue("$block_hash", filter.Header.BlockHash.ToBytes(lendian: true));
-			insertCommand.Parameters.AddWithValue("$filter_data", filter.Filter.ToBytes());
+			insertCommand.Parameters.AddWithValue("$filter_data", filter.FilterData);
 			insertCommand.Parameters.AddWithValue("$previous_block_hash", filter.Header.PrevHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$epoch_block_time", filter.Header.EpochBlockTime);
 			int result = insertCommand.ExecuteNonQuery();
@@ -233,6 +234,124 @@ public class BlockFilterSqliteStorage : IDisposable
 		{
 			return false;
 		}
+	}
+
+	/// <summary>
+	/// Append filters in bulk to the table.
+	/// </summary>
+	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>
+	public void BulkAppend(IReadOnlyList<FilterModel> filters)
+	{
+		using SqliteTransaction transaction = Connection.BeginTransaction();
+
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = """
+			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
+			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
+			""";
+
+		SqliteParameter blockHeightParameter = command.CreateParameter();
+		blockHeightParameter.ParameterName = "$block_height";
+		command.Parameters.Add(blockHeightParameter);
+
+		SqliteParameter blockHashParameter = command.CreateParameter();
+		blockHashParameter.ParameterName = "$block_hash";
+		command.Parameters.Add(blockHashParameter);
+
+		SqliteParameter filterDataParameter = command.CreateParameter();
+		filterDataParameter.ParameterName = "$filter_data";
+		command.Parameters.Add(filterDataParameter);
+
+		SqliteParameter prevBlockHashParameter = command.CreateParameter();
+		prevBlockHashParameter.ParameterName = "$previous_block_hash";
+		command.Parameters.Add(prevBlockHashParameter);
+
+		SqliteParameter epochBlockTimeParameter = command.CreateParameter();
+		epochBlockTimeParameter.ParameterName = "$epoch_block_time";
+		command.Parameters.Add(epochBlockTimeParameter);
+
+		foreach (FilterModel filter in filters)
+		{
+			blockHeightParameter.Value = filter.Header.Height;
+			blockHashParameter.Value = filter.Header.BlockHash.ToBytes(lendian: true);
+			filterDataParameter.Value = filter.FilterData;
+			prevBlockHashParameter.Value = filter.Header.PrevHash.ToBytes(lendian: true);
+			epochBlockTimeParameter.Value = filter.Header.EpochBlockTime;
+
+			_ = command.ExecuteNonQuery();
+		}
+
+		transaction.Commit();
+	}
+
+	/// <summary>
+	/// Append filters in bulk to the table.
+	/// </summary>
+	/// <param name="filters">Raw filter lines from old mature index file.</param>
+	/// <remarks>The method is meant for migration purposes.</remarks>
+	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>
+	public void BulkAppend(IReadOnlyList<string> filters)
+	{
+		using SqliteTransaction transaction = Connection.BeginTransaction();
+
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = """
+			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
+			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
+			""";
+
+		SqliteParameter blockHeightParameter = command.CreateParameter();
+		blockHeightParameter.ParameterName = "$block_height";
+		command.Parameters.Add(blockHeightParameter);
+
+		SqliteParameter blockHashParameter = command.CreateParameter();
+		blockHashParameter.ParameterName = "$block_hash";
+		command.Parameters.Add(blockHashParameter);
+
+		SqliteParameter filterDataParameter = command.CreateParameter();
+		filterDataParameter.ParameterName = "$filter_data";
+		command.Parameters.Add(filterDataParameter);
+
+		SqliteParameter prevBlockHashParameter = command.CreateParameter();
+		prevBlockHashParameter.ParameterName = "$previous_block_hash";
+		command.Parameters.Add(prevBlockHashParameter);
+
+		SqliteParameter epochBlockTimeParameter = command.CreateParameter();
+		epochBlockTimeParameter.ParameterName = "$epoch_block_time";
+		command.Parameters.Add(epochBlockTimeParameter);
+
+		foreach (string line in filters)
+		{
+			ReadOnlySpan<char> span = line;
+
+			int m1 = line.IndexOf(':', 0);
+			int m2 = line.IndexOf(':', m1 + 1);
+			int m3 = line.IndexOf(':', m2 + 1);
+			int m4 = line.IndexOf(':', m3 + 1);
+
+			if (m1 == -1 || m2 == -1 || m3 == -1 || m4 == -1)
+			{
+				throw new ArgumentException(line, nameof(line));
+			}
+
+			uint blockHeight = uint.Parse(span[..m1]);
+			byte[] blockHash = Convert.FromHexString(span[(m1 + 1)..m2]);
+			Array.Reverse(blockHash);
+			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
+			byte[] prevBlockHash = Convert.FromHexString(span[(m3 + 1)..m4]);
+			Array.Reverse(prevBlockHash);
+			long blockTime = long.Parse(span[(m4 + 1)..]);
+
+			blockHeightParameter.Value = blockHeight;
+			blockHashParameter.Value = blockHash;
+			filterDataParameter.Value = filterData;
+			prevBlockHashParameter.Value = prevBlockHash;
+			epochBlockTimeParameter.Value = blockTime;
+
+			_ = command.ExecuteNonQuery();
+		}
+
+		transaction.Commit();
 	}
 
 	/// <summary>

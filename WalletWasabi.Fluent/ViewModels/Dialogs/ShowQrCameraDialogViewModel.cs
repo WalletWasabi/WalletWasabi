@@ -5,24 +5,26 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
-using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Camera")]
 public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 {
-	private readonly WebcamQrReader _qrReader;
+	private readonly Network _network;
 	[AutoNotify] private Bitmap? _qrImage;
 	[AutoNotify] private string _errorMessage = "";
 	[AutoNotify] private string _qrContent = "";
 
-	public ShowQrCameraDialogViewModel(Network network)
+	public ShowQrCameraDialogViewModel(UiContext context, Network network)
 	{
-		_qrReader = new(network);
+		_network = network;
+		
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		UiContext = context;
 	}
 
 	private CancellationTokenSource CancellationTokenSource { get; } = new();
@@ -31,53 +33,32 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		Observable.FromEventPattern<Bitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
+		UiContext.QrCodeReader
+			.Read()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args => QrImage = args.EventArgs)
+			.Subscribe(
+				onNext: result =>
+				{
+					if (AddressStringParser.TryParse(result.decoded, _network, out _))
+					{
+						Close(DialogResultKind.Normal, result.decoded);
+					}
+					else
+					{
+						ErrorMessage = "No valid Bitcoin address found";
+						QrContent = result.decoded ?? "";
+						QrImage = result.bitmap;
+					}
+				},
+				onError: error =>
+				{
+					RxApp.MainThreadScheduler.Schedule(async () =>
+					{
+						await ShowErrorAsync(Title, error.Message, "Something went wrong");
+
+						Close();
+					});
+				})
 			.DisposeWith(disposables);
-
-		Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args => Close(DialogResultKind.Normal, args.EventArgs))
-			.DisposeWith(disposables);
-
-		Observable.FromEventPattern<(string, string)>(_qrReader, nameof(_qrReader.InvalidAddressFound))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args =>
-			{
-				(string errorMessage, string qrContent) = args.EventArgs;
-
-				ErrorMessage = errorMessage;
-				QrContent = qrContent;
-			})
-			.DisposeWith(disposables);
-
-		Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccurred))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.SubscribeAsync(async args =>
-			{
-				await ShowErrorAsync(
-					Title,
-					args.EventArgs.Message,
-					"Something went wrong");
-
-				Close();
-			})
-			.DisposeWith(disposables);
-
-		if (!isInHistory)
-		{
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
-		}
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		base.OnNavigatedFrom(isInHistory);
-
-		if (!isInHistory)
-		{
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None));
-		}
 	}
 }
