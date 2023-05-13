@@ -8,9 +8,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 public partial class NavBarItemViewModel : RoutableViewModel
 {
 	private string? _title;
-	private readonly INavBarItem _item;
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
+	private readonly INavBarItem _item;
 
 	public NavBarItemViewModel(INavBarItem item)
 	{
