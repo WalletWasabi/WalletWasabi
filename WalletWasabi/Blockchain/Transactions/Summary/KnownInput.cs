@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Blockchain.Transactions.Summary;
@@ -18,6 +19,6 @@ public class KnownInput : IInput
 
 	public BitcoinAddress Address => _coin.ScriptPubKey.GetDestinationAddress(_network)!;
 	public double Anonscore => _coin.HdPubKey.AnonymitySet;
-	public uint Index => _coin.Index;
+	public uint Index => _coin.GetInputIndex();
 	public OutPoint Outpoint => _coin.Outpoint;
 }

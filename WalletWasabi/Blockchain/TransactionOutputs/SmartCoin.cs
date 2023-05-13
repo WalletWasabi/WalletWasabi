@@ -189,6 +189,26 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public override int GetHashCode() => _hashCode.Value;
 
+	internal uint GetInputIndex()
+	{
+		if (SpenderTransaction is null)
+		{
+			throw new InvalidOperationException("This input is unspent.");
+		}
+
+		var inputs = SpenderTransaction.Transaction.Inputs;
+		for (uint i = 0; i < inputs.Count; i++)
+		{
+			var currentInput = inputs[i];
+			if (currentInput.PrevOut == Outpoint)
+			{
+				return i;
+			}
+		}
+
+		throw new NotSupportedException("This is impossible!");
+	}
+
 	public static bool operator ==(SmartCoin? x, SmartCoin? y)
 	{
 		if (ReferenceEquals(x, y))
