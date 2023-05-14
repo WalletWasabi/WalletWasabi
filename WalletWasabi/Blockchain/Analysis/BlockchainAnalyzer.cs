@@ -74,6 +74,13 @@ public class BlockchainAnalyzer
 
 		nonMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
 		nonMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
+
+		// Sanity checks. Never start lower than the lowest inputs anonscore!
+		var minAnonScore = tx.WalletInputs.Min(x => x.AnonymitySet);
+		mixedAnonScore = Math.Max(mixedAnonScore, minAnonScore);
+		mixedAnonScoreSanctioned = Math.Max(mixedAnonScoreSanctioned, minAnonScore);
+		nonMixedAnonScore = Math.Max(nonMixedAnonScore, minAnonScore);
+		nonMixedAnonScoreSanctioned = Math.Max(nonMixedAnonScoreSanctioned, minAnonScore);
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
