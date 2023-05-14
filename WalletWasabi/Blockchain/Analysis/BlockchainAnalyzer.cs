@@ -78,9 +78,7 @@ public class BlockchainAnalyzer
 		// Sanity checks. Never start lower than the lowest inputs anonscore!
 		var minAnonScore = tx.WalletInputs.Min(x => x.AnonymitySet);
 		mixedAnonScore = Math.Max(mixedAnonScore, minAnonScore);
-		mixedAnonScoreSanctioned = Math.Max(mixedAnonScoreSanctioned, minAnonScore);
 		nonMixedAnonScore = Math.Max(nonMixedAnonScore, minAnonScore);
-		nonMixedAnonScoreSanctioned = Math.Max(nonMixedAnonScoreSanctioned, minAnonScore);
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
