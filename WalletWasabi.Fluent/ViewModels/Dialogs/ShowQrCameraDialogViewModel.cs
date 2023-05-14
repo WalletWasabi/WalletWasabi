@@ -1,10 +1,10 @@
 using Avalonia.Media.Imaging;
 using NBitcoin;
+using NBitcoin.Payment;
 using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;
@@ -27,8 +27,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 		UiContext = context;
 	}
 
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
@@ -39,14 +37,24 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.Subscribe(
 				onNext: result =>
 				{
-					if (AddressStringParser.TryParse(result.decoded, _network, out _))
+					if (AddressStringParser.TryParse(result.decoded, _network, out string? errorMessage, out BitcoinUrlBuilder? uriBuilder))
 					{
 						Close(DialogResultKind.Normal, result.decoded);
 					}
 					else
 					{
-						ErrorMessage = "No valid Bitcoin address found";
-						QrContent = result.decoded ?? "";
+						// Remember last error message and last QR content.
+						if (errorMessage is not null)
+						{
+							ErrorMessage = errorMessage;
+						}
+
+						if (!string.IsNullOrEmpty(result.decoded))
+						{
+							QrContent = result.decoded;
+						}
+
+						// ... but show always the current bitmap.
 						QrImage = result.bitmap;
 					}
 				},

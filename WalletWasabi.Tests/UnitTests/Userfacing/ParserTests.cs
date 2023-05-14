@@ -20,71 +20,71 @@ public class ParserTests
 	{
 		var inputsWithoutPorts = new[]
 		{
-				host,
-				$"{host} ",
-				$"bitcoin-p2p://{host}",
-				$"Bitcoin-P2P://{host}",
-				$"tcp://{host}",
-				$"TCP://{host}",
-				$" {host}",
-				$" {host} ",
-				$"{host}:",
-				$"{host}: ",
-				$"{host} :",
-				$"{host} : ",
-				$" {host} : ",
-				$"{host}/",
-				$"{host}/ ",
-				$" {host}/ ",
-			};
+			host,
+			$"{host} ",
+			$"bitcoin-p2p://{host}",
+			$"Bitcoin-P2P://{host}",
+			$"tcp://{host}",
+			$"TCP://{host}",
+			$" {host}",
+			$" {host} ",
+			$"{host}:",
+			$"{host}: ",
+			$"{host} :",
+			$"{host} : ",
+			$" {host} : ",
+			$"{host}/",
+			$"{host}/ ",
+			$" {host}/ ",
+		};
 
 		var inputsWithPorts = new[]
 		{
-				$"{host}:5000",
-				$"bitcoin-p2p://{host}:5000",
-				$"BITCOIN-P2P://{host}:5000",
-				$"tcp://{host}:5000",
-				$"TCP://{host}:5000",
-				$" {host}:5000",
-				$"{host} :5000",
-				$" {host}:5000",
-				$"{host}: 5000",
-				$" {host} : 5000 ",
-				$"{host}/:5000",
-				$"{host}/:5000/",
-				$"{host}/:5000/ ",
-				$"{host}/: 5000/",
-				$"{host}/ :5000/ ",
-				$"{host}/ : 5000/",
-				$"{host}/ : 5000/ ",
-				$"         {host}/              :             5000/           "
-			};
+			$"{host}:5000",
+			$"bitcoin-p2p://{host}:5000",
+			$"BITCOIN-P2P://{host}:5000",
+			$"tcp://{host}:5000",
+			$"TCP://{host}:5000",
+			$" {host}:5000",
+			$"{host} :5000",
+			$" {host}:5000",
+			$"{host}: 5000",
+			$" {host} : 5000 ",
+			$"{host}/:5000",
+			$"{host}/:5000/",
+			$"{host}/:5000/ ",
+			$"{host}/: 5000/",
+			$"{host}/ :5000/ ",
+			$"{host}/ : 5000/",
+			$"{host}/ : 5000/ ",
+			$"         {host}/              :             5000/           "
+		};
 
 		var invalidPortStrings = new[]
 		{
-				"-1",
-				"-5000",
-				"999999999999999999999",
-				"foo",
-				"-999999999999999999999",
-				int.MaxValue.ToString(),
-				uint.MaxValue.ToString(),
-				long.MaxValue.ToString(),
-				"0.1",
-				int.MinValue.ToString(),
-				long.MinValue.ToString(),
-				(ushort.MinValue - 1).ToString(),
-				(ushort.MaxValue + 1).ToString()
-			};
+			"-1",
+			"-5000",
+			"999999999999999999999",
+			"foo",
+			"-999999999999999999999",
+			int.MaxValue.ToString(),
+			uint.MaxValue.ToString(),
+			long.MaxValue.ToString(),
+			"0.1",
+			int.MinValue.ToString(),
+			long.MinValue.ToString(),
+			(ushort.MinValue - 1).ToString(),
+			(ushort.MaxValue + 1).ToString()
+		};
 
 		var validPorts = new[]
 		{
-				0,
-				5000,
-				9999,
-				ushort.MinValue,
-				ushort.MaxValue
-			};
+			0,
+			5000,
+			9999,
+			ushort.MinValue,
+			ushort.MaxValue
+		};
 
 		var inputsWithInvalidPorts = invalidPortStrings.Select(x => $"{host}:{x}").ToArray();
 
@@ -165,20 +165,25 @@ public class ParserTests
 			("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", Network.TestNet),
 		};
 
-		foreach (var test in tests)
+		foreach ((string address, Network network) in tests)
 		{
-			Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(0, 1), test.network, out _));
-			Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(5, 1), test.network, out _));
-			Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(4, "b"), test.network, out _));
+			Assert.False(AddressStringParser.TryParseBitcoinAddress(address.Remove(0, 1), network, out string? errorMessage, out _));
+			Assert.Equal("Failed to parse a Bitcoin address.", errorMessage);
 
-			Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address, null!, out _));
-			Assert.False(AddressStringParser.TryParseBitcoinAddress(null!, test.network, out _));
+			Assert.False(AddressStringParser.TryParseBitcoinAddress(address.Remove(5, 1), network, out errorMessage, out _));
+			Assert.Equal("Failed to parse a Bitcoin address.", errorMessage);
 
-			Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder? result));
-			Assert.Equal(test.address, result!.Address!.ToString());
+			Assert.False(AddressStringParser.TryParseBitcoinAddress(address.Insert(4, "b"), network, out errorMessage, out _));
+			Assert.Equal("Failed to parse a Bitcoin address.", errorMessage);
 
-			Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(0, "   "), test.network, out result));
-			Assert.Equal(test.address.Trim(), result!.Address!.ToString());
+			Assert.False(AddressStringParser.TryParseBitcoinAddress(address, null!, out _));
+			Assert.False(AddressStringParser.TryParseBitcoinAddress(null!, network, out _));
+
+			Assert.True(AddressStringParser.TryParseBitcoinAddress(address, network, out BitcoinUrlBuilder? result));
+			Assert.Equal(address, result!.Address!.ToString());
+
+			Assert.True(AddressStringParser.TryParseBitcoinAddress(address.Insert(0, "   "), network, out result));
+			Assert.Equal(address.Trim(), result!.Address!.ToString());
 		}
 	}
 
