@@ -121,7 +121,10 @@ public class PayjoinTests
 				var paymentOutput = clientTx.Outputs.First(x => x.Value == amountToPay);
 				paymentOutput.Value += (Money)serverCoin.Amount;
 				var newPsbt = PSBT.FromTransaction(clientTx, Network.Main);
+
 				var serverCoinToSign = newPsbt.Inputs.FindIndexedInput(serverCoin.Outpoint);
+				Assert.NotNull(serverCoinToSign);
+
 				serverCoinToSign.UpdateFromCoin(serverCoin);
 				serverCoinToSign.Sign(serverCoinKey);
 				serverCoinToSign.FinalizeInput();
