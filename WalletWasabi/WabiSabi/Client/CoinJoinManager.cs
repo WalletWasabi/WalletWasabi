@@ -492,18 +492,6 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private void FindAndPrisonBannedCoins(IWallet iwallet)
-	{
-		Wallet? wallet = iwallet as Wallet;
-
-		var coinsToPrison = wallet?.Coins.Where(coin => coin.IsBanned) ?? new List<SmartCoin>();
-		foreach (var coin in coinsToPrison)
-		{
-			DateTimeOffset bannedUntil = coin.BannedUntilUtc ?? throw new InvalidOperationException($"Coin was banned but {nameof(coin.BannedUntilUtc)} was null. This is impossible.");
-			PrisonClient.AddCoin(coin, bannedUntil);
-		}
-	}
-
 	/// <summary>
 	/// Mark all the outputs we had in any of our wallets used.
 	/// </summary>

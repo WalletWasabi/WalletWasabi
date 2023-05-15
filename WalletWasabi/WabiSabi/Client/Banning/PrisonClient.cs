@@ -10,6 +10,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 
@@ -107,5 +108,17 @@ public class PrisonClient : PeriodicRunner
 			}
 		}
 		return Task.CompletedTask;
+	}
+
+	public void FindAndPrisonBannedCoins(IWallet iwallet)
+	{
+		Wallet? wallet = iwallet as Wallet;
+
+		var coinsToPrison = wallet?.Coins.Where(coin => coin.IsBanned) ?? new List<SmartCoin>();
+		foreach (var coin in coinsToPrison)
+		{
+			DateTimeOffset bannedUntil = coin.BannedUntilUtc ?? throw new InvalidOperationException($"Coin was banned but {nameof(coin.BannedUntilUtc)} was null. This is impossible.");
+			AddCoin(coin, bannedUntil);
+		}
 	}
 }
