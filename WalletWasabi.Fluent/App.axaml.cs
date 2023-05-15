@@ -45,6 +45,7 @@ public class App : Application
 				
 				_applicationStateManager = new ApplicationStateManager(desktop, uiContext, _startInBg);
 				_bip21Workflow = new Bip21Workflow(uiContext, MainViewModel.Instance.CurrentWallet);
+				_bip21Workflow.RegisterUriHandler();
 
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
@@ -59,7 +60,7 @@ public class App : Application
 
 						if (_bip21Uri is { })
 						{
-							_bip21Workflow.Handle(_bip21Uri);
+							_bip21Workflow.HandleUri(_bip21Uri);
 						}
 					});
 			}

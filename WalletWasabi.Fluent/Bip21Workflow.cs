@@ -1,5 +1,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Runtime.InteropServices;
+using Microsoft.Win32;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SelectWallet;
@@ -11,6 +13,8 @@ namespace WalletWasabi.Fluent;
 
 public class Bip21Workflow
 {
+	private const string UriScheme = "bitcoin";
+
 	private readonly UiContext _uiContext;
 	private readonly IObservable<WalletViewModel> _currentWallet;
 	private string? _uri;
@@ -25,12 +29,42 @@ public class Bip21Workflow
 		Observable
 			.FromEventPattern<string>(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.UriActivated))
 			.Select(static e => e.EventArgs)
-			.Where(static e => Uri.TryCreate(e, UriKind.Absolute, out var uri) && uri.Scheme == "bitcoin")
+			.Where(static e => Uri.TryCreate(e, UriKind.Absolute, out var uri) && uri.Scheme == UriScheme)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(Handle);
+			.Subscribe(HandleUri);
 	}
 
-	public void Handle(string uri)
+	public void RegisterUriHandler()
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			var keyName = "SOFTWARE\\Classes\\" + UriScheme;
+			
+			using (var key = Registry.CurrentUser.OpenSubKey(keyName))
+			{
+				if (key is { })
+				{
+					return;
+				}
+			}
+			
+			using (var key = Registry.CurrentUser.CreateSubKey(keyName))
+			{
+				key.SetValue("", "URL:Bitcoin payments");
+				key.SetValue("URL Protocol", "");
+
+				using var defaultIcon = key.CreateSubKey("DefaultIcon");
+				using var commandKey = key.CreateSubKey(@"shell\open\command");
+
+				var applicationLocation = Environment.ProcessPath;
+
+				defaultIcon.SetValue("", applicationLocation + ",1");
+				commandKey.SetValue("", $@"""{applicationLocation}"" ""%1""");
+			}
+		}
+	}
+
+	public void HandleUri(string uri)
 	{
 		_uri = uri;
 		_walletSelection ??= _uiContext
