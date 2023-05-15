@@ -144,7 +144,8 @@ public static class BitcoinFactory
 
 	public static BitcoinAddress CreateBitcoinAddress(Network network, Key? key = null)
 	{
-		return CreateScript(key).GetDestinationAddress(network);
+		// Segwit script has always a destination address, so it cannot be null.
+		return CreateScript(key).GetDestinationAddress(network)!;
 	}
 
 	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
