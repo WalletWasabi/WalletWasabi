@@ -36,12 +36,11 @@ public class PrisonClient : PeriodicRunner
 	public Guid LastKnownId { get; private set; }
 	public List<PrisonedCoinRecord> PrisonedCoins { get; set; } = new();
 
-	private object Lock { get; } = new object();
+	private object PrisonedCoinsLock { get; } = new object();
 
-	// Remove Try and bool
 	public void AddCoin(SmartCoin coin, DateTimeOffset bannedUntil)
 	{
-		lock (Lock)
+		lock (PrisonedCoinsLock)
 		{
 			if (PrisonedCoins.Any(record => record.Outpoint == coin.Outpoint))
 			{
@@ -91,19 +90,16 @@ public class PrisonClient : PeriodicRunner
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		lock (Lock)
+		lock (PrisonedCoinsLock)
 		{
-			bool shouldWriteToFile = false;
-			if (LastKnownId != ChangeId)
-			{
-				shouldWriteToFile = true;
-			}
+			bool shouldWriteToFile = LastKnownId != ChangeId;
 
 			if (PrisonedCoins.Any(record => DateTime.UtcNow > record.BannedUntil))
 			{
 				PrisonedCoins = PrisonedCoins.Where(record => DateTime.UtcNow < record.BannedUntil).ToList();
 				shouldWriteToFile = true;
 			}
+
 			if (shouldWriteToFile)
 			{
 				LastKnownId = ChangeId;

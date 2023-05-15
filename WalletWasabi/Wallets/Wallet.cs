@@ -577,9 +577,10 @@ public class Wallet : BackgroundService, IWallet
 	private void LoadPrisonedCoinsState()
 	{
 		var prisonedCoinRecords = PrisonClient.PrisonedCoins;
-		foreach (var coin in Coins)
+
+		foreach (var record in prisonedCoinRecords)
 		{
-			if (prisonedCoinRecords.FirstOrDefault(record => record.Outpoint.Equals(coin.Outpoint)) is { } record)
+			if (Coins.FirstOrDefault(coin => coin.Outpoint.Equals(record.Outpoint)) is { } coin)
 			{
 				coin.BannedUntilUtc = record.BannedUntil;
 			}
