@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
@@ -270,7 +271,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
+		if (ApplicationHelper.Clipboard is { } clipboard)
 		{
 			var text = await clipboard.GetTextAsync();
 
