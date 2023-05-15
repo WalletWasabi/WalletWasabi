@@ -1,7 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Affiliation.Models.CoinJoinNotification;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 
@@ -51,9 +53,23 @@ public class BlockchainAnalyzer
 			}
 			else
 			{
-				AnalyzeCoinjoinWalletInputs(tx, out startingOutputAnonset, out double startingOutputAnonsetSanctioned, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned);
+				AnalyzeCoinjoinWalletInputs(
+					tx,
+					out startingOutputAnonset,
+					out double startingOutputAnonsetSanctioned,
+					out double nonMixedAnonScore,
+					out double nonMixedAnonScoreSanctioned,
+					out double halfMixedAnonScore,
+					out double halfMixedAnonScoreSanctioned);
 
-				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, startingOutputAnonsetSanctioned, nonMixedAnonScore, nonMixedAnonScoreSanctioned);
+				AnalyzeCoinjoinWalletOutputs(
+					tx,
+					startingOutputAnonset,
+					startingOutputAnonsetSanctioned,
+					nonMixedAnonScore,
+					nonMixedAnonScoreSanctioned,
+					halfMixedAnonScore,
+					halfMixedAnonScoreSanctioned);
 			}
 
 			AdjustWalletInputs(tx, startingOutputAnonset);
@@ -62,7 +78,14 @@ public class BlockchainAnalyzer
 		AnalyzeClusters(tx);
 	}
 
-	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out double mixedAnonScore, out double mixedAnonScoreSanctioned, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned)
+	private static void AnalyzeCoinjoinWalletInputs(
+		SmartTransaction tx,
+		out double mixedAnonScore,
+		out double mixedAnonScoreSanctioned,
+		out double nonMixedAnonScore,
+		out double nonMixedAnonScoreSanctioned,
+		out double halfMixedAnonScore,
+		out double halfMixedAnonScoreSanctioned)
 	{
 		CoinjoinAnalyzer cjAnal = new(tx);
 
@@ -72,8 +95,33 @@ public class BlockchainAnalyzer
 		mixedAnonScore = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
 		mixedAnonScoreSanctioned = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.WeightedAverage), x.Amount)));
 
+		// Calculate punishment to the smallest anonscore input.
 		nonMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
 		nonMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
+
+		// Calculate punishment to the smallest anonscore input from the largest inputs.
+		var ourLargeHdPubKeys = new HashSet<HdPubKey>();
+		for (uint i = 0; i < tx.Transaction.Inputs.Count; i++)
+		{
+			var currentInput = tx.Transaction.Inputs[i];
+			var ourInput = tx.WalletInputs.FirstOrDefault(x => x.Outpoint == currentInput.PrevOut);
+			if (ourInput is null)
+			{
+				// Don't look more.
+				break;
+			}
+			else
+			{
+				ourLargeHdPubKeys.Add(ourInput.HdPubKey);
+			}
+		}
+
+		halfMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		halfMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
+
+		// Make sure to not give more than the weighted average would.
+		halfMixedAnonScore = Math.Min(halfMixedAnonScore, mixedAnonScore);
+		halfMixedAnonScoreSanctioned = Math.Min(halfMixedAnonScoreSanctioned, mixedAnonScoreSanctioned);
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
@@ -112,7 +160,14 @@ public class BlockchainAnalyzer
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingMixedOutputAnonsetSanctioned, double startingNonMixedOutputAnonset, double startingNonMixedOutputAnonsetSanctioned)
+	private void AnalyzeCoinjoinWalletOutputs(
+		SmartTransaction tx,
+		double startingMixedOutputAnonset,
+		double startingMixedOutputAnonsetSanctioned,
+		double startingNonMixedOutputAnonset,
+		double startingNonMixedOutputAnonsetSanctioned,
+		double startingHalfMixedOutputAnonset,
+		double startingHalfMixedOutputAnonsetSanctioned)
 	{
 		var foreignInputCount = tx.ForeignInputs.Count;
 		long largestEqualForeignOutputAmount = CalculateLargestEqualForeignOutputAmount(tx);
@@ -126,10 +181,18 @@ public class BlockchainAnalyzer
 			if (!tx.ForeignVirtualOutputs.Any(x => x.Amount == virtualOutput.Amount))
 			{
 				// When WW2 denom output isn't too large, then it's not change.
-				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount <= largestEqualForeignOutputAmount)
+				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi))
 				{
-					startingOutputAnonset = startingMixedOutputAnonset;
-					startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
+					if (virtualOutput.Amount <= largestEqualForeignOutputAmount)
+					{
+						startingOutputAnonset = startingMixedOutputAnonset;
+						startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
+					}
+					else
+					{
+						startingOutputAnonset = startingHalfMixedOutputAnonset;
+						startingOutputAnonsetSanctioned = startingHalfMixedOutputAnonsetSanctioned;
+					}
 				}
 				else
 				{
