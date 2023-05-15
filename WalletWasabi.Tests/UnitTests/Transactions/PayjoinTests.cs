@@ -54,7 +54,7 @@ public class PayjoinTests
 		Task.FromResult(new HttpResponseMessage(statusCode)
 		{
 			ReasonPhrase = "",
-			Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}")
+			Content = new StringContent($$"""{"errorCode": "{{errorCode}}", "message": "{{description}}"}""")
 		});
 
 	[Fact]
