@@ -134,8 +134,8 @@ public class PayjoinTests
 		var payjoinClient = NewPayjoinClient(mockHttpClient.Object);
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 		{
-				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
-			});
+			("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+		});
 
 		var allowedCoins = transactionFactory.Coins.ToArray();
 
@@ -155,7 +155,7 @@ public class PayjoinTests
 		transactionFactory = ServiceFactory.CreateTransactionFactory(
 			new[]
 			{
-					("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			},
 			watchOnly: true);
 		allowedCoins = transactionFactory.Coins.ToArray();
