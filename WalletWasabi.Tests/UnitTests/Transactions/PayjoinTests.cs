@@ -12,6 +12,7 @@ using WalletWasabi.Tests.Helpers;
 using Moq;
 using WalletWasabi.Tor.Http;
 using System.Threading;
+using System.Net.Mime;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -46,7 +47,7 @@ public class PayjoinTests
 		var psbt = PSBT.Parse(body, Network.Main);
 		var newPsbt = transformPsbt(psbt);
 		var message = new HttpResponseMessage(statusCode);
-		message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
+		message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, MediaTypeNames.Text.Plain);
 		return message;
 	}
 
