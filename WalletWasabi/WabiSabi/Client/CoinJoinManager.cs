@@ -446,7 +446,7 @@ public class CoinJoinManager : BackgroundService
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 
-		FindAndPrisonBannedCoins(wallet);
+		PrisonClient.FindAndPrisonBannedCoins(wallet);
 
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
