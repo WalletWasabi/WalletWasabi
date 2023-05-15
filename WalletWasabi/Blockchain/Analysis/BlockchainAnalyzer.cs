@@ -114,20 +114,21 @@ public class BlockchainAnalyzer
 
 	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingMixedOutputAnonsetSanctioned, double startingNonMixedOutputAnonset, double startingNonMixedOutputAnonsetSanctioned)
 	{
-		var virtualOutputValues = tx
-			.WalletVirtualOutputs
-			.Select(x => x.Amount.Satoshi)
-			.Concat(tx.ForeignVirtualOutputs.Select(x => x.Amount.Satoshi))
-			.OrderByDescending(x => x)
-			.ToArray();
-
-		var secondLargestOutputAmount = virtualOutputValues.Take(2).LastOrDefault();
-		if (secondLargestOutputAmount == default)
-		{
-			secondLargestOutputAmount = Constants.MaximumNumberOfSatoshis;
-		}
-
 		var foreignInputCount = tx.ForeignInputs.Count;
+
+		var largestEqualForeignOutputAmount = tx
+			.ForeignVirtualOutputs
+			.Select(x => x.Amount.Satoshi)
+			.GroupBy(x => x)
+			.ToDictionary(x => x.Key, y => y.Count())
+			.Select(x => (x.Key, x.Value))
+			.Where(x => x.Value > 1)
+			.FirstOrDefault().Key;
+
+		if (largestEqualForeignOutputAmount == default)
+		{
+			largestEqualForeignOutputAmount = Constants.MaximumNumberOfSatoshis;
+		}
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
@@ -138,7 +139,7 @@ public class BlockchainAnalyzer
 			if (!tx.ForeignVirtualOutputs.Any(x => x.Amount == virtualOutput.Amount))
 			{
 				// When WW2 denom output isn't too large, then it's not change.
-				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
+				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount <= largestEqualForeignOutputAmount)
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 					startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
