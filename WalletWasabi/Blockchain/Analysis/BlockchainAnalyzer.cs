@@ -115,20 +115,7 @@ public class BlockchainAnalyzer
 	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingMixedOutputAnonsetSanctioned, double startingNonMixedOutputAnonset, double startingNonMixedOutputAnonsetSanctioned)
 	{
 		var foreignInputCount = tx.ForeignInputs.Count;
-
-		var largestEqualForeignOutputAmount = tx
-			.ForeignVirtualOutputs
-			.Select(x => x.Amount.Satoshi)
-			.GroupBy(x => x)
-			.ToDictionary(x => x.Key, y => y.Count())
-			.Select(x => (x.Key, x.Value))
-			.Where(x => x.Value > 1)
-			.FirstOrDefault().Key;
-
-		if (largestEqualForeignOutputAmount == default)
-		{
-			largestEqualForeignOutputAmount = Constants.MaximumNumberOfSatoshis;
-		}
+		long largestEqualForeignOutputAmount = CalculateLargestEqualForeignOutputAmount(tx);
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
@@ -199,6 +186,25 @@ public class BlockchainAnalyzer
 				}
 			}
 		}
+	}
+
+	private static long CalculateLargestEqualForeignOutputAmount(SmartTransaction tx)
+	{
+		var largestEqualForeignOutputAmount = tx
+			.ForeignVirtualOutputs
+			.Select(x => x.Amount.Satoshi)
+			.GroupBy(x => x)
+			.ToDictionary(x => x.Key, y => y.Count())
+			.Select(x => (x.Key, x.Value))
+			.Where(x => x.Value > 1)
+			.FirstOrDefault().Key;
+
+		if (largestEqualForeignOutputAmount == default)
+		{
+			largestEqualForeignOutputAmount = Constants.MaximumNumberOfSatoshis;
+		}
+
+		return largestEqualForeignOutputAmount;
 	}
 
 	/// <summary>
