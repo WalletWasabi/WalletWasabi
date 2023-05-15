@@ -7,7 +7,7 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
 /// <summary>Implemented as specified in <c>4.1.1. Circuit status changed</c> spec.</summary>
 /// <remarks>
-/// Note that the <see cref="CircuitID"/> and <see cref="CircStatus"/> are then only mandatory
+/// Note that the <see cref="CircuitID"/> and <see cref="CircuitStatus"/> are then only mandatory
 /// fields in <c>GETINFO circuit-status</c> reply.
 /// </remarks>
 public record CircuitInfo
@@ -15,7 +15,7 @@ public record CircuitInfo
 	public CircuitInfo(string circuitID, CircuitStatus circuitStatus)
 	{
 		CircuitID = circuitID;
-		CircStatus = circuitStatus;
+		CircuitStatus = circuitStatus;
 	}
 
 	/// <summary>Unique circuit identifier.</summary>
@@ -25,7 +25,7 @@ public record CircuitInfo
 	/// </remarks>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.4. General-use tokens</seealso>
 	public string CircuitID { get; }
-	public CircuitStatus CircStatus { get; }
+	public CircuitStatus CircuitStatus { get; }
 	public List<CircuitPath> CircuitPaths { get; init; } = new();
 	public List<BuildFlag> BuildFlags { get; init; } = new();
 	public Purpose? Purpose { get; init; }
@@ -176,7 +176,7 @@ public record CircuitInfo
 		string args = string.Join(
 			separator: ", ",
 			$"{nameof(CircuitID)}='{CircuitID}'",
-			$"{nameof(CircStatus)}={CircStatus}",
+			$"{nameof(CircuitStatus)}={CircuitStatus}",
 			$"{nameof(RendQuery)}={RendQuery ?? "null"}",
 			$"{nameof(TimeCreated)}={TimeCreated ?? "null"}",
 			$"{nameof(Purpose)}={(Purpose.HasValue ? Purpose : "null")}",
