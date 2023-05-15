@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Userfacing;
 public class AddressStringParserTests
 {
 	[Fact]
-	public void BitcoinAddressParserTests()
+	public void TryParseBitcoinAddressTests()
 	{
 		(string address, Network network)[] tests = new[]
 		{
@@ -42,7 +42,7 @@ public class AddressStringParserTests
 	}
 
 	[Fact]
-	public void BitcoinUriParserTests()
+	public void TryParseBitcoinUrlTests()
 	{
 		string[] invalidUriTests = new[]
 		{
