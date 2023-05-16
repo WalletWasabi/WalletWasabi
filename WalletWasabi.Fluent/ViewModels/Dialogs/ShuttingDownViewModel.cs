@@ -11,7 +11,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 	private readonly ApplicationViewModel _applicationViewModel;
 	private readonly bool _restart;
 
-	public ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
+	private ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
 	{
 		_applicationViewModel = applicationViewModel;
 		_restart = restart;

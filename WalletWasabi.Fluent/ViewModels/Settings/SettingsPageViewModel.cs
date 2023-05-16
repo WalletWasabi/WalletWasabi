@@ -27,7 +27,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
 
-	public SettingsPageViewModel()
+	private SettingsPageViewModel()
 	{
 		_selectedTab = 0;
 

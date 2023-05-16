@@ -28,7 +28,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 
-	public RecoverWalletViewModel(string walletName)
+	private RecoverWalletViewModel(string walletName)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 

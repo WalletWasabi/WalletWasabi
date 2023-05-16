@@ -28,7 +28,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+	private SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 	{
 		_isSilent = isSilent;
 		IsBusy = isSilent;

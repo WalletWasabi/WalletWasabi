@@ -28,7 +28,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-	public ReceiveViewModel(Wallet wallet)
+	private ReceiveViewModel(Wallet wallet)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

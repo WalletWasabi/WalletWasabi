@@ -25,7 +25,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	[AutoNotify] private bool _existingWalletFound;
 	[AutoNotify] private bool _confirmationRequired;
 
-	public ConnectHardwareWalletViewModel(string walletName)
+	private ConnectHardwareWalletViewModel(string walletName)
 	{
 		_message = "";
 		WalletName = walletName;

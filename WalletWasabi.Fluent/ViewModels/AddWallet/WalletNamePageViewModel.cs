@@ -23,7 +23,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	private readonly string? _importFilePath;
 	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 
-	public WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
+	private WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
 	{
 		_importFilePath = importFilePath;
 

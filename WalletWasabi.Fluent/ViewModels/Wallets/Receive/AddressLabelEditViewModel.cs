@@ -13,7 +13,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _isCurrentTextValid;
 
-	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
+	private AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{
 		var wallet = new WalletModel(owner.Wallet);
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, hdPubKey.Label);

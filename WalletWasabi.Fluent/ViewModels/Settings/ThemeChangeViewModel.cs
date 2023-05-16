@@ -12,7 +12,7 @@ public partial class ThemeChangeViewModel : RoutableViewModel
 {
 	private readonly Theme _newTheme;
 
-	public ThemeChangeViewModel(Theme newTheme)
+	private ThemeChangeViewModel(Theme newTheme)
 	{
 		_newTheme = newTheme;
 	}

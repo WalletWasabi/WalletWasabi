@@ -14,7 +14,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 {
 	private readonly KeyManager _keyManager;
 
-	public AddedWalletPageViewModel(KeyManager keyManager)
+	private AddedWalletPageViewModel(KeyManager keyManager)
 	{
 		_keyManager = keyManager;
 		WalletName = _keyManager.WalletName;

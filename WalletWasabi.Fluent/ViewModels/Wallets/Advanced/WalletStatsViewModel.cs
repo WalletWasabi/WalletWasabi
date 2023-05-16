@@ -36,7 +36,7 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _nonCoinjointransactionCount;
 	[AutoNotify] private int _coinjoinTransactionCount;
 
-	public WalletStatsViewModel(WalletViewModel walletViewModel)
+	private WalletStatsViewModel(WalletViewModel walletViewModel)
 	{
 		_wallet = walletViewModel.Wallet;
 		_walletViewModel = walletViewModel;

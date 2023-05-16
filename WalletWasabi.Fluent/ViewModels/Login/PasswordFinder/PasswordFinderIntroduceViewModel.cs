@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 [NavigationMetaData(Title = "Password Finder")]
 public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 {
-	public PasswordFinderIntroduceViewModel(IWalletModel wallet)
+	private PasswordFinderIntroduceViewModel(IWalletModel wallet)
 	{
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

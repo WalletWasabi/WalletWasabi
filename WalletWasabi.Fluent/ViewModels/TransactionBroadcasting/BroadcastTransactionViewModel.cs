@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 [NavigationMetaData(Title = "Broadcast Transaction")]
 public partial class BroadcastTransactionViewModel : RoutableViewModel
 {
-	public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
+	private BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 	{
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
