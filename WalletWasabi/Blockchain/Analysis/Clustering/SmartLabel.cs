@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering;
 public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLabel>, IReadOnlyCollection<string>
 {
 	private readonly string[]? _labels;
-	
+
 	public SmartLabel(params string[] labels) : this(labels as IEnumerable<string>)
 	{
 	}
@@ -37,7 +37,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 	{
 		const string Separator = ", ";
 		int length = 0;
-		
+
 		foreach (var label in this)
 		{
 			length += label.Length + Separator.Length;
@@ -47,7 +47,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		{
 			return string.Empty;
 		}
-		
+
 		return string.Create(length - Separator.Length, this, static (span, self) =>
 		{
 			var index = 0;
@@ -58,7 +58,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 				index += label.Length;
 
 				if (index < span.Length)
-				{					
+				{
 					Separator.CopyTo(span[index..]);
 					index += Separator.Length;
 				}
@@ -69,7 +69,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 	public override int GetHashCode()
 	{
 		var hashCode = new HashCode();
-		
+
 		foreach (var label in this)
 		{
 			hashCode.Add(label);
@@ -109,7 +109,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		// if SequenceCompareTo is accepted and implemented`.
 		var thisLabels = AsSpan();
 		var otherLabels = other.AsSpan();
-		
+
 		return CompareToSlow(
 			ref MemoryMarshal.GetReference(thisLabels),
 			thisLabels.Length,
@@ -120,24 +120,24 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		static int CompareToSlow(ref string first, int firstLength, ref string second, int secondLength, IComparer<string> comparer)
 		{
 			int minLength = firstLength;
-            if (minLength > secondLength)
+			if (minLength > secondLength)
 			{
-                minLength = secondLength;
+				minLength = secondLength;
 			}
-			
-            for (int i = 0; i < minLength; i++)
-            {
-                int result = comparer.Compare(
+
+			for (int i = 0; i < minLength; i++)
+			{
+				int result = comparer.Compare(
 					Unsafe.Add(ref first, i),
 					Unsafe.Add(ref second, i));
-					
-                if (result != 0)
+
+				if (result != 0)
 				{
-                    return result;
+					return result;
 				}
-            }
-			
-            return firstLength.CompareTo(secondLength);
+			}
+
+			return firstLength.CompareTo(secondLength);
 		}
 	}
 
@@ -155,7 +155,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 
 	private IEnumerator<string> GetEnumeratorAllocating() =>
 		(_labels ?? Enumerable.Empty<string>()).GetEnumerator();
-	
+
 	public static SmartLabel Merge(params SmartLabel[] labels) =>
 		Merge(labels as IEnumerable<SmartLabel>);
 

@@ -615,7 +615,7 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
-	
+
 	public Height GetBestTurboSyncHeight()
 	{
 		lock (CriticalStateLock)
@@ -647,7 +647,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.TurboSyncHeight = height;
-			
+
 			if (toFile)
 			{
 				ToFile();
@@ -695,7 +695,7 @@ public class KeyManager
 			}
 		}
 	}
-	
+
 	public void SetIcon(string icon)
 	{
 		Icon = icon;
