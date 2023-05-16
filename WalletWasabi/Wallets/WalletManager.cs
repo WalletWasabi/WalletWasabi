@@ -226,7 +226,15 @@ public class WalletManager : IWalletProvider
 			wallet = new Wallet(WorkDir, Network, walletFullPath);
 		}
 
-		AddWallet(wallet);
+		try
+		{
+			AddWallet(wallet);
+		}
+		catch (Exception)
+		{
+			wallet.Dispose();
+			throw;
+		}
 	}
 
 	private void AddWallet(Wallet wallet)
