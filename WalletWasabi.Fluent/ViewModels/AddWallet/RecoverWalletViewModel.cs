@@ -97,7 +97,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					return result;
 				});
 
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
+			await Navigate().To().CoinJoinProfiles(keyManager, isNewWallet: true).GetResultAsync();
 		}
 		catch (Exception ex)
 		{

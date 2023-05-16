@@ -155,7 +155,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			IsFixedAmount = true,
 		};
 
-		Navigate().To(new TransactionPreviewViewModel(_walletVm, info));
+		Navigate().To().TransactionPreview(_walletVm, info);
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)

@@ -159,7 +159,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
 				});
 			IsBusy = false;
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+			await Navigate().To().CoinJoinProfiles(km, true).GetResultAsync();
 		}
 	}
 

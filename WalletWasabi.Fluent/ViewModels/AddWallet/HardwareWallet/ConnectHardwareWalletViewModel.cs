@@ -180,7 +180,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void NavigateToNext(HwiEnumerateEntry device)
 	{
-		Navigate().To(new DetectedHardwareWalletViewModel(WalletName, device));
+		Navigate().To().DetectedHardwareWallet(WalletName, device);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

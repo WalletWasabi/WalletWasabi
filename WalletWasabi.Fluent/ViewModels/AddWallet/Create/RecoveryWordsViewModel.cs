@@ -37,7 +37,7 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 	private void OnNext(Mnemonic mnemonic, string walletName)
 	{
-		Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, mnemonic, walletName));
+		Navigate().To().ConfirmRecoveryWords(MnemonicWords, mnemonic, walletName);
 	}
 
 	private void OnCancel()

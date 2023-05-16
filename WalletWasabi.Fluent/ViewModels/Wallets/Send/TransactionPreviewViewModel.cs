@@ -177,7 +177,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (saved)
 			{
-				Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				Navigate().To().Success("The PSBT has been successfully created.");
 			}
 		}
 	}
@@ -454,7 +454,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource?.Cancel();
-				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
+				Navigate().To().SendSuccess(_wallet, finalTransaction);
 			}
 			catch (Exception ex)
 			{

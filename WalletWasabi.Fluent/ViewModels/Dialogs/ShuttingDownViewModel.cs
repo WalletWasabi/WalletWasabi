@@ -5,7 +5,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Please wait to shut down...")]
+[NavigationMetaData(Title = "Please wait to shut down...", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ShuttingDownViewModel : RoutableViewModel
 {
 	private readonly ApplicationViewModel _applicationViewModel;

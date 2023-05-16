@@ -86,7 +86,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			Navigate().To().AddedWalletPage(keyManager);
 		}
 		else
 		{

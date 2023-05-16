@@ -219,14 +219,14 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 				}
 			}
 
-			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
+			Navigate().To().WalletInfo(this);
 		});
 
-		WalletStatsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(this));
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(UiContext, this)));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate().To().WalletCoins(this));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 

@@ -97,7 +97,7 @@ public partial class MainViewModel : ViewModelBase
 			{
 				IsOobeBackgroundVisible = true;
 
-				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+				await UiContext.Navigate().To().WelcomePage(_addWalletPage).GetResultAsync();
 
 				if (Services.WalletManager.HasWallet())
 				{

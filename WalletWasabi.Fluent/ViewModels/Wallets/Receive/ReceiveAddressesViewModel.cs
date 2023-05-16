@@ -159,6 +159,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	public void NavigateToAddressEdit(HdPubKey hdPubKey, KeyManager keyManager)
 	{
-		Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(this, hdPubKey, keyManager));
+		Navigate().To().AddressLabelEdit(this, hdPubKey, keyManager);
 	}
 }
