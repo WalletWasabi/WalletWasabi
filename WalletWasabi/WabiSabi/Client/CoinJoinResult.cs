@@ -14,3 +14,7 @@ public record SuccessfulCoinJoinResult(
 public record FailedCoinJoinResult : CoinJoinResult;
 
 public record DisruptedCoinJoinResult(ImmutableList<SmartCoin> SignedCoins) : CoinJoinResult;
+
+public record NotEndedCoinJoinResult(
+	ImmutableList<SmartCoin> Coins,
+	ImmutableList<Script> OutputScripts) : CoinJoinResult;

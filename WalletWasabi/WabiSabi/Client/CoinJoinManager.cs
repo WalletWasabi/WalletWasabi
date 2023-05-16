@@ -405,6 +405,12 @@ public class CoinJoinManager : BackgroundService
 				await MarkDestinationsUsedAsync(successfulCoinjoin.OutputScripts).ConfigureAwait(false);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
+			else if (result is NotEndedCoinJoinResult notEndedCoinJoin)
+			{
+				CoinRefrigerator.Freeze(notEndedCoinJoin.Coins);
+				await MarkDestinationsUsedAsync(notEndedCoinJoin.OutputScripts).ConfigureAwait(false);
+				wallet.LogWarning($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was signed but not ended.");
+			}
 			else
 			{
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");

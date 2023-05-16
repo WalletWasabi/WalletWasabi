@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -199,6 +200,9 @@ public class CoinJoinClient
 				case FailedCoinJoinResult failure:
 					return failure;
 
+				case NotEndedCoinJoinResult notEnded:
+					return notEnded;
+
 				default:
 					throw new InvalidOperationException("The coinjoin result type was not handled.");
 			}
@@ -247,7 +251,19 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+
+			try
+			{
+				roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
+				return new NotEndedCoinJoinResult(
+					Coins: signedCoins,
+					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
+			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
 
@@ -266,7 +282,6 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
 
 			return roundState.EndRoundState switch
 			{
