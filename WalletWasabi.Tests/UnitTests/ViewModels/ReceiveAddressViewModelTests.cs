@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
@@ -64,14 +65,14 @@ public class ReceiveAddressViewModelTests
 
 	private static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
-		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>());
+		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), Mock.Of<IWalletListModel>());
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
 	}
 
 	private static UiContext ContextWith(IClipboard clipboard)
 	{
-		var contextWith = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), clipboard);
+		var contextWith = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), clipboard, Mock.Of<IWalletListModel>());
 		contextWith.RegisterNavigation(Mock.Of<INavigate>());
 		return contextWith;
 	}
@@ -93,6 +94,16 @@ public class ReceiveAddressViewModelTests
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
 
+		public bool IsLoggedIn => throw new NotImplementedException();
+
+		public IObservable<WalletState> State => throw new NotImplementedException();
+
+		bool IWalletModel.IsHardwareWallet => throw new NotImplementedException();
+
+		public bool IsWatchOnlyWallet => throw new NotImplementedException();
+
+		public WalletType WalletType => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
@@ -106,6 +117,21 @@ public class ReceiveAddressViewModelTests
 		public bool IsHardwareWallet()
 		{
 			return false;
+		}
+
+		public Task<WalletLoginResult> TryLoginAsync(string password)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Login()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Logout()
+		{
+			throw new NotImplementedException();
 		}
 	}
 
