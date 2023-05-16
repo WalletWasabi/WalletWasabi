@@ -190,6 +190,7 @@ public class WalletManager : IWalletProvider
 		return wallet;
 	}
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The catch block executes only when wallet is null.")]
 	private void AddWallet(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
@@ -226,15 +227,7 @@ public class WalletManager : IWalletProvider
 			wallet = new Wallet(WorkDir, Network, walletFullPath);
 		}
 
-		try
-		{
-			AddWallet(wallet);
-		}
-		catch (Exception)
-		{
-			wallet.Dispose();
-			throw;
-		}
+		AddWallet(wallet);
 	}
 
 	private void AddWallet(Wallet wallet)
