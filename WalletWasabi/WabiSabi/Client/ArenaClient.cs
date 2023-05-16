@@ -1,11 +1,11 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
+using NBitcoin;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;

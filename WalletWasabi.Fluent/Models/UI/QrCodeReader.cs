@@ -1,14 +1,14 @@
-using Avalonia.Media.Imaging;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Runtime.InteropServices;
-using ZXing.QrCode;
-using SkiaSharp;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using QRackers.Capturing;
 using QRackers.Capturing.Utilities;
+using SkiaSharp;
+using ZXing.QrCode;
 
 namespace WalletWasabi.Fluent.Models.UI;
 

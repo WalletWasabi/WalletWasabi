@@ -1,6 +1,6 @@
-using NBitcoin;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client;

@@ -1,5 +1,3 @@
-using NBitcoin;
-using Nito.AsyncEx;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -7,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 

@@ -1,8 +1,8 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;

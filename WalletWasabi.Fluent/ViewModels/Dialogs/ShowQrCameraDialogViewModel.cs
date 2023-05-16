@@ -1,10 +1,10 @@
-using Avalonia.Media.Imaging;
-using NBitcoin;
-using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using Avalonia.Media.Imaging;
+using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;

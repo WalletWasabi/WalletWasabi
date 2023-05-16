@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Caching.Memory;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Cache;

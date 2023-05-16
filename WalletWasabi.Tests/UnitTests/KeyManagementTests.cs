@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using NBitcoin;
 using System.IO;
 using System.Linq;
 using System.Security;
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;

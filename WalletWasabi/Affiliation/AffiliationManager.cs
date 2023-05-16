@@ -1,14 +1,14 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net.Http;
-using WalletWasabi.Affiliation.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Tor.Http;
 using Microsoft.Extensions.Hosting;
+using WalletWasabi.Affiliation.Models;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.Affiliation;
 

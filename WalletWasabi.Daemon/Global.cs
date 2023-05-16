@@ -1,17 +1,18 @@
 using System;
 using System.IO;
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
-using Nito.AsyncEx;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
+using Nito.AsyncEx;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -31,7 +32,6 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Blockchain.BlockFilters;
 
 namespace WalletWasabi.Daemon;
 

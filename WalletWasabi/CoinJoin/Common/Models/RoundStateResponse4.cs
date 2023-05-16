@@ -1,7 +1,7 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models;

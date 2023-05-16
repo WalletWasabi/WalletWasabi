@@ -1,6 +1,6 @@
-using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.Tests.Helpers;

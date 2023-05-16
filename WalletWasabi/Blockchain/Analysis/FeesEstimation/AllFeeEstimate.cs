@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;

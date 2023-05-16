@@ -1,11 +1,11 @@
-using Moq;
-using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NBitcoin;
+using NBitcoin.Crypto;
+using NBitcoin.RPC;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;

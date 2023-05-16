@@ -1,9 +1,9 @@
-using NBitcoin;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;

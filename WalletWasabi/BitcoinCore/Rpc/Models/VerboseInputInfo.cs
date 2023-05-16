@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
+using NBitcoin;
 
 namespace WalletWasabi.BitcoinCore.Rpc.Models;
 

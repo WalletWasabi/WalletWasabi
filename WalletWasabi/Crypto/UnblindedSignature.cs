@@ -89,7 +89,7 @@ public class UnblindedSignature
 			throw new ArgumentException(paramName: nameof(out64), message: "out64 must be 64 bytes");
 		}
 
-		C.WriteToSpan(out64.Slice(0, 32));
+		C.WriteToSpan(out64[..32]);
 		S.WriteToSpan(out64.Slice(32, 32));
 	}
 

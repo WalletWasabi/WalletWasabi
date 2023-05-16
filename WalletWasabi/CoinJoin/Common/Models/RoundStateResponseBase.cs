@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 
