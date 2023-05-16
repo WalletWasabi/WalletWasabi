@@ -23,13 +23,13 @@ public class UnblindedSignature
 			return false;
 		}
 
-		var c = new Scalar(in64.Slice(0, 32), out int overflow);
+		var c = new Scalar(in64[0..32], out int overflow);
 		if (c.IsZero || overflow != 0)
 		{
 			return false;
 		}
 
-		var s = new Scalar(in64.Slice(32, 32), out overflow);
+		var s = new Scalar(in64[32..64], out overflow);
 		if (s.IsZero || overflow != 0)
 		{
 			return false;
