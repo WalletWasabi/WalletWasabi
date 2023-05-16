@@ -48,9 +48,9 @@
         
         <c:PreviewItem Icon="{StaticResource btc_logo}"
                        Label="Fee"
-                       CopyableContent="{Binding Fee}">
+                       CopyableContent="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
           <c:PrivacyContentControl>
-            <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFee}}" Classes="monoSpaced" />
+            <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}}" Classes="monoSpaced" />
           </c:PrivacyContentControl>
         </c:PreviewItem>
 
