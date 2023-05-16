@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using NBitcoin.RPC;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -138,6 +142,29 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							response = await WasabiClient
 								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
+
+							if (response.FiltersCompressed is { })
+							{
+								using MemoryStream inputStream = new MemoryStream(response.FiltersCompressed);
+								using MemoryStream outputStream = new MemoryStream();
+								using (DeflateStream deflateStream = new DeflateStream(inputStream, CompressionMode.Decompress))
+								{
+									await deflateStream.CopyToAsync(outputStream).ConfigureAwait(false);
+								}
+
+								string stringFilters = Encoding.UTF8.GetString(outputStream.ToArray());
+								var filters = new List<FilterModel>();
+								foreach (var filter in stringFilters.Split("\n"))
+								{
+									if (filter != "")
+									{
+										filters.Add(FilterModel.FromLine(filter));
+									}
+								}
+
+								response.Filters = filters;
+								response.FiltersCompressed = null;
+							}
 
 							// NOT GenSocksServErr
 							BackendStatus = BackendStatus.Connected;

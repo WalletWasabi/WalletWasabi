@@ -37,7 +37,7 @@ public class WasabiClient
 	/// </remarks>
 	public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
 	{
-		string relativeUri = $"api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
+		string relativeUri = $"api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}&zipResponse=true";
 		if (estimateMode is { })
 		{
 			relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";

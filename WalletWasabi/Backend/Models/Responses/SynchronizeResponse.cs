@@ -14,6 +14,7 @@ public class SynchronizeResponse
 	[JsonProperty(ItemConverterType = typeof(FilterModelJsonConverter))] // Do not use the default jsonifyer, because that's too much data.
 	public IEnumerable<FilterModel> Filters { get; set; } = new List<FilterModel>();
 
+	public byte[]? FiltersCompressed { get; set; }
 	public int BestHeight { get; set; }
 
 	public IEnumerable<RoundStateResponseBase> CcjRoundStates { get; set; } = new List<RoundStateResponseBase>();

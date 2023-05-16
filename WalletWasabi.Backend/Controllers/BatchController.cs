@@ -3,7 +3,10 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -42,6 +45,7 @@ public class BatchController : ControllerBase
 		[FromQuery, Required] int maxNumberOfFilters,
 		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
 		[FromQuery] string? indexType = null,
+		[FromQuery] bool? zipResponse = null,
 		CancellationToken cancellationToken = default)
 	{
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
@@ -79,7 +83,24 @@ public class BatchController : ControllerBase
 		else
 		{
 			response.FiltersResponseState = FiltersResponseState.NewFilters;
-			response.Filters = filters;
+			if (zipResponse.GetValueOrDefault())
+			{
+				var filtersString = filters.Aggregate("", (current, filter) => current + (filter.ToLine() + "\n"));
+				var filtersBytes = Encoding.UTF8.GetBytes(filtersString);
+				await using MemoryStream outputStream = new();
+				await using (DeflateStream deflateStream = new(outputStream, CompressionMode.Compress))
+				{
+					await deflateStream.WriteAsync(filtersBytes, cancellationToken).ConfigureAwait(false);
+				}
+
+				response.FiltersCompressed = outputStream.ToArray();
+				Logger.LogWarning($"Non compressed filters size: {filtersBytes.LongLength}");
+				Logger.LogWarning($"Compressed filters size: {response.FiltersCompressed.LongLength}");
+			}
+			else
+			{
+				response.Filters = filters;
+			}
 		}
 
 		response.CcjRoundStates = ChaumianCoinJoinController.GetStatesCollection();
