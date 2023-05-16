@@ -1,4 +1,4 @@
-name: Verify Format
+name: Formatting
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  format:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
