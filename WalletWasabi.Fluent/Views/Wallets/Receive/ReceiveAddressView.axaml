@@ -8,7 +8,7 @@
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
-  <c:ContentArea Title="Addresses Awaiting Payment"
+  <c:ContentArea Title="Address Awaiting Payment"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
