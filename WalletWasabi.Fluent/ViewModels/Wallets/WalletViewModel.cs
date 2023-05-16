@@ -204,7 +204,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(Wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(Wallet));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{

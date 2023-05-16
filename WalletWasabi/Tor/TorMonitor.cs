@@ -145,7 +145,7 @@ public class TorMonitor : PeriodicRunner
 				{
 					CircuitInfo info = circEvent.CircuitInfo;
 
-					if (!circuitEstablished && (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT))
+					if (!circuitEstablished && (info.CircuitStatus is CircuitStatus.BUILT or CircuitStatus.EXTENDED or CircuitStatus.GUARD_WAIT))
 					{
 						Logger.LogInfo("Tor circuit was established.");
 						circuitEstablished = true;
