@@ -1,17 +1,17 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using NBitcoin;
+using Newtonsoft.Json;
+using WalletWasabi.Affiliation;
+using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
-using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Affiliation.Serialization;
 
 namespace WalletWasabi.WabiSabi.Backend;
 

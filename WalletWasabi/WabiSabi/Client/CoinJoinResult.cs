@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Collections.Immutable;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.WabiSabi.Client;

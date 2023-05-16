@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Collections;
 using System.ComponentModel;
+using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 

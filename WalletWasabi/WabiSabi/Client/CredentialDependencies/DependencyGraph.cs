@@ -1,8 +1,8 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Models;
 

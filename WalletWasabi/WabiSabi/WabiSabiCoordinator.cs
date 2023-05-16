@@ -1,11 +1,11 @@
-using Microsoft.Extensions.Hosting;
-using NBitcoin;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using NBitcoin;
 using WalletWasabi.Affiliation;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;

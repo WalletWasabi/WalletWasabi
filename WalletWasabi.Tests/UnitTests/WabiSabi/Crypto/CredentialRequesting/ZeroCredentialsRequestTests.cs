@@ -1,5 +1,5 @@
-using NBitcoin.Secp256k1;
 using System.Linq;
+using NBitcoin.Secp256k1;
 using WabiSabi;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;

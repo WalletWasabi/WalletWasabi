@@ -1,10 +1,10 @@
-using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.Crypto;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;

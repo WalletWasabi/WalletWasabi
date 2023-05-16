@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.Cache;
 using WalletWasabi.Logging;
 using Xunit;

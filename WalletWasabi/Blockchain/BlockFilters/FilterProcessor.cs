@@ -1,8 +1,8 @@
-using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
