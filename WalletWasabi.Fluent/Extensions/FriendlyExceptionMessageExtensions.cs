@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
@@ -26,7 +25,7 @@ public static class FriendlyExceptionMessageExtensions
 		return ex switch
 		{
 			HwiException hwiEx => GetFriendlyHwiExceptionMessage(hwiEx),
-			HttpRequestException httpEx => GetFriendlyHttpRequestExceptionMessage(httpEx),
+			HttpRequestException => "Something went wrong. Please try again.",
 			UnauthorizedAccessException => "Wasabi was unable to perform this action due to a lack of permission.",
 			_ => ex.Message
 		};
@@ -40,15 +39,6 @@ public static class FriendlyExceptionMessageExtensions
 			HwiErrorCode.ActionCanceled => "The transaction was canceled on the device.",
 			HwiErrorCode.UnknownError => "Unknown error. Make sure the device is connected and isn't busy, then try again.",
 			_ => hwiEx.Message
-		};
-	}
-
-	private static string GetFriendlyHttpRequestExceptionMessage(HttpRequestException httpEx)
-	{
-		return httpEx.StatusCode switch
-		{
-			HttpStatusCode.BadRequest => "An unexpected network error occured. Try again.",
-			_ => httpEx.Message
 		};
 	}
 
