@@ -159,8 +159,8 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-		Settings = new WalletSettingsViewModel(this);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
+		Settings = new WalletSettingsViewModel(UiContext, this);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, this);
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(UiContext, this);
 

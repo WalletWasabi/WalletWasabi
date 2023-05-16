@@ -57,8 +57,8 @@ public partial class MainViewModel : ViewModelBase
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
-		_addWalletPage = new AddWalletPageViewModel();
-		_settingsPage = new SettingsPageViewModel();
+		_addWalletPage = new AddWalletPageViewModel(UiContext);
+		_settingsPage = new SettingsPageViewModel(UiContext);
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(UiContext);
 
@@ -217,9 +217,9 @@ public partial class MainViewModel : ViewModelBase
 			return _settingsPage;
 		});
 
-		AboutViewModel.RegisterLazy(() => new AboutViewModel());
-		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
+		AboutViewModel.RegisterLazy(() => new AboutViewModel(UiContext));
+		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(UiContext));
+		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(UiContext));
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
@@ -263,7 +263,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new WalletStatsViewModel(walletViewModel);
+				return new WalletStatsViewModel(UiContext, walletViewModel);
 			}
 
 			return null;
@@ -286,7 +286,7 @@ public partial class MainViewModel : ViewModelBase
 						}
 					}
 
-					return new WalletInfoViewModel(walletViewModel);
+					return new WalletInfoViewModel(UiContext, walletViewModel);
 				}
 
 				return AuthorizeWalletInfo();
@@ -312,7 +312,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new ReceiveViewModel(walletViewModel.Wallet);
+				return new ReceiveViewModel(UiContext, walletViewModel.Wallet);
 			}
 
 			return null;

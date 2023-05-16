@@ -205,7 +205,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
 			? new CustomFeeRateDialogViewModel(_info)
-			: new SendFeeViewModel(_wallet, _info, false);
+			: new SendFeeViewModel(UiContext, _wallet, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
@@ -265,7 +265,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (_info.FeeRate == FeeRate.Zero)
 		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(UiContext, _wallet, _info, true));
 			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 			{
 				_info.FeeRate = newFeeRate;
