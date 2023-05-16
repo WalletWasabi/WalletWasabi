@@ -31,8 +31,10 @@ public static class WabiSabiFactory
 {
 	public static Coin CreateCoin(Key? key = null, Money? amount = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope
 		key ??= new();
 		amount ??= Money.Coins(1);
+#pragma warning restore CA2000
 		return new(
 			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes().Concat(BitConverter.GetBytes(amount)).ToArray()), 0),
 			new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
@@ -40,7 +42,9 @@ public static class WabiSabiFactory
 
 	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope
 		key ??= new();
+#pragma warning restore CA2000
 		var coin = CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
 		var ownershipProof = CreateOwnershipProof(key, roundId);
