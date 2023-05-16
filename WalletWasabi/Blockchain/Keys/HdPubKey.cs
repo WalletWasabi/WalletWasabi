@@ -39,7 +39,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 		Index = (int)FullKeyPath.Indexes[4];
 		NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
-		
+
 		int change = (int)FullKeyPath.Indexes[3];
 		if (change == 0)
 		{

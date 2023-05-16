@@ -60,7 +60,7 @@ namespace ZXing
                 return binarizer.Width;
             }
         }
-        
+
         /// <returns>
         /// The height of the bitmap.
         /// </returns>
