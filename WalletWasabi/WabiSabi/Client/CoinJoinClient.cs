@@ -403,7 +403,7 @@ public class CoinJoinClient
 					case WabiSabiProtocolErrorCode.WrongPhase:
 						if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 						{
-							roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Abort the rest of the registrations.Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
+							roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
 							if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 							{
 								// Cancel all remaining pending input registrations because they will arrive late too.
