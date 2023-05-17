@@ -203,12 +203,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 			return item.Id == txid;
 		});
 
-		if (txnItem is { })
+		if (txnItem is { } && Source.RowSelection is { } selection)
 		{
+			// Clear the selection so re-selection will work.
+			Dispatcher.UIThread.Post(() => selection.Clear());
+
 			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
 			// Selecting first the root item, then the child solves the issue.
 			var index = _transactions.IndexOf(txnItem);
-			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
+			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
 			    cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
@@ -217,7 +220,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				child.IsFlashing = true;
 
 				var childIndex = cjGroup.Children.IndexOf(child);
-				Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index, childIndex));
+				Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index, childIndex));
 			}
 			else
 			{
