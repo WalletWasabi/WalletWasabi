@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
@@ -111,7 +112,7 @@ public class BlockchainAnalyzer
 		halfMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
 		halfMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
 
-		// Make sure to not give more than the weighted average would.
+		// Sanity check: make sure to not give more than the weighted average would.
 		halfMixedAnonScore = Math.Min(halfMixedAnonScore, mixedAnonScore);
 		halfMixedAnonScoreSanctioned = Math.Min(halfMixedAnonScoreSanctioned, mixedAnonScoreSanctioned);
 	}
@@ -171,7 +172,7 @@ public class BlockchainAnalyzer
 		StartingAnonScores startingAnonScores)
 	{
 		var foreignInputCount = tx.ForeignInputs.Count;
-		long largestEqualForeignOutputAmount = CalculateLargestEqualForeignOutputAmount(tx);
+		long? maxAmountWeightedAverageIsApplicableFor = null;
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
@@ -183,7 +184,12 @@ public class BlockchainAnalyzer
 				// When WW2 denom output isn't too large, then it's not change.
 				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi))
 				{
-					if (virtualOutput.Amount <= largestEqualForeignOutputAmount)
+					if (maxAmountWeightedAverageIsApplicableFor is null && !TryGetLargestEqualForeignOutputAmount(tx, out maxAmountWeightedAverageIsApplicableFor))
+					{
+						maxAmountWeightedAverageIsApplicableFor = Constants.MaximumNumberOfSatoshis;
+					}
+
+					if (virtualOutput.Amount <= maxAmountWeightedAverageIsApplicableFor)
 					{
 						startingOutputAnonset = startingAnonScores.WeightedAverage;
 					}
@@ -247,9 +253,9 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private static long CalculateLargestEqualForeignOutputAmount(SmartTransaction tx)
+	private static bool TryGetLargestEqualForeignOutputAmount(SmartTransaction tx, [NotNullWhen(true)] out long? largestEqualForeignOutputAmount)
 	{
-		var largestEqualForeignOutputAmount = tx
+		var found = tx
 			.ForeignVirtualOutputs
 			.Select(x => x.Amount.Satoshi)
 			.GroupBy(x => x)
@@ -258,12 +264,9 @@ public class BlockchainAnalyzer
 			.Where(x => x.Value > 1)
 			.FirstOrDefault().Key;
 
-		if (largestEqualForeignOutputAmount == default)
-		{
-			largestEqualForeignOutputAmount = Constants.MaximumNumberOfSatoshis;
-		}
+		largestEqualForeignOutputAmount = found == default ? null : found;
 
-		return largestEqualForeignOutputAmount;
+		return largestEqualForeignOutputAmount is not null;
 	}
 
 	/// <summary>
