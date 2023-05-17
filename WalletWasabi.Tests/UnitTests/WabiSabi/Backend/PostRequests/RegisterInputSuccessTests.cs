@@ -1,7 +1,7 @@
-using System.Linq;
+using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
+using System.Linq;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;

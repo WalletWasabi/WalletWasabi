@@ -1,13 +1,13 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using NBitcoin;
 using WalletWasabi.Wallets;
+using System.Reactive.Disposables;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 

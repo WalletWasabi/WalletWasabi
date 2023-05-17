@@ -1,8 +1,8 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;

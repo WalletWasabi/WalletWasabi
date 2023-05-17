@@ -1,7 +1,7 @@
+using NBitcoin;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using NBitcoin;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore.Endpointing;

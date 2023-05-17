@@ -1,6 +1,6 @@
-using System.Text;
 using Newtonsoft.Json;
 using WalletWasabi.Affiliation.Serialization;
+using System.Text;
 
 namespace WalletWasabi.Affiliation.Models.CoinJoinNotification;
 

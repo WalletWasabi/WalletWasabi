@@ -1,9 +1,9 @@
-using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Styling;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.Controls;
 

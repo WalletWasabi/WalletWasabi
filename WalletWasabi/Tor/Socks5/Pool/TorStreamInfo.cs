@@ -1,4 +1,4 @@
-using WalletWasabi.Tor.Control.Messages.StreamStatus;
+﻿using WalletWasabi.Tor.Control.Messages.StreamStatus;
 
 namespace WalletWasabi.Tor.Socks5.Pool;
 

@@ -1,8 +1,8 @@
+using Newtonsoft.Json;
+using Nito.AsyncEx;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Nito.AsyncEx;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers;

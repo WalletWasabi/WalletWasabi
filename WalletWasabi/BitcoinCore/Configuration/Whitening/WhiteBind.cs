@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.BitcoinCore.Configuration.Whitening;
 

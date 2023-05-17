@@ -1,6 +1,6 @@
-using System.Linq;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
+using System.Linq;
 using WabiSabi.Crypto;
 using WalletWasabi.JsonConverters;
 

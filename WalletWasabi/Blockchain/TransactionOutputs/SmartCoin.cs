@@ -1,11 +1,11 @@
+using NBitcoin;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Models;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 

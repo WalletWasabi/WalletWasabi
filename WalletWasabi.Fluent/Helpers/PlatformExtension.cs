@@ -1,9 +1,9 @@
-using System.Globalization;
+using Avalonia.Markup.Xaml;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Data.Core;
-using Avalonia.Markup.Xaml;
 using Avalonia.Utilities;
+using System.Globalization;
 
 namespace WalletWasabi.Fluent.Helpers;
 
