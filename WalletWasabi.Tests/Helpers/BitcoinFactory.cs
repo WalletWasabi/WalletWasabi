@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -14,19 +15,19 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class BitcoinFactory
 {
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
-		=> CreateSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount));
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0, bool orderByAmount = false)
+		=> CreateSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount), orderByAmount);
 
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs, bool orderByAmount = false)
 	{
 		var km = ServiceFactory.CreateKeyManager();
-		return CreateSmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))));
+		return CreateSmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), orderByAmount);
 	}
 
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
-		=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key())), ownInputs, ownOutputs);
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount = false)
+		=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key())), ownInputs, ownOutputs, orderByAmount);
 
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<TxOut> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<TxOut> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount)
 	{
 		var tx = Transaction.Create(Network.Main);
 		var walletInputs = new HashSet<SmartCoin>();
@@ -42,20 +43,37 @@ public static class BitcoinFactory
 			tx.Inputs.Add(sc.Outpoint);
 			walletInputs.Add(sc);
 		}
+
+		var outputs = new List<(TxOut txout, (int anonset, HdPubKey hdpk)? own)>();
 		foreach (var output in othersOutputs)
 		{
-			tx.Outputs.Add(output);
+			outputs.Add((output, null));
+		}
+
+		foreach (var output in ownOutputs)
+		{
+			outputs.Add((new TxOut(output.value, output.hdpk.P2wpkhScript), (output.anonset, output.hdpk)));
+		}
+
+		if (orderByAmount)
+		{
+			outputs = outputs.OrderByDescending(x => x.txout.Value).ToList();
 		}
 
 		var stx = new SmartTransaction(tx, Height.Mempool);
-		var idx = (uint)othersOutputs.Count() - 1;
-		foreach (var txo in ownOutputs)
+		var idx = 0u;
+		foreach (var output in outputs)
 		{
+			tx.Outputs.Add(output.txout);
+
+			if (output.own is not null)
+			{
+				var hdpk = output.own.Value.hdpk;
+				var sc = new SmartCoin(stx, idx, hdpk);
+				walletOutputs.Add(sc);
+			}
+
 			idx++;
-			var hdpk = txo.hdpk;
-			tx.Outputs.Add(new TxOut(txo.value, hdpk.P2wpkhScript));
-			var sc = new SmartCoin(stx, idx, hdpk);
-			walletOutputs.Add(sc);
 		}
 
 		foreach (var sc in walletInputs)
