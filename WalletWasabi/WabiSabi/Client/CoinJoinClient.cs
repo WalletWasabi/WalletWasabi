@@ -221,7 +221,7 @@ public class CoinJoinClient
 		var waitRoundEndedTask = Task.Run(async () =>
 		{
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitRoundEndedTaskCts.Token, cancellationToken);
-			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, linkedCts.Token).ConfigureAwait(false);
+			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.Ended, linkedCts.Token).ConfigureAwait(false);
 
 			// Indicate that the round was ended. Cancel ongoing operations those are using this CTS.
 			roundEndedCts.Cancel();
