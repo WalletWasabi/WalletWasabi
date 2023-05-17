@@ -40,6 +40,9 @@ public class Program
 			builder.Services.AddControllers().AddNewtonsoftJson(x =>
 			{
 				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+			}).ConfigureApiBehaviorOptions(options =>
+			{
+				options.SuppressModelStateInvalidFilter = true;
 			});
 			builder.Services.AddSingleton<Global>(global);
 #if (DEBUG)

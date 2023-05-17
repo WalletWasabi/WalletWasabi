@@ -56,5 +56,56 @@
         }
       ]
     }
+  },
+  {
+    "name": "",
+    "request": {
+      "transactions": [
+        {
+          "internalInputs": [
+            {
+              "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+              "value": 20000000
+            }
+          ],
+          "externalInputs": [],
+          "internalOutputs": [],
+          "externalOutputs": []
+        }
+      ]
+    },
+    "expectedStatusCode": 500,
+    "expectedResponse": {
+      "description": "There is an internal input that references a non-existing transaction."
+    }
+  },
+  {
+    "name": "",
+    "request": {},
+    "expectedStatusCode": 500,
+    "expectedResponse": {
+      "description": "The Transactions field is required."
+    }
+  },
+  {
+    "name": "",
+    "request": {
+      "transactions": [
+        {
+          "internalInputs": [
+            {
+              "value": ""
+            }
+          ],
+          "externalInputs": [],
+          "internalOutputs": [],
+          "externalOutputs": []
+        }
+      ]
+    },
+    "expectedStatusCode": 500,
+    "expectedResponse": {
+      "description": "Unable to cast object of type 'System.String' to type 'System.Nullable`1[System.Int64]'."
+    }
   }
 ]

@@ -9,6 +9,7 @@ namespace WalletWasabi.WabiSabiClientLibrary.Controllers;
 
 [ApiController]
 [ExceptionTranslateFilter]
+[ValidationFilter]
 [Produces("application/json")]
 public class Controller : ControllerBase, IDisposable
 {
