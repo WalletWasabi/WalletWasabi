@@ -49,6 +49,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		Auth = new WalletAuthModel(this, _wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
+		Settings = new WalletSettingsModel(_wallet);
 
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.Where(x => x)
@@ -60,6 +61,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IWalletAuthModel Auth { get; }
 
 	public IWalletLoadWorkflow Loader { get; }
+
+	public IWalletSettingsModel Settings { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
