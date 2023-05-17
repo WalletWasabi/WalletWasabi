@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Models;

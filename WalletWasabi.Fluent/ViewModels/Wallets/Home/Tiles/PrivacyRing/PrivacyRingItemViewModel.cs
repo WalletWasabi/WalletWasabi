@@ -1,7 +1,7 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Media;
 using NBitcoin;
-using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;

@@ -1,13 +1,13 @@
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using NBitcoin.Protocol.Connectors;
-using NBitcoin.Socks;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+using NBitcoin.Protocol.Connectors;
+using NBitcoin.Socks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi;

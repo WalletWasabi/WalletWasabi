@@ -1,10 +1,10 @@
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Generators;
 using Avalonia.Styling;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Behaviors;

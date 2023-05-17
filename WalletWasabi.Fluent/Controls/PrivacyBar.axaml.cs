@@ -1,7 +1,7 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
-using System.Linq;
 
 namespace WalletWasabi.Fluent.Controls;
 

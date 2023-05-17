@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Collections.Generic;
+using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
 

@@ -29,6 +29,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		set => SetAndRaise(IsFlyoutOpenProperty, ref _isFlyoutOpen, value);
 	}
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject?.GetVisualRoot() is not Control visualRoot)

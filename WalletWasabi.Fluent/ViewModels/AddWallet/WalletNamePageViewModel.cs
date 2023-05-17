@@ -1,18 +1,18 @@
-using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Validation;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
+using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Helpers;
-using NBitcoin;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 

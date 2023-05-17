@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;

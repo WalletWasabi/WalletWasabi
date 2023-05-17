@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;

@@ -1,5 +1,3 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -7,6 +5,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
+using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
@@ -393,15 +393,6 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
-	{
-		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		lock (CriticalStateLock)
-		{
-			return HdPubKeyCache.GetView(keySource.KeyPath);
-		}
-	}
-
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
 		lock (CriticalStateLock)
@@ -624,7 +615,7 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
-	
+
 	public Height GetBestTurboSyncHeight()
 	{
 		lock (CriticalStateLock)
@@ -656,7 +647,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.TurboSyncHeight = height;
-			
+
 			if (toFile)
 			{
 				ToFile();
@@ -704,7 +695,7 @@ public class KeyManager
 			}
 		}
 	}
-	
+
 	public void SetIcon(string icon)
 	{
 		Icon = icon;

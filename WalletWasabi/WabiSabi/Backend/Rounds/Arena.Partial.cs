@@ -1,19 +1,19 @@
-using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
+using NBitcoin;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
+using WalletWasabi.Affiliation;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
+using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Events;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Logging;
-using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Events;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 

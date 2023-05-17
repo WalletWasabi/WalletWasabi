@@ -1,10 +1,10 @@
-using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.Protocol;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.Crypto;
+using NBitcoin.Protocol;
 
 namespace WalletWasabi.Helpers;
 

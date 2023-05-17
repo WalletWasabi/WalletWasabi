@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -24,7 +24,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 				  .ObserveOn(RxApp.MainThreadScheduler)
 				  .Subscribe(_ =>
 				  {
-					  if (_applicationViewModel.CanShutdown(_restart))
+					  if (_applicationViewModel.CoinJoinCanShutdown())
 					  {
 						  Navigate().Clear();
 						  _applicationViewModel.Shutdown(_restart);
