@@ -37,8 +37,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			return;
 		}
 
-		var flyoutBase = FlyoutBase.GetAttachedFlyout(AssociatedObject) as PopupFlyoutBase;
-		if (flyoutBase is null)
+		if (FlyoutBase.GetAttachedFlyout(AssociatedObject) is not PopupFlyoutBase flyoutBase)
 		{
 			return;
 		}
