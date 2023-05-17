@@ -1,10 +1,10 @@
+using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;

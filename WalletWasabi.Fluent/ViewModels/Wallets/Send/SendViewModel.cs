@@ -25,6 +25,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using WalletWasabi.Fluent.Infrastructure;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 

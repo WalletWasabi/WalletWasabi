@@ -1,12 +1,6 @@
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,6 +8,12 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;

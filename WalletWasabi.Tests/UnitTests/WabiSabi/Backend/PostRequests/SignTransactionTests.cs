@@ -1,7 +1,7 @@
+using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;

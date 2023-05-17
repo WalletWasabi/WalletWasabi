@@ -1,11 +1,11 @@
+using ReactiveUI;
 using System.Windows.Input;
 using Avalonia;
-using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.CrashReport.ViewModels;
 

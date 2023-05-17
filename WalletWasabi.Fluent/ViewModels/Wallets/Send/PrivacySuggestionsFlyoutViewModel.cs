@@ -1,3 +1,5 @@
+using Nito.AsyncEx;
+using ReactiveUI;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -5,8 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
-using Nito.AsyncEx;
-using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;

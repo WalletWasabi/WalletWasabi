@@ -1,10 +1,10 @@
+using NBitcoin;
+using NBitcoin.DataEncoders;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.DataEncoders;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;

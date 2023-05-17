@@ -1,7 +1,7 @@
+using Moq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
 using WalletWasabi.Helpers.PowerSaving;
 using WalletWasabi.Microservices;
 using Xunit;

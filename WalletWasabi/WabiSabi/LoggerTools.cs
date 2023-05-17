@@ -1,5 +1,5 @@
-using System.Runtime.CompilerServices;
 using NBitcoin;
+using System.Runtime.CompilerServices;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;

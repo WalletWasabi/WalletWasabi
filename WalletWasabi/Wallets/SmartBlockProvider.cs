@@ -1,8 +1,8 @@
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using WalletWasabi.Cache;
 
 namespace WalletWasabi.Wallets;

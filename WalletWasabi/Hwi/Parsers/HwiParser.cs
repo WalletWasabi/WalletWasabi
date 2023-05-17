@@ -1,9 +1,9 @@
+using NBitcoin;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using NBitcoin;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
