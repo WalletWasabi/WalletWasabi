@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -32,16 +33,37 @@ public static class BitcoinFactory
 		var tx = Transaction.Create(Network.Main);
 		var walletInputs = new HashSet<SmartCoin>();
 		var walletOutputs = new HashSet<SmartCoin>();
+
+		var othersOutputSum = othersOutputs.Sum(x => x.Value);
+		List<(Money value, int anonset, HdPubKey hdpk)> remainingOwnInputs = ownInputs.ToList();
+		if (orderByAmount)
+		{
+			remainingOwnInputs = ownInputs.OrderByDescending(x => x.value).ToList();
+
+			// If our input is larger than everyone else's outputs sum, then we know it's the largest input and so it can be added to the beginning.
+			foreach (var input in remainingOwnInputs)
+			{
+				if (input.value > othersOutputSum)
+				{
+					AddInput(tx, walletInputs, input.value, input.anonset, input.hdpk);
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			remainingOwnInputs = remainingOwnInputs.Skip(tx.Inputs.Count).ToList();
+		}
+
 		for (int i = 0; i < othersInputCount; i++)
 		{
 			tx.Inputs.Add(CreateOutPoint());
 		}
 
-		foreach (var (value, anonset, hdpk) in ownInputs)
+		foreach (var (value, anonset, hdpk) in remainingOwnInputs)
 		{
-			var sc = CreateSmartCoin(hdpk, value, anonymitySet: anonset);
-			tx.Inputs.Add(sc.Outpoint);
-			walletInputs.Add(sc);
+			AddInput(tx, walletInputs, value, anonset, hdpk);
 		}
 
 		var outputs = new List<(TxOut txout, (int anonset, HdPubKey hdpk)? own)>();
@@ -85,6 +107,13 @@ public static class BitcoinFactory
 			stx.TryAddWalletOutput(sc);
 		}
 		return stx;
+	}
+
+	private static void AddInput(Transaction tx, HashSet<SmartCoin> walletInputs, Money value, int anonset, HdPubKey hdpk)
+	{
+		var sc = CreateSmartCoin(hdpk, value, anonymitySet: anonset);
+		tx.Inputs.Add(sc.Outpoint);
+		walletInputs.Add(sc);
 	}
 
 	public static HdPubKey CreateHdPubKey(KeyManager km)
