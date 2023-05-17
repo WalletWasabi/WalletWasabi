@@ -258,6 +258,33 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
+	public void InputMergeNonStandardChange()
+	{
+		// Input merging and non-standard change results in maximum anonymity punishment.
+		var analyzer = new BlockchainAnalyzer();
+
+		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 1) };
+		var othersOutputCount = 9;
+
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			9,
+			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
+			ownInputs,
+			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(0.3m), HdPubKey.DefaultHighAnonymitySet) });
+
+		analyzer.Analyze(tx);
+
+		var active = tx.WalletOutputs.MaxBy(x => x.Amount)!;
+		var change = tx.WalletOutputs.MinBy(x => x.Amount)!;
+
+		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
+		var maxPunishment = ownInputs.Min(x => x.Item2);
+
+		Assert.Equal(weightedAverage + othersOutputCount, active.AnonymitySet, precision: 0);
+		Assert.Equal(maxPunishment, change.AnonymitySet, precision: 0);
+	}
+
+	[Fact]
 	public void SiblingCoinjoinDoesntContributeToAnonScore()
 	{
 		var tx1 = new AnalyzedTransaction();
