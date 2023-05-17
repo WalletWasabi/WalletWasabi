@@ -1,6 +1,6 @@
-using NBitcoin;
 using System.IO;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 

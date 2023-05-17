@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.Affiliation.Models.CoinJoinNotification;
 using WalletWasabi.Affiliation.Extensions;
+using WalletWasabi.Affiliation.Models.CoinJoinNotification;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Affiliation;

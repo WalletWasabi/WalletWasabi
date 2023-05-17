@@ -1,12 +1,12 @@
-using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
-using System.Runtime.Serialization;
-using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Fluent;
 

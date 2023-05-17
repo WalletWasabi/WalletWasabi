@@ -1,9 +1,9 @@
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
 using ReactiveUI;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.Behaviors;
 

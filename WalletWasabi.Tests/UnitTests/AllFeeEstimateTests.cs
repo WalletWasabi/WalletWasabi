@@ -1,17 +1,17 @@
-using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
-using Moq;
-using System.Threading;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
 

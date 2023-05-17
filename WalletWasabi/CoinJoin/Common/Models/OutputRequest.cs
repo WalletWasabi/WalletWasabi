@@ -1,8 +1,8 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
+using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto;
 using WalletWasabi.JsonConverters;
 

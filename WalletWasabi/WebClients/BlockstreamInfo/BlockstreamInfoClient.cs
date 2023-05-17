@@ -1,10 +1,10 @@
-using NBitcoin;
-using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;

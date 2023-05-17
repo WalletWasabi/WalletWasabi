@@ -1,7 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;

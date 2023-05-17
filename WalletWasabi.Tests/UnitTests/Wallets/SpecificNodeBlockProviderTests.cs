@@ -1,8 +1,8 @@
-using Moq;
-using NBitcoin;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NBitcoin;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.BlockProvider;

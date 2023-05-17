@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
