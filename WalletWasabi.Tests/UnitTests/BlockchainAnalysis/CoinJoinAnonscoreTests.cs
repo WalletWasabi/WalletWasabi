@@ -315,7 +315,7 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
-	public void InputLargeUniqueDenom()
+	public void InputMergeLargeUniqueDenom()
 	{
 		// nput merging and large unique denomination in WW2 results in maximum anonymity punishment.
 		var analyzer = new BlockchainAnalyzer();
