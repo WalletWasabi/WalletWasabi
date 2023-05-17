@@ -189,14 +189,9 @@ public class BlockchainAnalyzer
 						maxAmountWeightedAverageIsApplicableFor = Constants.MaximumNumberOfSatoshis;
 					}
 
-					if (virtualOutput.Amount <= maxAmountWeightedAverageIsApplicableFor)
-					{
-						startingOutputAnonset = startingAnonScores.WeightedAverage;
-					}
-					else
-					{
-						startingOutputAnonset = startingAnonScores.BigInputMinimum;
-					}
+					startingOutputAnonset = virtualOutput.Amount <= maxAmountWeightedAverageIsApplicableFor
+						? startingAnonScores.WeightedAverage
+						: startingAnonScores.BigInputMinimum;
 				}
 				else
 				{
