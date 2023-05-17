@@ -1,16 +1,16 @@
+using WalletWasabi.Affiliation.Models;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using WalletWasabi.Affiliation.Models;
+using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.Affiliation;
 

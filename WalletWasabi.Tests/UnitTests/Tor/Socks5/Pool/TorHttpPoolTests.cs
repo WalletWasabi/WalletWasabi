@@ -1,3 +1,4 @@
+using Moq;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -5,7 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;

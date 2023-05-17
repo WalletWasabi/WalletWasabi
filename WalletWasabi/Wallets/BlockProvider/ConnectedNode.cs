@@ -1,7 +1,7 @@
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Wallets.BlockProvider;

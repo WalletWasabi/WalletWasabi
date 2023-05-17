@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Transactions;

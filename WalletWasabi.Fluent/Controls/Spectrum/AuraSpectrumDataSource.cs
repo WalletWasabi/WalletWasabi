@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.Controls.Spectrum;
+﻿namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class AuraSpectrumDataSource : SpectrumDataSource
 {

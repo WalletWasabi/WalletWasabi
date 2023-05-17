@@ -1,6 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using NBitcoin;
+using System.Linq;
+using System.Collections.Generic;
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.WabiSabi.Client;

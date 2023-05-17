@@ -1,18 +1,18 @@
+using NBitcoin;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using WabiSabi.Crypto.ZeroKnowledge;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
-using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using System.Linq;
+using WalletWasabi.Extensions;
+using System.Net.Http;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -92,15 +92,15 @@ public class AliceClient
 		}
 		catch (Exception) when (aliceClient is { })
 		{
-			var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+            var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
-			// We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
-			if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
-			{
-				// Unregistering coins is only possible before connection confirmation phase.
-				await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-			}
-			throw;
+            // We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
+            if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
+            {
+                // Unregistering coins is only possible before connection confirmation phase.
+                await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
+            }
+            throw;
 		}
 
 		return aliceClient;

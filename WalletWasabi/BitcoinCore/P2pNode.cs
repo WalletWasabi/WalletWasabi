@@ -1,8 +1,8 @@
+using NBitcoin;
+using NBitcoin.Protocol;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.Protocol;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Mempool;
