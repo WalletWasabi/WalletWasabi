@@ -205,23 +205,24 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		if (txnItem is { })
 		{
-			txnItem.IsFlashing = true;
+			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
+			// Selecting first the root item, then the child solves the issue.
 			var index = _transactions.IndexOf(txnItem);
-			IndexPath indexPath;
+			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
-			    cjGroup.CoinJoinTransactions.FirstOrDefault(x => x.TransactionId == txid) is { } child)
+			    cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
 			{
 				txnItem.IsExpanded = true;
-				var childIndex = cjGroup.CoinJoinTransactions.IndexOf(child);
-				indexPath = new IndexPath(index, childIndex);
+				child.IsFlashing = true;
+
+				var childIndex = cjGroup.Children.IndexOf(child);
+				Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index, childIndex));
 			}
 			else
 			{
-				indexPath = new IndexPath(index);
+				txnItem.IsFlashing = true;
 			}
-
-			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = indexPath);
 		}
 	}
 
