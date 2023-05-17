@@ -1,6 +1,6 @@
+using System.ComponentModel;
 using NBitcoin;
 using Newtonsoft.Json;
-using System.ComponentModel;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;

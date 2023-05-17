@@ -21,7 +21,7 @@ public class JsonRpcServiceMetadataProvider
 		new();
 
 	private MethodInfo? _initializer = null;
-	
+
 	public JsonRpcServiceMetadataProvider(Type serviceType)
 	{
 		ServiceType = serviceType;
@@ -54,10 +54,10 @@ public class JsonRpcServiceMetadataProvider
 		info = _initializer;
 		return info is not null;
 	}
-	
+
 	private void LoadServiceMetadata()
 	{
-		_initializer = GetInitializationMethod();	
+		_initializer = GetInitializationMethod();
 		foreach (var info in EnumerateServiceInfo())
 		{
 			_proceduresDirectory.Add(info.Name, info);

@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.Helpers;
 

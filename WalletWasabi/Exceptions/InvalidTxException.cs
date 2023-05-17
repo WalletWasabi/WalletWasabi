@@ -1,7 +1,7 @@
-using NBitcoin;
-using NBitcoin.Policy;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin;
+using NBitcoin.Policy;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Exceptions;

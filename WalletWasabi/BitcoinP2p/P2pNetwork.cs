@@ -1,13 +1,13 @@
-using Microsoft.Extensions.Hosting;
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;

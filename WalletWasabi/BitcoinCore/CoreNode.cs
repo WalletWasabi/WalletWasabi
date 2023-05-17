@@ -1,13 +1,13 @@
-using NBitcoin;
-using NBitcoin.DataEncoders;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.DataEncoders;
+using NBitcoin.Protocol;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.BitcoinCore.Processes;

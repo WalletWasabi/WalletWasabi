@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
 using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Backend.Models;
 using Xunit;

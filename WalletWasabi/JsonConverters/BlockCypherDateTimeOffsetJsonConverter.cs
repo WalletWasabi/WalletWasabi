@@ -1,5 +1,5 @@
-using Newtonsoft.Json;
 using System.Globalization;
+using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters;
 

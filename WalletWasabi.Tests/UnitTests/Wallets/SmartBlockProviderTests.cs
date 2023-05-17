@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using Moq;
+using NBitcoin;
 using WalletWasabi.Wallets;
 using Xunit;
 

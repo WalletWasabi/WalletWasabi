@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
 using Xunit;

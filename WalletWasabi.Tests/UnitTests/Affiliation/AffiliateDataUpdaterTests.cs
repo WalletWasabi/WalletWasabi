@@ -19,21 +19,20 @@ public class AffiliateDataUpdaterTests
 	[Fact]
 	public async Task GetCoinJoinRequestTestAsync()
 	{
-		var trezorClient = new AffiliateHttpClient("http://trezor.io")
-		{
-			OnSendAsync = async (message, token) =>
+		var trezorClient = new AffiliateHttpClient(
+			"http://trezor.io",
+			async (message, token) =>
 			{
 				var requestText = await message.Content?.ReadAsStringAsync(token)!;
 				Assert.Contains("\"is_affiliated\":true", requestText);
 				HttpResponseMessage okResponse = new(HttpStatusCode.OK);
 				okResponse.Content = new StringContent("{ \"affiliate_data\":\"010203040506\" }");
 				return okResponse;
-			}
-		};
+			});
 
-		var btcpayClient = new AffiliateHttpClient("http://btcpayserver.julio.net")
-		{
-			OnSendAsync = async (message, token) =>
+		var btcpayClient = new AffiliateHttpClient(
+			"http://btcpayserver.julio.net",
+			async (message, token) =>
 			{
 				var requestText = await message.Content?.ReadAsStringAsync(token)!;
 				Assert.DoesNotContain("\"is_affiliated\":true", requestText);
@@ -41,8 +40,7 @@ public class AffiliateDataUpdaterTests
 				HttpResponseMessage okResponse = new(HttpStatusCode.OK);
 				okResponse.Content = new StringContent("{}");
 				return okResponse;
-			}
-		};
+			});
 
 		Dictionary<string, AffiliateServerHttpApiClient> servers = new()
 		{
@@ -111,14 +109,15 @@ public class AffiliateDataUpdaterTests
 
 	public class AffiliateHttpClient : IHttpClient
 	{
-		public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync;
-
-		public AffiliateHttpClient(string server)
+		public AffiliateHttpClient(string server, Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync)
 		{
 			BaseUriGetter = () => new Uri(server);
+			OnSendAsync = sendAsync;
 		}
 
-		public Func<Uri>? BaseUriGetter { get; }
+		public Func<Uri> BaseUriGetter { get; }
+
+		public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync { get; }
 
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{

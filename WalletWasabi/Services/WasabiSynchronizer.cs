@@ -1,8 +1,8 @@
-using NBitcoin.RPC;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.RPC;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;

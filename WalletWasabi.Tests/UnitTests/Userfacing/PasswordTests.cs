@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Security;
-using WalletWasabi.Helpers;
-using Xunit;
-using WalletWasabi.Logging;
+using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
-using NBitcoin;
+using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Userfacing;
 

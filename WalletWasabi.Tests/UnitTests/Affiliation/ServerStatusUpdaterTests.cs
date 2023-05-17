@@ -1,10 +1,10 @@
-using Moq;
-using Moq.Language;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using Moq.Language;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Tor.Http;
 using Xunit;

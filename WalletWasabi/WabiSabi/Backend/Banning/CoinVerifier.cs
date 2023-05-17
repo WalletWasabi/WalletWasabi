@@ -1,14 +1,14 @@
-using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
-using WalletWasabi.Extensions;
-using System.Diagnostics.CodeAnalysis;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 

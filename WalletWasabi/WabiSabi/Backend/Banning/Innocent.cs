@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
+using NBitcoin;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;

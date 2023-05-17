@@ -1,7 +1,6 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Affiliation.Models.CoinJoinNotification;
+using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;

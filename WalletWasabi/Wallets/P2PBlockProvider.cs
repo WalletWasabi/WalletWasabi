@@ -1,7 +1,7 @@
-using NBitcoin;
-using NBitcoin.Protocol;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.Protocol;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.Wasabi;

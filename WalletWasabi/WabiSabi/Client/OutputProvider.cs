@@ -1,6 +1,6 @@
-using NBitcoin;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -25,11 +25,11 @@ public class OutputProvider
 		var isTaprootAllowed = roundParameters.AllowedOutputTypes.Contains(ScriptType.Taproot);
 
 		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, availableVsize, isTaprootAllowed);
-		
+
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 		return GetTxOuts(outputValues, DestinationProvider);
 	}
-	
+
 	internal static IEnumerable<TxOut> GetTxOuts(IEnumerable<Output> outputValues, IDestinationProvider destinationProvider)
 	{
 		// Get as many destinations as outputs we need.

@@ -1,7 +1,7 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -39,7 +39,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 		Index = (int)FullKeyPath.Indexes[4];
 		NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
-		
+
 		int change = (int)FullKeyPath.Indexes[3];
 		if (change == 0)
 		{
