@@ -20,7 +20,7 @@ public class AffiliateDataUpdaterTests
 	public async Task GetCoinJoinRequestTestAsync()
 	{
 		var trezorClient = new AffiliateHttpClient(
-			"http://trezor.io",
+			"https://trezor.io",
 			async (message, token) =>
 			{
 				var requestText = await message.Content?.ReadAsStringAsync(token)!;
@@ -31,7 +31,7 @@ public class AffiliateDataUpdaterTests
 			});
 
 		var btcpayClient = new AffiliateHttpClient(
-			"http://btcpayserver.julio.net",
+			"https://btcpayserver.julio.net",
 			async (message, token) =>
 			{
 				var requestText = await message.Content?.ReadAsStringAsync(token)!;
