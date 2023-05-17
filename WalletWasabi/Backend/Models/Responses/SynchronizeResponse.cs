@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using NBitcoin;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;

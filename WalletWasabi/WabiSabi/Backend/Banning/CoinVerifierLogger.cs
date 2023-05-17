@@ -1,10 +1,10 @@
-using NBitcoin;
-using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;

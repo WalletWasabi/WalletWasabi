@@ -1,11 +1,11 @@
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;

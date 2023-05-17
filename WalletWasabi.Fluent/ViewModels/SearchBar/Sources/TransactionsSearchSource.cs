@@ -21,6 +21,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	private readonly CompositeDisposable _disposables = new();
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	public TransactionsSearchSource(IObservable<string> queries)
 	{
 		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key)

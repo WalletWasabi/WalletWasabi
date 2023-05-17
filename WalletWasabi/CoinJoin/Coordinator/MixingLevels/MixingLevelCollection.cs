@@ -1,8 +1,8 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 

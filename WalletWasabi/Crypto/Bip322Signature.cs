@@ -1,5 +1,5 @@
-using NBitcoin;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using NBitcoin;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Crypto;

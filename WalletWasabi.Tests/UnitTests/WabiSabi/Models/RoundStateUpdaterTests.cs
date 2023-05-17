@@ -1,19 +1,19 @@
-using Moq;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NBitcoin;
+using WalletWasabi.Affiliation;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
-using WalletWasabi.Affiliation.Models;
-using System.Linq;
-using System.Collections.Immutable;
-using WalletWasabi.Affiliation;
-using System.Collections.Generic;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 

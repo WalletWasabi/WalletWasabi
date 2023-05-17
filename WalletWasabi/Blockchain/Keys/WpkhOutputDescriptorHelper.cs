@@ -1,5 +1,5 @@
-using NBitcoin.Scripting;
 using NBitcoin;
+using NBitcoin.Scripting;
 
 namespace WalletWasabi.Blockchain.Keys;
 

@@ -1,5 +1,5 @@
-using ReactiveUI;
 using System.Linq;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;

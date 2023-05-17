@@ -1,4 +1,3 @@
-using Moq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,6 +5,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Microservices;
 using WalletWasabi.Tor;
