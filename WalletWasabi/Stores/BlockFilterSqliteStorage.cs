@@ -1,8 +1,8 @@
+using Microsoft.Data.Sqlite;
+using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
-using Microsoft.Data.Sqlite;
-using NBitcoin;
 using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Stores;

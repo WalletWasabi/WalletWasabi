@@ -1,5 +1,5 @@
-using System.Net;
 using NBitcoin.Protocol;
+using System.Net;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 

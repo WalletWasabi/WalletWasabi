@@ -1,7 +1,7 @@
-using System.Linq;
-using System.Numerics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
+using System.Numerics;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 

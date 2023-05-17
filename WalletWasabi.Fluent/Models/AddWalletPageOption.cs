@@ -1,7 +1,7 @@
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 
-namespace WalletWasabi.Fluent.Models;
+namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 public partial class AddWalletPageOption : ReactiveObject
 {

@@ -1,3 +1,6 @@
+using NBitcoin;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -5,9 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Common.Models;

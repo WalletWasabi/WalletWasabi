@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using NBitcoin;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models;

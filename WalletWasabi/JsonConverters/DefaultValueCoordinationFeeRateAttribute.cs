@@ -1,5 +1,5 @@
-using System.ComponentModel;
 using NBitcoin;
+using System.ComponentModel;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.JsonConverters;

@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;

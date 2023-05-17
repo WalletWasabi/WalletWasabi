@@ -1,9 +1,9 @@
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;

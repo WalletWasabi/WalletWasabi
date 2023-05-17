@@ -11,13 +11,13 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
