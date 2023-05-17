@@ -73,14 +73,23 @@ public class BlockchainAnalyzer
 
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
-		// Calculate weighted average.
-		var mixedAnonScore = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		var mixedAnonScoreSanctioned = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.WeightedAverage), x.Amount)));
+		// However this is not always true:
+		// For cases when it is we calculate weighted average.
+		// For cases when it isn't we calculate the rest.
+		CalculateWeightedAverage(tx, cjAnal, out double mixedAnonScore, out double mixedAnonScoreSanctioned);
+		CalculateMinAnonScore(tx, cjAnal, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned);
+		CalculateHalfMixedAnonScore(tx, cjAnal, mixedAnonScore, mixedAnonScoreSanctioned, out double halfMixedAnonScore, out double halfMixedAnonScoreSanctioned);
 
-		// Calculate punishment to the smallest anonscore input.
-		var nonMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		var nonMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
+		startingAnonScores = new()
+		{
+			Minimum = (nonMixedAnonScore, nonMixedAnonScoreSanctioned),
+			BigInputMinimum = (halfMixedAnonScore, halfMixedAnonScoreSanctioned),
+			WeightedAverage = (mixedAnonScore, mixedAnonScoreSanctioned)
+		};
+	}
 
+	private static void CalculateHalfMixedAnonScore(SmartTransaction tx, CoinjoinAnalyzer cjAnal, double mixedAnonScore, double mixedAnonScoreSanctioned, out double halfMixedAnonScore, out double halfMixedAnonScoreSanctioned)
+	{
 		// Calculate punishment to the smallest anonscore input from the largest inputs.
 		var ourLargeHdPubKeys = new HashSet<HdPubKey>();
 		for (uint i = 0; i < tx.Transaction.Inputs.Count; i++)
@@ -98,19 +107,26 @@ public class BlockchainAnalyzer
 			}
 		}
 
-		var halfMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		var halfMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
+		halfMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		halfMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
 
 		// Make sure to not give more than the weighted average would.
 		halfMixedAnonScore = Math.Min(halfMixedAnonScore, mixedAnonScore);
 		halfMixedAnonScoreSanctioned = Math.Min(halfMixedAnonScoreSanctioned, mixedAnonScoreSanctioned);
+	}
 
-		startingAnonScores = new()
-		{
-			Minimum = (nonMixedAnonScore, nonMixedAnonScoreSanctioned),
-			BigInputMinimum = (halfMixedAnonScore, halfMixedAnonScoreSanctioned),
-			WeightedAverage = (mixedAnonScore, mixedAnonScoreSanctioned)
-		};
+	private static void CalculateMinAnonScore(SmartTransaction tx, CoinjoinAnalyzer cjAnal, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned)
+	{
+		// Calculate punishment to the smallest anonscore input.
+		nonMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		nonMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min), x.Amount)));
+	}
+
+	private static void CalculateWeightedAverage(SmartTransaction tx, CoinjoinAnalyzer cjAnal, out double mixedAnonScore, out double mixedAnonScoreSanctioned)
+	{
+		// Calculate weighted average.
+		mixedAnonScore = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		mixedAnonScoreSanctioned = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.WeightedAverage), x.Amount)));
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
