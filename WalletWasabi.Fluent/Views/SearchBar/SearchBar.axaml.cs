@@ -19,9 +19,9 @@ public class SearchBar : UserControl
 
 	public void Unfocus()
 	{
-		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow } && Application.Current.FocusManager is { } focusManager)
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow })
 		{
-			focusManager.Focus(mainWindow);
+			mainWindow.Focus();
 		}
 	}
 }
