@@ -206,9 +206,22 @@ public partial class HistoryViewModel : ActivatableViewModel
 		if (txnItem is { })
 		{
 			txnItem.IsFlashing = true;
-
 			var index = _transactions.IndexOf(txnItem);
-			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
+			IndexPath indexPath;
+
+			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
+			    cjGroup.CoinJoinTransactions.FirstOrDefault(x => x.TransactionId == txid) is { } child)
+			{
+				txnItem.IsExpanded = true;
+				var childIndex = cjGroup.CoinJoinTransactions.IndexOf(child);
+				indexPath = new IndexPath(index, childIndex);
+			}
+			else
+			{
+				indexPath = new IndexPath(index);
+			}
+
+			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = indexPath);
 		}
 	}
 
