@@ -153,7 +153,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
-		Navigate().To(this, NavigationMode.Clear);
+		if (OpenCommand.CanExecute(default))
+		{
+			OpenCommand.Execute(default);
+		}
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
