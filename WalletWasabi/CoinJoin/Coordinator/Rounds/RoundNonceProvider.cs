@@ -1,7 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Security;
 using System.Threading;
+using NBitcoin;
 using WalletWasabi.CoinJoin.Common.Models;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds;

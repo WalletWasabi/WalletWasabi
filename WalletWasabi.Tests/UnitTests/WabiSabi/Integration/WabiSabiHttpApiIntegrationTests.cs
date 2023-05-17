@@ -1,14 +1,15 @@
 using System.Collections.Immutable;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using NBitcoin;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -27,7 +28,6 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
-using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 

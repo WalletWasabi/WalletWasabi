@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
-using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 

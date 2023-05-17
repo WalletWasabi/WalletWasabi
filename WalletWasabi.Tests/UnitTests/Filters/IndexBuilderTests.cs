@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.Blockchain.BlockFilters;
 using Xunit;
 

@@ -1,8 +1,8 @@
-using Nito.AsyncEx;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;

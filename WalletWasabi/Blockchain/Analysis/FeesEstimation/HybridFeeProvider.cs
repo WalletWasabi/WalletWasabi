@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;

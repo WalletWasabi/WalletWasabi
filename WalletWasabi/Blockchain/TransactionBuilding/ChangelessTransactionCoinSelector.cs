@@ -1,10 +1,10 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;

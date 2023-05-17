@@ -1,10 +1,11 @@
-using NBitcoin;
-using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using Nito.AsyncEx;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -59,15 +60,15 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; set; }
+	private BitcoinStore? BitcoinStore { get; set; }
 	private WasabiSynchronizer? Synchronizer { get; set; }
-	private ServiceConfiguration ServiceConfiguration { get; set; }
+	private ServiceConfiguration? ServiceConfiguration { get; set; }
 	private bool IsInitialized { get; set; }
 
-	private HybridFeeProvider FeeProvider { get; set; }
+	private HybridFeeProvider? FeeProvider { get; set; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private IBlockProvider BlockProvider { get; set; }
+	private IBlockProvider? BlockProvider { get; set; }
 	private string WorkDir { get; }
 
 	private void RefreshWalletList()
@@ -147,6 +148,12 @@ public class WalletManager : IWalletProvider
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
+			Debug.Assert(BitcoinStore is { });
+			Debug.Assert(Synchronizer is { });
+			Debug.Assert(ServiceConfiguration is { });
+			Debug.Assert(FeeProvider is { });
+			Debug.Assert(BlockProvider is { });
+
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 
@@ -183,6 +190,7 @@ public class WalletManager : IWalletProvider
 		return wallet;
 	}
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The catch block executes only when wallet is null.")]
 	private void AddWallet(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);

@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;

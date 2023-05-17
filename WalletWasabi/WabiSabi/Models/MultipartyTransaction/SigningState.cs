@@ -1,9 +1,9 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using WalletWasabi.Extensions;
 using System.Linq;
+using NBitcoin;
+using Newtonsoft.Json;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;

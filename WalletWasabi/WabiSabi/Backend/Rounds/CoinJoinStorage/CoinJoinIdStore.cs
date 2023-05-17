@@ -1,7 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 

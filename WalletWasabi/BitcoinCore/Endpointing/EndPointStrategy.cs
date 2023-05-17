@@ -1,5 +1,5 @@
-using NBitcoin;
 using System.Net;
+using NBitcoin;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Endpointing;

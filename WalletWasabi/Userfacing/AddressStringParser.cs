@@ -1,7 +1,7 @@
-using NBitcoin;
-using NBitcoin.Payment;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using NBitcoin;
+using NBitcoin.Payment;
 
 namespace WalletWasabi.Userfacing;
 
