@@ -111,13 +111,12 @@ public class AffiliateDataUpdaterTests
 
 	public class AffiliateHttpClient : IHttpClient
 	{
-		public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync;
-
 		public AffiliateHttpClient(string server)
 		{
 			BaseUriGetter = () => new Uri(server);
 		}
 
+		public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync { get; set; }
 		public Func<Uri>? BaseUriGetter { get; }
 
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
