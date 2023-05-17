@@ -104,8 +104,8 @@ public class NavBarSelectedIndicatorState : IDisposable
 		nextIndicator.Opacity = 0;
 
 		// Ignore the RenderTransforms so we can get the actual positions
-		var prevMatrix = GetOffsetFrom((Visual)commonAncestor, prevIndicator);
-		var nextMatrix = GetOffsetFrom((Visual)commonAncestor, nextIndicator);
+		var prevMatrix = GetOffsetFrom(commonAncestor, prevIndicator);
+		var nextMatrix = GetOffsetFrom(commonAncestor, nextIndicator);
 
 		var prevVector = new Point().Transform(prevMatrix);
 		var nextVector = new Point().Transform(nextMatrix);
