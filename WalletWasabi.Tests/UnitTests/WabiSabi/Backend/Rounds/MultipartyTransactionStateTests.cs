@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using NBitcoin;
+using System.Collections.Generic;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;

@@ -1,3 +1,4 @@
+using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -8,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Nito.AsyncEx;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;

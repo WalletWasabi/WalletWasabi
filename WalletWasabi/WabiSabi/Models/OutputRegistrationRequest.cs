@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using NBitcoin;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using WabiSabi.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models;

@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.BitcoinCore.Mempool;
 using Xunit;
 

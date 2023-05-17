@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using NBitcoin;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 

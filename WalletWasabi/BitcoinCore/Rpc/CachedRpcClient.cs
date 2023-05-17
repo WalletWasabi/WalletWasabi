@@ -1,9 +1,9 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using NBitcoin;
 using NBitcoin.RPC;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Cache;
 

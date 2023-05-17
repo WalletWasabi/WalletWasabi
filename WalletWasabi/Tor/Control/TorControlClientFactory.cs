@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -5,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;

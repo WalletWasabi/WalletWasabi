@@ -1,6 +1,6 @@
+using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 

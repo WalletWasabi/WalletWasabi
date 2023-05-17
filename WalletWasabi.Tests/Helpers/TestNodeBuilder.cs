@@ -1,9 +1,9 @@
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
@@ -34,7 +34,6 @@ public static class TestNodeBuilder
 			CancellationToken.None);
 	}
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The returned instance is transient.")]
 	private static CoreNodeParams CreateDefaultCoreNodeParams(MempoolService mempoolService, string dataDir)
 	{
 		var nodeParameters = new CoreNodeParams(

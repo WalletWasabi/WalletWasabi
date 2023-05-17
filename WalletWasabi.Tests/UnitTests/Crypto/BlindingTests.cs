@@ -1,8 +1,8 @@
-using System.Linq;
-using System.Text;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
+using System.Linq;
+using System.Text;
 using WalletWasabi.Crypto;
 using WalletWasabi.JsonConverters;
 using Xunit;

@@ -1,9 +1,9 @@
-using System.Linq;
 using NBitcoin;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using Xunit;
+using System.Linq;
 
 namespace WalletWasabi.Tests.UnitTests.Affiliation;
 

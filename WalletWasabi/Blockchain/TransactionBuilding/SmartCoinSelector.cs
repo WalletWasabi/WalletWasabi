@@ -1,10 +1,10 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using NBitcoin;
+using System.Linq;
+using System.Collections.Generic;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Exceptions;
+using System.Collections.Immutable;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;

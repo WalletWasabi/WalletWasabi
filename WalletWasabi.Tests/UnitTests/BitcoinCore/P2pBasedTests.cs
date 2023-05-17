@@ -1,8 +1,8 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;

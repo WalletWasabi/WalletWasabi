@@ -1,7 +1,7 @@
+using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;

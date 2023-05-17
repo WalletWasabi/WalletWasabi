@@ -1,12 +1,12 @@
-using System.Collections.Generic;
 using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.DataEncoders;
-using WalletWasabi.Blockchain.Analysis;
-using WalletWasabi.Blockchain.Analysis.Clustering;
+using System.Collections.Generic;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using NBitcoin.Crypto;
+using NBitcoin.DataEncoders;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis;
 
 namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 

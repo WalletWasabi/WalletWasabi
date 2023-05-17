@@ -1,5 +1,5 @@
-using System.Linq;
 using NBitcoin;
+using System.Linq;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Banning;

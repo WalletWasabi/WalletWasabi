@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
 using WalletWasabi.Services.Terminate;
 
