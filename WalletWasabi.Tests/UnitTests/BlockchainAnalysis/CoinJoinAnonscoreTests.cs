@@ -386,12 +386,14 @@ public class CoinJoinAnonScoreTests
 			50,
 			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
 			ownInputs,
-			new[] {
+			new[]
+			{
 				(Money.Satoshis(5000m), HdPubKey.DefaultHighAnonymitySet),
 				(Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet),
 				(Money.Coins(20m), HdPubKey.DefaultHighAnonymitySet),
 				(Money.Coins(20m), HdPubKey.DefaultHighAnonymitySet),
-				(Money.Coins(50m), HdPubKey.DefaultHighAnonymitySet) },
+				(Money.Coins(50m), HdPubKey.DefaultHighAnonymitySet)
+			},
 			orderByAmount: true);
 
 		analyzer.Analyze(tx);
