@@ -200,9 +200,6 @@ public class CoinJoinClient
 				case FailedCoinJoinResult failure:
 					return failure;
 
-				case NotEndedCoinJoinResult notEnded:
-					return notEnded;
-
 				default:
 					throw new InvalidOperationException("The coinjoin result type was not handled.");
 			}
@@ -260,9 +257,7 @@ public class CoinJoinClient
 			catch (Exception ex)
 			{
 				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
-				return new NotEndedCoinJoinResult(
-					Coins: signedCoins,
-					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
+				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), ex);
 			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
