@@ -32,10 +32,10 @@ public class KeyDownTrigger : Trigger
 	{
 		base.OnAttached();
 
-		if (AssociatedObject is InputElement interactive)
+		if (AssociatedObject is InputElement element)
 		{
 			this.WhenAnyValue(x => x.EventRoutingStrategy, x => x.Key, (strategy, key) => new { Key = key, RoutingStrategy = strategy })
-				.Select(args => interactive.OnEvent(InputElement.KeyDownEvent, args.RoutingStrategy).Where(x => x.EventArgs.Key == args.Key))
+				.Select(args => element.OnEvent(InputElement.KeyDownEvent, args.RoutingStrategy).Where(x => x.EventArgs.Key == args.Key))
 				.Switch()
 				.Do(_ => Interaction.ExecuteActions(AssociatedObject, Actions, null))
 				.Subscribe()
