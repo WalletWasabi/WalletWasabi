@@ -91,6 +91,7 @@ public class BlockchainAnalyzer
 	private static void CalculateHalfMixedAnonScore(SmartTransaction tx, CoinjoinAnalyzer cjAnal, double mixedAnonScore, double mixedAnonScoreSanctioned, out double halfMixedAnonScore, out double halfMixedAnonScoreSanctioned)
 	{
 		// Calculate punishment to the smallest anonscore input from the largest inputs.
+		// We know WW2 coinjoins order inputs by amount.
 		var ourLargeHdPubKeys = new HashSet<HdPubKey>();
 		for (uint i = 0; i < tx.Transaction.Inputs.Count; i++)
 		{
