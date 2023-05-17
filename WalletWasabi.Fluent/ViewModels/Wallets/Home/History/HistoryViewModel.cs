@@ -29,8 +29,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
-	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
-
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
@@ -78,10 +76,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		};
 
 		Source.RowSelection!.SingleSelect = true;
-
-		Source.RowSelection
-			.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(x => SelectedItem = x);
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
@@ -211,11 +205,24 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		if (txnItem is { })
 		{
-			SelectedItem = txnItem;
-			SelectedItem.IsFlashing = true;
-
-			var index = _transactions.IndexOf(SelectedItem);
+			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
+			// Selecting first the root item, then the child solves the issue.
+			var index = _transactions.IndexOf(txnItem);
 			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
+
+			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
+			    cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
+			{
+				txnItem.IsExpanded = true;
+				child.IsFlashing = true;
+
+				var childIndex = cjGroup.Children.IndexOf(child);
+				Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index, childIndex));
+			}
+			else
+			{
+				txnItem.IsFlashing = true;
+			}
 		}
 	}
 
