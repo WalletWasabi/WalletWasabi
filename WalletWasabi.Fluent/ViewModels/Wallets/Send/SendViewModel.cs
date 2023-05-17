@@ -10,7 +10,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -24,6 +23,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using WalletWasabi.Fluent.Infrastructure;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -143,9 +143,9 @@ public partial class SendViewModel : RoutableViewModel
 		_clipboardObserver = new ClipboardObserver(new WalletBalances(exchangeRates, balances));
 	}
 
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
+	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged();
 
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
+	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged();
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 

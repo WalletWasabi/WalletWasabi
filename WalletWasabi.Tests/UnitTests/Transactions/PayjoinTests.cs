@@ -1,18 +1,18 @@
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Mime;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
 using NBitcoin;
+using System.Threading.Tasks;
+using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.PayJoin;
 using Xunit;
+using System.Net.Http;
+using System.Net;
+using System.Text;
+using WalletWasabi.Tests.Helpers;
+using Moq;
+using WalletWasabi.Tor.Http;
+using System.Threading;
+using System.Net.Mime;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 

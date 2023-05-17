@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Text;
 using System.Threading;
-using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
 
 namespace WalletWasabi.Backend.Models;

@@ -1,4 +1,4 @@
-using WalletWasabi.Backend.Models.Responses;
+﻿using WalletWasabi.Backend.Models.Responses;
 
 namespace WalletWasabi.WabiSabi.Client;
 

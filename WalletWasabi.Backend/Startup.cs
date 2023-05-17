@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +10,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
 using NBitcoin.RPC;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Net.Http;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;

@@ -1,7 +1,7 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;

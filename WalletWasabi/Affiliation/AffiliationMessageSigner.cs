@@ -1,5 +1,5 @@
-using System.Security.Cryptography;
 using NBitcoin.DataEncoders;
+using System.Security.Cryptography;
 
 namespace WalletWasabi.Affiliation;
 

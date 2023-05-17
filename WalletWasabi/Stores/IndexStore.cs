@@ -1,12 +1,12 @@
+using Microsoft.Data.Sqlite;
+using NBitcoin;
+using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.Sqlite;
-using NBitcoin;
-using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;

@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Mvc;
+using NBitcoin;
+using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using NBitcoin;
-using NBitcoin.RPC;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;

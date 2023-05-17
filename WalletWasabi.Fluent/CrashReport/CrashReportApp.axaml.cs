@@ -2,8 +2,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using WalletWasabi.Fluent.CrashReport.ViewModels;
-using WalletWasabi.Fluent.CrashReport.Views;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.CrashReport.Views;
 
 namespace WalletWasabi.Fluent.CrashReport;
 

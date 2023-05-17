@@ -1,16 +1,16 @@
 using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
+using System.Net.Sockets;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using NBitcoin;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 
 namespace WalletWasabi.Daemon;

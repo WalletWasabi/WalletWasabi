@@ -1,11 +1,11 @@
+using NBitcoin;
+using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
