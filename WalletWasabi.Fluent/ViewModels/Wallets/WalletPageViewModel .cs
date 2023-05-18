@@ -48,11 +48,6 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Do(_ => ShowWallet())
 			.Subscribe();
 
-		WalletModel.State
-			.Where(x => x == WalletState.Started)
-			.Do(x => ShowWallet())
-			.Subscribe();
-
 		SetIcon();
 	}
 
