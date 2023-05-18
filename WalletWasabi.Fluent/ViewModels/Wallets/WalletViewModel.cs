@@ -171,12 +171,15 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private IObservable<bool> _isMusicBoxVisible;
+	public IObservable<bool> IsMusicBoxVisible { get; }
 
 	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
 
 	public WalletSettingsViewModel Settings { get; private set; }
+
+	public HistoryViewModel History { get; }
+
+	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
 
@@ -195,9 +198,6 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	public ICommand CoinJoinSettingsCommand { get; private set; }
 
 	private CompositeDisposable Disposables { get; set; }
-
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private HistoryViewModel _history;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private IEnumerable<ActivatableViewModel> _tiles;
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
