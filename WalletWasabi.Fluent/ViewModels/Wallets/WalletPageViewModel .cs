@@ -48,11 +48,6 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Do(_ => ShowWallet())
 			.Subscribe();
 
-		WalletModel.State
-			.Where(x => x == WalletState.Started)
-			.Do(x => ShowWallet())
-			.Subscribe();
-
 		SetIcon();
 	}
 
@@ -93,20 +88,5 @@ public partial class WalletPageViewModel : ViewModelBase
 
 		IconName = $"nav_{baseResourceName}_regular";
 		IconNameFocused = $"nav_{baseResourceName}_filled";
-	}
-
-        public override int GetHashCode()
-	{
-		return Wallet.GetHashCode();
-	}
-
-	public override bool Equals(object? obj)
-	{
-		if (obj is not WalletPageViewModel other || other.Wallet is not Wallet otherWallet)
-		{
-			return false;
-		}
-
-		return otherWallet.WalletName == Wallet.WalletName;
 	}
 }
