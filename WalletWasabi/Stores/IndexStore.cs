@@ -105,10 +105,10 @@ public class IndexStore : IAsyncDisposable
 		{
 			try
 			{
-				File.Delete(OldIndexFilePath);
-				File.Delete($"{OldIndexFilePath}.dig"); // No exception is thrown if file does not exist.
+				File.Delete($"{OldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
 				File.Delete(OldImmatureIndexFilePath);
-				File.Delete($"{OldImmatureIndexFilePath}.dig");
+				File.Delete($"{OldIndexFilePath}.dig");
+				File.Delete(OldIndexFilePath);
 
 				Logger.LogInfo("Removed old index file data.");
 			}
