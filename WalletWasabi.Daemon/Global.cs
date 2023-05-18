@@ -62,7 +62,7 @@ public class Global
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 
-		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync: 30_000, BitcoinStore, HttpClientFactory);
+		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync: 10_000, BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
