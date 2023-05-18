@@ -239,11 +239,16 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 	public static WalletViewModel Create(UiContext uiContext, WalletPageViewModel parent)
 	{
-		return parent.Wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletViewModel(uiContext, parent)
-			: parent.Wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(uiContext, parent)
-				: new WalletViewModel(uiContext, parent);
+		if (OpenCommand.CanExecute(default))
+		{
+			OpenCommand.Execute(default);
+		}
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await Task.Delay(500);
+			History.SelectTransaction(txid);
+		});
 	}
 
 	public override string Title

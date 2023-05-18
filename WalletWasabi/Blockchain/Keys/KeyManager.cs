@@ -393,15 +393,6 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
-	{
-		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		lock (CriticalStateLock)
-		{
-			return HdPubKeyCache.GetView(keySource.KeyPath);
-		}
-	}
-
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
 		lock (CriticalStateLock)
