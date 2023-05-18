@@ -9,6 +9,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using FeeRateByConfirmationTarget = System.Collections.Generic.Dictionary<int, int>;
 
 namespace WalletWasabi.Extensions;
 
@@ -77,10 +78,10 @@ public static class RPCClientExtensions
 
 		var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
 
-		var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
-		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
+		var (minEstimatedMempoolFee, minEstimations) = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
+		var sanityFeeRate = FeeRate.Max(minEstimatedMempoolFee, mempoolInfo.GetSanityFeeRate());
 
 		var fixedEstimations = smartEstimations
 			.GroupJoin(
@@ -101,7 +102,7 @@ public static class RPCClientExtensions
 			rpcStatus.Synchronized);
 	}
 
-	private static async Task<Dictionary<int, int>> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode, CancellationToken cancel = default)
+	private static async Task<FeeRateByConfirmationTarget> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode, CancellationToken cancel = default)
 	{
 		var batchClient = rpc.PrepareBatch();
 
@@ -133,14 +134,15 @@ public static class RPCClientExtensions
 			.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
 	}
 
-	private static Dictionary<int, int> GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
+	private static (FeeRate, FeeRateByConfirmationTarget feeRateByConfirmationTarget) GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
 	{
 		if (mempoolInfo.Histogram is null || !mempoolInfo.Histogram.Any())
 		{
-			return new Dictionary<int, int>(0);
+			return (FeeRate.Zero, new FeeRateByConfirmationTarget(0));
 		}
 
-		const int BlockSize = 1_000_000;
+		const int Mb = 1_000_000;
+		const int BlockSize = 1 * Mb;
 		static IEnumerable<(int Size, FeeRate From, FeeRate To)> SplitFeeGroupInBlocks(FeeRateGroup group)
 		{
 			var remainingSize = (long)group.Sizes;
@@ -177,6 +179,13 @@ public static class RPCClientExtensions
 			.Select(x => x.Size)
 			.Scan(0m, (acc, size) => acc + size);
 
+		var top200Mb = splittedFeeGroups
+			.Zip(
+				accumulatedSizes,
+				(feeGroup, accumulatedSize) => (FeeRate: feeGroup.To, AccumulatedSize: accumulatedSize))
+			.FirstOrDefault(x => x.AccumulatedSize > 200 * Mb)
+			.FeeRate;
+		
 		var feeGroupsByTarget = splittedFeeGroups.Zip(
 			accumulatedSizes,
 			(feeGroup, accumulatedSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
@@ -193,7 +202,10 @@ public static class RPCClientExtensions
 				x => x.Target,
 				(target, feeGroups) => (Target: target, FeeRate: feeGroups.LastOrDefault().FeeRate.SatoshiPerByte));
 
-		return consolidatedFeeGroupByTarget.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
+		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
+			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
+
+		return (top200Mb ?? FeeRate.Zero, feeRateByConfirmationTarget);
 	}
 
 	public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
