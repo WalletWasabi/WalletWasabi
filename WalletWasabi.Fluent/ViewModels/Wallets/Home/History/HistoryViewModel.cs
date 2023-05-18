@@ -29,8 +29,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
-	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
-
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
@@ -78,10 +76,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		};
 
 		Source.RowSelection!.SingleSelect = true;
-
-		Source.RowSelection
-			.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(x => SelectedItem = x);
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
@@ -209,13 +203,29 @@ public partial class HistoryViewModel : ActivatableViewModel
 			return item.Id == txid;
 		});
 
-		if (txnItem is { })
+		if (txnItem is { } && Source.RowSelection is { } selection)
 		{
-			SelectedItem = txnItem;
-			SelectedItem.IsFlashing = true;
+			// Clear the selection so re-selection will work.
+			Dispatcher.UIThread.Post(() => selection.Clear());
 
-			var index = _transactions.IndexOf(SelectedItem);
-			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
+			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
+			// Selecting first the root item, then the child solves the issue.
+			var index = _transactions.IndexOf(txnItem);
+			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
+
+			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
+			    cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
+			{
+				txnItem.IsExpanded = true;
+				child.IsFlashing = true;
+
+				var childIndex = cjGroup.Children.IndexOf(child);
+				Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index, childIndex));
+			}
+			else
+			{
+				txnItem.IsFlashing = true;
+			}
 		}
 	}
 
