@@ -1,12 +1,8 @@
-﻿namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public sealed class NavigationMetaDataAttribute : Attribute
 {
-	public NavigationMetaDataAttribute()
-	{
-	}
-
 	public bool Searchable { get; set; }
 
 	public string? Title { get; set; }
