@@ -73,82 +73,12 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		return result;
 	}
 
-	private WalletViewModel(WalletPageViewModel parent)
+	public WalletViewModel(UiContext uiContext, WalletPageViewModel parent)
 	{
 		_parent = parent;
 		Wallet = parent.Wallet;
-	}
+		UiContext = uiContext;
 
-	private bool _isInitialized;
-
-	public UiTriggers UiTriggers { get; private set; }
-
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
-
-	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
-
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private IObservable<bool> _isMusicBoxVisible;
-
-	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
-
-	public WalletSettingsViewModel Settings { get; private set; }
-
-	public ICommand SendCommand { get; private set; }
-
-	public ICommand? BroadcastPsbtCommand { get; set; }
-
-	public ICommand ReceiveCommand { get; private set; }
-
-	public ICommand WalletInfoCommand { get; private set; }
-
-	public ICommand WalletSettingsCommand { get; private set; }
-
-	public ICommand WalletStatsCommand { get; private set; }
-
-	public ICommand WalletCoinsCommand { get; private set; }
-
-	public ICommand CoinJoinSettingsCommand { get; private set; }
-
-	private CompositeDisposable Disposables { get; set; }
-
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private HistoryViewModel _history;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private IEnumerable<ActivatableViewModel> _tiles;
-
-	public void NavigateAndHighlight(uint256 txid)
-	{
-		Navigate().To(this, NavigationMode.Clear);
-
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await Task.Delay(500);
-			History.SelectTransaction(txid);
-		});
-	}
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		if (!_isInitialized)
-		{
-			InitializeWallet();
-			_isInitialized = true;
-		}
-
-		History.Activate(disposables);
-
-		foreach (var tile in Tiles)
-		{
-			tile.Activate(disposables);
-		}
-
-		Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => this.RaisePropertyChanged(nameof(WalletState)))
-			.DisposeWith(disposables);
-	}
-
-	private void InitializeWallet()
-	{
 		_title = WalletName;
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
@@ -233,6 +163,66 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this);
 
 		Tiles = GetTiles().ToList();
+	}
+
+	public UiTriggers UiTriggers { get; private set; }
+
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
+
+	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private IObservable<bool> _isMusicBoxVisible;
+
+	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
+
+	public WalletSettingsViewModel Settings { get; private set; }
+
+	public ICommand SendCommand { get; private set; }
+
+	public ICommand? BroadcastPsbtCommand { get; set; }
+
+	public ICommand ReceiveCommand { get; private set; }
+
+	public ICommand WalletInfoCommand { get; private set; }
+
+	public ICommand WalletSettingsCommand { get; private set; }
+
+	public ICommand WalletStatsCommand { get; private set; }
+
+	public ICommand WalletCoinsCommand { get; private set; }
+
+	public ICommand CoinJoinSettingsCommand { get; private set; }
+
+	private CompositeDisposable Disposables { get; set; }
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private HistoryViewModel _history;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private IEnumerable<ActivatableViewModel> _tiles;
+
+	public void NavigateAndHighlight(uint256 txid)
+	{
+		Navigate().To(this, NavigationMode.Clear);
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await Task.Delay(500);
+			History.SelectTransaction(txid);
+		});
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		History.Activate(disposables);
+
+		foreach (var tile in Tiles)
+		{
+			tile.Activate(disposables);
+		}
+
+		Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => this.RaisePropertyChanged(nameof(WalletState)))
+			.DisposeWith(disposables);
 	}
 
 	public static WalletViewModel Create(UiContext uiContext, WalletPageViewModel parent)
