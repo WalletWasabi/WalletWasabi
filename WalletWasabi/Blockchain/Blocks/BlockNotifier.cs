@@ -79,7 +79,7 @@ public class BlockNotifier : PeriodicRunner
 		var arrivedHeader = arrivedBlock.Header;
 		arrivedHeader.PrecomputeHash(false, true);
 
-		// If we haven't processed any block yet then we're processing the first seven to avoid accidental reogs.
+		// If we haven't processed any block yet then we're processing the first seven to avoid accidental reorgs.
 		// 7 blocks, because
 		//   - That was the largest recorded reorg so far.
 		//   - Reorg in this point of time would be very unlikely anyway.
