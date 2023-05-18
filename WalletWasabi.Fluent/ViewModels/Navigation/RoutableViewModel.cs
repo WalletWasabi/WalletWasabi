@@ -20,7 +20,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	protected RoutableViewModel()
 	{
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
+		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), this.WhenAnyValue(model => model.IsBusy, b => !b));
 		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 	}
 
