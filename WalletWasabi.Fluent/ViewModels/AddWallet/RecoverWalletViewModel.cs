@@ -67,7 +67,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		try
 		{
 			var wallet = await UiContext.WalletList.RecoverWalletAsync(walletName, password, currentMnemonics, MinGapLimit);
-			await Navigate().To().CoinJoinProfiles(wallet, isNewWallet: true).GetResultAsync();
+			await Navigate().To().CoinJoinProfiles(wallet).GetResultAsync();
 		}
 		catch (Exception ex)
 		{

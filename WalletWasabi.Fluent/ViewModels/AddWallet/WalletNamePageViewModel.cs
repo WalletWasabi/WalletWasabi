@@ -13,6 +13,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Helpers;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -78,7 +79,16 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		try
 		{
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To().AddedWalletPage(keyManager);
+
+			// TODO: remove this after current ViewModel has been decoupled
+			var wallet =
+				new WalletModel(
+					new WalletWasabi.Wallets.Wallet(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network,
+						keyManager));
+
+			Navigate().To().AddedWalletPage(wallet);
 		}
 		catch (Exception ex)
 		{
