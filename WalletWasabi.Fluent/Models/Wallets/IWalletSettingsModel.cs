@@ -4,6 +4,8 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public interface IWalletSettingsModel
 {
+	string WalletName { get; }
+
 	bool PreferPsbtWorkflow { get; set; }
 
 	bool AutoCoinjoin { get; set; }
@@ -18,5 +20,7 @@ public interface IWalletSettingsModel
 
 	int FeeRateMedianTimeFrameHours { get; set; }
 
-	IDisposable BatchChanges();
+	bool IsNewWallet { get; }
+
+	void Save();
 }

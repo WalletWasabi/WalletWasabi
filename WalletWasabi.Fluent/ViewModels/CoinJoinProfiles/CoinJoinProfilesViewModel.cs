@@ -4,9 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -16,22 +14,23 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	private CoinJoinProfilesViewModel(IWalletModel wallet, bool isNewWallet)
+	private CoinJoinProfilesViewModel(IWalletSettingsModel walletSettings)
 	{
-		NextCommand = ReactiveCommand.Create(() => OnNext(wallet, isNewWallet));
+		NextCommand = ReactiveCommand.Create(() => OnNext(walletSettings));
 		EnableBack = true;
 
 		Profiles = DefaultProfiles.ToList();
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
-		if (isNewWallet)
+		if (walletSettings.IsNewWallet)
 		{
 			_selectedProfile = Profiles[1];
-			return;
 		}
-
-		_selectedProfile = IdentifySelectedProfile(wallet.Settings);
+		else
+		{
+			_selectedProfile = IdentifySelectedProfile(walletSettings);
+		}
 	}
 
 	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
@@ -64,34 +63,30 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private async Task OnManualSetupAsync()
 	{
 		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
-		var dialog = new ManualCoinJoinProfileDialogViewModel(current);
+		var result = await Navigate().To().ManualCoinJoinProfileDialog(current).GetResultAsync();
 
-		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
-
-		if (dialogResult.Result is { } result && result.Profile != current)
+		if (result is { } && result.Profile != current)
 		{
 			SelectedProfile = null;
 			SelectedManualProfile = result.Profile;
 		}
 	}
 
-	private void OnNext(IWalletModel walletModel, bool isNewWallet)
+	private void OnNext(IWalletSettingsModel walletSettings)
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
+		var isNewWallet = walletSettings.IsNewWallet;
 
-		using (walletModel.Settings.BatchChanges())
-		{
-			walletModel.Settings.RedCoinIsolation = selected.RedCoinIsolation;
-			walletModel.Settings.AnonScoreTarget = selected.AnonScoreTarget;
-			walletModel.Settings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
-			walletModel.Settings.IsCoinjoinProfileSelected = true;
-		}
+		walletSettings.RedCoinIsolation = selected.RedCoinIsolation;
+		walletSettings.AnonScoreTarget = selected.AnonScoreTarget;
+		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
+		walletSettings.IsCoinjoinProfileSelected = true;
+
+		var wallet = UiContext.WalletList.SaveWallet(walletSettings);
 
 		if (isNewWallet)
 		{
-			//TODO: remove this after AddedWalletPage is decoupled
-			var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
-			Navigate().To().AddedWalletPage(wallet.KeyManager);
+			Navigate().To().AddedWalletPage(wallet);
 		}
 		else
 		{
@@ -103,7 +98,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletList.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false, escapeGoesBack: true);
 	}
 }

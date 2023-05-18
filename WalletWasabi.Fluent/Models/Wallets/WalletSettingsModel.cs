@@ -1,20 +1,19 @@
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class WalletSettingsModel : IWalletSettingsModel
+public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 {
-	private readonly Wallet _wallet;
-	private bool _batchChanges;
+	private readonly KeyManager _keyManager;
+	[AutoNotify] private bool _isNewWallet;
+	private bool _isDirty;
 
-	public WalletSettingsModel(Wallet wallet)
+	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false)
 	{
-		_wallet = wallet;
+		_keyManager = keyManager;
 
 		this.WhenAnyValue(
 			x => x.AutoCoinjoin,
@@ -25,17 +24,23 @@ public class WalletSettingsModel : IWalletSettingsModel
 			x => x.RedCoinIsolation,
 			x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
-			.Do(_ => Save())
+			.Do(_ => SetValues())
 			.Subscribe();
 
-		AutoCoinjoin = _wallet.KeyManager.AutoCoinJoin;
-		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
-		PreferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
-		PlebStopThreshold = wallet.KeyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
-		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-		RedCoinIsolation = _wallet.KeyManager.RedCoinIsolation;
-		FeeRateMedianTimeFrameHours = _wallet.KeyManager.FeeRateMedianTimeFrameHours;
+		_isNewWallet = isNewWallet;
+		_isDirty = isNewWallet;
+
+		WalletName = _keyManager.WalletName;
+		AutoCoinjoin = _keyManager.AutoCoinJoin;
+		IsCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
+		PreferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
+		PlebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
+		AnonScoreTarget = _keyManager.AnonScoreTarget;
+		RedCoinIsolation = _keyManager.RedCoinIsolation;
+		FeeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 	}
+
+	public string WalletName { get; }
 
 	public bool AutoCoinjoin { get; set; }
 
@@ -51,34 +56,32 @@ public class WalletSettingsModel : IWalletSettingsModel
 
 	public int FeeRateMedianTimeFrameHours { get; set; }
 
-	/// <summary>
-	/// Prevents the automatic persistence of Wallet Settings when individual properties change.
-	/// This is useful when you want to change several properties, but only persist the settings once
-	/// </summary>
-	/// <returns>an IDisposable object that, when disposed, returns the WalletSettings back to normal operation (i.e save on each individual property change)</returns>
-	public IDisposable BatchChanges()
+	public void Save()
 	{
-		_batchChanges = true;
-		return Disposable.Create(() =>
+		if (_isDirty)
 		{
-			_batchChanges = false;
-			Save();
-		});
+			_keyManager.ToFile();
+
+			if (IsNewWallet)
+			{
+				Services.WalletManager.AddWallet(_keyManager);
+				IsNewWallet = false;
+			}
+
+			_isDirty = false;
+		}
 	}
 
-	private void Save()
+	private void SetValues()
 	{
-		_wallet.KeyManager.AutoCoinJoin = AutoCoinjoin;
-		_wallet.KeyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
-		_wallet.KeyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
-		_wallet.KeyManager.PlebStopThreshold = PlebStopThreshold;
-		_wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget, false);
-		_wallet.KeyManager.RedCoinIsolation = RedCoinIsolation;
-		_wallet.KeyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours, false);
+		_keyManager.AutoCoinJoin = AutoCoinjoin;
+		_keyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
+		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
+		_keyManager.PlebStopThreshold = PlebStopThreshold;
+		_keyManager.AnonScoreTarget = AnonScoreTarget;
+		_keyManager.RedCoinIsolation = RedCoinIsolation;
+		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 
-		if (!_batchChanges)
-		{
-			_wallet.KeyManager.ToFile();
-		}
+		_isDirty = true;
 	}
 }

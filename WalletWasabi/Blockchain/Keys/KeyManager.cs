@@ -189,7 +189,7 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
-	public int AnonScoreTarget { get; private set; } = DefaultAnonScoreTarget;
+	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTarget;
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
@@ -624,7 +624,7 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
-	
+
 	public Height GetBestTurboSyncHeight()
 	{
 		lock (CriticalStateLock)
@@ -656,7 +656,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.TurboSyncHeight = height;
-			
+
 			if (toFile)
 			{
 				ToFile();
@@ -704,7 +704,7 @@ public class KeyManager
 			}
 		}
 	}
-	
+
 	public void SetIcon(string icon)
 	{
 		Icon = icon;
@@ -716,16 +716,7 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetAnonScoreTarget(int anonScoreTarget, bool toFile = true)
-	{
-		AnonScoreTarget = anonScoreTarget;
-		if (toFile)
-		{
-			ToFile();
-		}
-	}
-
-	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
+	public void SetFeeRateMedianTimeFrame(int hours)
 	{
 		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
 		{
@@ -733,10 +724,6 @@ public class KeyManager
 		}
 
 		FeeRateMedianTimeFrameHours = hours;
-		if (toFile)
-		{
-			ToFile();
-		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
