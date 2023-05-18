@@ -86,7 +86,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(wallet));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -153,7 +153,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
-		Navigate().To(this, NavigationMode.Clear);
+		if (OpenCommand.CanExecute(default))
+		{
+			OpenCommand.Execute(default);
+		}
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
