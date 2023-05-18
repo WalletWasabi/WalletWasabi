@@ -34,7 +34,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 
 		Fee = transactionSummary.Fee;
-		IsFeeVisible = transactionSummary.Fee != null && !transactionSummary.IsSelfSpend;
+		IsFeeVisible = transactionSummary.Fee != null && !transactionSummary.IsSelfSpend && transactionSummary.Amount < 0;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
