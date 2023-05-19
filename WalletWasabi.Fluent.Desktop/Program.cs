@@ -168,6 +168,7 @@ public static class WasabiAppExtensions
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
+				string? bip21Uri = app.AppConfig.Arguments.FirstOrDefault(arg => Uri.TryCreate(arg, UriKind.Absolute, out _));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
 
@@ -180,7 +181,7 @@ public static class WasabiAppExtensions
 
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-						}, startInBg: runGuiInBackground, bip21Uri: null))
+						}, startInBg: runGuiInBackground, bip21Uri))
 					.UseReactiveUI()
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
