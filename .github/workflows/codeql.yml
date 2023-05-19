@@ -21,12 +21,23 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+
+    - name: 'Install dotnet'
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '7.0.x'
+
+    - name: 'Restore packages'
+      run: dotnet restore
+
+    - name: 'Build project'
+      run: dotnet build --no-restore --configuration Release
+      
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
       with:
