@@ -146,11 +146,12 @@ public class CoinJoinManager : BackgroundService
 
 			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker))
 			{
-				if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed)
+				if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed || startCommand.OverridePlebStop != tracker.OverridePlebStop)
 				{
 					tracker.StopWhenAllMixed = startCommand.StopWhenAllMixed;
+					tracker.OverridePlebStop = startCommand.OverridePlebStop;
 
-					walletToStart.LogDebug($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed}.");
+					walletToStart.LogDebug($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed} and {nameof(startCommand.OverridePlebStop)} to {startCommand.OverridePlebStop}.");
 				}
 				else
 				{
