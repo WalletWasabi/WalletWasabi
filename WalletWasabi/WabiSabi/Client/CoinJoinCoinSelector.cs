@@ -58,7 +58,7 @@ public class CoinJoinCoinSelector
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputScriptTypes.Contains(x.ScriptType))
-			.Where(x => x.EffectiveValue(parameters.MiningFeeRate).Satoshi > x.Amount.Satoshi * MaxEffectiveValueLossTolerance)
+			.Where(x => x.EffectiveValue(parameters.MiningFeeRate).Satoshi > x.Amount.Satoshi * (1 - MaxEffectiveValueLossTolerance)
 			.ToArray();
 
 		// Sanity check.
