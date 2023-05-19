@@ -101,8 +101,9 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 	
 	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; } = new();
-	public IEnumerable<HdPubKey> KeysCache { get; set; } = Enumerable.Empty<HdPubKey>();
-
+	private IEnumerable<HdPubKey> KeysCache { get; set; } = Enumerable.Empty<HdPubKey>();
+	private object SyncCachesLock { get; } = new();
+	
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
 
@@ -412,7 +413,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
-					await ProcessFilterModelAsync(filterModel, null, CancellationToken.None).ConfigureAwait(false);
+					await ProcessFilterModelAsync(filterModel, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
 
@@ -454,9 +455,8 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
-		// Go through the filters and queue to download the matches.
-		// TurboSync first sync, test only non-obsolete keys (all external keys + internal with coins on them at the height of the filter)
-		await PerformWalletSynchronizationAsync(true, cancel).ConfigureAwait(false);
+		await PerformWalletSynchronizationAsync(SyncType.Turbo, cancel).ConfigureAwait(false);
+		ClearSyncCaches();
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -507,70 +507,83 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	public async Task PerformWalletSynchronizationAsync(bool? turboSync = null, CancellationToken cancel = default)
+	/// <summary>
+	/// Go through the filters and queue to download the matches.
+	/// </summary>
+	public async Task PerformWalletSynchronizationAsync(SyncType syncType, CancellationToken cancel)
 	{
-		var startingHeight = turboSync.GetValueOrDefault() ? 
+		var startingHeight = syncType == SyncType.Turbo ? 
 			new Height(KeyManager.GetBestTurboSyncHeight() + 1) : 
 			new Height(KeyManager.GetBestHeight() + 1);
 
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
-			async (filterModel) => await ProcessFilterModelAsync(filterModel, turboSync, cancel).ConfigureAwait(false),
+			async (filterModel) => await ProcessFilterModelAsync(filterModel, syncType, cancel).ConfigureAwait(false),
 			startingHeight,
 			cancel).ConfigureAwait(false);
 	}
 
-	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, bool? turboSync = null)
+	/// <summary>
+	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
+	/// </summary>
+	/// <param name="filterHeight"></param>
+	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization</param>
+	/// <returns>Keys to test against this filter</returns>
+	/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
+	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
 	{
-		if (turboSync is null)
+		if (syncType == SyncType.Complete)
 		{
 			return KeyManager.GetPubKeyScriptBytes().ToList();
 		}
 
 		var result = new List<byte[]>();
 
-		if (!KeysCache.Any())
+		lock (SyncCachesLock)
 		{
-			KeysCache = KeyManager.GetKeys();
-		}
-		
-		IEnumerable<HdPubKey> keysToTest;
-		if (turboSync.Value)
-		{
-			// First sync during TurboSync: test only external keys or internal that never received or still had coins at filter height.
-			keysToTest = KeysCache
-				.Where(
-				hdPubKey => 
-					hdPubKey.LatestSpendingHeight is null || 
-					(Height) hdPubKey.LatestSpendingHeight >= filterHeight);
-		}
-		else
-		{
-			// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
-			keysToTest = KeysCache.Where(
-				hdPubKey => 
-					hdPubKey.LatestSpendingHeight is not null && 
-					(Height)hdPubKey.LatestSpendingHeight < filterHeight);
+			if (!KeysCache.Any())
+			{
+				KeysCache = KeyManager.GetKeys();
+			}
+
+			IEnumerable<HdPubKey> keysToTest;
+			if (syncType == SyncType.Turbo)
+			{
+				// First sync during TurboSync: test only external keys or internal that never received or still had coins at filter height.
+				keysToTest = KeysCache
+					.Where(
+						hdPubKey =>
+							hdPubKey.LatestSpendingHeight is null ||
+							(Height)hdPubKey.LatestSpendingHeight >= filterHeight);
+			}
+			else
+			{
+				// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
+				keysToTest = KeysCache.Where(
+					hdPubKey =>
+						hdPubKey.LatestSpendingHeight is not null &&
+						(Height)hdPubKey.LatestSpendingHeight < filterHeight);
+			}
+
+			// Compute and save HdPubKey/ScriptPubKey pair for all keys.
+			foreach (var hdPubKey in keysToTest)
+			{
+				if (!HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
+				{
+					scriptBytes = hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes();
+					HdPubKeysWithScriptBytes.Add(hdPubKey, scriptBytes);
+				}
+
+				result.Add(scriptBytes);
+			}
 		}
 
-		// Compute and save HdPubKey/ScriptPubKey pair for all keys.
-		foreach (var hdPubKey in keysToTest)
-		{
-			if (!HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
-			{
-				scriptBytes = hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes();
-				HdPubKeysWithScriptBytes.Add(hdPubKey, scriptBytes);
-			}
-			result.Add(scriptBytes);
-		}
-		
 		return result.ToList();
 	}
 	
-	/// <seealso cref="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso >
-	private async Task ProcessFilterModelAsync(FilterModel filterModel, bool? turboSync, CancellationToken cancel)
+	private async Task ProcessFilterModelAsync(FilterModel filterModel, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filterModel.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(height, turboSync);
+		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
 		
 		if (toTestKeys.Count == 0)
 		{
@@ -591,9 +604,12 @@ public class Wallet : BackgroundService, IWallet
 			}
 
 			TransactionProcessor.Process(txsToProcess);
-			KeysCache = KeyManager.GetKeys();
+			lock (SyncCachesLock)
+			{
+				KeysCache = KeyManager.GetKeys();
+			}
 			
-			if (turboSync.GetValueOrDefault())
+			if (syncType == SyncType.Turbo)
 			{
 				// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
 				KeyManager.SetBestTurboSyncHeight(height);
@@ -645,5 +661,14 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+
+	public void ClearSyncCaches()
+	{
+		lock (SyncCachesLock)
+		{
+			HdPubKeysWithScriptBytes.Clear();
+			KeysCache = Enumerable.Empty<HdPubKey>();
+		}
 	}
 }

@@ -159,15 +159,24 @@ public class WalletManager : IWalletProvider
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				cancel.ThrowIfCancellationRequested();
-
-				var cancelNonAwaited = CancelAllInitialization.Token;
 				
 				// Continue wallet synchronization in the background for all keys skipped by TurboSync.
 				_ = Task.Run(
 					async () => 
 					{
-						await wallet.PerformWalletSynchronizationAsync(false, cancelNonAwaited).ConfigureAwait(false);
-						wallet.KeysCache = Enumerable.Empty<HdPubKey>();
+						while (!cancel.IsCancellationRequested)
+						{
+							try
+							{
+								await wallet.PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+								break;
+							}
+							catch (InvalidOperationException)
+							{
+								// Retry until cancellation is requested
+							}
+						}
+						wallet.ClearSyncCaches();
 						Logger.LogInfo("Wallet is fully synchronized.");
 					},
 					cancel);
