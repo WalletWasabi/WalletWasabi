@@ -157,6 +157,9 @@ public class CoinJoinManager : BackgroundService
 					walletToStart.LogDebug("Cannot start coinjoin, because it is already running.");
 				}
 
+				// On cancelling the shutdown prevention, we need to set it back to false, otherwise we won't continue CJing.
+				tracker.IsStopped = false;
+
 				return;
 			}
 
