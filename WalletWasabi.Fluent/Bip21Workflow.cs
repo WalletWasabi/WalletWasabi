@@ -67,12 +67,21 @@ public class Bip21Workflow
 	public void HandleUri(string uri)
 	{
 		_uri = uri;
-		_walletSelection ??= _uiContext
-			.Navigate()
-			.NavigateDialogAsync(new SelectWalletViewModel(), NavigationTarget.DialogScreen)
-			.ToObservable()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(result => WalletSelected(result.Result));
+
+		var wallets = UiServices.WalletManager.Wallets;
+		if (wallets is [ var wallet ])
+		{
+			WalletSelected(wallet);
+		}
+		else
+		{
+			_walletSelection ??= _uiContext
+				.Navigate()
+				.NavigateDialogAsync(new SelectWalletViewModel(), NavigationTarget.DialogScreen)
+				.ToObservable()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(result => WalletSelected(result.Result));
+		}
 	}
 
 	private void WalletSelected(WalletViewModelBase? selectedWallet)
