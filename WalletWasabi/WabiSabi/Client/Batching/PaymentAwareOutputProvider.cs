@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
@@ -31,7 +30,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 		// registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
-		var bestPaymentSet = BatchedPayments.GetBestPaymentSet (availableAmount, availableVsize, roundParameters);
+		var bestPaymentSet = BatchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
 		
 		// Return the payments.
 		foreach (var payment in BatchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId))
@@ -55,7 +54,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 		
 		// in case we over consumed money we reintroduce a virtual coin for the the difference.
 		var totalValueUsedForPayment = availableAmount - availableValues.Sum();
-		if (totalValueUsedForPayment > 0)
+		if (totalValueUsedForPayment > 0L)
 		{
 			availableValues = availableValues.Append(totalValueUsedForPayment).ToArray();
 		}

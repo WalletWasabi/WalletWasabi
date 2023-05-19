@@ -19,8 +19,9 @@ public class PaymentAwareOutputProviderTests
 
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		using Key key = new();
-		paymentBatch.AddPendingPayment(
-			new PendingPayment(key.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network), Money.Coins(0.00005432m)));
+		paymentBatch.AddPayment(
+			key.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network),
+			Money.Coins(0.00005432m));
 
 		var outputs =
 			outputProvider.GetOutputs(
@@ -33,7 +34,7 @@ public class PaymentAwareOutputProviderTests
 		Assert.Equal(outputs[0].ScriptPubKey, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 		Assert.Equal(outputs[0].Value, Money.Coins(0.00005432m));
 
-		Assert.True(outputs.Length > 2); // the rest was decomposed
+		Assert.True(outputs.Length > 2, $"There were {outputs.Length} outputs."); // The rest was decomposed
 		Assert.InRange(outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC)), 0.007600m, 0.007800m); // no money was lost
 	}
 }

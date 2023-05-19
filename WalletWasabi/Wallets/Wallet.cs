@@ -354,9 +354,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public string BatchPayment(IDestination destination, Money amount)
 	{
-		var payment = new PendingPayment(destination, amount);
-		BatchedPayments.AddPendingPayment(payment);
-		return payment.Id.ToString();
+		var paymentId = BatchedPayments.AddPayment(destination, amount);
+		return paymentId.ToString();
 	}
 
 	/// <inheritdoc/>
