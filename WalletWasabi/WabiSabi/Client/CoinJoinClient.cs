@@ -217,7 +217,7 @@ public class CoinJoinClient
 		var waitRoundEndedTask = Task.Run(async () =>
 		{
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitRoundEndedTaskCts.Token, cancellationToken);
-			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, linkedCts.Token).ConfigureAwait(false);
+			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.Ended, linkedCts.Token).ConfigureAwait(false);
 
 			// Indicate that the round was ended. Cancel ongoing operations those are using this CTS.
 			roundEndedCts.Cancel();
@@ -247,7 +247,17 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+
+			try
+			{
+				roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
+				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), ex);
+			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
 
@@ -266,7 +276,6 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
 
 			return roundState.EndRoundState switch
 			{
