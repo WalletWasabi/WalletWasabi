@@ -1,5 +1,8 @@
 using NBitcoin;
 using System.Linq;
+using NBitcoin.Scripting;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Client.Batching;
@@ -23,8 +26,7 @@ public class PaymentAwareOutputProviderTests
 			key.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network),
 			Money.Coins(0.00005432m));
 
-		var outputs =
-			outputProvider.GetOutputs(
+		var outputs = outputProvider.GetOutputs(
 			uint256.Zero,
 			roundParameters,
 			new[] { Money.Coins(0.00484323m), Money.Coins(0.003m), Money.Coins(0.00004323m) },
@@ -36,5 +38,37 @@ public class PaymentAwareOutputProviderTests
 
 		Assert.True(outputs.Length > 2, $"There were {outputs.Length} outputs."); // The rest was decomposed
 		Assert.InRange(outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC)), 0.007600m, 0.007800m); // no money was lost
+	}
+
+	[Theory]
+	[InlineData(new[] { "0.2", "0.30" }, "0.176", 1_000, 0, "Not enough money to make any of the payments.")]
+	[InlineData(new[] { "0.1", "0.30" }, "0.176", 1_000, 1, "It is only possible to make one payment.")]
+	[InlineData(new[] { "0.1", "0.05" }, "0.176", 1_000, 2, "It is possible to make the two payments.")]
+	[InlineData(new[] { "0.1", "0.05" }, "0.150", 1_000, 1, "It is only possible one payments. Not enough for fees.")]
+	[InlineData(new[] { "0.1", "0.05", "0.025", "0.001", "0.001" }, "0.176", 1_000, 4, "Four is the maximum number of payments.")]
+	[InlineData(new[] { "0.1", "0.30" }, "0.176", 43 + 31, 1, "It is only possible to make one payment.")]
+	[InlineData(new[] { "0.1", "0.05" }, "0.176", 43 + 31, 1, "It is possible to make the two payments.")]
+	[InlineData(new[] { "0.1", "0.05" }, "0.176", 20, 0, "It is possible to make the two payments.")]
+	[InlineData(new[] { "0.1", "0.05" }, "0.14", 40 + 31, 0, "Not enough vsize to register the payment and the change.")]
+	public void BestPaymentSetTest(string[] amountsToPay, string availableAmountStr, int availableVsize, int expectedOutputs, string failError)
+	{
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var paymentBatch = new PaymentBatch();
+
+		var payments = amountsToPay.Select(a => (Destination: GetNewDestination(), Amount: Money.Coins(decimal.Parse(a))));
+		payments.ToList().ForEach(p => paymentBatch.AddPayment(p.Destination, p.Amount));
+
+		var availableMoney = Money.Coins(decimal.Parse(availableAmountStr));
+		var paymentSet = paymentBatch.GetBestPaymentSet(availableMoney, availableVsize, roundParameters);
+
+		Assert.True(paymentSet.TotalAmount < availableMoney);
+		Assert.True(paymentSet.TotalVSize < availableVsize);
+		Assert.Equal(expectedOutputs, paymentSet.Payments.Count());
+	}
+
+	private static BitcoinAddress GetNewDestination()
+	{
+		using Key key = new();
+		return key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
 	}
 }

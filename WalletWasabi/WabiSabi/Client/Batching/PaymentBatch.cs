@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -51,7 +52,9 @@ public class PaymentBatch
 		var bestPaymentSet = allCombinationOfPendingPayments
 			.Select(pandingPaymentSet => new PaymentSet(pandingPaymentSet, roundParameters.MiningFeeRate))
 			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)
-			.Where(paymentSet => paymentSet.TotalVSize < availableVsize)
+			.Where(paymentSet => paymentSet.TotalAmount == availableAmount // edge case where payments match exactly the available amount 
+				? paymentSet.TotalVSize <= availableVsize 
+				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize )
 			.DefaultIfEmpty(PaymentSet.Empty)
 			.MaxBy(x => x.PaymentCount)!;
 
