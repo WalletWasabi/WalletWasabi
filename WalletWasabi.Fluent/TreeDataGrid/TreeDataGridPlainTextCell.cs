@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Selection;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
@@ -23,7 +24,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 		}
 	}
 
-	public override void Realize(TreeDataGridElementFactory factory, ICell model, int columnIndex, int rowIndex)
+	public override void Realize(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection, ICell model, int columnIndex, int rowIndex)
 	{
 		var plainTextCell = (PlainTextCell)model;
 		var text = plainTextCell.Value;
@@ -34,7 +35,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 			_formattedText = null;
 		}
 
-		base.Realize(factory, model, columnIndex, rowIndex);
+		base.Realize(factory, selection, model, columnIndex, rowIndex);
 	}
 
 	public override void Render(DrawingContext context)
