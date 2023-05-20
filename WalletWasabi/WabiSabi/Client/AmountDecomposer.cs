@@ -229,6 +229,13 @@ public class AmountDecomposer
 				naiveSet.Add(denom);
 				remaining -= denom.EffectiveCost;
 				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
+
+				// Can't have more denoms than max - 1, where - 1 is to account for possible change.
+				if (naiveSet.Count >= maxNumberOfOutputsAllowed - 1)
+				{
+					end = true;
+					break;
+				}
 			}
 
 			if (end)
