@@ -312,8 +312,8 @@ public class AmountDecomposer
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
-			.OrderBy(x => x.Cost) // Less cost is better.
-			.ThenBy(x => x.Decomposition.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+			.OrderBy(x => x.Decomposition.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+			.ThenBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomposition.Any(d => d.ScriptType == ScriptType.Taproot) && x.Decomposition.Any(d => d.ScriptType == ScriptType.P2WPKH) ? 0 : 1) // Prefer mixed scripts types.
 			.Select(x => x).ToList();
 
