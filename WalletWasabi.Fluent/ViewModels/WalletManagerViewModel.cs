@@ -25,7 +25,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 	{
 		UiContext = uiContext;
 
-		UiContext.WalletList.Wallets
+		UiContext.WalletRepository.Wallets
 
 			// This converts the Wallet objects into WalletPageViewModel.
 			// TODO: remove WalletManager code

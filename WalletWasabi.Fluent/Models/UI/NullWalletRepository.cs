@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.Models.UI;
 
 #nullable disable
 
-internal class NullWalletList : IWalletListModel
+internal class NullWalletRepository : IWalletRepository
 {
-	public NullWalletList()
+	public NullWalletRepository()
 	{
 		Wallets =
 			Array.Empty<IWalletModel>()

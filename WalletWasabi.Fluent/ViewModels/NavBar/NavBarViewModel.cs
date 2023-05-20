@@ -23,7 +23,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-		UiContext.WalletList
+		UiContext.WalletRepository
 				 .Wallets
 				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
 				 .Bind(out var wallets)
@@ -49,7 +49,7 @@ public partial class NavBarViewModel : ViewModelBase
 			})
 			.Subscribe();
 
-		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletList.DefaultWallet?.Name);
+		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWallet?.Name);
 	}
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }

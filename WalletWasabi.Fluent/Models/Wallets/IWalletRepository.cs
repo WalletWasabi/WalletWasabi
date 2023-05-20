@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public interface IWalletListModel
+public interface IWalletRepository
 {
 	IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 

@@ -66,7 +66,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		try
 		{
-			var wallet = await UiContext.WalletList.RecoverWalletAsync(walletName, password, currentMnemonics, MinGapLimit);
+			var wallet = await UiContext.WalletRepository.RecoverWalletAsync(walletName, password, currentMnemonics, MinGapLimit);
 			await Navigate().To().CoinJoinProfiles(wallet).GetResultAsync();
 		}
 		catch (Exception ex)
@@ -111,7 +111,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = UiContext.WalletList.HasWallet;
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 }

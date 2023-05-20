@@ -276,7 +276,7 @@ The UI Model classes (which comprise the *Model* part of the MVVM pattern) sit a
 
 ❌ **DO NOT** write ViewModel code that depends directly on `WalletWasabi` objects such as `Wallet`, `KeyManager`, `HdPubKey`, etc.
 
-✔️ **DO** write ViewModel code that depends on `IWalletModel`, `IWalletListModel`, `IAddress`, etc.
+✔️ **DO** write ViewModel code that depends on `IWalletModel`, `IWalletRepository`, `IAddress`, etc.
 
 ❌ **DO NOT** convert regular .NET properties from `WalletWasabi` objects into observables or INPC properties in ViewModel code. 
 
