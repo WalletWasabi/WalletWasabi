@@ -30,8 +30,6 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	private void OnNext()
 	{
 		Navigate().Clear();
-
-		// var wallet = UiServices.WalletManager.Wallets.FirstOrDefault(x => x.WalletName == WalletName);
-		// wallet?.OpenCommand.Execute(default);
+		UiContext.Navigate().To(_wallet);
 	}
 }

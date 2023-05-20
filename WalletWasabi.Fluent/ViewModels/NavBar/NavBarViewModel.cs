@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -13,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public partial class NavBarViewModel : ViewModelBase
+public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 
@@ -69,5 +70,11 @@ public partial class NavBarViewModel : ViewModelBase
 				BottomItems.Add(new NavBarItemViewModel(navBarItem));
 			}
 		}
+	}
+
+	IWalletViewModel? IWalletNavigation.To(IWalletModel wallet)
+	{
+		SelectedWallet = Wallets.First(x => x.WalletModel.Name == wallet.Name);
+		return SelectedWallet.WalletViewModel;
 	}
 }
