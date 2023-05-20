@@ -233,10 +233,20 @@ public class AmountDecomposer
 				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
 				denomUsage++;
 
-				// If we reached the limit, go to the next denom
+				// We reached the limit for this denomination.
 				if (denomUsage >= maxDenomUsage)
 				{
-					maxDenomUsage = Random.Next(2, 8);
+					// Change is still too big, go to next denom.
+					if (remaining.ToUnit(MoneyUnit.BTC) > Math.Max(Money.Satoshis(100000).ToUnit(MoneyUnit.BTC), 0.1m * myInputSum.ToUnit(MoneyUnit.BTC)))
+					{
+						maxDenomUsage = Random.Next(2, 8);
+					}
+					else
+					{
+						// Change is acceptable, stop the decomposition.
+						end = true;
+					}
+
 					break;
 				}
 			}
