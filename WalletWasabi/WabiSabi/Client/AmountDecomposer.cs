@@ -207,6 +207,8 @@ public class AmountDecomposer
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
 		var remainingVsize = AvailableVsize;
+		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
@@ -270,8 +272,6 @@ public class AmountDecomposer
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
-		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
-		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 		var tolerance = (long)Math.Max(loss.Satoshi, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
 
 		if (maxNumberOfOutputsAllowed > 1)
