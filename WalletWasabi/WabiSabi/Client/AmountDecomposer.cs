@@ -233,10 +233,10 @@ public class AmountDecomposer
 				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
 				denomUsage++;
 
-				// If we reached the limit, the rest will be change.
+				// If we reached the limit, go to the next denom
 				if (denomUsage >= maxDenomUsage)
 				{
-					end = true;
+					maxDenomUsage = Random.Next(2, 8);
 					break;
 				}
 			}
@@ -312,15 +312,26 @@ public class AmountDecomposer
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
-			.OrderBy(x => x.Cost) // Less cost is better.
-			.ThenBy(x => x.Decomposition.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? 0 : y.Amount)) // Prefer lower change.
+			.ThenBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomposition.Any(d => d.ScriptType == ScriptType.Taproot) && x.Decomposition.Any(d => d.ScriptType == ScriptType.P2WPKH) ? 0 : 1) // Prefer mixed scripts types.
 			.Select(x => x).ToList();
 
 		// We want to introduce randomness between the best selections.
 		var bestCandidateCost = orderedCandidates.First().Cost;
 		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
-		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+
+
+		// Change can only be max between: 100.000 satoshis, 10% of the inputs sum or 10% more than the best candidate change
+		var bestCandidateChange = CalculateChange(orderedCandidates.First().Decomposition, denomHashSet);
+		var changeTolerance = Money.Coins(
+			Math.Max(
+				Math.Max(
+					myInputSum.ToUnit(MoneyUnit.BTC) * 0.10m,
+					bestCandidateChange.ToUnit(MoneyUnit.BTC) * 1.1m),
+				Money.Satoshis(100000).ToUnit(MoneyUnit.BTC)));
+		
+		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance && CalculateChange(x.Decomposition, denomHashSet) <= changeTolerance).ToArray();
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
@@ -410,6 +421,11 @@ public class AmountDecomposer
 		var inputCost = outputs.Sum(o => o.InputFee);
 
 		return outputCost + inputCost;
+	}
+	
+	private Money CalculateChange(IEnumerable<Output> decomposition, HashSet<Output> denomHashSet)
+	{
+		return decomposition.Sum(x => denomHashSet.Contains(x) ? 0 : x.Amount);
 	}
 
 	private int CalculateHash(IEnumerable<Output> outputs)
