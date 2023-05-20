@@ -332,13 +332,13 @@ public class AmountDecomposer
 		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
 
 
-		// Change can only be max between: 100.000 satoshis, 10% of the inputs sum or 10% more than the best candidate change
+		// Change can only be max between: 100.000 satoshis, 10% of the inputs sum or 20% more than the best candidate change
 		var bestCandidateChange = CalculateChange(orderedCandidates.First().Decomposition, denomHashSet);
 		var changeTolerance = Money.Coins(
 			Math.Max(
 				Math.Max(
 					myInputSum.ToUnit(MoneyUnit.BTC) * 0.10m,
-					bestCandidateChange.ToUnit(MoneyUnit.BTC) * 1.1m),
+					bestCandidateChange.ToUnit(MoneyUnit.BTC) * 1.2m),
 				Money.Satoshis(100000).ToUnit(MoneyUnit.BTC)));
 		
 		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance && CalculateChange(x.Decomposition, denomHashSet) <= changeTolerance).ToArray();
