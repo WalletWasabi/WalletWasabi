@@ -16,9 +16,9 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinCoinSelector
 {
+	private static readonly double MaxEffectiveValueLossTolerance = 0.3; // Maximum tolerable effective value loss.
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
-	private const double MaxEffectiveValueLossTolerance = 0.3; // Maximum tolerable effective value loss.
 
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
@@ -58,7 +58,7 @@ public class CoinJoinCoinSelector
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputScriptTypes.Contains(x.ScriptType))
-			.Where(x => x.EffectiveValue(parameters.MiningFeeRate).Satoshi > x.Amount.Satoshi * (1 - MaxEffectiveValueLossTolerance))
+			.Where(x => IsEconomicallyFeasible(x, parameters.MiningFeeRate))
 			.ToArray();
 
 		// Sanity check.
@@ -431,4 +431,8 @@ public class CoinJoinCoinSelector
 
 		return targetInputCount;
 	}
+
+	private static bool IsEconomicallyFeasible<TCoin>(TCoin coin, FeeRate miningFeeRate)
+		where TCoin : ISmartCoin
+		=> coin.EffectiveValue(miningFeeRate).Satoshi > coin.Amount.Satoshi * (1.0 - MaxEffectiveValueLossTolerance);
 }
