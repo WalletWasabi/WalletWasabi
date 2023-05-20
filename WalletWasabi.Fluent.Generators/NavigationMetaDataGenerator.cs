@@ -159,18 +159,18 @@ namespace {namespaceName}
 
 				if (attributeData.NamedArguments.Any(x => x.Key == "Title"))
 				{
-					source.AppendLine($@"        public override string Title {{get => MetaData.Title; protected set {{}} }} ");
+					source.AppendLine($@"        public override string Title {{ get => MetaData.Title!; protected set {{}} }} ");
 				}
 			}
 
 			if (attributeData.NamedArguments.Any(x => x.Key == "IconName"))
 			{
-				source.AppendLine($@"        public string IconName => MetaData.IconName;");
+				source.AppendLine($@"        public string IconName => MetaData.IconName!;");
 			}
 
 			if (attributeData.NamedArguments.Any(x => x.Key == "IconNameFocused"))
 			{
-				source.AppendLine($@"        public string IconNameFocused => MetaData.IconNameFocused;");
+				source.AppendLine($@"        public string IconNameFocused => MetaData.IconNameFocused!;");
 			}
 		}
 
