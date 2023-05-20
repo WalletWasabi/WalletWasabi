@@ -212,15 +212,11 @@ public class AmountDecomposer
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
-		// How many times can we participate with the same denomination.
-		var maxDenomUsage = Random.Next(2, 8);
-
 		// Create the most naive decomposition for starter.
 		List<Output> naiveSet = new();
 		bool end = false;
 		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
 		{
-			var denomUsage = 0;
 			while (denom.EffectiveCost <= remaining)
 			{
 				// We can only let this go forward if at least 2 output can be added (denom + potential change)
@@ -233,14 +229,6 @@ public class AmountDecomposer
 				naiveSet.Add(denom);
 				remaining -= denom.EffectiveCost;
 				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
-				denomUsage++;
-
-				// If we reached the limit, the rest will be change.
-				if (denomUsage >= maxDenomUsage)
-				{
-					end = true;
-					break;
-				}
 			}
 
 			if (end)
