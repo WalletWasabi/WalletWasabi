@@ -175,7 +175,7 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x.EffectiveAmount);
 	}
 
-	private IEnumerable<Output> GetPrefilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
+	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
 		var histogram = GetDenominationFrequencies(allInputEffectiveValues);
 
@@ -208,7 +208,7 @@ public class AmountDecomposer
 
 	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
 	{
-		var preFilteredDenoms = GetPrefilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
+		var denoms = GetFilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
@@ -222,7 +222,7 @@ public class AmountDecomposer
 		// Create the most naive decomposition for starter.
 		List<Output> naiveSet = new();
 		bool end = false;
-		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
+		foreach (var denom in denoms.Where(x => x.Amount <= remaining))
 		{
 			var denomUsage = 0;
 			while (denom.EffectiveCost <= remaining)
@@ -275,7 +275,7 @@ public class AmountDecomposer
 			(naiveSet, loss + CalculateCost(naiveSet)));
 
 		// Create many decompositions for optimization.
-		var stdDenoms = preFilteredDenoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
+		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 		var tolerance = (long)Math.Max(loss.Satoshi, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
@@ -297,7 +297,7 @@ public class AmountDecomposer
 				List<Output> finalDenoms = new();
 				foreach (var outputPlusFee in currentSet)
 				{
-					finalDenoms.Add(preFilteredDenoms.First(d => d.EffectiveCost == outputPlusFee));
+					finalDenoms.Add(denoms.First(d => d.EffectiveCost == outputPlusFee));
 				}
 
 				// The decomposer won't take vsize into account for different script types, checking it back here if too much, disregard the decomposition.
@@ -313,7 +313,7 @@ public class AmountDecomposer
 			}
 		}
 
-		var denomHashSet = preFilteredDenoms.ToHashSet();
+		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
 		preCandidates.Shuffle();
 
