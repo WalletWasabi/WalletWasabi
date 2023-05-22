@@ -36,8 +36,8 @@
       <Separator />
 
       <!-- Fee -->
-
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
+      <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
+                     Icon="{StaticResource paper_cash_regular}"
                      Label="Fee"
                      CopyableContent="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
