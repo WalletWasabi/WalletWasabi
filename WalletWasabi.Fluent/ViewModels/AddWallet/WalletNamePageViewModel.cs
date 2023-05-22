@@ -48,19 +48,19 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (_options)
 		{
 			case WalletCreationOptions.AddNewWallet add:
-				Navigate().To().RecoveryWords(add);
+				Navigate().To().RecoveryWords(add with { WalletName = WalletName });
 				break;
 
 			case WalletCreationOptions.ConnectToHardwareWallet chw:
-				Navigate().To().ConnectHardwareWallet(chw);
+				Navigate().To().ConnectHardwareWallet(chw with { WalletName = WalletName });
 				break;
 
 			case WalletCreationOptions.RecoverWallet rec:
-				Navigate().To().RecoverWallet(rec);
+				Navigate().To().RecoverWallet(rec with { WalletName = WalletName });
 				break;
 
 			case WalletCreationOptions.ImportWallet imp:
-				await ImportWalletAsync(imp);
+				await ImportWalletAsync(imp with { WalletName = WalletName });
 				break;
 
 			default:
