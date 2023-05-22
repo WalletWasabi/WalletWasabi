@@ -1,7 +1,7 @@
 using DynamicData;
-using NBitcoin;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -22,7 +22,12 @@ internal class NullWalletRepository : IWalletRepository
 
 	public bool HasWallet => throw new NotImplementedException();
 
-	public Task<IWalletSettingsModel> CreateNewWalletAsync(string walletName, string password, Mnemonic mnemonic)
+	public string GetNextWalletName()
+	{
+		return "Wallet";
+	}
+
+	public Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options)
 	{
 		return Task.FromResult(default(IWalletSettingsModel));
 	}
@@ -32,8 +37,8 @@ internal class NullWalletRepository : IWalletRepository
 		return default;
 	}
 
-	public Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
-		return Task.FromResult(default(IWalletSettingsModel));
+		return null;
 	}
 }
