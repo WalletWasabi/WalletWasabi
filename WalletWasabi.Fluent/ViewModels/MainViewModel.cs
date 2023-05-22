@@ -31,7 +31,6 @@ public partial class MainViewModel : ViewModelBase
 {
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
-	private readonly AddWalletPageViewModel _addWalletPage;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
@@ -58,7 +57,6 @@ public partial class MainViewModel : ViewModelBase
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
-		_addWalletPage = new AddWalletPageViewModel(UiContext);
 		_settingsPage = new SettingsPageViewModel(UiContext);
 		_privacyMode = new PrivacyModeViewModel();
 
@@ -97,7 +95,7 @@ public partial class MainViewModel : ViewModelBase
 			{
 				IsOobeBackgroundVisible = true;
 
-				await UiContext.Navigate().To().WelcomePage(_addWalletPage).GetResultAsync();
+				await UiContext.Navigate().To().WelcomePage().GetResultAsync();
 
 				if (Services.WalletManager.HasWallet())
 				{
@@ -196,7 +194,7 @@ public partial class MainViewModel : ViewModelBase
 	private void RegisterViewModels()
 	{
 		PrivacyModeViewModel.Register(_privacyMode);
-		AddWalletPageViewModel.Register(_addWalletPage);
+		AddWalletPageViewModel.RegisterLazy(() => new AddWalletPageViewModel(UiContext));
 		SettingsPageViewModel.Register(_settingsPage);
 
 		GeneralSettingsTabViewModel.RegisterLazy(() =>
