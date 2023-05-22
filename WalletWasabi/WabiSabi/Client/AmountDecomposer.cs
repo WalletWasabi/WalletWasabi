@@ -205,10 +205,9 @@ public class AmountDecomposer
 			currentLength--;
 		}
 		
-		// Filter out denominations that will cost too much in fees to create.
-		var biggestScriptTypeVsize = Math.Max(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
-		var maxFeeOutputCreation = FeeRate.GetFee(biggestScriptTypeVsize).ToUnit(MoneyUnit.BTC);
-		denoms = denoms.Where(x => x.Amount.ToUnit(MoneyUnit.BTC) * (MaxOutputLossInFeePercentage) >= maxFeeOutputCreation).ToList();
+		// Filter out denominations that will cost too much in fees to remix/spend.
+		var biggestInputVSize = Math.Max(ScriptType.P2WPKH.EstimateInputVsize(), ScriptType.Taproot.EstimateInputVsize());
+		denoms = denoms.Where(x => x.Amount.ToUnit(MoneyUnit.BTC) * (MaxOutputLossInFeePercentage) >= FeeRate.GetFee(biggestInputVSize).ToUnit(MoneyUnit.BTC)).ToList();
 
 		return denoms;
 	}
