@@ -204,12 +204,14 @@ public class TagsBox : TemplatedControl
 
 				_internalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
-					.Subscribe(_ => RequestAdd = true)
+					//.Subscribe(_ => RequestAdd = true)
+					.Subscribe(_ => AddImpl(CurrentText))
 					.DisposeWith(_compositeDisposable);
 
 				Observable
 					.FromEventPattern(suggestionListBox, nameof(PointerReleased))
-					.Subscribe(_ => RequestAdd = true)
+					//.Subscribe(_ => RequestAdd = true)
+					.Subscribe(_ => AddImpl(CurrentText))
 					.DisposeWith(_compositeDisposable);
 			})
 			.DisposeWith(_compositeDisposable);
@@ -227,9 +229,10 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.WhereNotNull()
 			.Where(text => text.Contains(TagSeparator))
-			.Subscribe(_ => RequestAdd = true)
+			//.Subscribe(_ => RequestAdd = true)
+			.Subscribe(_ => AddImpl(CurrentText))
 			.DisposeWith(_compositeDisposable);
-
+/*
 		this.WhenAnyValue(x => x.RequestAdd)
 			.Where(x => x)
 			.Throttle(TimeSpan.FromMilliseconds(10))
@@ -247,7 +250,7 @@ public class TagsBox : TemplatedControl
 					AddTag(tag);
 				}
 			});
-
+*/
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>
 			{
@@ -255,6 +258,18 @@ public class TagsBox : TemplatedControl
 				CheckIsCurrentTextValid();
 			})
 			.DisposeWith(_compositeDisposable);
+	}
+
+	private void AddImpl(string currentText)
+	{
+		ClearInputField();
+
+		var tags = GetFinalTags(currentText, TagSeparator);
+
+		foreach (string tag in tags)
+		{
+			AddTag(tag);
+		}
 	}
 
 	private void CheckIsCurrentTextValid()
@@ -292,7 +307,8 @@ public class TagsBox : TemplatedControl
 				break;
 
 			case Key.Enter or Key.Tab when !emptyInputField:
-				RequestAdd = true;
+				//RequestAdd = true;
+				AddImpl(CurrentText);
 				e.Handled = true;
 				break;
 		}
@@ -391,7 +407,8 @@ public class TagsBox : TemplatedControl
 		if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
 		{
 			autoCompleteBox.Text = autoCompleteBox.SearchText;
-			RequestAdd = true;
+			//RequestAdd = true;
+			AddImpl(CurrentText);
 			e.Handled = true;
 		}
 	}
