@@ -11,6 +11,8 @@ namespace WalletWasabi.WabiSabi.Client;
 /// </summary>
 public class AmountDecomposer
 {
+	private const decimal MaxOutputLossInFeePercentage = 0.3m;
+
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
 	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
@@ -202,6 +204,11 @@ public class AmountDecomposer
 			}
 			currentLength--;
 		}
+		
+		// Filter out denominations that will cost too much in fees to create.
+		var biggestScriptTypeVsize = Math.Max(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
+		var maxFeeOutputCreation = FeeRate.GetFee(biggestScriptTypeVsize).ToUnit(MoneyUnit.BTC);
+		denoms = denoms.Where(x => x.Amount.ToUnit(MoneyUnit.BTC) * (MaxOutputLossInFeePercentage) >= maxFeeOutputCreation).ToList();
 
 		return denoms;
 	}
