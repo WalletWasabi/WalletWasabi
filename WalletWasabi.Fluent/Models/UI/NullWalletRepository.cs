@@ -1,6 +1,8 @@
 using DynamicData;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models.UI;
@@ -22,12 +24,17 @@ internal class NullWalletRepository : IWalletRepository
 
 	public bool HasWallet => throw new NotImplementedException();
 
+	public IWalletModel GetExistingWallet(HwiEnumerateEntry device)
+	{
+		throw new NotImplementedException();
+	}
+
 	public string GetNextWalletName()
 	{
 		return "Wallet";
 	}
 
-	public Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options)
+	public Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
 	{
 		return Task.FromResult(default(IWalletSettingsModel));
 	}
