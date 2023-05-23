@@ -15,8 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
-	private readonly IWalletModel _wallet;
 	private readonly CompositeDisposable _disposables = new();
+	private readonly IWalletModel _wallet;
 
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
@@ -28,7 +28,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		IsHardwareWallet = wallet.IsHardwareWallet();
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(false, true, true);
 
 		EnableBack = true;
 
@@ -46,18 +46,6 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		_wallet.Addresses
-			.Watch(Model.Text)
-			.Where(change => change.Current.IsUsed)
-			.Do(_ => Navigate().Back())
-			.Subscribe()
-			.DisposeWith(_disposables);
-
-		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
 	public bool IsAutoCopyEnabled { get; }
 
 	public ICommand CopyAddressCommand { get; }
@@ -73,6 +61,18 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	public IObservable<bool[,]> QrCode { get; }
 
 	private IAddress Model { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_wallet.Addresses
+			.Watch(Model.Text)
+			.Where(change => change.Current.IsUsed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
+	}
 
 	private async Task ShowOnHwWalletAsync()
 	{
