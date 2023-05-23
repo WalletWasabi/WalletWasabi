@@ -10,7 +10,7 @@ public class AutoHideFlyoutBehavior : AttachedFlyoutBehavior<Window>
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		base.OnAttached(disposables);
-		
+
 		AssociatedObject!
 			.WhenAnyValue(x => x.IsActive, x => x.IsPointerOver, (isActive, isPointerOver) => !isActive && !isPointerOver)
 			.Where(x => x)

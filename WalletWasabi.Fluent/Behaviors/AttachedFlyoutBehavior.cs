@@ -10,7 +10,7 @@ public abstract class AttachedFlyoutBehavior<T> : DisposingBehavior<T>
 	where T : class, IAvaloniaObject
 {
 	private readonly List<FlyoutBase> _openFlyouts = new();
-	
+
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		FlyoutBase.IsOpenProperty.Changed
