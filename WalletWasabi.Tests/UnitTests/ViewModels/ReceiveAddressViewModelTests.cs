@@ -50,7 +50,8 @@ public class ReceiveAddressViewModelTests
 		var uiContext = ContextWith(ns);
 		var address = new TestAddress("SomeAddress");
 		var wallet = WalletWithAddresses(address);
-		new ReceiveAddressViewModel(uiContext, wallet, address, true);
+		var vm = new ReceiveAddressViewModel(uiContext, wallet, address, true);
+		vm.OnNavigatedTo(false);
 
 		address.IsUsed = true;
 
