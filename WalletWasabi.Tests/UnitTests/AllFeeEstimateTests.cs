@@ -278,7 +278,7 @@ public class AllFeeEstimateTests
 		foreach (var _ in Enumerable.Range(0, 100))
 		{
 			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-			var mempoolInfo = MempoolInfoGenerator.GenerateRealMempoolInfo();
+			var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
 			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 120m));
 			var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);

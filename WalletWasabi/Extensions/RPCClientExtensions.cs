@@ -80,8 +80,7 @@ public static class RPCClientExtensions
 
 		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
-		var (minEstimatedMempoolFee, minEstimations) = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
-		var sanityFeeRate = FeeRate.Max(minEstimatedMempoolFee, mempoolInfo.GetSanityFeeRate());
+		var (sanityFeeRate, minEstimations) = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 
 		var fixedEstimations = smartEstimations
 			.GroupJoin(
@@ -205,7 +204,10 @@ public static class RPCClientExtensions
 		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
 			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
 
-		return (top200Mb ?? FeeRate.Zero, feeRateByConfirmationTarget);
+		var top200MbFeeRate = top200Mb ?? FeeRate.Zero; 
+		var sanityFeeRate = FeeRate.Max(top200MbFeeRate, mempoolInfo.GetSanityFeeRate());
+		
+		return (sanityFeeRate, feeRateByConfirmationTarget);
 	}
 
 	public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)

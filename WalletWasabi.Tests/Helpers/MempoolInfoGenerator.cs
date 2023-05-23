@@ -26,7 +26,7 @@ public class MempoolInfoGenerator
 
 		var realSizesHistogram = new[]
 		{
-			// Extrated from mempool.space (May 8th)
+			// Extracted from mempool.space (May 8th)
 			26912900, 39041211, 11497886, 12630137, 5215539, 5346874, 4165246, 6182007, 22028761, 10532242,
 			7840968, 4766683, 5323740, 3866718, 4380467, 3821845, 2669088, 1594671, 3365674, 3032493,
 			3489014, 2257412, 5913665, 798395, 457517, 251187, 392587, 540874, 132731, 36160, 11657, 6884,
@@ -43,7 +43,7 @@ public class MempoolInfoGenerator
 				Sizes = (uint)size * 4,
 				From = new FeeRate((decimal)range.from),
 				To = new FeeRate((decimal)range.to),
-				Fees = Money.Satoshis(avgFeeRate * (decimal)size),
+				Fees = Money.Satoshis(avgFeeRate * size),
 				Group = range.from
 			};
 		}
