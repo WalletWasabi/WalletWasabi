@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,8 +15,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
+	private readonly IWalletModel _wallet;
+	private readonly CompositeDisposable _disposables = new();
+
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
+		_wallet = wallet;
 		UiContext = uiContext;
 		Model = model;
 		Address = model.Text;
@@ -39,12 +44,18 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		{
 			CopyAddressCommand.Execute(null);
 		}
+	}
 
-		wallet.Addresses
-			.Watch(model.Text)
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_wallet.Addresses
+			.Watch(Model.Text)
 			.Where(change => change.Current.IsUsed)
-			.Do(_ => UiContext.Navigate(CurrentTarget).Back())
-			.Subscribe();
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	public bool IsAutoCopyEnabled { get; }
