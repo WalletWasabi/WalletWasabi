@@ -4,12 +4,10 @@ namespace WalletWasabi.Blockchain.Transactions.Summary;
 
 public class Output
 {
-	public Output(Money amount, BitcoinAddress destination)
+	public Output(Money amount)
 	{
 		Amount = amount;
-		Destination = destination;
 	}
 
 	public Money Amount { get; }
-	public BitcoinAddress Destination { get; }
 }

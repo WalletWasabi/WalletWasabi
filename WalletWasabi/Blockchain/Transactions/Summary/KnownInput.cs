@@ -4,13 +4,10 @@ namespace WalletWasabi.Blockchain.Transactions.Summary;
 
 public class KnownInput : IInput
 {
-	public KnownInput(Money amount, BitcoinAddress address)
+	public KnownInput(Money amount)
 	{
-		Address = address;
 		Amount = amount;
 	}
 
 	public virtual Money? Amount { get; }
-
-	public BitcoinAddress Address { get; }
 }

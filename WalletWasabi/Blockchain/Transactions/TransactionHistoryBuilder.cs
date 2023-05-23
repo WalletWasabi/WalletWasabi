@@ -53,7 +53,7 @@ public class TransactionHistoryBuilder
 					BlockIndex = containingTransaction.BlockIndex,
 					BlockHash = containingTransaction.BlockHash,
 					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
-					Inputs = GetInputs(wallet.Network, containingTransaction),
+					Inputs = GetInputs(containingTransaction),
 					Outputs = GetOutputs(containingTransaction),
 				});
 			}
@@ -81,7 +81,7 @@ public class TransactionHistoryBuilder
 						BlockIndex = spenderTransaction.BlockIndex,
 						BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
-						Inputs = GetInputs(wallet.Network, spenderTransaction),
+						Inputs = GetInputs(spenderTransaction),
 						Outputs = GetOutputs(spenderTransaction),
 					});
 				}
@@ -100,17 +100,17 @@ public class TransactionHistoryBuilder
 	{
 		var amount = txOut.Value;
 		var address = txOut.ScriptPubKey.GetDestinationAddress(Wallet.Network);
-		return new Output(amount, address);
+		return new Output(amount);
 	}
 
-	private static IEnumerable<IInput> GetInputs(Network network, SmartTransaction transaction)
+	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs
-		                       .Select(x => new KnownInput(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)))
+		                       .Select(x => new KnownInput(x.Amount))
 		                       .OfType<IInput>();
 
 		var unknown = transaction.ForeignInputs
-	                             .Select(x => new ForeignInput(x.Transaction.GetHash()))
+	                             .Select(_ => new ForeignInput())
 	                             .OfType<IInput>();
 
 		return known.Concat(unknown);
