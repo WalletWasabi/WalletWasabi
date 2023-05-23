@@ -1,20 +1,16 @@
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
-using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class KeyDownTrigger : Trigger
+public class KeyDownTrigger : DisposingTrigger
 {
 	public static readonly StyledProperty<RoutingStrategies> EventRoutingStrategyProperty = AvaloniaProperty.Register<KeyDownTrigger, RoutingStrategies>(nameof(EventRoutingStrategy));
 
 	public static readonly StyledProperty<Key> KeyProperty = AvaloniaProperty.Register<KeyDownTrigger, Key>(nameof(Key));
-	private IDisposable _subscription = Disposable.Empty;
 
 	public RoutingStrategies EventRoutingStrategy
 	{
@@ -28,23 +24,21 @@ public class KeyDownTrigger : Trigger
 		set => SetValue(KeyProperty, value);
 	}
 
-	protected override void OnAttached()
+	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		base.OnAttached();
-
 		if (AssociatedObject is InputElement element)
 		{
-			_subscription = this.WhenAnyValue(x => x.EventRoutingStrategy, x => x.Key, (strategy, key) => new { Key = key, RoutingStrategy = strategy })
-				.Select(args => element.OnEvent(InputElement.KeyDownEvent, args.RoutingStrategy).Where(x => x.EventArgs.Key == args.Key))
-				.Switch()
-				.Do(_ => Interaction.ExecuteActions(AssociatedObject, Actions, null))
-				.Subscribe();
+			element
+				.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown, EventRoutingStrategy)
+				.DisposeWith(disposables);
 		}
 	}
 
-	protected override void OnDetaching()
+	private void OnKeyDown(object? sender, KeyEventArgs e)
 	{
-		base.OnDetaching();
-		_subscription.Dispose();
+		if (e.Key == Key)
+		{
+			Interaction.ExecuteActions(AssociatedObject, Actions, null);
+		}
 	}
 }
