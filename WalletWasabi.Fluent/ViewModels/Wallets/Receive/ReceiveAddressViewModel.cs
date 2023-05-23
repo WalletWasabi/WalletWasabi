@@ -15,7 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
-	private readonly CompositeDisposable _disposables = new();
 	private readonly IWalletModel _wallet;
 
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
@@ -69,7 +68,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			.Where(change => change.Current.IsUsed)
 			.Do(_ => Navigate().Back())
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
