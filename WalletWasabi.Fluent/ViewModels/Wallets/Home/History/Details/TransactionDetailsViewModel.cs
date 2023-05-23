@@ -67,7 +67,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.IsSelfSpend)
 		{
-			return "Outgoing (transaction fee)";
+			return "Outgoing (fee)";
 		}
 
 		return "Outgoing";
