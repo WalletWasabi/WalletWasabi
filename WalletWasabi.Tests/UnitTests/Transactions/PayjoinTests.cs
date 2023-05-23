@@ -12,6 +12,7 @@ using WalletWasabi.Tests.Helpers;
 using Moq;
 using WalletWasabi.Tor.Http;
 using System.Threading;
+using System.Net.Mime;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -46,7 +47,7 @@ public class PayjoinTests
 		var psbt = PSBT.Parse(body, Network.Main);
 		var newPsbt = transformPsbt(psbt);
 		var message = new HttpResponseMessage(statusCode);
-		message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
+		message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, MediaTypeNames.Text.Plain);
 		return message;
 	}
 
@@ -54,7 +55,7 @@ public class PayjoinTests
 		Task.FromResult(new HttpResponseMessage(statusCode)
 		{
 			ReasonPhrase = "",
-			Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}")
+			Content = new StringContent($$"""{"errorCode": "{{errorCode}}", "message": "{{description}}"}""")
 		});
 
 	[Fact]
@@ -121,7 +122,10 @@ public class PayjoinTests
 				var paymentOutput = clientTx.Outputs.First(x => x.Value == amountToPay);
 				paymentOutput.Value += (Money)serverCoin.Amount;
 				var newPsbt = PSBT.FromTransaction(clientTx, Network.Main);
+
 				var serverCoinToSign = newPsbt.Inputs.FindIndexedInput(serverCoin.Outpoint);
+				Assert.NotNull(serverCoinToSign);
+
 				serverCoinToSign.UpdateFromCoin(serverCoin);
 				serverCoinToSign.Sign(serverCoinKey);
 				serverCoinToSign.FinalizeInput();
@@ -131,8 +135,8 @@ public class PayjoinTests
 		var payjoinClient = NewPayjoinClient(mockHttpClient.Object);
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 		{
-				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
-			});
+			("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+		});
 
 		var allowedCoins = transactionFactory.Coins.ToArray();
 
@@ -152,7 +156,7 @@ public class PayjoinTests
 		transactionFactory = ServiceFactory.CreateTransactionFactory(
 			new[]
 			{
-					("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			},
 			watchOnly: true);
 		allowedCoins = transactionFactory.Coins.ToArray();

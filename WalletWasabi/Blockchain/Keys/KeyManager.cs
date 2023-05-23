@@ -393,15 +393,6 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
-	{
-		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		lock (CriticalStateLock)
-		{
-			return HdPubKeyCache.GetView(keySource.KeyPath);
-		}
-	}
-
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
 		lock (CriticalStateLock)
@@ -457,21 +448,21 @@ public class KeyManager
 	{
 		if (IsWatchOnly)
 		{
-			throw new SecurityException("This is a watchonly wallet.");
+			throw new SecurityException("This is a watch-only wallet.");
 		}
 
 		password ??= "";
 
 		var passwordHash = password.GetHashCode();
 
-		if (MasterKeyAndPasswordHash is { MasterKey: var masterkey, PasswordHash: var storedPasswordHash })
+		if (MasterKeyAndPasswordHash is { MasterKey: var masterKey, PasswordHash: var storedPasswordHash })
 		{
 			if (passwordHash != storedPasswordHash)
 			{
 				throw new SecurityException("Invalid password.");
 			}
 
-			return masterkey;
+			return masterKey;
 		}
 
 		try

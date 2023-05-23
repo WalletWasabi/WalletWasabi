@@ -19,7 +19,7 @@
     font-weight: bold;
 }
 :root {
-    --black: #00101F;
+    --black: #111;
     --green: #77C600;
     --gray: #9DA8AB;
     --blue: #002647;
@@ -147,7 +147,7 @@ video::-webkit-media-controls {
 }
 .home {
     background: var(--light-gray);
-    background: linear-gradient(143deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
+    background: linear-gradient(143deg, rgba(70, 70, 70, 1) 0%, rgba(0, 0, 0, 1) 55%);
 }
 .title {
     font-size: 56px;
@@ -339,7 +339,7 @@ footer .white-text {
     padding: 200px 0;
 }
 .subpage {
-    background: linear-gradient(160deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
+    background: linear-gradient(160deg, rgba(70, 70, 70, 1) 0%, rgba(0, 0, 0, 1) 55%);
 }
 .light-area {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(225, 225, 225, 1) 100%);
@@ -912,7 +912,7 @@ blockquote:after {
 }
 .blured-section {
     background: rgba(0, 0, 0, 0.3);
-    background: linear-gradient(180deg, rgba(0, 16, 31, 0) 0%, rgba(0, 16, 31, 1) 80%);
+    background: linear-gradient(180deg, rgba(70, 70, 70, 0) 0%, rgba(0, 0, 0, 1) 80%);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
 }
