@@ -27,7 +27,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		IsHardwareWallet = wallet.IsHardwareWallet();
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
-		SetupCancel(false, true, true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true)
 
 		EnableBack = true;
 
