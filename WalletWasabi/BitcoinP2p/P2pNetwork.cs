@@ -20,10 +20,10 @@ public class P2pNetwork : BackgroundService
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public P2pNetwork(Network network, EndPoint fullnodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
+	public P2pNetwork(Network network, EndPoint fullNodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
 	{
 		Network = network;
-		FullnodeP2PEndPoint = fullnodeP2pEndPoint;
+		FullNodeP2PEndPoint = fullNodeP2pEndPoint;
 		BitcoinStore = bitcoinStore;
 		AddressManagerFilePath = Path.Combine(workDir, $"AddressManager{Network}.dat");
 
@@ -104,7 +104,7 @@ public class P2pNetwork : BackgroundService
 	}
 
 	private Network Network { get; }
-	private EndPoint FullnodeP2PEndPoint { get; }
+	private EndPoint FullNodeP2PEndPoint { get; }
 	private BitcoinStore BitcoinStore { get; }
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
@@ -118,11 +118,11 @@ public class P2pNetwork : BackgroundService
 		{
 			try
 			{
-				Node node = await Node.ConnectAsync(Network.RegTest, FullnodeP2PEndPoint).ConfigureAwait(false);
+				Node node = await Node.ConnectAsync(Network.RegTest, FullNodeP2PEndPoint).ConfigureAwait(false);
 
 				Nodes.ConnectedNodes.Add(node);
 
-				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, FullnodeP2PEndPoint).ConfigureAwait(false);
+				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, FullNodeP2PEndPoint).ConfigureAwait(false);
 
 				RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 			}

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
@@ -111,7 +109,7 @@ public class KeyManager
 	}
 
 	[OnSerializing]
-	private void OnSerializingdMethod(StreamingContext context)
+	private void OnSerializingMethod(StreamingContext context)
 	{
 		HdPubKeys.Clear();
 		HdPubKeys.AddRange(HdPubKeyCache);
@@ -142,9 +140,11 @@ public class KeyManager
 
 	#region Properties
 
+	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
 	[JsonProperty(PropertyName = "EncryptedSecret")]
 	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
+	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
 	[JsonProperty(PropertyName = "ChainCode")]
 	public byte[]? ChainCode { get; }
 
@@ -209,6 +209,7 @@ public class KeyManager
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
+	[MemberNotNullWhen(returnValue: false, nameof(ChainCode))]
 	public bool IsWatchOnly => EncryptedSecret is null;
 
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
@@ -392,15 +393,6 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
-	{
-		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		lock (CriticalStateLock)
-		{
-			return HdPubKeyCache.GetView(keySource.KeyPath);
-		}
-	}
-
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
 		lock (CriticalStateLock)
@@ -456,21 +448,21 @@ public class KeyManager
 	{
 		if (IsWatchOnly)
 		{
-			throw new SecurityException("This is a watchonly wallet.");
+			throw new SecurityException("This is a watch-only wallet.");
 		}
 
 		password ??= "";
 
 		var passwordHash = password.GetHashCode();
 
-		if (MasterKeyAndPasswordHash is { MasterKey: var masterkey, PasswordHash: var storedPasswordHash })
+		if (MasterKeyAndPasswordHash is { MasterKey: var masterKey, PasswordHash: var storedPasswordHash })
 		{
 			if (passwordHash != storedPasswordHash)
 			{
 				throw new SecurityException("Invalid password.");
 			}
 
-			return masterkey;
+			return masterKey;
 		}
 
 		try
@@ -623,17 +615,52 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
+	
+	public Height GetBestTurboSyncHeight()
+	{
+		lock (CriticalStateLock)
+		{
+			return BlockchainState.TurboSyncHeight;
+		}
+	}
 
 	public Network GetNetwork()
 	{
 		return BlockchainState.Network;
 	}
 
-	public void SetBestHeight(Height height)
+	public void SetBestHeight(Height height, bool toFile = true)
 	{
 		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
+			EnsureTurboSyncHeightConsistency(false);
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+
+	public void SetBestTurboSyncHeight(Height height, bool toFile = true)
+	{
+		lock (CriticalStateLock)
+		{
+			BlockchainState.TurboSyncHeight = height;
+			
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+
+	public void SetBestHeights(Height height, Height turboSyncHeight)
+	{
+		lock (CriticalStateLock)
+		{
+			SetBestTurboSyncHeight(turboSyncHeight, false);
+			SetBestHeight(height, false);
 			ToFile();
 		}
 	}
@@ -646,12 +673,29 @@ public class KeyManager
 			var newHeight = Math.Min(prevHeight, height);
 			if (prevHeight != newHeight)
 			{
-				SetBestHeight(newHeight);
+				SetBestHeights(newHeight, newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
 	}
 
+	public void EnsureTurboSyncHeightConsistency(bool toFile = true)
+	{
+		lock (CriticalStateLock)
+		{
+			if (BlockchainState.TurboSyncHeight < BlockchainState.Height)
+			{
+				// TurboSyncHeight can't be behind BestHeight
+				BlockchainState.TurboSyncHeight = BlockchainState.Height;
+			}
+
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+	
 	public void SetIcon(string icon)
 	{
 		Icon = icon;
@@ -694,7 +738,7 @@ public class KeyManager
 			if (lastNetwork is null || lastNetwork != expectedNetwork)
 			{
 				BlockchainState.Network = expectedNetwork;
-				SetBestHeight(0);
+				SetBestHeights(0, 0);
 
 				if (lastNetwork is { })
 				{

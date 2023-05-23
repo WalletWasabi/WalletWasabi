@@ -84,9 +84,9 @@ public partial class WalletViewModel : WalletViewModelBase
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(wallet));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -108,7 +108,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(UiContext, this)));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
@@ -153,7 +153,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
-		Navigate().To(this, NavigationMode.Clear);
+		if (OpenCommand.CanExecute(default))
+		{
+			OpenCommand.Execute(default);
+		}
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
