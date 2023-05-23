@@ -10,7 +10,7 @@ BASIC_AUTH=$([ "$CREDENTIALS" == ":" ] && echo "" || echo "--user ${CREDENTIALS}
 
 WALLETNAME=""
 
-if [  $# -ge 1 ]; then
+if [ $# -ge 1 ]; then
     ARG="${1%=*}"
     if [[ "$ARG" == "-wallet" ]]; then
         WALLETNAME="${1#*=}/"

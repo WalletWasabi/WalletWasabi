@@ -102,7 +102,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			{
 				name = "segwit",
 				publicKey = km.SegwitExtPubKey.ToString(Global.Network),
-				keyPath = $"m/{km.SegwitAccountKeyPath.ToString()}"
+				keyPath = $"m/{km.SegwitAccountKeyPath}"
 			}
 		};
 		return new
@@ -116,7 +116,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 						new
 						{
 							name = "taproot",
-							publicKey = taprootExtPubKey.ToString(Global.Network) ?? "",
+							publicKey = taprootExtPubKey.ToString(Global.Network),
 							keyPath = $"m/{km.TaprootAccountKeyPath}"
 						})
 					: accounts,

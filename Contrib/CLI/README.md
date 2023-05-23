@@ -1,12 +1,13 @@
 # Wasabi CLI
 
-A bash script to effortless interaction with Wasabi RPC Server.
+A bash script for effortless interaction with Wasabi RPC Server.
 
 USAGE:
 
 ```bash
 $ ./wcli.sh [-wallet=<WALLET-NAME>] command [ARGS,...]
 ```
+The supported RPC commands are listed the [documentation](https://docs.wasabiwallet.io/using-wasabi/RPC.html).
 
 ## Examples
 
@@ -34,24 +35,6 @@ $ ./wcli.sh getstatus
       "lastSeen": "2023-05-09T18:29:25.634355+00:00",
       "endpoint": "[::ffff:44.238.21.47]:18333",
       "userAgent": "/btcwire:0.5.0/btcd:0.23.2/"
-    },
-    {
-      "isConnected": true,
-      "lastSeen": "2023-05-09T18:30:29.6896375+00:00",
-      "endpoint": "[::ffff:69.61.32.242]:18333",
-      "userAgent": "/Satoshi:23.0.0/"
-    },
-    {
-      "isConnected": true,
-      "lastSeen": "2023-05-09T18:30:51.9110272+00:00",
-      "endpoint": "[::ffff:217.199.103.141]:18333",
-      "userAgent": "/Satoshi:23.99.0/"
-    },
-    {
-      "isConnected": true,
-      "lastSeen": "2023-05-09T18:30:27.2323917+00:00",
-      "endpoint": "[::ffff:94.130.162.107]:18333",
-      "userAgent": "/Satoshi:24.0.1(UASF-SegWit-BIP148)/"
     }
   ]
 }
