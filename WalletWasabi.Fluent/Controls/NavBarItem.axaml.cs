@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
+using Avalonia.Input;
 using Avalonia.Layout;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -9,8 +11,11 @@ namespace WalletWasabi.Fluent.Controls;
 /// Container for NavBarItems.
 /// </summary>
 [PseudoClasses(":horizontal", ":vertical", ":selectable", ":selected")]
-public class NavBarItem : Button
+public class NavBarItem : ContentControl
 {
+	public static readonly StyledProperty<ICommand> CommandProperty =
+		AvaloniaProperty.Register<NavBarItem, ICommand>(nameof(Command));
+
 	public static readonly StyledProperty<IconElement> IconProperty =
 		AvaloniaProperty.Register<NavBarItem, IconElement>(nameof(Icon));
 
@@ -27,6 +32,12 @@ public class NavBarItem : Button
 	{
 		UpdateIndicatorOrientationPseudoClasses(IndicatorOrientation);
 		UpdatePseudoClass(":selectable", IsSelectable);
+	}
+
+	public ICommand Command
+	{
+		get => GetValue(CommandProperty);
+		set => SetValue(CommandProperty, value);
 	}
 
 	/// <summary>
@@ -83,6 +94,23 @@ public class NavBarItem : Button
 		{
 			UpdatePseudoClass(":selected", change.NewValue.GetValueOrDefault<bool>());
 		}
+
+		if (change.Property == CommandProperty)
+		{
+			if (change.NewValue.GetValueOrDefault<ICommand>() is { } command)
+			{
+				PointerPressed += NavBarItem_PointerPressed;
+			}
+			else
+			{
+				PointerPressed -= NavBarItem_PointerPressed;
+			}
+		}
+	}
+
+	private void NavBarItem_PointerPressed(object? sender, PointerPressedEventArgs e)
+	{
+		Command.Execute(default);
 	}
 
 	private void UpdateIndicatorOrientationPseudoClasses(Orientation orientation)

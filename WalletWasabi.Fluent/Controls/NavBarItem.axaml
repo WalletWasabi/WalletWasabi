@@ -53,7 +53,8 @@
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
           <!-- NOTE: This margin value is to force the dirty rect in Avalonia's Deferred Renderer
                      to be rounded up so that it doesnt show up the artifacts when animated on high-res displays.  -->
-          <Border Name="SelectionIndicator" Margin="0.5,0,0,0" />
+          <Border Name="SelectionIndicator" Margin="0.5,0,0,0"
+                  IsVisible="{TemplateBinding IsSelected}" />
         </Panel>
       </ControlTemplate>
     </Setter>
@@ -69,7 +70,6 @@
   </Style>
 
   <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator">
-    <Setter Property="Opacity" Value="0" />
     <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
