@@ -182,39 +182,6 @@
                 </StackPanel>
               </Panel>
             </c:NavBarItem>
-            <!-- <Panel ToolTip.Tip="{Binding Title}"
-                   Width="75"
-                   Height="58"
-                   Margin="4 1"
-                   Cursor="Hand">
-              <Ellipse Classes="loadingindicator"
-                       Classes.isLoading="{Binding IsLoading}"
-                       Classes.isLoggedIn="{Binding IsLoggedIn}"
-                       Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
-              <StackPanel VerticalAlignment="Center" Spacing="2">
-                <PathIcon Classes="new size24 wallet"
-                          Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}"
-                          Width="24" Height="24"
-                          VerticalAlignment="Center" HorizontalAlignment="Center"
-                          Foreground="{DynamicResource AcrylicTrimForeground}" />
-                <LayoutTransformControl LayoutTransform="scaleY(1)"
-                                        Opacity="1">
-                  <LayoutTransformControl.Transitions>
-                    <Transitions>
-                      <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
-                    </Transitions>
-                  </LayoutTransformControl.Transitions>
-                  <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}"
-                                      IsVisible="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static BoolConverters.Not}}" />
-                </LayoutTransformControl>
-              </StackPanel>
-              <Border Name="SelectionIndicator" Margin="0.5,0,0,0"
-                      VerticalAlignment="Stretch" HorizontalAlignment="Left"
-                      Width="4" Height="24" CornerRadius="3"
-                      Background="{DynamicResource AcrylicTrimForeground}"
-                      IsVisible="{Binding $parent[ListBoxItem].IsSelected}" />
-            </Panel>-->
           </DataTemplate>
         </ListBox.DataTemplates>
       </ListBox>
