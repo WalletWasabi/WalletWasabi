@@ -26,29 +26,6 @@ public static class ReceiveAddressesDataGridSource
 		};
 	}
 
-	private static Comparison<AddressViewModel?> SortDescending<T>(Func<AddressViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-
-			if (x is null)
-			{
-				return 1;
-			}
-
-			if (y is null)
-			{
-				return -1;
-			}
-
-			return Comparer<T>.Default.Compare(selector(y), selector(x));
-		};
-	}
-
 	private static IColumn<AddressViewModel> ActionsColumn()
 	{
 		return new TemplateColumn<AddressViewModel>(
@@ -66,7 +43,7 @@ public static class ReceiveAddressesDataGridSource
 	{
 		return new TemplateColumn<AddressViewModel>(
 			"Address",
-			new FuncDataTemplate<AddressViewModel>((node, ns) => new AddressColumnView(), true),
+			new FuncDataTemplate<AddressViewModel>((_, _) => new AddressColumnView(), true),
 			options: new ColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -81,7 +58,7 @@ public static class ReceiveAddressesDataGridSource
 	{
 		return new TemplateColumn<AddressViewModel>(
 			"Labels",
-			new FuncDataTemplate<AddressViewModel>((node, ns) => new LabelsColumnView(), true),
+			new FuncDataTemplate<AddressViewModel>((_, _) => new LabelsColumnView(), true),
 			options: new ColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -90,28 +67,5 @@ public static class ReceiveAddressesDataGridSource
 				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Label)
 			},
 			width: new GridLength(210, GridUnitType.Pixel));
-	}
-
-	private static Comparison<AddressViewModel?> SortAscending<T>(Func<AddressViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-
-			if (x is null)
-			{
-				return -1;
-			}
-
-			if (y is null)
-			{
-				return 1;
-			}
-
-			return Comparer<T>.Default.Compare(selector(x), selector(y));
-		};
 	}
 }
