@@ -42,14 +42,15 @@
 //		mock.Verify(x => x.SetTextAsync("SomeAddress"));
 //	}
 
-//	[Fact]
-//	public void WhenAddressBecomesUsedNavigationGoesBack()
-//	{
-//		var myNavMock = new NavigationMock();
-//		var uiContext = Mocks.ContextWith(myNavMock);
-//		var address = new TestAddress("SomeAddress");
-//		var wallet = WalletWithAddresses(address);
-//		new ReceiveAddressViewModel(uiContext, wallet, address, true);
+//[Fact]
+//public void WhenAddressBecomesUsedNavigationGoesBack()
+//{
+//	var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
+//	var uiContext = ContextWith(ns);
+//	var address = new TestAddress("SomeAddress");
+//	var wallet = WalletWithAddresses(address);
+//	var vm = new ReceiveAddressViewModel(uiContext, wallet, address, true);
+//	vm.OnNavigatedTo(false);
 
 //		address.IsUsed = true;
 
