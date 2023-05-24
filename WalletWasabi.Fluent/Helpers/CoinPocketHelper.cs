@@ -38,10 +38,10 @@ public static class CoinPocketHelper
 
 		foreach (var cluster in clusters)
 		{
-			string[] allLabels = cluster.Key.Labels.ToArray();
-			SmartCoin[] coins = cluster.Value.ToArray();
+			var allLabels = cluster.Key;
+			var coins = cluster.Value;
 
-			if (allLabels.Length == 0)
+			if (allLabels.IsEmpty)
 			{
 				unLabelledCoins = new CoinsView(coins);
 			}

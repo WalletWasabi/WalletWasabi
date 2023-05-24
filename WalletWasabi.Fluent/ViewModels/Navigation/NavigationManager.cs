@@ -30,7 +30,7 @@ public static class NavigationManager
 		return null;
 	}
 
-	public static async Task<RoutableViewModel?> MaterialiseViewModelAsync(NavigationMetaData metaData)
+	public static async Task<RoutableViewModel?> MaterializeViewModelAsync(NavigationMetaData metaData)
 	{
 		if (NavigationEntries.ContainsKey(metaData))
 		{

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputType>WinExe</OutputType>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<LangVersion>latest</LangVersion>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Daemon</PathMap>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>zkSNACKs Ltd</Authors>
+		<Company>zkSNACKs Ltd</Company>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
+		<Description>
+			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, coinjoin, payjoin and coin control features.
+		</Description>
+		<Copyright>MIT</Copyright>
+		<PackageId>Wasabi Wallet Daemon</PackageId>
+		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
+		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
+		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+		<Product>Wasabi Wallet Fluent Daemon</Product>
+	</PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+    </ItemGroup>
+
+</Project>

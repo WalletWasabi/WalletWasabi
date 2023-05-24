@@ -1,7 +1,7 @@
-using Xunit;
 using System.IO;
-using WalletWasabi.Helpers;
 using System.Runtime.InteropServices;
+using WalletWasabi.Helpers;
+using Xunit;
 using ZXing.QrCode;
 
 namespace WalletWasabi.Tests.UnitTests.QrDecode;

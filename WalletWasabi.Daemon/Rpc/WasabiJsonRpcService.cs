@@ -1,7 +1,8 @@
+using NBitcoin;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -12,22 +13,19 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
-using WalletWasabi.Services.Terminate;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.Rpc;
+namespace WalletWasabi.Daemon.Rpc;
 
 public class WasabiJsonRpcService : IJsonRpcService
 {
-	public WasabiJsonRpcService(Global global, TerminateService terminateService)
+	public WasabiJsonRpcService(Global global)
 	{
 		Global = global;
-		TerminateService = terminateService;
 	}
 
 	private Global Global { get; }
-	public TerminateService TerminateService { get; }
 	private Wallet? ActiveWallet { get; set; }
 
 	[JsonRpcMethod("listunspentcoins")]
@@ -76,7 +74,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}).ToArray();
 	}
 
-	[JsonRpcMethod("createwallet")]
+	[JsonRpcMethod("createwallet", initializable: false)]
 	public object CreateWallet(string walletName, string password)
 	{
 		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
@@ -115,19 +113,19 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdkey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
+		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
 
 		return new
 		{
-			address = hdkey.GetP2wpkhAddress(Global.Network).ToString(),
-			keyPath = hdkey.FullKeyPath.ToString(),
-			label = hdkey.Label,
-			publicKey = hdkey.PubKey.ToHex(),
-			p2wpkh = hdkey.P2wpkhScript.ToHex()
+			address = hdKey.GetP2wpkhAddress(Global.Network).ToString(),
+			keyPath = hdKey.FullKeyPath.ToString(),
+			label = hdKey.Label,
+			publicKey = hdKey.PubKey.ToHex(),
+			p2wpkh = hdKey.P2wpkhScript.ToHex()
 		};
 	}
 
-	[JsonRpcMethod("getstatus")]
+	[JsonRpcMethod("getstatus", initializable: false)]
 	public object GetStatus()
 	{
 		var sync = Global.Synchronizer;
@@ -197,7 +195,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
-	[JsonRpcMethod("broadcast")]
+	[JsonRpcMethod("broadcast", initializable: false)]
 	public async Task<object> SendRawTransactionAsync(string txHex)
 	{
 		txHex = Guard.Correct(txHex);
@@ -271,7 +269,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	[JsonRpcMethod("selectwallet")]
+	[JsonRpcMethod("selectwallet", initializable: false)]
 	public void SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
@@ -291,18 +289,21 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 	}
 
-	[JsonRpcMethod("stop")]
-	public async Task StopAsync()
+	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
+	public Task StopAsync()
 	{
-		// RPC terminating itself so it should not block this call while the RPC interface is stopping.
-		await Task.Run(() => TerminateService.Terminate());
+		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
 	}
 
 	private void AssertWalletIsLoaded()
 	{
-		if (ActiveWallet is null || ActiveWallet.State != WalletState.Started)
+		if (ActiveWallet is null)
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
+		}
+		if (ActiveWallet.State < WalletState.Started)
+		{
+			throw new InvalidOperationException("Wallet is not fully loaded yet.");
 		}
 	}
 
@@ -311,6 +312,21 @@ public class WasabiJsonRpcService : IJsonRpcService
 		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
 		{
 			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
+		}
+	}
+
+	[JsonRpcInitialization]
+	public void Initialize(string path, bool needsWallet)
+	{
+		var parts = path.Split("/", StringSplitOptions.RemoveEmptyEntries);
+		var walletName = parts.Length == 1 ? parts[0] : string.Empty;
+		if (needsWallet && !string.IsNullOrEmpty(walletName))
+		{
+			SelectWallet(walletName);
+		}
+		else
+		{
+			throw new InvalidOperationException("Wallet name is invalid or not allowed.");
 		}
 	}
 }

@@ -11,7 +11,7 @@ Bitcoin Knots is working very similarly to Bitcoin Core. You can get a grasp wit
 
 Todo:
 
-1. Install [Bitcoin Knots](http://bitcoinknots.org/) on your computer. Verify the PGP - there is a tutorial [here](http://bitcoinknots.org/)
+1. Install [Bitcoin Knots](https://bitcoinknots.org/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
 2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
 ```
 Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest

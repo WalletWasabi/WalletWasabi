@@ -385,12 +385,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			}
 		}
 
-		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
-		if (txOutResponse is null)
-		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
-		}
-
+		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false)
+			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);

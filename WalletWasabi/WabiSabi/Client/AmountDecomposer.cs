@@ -175,9 +175,9 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x.EffectiveAmount);
 	}
 
-	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
+	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
-		var histogram = GetDenominationFrequencies(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
+		var histogram = GetDenominationFrequencies(allInputEffectiveValues);
 
 		// Filter out and order denominations those have occurred in the frequency table at least twice.
 		var preFilteredDenoms = histogram
@@ -203,6 +203,12 @@ public class AmountDecomposer
 			currentLength--;
 		}
 
+		return denoms;
+	}
+
+	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
+	{
+		var denoms = GetFilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
@@ -216,7 +222,7 @@ public class AmountDecomposer
 		// Create the most naive decomposition for starter.
 		List<Output> naiveSet = new();
 		bool end = false;
-		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
+		foreach (var denom in denoms.Where(x => x.Amount <= remaining))
 		{
 			var denomUsage = 0;
 			while (denom.EffectiveCost <= remaining)
@@ -307,13 +313,13 @@ public class AmountDecomposer
 			}
 		}
 
-		var denomHashSet = preFilteredDenoms.ToHashSet();
+		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
-			.OrderBy(x => x.Cost) // Less cost is better.
-			.ThenBy(x => x.Decomposition.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Prefer lower change.
+			.ThenBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomposition.Any(d => d.ScriptType == ScriptType.Taproot) && x.Decomposition.Any(d => d.ScriptType == ScriptType.P2WPKH) ? 0 : 1) // Prefer mixed scripts types.
 			.Select(x => x).ToList();
 
@@ -373,9 +379,9 @@ public class AmountDecomposer
 	/// <summary>
 	/// Greedily decomposes an amount to the given denominations.
 	/// </summary>
-	private IEnumerable<Output> BreakDown(Money coininputEffectiveValue, IEnumerable<Output> denominations)
+	private IEnumerable<Output> BreakDown(Money coinInputEffectiveValue, IEnumerable<Output> denominations)
 	{
-		var remaining = coininputEffectiveValue;
+		var remaining = coinInputEffectiveValue;
 
 		List<Output> denoms = new();
 
