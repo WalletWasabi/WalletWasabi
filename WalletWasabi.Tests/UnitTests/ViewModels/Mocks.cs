@@ -16,6 +16,13 @@ public static class Mocks
 		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>());
 	}
 
+	public static UiContext ContextWith(INavigate navigate)
+	{
+		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>());
+		uiContext.RegisterNavigation(navigate);
+		return uiContext;
+	}
+
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
 		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>());
@@ -28,11 +35,6 @@ public static class Mocks
 		var contextWith = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), clipboard);
 		contextWith.RegisterNavigation(Mock.Of<INavigate>());
 		return contextWith;
-	}
-
-	public static INavigationStack<RoutableViewModel> DialogThatReturns<T>(T value)
-	{
-		return Mock.Of<INavigationStack<RoutableViewModel>>(x => x.NavigateDialogAsync(It.IsAny<DialogViewModelBase<T>>(), It.IsAny<NavigationMode>()) == Task.FromResult(new DialogResult<T>(value, DialogResultKind.Normal)));
 	}
 
 	private class TestNavigation : INavigate

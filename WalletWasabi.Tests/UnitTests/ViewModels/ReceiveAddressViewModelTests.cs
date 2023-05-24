@@ -20,7 +20,7 @@ public class ReceiveAddressViewModelTests
 	public void CopyCommandShouldSetAddressInClipboard()
 	{
 		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
-		var context = Mocks.ContextWith(clipboard);
+		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
 		var sut = new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress"), false);
 
 		sut.CopyAddressCommand.Execute(null);

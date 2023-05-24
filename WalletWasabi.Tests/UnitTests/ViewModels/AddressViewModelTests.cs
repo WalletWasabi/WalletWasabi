@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Moq;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using Xunit;
@@ -13,7 +14,7 @@ public class AddressViewModelTests
 	public void HideCommandShouldInvokeCorrectMethod()
 	{
 		var address = Mock.Of<IAddress>(MockBehavior.Loose);
-		var context = Mocks.ContextWith(Mocks.DialogThatReturns(true));
+		var context = new UiContextBuilder().WithDialogThatReturns(true).Build();
 		var sut = new AddressViewModel(
 			context,
 			_ => Task.CompletedTask,
@@ -24,8 +25,6 @@ public class AddressViewModelTests
 
 		Mock.Get(address).Verify(x => x.Hide(), Times.Once);
 	}
-
-
 
 	[Fact]
 	public void AddressPropertiesAreExposedCorrecly()
