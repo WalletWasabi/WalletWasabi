@@ -78,7 +78,7 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 			.Where(static x => x.FirstAncestorOrSelf<LambdaExpressionSyntax>() == null)
 			.FirstOrDefault();
 
-		// if constructor already has a UiContext parameter, leave it be. Don't raise any warnings.
+		// if constructor already has a UIContext parameter, leave it be. Don't raise any warnings.
 		var ctorHasUiContextParameter =
 			ctor.ParameterList.Parameters.Any(x => x.Type.IsUiContextType(context.SemanticModel));
 
