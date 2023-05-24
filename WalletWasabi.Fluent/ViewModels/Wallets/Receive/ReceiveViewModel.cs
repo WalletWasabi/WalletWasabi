@@ -6,6 +6,8 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -33,7 +35,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Receive, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
@@ -55,12 +57,12 @@ public partial class ReceiveViewModel : RoutableViewModel
 		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
+		Navigate().To().ReceiveAddress(new WalletModel(_wallet), new Address(_wallet.KeyManager, newKey), Services.UiConfig.Autocopy);
 	}
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet));
+		Navigate().To().ReceiveAddresses(_wallet);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)

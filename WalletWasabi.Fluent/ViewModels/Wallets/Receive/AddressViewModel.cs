@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
@@ -6,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -14,7 +14,7 @@ public partial class AddressViewModel : ViewModelBase
 {
 	[AutoNotify] private string _address;
 
-	public AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
+	private AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
@@ -35,7 +35,7 @@ public partial class AddressViewModel : ViewModelBase
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
+		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(UiContext, new WalletModel(wallet), new Address(wallet.KeyManager, model), Services.UiConfig.Autocopy)));
 	}
 
 	public ICommand CopyAddressCommand { get; }
@@ -47,50 +47,4 @@ public partial class AddressViewModel : ViewModelBase
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
 	public SmartLabel Label { get; }
-
-	public static Comparison<AddressViewModel?> SortAscending<T>(Func<AddressViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return -1;
-			}
-			else if (y is null)
-			{
-				return 1;
-			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
-		};
-	}
-
-	public static Comparison<AddressViewModel?> SortDescending<T>(Func<AddressViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return 1;
-			}
-			else if (y is null)
-			{
-				return -1;
-			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
-			}
-		};
-	}
 }

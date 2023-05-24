@@ -84,12 +84,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
-
 	public bool CoinJoinInProgress
 	{
 		get => _coinJoinInProgress;
@@ -149,6 +143,12 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _isExcludedFromCoinJoin;
 		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
+
+	public bool RegisterToHdPubKey()
+		=> HdPubKey.Coins.Add(this);
+
+	public bool UnregisterFromHdPubKey()
+		=> HdPubKey.Coins.Remove(this);
 
 	public bool IsImmature(int bestHeight)
 	{

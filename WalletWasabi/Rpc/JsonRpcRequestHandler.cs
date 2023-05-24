@@ -16,6 +16,7 @@ namespace WalletWasabi.Rpc;
 /// methods and handles the errors.
 /// </summary>
 public class JsonRpcRequestHandler<TService>
+	where TService : notnull
 {
 	private static readonly JsonSerializerSettings DefaultSettings = new()
 	{
@@ -23,9 +24,9 @@ public class JsonRpcRequestHandler<TService>
 		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 		Converters = new JsonConverter[]
 		{
-				new Uint256JsonConverter(),
-				new OutPointAsTxoRefJsonConverter(),
-				new BitcoinAddressJsonConverter()
+			new Uint256JsonConverter(),
+			new OutPointAsTxoRefJsonConverter(),
+			new BitcoinAddressJsonConverter()
 		}
 	};
 
@@ -46,22 +47,37 @@ public class JsonRpcRequestHandler<TService>
 	/// <param name="body">The raw RPC request.</param>
 	/// <param name="cancellationToken">The cancellation token that will be past to the service handler in case it expects/accepts one.</param>
 	/// <returns>The response that, after serialization, is returned as response.</returns>
-	public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
+	public async Task<string> HandleAsync(string path, string body, CancellationToken cancellationToken)
 	{
 		if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequests, out var isBatch))
 		{
-			return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+			return CreateParseErrorResponse();
 		}
+
+		return await HandleRequestsAsync(path, jsonRpcRequests, isBatch, cancellationToken).ConfigureAwait(false);
+	}
+
+	public string CreateParseErrorResponse()
+	{
+		return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+	}
+
+	public async Task<string> HandleRequestsAsync(string path, JsonRpcRequest[] jsonRpcRequests, bool isBatch, CancellationToken cancellationToken)
+	{
 		var results = new List<string>();
+
 		foreach (var jsonRpcRequest in jsonRpcRequests)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken).ConfigureAwait(false));
+
+			string jsonResult = await HandleRequestAsync(path, jsonRpcRequest, cancellationToken).ConfigureAwait(false);
+			results.Add(jsonResult);
 		}
+
 		return isBatch ? $"[{string.Join(",", results)}]" : results[0];
 	}
 
-	private async Task<string> HandleRequestAsync(JsonRpcRequest jsonRpcRequest, CancellationToken cancellationToken)
+	private async Task<string> HandleRequestAsync(string path, JsonRpcRequest jsonRpcRequest, CancellationToken cancellationToken)
 	{
 		var methodName = jsonRpcRequest.Method;
 
@@ -122,6 +138,12 @@ public class JsonRpcRequestHandler<TService>
 
 			var missingParameters = methodParameters.Count - parameters.Count;
 			parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
+		
+			if (procedureMetadata.RequiresInitialization && MetadataProvider.TryGetInitializer(out var initializer))
+			{
+				initializer.Invoke(Service, new object[] { path, procedureMetadata.RequiresInitialization });
+			}
+			
 			var result = procedureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 			if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
