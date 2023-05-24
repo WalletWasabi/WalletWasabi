@@ -11,6 +11,8 @@ public abstract class AttachedFlyoutBehavior<T> : DisposingBehavior<T>
 {
 	private readonly List<FlyoutBase> _openFlyouts = new();
 
+	protected IReadOnlyList<FlyoutBase> Flyouts => _openFlyouts;
+
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		FlyoutBase.IsOpenProperty.Changed
@@ -18,11 +20,9 @@ public abstract class AttachedFlyoutBehavior<T> : DisposingBehavior<T>
 			.DisposeWith(disposables);
 	}
 
-	protected IReadOnlyList<FlyoutBase> Flyouts => _openFlyouts;
-
 	protected void CloseFlyouts()
 	{
-		for (var index = _openFlyouts.Count; index > 0; )
+		for (var index = _openFlyouts.Count; index > 0;)
 		{
 			_openFlyouts[--index].Hide();
 		}
