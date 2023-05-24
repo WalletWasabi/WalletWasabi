@@ -88,7 +88,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-	public FilterModel LastProcessedFilter { get; private set; }
+	public FilterModel? LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
 
@@ -462,17 +462,8 @@ public class Wallet : BackgroundService, IWallet
 				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
-
-		// Set BestHeight as the last filter tested.
-		var lastFilter = BitcoinStore.IndexStore.GetLastFilter();
-		if (lastFilter is { })
-		{
-			var maxFilterHeight = new Height(lastFilter.Header.Height);
-			if (KeyManager.GetBestHeight() < maxFilterHeight)
-			{
-				KeyManager.SetBestHeights(maxFilterHeight, maxFilterHeight);
-			}
-		}
+		
+		SetBestHeightsAsLastProcessedFilterHeight();
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -583,5 +574,17 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+	
+    private void SetBestHeightsAsLastProcessedFilterHeight()
+	{
+		if (LastProcessedFilter is { } lastProcessedFilter)
+		{
+			var maxFilterHeight = new Height(lastProcessedFilter.Header.Height);
+			if (KeyManager.GetBestHeight() < maxFilterHeight)
+			{
+				KeyManager.SetBestHeights(maxFilterHeight, maxFilterHeight);
+			}
+		}
 	}
 }

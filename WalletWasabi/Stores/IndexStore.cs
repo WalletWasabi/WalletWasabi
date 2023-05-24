@@ -339,11 +339,6 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public FilterModel? GetLastFilter()
-	{
-		return IndexStorage.FetchLast(1).First();
-	}
-
 	/// <inheritdoc/>
 	public ValueTask DisposeAsync()
 	{
