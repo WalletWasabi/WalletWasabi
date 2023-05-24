@@ -1192,7 +1192,7 @@ public class CoordinatorRound
 					Money networkFee = CoinJoin.GetFee(spentCoins);
 					Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
 					FeeRate feeRate = CoinJoin.GetFeeRate(spentCoins);
-					Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
 					Logger.LogInfo($"Round ({RoundId}): Number of inputs: {CoinJoin.Inputs.Count}.");
 					Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
 					Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");
