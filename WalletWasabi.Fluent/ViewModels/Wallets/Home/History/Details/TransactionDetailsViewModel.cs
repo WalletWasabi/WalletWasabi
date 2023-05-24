@@ -21,7 +21,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private string _dateString;
-    [AutoNotify] private Money? _amount;
+	[AutoNotify] private Money? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
@@ -67,7 +67,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.IsSelfSpend)
 		{
-			return "Outgoing (fee)";
+			return "Outgoing (Fee)";
 		}
 
 		return "Outgoing";
