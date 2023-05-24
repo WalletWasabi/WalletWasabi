@@ -258,6 +258,158 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
+	public void InputMergeNonStandardChange()
+	{
+		// Input merging and non-standard change results in maximum anonymity punishment.
+		var analyzer = new BlockchainAnalyzer();
+
+		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 1) };
+		var othersOutputCount = 9;
+
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			50,
+			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
+			ownInputs,
+			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Satoshis(5001), HdPubKey.DefaultHighAnonymitySet) });
+
+		analyzer.Analyze(tx);
+
+		var active = tx.WalletOutputs.MaxBy(x => x.Amount)!;
+		var change = tx.WalletOutputs.MinBy(x => x.Amount)!;
+
+		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
+		var maxPunishment = ownInputs.Min(x => x.Item2);
+
+		Assert.Equal(weightedAverage + othersOutputCount, active.AnonymitySet, precision: 0);
+		Assert.Equal(maxPunishment, change.AnonymitySet, precision: 0);
+	}
+
+	[Fact]
+	public void InputMergeSmallUniqueDenom()
+	{
+		// Input merging and small unique denomination in WW2 results in no anonymity punishment.
+		var analyzer = new BlockchainAnalyzer();
+
+		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 1) };
+		var othersOutputCount = 9;
+
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			50,
+			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
+			ownInputs,
+			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Satoshis(5000), HdPubKey.DefaultHighAnonymitySet) },
+			orderByAmount: true);
+
+		analyzer.Analyze(tx);
+
+		var active = tx.WalletOutputs.MaxBy(x => x.Amount)!;
+		var change = tx.WalletOutputs.MinBy(x => x.Amount)!;
+
+		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
+		var maxPunishment = ownInputs.Min(x => x.Item2);
+
+		Assert.True(tx.IsWasabi2Cj);
+		Assert.Equal(weightedAverage + othersOutputCount, active.AnonymitySet, precision: 0);
+		Assert.NotEqual(maxPunishment, change.AnonymitySet, precision: 0);
+		Assert.Equal(weightedAverage, change.AnonymitySet, precision: 0);
+	}
+
+	[Fact]
+	public void InputMergeLargeUniqueDenom()
+	{
+		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/zkSNACKs/WalletWasabi/pull/10699/
+		var analyzer = new BlockchainAnalyzer();
+
+		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(2.2m), 1) };
+		var othersOutputCount = 9;
+
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			50,
+			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
+			ownInputs,
+			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet) },
+			orderByAmount: true);
+
+		analyzer.Analyze(tx);
+
+		var active = tx.WalletOutputs.MinBy(x => x.Amount)!;
+		var change = tx.WalletOutputs.MaxBy(x => x.Amount)!;
+
+		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
+		var maxPunishment = ownInputs.Min(x => x.Item2);
+
+		Assert.True(tx.IsWasabi2Cj);
+		Assert.Equal(weightedAverage + othersOutputCount, active.AnonymitySet, precision: 0);
+		Assert.NotEqual(weightedAverage, change.AnonymitySet, precision: 0);
+		Assert.Equal(maxPunishment, change.AnonymitySet, precision: 0);
+	}
+
+	[Fact]
+	public void InputMergeLargeUniqueDenomReasonablePunishment()
+	{
+		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/zkSNACKs/WalletWasabi/pull/10699/
+		var analyzer = new BlockchainAnalyzer();
+
+		var ownInputs = new[] { (Money.Coins(1.1m), 1), (Money.Coins(55m), 100), (Money.Coins(45m), 3) };
+		var othersOutputCount = 9;
+
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			50,
+			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
+			ownInputs,
+			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(100m), HdPubKey.DefaultHighAnonymitySet) },
+			orderByAmount: true);
+
+		analyzer.Analyze(tx);
+
+		var active = tx.WalletOutputs.MinBy(x => x.Amount)!;
+		var change = tx.WalletOutputs.MaxBy(x => x.Amount)!;
+
+		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
+
+		Assert.True(tx.IsWasabi2Cj);
+		Assert.Equal(weightedAverage + othersOutputCount, active.AnonymitySet, precision: 0, MidpointRounding.ToZero);
+		Assert.NotEqual(weightedAverage, change.AnonymitySet, precision: 0);
+		Assert.Equal(3, change.AnonymitySet, precision: 0);
+	}
+
+	[Fact]
+	public void InputMergeLargeUniqueDenomsReasonablePunishment()
+	{
+		// Input merging and large unique denominations in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/zkSNACKs/WalletWasabi/pull/10699/
+		var analyzer = new BlockchainAnalyzer();
+
+		var ownInputs = new[] { (Money.Coins(1.1m), 1), (Money.Coins(55m), 100), (Money.Coins(45m), 3) };
+		var othersOutputCount = 9;
+
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			50,
+			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
+			ownInputs,
+			new[]
+			{
+				(Money.Satoshis(5000m), HdPubKey.DefaultHighAnonymitySet),
+				(Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet),
+				(Money.Coins(20m), HdPubKey.DefaultHighAnonymitySet),
+				(Money.Coins(20m), HdPubKey.DefaultHighAnonymitySet),
+				(Money.Coins(50m), HdPubKey.DefaultHighAnonymitySet)
+			},
+			orderByAmount: true);
+
+		analyzer.Analyze(tx);
+
+		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
+
+		Assert.True(tx.IsWasabi2Cj);
+
+		Assert.Equal(weightedAverage, tx.WalletOutputs.First(x => x.Amount == Money.Satoshis(5000m)).AnonymitySet, precision: 0, MidpointRounding.ToZero);
+		Assert.Equal(weightedAverage + othersOutputCount, tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m)).AnonymitySet, precision: 0, MidpointRounding.ToZero);
+		Assert.Equal(3, tx.WalletOutputs.First(x => x.Amount == Money.Coins(20m)).AnonymitySet, precision: 0);
+		Assert.Equal(3, tx.WalletOutputs.Where(x => x.Amount == Money.Coins(20m)).Skip(1).First().AnonymitySet, precision: 0);
+		Assert.Equal(3, tx.WalletOutputs.First(x => x.Amount == Money.Coins(50m)).AnonymitySet, precision: 0);
+	}
+
+	[Fact]
 	public void SiblingCoinjoinDoesntContributeToAnonScore()
 	{
 		var tx1 = new AnalyzedTransaction();

@@ -10,7 +10,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -63,8 +62,6 @@ public partial class SendViewModel : RoutableViewModel
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
-
-		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
@@ -146,11 +143,11 @@ public partial class SendViewModel : RoutableViewModel
 		_clipboardObserver = new ClipboardObserver(new WalletBalances(exchangeRates, balances));
 	}
 
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
+	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged();
 
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
+	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged();
 
-	public bool IsQrButtonVisible { get; }
+	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
 	public ICommand PasteCommand { get; }
 
