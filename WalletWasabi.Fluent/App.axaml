@@ -23,6 +23,7 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
       <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
@@ -56,7 +57,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
+    <!-- <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" /> -->
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CopyableItem.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
