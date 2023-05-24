@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -41,40 +42,18 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			return;
 		}
 
-		var controller = new FlyoutShowController(AssociatedObject, flyoutBase).DisposeWith(disposable);
+		_ = new PreventFlyoutFromClosing(flyoutBase)
+			.DisposeWith(disposable);
 
+		FlyoutHelpers.ShowFlyout(AssociatedObject, flyoutBase, this.GetObservable(IsFlyoutOpenProperty), disposable);
 		FocusBasedFlyoutOpener(AssociatedObject, flyoutBase).DisposeWith(disposable);
-		IsOpenPropertySynchronizer(controller).DisposeWith(disposable);
-
-		// EDGE CASES
-		// Edge case when the Visual Root becomes active and the Associated object is focused.
-		ActivateOpener(AssociatedObject, visualRoot, controller).DisposeWith(disposable);
-		DeactivateCloser(visualRoot, controller).DisposeWith(disposable);
-
+		
 		// This is a workaround for the case when the user switches theme. The same behavior is detached and re-attached on theme changes.
 		// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
 		if (IsFlyoutOpen)
 		{
 			IsFlyoutOpen = false;
 		}
-	}
-
-	private static IDisposable DeactivateCloser(Control visualRoot, FlyoutShowController controller)
-	{
-		return Observable.FromEventPattern(visualRoot, nameof(Window.Deactivated))
-			.Do(_ => controller.SetIsForcedOpen(false))
-			.Subscribe();
-	}
-
-	private static IDisposable ActivateOpener(
-		IInputElement associatedObject,
-		Control visualRoot,
-		FlyoutShowController controller)
-	{
-		return Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
-			.Where(_ => associatedObject.IsFocused)
-			.Do(_ => controller.SetIsForcedOpen(true))
-			.Subscribe();
 	}
 
 	private static IObservable<bool> GetPopupIsFocused(FlyoutBase flyoutBase)
@@ -88,14 +67,6 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
 		var flyoutGotFocus = popupGotFocus.Select(_ => true).Merge(popupLostFocus.Select(_ => false));
 		return flyoutGotFocus;
-	}
-
-	private IDisposable IsOpenPropertySynchronizer(FlyoutShowController controller)
-	{
-		return this
-			.WhenAnyValue(x => x.IsFlyoutOpen)
-			.Do(controller.SetIsForcedOpen)
-			.Subscribe();
 	}
 
 	private IDisposable FocusBasedFlyoutOpener(
@@ -115,5 +86,27 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(isOpen => IsFlyoutOpen = isOpen)
 			.Subscribe();
+	}
+
+	private class PreventFlyoutFromClosing : IDisposable
+	{
+		public PreventFlyoutFromClosing(FlyoutBase flyout)
+		{
+			Flyout = flyout;
+			Flyout.Closing += FlyoutClosing;
+		}
+		
+		public FlyoutBase Flyout { get; }
+		public bool PreventClose { get; set; }
+
+		public void Dispose()
+		{
+			Flyout.Closing -= FlyoutClosing;
+		}
+
+		private void FlyoutClosing(object? sender, CancelEventArgs e)
+		{
+			e.Cancel = PreventClose;
+		}
 	}
 }
