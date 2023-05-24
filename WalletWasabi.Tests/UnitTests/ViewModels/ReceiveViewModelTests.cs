@@ -15,25 +15,25 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels;
 public class ReceiveViewModelTests
 {
 	[Fact]
-	public void Empty_address_list()
+	public void EmptyAddressList()
 	{
 		Assert.False(HasUnusedAddresses(_ => { }));
 	}
 
 	[Fact]
-	public void Used_address()
+	public void UsedAddress()
 	{
 		Assert.False(HasUnusedAddresses(configuration => configuration.SetUsed("addr")));
 	}
 
 	[Fact]
-	public void Unused_address()
+	public void UnusedAddress()
 	{
 		Assert.True(HasUnusedAddresses(configuration => { configuration.SetUnused("addr"); }));
 	}
 
 	[Fact]
-	public void Unused_becomes_used()
+	public void UnusedBecomesUsed()
 	{
 		Assert.False(
 			HasUnusedAddresses(
@@ -60,11 +60,11 @@ public class ReceiveViewModelTests
 			Addresses = addresses.Connect();
 		}
 
-		public string Name { get; }
+		public string Name => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
+		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
 
-		public IObservable<Money> Balance { get; }
+		public IObservable<Money> Balance => throw new NotSupportedException();
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 

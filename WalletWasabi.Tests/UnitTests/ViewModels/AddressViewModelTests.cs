@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using Moq;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using Xunit;
@@ -12,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels;
 public class AddressViewModelTests
 {
 	[Fact]
-	public void Hide_command_should_invoke_correct_method()
+	public void HideCommandShouldInvokeCorrectMethod()
 	{
 		var address = Mock.Of<IAddress>(MockBehavior.Loose);
 		var context = Mocks.ContextWith(Mocks.DialogThatReturns(true));
@@ -30,7 +28,7 @@ public class AddressViewModelTests
 
 
 	[Fact]
-	public void Properties_are_mapped()
+	public void AddressPropertiesAreExposedCorrecly()
 	{
 		var testAddress = new TestAddress("ad");
 		var labels = new[] { "Label 1", "Label 2" };
