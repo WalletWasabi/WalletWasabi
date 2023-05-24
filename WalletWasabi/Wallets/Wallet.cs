@@ -410,11 +410,7 @@ public class Wallet : BackgroundService, IWallet
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
-					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
-					{
-						var filterHeight = new Height(filterModel.Header.Height);
-						KeyManager.SetBestHeights(filterHeight, filterHeight);
-					}
+					SetWalletHeights(new Height(filterModel.Header.Height));
 				}
 			}
 
@@ -462,8 +458,11 @@ public class Wallet : BackgroundService, IWallet
 				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
-		
-		SetBestHeightsAsLastProcessedFilterHeight();
+
+		if (LastProcessedFilter is { } lastProcessedFilter)
+		{
+			SetWalletHeights(new Height(lastProcessedFilter.Header.Height));
+		}
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -576,15 +575,11 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.ToFile();
 	}
 	
-    private void SetBestHeightsAsLastProcessedFilterHeight()
+    private void SetWalletHeights(Height filterHeight)
 	{
-		if (LastProcessedFilter is { } lastProcessedFilter)
+		if (KeyManager.GetBestHeight() < filterHeight)
 		{
-			var maxFilterHeight = new Height(lastProcessedFilter.Header.Height);
-			if (KeyManager.GetBestHeight() < maxFilterHeight)
-			{
-				KeyManager.SetBestHeights(maxFilterHeight, maxFilterHeight);
-			}
+			KeyManager.SetBestHeights(filterHeight, filterHeight);
 		}
 	}
 }
