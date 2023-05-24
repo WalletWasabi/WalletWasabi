@@ -33,7 +33,7 @@ public class ReceiveAddressViewModelTests
 	public void AutoCopyEnabledShouldCopyToClipboard()
 	{
 		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
-		var context = Mocks.ContextWith(clipboard);
+		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
 		new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress"), true);
 		var mock = Mock.Get(clipboard);
 		mock.Verify(x => x.SetTextAsync("SomeAddress"));
