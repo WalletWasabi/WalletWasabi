@@ -34,7 +34,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 
 		Fee = transactionSummary.Fee;
-		IsFeeVisible = transactionSummary.Fee != null && !transactionSummary.IsSelfSpend && transactionSummary.Amount < 0;
+		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < 0;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -54,23 +54,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 		Amount = transactionSummary.Amount.Abs();
-		AmountText = GetAmountText(transactionSummary);
+		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
 		BlockHash = transactionSummary.BlockHash?.ToString();
-	}
-
-	private string GetAmountText(TransactionSummary transactionSummary)
-	{
-		if (transactionSummary.Amount >= Money.Zero)
-		{
-			return "Incoming";
-		}
-
-		if (transactionSummary.IsSelfSpend)
-		{
-			return "Outgoing (Fee)";
-		}
-
-		return "Outgoing";
 	}
 
 	private void OnNext()
