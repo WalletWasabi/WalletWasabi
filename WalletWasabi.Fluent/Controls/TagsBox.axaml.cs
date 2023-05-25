@@ -265,7 +265,6 @@ public class TagsBox : TemplatedControl
 				break;
 
 			case Key.Enter or Key.Tab when !emptyInputField:
-				//RequestAdd = true;
 				ClearAndAddTags(CurrentText);
 				e.Handled = true;
 				break;
