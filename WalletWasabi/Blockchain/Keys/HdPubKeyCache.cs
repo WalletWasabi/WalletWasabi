@@ -11,13 +11,13 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 {
 	private Dictionary<Script, HdPubKey> HdPubKeysByScript { get; } = new();
 	private HashSet<HdPubKey> HdPubKeys { get; } = new();
-	private Dictionary<KeyPath, byte[]> ScriptBytesByKeyPath { get; } = new();
+	private Dictionary<HdPubKey, byte[]> ScriptBytesByHdPubKey { get; } = new();
 
 	private HdPubKeyGlobalView Snapshot =>
 		new(this.ToImmutableList());
 
-	public IEnumerable<byte[]> GetScriptPubKeysBytes() =>
-		ScriptBytesByKeyPath.Values;
+	public Dictionary<HdPubKey, byte[]> GetHdPubKeysWithScriptBytes() =>
+		ScriptBytesByHdPubKey;
 
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
 		HdPubKeysByScript.TryGetValue(destination, out hdPubKey);
@@ -39,7 +39,7 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	{
 		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
 		HdPubKeysByScript.AddOrReplace(scriptPubKey, hdPubKey);
-		ScriptBytesByKeyPath.AddOrReplace(hdPubKey.FullKeyPath, scriptPubKey.ToCompressedBytes());
+		ScriptBytesByHdPubKey.AddOrReplace(hdPubKey, scriptPubKey.ToCompressedBytes());
 		HdPubKeys.Add(hdPubKey);
 	}
 

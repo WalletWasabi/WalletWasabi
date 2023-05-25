@@ -99,11 +99,7 @@ public class Wallet : BackgroundService, IWallet
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
-	
-	private Dictionary<HdPubKey, byte[]> HdPubKeysWithScriptBytes { get; } = new();
-	private IEnumerable<HdPubKey> KeysCache { get; set; } = Enumerable.Empty<HdPubKey>();
-	private object SyncCachesLock { get; } = new();
-	
+
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
 
@@ -457,8 +453,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		await PerformWalletSynchronizationAsync(SyncType.Turbo, cancel).ConfigureAwait(false);
-		ClearSyncCaches();
-		
+
 		if (LastProcessedFilter is { } lastProcessedFilter)
 		{
 			SetFinalBestTurboSyncHeight(new Height(lastProcessedFilter.Header.Height));
@@ -539,51 +534,33 @@ public class Wallet : BackgroundService, IWallet
 	{
 		if (syncType == SyncType.Complete)
 		{
-			return KeyManager.GetPubKeyScriptBytes().ToList();
+			return KeyManager.GetHdPubKeysWithScriptBytes().Values.ToList();
 		}
 
-		var result = new List<byte[]>();
-
-		lock (SyncCachesLock)
+		var allKeysWithScriptBytes = KeyManager.GetHdPubKeysWithScriptBytes();
+		
+		IEnumerable<byte[]> keysToTest;
+		if (syncType == SyncType.Turbo)
 		{
-			if (!KeysCache.Any())
-			{
-				KeysCache = KeyManager.GetKeys();
-			}
-
-			IEnumerable<HdPubKey> keysToTest;
-			if (syncType == SyncType.Turbo)
-			{
-				// First sync during TurboSync: test only external keys or internal that never received or still had coins at filter height.
-				keysToTest = KeysCache
-					.Where(
-						hdPubKey =>
-							hdPubKey.LatestSpendingHeight is null ||
-							(Height)hdPubKey.LatestSpendingHeight >= filterHeight);
-			}
-			else
-			{
-				// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
-				keysToTest = KeysCache.Where(
-					hdPubKey =>
-						hdPubKey.LatestSpendingHeight is not null &&
-						(Height)hdPubKey.LatestSpendingHeight < filterHeight);
-			}
-
-			// Compute and save HdPubKey/ScriptPubKey pair for all keys.
-			foreach (var hdPubKey in keysToTest)
-			{
-				if (!HdPubKeysWithScriptBytes.TryGetValue(hdPubKey, out var scriptBytes))
-				{
-					scriptBytes = hdPubKey.PubKey.GetScriptPubKey(hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()).ToCompressedBytes();
-					HdPubKeysWithScriptBytes.Add(hdPubKey, scriptBytes);
-				}
-
-				result.Add(scriptBytes);
-			}
+			// First sync during TurboSync: test only external keys or internal that never received or still had coins at filter height.
+			keysToTest = allKeysWithScriptBytes
+				.Where(
+					x =>
+						x.Key.LatestSpendingHeight is null ||
+						(Height)x.Key.LatestSpendingHeight >= filterHeight)
+				.Select(x => x.Value);
+		}
+		else
+		{
+			// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
+			keysToTest = allKeysWithScriptBytes.Where(
+				hdPubKey =>
+					hdPubKey.Key.LatestSpendingHeight is not null &&
+					(Height)hdPubKey.Key.LatestSpendingHeight < filterHeight)
+				.Select(x => x.Value);
 		}
 
-		return result.ToList();
+		return keysToTest.ToList();
 	}
 	
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, SyncType syncType, CancellationToken cancel)
@@ -610,11 +587,7 @@ public class Wallet : BackgroundService, IWallet
 			}
 
 			TransactionProcessor.Process(txsToProcess);
-			lock (SyncCachesLock)
-			{
-				KeysCache = KeyManager.GetKeys();
-			}
-			
+
 			if (syncType == SyncType.Turbo)
 			{
 				// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
@@ -669,16 +642,7 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.ToFile();
 	}
 
-	public void ClearSyncCaches()
-	{
-		lock (SyncCachesLock)
-		{
-			HdPubKeysWithScriptBytes.Clear();
-			KeysCache = Enumerable.Empty<HdPubKey>();
-		}
-	}
-	
-    private void SetFinalBestTurboSyncHeight(Height filterHeight)
+	private void SetFinalBestTurboSyncHeight(Height filterHeight)
 	{
 		if (KeyManager.GetBestTurboSyncHeight() < filterHeight)
 		{

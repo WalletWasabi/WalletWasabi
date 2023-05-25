@@ -181,7 +181,6 @@ public class WalletManager : IWalletProvider
 								// Retry until cancellation is requested
 							}
 						}
-						wallet.ClearSyncCaches();
 						Logger.LogInfo("Wallet is fully synchronized.");
 					},
 					cancel);
