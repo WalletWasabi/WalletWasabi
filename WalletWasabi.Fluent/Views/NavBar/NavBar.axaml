@@ -106,7 +106,8 @@
     </Style>
 
     <Style Selector="ListBoxItem">
-      <Setter Property="Padding" Value="0" />
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="ClipToBounds" Value="False"/>
     </Style>
     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
