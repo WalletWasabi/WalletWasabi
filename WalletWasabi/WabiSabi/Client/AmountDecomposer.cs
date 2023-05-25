@@ -310,6 +310,13 @@ public class AmountDecomposer
 
 		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
+
+		// If there are changeless candidates, don't even consider ones with change.
+		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
+		if (changelessCandidates.Any())
+		{
+			preCandidates = changelessCandidates;
+		}
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
