@@ -686,7 +686,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
     
-    private void SetFinalBestHeight(Height filterHeight)
+    public void SetFinalBestHeight(Height filterHeight)
     {
 	    if (KeyManager.GetBestHeight() < filterHeight)
 	    {

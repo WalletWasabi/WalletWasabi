@@ -169,6 +169,11 @@ public class WalletManager : IWalletProvider
 							try
 							{
 								await wallet.PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+								if (wallet.LastProcessedFilter is { } lastProcessedFilter)
+								{
+									wallet.SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
+								}
+
 								break;
 							}
 							catch (InvalidOperationException)
