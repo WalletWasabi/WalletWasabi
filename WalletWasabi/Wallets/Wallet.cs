@@ -88,7 +88,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-	public FilterModel LastProcessedFilter { get; private set; }
+	public FilterModel? LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
 
@@ -410,6 +410,7 @@ public class Wallet : BackgroundService, IWallet
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
+					SetWalletHeights(new Height(filterModel.Header.Height));
 				}
 			}
 
@@ -457,6 +458,11 @@ public class Wallet : BackgroundService, IWallet
 				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
+
+		if (LastProcessedFilter is { } lastProcessedFilter)
+		{
+			SetWalletHeights(new Height(lastProcessedFilter.Header.Height));
+		}
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -567,5 +573,13 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+	
+    private void SetWalletHeights(Height filterHeight)
+	{
+		if (KeyManager.GetBestHeight() < filterHeight)
+		{
+			KeyManager.SetBestHeights(filterHeight, filterHeight);
+		}
 	}
 }
