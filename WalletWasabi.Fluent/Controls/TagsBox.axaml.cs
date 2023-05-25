@@ -219,7 +219,6 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.WhereNotNull()
 			.Where(text => text.Contains(TagSeparator))
-			//.Subscribe(_ => RequestAdd = true)
 			.Subscribe(_ => ClearAndAddTags(CurrentText))
 			.DisposeWith(_compositeDisposable);
 
