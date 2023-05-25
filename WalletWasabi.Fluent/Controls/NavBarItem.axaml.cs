@@ -51,7 +51,6 @@ public class NavBarItem : ListBoxItem
 		set => SetValue(IndicatorOrientationProperty, value);
 	}
 
-
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
 		base.OnPropertyChanged(change);
