@@ -137,9 +137,9 @@ public class TransactionProcessor
 		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpends = new List<SmartCoin>();
-			foreach (var txin in tx.Transaction.Inputs)
+			foreach (var txIn in tx.Transaction.Inputs)
 			{
-				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txin.PrevOut, out var coins))
+				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txIn.PrevOut, out var coins))
 				{
 					doubleSpends.AddRange(coins);
 				}

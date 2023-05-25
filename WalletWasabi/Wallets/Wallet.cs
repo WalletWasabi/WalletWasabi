@@ -88,7 +88,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-	public FilterModel LastProcessedFilter { get; private set; }
+	public FilterModel? LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
 
@@ -414,6 +414,7 @@ public class Wallet : BackgroundService, IWallet
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
+					SetFinalBestHeight(new Height(filterModel.Header.Height));
 				}
 			}
 
@@ -457,6 +458,11 @@ public class Wallet : BackgroundService, IWallet
 
 		await PerformWalletSynchronizationAsync(SyncType.Turbo, cancel).ConfigureAwait(false);
 		ClearSyncCaches();
+		
+		if (LastProcessedFilter is { } lastProcessedFilter)
+		{
+			SetFinalBestTurboSyncHeight(new Height(lastProcessedFilter.Header.Height));
+		}
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -624,7 +630,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 		LastProcessedFilter = filterModel;
 	}
-	
+
 	public void SetWaitingForInitState()
 	{
 		if (State != WalletState.Uninitialized)
@@ -671,4 +677,20 @@ public class Wallet : BackgroundService, IWallet
 			KeysCache = Enumerable.Empty<HdPubKey>();
 		}
 	}
+	
+    private void SetFinalBestTurboSyncHeight(Height filterHeight)
+	{
+		if (KeyManager.GetBestTurboSyncHeight() < filterHeight)
+		{
+			KeyManager.SetBestTurboSyncHeight(filterHeight);
+		}
+	}
+    
+    private void SetFinalBestHeight(Height filterHeight)
+    {
+	    if (KeyManager.GetBestHeight() < filterHeight)
+	    {
+		    KeyManager.SetBestHeight(filterHeight);
+	    }
+    }
 }
