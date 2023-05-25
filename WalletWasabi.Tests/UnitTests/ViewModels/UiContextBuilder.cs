@@ -9,6 +9,11 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
 public class UiContextBuilder
 {
+	public INavigate Navigate { get; private set; } = Mock.Of<INavigate>();
+	public IQrCodeGenerator QrGenerator { get; } = Mock.Of<IQrCodeGenerator>();
+	public IQrCodeReader QrReader { get; } = Mock.Of<IQrCodeReader>();
+	public IClipboard Clipboard { get; private set; } = Mock.Of<IClipboard>();
+
 	public UiContextBuilder WithDialogThatReturns(object value)
 	{
 		Navigate = new NavigationMock((value, DialogResultKind.Normal));
@@ -27,9 +32,4 @@ public class UiContextBuilder
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
 	}
-
-	public INavigate Navigate { get; private set; } = Mock.Of<INavigate>();
-	public IQrCodeGenerator QrGenerator { get; private set; } = Mock.Of<IQrCodeGenerator>();
-	public IQrCodeReader QrReader { get; private set; } = Mock.Of<IQrCodeReader>();
-	public IClipboard Clipboard { get; private set; } = Mock.Of<IClipboard>();
 }
