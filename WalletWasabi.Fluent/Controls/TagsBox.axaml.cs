@@ -195,7 +195,6 @@ public class TagsBox : TemplatedControl
 
 				_internalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
-					//.Subscribe(_ => RequestAdd = true)
 					.Subscribe(_ => ClearAndAddTags(CurrentText))
 					.DisposeWith(_compositeDisposable);
 
