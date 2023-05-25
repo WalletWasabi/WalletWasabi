@@ -27,7 +27,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 		Source.RowSelection!.SingleSelect = true;
 		EnableBack = true;
-		SetupCancel(true, true, true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
 	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
