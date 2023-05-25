@@ -40,7 +40,7 @@ public class CrashReportWindowViewModel : ViewModelBase
 
 	public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
 
-	public string Link => "https://github.com/zkSNACKs/WalletWasabi/issues";
+	public string Link => AboutViewModel.BugReportLink;
 
 	public string Trace => SerializedException.ToString();
 
