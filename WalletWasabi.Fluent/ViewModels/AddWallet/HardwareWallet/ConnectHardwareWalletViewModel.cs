@@ -78,6 +78,14 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
+		if (ExistingWallet is { })
+		{
+			Navigate().Clear();
+
+			// Temporary workaround
+			MainViewModel.Instance.NavBar.SelectedWallet =
+				MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == ExistingWallet.Wallet.WalletName);
+		}
 	}
 
 	private void StartDetection()
