@@ -10,14 +10,14 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class CoinPocketHelper
 {
-	public static readonly SmartLabel UnlabelledFundsText = new("Unknown People");
-	public static readonly SmartLabel PrivateFundsText = new("Private Funds");
-	public static readonly SmartLabel SemiPrivateFundsText = new("Semi-private Funds");
+	public static readonly LabelsArray UnlabelledFundsText = new("Unknown People");
+	public static readonly LabelsArray PrivateFundsText = new("Private Funds");
+	public static readonly LabelsArray SemiPrivateFundsText = new("Semi-private Funds");
 
-	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
+	public static IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
-		List<(SmartLabel SmartLabel, ICoinsView Coins)> pockets = new();
-		var clusters = new Dictionary<SmartLabel, List<SmartCoin>>();
+		List<(LabelsArray Labels, ICoinsView Coins)> pockets = new();
+		var clusters = new Dictionary<LabelsArray, List<SmartCoin>>();
 
 		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold))
 		{
@@ -38,10 +38,10 @@ public static class CoinPocketHelper
 
 		foreach (var cluster in clusters)
 		{
-			string[] allLabels = cluster.Key.ToArray();
-			SmartCoin[] coins = cluster.Value.ToArray();
+			var allLabels = cluster.Key;
+			var coins = cluster.Value;
 
-			if (allLabels.Length == 0)
+			if (allLabels.IsEmpty)
 			{
 				unLabelledCoins = new CoinsView(coins);
 			}

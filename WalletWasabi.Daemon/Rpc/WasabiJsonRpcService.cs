@@ -1,8 +1,8 @@
+using NBitcoin;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -13,7 +13,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
-using WalletWasabi.Services.Terminate;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
@@ -21,14 +20,12 @@ namespace WalletWasabi.Daemon.Rpc;
 
 public class WasabiJsonRpcService : IJsonRpcService
 {
-	public WasabiJsonRpcService(Global global, TerminateService terminateService)
+	public WasabiJsonRpcService(Global global)
 	{
 		Global = global;
-		TerminateService = terminateService;
 	}
 
 	private Global Global { get; }
-	public TerminateService TerminateService { get; }
 	private Wallet? ActiveWallet { get; set; }
 
 	[JsonRpcMethod("listunspentcoins")]
@@ -46,7 +43,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			anonymitySet = x.HdPubKey.AnonymitySet,
 			confirmed = x.Confirmed,
 			confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-			label = x.HdPubKey.Label.ToString(),
+			label = x.HdPubKey.Labels.ToString(),
 			keyPath = x.HdPubKey.FullKeyPath.ToString(),
 			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
 		}).ToArray();
@@ -116,13 +113,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
+		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new LabelsArray(label));
 
 		return new
 		{
 			address = hdKey.GetP2wpkhAddress(Global.Network).ToString(),
 			keyPath = hdKey.FullKeyPath.ToString(),
-			label = hdKey.Label,
+			label = hdKey.Labels,
 			publicKey = hdKey.PubKey.ToHex(),
 			p2wpkh = hdKey.P2wpkhScript.ToHex()
 		};
@@ -170,7 +167,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		AssertWalletIsLoaded();
 		var sync = Global.Synchronizer;
 		var payment = new PaymentIntent(payments.Select(p =>
-			new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
+			new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
 		var result = activeWallet.BuildTransaction(
 			password,
@@ -224,7 +221,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			datetime = x.DateTime,
 			height = x.Height.Value,
 			amount = x.Amount.Satoshi,
-			label = x.Label,
+			label = x.Labels,
 			tx = x.TransactionId,
 			islikelycoinjoin = x.IsOwnCoinjoin
 		}).ToArray();
@@ -242,7 +239,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			fullKeyPath = x.FullKeyPath.ToString(),
 			@internal = x.IsInternal,
 			keyState = x.KeyState,
-			label = x.Label.ToString(),
+			label = x.Labels.ToString(),
 			p2wpkhScript = x.P2wpkhScript.ToString(),
 			pubkey = x.PubKey.ToString(),
 			pubKeyHash = x.PubKeyHash.ToString(),
@@ -292,11 +289,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 	}
 
-	[JsonRpcMethod("stop", initializable: false)]
-	public async Task StopAsync()
+	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
+	public Task StopAsync()
 	{
-		// RPC terminating itself so it should not block this call while the RPC interface is stopping.
-		await Task.Run(() => TerminateService.Terminate());
+		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
 	}
 
 	private void AssertWalletIsLoaded()

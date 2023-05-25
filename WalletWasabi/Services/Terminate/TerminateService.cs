@@ -27,7 +27,9 @@ public class TerminateService
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
-	public TaskCompletionSource TerminationRequested { get; } = new();
+	public TaskCompletionSource TerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+	private bool IsSystemEventsSubscribed { get; set; }
 
 	public void Activate()
 	{
@@ -44,17 +46,16 @@ public class TerminateService
 			IsSystemEventsSubscribed = true;
 		}
 	}
-	private bool IsSystemEventsSubscribed { get; set; }
 
 	private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 	{
-		Logger.LogInfo($"Process domain unloading requested by the OS.");
+		Logger.LogInfo("Process domain unloading requested by the OS.");
 		Terminate();
 	}
 
 	private void Default_Unloading(AssemblyLoadContext obj)
 	{
-		Logger.LogInfo($"Process context unloading requested by the OS.");
+		Logger.LogInfo("Process context unloading requested by the OS.");
 		Terminate();
 	}
 
@@ -88,6 +89,11 @@ public class TerminateService
 		e.Cancel = true;
 
 		// ... instead signal back that the app should terminate.
+		SignalTerminate();
+	}
+
+	public void SignalTerminate()
+	{
 		if (TerminationRequested.TrySetResult())
 		{
 			// Run this callback just once.

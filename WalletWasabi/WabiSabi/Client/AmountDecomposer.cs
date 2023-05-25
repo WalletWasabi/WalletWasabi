@@ -175,9 +175,9 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x.EffectiveAmount);
 	}
 
-	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
+	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
-		var histogram = GetDenominationFrequencies(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
+		var histogram = GetDenominationFrequencies(allInputEffectiveValues);
 
 		// Filter out and order denominations those have occurred in the frequency table at least twice.
 		var preFilteredDenoms = histogram
@@ -203,22 +203,26 @@ public class AmountDecomposer
 			currentLength--;
 		}
 
+		return denoms;
+	}
+
+	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
+	{
+		var denoms = GetFilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
 		var remainingVsize = AvailableVsize;
+		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
-
-		// How many times can we participate with the same denomination.
-		var maxDenomUsage = Random.Next(2, 8);
 
 		// Create the most naive decomposition for starter.
 		List<Output> naiveSet = new();
 		bool end = false;
-		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
+		foreach (var denom in denoms.Where(x => x.Amount <= remaining))
 		{
-			var denomUsage = 0;
 			while (denom.EffectiveCost <= remaining)
 			{
 				// We can only let this go forward if at least 2 output can be added (denom + potential change)
@@ -231,10 +235,9 @@ public class AmountDecomposer
 				naiveSet.Add(denom);
 				remaining -= denom.EffectiveCost;
 				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
-				denomUsage++;
 
-				// If we reached the limit, the rest will be change.
-				if (denomUsage >= maxDenomUsage)
+				// Can't have more denoms than max - 1, where - 1 is to account for possible change.
+				if (naiveSet.Count >= maxNumberOfOutputsAllowed - 1)
 				{
 					end = true;
 					break;
@@ -270,8 +273,6 @@ public class AmountDecomposer
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
-		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
-		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 		var tolerance = (long)Math.Max(loss.Satoshi, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
 
 		if (maxNumberOfOutputsAllowed > 1)
@@ -279,7 +280,7 @@ public class AmountDecomposer
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
 				tolerance: tolerance,
-				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8),
+				maxCount: maxNumberOfOutputsAllowed,
 				stdDenoms: stdDenoms))
 			{
 				var currentSet = Decomposer.ToRealValuesArray(
@@ -307,13 +308,20 @@ public class AmountDecomposer
 			}
 		}
 
-		var denomHashSet = preFilteredDenoms.ToHashSet();
+		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
+
+		// If there are changeless candidates, don't even consider ones with change.
+		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
+		if (changelessCandidates.Any())
+		{
+			preCandidates = changelessCandidates;
+		}
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
-			.OrderBy(x => x.Cost) // Less cost is better.
-			.ThenBy(x => x.Decomposition.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Prefer lower change.
+			.ThenBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomposition.Any(d => d.ScriptType == ScriptType.Taproot) && x.Decomposition.Any(d => d.ScriptType == ScriptType.P2WPKH) ? 0 : 1) // Prefer mixed scripts types.
 			.Select(x => x).ToList();
 
