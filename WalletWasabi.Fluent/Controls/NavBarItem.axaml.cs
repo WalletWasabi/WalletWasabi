@@ -10,8 +10,8 @@ namespace WalletWasabi.Fluent.Controls;
 /// <summary>
 /// Container for NavBarItems.
 /// </summary>
-[PseudoClasses(":horizontal", ":vertical", ":selectable", ":selected")]
-public class NavBarItem : ContentControl
+[PseudoClasses(":horizontal", ":vertical", ":selected")]
+public class NavBarItem : ListBoxItem
 {
 	public static readonly StyledProperty<ICommand> CommandProperty =
 		AvaloniaProperty.Register<NavBarItem, ICommand>(nameof(Command));
@@ -22,16 +22,9 @@ public class NavBarItem : ContentControl
 	public static readonly StyledProperty<Orientation> IndicatorOrientationProperty =
 		AvaloniaProperty.Register<NavBarItem, Orientation>(nameof(IndicatorOrientation), Orientation.Vertical);
 
-	public static readonly StyledProperty<bool> IsSelectableProperty =
-		AvaloniaProperty.Register<NavBarItem, bool>(nameof(IsSelectable));
-
-	public static readonly StyledProperty<bool> IsSelectedProperty =
-		AvaloniaProperty.Register<NavBarItem, bool>(nameof(IsSelected));
-
 	public NavBarItem()
 	{
 		UpdateIndicatorOrientationPseudoClasses(IndicatorOrientation);
-		UpdatePseudoClass(":selectable", IsSelectable);
 	}
 
 	public ICommand Command
@@ -58,23 +51,6 @@ public class NavBarItem : ContentControl
 		set => SetValue(IndicatorOrientationProperty, value);
 	}
 
-	/// <summary>
-	/// Gets or sets flag indicating whether item supports selected state.
-	/// </summary>
-	public bool IsSelectable
-	{
-		get => GetValue(IsSelectableProperty);
-		set => SetValue(IsSelectableProperty, value);
-	}
-
-	/// <summary>
-	/// Gets or sets if the item is selected or not.
-	/// </summary>
-	public bool IsSelected
-	{
-		get => GetValue(IsSelectedProperty);
-		set => SetValue(IsSelectedProperty, value);
-	}
 
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
@@ -83,11 +59,6 @@ public class NavBarItem : ContentControl
 		if (change.Property == IndicatorOrientationProperty)
 		{
 			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
-		}
-
-		if (change.Property == IsSelectableProperty)
-		{
-			UpdatePseudoClass(":selectable", change.NewValue.GetValueOrDefault<bool>());
 		}
 
 		if (change.Property == IsSelectedProperty)

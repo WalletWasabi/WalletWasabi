@@ -13,6 +13,9 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+  <i:Interaction.Behaviors>
+    <behaviors:NavBarSelectedIndicatorParentBehavior />
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
 
     <Style Selector="Separator">
@@ -105,21 +108,13 @@
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0" />
     </Style>
-
     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background">
-        <SolidColorBrush Color="#FFFFFF" Opacity="0.05" />
-      </Setter>
-      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="PathIcon.wallet" x:DataType="vmw:WalletPageViewModel">
-      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-    </Style>
-
-    <Style Selector="PathIcon.wallet.isfocused" x:DataType="vmw:WalletPageViewModel">
-      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-    </Style>
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
@@ -168,16 +163,8 @@
                 <StackPanel VerticalAlignment="Center" Spacing="2">
                   <PathIcon Classes="new size24 wallet"
                             Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}" />
-                  <LayoutTransformControl LayoutTransform="scaleY(1)"
-                                          Opacity="1">
-                    <LayoutTransformControl.Transitions>
-                      <Transitions>
-                        <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
-                        <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
-                      </Transitions>
-                    </LayoutTransformControl.Transitions>
-                    <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}"
-                                        IsVisible="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static BoolConverters.Not}}" />
+                  <LayoutTransformControl>
+                    <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
                   </LayoutTransformControl>
                 </StackPanel>
               </Panel>
