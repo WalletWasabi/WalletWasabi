@@ -519,6 +519,8 @@ public class CoinJoinManager : BackgroundService
 			{
 				k.KeyChain?.TrySetScriptStates(state, scripts);
 			}
+
+			(k as Wallet)?.KeyManager.ToFile();
 		}
 	}
 
