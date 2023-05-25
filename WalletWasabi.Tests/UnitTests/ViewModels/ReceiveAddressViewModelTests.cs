@@ -99,7 +99,7 @@ public class ReceiveAddressViewModelTests
 
 		public IObservable<WalletState> State => throw new NotImplementedException();
 
-		bool IWalletModel.IsHardwareWallet => throw new NotImplementedException();
+		bool IWalletModel.IsHardwareWallet => false;
 
 		public bool IsWatchOnlyWallet => throw new NotImplementedException();
 
