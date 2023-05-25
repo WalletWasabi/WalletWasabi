@@ -20,7 +20,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private string _dateString;
-	[AutoNotify] private string? _amount;
+	[AutoNotify] private Money? _amount;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
@@ -32,10 +32,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
+		Fee = transactionSummary.Fee;
+		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < 0;
+
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
+
+	public bool IsFeeVisible { get; set; }
+
+	public Money? Fee { get; set; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -45,7 +52,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.Abs().ToString(fplus: false, trimExcessZero: false);
+		Amount = transactionSummary.Amount.Abs();
 		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
