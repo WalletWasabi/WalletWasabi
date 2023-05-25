@@ -16,9 +16,11 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	private HdPubKeyGlobalView Snapshot =>
 		new(this.ToImmutableList());
 
-	public Dictionary<HdPubKey, byte[]> GetHdPubKeysWithScriptBytes() =>
-		ScriptBytesByHdPubKey;
-
+	public IEnumerable<HdPubKeyScriptBytesPair> GetHdPubKeysWithScriptBytes()
+	{
+		return ScriptBytesByHdPubKey.Select(x => new HdPubKeyScriptBytesPair(x.Key, x.Value));
+	}
+	
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
 		HdPubKeysByScript.TryGetValue(destination, out hdPubKey);
 
@@ -50,4 +52,6 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
+	
+	public record HdPubKeyScriptBytesPair(HdPubKey HdPubKey, byte[] ScriptBytes);
 }

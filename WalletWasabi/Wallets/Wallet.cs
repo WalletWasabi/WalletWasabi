@@ -534,7 +534,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		if (syncType == SyncType.Complete)
 		{
-			return KeyManager.GetHdPubKeysWithScriptBytes().Values.ToList();
+			return KeyManager.GetHdPubKeysWithScriptBytes().Select(x => x.ScriptBytes).ToList();
 		}
 
 		var allKeysWithScriptBytes = KeyManager.GetHdPubKeysWithScriptBytes();
@@ -546,18 +546,18 @@ public class Wallet : BackgroundService, IWallet
 			keysToTest = allKeysWithScriptBytes
 				.Where(
 					x =>
-						x.Key.LatestSpendingHeight is null ||
-						(Height)x.Key.LatestSpendingHeight >= filterHeight)
-				.Select(x => x.Value);
+						x.HdPubKey.LatestSpendingHeight is null ||
+						(Height)x.HdPubKey.LatestSpendingHeight >= filterHeight)
+				.Select(x => x.ScriptBytes);
 		}
 		else
 		{
 			// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
 			keysToTest = allKeysWithScriptBytes.Where(
-				hdPubKey =>
-					hdPubKey.Key.LatestSpendingHeight is not null &&
-					(Height)hdPubKey.Key.LatestSpendingHeight < filterHeight)
-				.Select(x => x.Value);
+				x =>
+					x.HdPubKey.LatestSpendingHeight is not null &&
+					(Height)x.HdPubKey.LatestSpendingHeight < filterHeight)
+				.Select(x => x.ScriptBytes);
 		}
 
 		return keysToTest.ToList();

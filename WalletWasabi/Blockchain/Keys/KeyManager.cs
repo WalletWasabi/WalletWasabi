@@ -393,7 +393,7 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public Dictionary<HdPubKey, byte[]> GetHdPubKeysWithScriptBytes()
+	public IEnumerable<HdPubKeyCache.HdPubKeyScriptBytesPair> GetHdPubKeysWithScriptBytes()
 	{
 		lock (CriticalStateLock)
 		{
