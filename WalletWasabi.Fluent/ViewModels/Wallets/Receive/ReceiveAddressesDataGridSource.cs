@@ -63,8 +63,8 @@ public static class ReceiveAddressesDataGridSource
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Label),
-				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Label)
+				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Labels),
+				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Labels)
 			},
 			width: new GridLength(210, GridUnitType.Pixel));
 	}

@@ -1,6 +1,5 @@
 using ReactiveUI;
-using System.Collections.Generic;
-using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -8,9 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 [NavigationMetaData(Title = "Hide Address", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 {
-	public ConfirmHideAddressViewModel(IAddress address)
+	public ConfirmHideAddressViewModel(LabelsArray labels)
 	{
-		Label = address.Labels;
+		Labels = labels;
 
 		NextCommand = ReactiveCommand.Create(() => Close(result: true));
 		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
@@ -18,5 +17,5 @@ public partial class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	public IEnumerable<string> Label { get; }
+	public LabelsArray Labels { get; }
 }

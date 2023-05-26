@@ -31,7 +31,7 @@ public partial class TransactionInfo
 
 	public BitcoinAddress Destination { get; init; }
 
-	public SmartLabel Recipient { get; set; } = SmartLabel.Empty;
+	public LabelsArray Recipient { get; set; } = LabelsArray.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 

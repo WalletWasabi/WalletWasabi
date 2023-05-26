@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -15,7 +15,7 @@ public partial class AddressViewModel : ViewModelBase
 {
 	private IAddress Address { get; }
 	[AutoNotify] private string _addressText;
-	[AutoNotify] private IEnumerable<string> _label = Enumerable.Empty<string>();
+	[AutoNotify] private IEnumerable<string> _labels = new LabelsArray();
 
 	public AddressViewModel(UiContext context, AddressAction onEdit, AddressAction onShow, IAddress address)
 	{
@@ -23,7 +23,7 @@ public partial class AddressViewModel : ViewModelBase
 		Address = address;
 		_addressText = address.Text;
 
-		this.WhenAnyValue(x => x.Address.Labels).BindTo(this, viewModel => viewModel.Label);
+		this.WhenAnyValue(x => x.Address.Labels).BindTo(this, viewModel => viewModel.Labels);
 
 		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(AddressText));
 		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddressAsync);
@@ -41,7 +41,7 @@ public partial class AddressViewModel : ViewModelBase
 
 	private async Task PromptHideAddressAsync()
 	{
-		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(Address));
+		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(Address.Labels));
 
 		if (result.Result == false)
 		{
