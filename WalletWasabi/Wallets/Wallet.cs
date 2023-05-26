@@ -264,22 +264,25 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task PerformFinalSynchronizationAsync(CancellationToken cancel)
 	{
-		while (!cancel.IsCancellationRequested)
+		using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			try
+			while (!cancel.IsCancellationRequested)
 			{
-				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
-				if (LastProcessedFilter is { } lastProcessedFilter)
+				try
 				{
-					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
-				}
+					await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+					if (LastProcessedFilter is { } lastProcessedFilter)
+					{
+						SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
+					}
 
-				break;
-			}
-			catch (InvalidOperationException)
-			{
-				// Retry until cancellation is requested
-				Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying.");
+					break;
+				}
+				catch (Exception ex)
+				{
+					// Retry until cancellation is requested
+					Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying: '{ex}'.");
+				}
 			}
 		}
 
@@ -591,7 +594,7 @@ public class Wallet : BackgroundService, IWallet
 
 		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
 			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
-			: hdPubKey => hdPubKey.LatestSpendingHeight is not null || (Height)hdPubKey.LatestSpendingHeight! < filterHeight;
+			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
 		
 		IEnumerable<byte[]> keysToTest = KeyManager.GetHdPubKeysWithScriptBytes()
 			.Where(x => stepPredicate(x.HdPubKey))
