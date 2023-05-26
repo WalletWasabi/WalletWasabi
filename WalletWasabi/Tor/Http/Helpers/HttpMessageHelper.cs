@@ -133,13 +133,8 @@ public static class HttpMessageHelper
 			: throw new FormatException("There's no CRLF.");
 	}
 
-	public static byte[]? HandleGzipCompression(HttpContentHeaders contentHeaders, byte[]? decodedBodyArray)
+	public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
 	{
-		if (decodedBodyArray is null || !decodedBodyArray.Any())
-		{
-			return decodedBodyArray;
-		}
-
 		if (contentHeaders?.ContentEncoding is { } && contentHeaders.ContentEncoding.Contains("gzip"))
 		{
 			using (var src = new MemoryStream(decodedBodyArray))
