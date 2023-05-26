@@ -32,6 +32,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Daemon;
 
@@ -48,6 +49,7 @@ public class Global
 
 		HostedServices = new HostedServices();
 		WalletManager = walletManager;
+		ClientPrison = ClientPrison.CreateOrLoadFromFile(Config.DataDir);
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
@@ -101,6 +103,7 @@ public class Global
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
+	public ClientPrison ClientPrison { get; set; }
 	private SpecificNodeBlockProvider? SpecificNodeBlockProvider { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
@@ -118,7 +121,7 @@ public class Global
 	private IndexStore IndexStore { get; }
 
 	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new (
+		new(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
@@ -145,6 +148,8 @@ public class Global
 
 				UpdateManager.Initialize(updateChecker, cancel);
 				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+
+				await ClientPrison.StartAsync(cancel).ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -220,7 +225,7 @@ public class Global
 					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 					Cache);
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider, ClientPrison);
 			}
 			finally
 			{
@@ -322,7 +327,7 @@ public class Global
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier, ClientPrison), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()

@@ -21,6 +21,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
@@ -90,6 +91,7 @@ public class Wallet : BackgroundService, IWallet
 	public HybridFeeProvider FeeProvider { get; private set; }
 	public FilterModel LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
+	public ClientPrison ClientPrison { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
 
 	public bool IsLoggedIn { get; private set; }
@@ -184,7 +186,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		IBlockProvider blockProvider,
+		ClientPrison clientPrison)
 	{
 		if (State > WalletState.WaitingForInit)
 		{
@@ -197,6 +200,7 @@ public class Wallet : BackgroundService, IWallet
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+			ClientPrison = clientPrison;
 
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
 			Coins = TransactionProcessor.Coins;
@@ -544,7 +548,7 @@ public class Wallet : BackgroundService, IWallet
 	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
-		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new ClientPrison());
 		return wallet;
 	}
 

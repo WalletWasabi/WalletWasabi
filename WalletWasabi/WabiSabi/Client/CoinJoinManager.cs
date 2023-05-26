@@ -442,7 +442,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
-
+		// Use Prison Client Here
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
 		// When to stop mixing:

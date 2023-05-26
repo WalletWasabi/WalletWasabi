@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Wallets;
 
@@ -67,6 +68,7 @@ public class WalletManager : IWalletProvider
 	private HybridFeeProvider FeeProvider { get; set; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
+	public ClientPrison ClientPrison { get; set; }
 	private IBlockProvider BlockProvider { get; set; }
 	private string WorkDir { get; }
 
@@ -147,7 +149,7 @@ public class WalletManager : IWalletProvider
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, ClientPrison);
 		}
 
 		using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -373,17 +375,18 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider, ClientPrison clientPrison)
 	{
 		BitcoinStore = bitcoinStore;
 		Synchronizer = synchronizer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
+		ClientPrison = clientPrison;
 
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, ClientPrison);
 		}
 
 		IsInitialized = true;
@@ -396,6 +399,7 @@ public class WalletManager : IWalletProvider
 			km.EnsureTurboSyncHeightConsistency();
 		}
 	}
+
 	public void SetMaxBestHeight(uint bestHeight)
 	{
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
