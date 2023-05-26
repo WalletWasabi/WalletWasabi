@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public partial class AddressViewModel : ViewModelBase
 {
-	private IAddress Address { get; }
 	[AutoNotify] private string _addressText;
 	[AutoNotify] private IEnumerable<string> _labels = new LabelsArray();
 
@@ -30,6 +29,8 @@ public partial class AddressViewModel : ViewModelBase
 		EditLabelCommand = ReactiveCommand.CreateFromTask(() => onEdit(address));
 		NavigateCommand = ReactiveCommand.CreateFromTask(() => onShow(address));
 	}
+
+	private IAddress Address { get; }
 
 	public ICommand CopyAddressCommand { get; }
 
