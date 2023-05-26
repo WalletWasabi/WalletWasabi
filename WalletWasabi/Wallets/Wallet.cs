@@ -247,6 +247,7 @@ public class Wallet : BackgroundService, IWallet
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
+					LoadPrisonedCoinsState();
 				}
 			}
 
@@ -258,6 +259,19 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Initialized;
 			throw;
+		}
+	}
+
+	private void LoadPrisonedCoinsState()
+	{
+		var prisonedCoinRecords = ClientPrison.PrisonedCoins;
+
+		foreach (var record in prisonedCoinRecords)
+		{
+			if (Coins.FirstOrDefault(coin => coin.Outpoint.Equals(record.Outpoint)) is { } coin)
+			{
+				coin.BannedUntilUtc = record.BannedUntil;
+			}
 		}
 	}
 
