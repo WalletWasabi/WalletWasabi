@@ -23,6 +23,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -233,7 +234,7 @@ public class BuildTests
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new ClientPrison());
 
 		var baseTip = await rpc.GetBestBlockHashAsync();
 
