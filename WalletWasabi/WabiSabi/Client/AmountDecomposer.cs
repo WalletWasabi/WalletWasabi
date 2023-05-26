@@ -221,39 +221,10 @@ public class AmountDecomposer
 		setCandidates.Add(naiveDecomp.Key, naiveDecomp.Value);
 
 		// Create many decompositions for optimization.
-		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
-
-		if (maxNumberOfOutputsAllowed > 1)
+		var changelessDecomps = CreateChangelessDecompositions(denoms, myInputSum, maxNumberOfOutputsAllowed);
+		foreach (var decomp in changelessDecomps)
 		{
-			foreach (var (sum, count, decomp) in Decomposer.Decompose(
-				target: (long)myInputSum,
-				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
-				maxCount: maxNumberOfOutputsAllowed,
-				stdDenoms: stdDenoms))
-			{
-				var currentSet = Decomposer.ToRealValuesArray(
-					decomp,
-					count,
-					stdDenoms).Select(Money.Satoshis).ToList();
-
-				// Translate back to denominations.
-				List<Output> finalDenoms = new();
-				foreach (var outputPlusFee in currentSet)
-				{
-					finalDenoms.Add(denoms.First(d => d.EffectiveCost == outputPlusFee));
-				}
-
-				// The decomposer won't take vsize into account for different script types, checking it back here if too much, disregard the decomposition.
-				var totalVSize = finalDenoms.Sum(d => d.ScriptType.EstimateOutputVsize());
-				if (totalVSize > AvailableVsize)
-				{
-					continue;
-				}
-
-				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCost(finalDenoms);
-
-				setCandidates.TryAdd(CalculateHash(finalDenoms), (finalDenoms, deficit));
-			}
+			setCandidates.TryAdd(decomp.Key, decomp.Value);
 		}
 
 		var denomHashSet = denoms.ToHashSet();
@@ -299,6 +270,48 @@ public class AmountDecomposer
 			throw new InvalidOperationException("The decomposer created more outputs than it can. Aborting.");
 		}
 		return finalCandidate;
+	}
+
+	private IDictionary<int, (IEnumerable<Output> Decomp, Money Cost)> CreateChangelessDecompositions(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
+	{
+		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomp, Money Cost)>();
+
+		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
+
+		if (maxNumberOfOutputsAllowed > 1)
+		{
+			foreach (var (sum, count, decomp) in Decomposer.Decompose(
+				target: (long)myInputSum,
+				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
+				maxCount: maxNumberOfOutputsAllowed,
+				stdDenoms: stdDenoms))
+			{
+				var currentSet = Decomposer.ToRealValuesArray(
+					decomp,
+					count,
+					stdDenoms).Select(Money.Satoshis).ToList();
+
+				// Translate back to denominations.
+				List<Output> finalDenoms = new();
+				foreach (var outputPlusFee in currentSet)
+				{
+					finalDenoms.Add(denoms.First(d => d.EffectiveCost == outputPlusFee));
+				}
+
+				// The decomposer won't take vsize into account for different script types, checking it back here if too much, disregard the decomposition.
+				var totalVSize = finalDenoms.Sum(d => d.ScriptType.EstimateOutputVsize());
+				if (totalVSize > AvailableVsize)
+				{
+					continue;
+				}
+
+				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCost(finalDenoms);
+
+				setCandidates.TryAdd(CalculateHash(finalDenoms), (finalDenoms, deficit));
+			}
+		}
+
+		return setCandidates;
 	}
 
 	private KeyValuePair<int, (IEnumerable<Output> Decomp, Money Cost)> CreateNaiveDecomposition(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
