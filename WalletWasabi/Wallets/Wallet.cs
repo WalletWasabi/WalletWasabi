@@ -578,8 +578,8 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
 	/// </summary>
-	/// <param name="filterHeight"></param>
-	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization</param>
+	/// <param name="filterHeight">Height of the filter that needs to be tested.</param>
+	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization.</param>
 	/// <returns>Keys to test against this filter</returns>
 	/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
@@ -589,28 +589,13 @@ public class Wallet : BackgroundService, IWallet
 			return KeyManager.GetHdPubKeysWithScriptBytes().Select(x => x.ScriptBytes).ToList();
 		}
 
-		var allKeysWithScriptBytes = KeyManager.GetHdPubKeysWithScriptBytes();
+		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
+			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
+			: hdPubKey => hdPubKey.LatestSpendingHeight is not null || (Height)hdPubKey.LatestSpendingHeight! < filterHeight;
 		
-		IEnumerable<byte[]> keysToTest;
-		if (syncType == SyncType.Turbo)
-		{
-			// First sync during TurboSync: test only external keys or internal that never received or still had coins at filter height.
-			keysToTest = allKeysWithScriptBytes
-				.Where(
-					x =>
-						x.HdPubKey.LatestSpendingHeight is null ||
-						(Height)x.HdPubKey.LatestSpendingHeight >= filterHeight)
-				.Select(x => x.ScriptBytes);
-		}
-		else
-		{
-			// Second sync during TurboSync: test all other keys (internal keys that received and already spent their coins at filter height).
-			keysToTest = allKeysWithScriptBytes.Where(
-				x =>
-					x.HdPubKey.LatestSpendingHeight is not null &&
-					(Height)x.HdPubKey.LatestSpendingHeight < filterHeight)
-				.Select(x => x.ScriptBytes);
-		}
+		IEnumerable<byte[]> keysToTest = KeyManager.GetHdPubKeysWithScriptBytes()
+			.Where(x => stepPredicate(x.HdPubKey))
+			.Select(x => x.ScriptBytes);
 
 		return keysToTest.ToList();
 	}
