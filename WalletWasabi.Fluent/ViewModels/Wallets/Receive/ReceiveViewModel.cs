@@ -54,6 +54,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 	public ICommand ShowExistingAddressesCommand { get; }
+
 	public IObservable<bool> HasUnusedAddresses { get; }
 
 	private void OnNext()
