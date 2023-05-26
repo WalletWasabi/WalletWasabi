@@ -9,7 +9,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-/// <summary>That behavior workarounds an Avalonia bug with not auto closing context flyouts.</summary>
+// TODO: Remove when context flyouts are fixed in Avalonia.
 public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 {
 	private readonly List<FlyoutBase> _openFlyouts = new();

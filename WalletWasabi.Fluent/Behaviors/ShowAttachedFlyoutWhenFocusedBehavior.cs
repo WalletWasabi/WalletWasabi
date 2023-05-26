@@ -1,11 +1,17 @@
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reflection;
 using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Diagnostics;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -31,49 +37,41 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject?.GetVisualRoot() is not Control visualRoot)
+		if (AssociatedObject?.GetVisualRoot() is Control visualRoot &&
+			FlyoutBase.GetAttachedFlyout(AssociatedObject) is Flyout flyout)
 		{
-			return;
-		}
+			var flyoutController = new FlyoutController(flyout)
+				.DisposeWith(disposable);
 
-		var flyoutBase = FlyoutBase.GetAttachedFlyout(AssociatedObject);
-		if (flyoutBase is null)
-		{
-			return;
-		}
-
-		_ = new PreventFlyoutFromClosing(flyoutBase)
-			.DisposeWith(disposable);
-
-		FlyoutHelpers.ShowFlyout(AssociatedObject, flyoutBase, this.GetObservable(IsFlyoutOpenProperty), disposable);
-		FocusBasedFlyoutOpener(AssociatedObject, flyoutBase).DisposeWith(disposable);
+			FlyoutHelpers.ShowFlyout(AssociatedObject, flyout, this.GetObservable(IsFlyoutOpenProperty), disposable);
+			FocusBasedFlyoutOpener(AssociatedObject, flyoutController).DisposeWith(disposable);
+			OverlayDismissEventPassThroughFixup(AssociatedObject, flyout).DisposeWith(disposable);
 		
-		// This is a workaround for the case when the user switches theme. The same behavior is detached and re-attached on theme changes.
-		// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
-		if (IsFlyoutOpen)
-		{
-			IsFlyoutOpen = false;
+			// This is a workaround for the case when the user switches theme. The same behavior is detached and re-attached on theme changes.
+			// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
+			if (IsFlyoutOpen)
+			{
+				IsFlyoutOpen = false;
+			}
 		}
 	}
 
-	private static IObservable<bool> GetPopupIsFocused(FlyoutBase flyoutBase)
+	private static IObservable<bool> GetPopupIsFocused(FlyoutBase flyout)
 	{
 		var currentPopupHost = Observable
-			.FromEventPattern(flyoutBase, nameof(flyoutBase.Opened))
-			.Select(_ => ((IPopupHostProvider)flyoutBase).PopupHost?.Presenter)
+			.FromEventPattern(flyout, nameof(flyout.Opened))
+			.Select(_ => ((IPopupHostProvider)flyout).PopupHost?.Presenter)
 			.WhereNotNull();
 
-		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();
-		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
+		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch();
+		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch();
 		var flyoutGotFocus = popupGotFocus.Select(_ => true).Merge(popupLostFocus.Select(_ => false));
 		return flyoutGotFocus;
 	}
 
-	private IDisposable FocusBasedFlyoutOpener(
-		IAvaloniaObject associatedObject,
-		FlyoutBase flyoutBase)
+	private IDisposable FocusBasedFlyoutOpener(Control associatedObject, FlyoutController flyoutController)
 	{
-		var isPopupFocused = GetPopupIsFocused(flyoutBase);
+		var isPopupFocused = GetPopupIsFocused(flyoutController.Flyout);
 		var isAssociatedObjectFocused = associatedObject.GetObservable(InputElement.IsFocusedProperty);
 
 		var mergedFocused = isAssociatedObjectFocused.Merge(isPopupFocused);
@@ -88,14 +86,73 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Subscribe();
 	}
 
-	private class PreventFlyoutFromClosing : IDisposable
+
+	// TODO: Remove with update to Avalonia 11.
+	// This is a workaroun over Flyout not inheriting from FlyoutPopupBase
+	// and therefore not exposing OverlayDismissEventPassThroughElement.
+	// Set OverlayInputPassThroughElement on the flyout in XAML instead.
+	private IDisposable OverlayDismissEventPassThroughFixup(Control associatedObject, Flyout flyout)
 	{
-		public PreventFlyoutFromClosing(FlyoutBase flyout)
+		var visual = associatedObject.FindAncestorOfType<Window>();
+		var manager = visual.GetTemplateChildren()
+            .OfType<VisualLayerManager>()
+            .FirstOrDefault()
+			?? throw new InvalidOperationException($"Could not find a {nameof(VisualLayerManager)}.");
+
+		var layers = manager.GetType()
+			.GetField("_layers", BindingFlags.Instance | BindingFlags.NonPublic)
+			?.GetValue(manager) as List<Control>
+			?? throw new Exception("Could not find layers tp tweak.");
+
+		var oldLayer = manager.LightDismissOverlayLayer;
+		var newLayer = new FixupForLightDismissOverlayLayer
+		{
+			IsVisible = oldLayer.IsVisible,
+			ZIndex = oldLayer.ZIndex
+		};
+
+		if (((ILogical) manager).IsAttachedToLogicalTree)
+		{
+			((ILogical) oldLayer).NotifyDetachedFromLogicalTree(new LogicalTreeAttachmentEventArgs(visual, oldLayer, manager));
+		}
+
+        ((AvaloniaList<IVisual>) manager.GetVisualChildren()).Remove(oldLayer);
+        ((ISetLogicalParent) oldLayer).SetParent(null);
+
+		layers.Remove(oldLayer);
+		layers.Add(newLayer);
+
+        ((ISetLogicalParent) newLayer).SetParent(manager);
+        ((AvaloniaList<IVisual>) manager.GetVisualChildren()).Add(newLayer);
+
+		if (((ILogical) manager).IsAttachedToLogicalTree)
+		{
+			((ILogical) newLayer).NotifyAttachedToLogicalTree(new LogicalTreeAttachmentEventArgs(visual, newLayer, manager));
+		}
+
+        manager.InvalidateArrange();
+
+		return StyledElement.ParentProperty.Changed
+			.Subscribe(e =>
+			{
+				if (e.Sender is PopupRoot popupRoot &&
+					e.NewValue.Value is Popup popup &&
+					popup.Child is FlyoutPresenter presenter &&
+					presenter.Content == flyout.Content)
+				{
+					popup.OverlayInputPassThroughElement = associatedObject;
+				}
+			});
+	}
+
+	private class FlyoutController : IDisposable
+	{
+		public FlyoutController(FlyoutBase flyout)
 		{
 			Flyout = flyout;
 			Flyout.Closing += FlyoutClosing;
 		}
-		
+
 		public FlyoutBase Flyout { get; }
 		public bool PreventClose { get; set; }
 
@@ -108,5 +165,22 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		{
 			e.Cancel = PreventClose;
 		}
+	}
+
+	private class FixupForLightDismissOverlayLayer : LightDismissOverlayLayer, Avalonia.Rendering.ICustomHitTest
+    {
+		bool Avalonia.Rendering.ICustomSimpleHitTest.HitTest(Point point)
+        {
+            if (InputPassThroughElement is object)
+            {
+                var hit = (VisualRoot as IInputElement)?.InputHitTest(point, x => x != this);
+                if (hit is object)
+                {
+                    return !InputPassThroughElement.IsVisualAncestorOf(hit);
+                }
+            }
+
+            return true;
+        }
 	}
 }
