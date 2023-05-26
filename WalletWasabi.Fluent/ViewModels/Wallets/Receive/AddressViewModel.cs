@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,7 +15,7 @@ public partial class AddressViewModel : ViewModelBase
 {
 	private readonly IAddress _address;
 	[AutoNotify] private string _addressText;
-	[AutoNotify] private IEnumerable<string> _label;
+	[AutoNotify] private IEnumerable<string> _label = Enumerable.Empty<string>();
 
 	public AddressViewModel(UiContext context, AddressAction onEdit, AddressAction onShow, IAddress address)
 	{
