@@ -442,8 +442,10 @@ public class CoinJoinClient
 						{
 							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
 						}
-						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+						var banUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						coin.BannedUntilUtc = banUntilUtc;
+						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {banUntilUtc}.");
+						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, banUntilUtc));
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
