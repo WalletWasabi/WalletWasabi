@@ -43,6 +43,8 @@ public class CoinJoinTracker : IDisposable
 	public bool InCriticalCoinJoinState { get; private set; }
 	public bool IsStopped { get; private set; }
 
+	public List<(SmartCoin, DateTimeOffset)> BannedCoins { get; private set; } = new();
+
 	public void Stop()
 	{
 		IsStopped = true;
@@ -66,6 +68,10 @@ public class CoinJoinTracker : IDisposable
 
 			case RoundEnded roundEnded:
 				roundEnded.IsStopped = IsStopped;
+				break;
+
+			case CoinBanned coinBanned:
+				BannedCoins.Add((coinBanned.Coin, coinBanned.BanUntilUtc));
 				break;
 		}
 
