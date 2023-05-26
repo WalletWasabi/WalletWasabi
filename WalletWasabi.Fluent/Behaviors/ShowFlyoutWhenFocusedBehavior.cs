@@ -86,7 +86,6 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 			.Subscribe();
 	}
 
-
 	// TODO: Remove with update to Avalonia 11.
 	// This is a workaroun over Flyout not inheriting from FlyoutPopupBase
 	// and therefore not exposing OverlayDismissEventPassThroughElement.
