@@ -144,7 +144,12 @@ public static class HttpMessageHelper
 				unzipStream.CopyTo(targetStream);
 				decodedBodyArray = targetStream.ToArray();
 			}
+
+			// Content-Length is removed, since it no longer applies to the decompressed content.
+			contentHeaders.ContentLength = null;
+
 			contentHeaders.ContentEncoding.Remove("gzip");
+
 			if (!contentHeaders.ContentEncoding.Any())
 			{
 				contentHeaders.Remove("Content-Encoding");
