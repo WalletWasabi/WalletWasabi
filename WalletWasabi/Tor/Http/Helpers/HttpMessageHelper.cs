@@ -14,6 +14,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using static WalletWasabi.Tor.Http.Constants;
+using System;
 
 namespace WalletWasabi.Tor.Http.Helpers;
 
@@ -429,7 +430,18 @@ public static class HttpMessageHelper
 
 	private static async Task<byte[]> GetBytesTillEndAsync(Stream stream, CancellationToken cancellationToken)
 	{
+		// If we know stream lenght, we can read it in one go.
+		// Note that a stream length is only available if we can "seek" the stream.
+		if (stream.CanSeek)
+		{			
+			byte[] result = new byte[stream.Length];
+			await stream.ReadAsync(result.AsMemory(0, (int)stream.Length), cancellationToken).ConfigureAwait(false);
+
+			return result;
+		}
+
 		var bab = new ByteArrayBuilder();
+
 		while (true)
 		{
 			int read = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
