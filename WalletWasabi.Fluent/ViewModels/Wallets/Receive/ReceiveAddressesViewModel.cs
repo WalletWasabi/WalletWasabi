@@ -43,7 +43,11 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
-		return new AddressViewModel(UiContext, NavigateToAddressEditAsync, NavigateToAddressAsync, address);
+		return new AddressViewModel(
+			UiContext,
+			NavigateToAddressEditAsync,
+			a => Task.Run(() => UiContext.Navigate().To().ReceiveAddress(_wallet, a, Services.UiConfig.Autocopy)),
+			address);
 	}
 
 	private async Task NavigateToAddressEditAsync(IAddress address)
@@ -53,10 +57,5 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		{
 			address.SetLabels(result.Result);
 		}
-	}
-
-	private async Task NavigateToAddressAsync(IAddress address)
-	{
-		UiContext.Navigate().To(new ReceiveAddressViewModel(UiContext, _wallet, address, Services.UiConfig.Autocopy));
 	}
 }
