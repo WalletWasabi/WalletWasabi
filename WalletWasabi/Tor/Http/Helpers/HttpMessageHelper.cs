@@ -146,7 +146,6 @@ public static class HttpMessageHelper
 			using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
 			using (var targetStream = new MemoryStream())
 			{
-
 				unzipStream.CopyTo(targetStream);
 				contentBytes = targetStream.ToArray();
 			}
