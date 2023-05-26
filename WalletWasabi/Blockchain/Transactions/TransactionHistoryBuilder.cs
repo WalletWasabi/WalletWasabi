@@ -98,20 +98,18 @@ public class TransactionHistoryBuilder
 
 	private Output GetOutput(TxOut txOut)
 	{
-		var amount = txOut.Value;
-		var address = txOut.ScriptPubKey.GetDestinationAddress(Wallet.Network);
-		return new Output(amount);
+		return new Output(txOut.Value);
 	}
 
 	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs
-		                       .Select(x => new KnownInput(x.Amount))
-		                       .OfType<IInput>();
+			.Select(x => new KnownInput(x.Amount))
+			.OfType<IInput>();
 
 		var unknown = transaction.ForeignInputs
-	                             .Select(_ => new ForeignInput())
-	                             .OfType<IInput>();
+			.Select(_ => new ForeignInput())
+			.OfType<IInput>();
 
 		return known.Concat(unknown);
 	}
