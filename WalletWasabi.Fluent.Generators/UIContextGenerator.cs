@@ -223,7 +223,7 @@ public class UiContextGenerator : ISourceGenerator
 				{
 					var enumValue = navigationTargetEnum.GetMembers()
 						.OfType<IFieldSymbol>()
-						.FirstOrDefault(x => x.ConstantValue?.Equals(navigationArgument.Value.Value) ?? false);
+						.FirstOrDefault(x => x.ConstantValue?.Equals(navigationArgument.Value.Value) == true);
 
 					if (enumValue != null)
 					{
