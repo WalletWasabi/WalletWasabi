@@ -135,6 +135,11 @@ public static class HttpMessageHelper
 
 	public static byte[] DecompressGzipContentIfRequired(HttpContentHeaders contentHeaders, byte[] contentBytes)
 	{
+		if (contentBytes.Length == 0)
+		{
+			return contentBytes;
+		}
+
 		if (contentHeaders.ContentEncoding.Contains("gzip"))
 		{
 			using (var src = new MemoryStream(contentBytes))

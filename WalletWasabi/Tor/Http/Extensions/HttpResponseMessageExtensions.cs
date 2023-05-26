@@ -50,7 +50,7 @@ public static class HttpResponseMessageExtensions
 		HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
 		byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine, cancellationToken).ConfigureAwait(false);
 
-		if (contentBytes?.Length > 0)
+		if (contentBytes is not null)
 		{
 			contentBytes = HttpMessageHelper.DecompressGzipContentIfRequired(headerStruct.ContentHeaders, contentBytes);
 		}
