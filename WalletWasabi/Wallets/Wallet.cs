@@ -99,6 +99,8 @@ public class Wallet : BackgroundService, IWallet
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
+	
+	private Task? FinalSynchronizationTask { get; set; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
@@ -243,6 +245,9 @@ public class Wallet : BackgroundService, IWallet
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
+
+					// Continue wallet synchronization in the background for all keys skipped by TurboSync.
+					FinalSynchronizationTask = Task.Run(() => PerformFinalSynchronizationAsync(cancel), cancel);
 				}
 			}
 
@@ -257,6 +262,33 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
+	private async Task PerformFinalSynchronizationAsync(CancellationToken cancel)
+	{
+		while (!cancel.IsCancellationRequested)
+		{
+			try
+			{
+				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+				if (LastProcessedFilter is { } lastProcessedFilter)
+				{
+					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
+				}
+
+				break;
+			}
+			catch (InvalidOperationException)
+			{
+				// Retry until cancellation is requested
+				Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying.");
+			}
+		}
+
+		if (!cancel.IsCancellationRequested)
+		{
+			Logger.LogInfo("Wallet is fully synchronized.");
+		}
+	}
+	
 	private void LoadExcludedCoins()
 	{
 		bool isUpdateRequired = false;
@@ -405,12 +437,32 @@ public class Wallet : BackgroundService, IWallet
 	{
 		try
 		{
-			using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
+			if (FinalSynchronizationTask is not null && !FinalSynchronizationTask.IsCompleted)
 			{
-				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+				if (KeyManager.GetBestTurboSyncHeight() < filterModel.Header.Height)
 				{
-					await ProcessFilterModelAsync(filterModel, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
-					SetFinalBestHeight(new Height(filterModel.Header.Height));
+					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
+					SetFinalBestTurboSyncHeight(new Height(filterModel.Header.Height));
+				}
+				
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
+				{
+					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+					{
+						await ProcessFilterModelAsync(filterModel, SyncType.NonTurbo, CancellationToken.None).ConfigureAwait(false);
+						SetFinalBestHeight(new Height(filterModel.Header.Height));
+					}
+				}
+			}
+			else
+			{
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
+				{
+					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+					{
+						await ProcessFilterModelAsync(filterModel, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
+						SetFinalBestHeight(new Height(filterModel.Header.Height));
+					}
 				}
 			}
 
