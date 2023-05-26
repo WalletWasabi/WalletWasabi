@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
@@ -12,29 +14,31 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
+	[AutoNotify] private FlatTreeDataGridSource<AddressViewModel> _source = new(Enumerable.Empty<AddressViewModel>());
+
 	private ReceiveAddressesViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
 
-		Source = CreateSource();
-
-		Source.RowSelection!.SingleSelect = true;
 		EnableBack = true;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
-
-	private FlatTreeDataGridSource<AddressViewModel> CreateSource()
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_wallet
 			.UnusedAddresses()
 			.Transform(CreateAddressViewModel)
 			.Bind(out var addresses)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		var source = ReceiveAddressesDataGridSource.Create(addresses);
-		return source;
+
+		Source = source;
+		Source.RowSelection!.SingleSelect = true;
+
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
