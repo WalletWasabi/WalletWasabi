@@ -62,7 +62,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 		var address = _wallet.GetNextReceiveAddress(SuggestionLabels.Labels);
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(UiContext, _wallet, address, Services.UiConfig.Autocopy));
+		Navigate().To().ReceiveAddress(_wallet, address, Services.UiConfig.Autocopy);
 	}
 
 	private void OnShowExistingAddresses()
