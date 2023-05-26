@@ -44,7 +44,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
-	private SmartLabel _parsedLabel = SmartLabel.Empty;
+	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
@@ -143,9 +143,9 @@ public partial class SendViewModel : RoutableViewModel
 		_clipboardObserver = new ClipboardObserver(new WalletBalances(exchangeRates, balances));
 	}
 
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
+	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged();
 
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
+	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged();
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
@@ -276,7 +276,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			result = true;
 
-			_parsedLabel = url.Label is { } label ? new SmartLabel(label) : SmartLabel.Empty;
+			_parsedLabel = url.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
 
 			PayJoinEndPoint = url.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
@@ -299,7 +299,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
-			_parsedLabel = SmartLabel.Empty;
+			_parsedLabel = LabelsArray.Empty;
 		}
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);

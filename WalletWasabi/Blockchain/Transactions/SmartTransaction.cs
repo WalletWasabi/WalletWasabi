@@ -22,14 +22,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
-	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, SmartLabel? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
+	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, LabelsArray? labels = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
 
 		// Because we don't modify those transactions, we can cache the hash
 		Transaction.PrecomputeHash(false, true);
 
-		Label = label ?? SmartLabel.Empty;
+		Labels = labels ?? LabelsArray.Empty;
 
 		Height = height;
 		BlockHash = blockHash;
@@ -163,9 +163,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
-	public SmartLabel Label { get; set; }
+	[JsonProperty(PropertyName = "Label")]
+	[JsonConverter(typeof(LabelsArrayJsonConverter))]
+	public LabelsArray Labels { get; set; }
 
 	[JsonProperty]
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
@@ -288,9 +288,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 
 		// Merge labels.
-		if (Label != tx.Label)
+		if (Labels != tx.Labels)
 		{
-			Label = SmartLabel.Merge(Label, tx.Label);
+			Labels = LabelsArray.Merge(Labels, tx.Labels);
 			updated = true;
 		}
 
@@ -349,7 +349,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			Height,
 			BlockHash,
 			BlockIndex,
-			Label,
+			Labels,
 			FirstSeen.ToUnixTimeSeconds(),
 			IsReplacement);
 	}
@@ -383,7 +383,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				blockIndex = 0;
 			}
-			var label = new SmartLabel(labelString);
+			var label = new LabelsArray(labelString);
 			DateTimeOffset firstSeen = default;
 			if (long.TryParse(firstSeenString, out long unixSeconds))
 			{

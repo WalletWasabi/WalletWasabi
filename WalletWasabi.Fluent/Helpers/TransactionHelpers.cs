@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionHelpers
 {
-	public static BuildTransactionResult BuildChangelessTransaction(Wallet wallet, BitcoinAddress address, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool tryToSign = true)
+	public static BuildTransactionResult BuildChangelessTransaction(Wallet wallet, BitcoinAddress address, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool tryToSign = true)
 	{
 		var intent = new PaymentIntent(
 			address,
@@ -37,7 +37,7 @@ public static class TransactionHelpers
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
 	{
 		if (payJoinClient is { } && subtractFee)
 		{

@@ -216,7 +216,7 @@ public class TransactionProcessor
 			{
 				if (!foundKey.IsInternal)
 				{
-					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					tx.Labels = LabelsArray.Merge(tx.Labels, foundKey.Labels);
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());

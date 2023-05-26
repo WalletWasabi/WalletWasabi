@@ -17,7 +17,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		Money balance)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = transactionSummary.Label;
+		Labels = transactionSummary.Labels;
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
