@@ -81,7 +81,7 @@ public class CurrencyInputTests
 			Add("-0", true, "0");
 			Add("-1", true, "1");
 			Add("-0.5", true, "0.5");
-			Add("-0,5", true, "0.5");			
+			Add("-0,5", true, "0.5");
 		}
 	}
 

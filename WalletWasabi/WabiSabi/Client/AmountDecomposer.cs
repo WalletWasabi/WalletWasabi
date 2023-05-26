@@ -211,81 +211,24 @@ public class AmountDecomposer
 		var denoms = GetFilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
-		var remaining = myInputSum;
-		var remainingVsize = AvailableVsize;
+		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
-		// How many times can we participate with the same denomination.
-		var maxDenomUsage = Random.Next(2, 8);
-
 		// Create the most naive decomposition for starter.
-		List<Output> naiveSet = new();
-		bool end = false;
-		foreach (var denom in denoms.Where(x => x.Amount <= remaining))
-		{
-			var denomUsage = 0;
-			while (denom.EffectiveCost <= remaining)
-			{
-				// We can only let this go forward if at least 2 output can be added (denom + potential change)
-				if (remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
-				{
-					end = true;
-					break;
-				}
-
-				naiveSet.Add(denom);
-				remaining -= denom.EffectiveCost;
-				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
-				denomUsage++;
-
-				// If we reached the limit, the rest will be change.
-				if (denomUsage >= maxDenomUsage)
-				{
-					end = true;
-					break;
-				}
-			}
-
-			if (end)
-			{
-				break;
-			}
-		}
-
-		var loss = Money.Zero;
-		if (remaining >= MinAllowedOutputAmount + ChangeFee)
-		{
-			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
-		}
-		else
-		{
-			// This goes to miners.
-			loss = remaining;
-		}
-
-		// This can happen when smallest denom is larger than the input sum.
-		if (naiveSet.Count == 0)
-		{
-			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
-		}
-
-		setCandidates.Add(
-			CalculateHash(naiveSet), // Create hash to ensure uniqueness.
-			(naiveSet, loss + CalculateCost(naiveSet)));
+		var naiveDecomp = CreateNaiveDecomposition(denoms, myInputSum, maxNumberOfOutputsAllowed);
+		setCandidates.Add(naiveDecomp.Key, naiveDecomp.Value);
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Select(d => d.EffectiveCost.Satoshi).Where(x => x <= myInputSum.Satoshi).ToArray();
-		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
-		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
-		var tolerance = (long)Math.Max(loss.Satoshi, 0.5 * (ulong)(MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize())).Satoshi); // Assume script type with higher cost to be more permissive.
 
 		if (maxNumberOfOutputsAllowed > 1)
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
-				tolerance: tolerance,
-				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8),
+				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
+				maxCount: maxNumberOfOutputsAllowed,
 				stdDenoms: stdDenoms))
 			{
 				var currentSet = Decomposer.ToRealValuesArray(
@@ -315,6 +258,13 @@ public class AmountDecomposer
 
 		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
+
+		// If there are changeless candidates, don't even consider ones with change.
+		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
+		if (changelessCandidates.Any())
+		{
+			preCandidates = changelessCandidates;
+		}
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
@@ -349,6 +299,62 @@ public class AmountDecomposer
 			throw new InvalidOperationException("The decomposer created more outputs than it can. Aborting.");
 		}
 		return finalCandidate;
+	}
+
+	private KeyValuePair<int, (IEnumerable<Output> Decomp, Money Cost)> CreateNaiveDecomposition(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
+	{
+		var remainingVsize = AvailableVsize;
+		var remaining = myInputSum;
+		List<Output> naiveSet = new();
+
+		foreach (var denom in denoms.Where(x => x.Amount <= remaining))
+		{
+			bool end = false;
+			while (denom.EffectiveCost <= remaining)
+			{
+				// We can only let this go forward if at least 2 output can be added (denom + potential change)
+				if (remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				{
+					end = true;
+					break;
+				}
+
+				naiveSet.Add(denom);
+				remaining -= denom.EffectiveCost;
+				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
+
+				// Can't have more denoms than max - 1, where - 1 is to account for possible change.
+				if (naiveSet.Count >= maxNumberOfOutputsAllowed - 1)
+				{
+					end = true;
+					break;
+				}
+			}
+
+			if (end)
+			{
+				break;
+			}
+		}
+
+		var loss = Money.Zero;
+		if (remaining >= MinAllowedOutputAmount + ChangeFee)
+		{
+			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
+		}
+		else
+		{
+			// This goes to miners.
+			loss = remaining;
+		}
+
+		// This can happen when smallest denom is larger than the input sum.
+		if (naiveSet.Count == 0)
+		{
+			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
+		}
+
+		return KeyValuePair.Create(CalculateHash(naiveSet), ((IEnumerable<Output>)naiveSet, loss + CalculateCost(naiveSet)));
 	}
 
 	/// <returns>Pair of denomination and the number of times we found it in a breakdown.</returns>

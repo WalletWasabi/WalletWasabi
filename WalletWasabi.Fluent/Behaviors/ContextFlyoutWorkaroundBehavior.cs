@@ -44,7 +44,7 @@ public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 
 	protected void CloseFlyouts()
 	{
-		for (var index = _openFlyouts.Count; index > 0; )
+		for (var index = _openFlyouts.Count; index > 0;)
 		{
 			_openFlyouts[--index].Hide();
 		}

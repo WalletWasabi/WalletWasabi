@@ -54,7 +54,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
+		var newKey = _wallet.KeyManager.GetNextReceiveKey(new LabelsArray(SuggestionLabels.Labels));
 		SuggestionLabels.Labels.Clear();
 
 		Navigate().To().ReceiveAddress(new WalletModel(_wallet), new Address(_wallet.KeyManager, newKey), Services.UiConfig.Autocopy);
@@ -69,6 +69,6 @@ public partial class ReceiveViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposable);
 
-		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
+		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Labels.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 	}
 }

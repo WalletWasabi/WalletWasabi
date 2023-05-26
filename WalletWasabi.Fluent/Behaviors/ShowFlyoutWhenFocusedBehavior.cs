@@ -46,7 +46,7 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 			FlyoutHelpers.ShowFlyout(AssociatedObject, flyout, this.GetObservable(IsFlyoutOpenProperty), disposable);
 			FocusBasedFlyoutOpener(AssociatedObject, flyoutController).DisposeWith(disposable);
 			OverlayDismissEventPassThroughFixup(AssociatedObject, flyout).DisposeWith(disposable);
-		
+
 			// This is a workaround for the case when the user switches theme. The same behavior is detached and re-attached on theme changes.
 			// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
 			if (IsFlyoutOpen)
@@ -95,8 +95,8 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 	{
 		var visual = associatedObject.FindAncestorOfType<Window>();
 		var manager = visual.GetTemplateChildren()
-            .OfType<VisualLayerManager>()
-            .FirstOrDefault()
+			.OfType<VisualLayerManager>()
+			.FirstOrDefault()
 			?? throw new InvalidOperationException($"Could not find a {nameof(VisualLayerManager)}.");
 
 		var layers = manager.GetType()
@@ -111,26 +111,26 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 			ZIndex = oldLayer.ZIndex
 		};
 
-		if (((ILogical) manager).IsAttachedToLogicalTree)
+		if (((ILogical)manager).IsAttachedToLogicalTree)
 		{
-			((ILogical) oldLayer).NotifyDetachedFromLogicalTree(new LogicalTreeAttachmentEventArgs(visual, oldLayer, manager));
+			((ILogical)oldLayer).NotifyDetachedFromLogicalTree(new LogicalTreeAttachmentEventArgs(visual, oldLayer, manager));
 		}
 
-        ((AvaloniaList<IVisual>) manager.GetVisualChildren()).Remove(oldLayer);
-        ((ISetLogicalParent) oldLayer).SetParent(null);
+		((AvaloniaList<IVisual>)manager.GetVisualChildren()).Remove(oldLayer);
+		((ISetLogicalParent)oldLayer).SetParent(null);
 
 		layers.Remove(oldLayer);
 		layers.Add(newLayer);
 
-        ((ISetLogicalParent) newLayer).SetParent(manager);
-        ((AvaloniaList<IVisual>) manager.GetVisualChildren()).Add(newLayer);
+		((ISetLogicalParent)newLayer).SetParent(manager);
+		((AvaloniaList<IVisual>)manager.GetVisualChildren()).Add(newLayer);
 
-		if (((ILogical) manager).IsAttachedToLogicalTree)
+		if (((ILogical)manager).IsAttachedToLogicalTree)
 		{
-			((ILogical) newLayer).NotifyAttachedToLogicalTree(new LogicalTreeAttachmentEventArgs(visual, newLayer, manager));
+			((ILogical)newLayer).NotifyAttachedToLogicalTree(new LogicalTreeAttachmentEventArgs(visual, newLayer, manager));
 		}
 
-        manager.InvalidateArrange();
+		manager.InvalidateArrange();
 
 		return StyledElement.ParentProperty.Changed
 			.Subscribe(e =>
@@ -168,19 +168,19 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 	}
 
 	private class FixupForLightDismissOverlayLayer : LightDismissOverlayLayer, Avalonia.Rendering.ICustomHitTest
-    {
+	{
 		bool Avalonia.Rendering.ICustomSimpleHitTest.HitTest(Point point)
-        {
-            if (InputPassThroughElement is object)
-            {
-                var hit = (VisualRoot as IInputElement)?.InputHitTest(point, x => x != this);
-                if (hit is object)
-                {
-                    return !InputPassThroughElement.IsVisualAncestorOf(hit);
-                }
-            }
+		{
+			if (InputPassThroughElement is object)
+			{
+				var hit = (VisualRoot as IInputElement)?.InputHitTest(point, x => x != this);
+				if (hit is object)
+				{
+					return !InputPassThroughElement.IsVisualAncestorOf(hit);
+				}
+			}
 
-            return true;
-        }
+			return true;
+		}
 	}
 }
