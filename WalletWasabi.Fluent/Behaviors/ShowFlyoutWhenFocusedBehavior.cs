@@ -19,10 +19,10 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Control>
+public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	public static readonly DirectProperty<ShowAttachedFlyoutWhenFocusedBehavior, bool> IsFlyoutOpenProperty =
-		AvaloniaProperty.RegisterDirect<ShowAttachedFlyoutWhenFocusedBehavior, bool>(
+	public static readonly DirectProperty<ShowFlyoutWhenFocusedBehavior, bool> IsFlyoutOpenProperty =
+		AvaloniaProperty.RegisterDirect<ShowFlyoutWhenFocusedBehavior, bool>(
 			"IsFlyoutOpen",
 			o => o.IsFlyoutOpen,
 			(o, v) => o.IsFlyoutOpen = v);

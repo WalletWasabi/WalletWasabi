@@ -134,7 +134,7 @@
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
       <behaviors:SwallowEnterKeyBehavior />
-      <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
+      <behaviors:ShowFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
 
     <TextBox.InnerLeftContent>
