@@ -31,6 +31,7 @@ public class CoinJoinManager : BackgroundService
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		ClientPrison = clientPrison;
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -41,6 +42,7 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
+	public ClientPrison ClientPrison { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	/// <summary>
@@ -443,7 +445,9 @@ public class CoinJoinManager : BackgroundService
 		{
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
-		// Use Prison Client Here
+
+		ClientPrison.AddCoins(finishedCoinJoin.BannedCoins);
+
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
 		// When to stop mixing:

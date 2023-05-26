@@ -52,6 +52,14 @@ public class ClientPrison : PeriodicRunner
 		}
 	}
 
+	public void AddCoins(List<(SmartCoin Coin, DateTimeOffset BannedUntil)> bannedCoins)
+	{
+		foreach (var item in bannedCoins)
+		{
+			AddCoin(item.Coin, item.BannedUntil);
+		}
+	}
+
 	private void ToFile()
 	{
 		if (string.IsNullOrWhiteSpace(FilePath))
