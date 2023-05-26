@@ -20,8 +20,8 @@ public static class StrobeHasherExtensions
 	public static StrobeHasher Append(this StrobeHasher me, string fieldName, ImmutableSortedSet<ScriptType> scriptTypes)
 	{
 		return scriptTypes
-					   .Select((scriptType, idx) => (scriptType, idx))
-					   .Aggregate(me, (hasher, scriptTypeIdxPair) => hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, Enum.GetName(scriptTypeIdxPair.scriptType)));
+			.Select((scriptType, idx) => (scriptType, idx))
+			.Aggregate(me, (hasher, scriptTypeIdxPair) => hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, Enum.GetName(scriptTypeIdxPair.scriptType)));
 	}
 
 	public static StrobeHasher Append(this StrobeHasher hasher, string fieldName, decimal value)

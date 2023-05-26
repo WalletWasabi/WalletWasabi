@@ -106,12 +106,12 @@ public class TransactionHistoryBuilder
 	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs
-		                       .Select(x => new KnownInput(x.Amount))
-		                       .OfType<IInput>();
+			.Select(x => new KnownInput(x.Amount))
+			.OfType<IInput>();
 
 		var unknown = transaction.ForeignInputs
-	                             .Select(_ => new ForeignInput())
-	                             .OfType<IInput>();
+			.Select(_ => new ForeignInput())
+			.OfType<IInput>();
 
 		return known.Concat(unknown);
 	}

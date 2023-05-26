@@ -116,10 +116,10 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin()
 	{
-		var groupsByPrivacy =
-			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-										 .OrderBy(x => (int)x.Key)
-										 .ToList();
+		var groupsByPrivacy = _walletViewModel.Wallet.Coins
+			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+			.OrderBy(x => (int)x.Key)
+			.ToList();
 
 		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
@@ -146,10 +146,10 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		var groupsByPrivacy =
-			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-										 .OrderBy(x => (int)x.Key)
-										 .ToList();
+		var groupsByPrivacy = _walletViewModel.Wallet.Coins
+			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+			.OrderBy(x => (int)x.Key)
+			.ToList();
 
 		foreach (var group in groupsByPrivacy)
 		{

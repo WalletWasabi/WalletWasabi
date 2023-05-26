@@ -342,8 +342,8 @@ public partial class Arena : PeriodicRunner
 					}
 
 					foreach (var address in coinjoin.Outputs
-								 .Select(x => x.ScriptPubKey)
-								 .Where(script => CoinJoinScriptStore?.Contains(script) is true))
+						.Select(x => x.ScriptPubKey)
+						.Where(script => CoinJoinScriptStore?.Contains(script) is true))
 					{
 						if (address == round.CoordinatorScript)
 						{

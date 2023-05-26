@@ -20,16 +20,17 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		Observable.Interval(TimeSpan.FromSeconds(3))
-				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Subscribe(_ =>
-				  {
-					  if (_applicationViewModel.CoinJoinCanShutdown())
-					  {
-						  Navigate().Clear();
-						  _applicationViewModel.Shutdown(_restart);
-					  }
-				  })
-				  .DisposeWith(disposables);
+		Observable
+			.Interval(TimeSpan.FromSeconds(3))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ =>
+			{
+				if (_applicationViewModel.CoinJoinCanShutdown())
+				{
+					Navigate().Clear();
+					_applicationViewModel.Shutdown(_restart);
+				}
+			})
+			.DisposeWith(disposables);
 	}
 }

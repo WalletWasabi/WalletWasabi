@@ -70,11 +70,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		confirmationWordsSourceList.AddRange(_words);
 
-		AvailableWords =
-			confirmationWordsSourceList.Items
-									   .Select(x => new RecoveryWordViewModel(x.Index, x.Word))
-									   .OrderBy(x => x.Word)
-									   .ToList();
+		AvailableWords = confirmationWordsSourceList.Items
+			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+			.OrderBy(x => x.Word)
+			.ToList();
 
 		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
