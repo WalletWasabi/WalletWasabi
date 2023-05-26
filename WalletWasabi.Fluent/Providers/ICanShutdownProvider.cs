@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Fluent.Providers;
+namespace WalletWasabi.Fluent.Providers;
 
 public interface ICanShutdownProvider
 {
