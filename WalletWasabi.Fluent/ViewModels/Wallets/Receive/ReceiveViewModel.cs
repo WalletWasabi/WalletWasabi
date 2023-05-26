@@ -67,6 +67,6 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnShowExistingAddresses()
 	{
-		UiContext.Navigate(NavigationTarget.DialogScreen).To(new ReceiveAddressesViewModel(UiContext, _wallet));
+		UiContext.Navigate(NavigationTarget.DialogScreen).To().ReceiveAddresses(_wallet);
 	}
 }
