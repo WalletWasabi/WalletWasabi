@@ -13,17 +13,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public partial class AddressViewModel : ViewModelBase
 {
-	private readonly IAddress _address;
+	private IAddress Address { get; }
 	[AutoNotify] private string _addressText;
 	[AutoNotify] private IEnumerable<string> _label = Enumerable.Empty<string>();
 
 	public AddressViewModel(UiContext context, AddressAction onEdit, AddressAction onShow, IAddress address)
 	{
 		UiContext = context;
-		_address = address;
+		Address = address;
 		_addressText = address.Text;
 
-		address.WhenAnyValue(x => x.Labels).BindTo(this, viewModel => viewModel.Label);
+		this.WhenAnyValue(x => x.Address.Labels).BindTo(this, viewModel => viewModel.Label);
 
 		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(AddressText));
 		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddressAsync);
@@ -41,16 +41,16 @@ public partial class AddressViewModel : ViewModelBase
 
 	private async Task PromptHideAddressAsync()
 	{
-		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(_address));
+		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(Address));
 
 		if (result.Result == false)
 		{
 			return;
 		}
 
-		_address.Hide();
+		Address.Hide();
 
-		var isAddressCopied = await UiContext.Clipboard.GetTextAsync() == _address.Text;
+		var isAddressCopied = await UiContext.Clipboard.GetTextAsync() == Address.Text;
 
 		if (isAddressCopied)
 		{
