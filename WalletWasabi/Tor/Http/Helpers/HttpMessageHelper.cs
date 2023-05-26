@@ -133,16 +133,17 @@ public static class HttpMessageHelper
 			: throw new FormatException("There's no CRLF.");
 	}
 
-	public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
+	public static byte[] DecompressGzipContentIfRequired(HttpContentHeaders contentHeaders, byte[] contentBytes)
 	{
 		if (contentHeaders.ContentEncoding.Contains("gzip"))
 		{
-			using (var src = new MemoryStream(decodedBodyArray))
+			using (var src = new MemoryStream(contentBytes))
 			using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
+			using (var targetStream = new MemoryStream())
 			{
-				using var targetStream = new MemoryStream();
+
 				unzipStream.CopyTo(targetStream);
-				decodedBodyArray = targetStream.ToArray();
+				contentBytes = targetStream.ToArray();
 			}
 
 			// Content-Length is removed, since it no longer applies to the decompressed content.
@@ -156,7 +157,7 @@ public static class HttpMessageHelper
 			}
 		}
 
-		return decodedBodyArray;
+		return contentBytes;
 	}
 
 	public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken cancellationToken)
