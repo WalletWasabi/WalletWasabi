@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Moq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -27,14 +28,14 @@ public class AddressViewModelTests
 	}
 
 	[Fact]
-	public void AddressPropertiesAreExposedCorrecly()
+	public void AddressPropertiesAreExposedCorrectly()
 	{
 		var testAddress = new TestAddress("ad");
-		var labels = new[] { "Label 1", "Label 2" };
+		var labels = new LabelsArray("Label 1", "Label 2");
 		testAddress.SetLabels(labels);
 		var sut = new AddressViewModel(Mocks.ContextStub(), _ => Task.CompletedTask, _ => Task.CompletedTask, testAddress);
 
 		Assert.Equal(testAddress.Text, sut.AddressText);
-		Assert.Equal(labels, sut.Label);
+		Assert.Equal(labels, sut.Labels);
 	}
 }
