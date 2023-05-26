@@ -135,7 +135,7 @@ public static class HttpMessageHelper
 
 	public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
 	{
-		if (contentHeaders?.ContentEncoding is { } && contentHeaders.ContentEncoding.Contains("gzip"))
+		if (contentHeaders.ContentEncoding.Contains("gzip"))
 		{
 			using (var src = new MemoryStream(decodedBodyArray))
 			using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
