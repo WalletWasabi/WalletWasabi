@@ -128,8 +128,8 @@ public class CoordinatorRound
 	private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
 	private object RegisteredUnblindedSignaturesLock { get; }
 
-	private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
-	public static AsyncLock ConnectionConfirmationLock { get; } = new AsyncLock();
+	private static AsyncLock RoundSynchronizerLock { get; } = new();
+	public static AsyncLock ConnectionConfirmationLock { get; } = new();
 
 	private object PhaseLock { get; }
 
