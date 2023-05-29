@@ -39,7 +39,7 @@ public class RuntimeParams
 		}
 	}
 
-	private AsyncLock AsyncLock { get; } = new AsyncLock();
+	private AsyncLock AsyncLock { get; } = new();
 	private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 	public static void SetDataDir(string dataDir)
