@@ -26,6 +26,9 @@ public class ActionsSearchSource : ISearchSource
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+	public void DoSearch(string searchText)
+	{
+	}
 
 	public UiContext UiContext { get; }
 

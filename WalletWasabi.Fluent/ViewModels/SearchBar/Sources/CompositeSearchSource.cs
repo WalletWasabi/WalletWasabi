@@ -16,4 +16,8 @@ public class CompositeSearchSource : ISearchSource
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes => _sources.Select(r => r.Changes).Merge();
+	public void DoSearch(string searchText)
+	{
+		_sources.ToList().ForEach(source => source.DoSearch(searchText));
+	}
 }

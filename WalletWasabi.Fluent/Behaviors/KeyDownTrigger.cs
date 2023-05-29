@@ -24,12 +24,14 @@ public class KeyDownTrigger : DisposingTrigger
 		set => SetValue(KeyProperty, value);
 	}
 
+	public bool MarkAsHandled { get; set; }
+
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is InputElement element)
 		{
 			element
-				.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown, EventRoutingStrategy)
+				.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown, EventRoutingStrategy, true)
 				.DisposeWith(disposables);
 		}
 	}
@@ -38,6 +40,7 @@ public class KeyDownTrigger : DisposingTrigger
 	{
 		if (e.Key == Key)
 		{
+			e.Handled = MarkAsHandled;
 			Interaction.ExecuteActions(AssociatedObject, Actions, null);
 		}
 	}

@@ -133,7 +133,9 @@
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
-      <behaviors:SwallowEnterKeyBehavior />
+      <behaviors:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
+        <InvokeCommandAction Command="{Binding NavigateToSearchCommand}" />
+      </behaviors:KeyDownTrigger>
       <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
 

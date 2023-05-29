@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
@@ -20,6 +22,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private const int MinQueryLength = 3;
 
 	private readonly CompositeDisposable _disposables = new();
+	private ReadOnlyObservableCollection<ISearchItem> _results;
 
 	public TransactionsSearchSource(IObservable<string> queries)
 	{
@@ -34,6 +37,8 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 			.RefillFrom(results)
 			.DisposeWith(_disposables);
 
+		sourceCache.Connect().Bind(out _results);
+
 		Changes = sourceCache.Connect();
 	}
 
@@ -43,6 +48,16 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+
+	public void DoSearch(string searchText)
+	{
+		var matching = Filter(searchText);
+		var first = matching.FirstOrDefault();
+		if (first != default)
+		{
+			NavigateTo(first.Item1, first.Item2);
+		}
+	}
 
 	private static bool ContainsId(HistoryItemViewModelBase historyItemViewModelBase, string queryStr)
 	{

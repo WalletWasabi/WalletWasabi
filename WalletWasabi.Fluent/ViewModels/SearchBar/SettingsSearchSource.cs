@@ -27,6 +27,9 @@ public class SettingsSearchSource : ISearchSource
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+	public void DoSearch(string searchText)
+	{
+	}
 
 	private IEnumerable<ISearchItem> GetSettingsItems()
 	{

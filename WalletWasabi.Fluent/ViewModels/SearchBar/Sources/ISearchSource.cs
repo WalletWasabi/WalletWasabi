@@ -7,4 +7,5 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 public interface ISearchSource
 {
 	IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+	void DoSearch(string searchText);
 }
