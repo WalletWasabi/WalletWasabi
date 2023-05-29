@@ -38,6 +38,7 @@ public class CoinsRegistry : ICoinsView
 			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 			InvalidateSnapshot = false;
 		}
+
 		return new CoinsView(LatestCoinsSnapshot);
 	}
 
@@ -49,6 +50,7 @@ public class CoinsRegistry : ICoinsView
 			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 			InvalidateSnapshot = false;
 		}
+
 		return new CoinsView(LatestSpentCoinsSnapshot);
 	}
 
@@ -103,10 +105,12 @@ public class CoinsRegistry : ICoinsView
 							}
 						}
 					}
+
 					InvalidateSnapshot = true;
 				}
 			}
 		}
+
 		return added;
 	}
 
@@ -127,6 +131,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				SpentCoins.Remove(toRemove);
 			}
+
 			toRemove.UnregisterFromHdPubKey();
 
 			var removedCoinOutPoint = toRemove.Outpoint;
@@ -145,6 +150,7 @@ public class CoinsRegistry : ICoinsView
 				}
 			}
 		}
+
 		InvalidateSnapshot = true;
 		return coinsToRemove;
 	}
@@ -153,6 +159,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		tx.TryAddWalletInput(spentCoin);
 		spentCoin.SpenderTransaction = tx;
+
 		lock (Lock)
 		{
 			if (Coins.Remove(spentCoin))
@@ -214,7 +221,9 @@ public class CoinsRegistry : ICoinsView
 					toAdd.Add(destroyedCoin);
 				}
 			}
+
 			InvalidateSnapshot = true;
+
 			return (new CoinsView(toRemove), new CoinsView(toAdd));
 		}
 	}
