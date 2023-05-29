@@ -150,6 +150,17 @@ public class CoinsRegistry : ICoinsView
 		return coinsToRemove;
 	}
 
+	public bool IsBanned(SmartCoin coin)
+	{
+		return IsBanned(coin, out _);
+	}
+
+	public bool IsBanned(SmartCoin coin, out DateTimeOffset? bannedUntilUtc)
+	{
+		bannedUntilUtc = coin.BannedUntilUtc;
+		return coin.IsBanned;
+	}
+
 	public void Spend(SmartCoin spentCoin, SmartTransaction tx)
 	{
 		tx.TryAddWalletInput(spentCoin);
