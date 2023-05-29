@@ -24,7 +24,7 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> Coins { get; }
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
 	private bool InvalidateSnapshot { get; set; }
-	private object Lock { get; set; }
+	private object Lock { get; }
 	private HashSet<SmartCoin> SpentCoins { get; }
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
