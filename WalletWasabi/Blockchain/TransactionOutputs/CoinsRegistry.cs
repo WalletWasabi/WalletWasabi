@@ -18,8 +18,6 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
-	public bool IsEmpty => !AsCoinsView().Any();
-
 	private CoinsView AsCoinsViewNoLock()
 	{
 		if (InvalidateSnapshot)
