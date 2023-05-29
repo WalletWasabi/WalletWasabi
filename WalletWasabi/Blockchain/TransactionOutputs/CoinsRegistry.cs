@@ -10,24 +10,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
-	public CoinsRegistry()
-	{
-		Coins = new HashSet<SmartCoin>();
-		SpentCoins = new HashSet<SmartCoin>();
-		LatestCoinsSnapshot = new HashSet<SmartCoin>();
-		LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
-		InvalidateSnapshot = false;
-		CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
-		Lock = new object();
-	}
-
-	private HashSet<SmartCoin> Coins { get; }
-	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
+	private HashSet<SmartCoin> Coins { get; } = new();
+	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
 	private bool InvalidateSnapshot { get; set; }
-	private object Lock { get; }
-	private HashSet<SmartCoin> SpentCoins { get; }
-	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
+	private object Lock { get; } = new();
+	private HashSet<SmartCoin> SpentCoins { get; } = new();
+	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
+	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
 	public bool IsEmpty => !AsCoinsView().Any();
 
