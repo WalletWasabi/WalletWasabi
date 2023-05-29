@@ -34,7 +34,7 @@ public static class CurrencyExtensions
 
 	public static string FormattedBtc(this decimal amount)
 	{
-		return string.Format(FormatInfo, "{0:### ### ### ##0.########}", amount).Trim();
+		return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
 	}
 
 	public static string FormattedFiat(this decimal amount, string format = "N2")
