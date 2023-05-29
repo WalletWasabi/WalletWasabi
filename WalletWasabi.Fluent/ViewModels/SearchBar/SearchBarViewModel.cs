@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -35,12 +37,20 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Replay(1)
 			.RefCount();
 
-		NavigateToSearchCommand = ReactiveCommand.Create(() =>
-		{
-			searchSource.DoSearch(SearchText);
-			IsSearchListVisible = false;
-		});
+		var navigateToSearchCommand = ReactiveCommand.Create(() => searchSource.TryExplicitSearch(SearchText));
+		NavigateToSearchCommand = navigateToSearchCommand;
+		var navigated = navigateToSearchCommand.Where(b => b).ToSignal();
+		Navigated = navigated;
+		Navigated
+			.Do(_ =>
+			{
+				IsSearchListVisible = false;
+				SearchText = "";
+			})
+			.Subscribe();
 	}
+
+	public IObservable<Unit> Navigated { get; }
 
 	public ICommand NavigateToSearchCommand { get; set; }
 

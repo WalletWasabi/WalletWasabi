@@ -5,7 +5,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
@@ -49,14 +48,16 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
-	public void DoSearch(string searchText)
+	public bool TryExplicitSearch(string searchText)
 	{
-		var matching = Filter(searchText);
-		var first = matching.FirstOrDefault();
-		if (first != default)
+		var firstMatch = Flatten(GetTransactionsByWallet()).FirstOrDefault(x => string.Equals(x.Item2.Id.ToString(), searchText, StringComparison.CurrentCultureIgnoreCase));
+		if (firstMatch != default)
 		{
-			NavigateTo(first.Item1, first.Item2);
+			NavigateTo(firstMatch.Item1, firstMatch.Item2);
+			return true;
 		}
+
+		return false;
 	}
 
 	private static bool ContainsId(HistoryItemViewModelBase historyItemViewModelBase, string queryStr)

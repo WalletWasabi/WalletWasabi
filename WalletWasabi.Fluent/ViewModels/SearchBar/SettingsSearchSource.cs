@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
@@ -27,8 +26,10 @@ public class SettingsSearchSource : ISearchSource
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
-	public void DoSearch(string searchText)
+
+	public bool TryExplicitSearch(string searchText)
 	{
+		return false;
 	}
 
 	private IEnumerable<ISearchItem> GetSettingsItems()
@@ -38,13 +39,13 @@ public class SettingsSearchSource : ISearchSource
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.DarkModeEnabled), "Dark mode", "Appearance", new List<string> { "Black", "White", "Theme", "Dark", "Light" }, "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.AutoCopy), "Auto copy addresses", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.AutoPaste), "Auto paste addresses", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.HideOnClose), "Run in background when closed", "Settings", new List<string>() { "hide", "tray" }, "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.RunOnSystemStartup), "Run Wasabi when computer starts", "Settings", new List<string>() { "startup", "boot" }, "nav_settings_regular") { IsDefault = false },
+			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.HideOnClose), "Run in background when closed", "Settings", new List<string> { "hide", "tray" }, "nav_settings_regular") { IsDefault = false },
+			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.RunOnSystemStartup), "Run Wasabi when computer starts", "Settings", new List<string> { "startup", "boot" }, "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.UseTor), "Network anonymization (Tor)", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.TerminateTorOnExit), "Terminate Tor when Wasabi shuts down", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StartLocalBitcoinCoreOnStartup), "Run Bitcoin Knots on startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StopLocalBitcoinCoreOnShutdown), "Stop Bitcoin Knots on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<AdvancedSettingsTabViewModel, bool>(_settingsPage.AdvancedSettingsTab, b => b.EnableGpu), "Enable GPU", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
+			new NonActionableSearchItem(new Setting<AdvancedSettingsTabViewModel, bool>(_settingsPage.AdvancedSettingsTab, b => b.EnableGpu), "Enable GPU", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false }
 		};
 	}
 }
