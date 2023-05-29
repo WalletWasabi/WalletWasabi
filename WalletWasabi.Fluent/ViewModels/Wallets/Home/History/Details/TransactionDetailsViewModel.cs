@@ -6,7 +6,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -22,7 +21,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private string _dateString;
 	[AutoNotify] private Money? _amount;
-	[AutoNotify] private SmartLabel? _labels;
+	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
@@ -34,7 +33,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 
 		Fee = transactionSummary.Fee;
-		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < 0;
+		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -49,7 +48,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.TransactionId.ToString();
-		Labels = transactionSummary.Label;
+		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
