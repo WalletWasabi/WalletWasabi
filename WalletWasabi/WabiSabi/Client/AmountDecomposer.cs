@@ -271,8 +271,8 @@ public class AmountDecomposer
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
-		var largestAmount = finalCandidates.Select(x => x.Decomposition.First()).ToHashSet().RandomElement();
-		var finalCandidate = finalCandidates.Where(x => x.Decomposition.First() == largestAmount).RandomElement().Decomposition;
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
 
 		var totalOutputAmount = Money.Satoshis(finalCandidate.Sum(x => x.EffectiveCost));
 		if (totalOutputAmount > myInputSum)
