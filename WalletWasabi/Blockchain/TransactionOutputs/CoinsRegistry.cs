@@ -10,12 +10,24 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> Coins { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
+
 	private object Lock { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> SpentCoins { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
