@@ -118,9 +118,10 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
-
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
+	/// <inheritdoc/>
+	public Task<IEnumerable<SmartCoin>?> GetCoinjoinCoinCandidatesAsync() => (Synchronizer.LastResponse is { } lastResponse)
+			? Task.FromResult<IEnumerable<SmartCoin>?>(Coins.AsAvailableForCoinJoinCoinsView(lastResponse.BestHeight))
+			: Task.FromResult<IEnumerable<SmartCoin>?>(null);
 
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{

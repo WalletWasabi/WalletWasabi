@@ -62,6 +62,19 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
+	public ICoinsView AsAvailableForCoinJoinCoinsView(int bestHeight)
+	{
+		lock (Lock)
+		{
+			return new CoinsView(AsCoinsViewNoLock()
+				.Available()
+				.Confirmed()
+				.Where(coin => !coin.IsExcludedFromCoinJoin)
+				.Where(coin => !coin.IsImmature(bestHeight))
+				.Where(coin => !IsBanned(coin)));
+		}
+	}
+
 	private CoinsView AsSpentCoinsView()
 	{
 		lock (Lock)

@@ -25,7 +25,11 @@ public interface IWallet
 
 	Task<bool> IsWalletPrivateAsync();
 
-	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();
+	/// <summary>
+	/// Coinjoin candidate coins are those coins that are: available, confirmed, mature enough, not explicitly excluded, and not banned.
+	/// </summary>
+	/// <returns><c>null</c> is returned when Backend is not synchronized yet.</returns>
+	Task<IEnumerable<SmartCoin>?> GetCoinjoinCoinCandidatesAsync();
 
 	Task<IEnumerable<SmartTransaction>> GetTransactionsAsync();
 }

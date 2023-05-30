@@ -16,7 +16,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -24,9 +23,8 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinManager : BackgroundService
 {
-	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
+	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, string coordinatorIdentifier)
 	{
-		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
@@ -34,8 +32,6 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
-
-	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
 	public IWalletProvider WalletProvider { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
@@ -174,11 +170,6 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
 				}
 
-				if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
-				{
-					throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
-				}
-
 				// If all coins are already private, then don't mix.
 				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
 				{
@@ -187,7 +178,12 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 				}
 
-				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
+				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false);
+
+				if (coinCandidates is null)
+				{
+					throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
+				}
 
 				// If there is no available coin candidates, then don't mix.
 				if (!coinCandidates.Any())
@@ -564,14 +560,11 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
-			.Available()
-			.Confirmed()
-			.Where(coin => !coin.IsExcludedFromCoinJoin)
-			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !coin.IsBanned)
-			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
+	private async Task<IEnumerable<SmartCoin>?> SelectCandidateCoinsAsync(IWallet openedWallet)
+	{
+		var candidates = await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false);
+		return candidates?.Where(coin => !CoinRefrigerator.IsFrozen(coin));
+	}
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
