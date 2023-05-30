@@ -155,7 +155,7 @@ public class TransactionFactory
 
 		var realToSend = payments.Requests
 			.Select(t =>
-				(label: t.Label,
+				(label: t.Labels,
 				destination: t.Destination,
 				amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
 			.Where(i => i.amount is not null);
@@ -235,12 +235,12 @@ public class TransactionFactory
 			}
 		}
 
-		var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
+		var smartTransaction = new SmartTransaction(tx, Height.Unknown, labels: LabelsArray.Merge(payments.Requests.Select(x => x.Labels)));
 		foreach (var coin in spentCoins)
 		{
 			smartTransaction.TryAddWalletInput(coin);
 		}
-		var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
+		var label = LabelsArray.Merge(payments.Requests.Select(x => x.Labels).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Labels)));
 
 		for (var i = 0U; i < tx.Outputs.Count; i++)
 		{
@@ -248,13 +248,13 @@ public class TransactionFactory
 			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
-				label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
+				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinlabel.
 				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 
 		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
-		Dictionary<HdPubKey, SmartLabel> hdPubKeysWithNewLabels = new();
+		Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels = new();
 
 		foreach (var coin in smartTransaction.WalletOutputs)
 		{
@@ -268,7 +268,7 @@ public class TransactionFactory
 			}
 			else
 			{
-				hdPubKeysWithNewLabels.Add(coin.HdPubKey, SmartLabel.Merge(coin.HdPubKey.Label, foundPaymentRequest.Label));
+				hdPubKeysWithNewLabels.Add(coin.HdPubKey, LabelsArray.Merge(coin.HdPubKey.Labels, foundPaymentRequest.Labels));
 			}
 		}
 

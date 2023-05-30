@@ -1,11 +1,12 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:conv="using:WalletWasabi.Fluent.Converters">
 
   <Design.PreviewWith>
     <Border Width="200">
       <c:PreviewItem Label="Transaction ID" Icon="{DynamicResource tor_icon}"
-                     TextValue="Text to copy" />
+                     CopyableContent="Text to copy" />
     </Border>
   </Design.PreviewWith>
 
@@ -26,7 +27,7 @@
               <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
                                      ToolTip.Tip="Copy"
                                      DockPanel.Dock="Right" Width="30"
-                                     Text="{TemplateBinding TextValue}"
+                                     Text="{Binding Path=CopyableContent, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:StringConverters.AsString}}"
                                      IsVisible="{TemplateBinding IsCopyButtonVisible}" />
               <Panel>
                 <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
