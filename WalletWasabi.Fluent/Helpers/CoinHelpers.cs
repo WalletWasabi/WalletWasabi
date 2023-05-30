@@ -20,14 +20,14 @@ public static class CoinHelpers
 		return anonymitySet >= Constants.SemiPrivateThreshold && anonymitySet < privateThreshold;
 	}
 
-	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold)
+	public static LabelsArray GetLabels(this SmartCoin coin, int privateThreshold)
 	{
 		if (coin.IsPrivate(privateThreshold) || coin.IsSemiPrivate(privateThreshold))
 		{
-			return SmartLabel.Empty;
+			return LabelsArray.Empty;
 		}
 
-		if (coin.HdPubKey.Cluster.Labels == SmartLabel.Empty)
+		if (coin.HdPubKey.Cluster.Labels == LabelsArray.Empty)
 		{
 			return CoinPocketHelper.UnlabelledFundsText;
 		}

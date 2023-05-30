@@ -100,7 +100,7 @@ namespace ZXing.Common
         public DecoderResult(byte[] rawBytes, String text, List<byte[]> byteSegments, String ecLevel)
             : this(rawBytes, text, byteSegments, ecLevel, -1, -1, 0)
         {
-            
+
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace ZXing.Common
                      int saParity)
              : this(rawBytes, text, byteSegments, ecLevel, saSequence, saParity, 0)
         {
-            
+
         }
 
         /// <summary>

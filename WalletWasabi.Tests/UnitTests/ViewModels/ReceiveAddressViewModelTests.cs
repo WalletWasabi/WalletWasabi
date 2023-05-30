@@ -51,7 +51,8 @@ public class ReceiveAddressViewModelTests
 		var uiContext = ContextWith(ns);
 		var address = new TestAddress("SomeAddress");
 		var wallet = WalletWithAddresses(address);
-		new ReceiveAddressViewModel(uiContext, wallet, address, true);
+		var vm = new ReceiveAddressViewModel(uiContext, wallet, address, true);
+		vm.OnNavigatedTo(false);
 
 		address.IsUsed = true;
 
@@ -98,7 +99,7 @@ public class ReceiveAddressViewModelTests
 
 		public IObservable<WalletState> State => throw new NotImplementedException();
 
-		bool IWalletModel.IsHardwareWallet => throw new NotImplementedException();
+		bool IWalletModel.IsHardwareWallet => false;
 
 		public bool IsWatchOnlyWallet => throw new NotImplementedException();
 
