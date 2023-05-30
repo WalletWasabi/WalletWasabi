@@ -80,8 +80,10 @@ public static class RPCClientExtensions
 
 		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
-		var (sanityFeeRate, minEstimations) = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
-
+		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
+		var minEstimationFor200Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(200));
+		var sanityFeeRate = FeeRate.Max(minEstimationFor200Mb, mempoolInfo.GetSanityFeeRate());
+			
 		var fixedEstimations = smartEstimations
 			.GroupJoin(
 				minEstimations,
@@ -133,24 +135,23 @@ public static class RPCClientExtensions
 			.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
 	}
 
-	private static (FeeRate, FeeRateByConfirmationTarget feeRateByConfirmationTarget) GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
+	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
 	{
 		if (mempoolInfo.Histogram is null || !mempoolInfo.Histogram.Any())
 		{
-			return (FeeRate.Zero, new FeeRateByConfirmationTarget(0));
+			return new FeeRateByConfirmationTarget(0);
 		}
 
-		const int Mb = 1_000_000;
+		const int Kb = 1_000;
+		const int Mb = 1_000 * Kb;
 		const int BlockSize = 1 * Mb;
 		static IEnumerable<(int Size, FeeRate From, FeeRate To)> SplitFeeGroupInBlocks(FeeRateGroup group)
 		{
-			var remainingSize = (long)group.Sizes;
-			while (remainingSize > 0)
-			{
-				var chunkSize = (int)Math.Min(remainingSize, BlockSize);
-				yield return (chunkSize, group.From, group.To);
-				remainingSize -= BlockSize;
-			}
+			var (q, rest) = Math.DivRem(group.Sizes, BlockSize);
+			var gs = rest == 0
+				? Enumerable.Repeat(1 * Mb, (int) q)
+				: Enumerable.Repeat(1 * Mb, (int) q).Append((int) rest);
+			return gs.Select(i => (i, group.From, group.To));
 		}
 
 		// Filter those groups with very high fee transactions (less than 0.1%).
@@ -163,7 +164,7 @@ public static class RPCClientExtensions
 		// Splits multi-megabyte fee rate groups in 1mb chunk
 		// We need to count blocks (or 1MvB transaction chunks) so, in case fee
 		// groups are bigger than 1MvB we split those in multiple 1MvB chunks.
-		var splittedFeeGroups = relevantFeeGroups.SelectMany(x => SplitFeeGroupInBlocks(x));
+		var splittedFeeGroups = relevantFeeGroups.SelectMany(SplitFeeGroupInBlocks);
 
 		// Assigns the corresponding confirmation target to the set of fee groups.
 		// We have multiple fee rate groups which size are in the range [0..1MvB)
@@ -178,13 +179,6 @@ public static class RPCClientExtensions
 			.Select(x => x.Size)
 			.Scan(0m, (acc, size) => acc + size);
 
-		var top200Mb = splittedFeeGroups
-			.Zip(
-				accumulatedSizes,
-				(feeGroup, accumulatedSize) => (FeeRate: feeGroup.To, AccumulatedSize: accumulatedSize))
-			.FirstOrDefault(x => x.AccumulatedSize > 200 * Mb)
-			.FeeRate;
-		
 		var feeGroupsByTarget = splittedFeeGroups.Zip(
 			accumulatedSizes,
 			(feeGroup, accumulatedSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
@@ -199,15 +193,12 @@ public static class RPCClientExtensions
 		var consolidatedFeeGroupByTarget = feeGroupsByTarget
 			.GroupBy(
 				x => x.Target,
-				(target, feeGroups) => (Target: target, FeeRate: feeGroups.LastOrDefault().FeeRate.SatoshiPerByte));
+				(target, feeGroups) => (Target: target, FeeRate: feeGroups.Last().FeeRate.SatoshiPerByte));
 
 		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
 			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
-
-		var top200MbFeeRate = top200Mb ?? FeeRate.Zero; 
-		var sanityFeeRate = FeeRate.Max(top200MbFeeRate, mempoolInfo.GetSanityFeeRate());
 		
-		return (sanityFeeRate, feeRateByConfirmationTarget);
+		return feeRateByConfirmationTarget;
 	}
 
 	public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)

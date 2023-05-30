@@ -292,7 +292,7 @@ public class AllFeeEstimateTests
 	}
 
 	[Fact]
-	public async Task RealWorldMempoolMinFeeAsync()
+	public async Task RealWorldMempoolSpaceMinFeeAsync()
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealMempoolInfo();
@@ -303,7 +303,22 @@ public class AllFeeEstimateTests
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value);
 
-		Assert.Equal(30, minFee); // this is the calculated MempoolMinFee needed to be in the top 200MB
+		Assert.Equal(20, minFee); // this is the calculated MempoolMinFee needed to be in the top 200MB
+	}
+
+	[Fact]
+	public async Task RealWorldMempoolRpcMinFeeAsync()
+	{
+		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
+		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo();
+		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
+		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(FeeRateResponse(2, 0m)); // all estimations a 0 s/b so, only estimations based on mempool.
+		var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+		var estimations = feeRates.Estimations;
+		var minFee = estimations.Min(x => x.Value);
+
+		Assert.Equal(2, minFee);
 	}
 
 	private static Mock<IRPCClient> CreateAndConfigureRpcClient(bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)

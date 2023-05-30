@@ -1,6 +1,11 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using NBitcoin;
+using NBitcoin.RPC;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -65,6 +70,46 @@ public class MempoolInfoGenerator
 			Size = (int)txCount,
 			MinRelayTxFee = 0.00001000,
 			MaxMemPool = 1_000_000_000
+		};
+	}
+
+	public static MemPoolInfo GenerateRealBitcoinKnotsMemPoolInfo()
+	{
+		var response = new RPCResponse(
+			(JObject)JsonConvert.DeserializeObject(File.ReadAllText("./UnitTests/Data/MempoolInfoWithHistogram2.json"))!);
+		static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
+			jt switch
+			{
+				JObject jo => jo.Properties()
+					.Where(p => p.Name != "total_fees")
+					.Select(
+						p =>
+						{
+							var rawToFeeRate = p.Value.Value<ulong>("to_feerate");
+							var toFeeRate = (decimal)Math.Min(rawToFeeRate, 5_000);
+
+							return new FeeRateGroup
+							{
+								Group = int.Parse(p.Name),
+								Sizes = p.Value.Value<ulong>("sizes"),
+								Count = p.Value.Value<uint>("count"),
+								Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
+								From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
+								To = new FeeRate(toFeeRate)
+							};
+						}),
+				_ => Enumerable.Empty<FeeRateGroup>()
+			};
+
+		return new MemPoolInfo()
+		{
+			Size = int.Parse((string)response.Result["size"], CultureInfo.InvariantCulture),
+			Bytes = int.Parse((string)response.Result["bytes"], CultureInfo.InvariantCulture),
+			Usage = int.Parse((string)response.Result["usage"], CultureInfo.InvariantCulture),
+			MaxMemPool = double.Parse((string)response.Result["maxmempool"], CultureInfo.InvariantCulture),
+			MemPoolMinFee = double.Parse((string)response.Result["mempoolminfee"], CultureInfo.InvariantCulture),
+			MinRelayTxFee = double.Parse((string)response.Result["minrelaytxfee"], CultureInfo.InvariantCulture),
+			Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]).ToArray()
 		};
 	}
 
