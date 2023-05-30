@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using NBitcoin;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -18,7 +18,7 @@ internal class NullWalletList : IWalletListModel
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	public IWalletModel? DefaultWallet { get; }
+	public IWalletModel? DefaultWallet => null;
 
 	public bool HasWallet => throw new NotImplementedException();
 

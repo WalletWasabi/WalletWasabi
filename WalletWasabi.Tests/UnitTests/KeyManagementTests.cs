@@ -179,8 +179,8 @@ public class KeyManagementTests
 		var network = Network.Main;
 		var manager = KeyManager.CreateNew(out _, password, network);
 
-		var k1 = manager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true);
-		Assert.Equal(SmartLabel.Empty, k1.Label);
+		var k1 = manager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, true);
+		Assert.Equal(LabelsArray.Empty, k1.Labels);
 
 		for (int i = 0; i < 1000; i++)
 		{
@@ -190,7 +190,7 @@ public class KeyManagementTests
 			var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
 
 			Assert.Equal(isInternal, generatedKey.IsInternal);
-			Assert.Equal(label, generatedKey.Label);
+			Assert.Equal(label, generatedKey.Labels);
 			Assert.Equal(keyState, generatedKey.KeyState);
 			Assert.StartsWith(KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).ToString(), generatedKey.FullKeyPath.ToString());
 		}

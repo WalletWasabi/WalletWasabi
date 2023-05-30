@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
@@ -15,7 +15,7 @@ public class TestAddress : ReactiveObject, IAddress
 	}
 
 	public string Text { get; }
-	public IEnumerable<string> Labels { get; private set; }
+	public LabelsArray Labels { get; private set; }
 
 	public bool IsUsed
 	{
@@ -28,7 +28,7 @@ public class TestAddress : ReactiveObject, IAddress
 		IsUsed = true;
 	}
 
-	public void SetLabels(IEnumerable<string> labels)
+	public void SetLabels(LabelsArray labels)
 	{
 		Labels = labels;
 	}
