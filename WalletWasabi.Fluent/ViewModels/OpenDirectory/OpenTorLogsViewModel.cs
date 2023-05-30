@@ -12,5 +12,5 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 	IconName = "document_regular")]
 public partial class OpenTorLogsViewModel : OpenFileViewModel
 {
-	public override string FilePath => Services.TorSettings.LogFilePath;
+	public override string FilePath => UiContext.Config.TorLogFilePath;
 }

@@ -14,7 +14,7 @@ public abstract class OpenFileViewModel : TriggerCommandViewModel
 		{
 			try
 			{
-				await FileHelpers.OpenFileInTextEditorAsync(FilePath);
+				await UiContext.FileSystem.OpenFileInTextEditorAsync(FilePath);
 			}
 			catch (Exception ex)
 			{
