@@ -62,6 +62,10 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	public string Title => WalletModel.Name;
 
+	// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+	// Remove in next PR
+	public LoadingViewModel Loading { get; private set; }
+
 	private void ShowLogin()
 	{
 		CurrentPage = new LoginViewModel(UiContext, WalletModel, Wallet);
@@ -69,7 +73,14 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWalletLoading()
 	{
-		CurrentPage = new LoadingViewModel(Wallet);
+		// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+		// Remove in next PR
+		if (Loading is null)
+		{
+			Loading = new LoadingViewModel(Wallet);
+			Loading.Activate();
+		}
+		CurrentPage = Loading;
 		IsLoading = true;
 	}
 
