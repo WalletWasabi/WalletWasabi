@@ -3,13 +3,11 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
@@ -17,10 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public partial class SearchBarViewModel : ReactiveObject, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
-	private readonly CompositeDisposable _disposables = new();
 
 	public SearchBarViewModel(ISearchSource searchSource)
 	{
@@ -46,8 +44,9 @@ public partial class SearchBarViewModel : ReactiveObject, IDisposable
 			.DisposeWith(_disposables);
 
 		var canActivate = results.ToObservableChangeSet().ToCollection().Select(s => s.OfType<IActionableItem>().Count() == 1);
-		var navigateToSearchCommand = ReactiveCommand.CreateFromTask(() => ((IActionableItem)results.First()).OnExecution(), canActivate);
-		NavigateToSearchCommand = navigateToSearchCommand;
+		var navigateToSearchCommand = ReactiveCommand.CreateFromTask(() => ((IActionableItem) results.First()).OnExecution(), canActivate);
+		ActivateFirstItemCommand = navigateToSearchCommand;
+		FirstItemActivated = navigateToSearchCommand;
 
 		navigateToSearchCommand
 			.Do(_ => Reset())
@@ -55,15 +54,9 @@ public partial class SearchBarViewModel : ReactiveObject, IDisposable
 			.DisposeWith(_disposables);
 	}
 
-	private void Reset()
-	{
-		IsSearchListVisible = false;
-		SearchText = "";
-	}
+	public IObservable<Unit> FirstItemActivated { get; }
 
-	public IObservable<Unit> Navigated { get; }
-
-	public ICommand NavigateToSearchCommand { get; set; }
+	public ICommand ActivateFirstItemCommand { get; set; }
 
 	public IObservable<bool> HasResults { get; }
 
@@ -72,5 +65,11 @@ public partial class SearchBarViewModel : ReactiveObject, IDisposable
 	public void Dispose()
 	{
 		_disposables.Dispose();
+	}
+
+	private void Reset()
+	{
+		IsSearchListVisible = false;
+		SearchText = "";
 	}
 }

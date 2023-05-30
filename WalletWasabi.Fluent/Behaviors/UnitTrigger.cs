@@ -7,7 +7,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class UnitTrigger : DisposingTrigger
+public class SignalTrigger : DisposingTrigger
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
@@ -19,7 +19,7 @@ public class UnitTrigger : DisposingTrigger
 		this.WhenAnyValue(x => x.Signal).Subscribe(observable => { });
 	}
 
-	public static readonly StyledProperty<IObservable<Unit>> SignalProperty = AvaloniaProperty.Register<UnitTrigger, IObservable<Unit>>("Signal");
+	public static readonly StyledProperty<IObservable<Unit>> SignalProperty = AvaloniaProperty.Register<SignalTrigger, IObservable<Unit>>("Signal");
 
 	public IObservable<Unit> Signal
 	{

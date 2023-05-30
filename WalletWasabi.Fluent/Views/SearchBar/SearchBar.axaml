@@ -134,11 +134,11 @@
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
-      <behaviors:UnitTrigger Signal="{Binding Navigated}">
+      <behaviors:SignalTrigger Signal="{Binding FirstItemActivated}">
         <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
-      </behaviors:UnitTrigger>
+      </behaviors:SignalTrigger>
       <behaviors:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
-        <InvokeCommandAction Command="{Binding NavigateToSearchCommand}" />
+        <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
       </behaviors:KeyDownTrigger>
       <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
