@@ -200,7 +200,7 @@ public class TransactionFactoryTests
 				BitcoinFactory.CreateSmartCoin(NewKey("Donald, Jean, Lee, Jack"), 0.9m),
 				BitcoinFactory.CreateSmartCoin(NewKey("Satoshi"), 0.9m)
 			};
-		var coinsByLabel = sCoins.ToDictionary(x => x.HdPubKey.Label);
+		var coinsByLabel = sCoins.ToDictionary(x => x.HdPubKey.Labels);
 
 		// cluster 1 is known by 7 people: Pablo, Daniel, Adolf, Maria, Ding, Joseph and Eve
 		var coinsCluster1 = new[] { sCoins[0], sCoins[1], sCoins[2], sCoins[3], sCoins[4], sCoins[5], sCoins[6] };
@@ -437,8 +437,8 @@ public class TransactionFactoryTests
 		var coins = transactionFactory.Coins;
 		var allowedCoins = new[]
 		{
-				coins.Single(x => x.HdPubKey.Label == "Maria"),
-				coins.Single(x => x.HdPubKey.Label == "Jack")
+				coins.Single(x => x.HdPubKey.Labels == "Maria"),
+				coins.Single(x => x.HdPubKey.Labels == "Jack")
 			}.ToArray();
 		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
 
@@ -467,9 +467,9 @@ public class TransactionFactoryTests
 		var coins = transactionFactory.Coins;
 		var allowedCoins = new[]
 		{
-				coins.Single(x => x.HdPubKey.Label == "Pablo"),
-				coins.Single(x => x.HdPubKey.Label == "Maria"),
-				coins.Single(x => x.HdPubKey.Label == "Jack")
+				coins.Single(x => x.HdPubKey.Labels == "Pablo"),
+				coins.Single(x => x.HdPubKey.Labels == "Maria"),
+				coins.Single(x => x.HdPubKey.Labels == "Jack")
 			}.ToArray();
 		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
 
@@ -497,7 +497,7 @@ public class TransactionFactoryTests
 
 		var allowedCoins = new[]
 		{
-				transactionFactory.Coins.Single(x => x.HdPubKey.Label == "Pablo")
+				transactionFactory.Coins.Single(x => x.HdPubKey.Labels == "Pablo")
 			}.ToArray();
 
 		var amount = Money.Coins(0.5m); // it is not enough
@@ -540,7 +540,7 @@ public class TransactionFactoryTests
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.14m), result.SpentCoins.Select(x => x.Amount).Sum());
 		Assert.Equal(3, result.SpentCoins.Count());
-		var jackCoin = coins.Where(x => x.HdPubKey.Label == "Jack").ToArray();
+		var jackCoin = coins.Where(x => x.HdPubKey.Labels == "Jack").ToArray();
 		Assert.Contains(jackCoin[0], result.SpentCoins);
 		Assert.Contains(jackCoin[1], result.SpentCoins);
 	}

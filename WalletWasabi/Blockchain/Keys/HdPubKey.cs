@@ -19,12 +19,12 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
-	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
+	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
 		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
 		_cluster = new Cluster(this);
-		Label = label;
+		Labels = labels;
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
@@ -39,7 +39,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 		Index = (int)FullKeyPath.Indexes[4];
 		NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
-		
+
 		int change = (int)FullKeyPath.Indexes[3];
 		if (change == 0)
 		{
@@ -79,9 +79,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	[JsonConverter(typeof(KeyPathJsonConverter))]
 	public KeyPath FullKeyPath { get; }
 
-	[JsonProperty(Order = 3)]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
-	public SmartLabel Label { get; private set; }
+	[JsonProperty(Order = 3, PropertyName = "Label")]
+	[JsonConverter(typeof(LabelsArrayJsonConverter))]
+	public LabelsArray Labels { get; private set; }
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
@@ -116,14 +116,14 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		AnonymitySet = anonset;
 	}
 
-	public void SetLabel(SmartLabel label, KeyManager? kmToFile = null)
+	public void SetLabel(LabelsArray labels, KeyManager? kmToFile = null)
 	{
-		if (Label == label)
+		if (Labels == labels)
 		{
 			return;
 		}
 
-		Label = label;
+		Labels = labels;
 		Cluster.UpdateLabels();
 
 		kmToFile?.ToFile();

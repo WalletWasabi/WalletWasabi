@@ -20,7 +20,7 @@ internal class NullWalletRepository : IWalletRepository
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	public IWalletModel? DefaultWallet { get; }
+	public IWalletModel? DefaultWallet => null;
 
 	public bool HasWallet => throw new NotImplementedException();
 
