@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;

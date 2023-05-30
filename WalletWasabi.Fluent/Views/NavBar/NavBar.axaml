@@ -13,6 +13,9 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+  <i:Interaction.Behaviors>
+    <behaviors:NavBarSelectedIndicatorParentBehavior />
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
 
     <Style Selector="Separator">
@@ -28,7 +31,6 @@
       <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="Command" Value="{Binding OpenCommand}" />
     </Style>
 
     <Style Selector="c|NavBarItem StackPanel">
@@ -104,23 +106,16 @@
     </Style>
 
     <Style Selector="ListBoxItem">
-      <Setter Property="Padding" Value="0" />
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="ClipToBounds" Value="False"/>
     </Style>
-
     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background">
-        <SolidColorBrush Color="#FFFFFF" Opacity="0.05" />
-      </Setter>
-      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="PathIcon.wallet" x:DataType="vmw:WalletPageViewModel">
-      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-    </Style>
-
-    <Style Selector="PathIcon.wallet.isfocused" x:DataType="vmw:WalletPageViewModel">
-      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-    </Style>
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
@@ -134,7 +129,7 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.DataTemplates>
         <DataTemplate DataType="vm:NavBarItemViewModel">
-          <c:NavBarItem>
+          <c:NavBarItem Command="{Binding OpenCommand}">
             <StackPanel>
               <PathIcon Classes="new size24" />
               <LayoutTransformControl>
@@ -160,33 +155,21 @@
         </Interaction.Behaviors>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <Panel ToolTip.Tip="{Binding Title}"
-                   Width="75"
-                   Height="58"
-                   Margin="4 1"
-                   Cursor="Hand">
-              <Ellipse Classes="loadingindicator"
-                       Classes.isLoading="{Binding IsLoading}"
-                       Classes.isLoggedIn="{Binding IsLoggedIn}"
-                       Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
-              <StackPanel VerticalAlignment="Center" Spacing="2">
-                <PathIcon Classes="new size24 wallet"
-                          Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}"
-                          Width="24" Height="24"
-                          VerticalAlignment="Center" HorizontalAlignment="Center"
-                          Foreground="{DynamicResource AcrylicTrimForeground}" />
-                <LayoutTransformControl LayoutTransform="scaleY(1)"
-                                        Opacity="1">
-                  <LayoutTransformControl.Transitions>
-                    <Transitions>
-                      <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
-                    </Transitions>
-                  </LayoutTransformControl.Transitions>
-                  <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
-                </LayoutTransformControl>
-              </StackPanel>
-            </Panel>
+            <c:NavBarItem IsSelected="{Binding $parent[ListBoxItem].IsSelected}">
+              <Panel ToolTip.Tip="{Binding Title}">
+                <Ellipse Classes="loadingindicator"
+                         Classes.isLoading="{Binding IsLoading}"
+                         Classes.isLoggedIn="{Binding IsLoggedIn}"
+                         Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                  <PathIcon Classes="new size24 wallet"
+                            Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}" />
+                  <LayoutTransformControl>
+                    <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
+                  </LayoutTransformControl>
+                </StackPanel>
+              </Panel>
+            </c:NavBarItem>
           </DataTemplate>
         </ListBox.DataTemplates>
       </ListBox>
