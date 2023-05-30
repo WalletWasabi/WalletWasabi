@@ -111,13 +111,4 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 				_flyout.Hide();
 			});
 	}
-
-	private void ShowHint(Suggestion suggestion)
-	{
-		_flyout.Content = new ContentControl { ContentTemplate = HintTemplate, Content = suggestion };
-		if (Target != null)
-		{
-			_flyout.ShowAt(Target);
-		}
-	}
 }
