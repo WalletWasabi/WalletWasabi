@@ -8,9 +8,9 @@ public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 {
 	private string _title;
 
-	public ConfirmHideAddressViewModel(SmartLabel label)
+	public ConfirmHideAddressViewModel(LabelsArray labels)
 	{
-		Label = label;
+		Labels = labels;
 		_title = "Hide Address";
 
 		NextCommand = ReactiveCommand.Create(() => Close(result: true));
@@ -19,7 +19,7 @@ public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	public SmartLabel Label { get; }
+	public LabelsArray Labels { get; }
 
 	public override string Title
 	{

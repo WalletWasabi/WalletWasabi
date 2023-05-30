@@ -63,12 +63,12 @@ public class MempoolService
 		}
 	}
 
-	public SmartLabel TryGetLabel(uint256 txid)
+	public LabelsArray TryGetLabel(uint256 txid)
 	{
-		var label = SmartLabel.Empty;
+		var label = LabelsArray.Empty;
 		if (TryGetFromBroadcastStore(txid, out var entry))
 		{
-			label = entry.Transaction.Label;
+			label = entry.Transaction.Labels;
 		}
 
 		return label;
@@ -154,7 +154,7 @@ public class MempoolService
 		{
 			if (ProcessedTransactionHashes.Add(tx.GetHash()))
 			{
-				txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
+				txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(tx.GetHash()));
 			}
 			else
 			{

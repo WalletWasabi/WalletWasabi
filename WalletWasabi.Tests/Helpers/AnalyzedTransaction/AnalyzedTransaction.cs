@@ -38,7 +38,7 @@ public class AnalyzedTransaction : SmartTransaction
 	private static HdPubKey CreateHdPubKey(string? label = null)
 	{
 		using var k = CreateKey(label);
-		return new(k.PubKey, new KeyPath("0/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
+		return new(k.PubKey, new KeyPath("0/0/0/0/0"), LabelsArray.Empty, KeyState.Clean);
 	}
 
 	public void AddForeignInput(ForeignOutput output)
