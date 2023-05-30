@@ -42,37 +42,6 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private bool _isCoinJoining;
 
-	public WalletState WalletState => Wallet.State;
-
-	private string _title;
-
-	public Wallet Wallet { get; }
-
-	public string WalletName => Wallet.WalletName;
-
-	public bool IsLoggedIn => Wallet.IsLoggedIn;
-
-	public bool PreferPsbtWorkflow => Wallet.KeyManager.PreferPsbtWorkflow;
-
-	public override string ToString() => WalletName;
-
-	public int CompareTo(WalletViewModel? other)
-	{
-		if (other is null)
-		{
-			return -1;
-		}
-
-		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
-
-		if (result == 0)
-		{
-			result = string.Compare(Title, other.Title, StringComparison.Ordinal);
-		}
-
-		return result;
-	}
-
 	public WalletViewModel(UiContext uiContext, WalletPageViewModel parent)
 	{
 		_parent = parent;
@@ -165,6 +134,20 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		Tiles = GetTiles().ToList();
 	}
 
+	public WalletState WalletState => Wallet.State;
+
+	private string _title;
+
+	public Wallet Wallet { get; }
+
+	public string WalletName => Wallet.WalletName;
+
+	public bool IsLoggedIn => Wallet.IsLoggedIn;
+
+	public bool PreferPsbtWorkflow => Wallet.KeyManager.PreferPsbtWorkflow;
+
+	public override string ToString() => WalletName;
+
 	public UiTriggers UiTriggers { get; private set; }
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
@@ -250,5 +233,22 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		}
 
 		yield return new BtcPriceTileViewModel(Wallet);
+	}
+
+	public int CompareTo(WalletViewModel? other)
+	{
+		if (other is null)
+		{
+			return -1;
+		}
+
+		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
+
+		if (result == 0)
+		{
+			result = string.Compare(Title, other.Title, StringComparison.Ordinal);
+		}
+
+		return result;
 	}
 }
