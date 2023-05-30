@@ -55,14 +55,14 @@ If you are a new contributor **DO** keep refactoring pull requests short, uncomp
 
 ```cs
 // GOOD
-private AsyncLock AsyncLock { get; } = new AsyncLock();
+private AsyncLock AsyncLock { get; } = new();
 using (await AsyncLock.LockAsync())
 {
 	...
 }
 
 // GOOD
-private object Lock { get; } = new object();
+private object Lock { get; } = new();
 lock (Lock)
 {
 	...
