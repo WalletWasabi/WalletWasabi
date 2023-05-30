@@ -28,13 +28,12 @@ public class Address : ReactiveObject, IAddress
 	public Network Network { get; }
 	public HDFingerprint? HdFingerprint { get; }
 	public BitcoinAddress BitcoinAddress { get; }
-	public SmartLabel Label => HdPubKey.Label;
+	public LabelsArray Labels => HdPubKey.Labels;
 	public PubKey PubKey => HdPubKey.PubKey;
 	public KeyPath FullKeyPath => HdPubKey.FullKeyPath;
 	public string Text => BitcoinAddress.ToString();
-	public IEnumerable<string> Labels => Label;
 
-	private bool IsUnused => !Label.IsEmpty && !HdPubKey.IsInternal && HdPubKey.KeyState == KeyState.Clean;
+	private bool IsUnused => Labels.Any() && !HdPubKey.IsInternal && HdPubKey.KeyState == KeyState.Clean;
 
 	public bool IsUsed => !IsUnused;
 
@@ -45,9 +44,9 @@ public class Address : ReactiveObject, IAddress
 		this.RaisePropertyChanged(nameof(IsUsed));
 	}
 
-	public void SetLabels(IEnumerable<string> labels)
+	public void SetLabels(LabelsArray labels)
 	{
-		HdPubKey.SetLabel(new SmartLabel(labels.ToList()), KeyManager);
+		HdPubKey.SetLabel(labels, KeyManager);
 		this.RaisePropertyChanged(nameof(Labels));
 	}
 
