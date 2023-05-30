@@ -220,6 +220,13 @@ public class AmountDecomposer
 		var naiveDecomp = CreateNaiveDecomposition(denoms, myInputSum, maxNumberOfOutputsAllowed);
 		setCandidates.Add(naiveDecomp.Key, naiveDecomp.Value);
 
+		// Create more pre-decompositions for sanity.
+		var preDecomps = CreatePreDecompositions(denoms, myInputSum, maxNumberOfOutputsAllowed);
+		foreach (var decomp in preDecomps)
+		{
+			setCandidates.TryAdd(decomp.Key, decomp.Value);
+		}
+
 		// Create many decompositions for optimization.
 		var changelessDecomps = CreateChangelessDecompositions(denoms, myInputSum, maxNumberOfOutputsAllowed);
 		foreach (var decomp in changelessDecomps)
@@ -334,6 +341,64 @@ public class AmountDecomposer
 
 				setCandidates.TryAdd(CalculateHash(finalDenoms), (finalDenoms, deficit));
 			}
+		}
+
+		return setCandidates;
+	}
+
+	private IDictionary<int, (IEnumerable<Output> Decomp, Money Cost)> CreatePreDecompositions(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
+	{
+		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomp, Money Cost)>();
+
+		for (int i = 0; i < 10_000; i++)
+		{
+			var remainingVsize = AvailableVsize;
+			var remaining = myInputSum;
+			List<Output> currentSet = new();
+			while (true)
+			{
+				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement()
+					?? denoms.FirstOrDefault(x => x.EffectiveCost <= remaining);
+
+				// We can only let this go forward if at least 2 outputs can be added (denom + potential change)
+				if (denom is null || remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				{
+					break;
+				}
+
+				currentSet.Add(denom);
+				remaining -= denom.EffectiveCost;
+				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
+
+				// Can't have more denoms than max - 1, where -1 is to account for possible change.
+				if (currentSet.Count >= maxNumberOfOutputsAllowed - 1)
+				{
+					break;
+				}
+			}
+
+			var loss = Money.Zero;
+			if (remaining >= MinAllowedOutputAmount + ChangeFee)
+			{
+				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
+				currentSet.Add(change);
+			}
+			else
+			{
+				// This goes to miners.
+				loss = remaining;
+			}
+
+			// This can happen when smallest denom is larger than the input sum.
+			if (currentSet.Count == 0)
+			{
+				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
+				currentSet.Add(change);
+			}
+
+			setCandidates.TryAdd(
+				CalculateHash(currentSet), // Create hash to ensure uniqueness.
+				(currentSet, loss + CalculateCost(currentSet)));
 		}
 
 		return setCandidates;
