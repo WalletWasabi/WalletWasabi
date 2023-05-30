@@ -80,7 +80,7 @@ public class Wallet : BackgroundService, IWallet
 	public string WalletName => KeyManager.WalletName;
 
 	/// <summary>Unspent Transaction Outputs</summary>
-	public ICoinsView Coins { get; private set; }
+	public CoinsRegistry Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
@@ -125,7 +125,7 @@ public class Wallet : BackgroundService, IWallet
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
-		var allCoins = ((CoinsRegistry)Coins).AsAllCoinsView();
+		var allCoins = Coins.AsAllCoinsView();
 		foreach (SmartCoin coin in allCoins)
 		{
 			walletTransactions.Add(coin.Transaction);
