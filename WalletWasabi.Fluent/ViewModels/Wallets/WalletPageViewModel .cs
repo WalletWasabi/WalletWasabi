@@ -48,6 +48,12 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Do(_ => ShowWallet())
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.IsSelected, x => x.CurrentPage)
+			.Where(t => t.Item1)
+			.Select(t => t.Item2)
+			.WhereNotNull()
+			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
+			.Subscribe();
 		SetIcon();
 	}
 

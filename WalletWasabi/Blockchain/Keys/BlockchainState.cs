@@ -35,7 +35,7 @@ public class BlockchainState
 	[JsonProperty]
 	[JsonConverter(typeof(WalletHeightJsonConverter))]
 	public Height Height { get; set; }
-	
+
 	[JsonProperty]
 	[JsonConverter(typeof(WalletHeightJsonConverter))]
 	public Height TurboSyncHeight { get; set; }

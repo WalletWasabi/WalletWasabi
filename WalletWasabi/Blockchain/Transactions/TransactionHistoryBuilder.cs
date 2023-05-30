@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
@@ -38,7 +39,7 @@ public class TransactionHistoryBuilder
 			{
 				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
 				found.Amount += coin.Amount;
-				found.Label = SmartLabel.Merge(found.Label, containingTransaction.Label);
+				found.Labels = LabelsArray.Merge(found.Labels, containingTransaction.Labels);
 			}
 			else
 			{
@@ -47,11 +48,13 @@ public class TransactionHistoryBuilder
 					DateTime = dateTime,
 					Height = coin.Height,
 					Amount = coin.Amount,
-					Label = containingTransaction.Label,
+					Labels = containingTransaction.Labels,
 					TransactionId = coin.TransactionId,
 					BlockIndex = containingTransaction.BlockIndex,
 					BlockHash = containingTransaction.BlockHash,
-					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin()
+					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
+					Inputs = GetInputs(containingTransaction),
+					Outputs = GetOutputs(containingTransaction),
 				});
 			}
 
@@ -73,16 +76,41 @@ public class TransactionHistoryBuilder
 						DateTime = dateTime,
 						Height = spenderTransaction.Height,
 						Amount = Money.Zero - coin.Amount,
-						Label = spenderTransaction.Label,
+						Labels = spenderTransaction.Labels,
 						TransactionId = spenderTxId,
 						BlockIndex = spenderTransaction.BlockIndex,
 						BlockHash = spenderTransaction.BlockHash,
-						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin()
+						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
+						Inputs = GetInputs(spenderTransaction),
+						Outputs = GetOutputs(spenderTransaction),
 					});
 				}
 			}
 		}
 		txRecordList = txRecordList.OrderByBlockchain().ToList();
 		return txRecordList;
+	}
+
+	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction)
+	{
+		return smartTransaction.Transaction.Outputs.Select(GetOutput);
+	}
+
+	private Output GetOutput(TxOut txOut)
+	{
+		return new Output(txOut.Value);
+	}
+
+	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
+	{
+		var known = transaction.WalletInputs
+			.Select(x => new KnownInput(x.Amount))
+			.OfType<IInput>();
+
+		var unknown = transaction.ForeignInputs
+			.Select(_ => new ForeignInput())
+			.OfType<IInput>();
+
+		return known.Concat(unknown);
 	}
 }
