@@ -150,4 +150,11 @@
       </Flyout>
     </FlyoutBase.AttachedFlyout>
   </TextBox>
+
+  <i:Interaction.Behaviors>
+    <behaviors:KeyDownTrigger EventRoutingStrategy="Tunnel" Key="Escape">
+      <CallMethodAction MethodName="Unfocus" />
+    </behaviors:KeyDownTrigger>
+  </i:Interaction.Behaviors>
+
 </UserControl>
