@@ -330,7 +330,7 @@ public partial class MainViewModel : ViewModelBase
 			new SettingsSearchSource(_settingsPage, filterChanged),
 			new TransactionsSearchSource(filterChanged));
 
-		var searchBar = new SearchBarViewModel(source.Changes, source);
+		var searchBar = new SearchBarViewModel(source);
 
 		searchBar
 			.WhenAnyValue(a => a.SearchText)

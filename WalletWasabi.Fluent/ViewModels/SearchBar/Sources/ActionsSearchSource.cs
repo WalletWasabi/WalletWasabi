@@ -29,11 +29,6 @@ public class ActionsSearchSource : ISearchSource
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
-	public bool TryExplicitSearch(string searchText)
-	{
-		return false;
-	}
-
 	private IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{
 		return NavigationManager.MetaData

@@ -1,14 +1,15 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
@@ -19,27 +20,34 @@ public partial class SearchBarViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
+	private readonly CompositeDisposable _disposables = new();
 
-	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable, ISearchSource searchSource)
+	public SearchBarViewModel(ISearchSource searchSource)
 	{
-		itemsObservable
+		searchSource.Changes
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
 			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.Bind(out _groups)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
-		HasResults = itemsObservable
+		HasResults = searchSource.Changes
 			.Count()
 			.Select(i => i > 0)
 			.Replay(1)
 			.RefCount();
 
-		var navigateToSearchCommand = ReactiveCommand.Create(() => searchSource.TryExplicitSearch(SearchText));
+		searchSource.Changes
+			.Bind(out var results)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		var navigateToSearchCommand = ReactiveCommand.CreateFromTask(() => Task.FromResult(results.OfType<IActionableItem>().FirstOrDefault()?.OnExecution()));
 		NavigateToSearchCommand = navigateToSearchCommand;
-		var navigated = navigateToSearchCommand.Where(b => b).ToSignal();
+		var navigated = navigateToSearchCommand.ToSignal();
 		Navigated = navigated;
 		Navigated
 			.Do(_ =>
@@ -47,7 +55,8 @@ public partial class SearchBarViewModel : ReactiveObject
 				IsSearchListVisible = false;
 				SearchText = "";
 			})
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	public IObservable<Unit> Navigated { get; }

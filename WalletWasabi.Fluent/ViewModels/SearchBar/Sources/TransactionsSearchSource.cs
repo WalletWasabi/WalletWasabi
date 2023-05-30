@@ -48,18 +48,6 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
-	public bool TryExplicitSearch(string searchText)
-	{
-		var firstMatch = Flatten(GetTransactionsByWallet()).FirstOrDefault(x => string.Equals(x.Item2.Id.ToString(), searchText, StringComparison.CurrentCultureIgnoreCase));
-		if (firstMatch != default)
-		{
-			NavigateTo(firstMatch.Item1, firstMatch.Item2);
-			return true;
-		}
-
-		return false;
-	}
-
 	private static bool ContainsId(HistoryItemViewModelBase historyItemViewModelBase, string queryStr)
 	{
 		return historyItemViewModelBase.Id.ToString().Contains(queryStr, StringComparison.CurrentCultureIgnoreCase);
