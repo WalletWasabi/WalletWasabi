@@ -22,7 +22,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	public WasabiSynchronizer Synchronizer { get; }
 	public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
 	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
-	private object Lock { get; } = new object();
+	private object Lock { get; } = new();
 	public bool InError { get; private set; }
 	private AbandonedTasks ProcessingEvents { get; } = new();
 
