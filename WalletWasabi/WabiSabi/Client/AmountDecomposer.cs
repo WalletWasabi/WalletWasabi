@@ -232,27 +232,47 @@ public class AmountDecomposer
 
 		// If there are changeless candidates, don't even consider ones with change.
 		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
-		if (changelessCandidates.Any())
+		var changeAvoided = changelessCandidates.Any();
+		if (changeAvoided)
 		{
 			preCandidates = changelessCandidates;
 		}
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
-			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Prefer lower change.
+			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Less change is better.
 			.ThenBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomposition.Any(d => d.ScriptType == ScriptType.Taproot) && x.Decomposition.Any(d => d.ScriptType == ScriptType.P2WPKH) ? 0 : 1) // Prefer mixed scripts types.
 			.Select(x => x).ToList();
 
 		// We want to introduce randomness between the best selections.
-		var bestCandidateCost = orderedCandidates.First().Cost;
-		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
-		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+		// If we successfully avoided change, then what matters is cost,
+		// if we didn't then cost calculation is irrelevant, because the size of change is more costly.
+		(IEnumerable<Output> Decomp, Money Cost)[] finalCandidates;
+		if (changeAvoided)
+		{
+			var bestCandidateCost = orderedCandidates.First().Cost;
+			var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
+			finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+		}
+		else
+		{
+			// Change can only be max between: 100.000 satoshis, 10% of the inputs sum or 20% more than the best candidate change
+			var bestCandidateChange = FindChange(orderedCandidates.First().Decomposition, denomHashSet);
+			var changeTolerance = Money.Coins(
+				Math.Max(
+					Math.Max(
+						myInputSum.ToUnit(MoneyUnit.BTC) * 0.1m,
+						bestCandidateChange.ToUnit(MoneyUnit.BTC) * 1.2m),
+					Money.Satoshis(100000).ToUnit(MoneyUnit.BTC)));
+
+			finalCandidates = orderedCandidates.Where(x => FindChange(x.Decomposition, denomHashSet) <= changeTolerance).ToArray();
+		}
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
-		var largestAmount = finalCandidates.Select(x => x.Decomposition.First()).ToHashSet().RandomElement();
-		var finalCandidate = finalCandidates.Where(x => x.Decomposition.First() == largestAmount).RandomElement().Decomposition;
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
 
 		var totalOutputAmount = Money.Satoshis(finalCandidate.Sum(x => x.EffectiveCost));
 		if (totalOutputAmount > myInputSum)
@@ -270,6 +290,11 @@ public class AmountDecomposer
 			throw new InvalidOperationException("The decomposer created more outputs than it can. Aborting.");
 		}
 		return finalCandidate;
+	}
+
+	private static Money FindChange(IEnumerable<Output> decomposition, HashSet<Output> denomHashSet)
+	{
+		return decomposition.Sum(x => denomHashSet.Contains(x) ? Money.Zero : x.Amount);
 	}
 
 	private IDictionary<int, (IEnumerable<Output> Decomp, Money Cost)> CreateChangelessDecompositions(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
