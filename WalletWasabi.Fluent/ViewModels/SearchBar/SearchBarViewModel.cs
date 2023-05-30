@@ -15,7 +15,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public partial class SearchBarViewModel : ReactiveObject
+public partial class SearchBarViewModel : ReactiveObject, IDisposable
 {
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
 	[AutoNotify] private bool _isSearchListVisible;
@@ -45,18 +45,20 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		var navigateToSearchCommand = ReactiveCommand.CreateFromTask(() => Task.FromResult(results.OfType<IActionableItem>().FirstOrDefault()?.OnExecution()));
+		var canActivate = results.ToObservableChangeSet().ToCollection().Select(s => s.OfType<IActionableItem>().Count() == 1);
+		var navigateToSearchCommand = ReactiveCommand.CreateFromTask(() => ((IActionableItem)results.First()).OnExecution(), canActivate);
 		NavigateToSearchCommand = navigateToSearchCommand;
-		var navigated = navigateToSearchCommand.ToSignal();
-		Navigated = navigated;
-		Navigated
-			.Do(_ =>
-			{
-				IsSearchListVisible = false;
-				SearchText = "";
-			})
+
+		navigateToSearchCommand
+			.Do(_ => Reset())
 			.Subscribe()
 			.DisposeWith(_disposables);
+	}
+
+	private void Reset()
+	{
+		IsSearchListVisible = false;
+		SearchText = "";
 	}
 
 	public IObservable<Unit> Navigated { get; }
@@ -66,4 +68,9 @@ public partial class SearchBarViewModel : ReactiveObject
 	public IObservable<bool> HasResults { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
+	}
 }
