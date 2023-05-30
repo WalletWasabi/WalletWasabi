@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Models.UI;
 public class QrCodeReader : IQrCodeReader
 {
 	private readonly QRCodeReader _decoder = new();
-	
+
 	public bool IsPlatformSupported =>
 		RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
 		RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

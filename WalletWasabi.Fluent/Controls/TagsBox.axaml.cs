@@ -35,9 +35,6 @@ public class TagsBox : TemplatedControl
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
 
-	public static readonly DirectProperty<TagsBox, bool> RequestAddProperty =
-		AvaloniaProperty.RegisterDirect<TagsBox, bool>(nameof(RequestAdd), o => o.RequestAdd);
-
 	public static readonly StyledProperty<string> WatermarkProperty =
 		TextBox.WatermarkProperty.AddOwner<TagsBox>();
 
@@ -96,12 +93,6 @@ public class TagsBox : TemplatedControl
 	{
 		get => GetValue(IsCurrentTextValidProperty);
 		private set => SetValue(IsCurrentTextValidProperty, value);
-	}
-
-	public bool RequestAdd
-	{
-		get => _requestAdd;
-		set => SetAndRaise(RequestAddProperty, ref _requestAdd, value);
 	}
 
 	public IEnumerable<string>? TopItems
@@ -204,12 +195,12 @@ public class TagsBox : TemplatedControl
 
 				_internalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
-					.Subscribe(_ => RequestAdd = true)
+					.Subscribe(_ => ClearAndAddTags(CurrentText))
 					.DisposeWith(_compositeDisposable);
 
 				Observable
 					.FromEventPattern(suggestionListBox, nameof(PointerReleased))
-					.Subscribe(_ => RequestAdd = true)
+					.Subscribe(_ => ClearAndAddTags(CurrentText))
 					.DisposeWith(_compositeDisposable);
 			})
 			.DisposeWith(_compositeDisposable);
@@ -227,26 +218,8 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.WhereNotNull()
 			.Where(text => text.Contains(TagSeparator))
-			.Subscribe(_ => RequestAdd = true)
+			.Subscribe(_ => ClearAndAddTags(CurrentText))
 			.DisposeWith(_compositeDisposable);
-
-		this.WhenAnyValue(x => x.RequestAdd)
-			.Where(x => x)
-			.Throttle(TimeSpan.FromMilliseconds(10))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(_ => CurrentText)
-			.Subscribe(currentText =>
-			{
-				Dispatcher.UIThread.Post(() => RequestAdd = false);
-				ClearInputField();
-
-				var tags = GetFinalTags(currentText, TagSeparator);
-
-				foreach (string tag in tags)
-				{
-					AddTag(tag);
-				}
-			});
 
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>
@@ -292,7 +265,7 @@ public class TagsBox : TemplatedControl
 				break;
 
 			case Key.Enter or Key.Tab when !emptyInputField:
-				RequestAdd = true;
+				ClearAndAddTags(CurrentText);
 				e.Handled = true;
 				break;
 		}
@@ -391,7 +364,7 @@ public class TagsBox : TemplatedControl
 		if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
 		{
 			autoCompleteBox.Text = autoCompleteBox.SearchText;
-			RequestAdd = true;
+			ClearAndAddTags(CurrentText);
 			e.Handled = true;
 		}
 	}
@@ -417,6 +390,18 @@ public class TagsBox : TemplatedControl
 			_stringComparison = SuggestionsAreCaseSensitive
 				? StringComparison.CurrentCulture
 				: StringComparison.CurrentCultureIgnoreCase;
+		}
+	}
+
+	private void ClearAndAddTags(string currentText)
+	{
+		ClearInputField();
+
+		var tags = GetFinalTags(currentText, TagSeparator);
+
+		foreach (string tag in tags)
+		{
+			AddTag(tag);
 		}
 	}
 

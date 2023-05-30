@@ -16,7 +16,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 	private AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{
 		var wallet = new WalletModel(owner.Wallet);
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, hdPubKey.Label);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, hdPubKey.Labels);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -31,7 +31,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(
 			() =>
 			{
-				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
+				hdPubKey.SetLabel(new LabelsArray(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
 				Navigate().Back();
 			},
