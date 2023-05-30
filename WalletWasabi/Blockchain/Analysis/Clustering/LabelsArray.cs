@@ -6,15 +6,15 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLabel>, IReadOnlyCollection<string>
+public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<LabelsArray>, IComparable<LabelsArray>
 {
 	private readonly string[]? _labels;
 	
-	public SmartLabel(params string[] labels) : this(labels as IEnumerable<string>)
+	public LabelsArray(params string[] labels) : this(labels as IEnumerable<string>)
 	{
 	}
 
-	public SmartLabel(IEnumerable<string>? labels)
+	public LabelsArray(IEnumerable<string>? labels)
 	{
 		_labels = (labels ?? Array.Empty<string>())
 		   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
@@ -25,7 +25,7 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		   .ToArray();
 	}
 
-	public static SmartLabel Empty { get; } = new();
+	public static LabelsArray Empty { get; } = new();
 	public static char[] Separators { get; } = new[] { ',', ':' };
 
 	public int Count => AsSpan().Length;
@@ -66,13 +66,15 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		});
 	}
 
-	public override int GetHashCode()
+	public override int GetHashCode() => GetHashCode(null);
+
+	public int GetHashCode(IEqualityComparer<string>? comparer)
 	{
 		var hashCode = new HashCode();
 		
 		foreach (var label in this)
 		{
-			hashCode.Add(label);
+			hashCode.Add(label, comparer);
 		}
 
 		return hashCode.ToHashCode();
@@ -80,25 +82,19 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 
 	public override bool Equals(object? other)
 	{
-		return other is SmartLabel label && label.Equals(this);
+		return other is LabelsArray label && label.Equals(this);
 	}
 
-	public bool Equals(SmartLabel other) =>
+	public bool Equals(LabelsArray other) =>
 		AsSpan().SequenceEqual(other.AsSpan());
 
-	public bool Equals(SmartLabel other, IEqualityComparer<string> comparer) =>
+	public bool Equals(LabelsArray other, IEqualityComparer<string>? comparer) =>
 		AsSpan().SequenceEqual(other.AsSpan(), comparer);
 
-	public bool Equals(string? other) =>
-		ToString().Equals(other);
+	public int CompareTo(LabelsArray other) =>
+		AsSpan().SequenceCompareTo(other.AsSpan());
 
-	public bool Equals(string? other, StringComparison comparison) =>
-		ToString().Equals(other, comparison);
-
-	public int CompareTo(SmartLabel other) =>
-		CompareTo(other, StringComparison.OrdinalIgnoreCase);
-
-	public int CompareTo(SmartLabel other, IComparer<string> comparer)
+	public int CompareTo(LabelsArray other, IComparer<string>? comparer)
 	{
 		if (comparer is null)
 		{
@@ -141,12 +137,6 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 		}
 	}
 
-	public int CompareTo(string? other) =>
-		string.Compare(ToString(), other, StringComparison.OrdinalIgnoreCase);
-
-	public int CompareTo(string? other, StringComparison comparison) =>
-		string.Compare(ToString(), other, comparison);
-
 	public ReadOnlySpan<string>.Enumerator GetEnumerator() =>
 		AsSpan().GetEnumerator();
 
@@ -156,17 +146,17 @@ public readonly struct SmartLabel : IEquatable<SmartLabel>, IComparable<SmartLab
 	private IEnumerator<string> GetEnumeratorAllocating() =>
 		(_labels ?? Enumerable.Empty<string>()).GetEnumerator();
 	
-	public static SmartLabel Merge(params SmartLabel[] labels) =>
-		Merge(labels as IEnumerable<SmartLabel>);
+	public static LabelsArray Merge(params LabelsArray[] labels) =>
+		Merge(labels as IEnumerable<LabelsArray>);
 
-	public static SmartLabel Merge(IEnumerable<SmartLabel> labels) =>
+	public static LabelsArray Merge(IEnumerable<LabelsArray> labels) =>
 		new(labels?.SelectMany(x => x));
 
-	public static bool operator ==(SmartLabel x, SmartLabel y) => x.Equals(y);
+	public static bool operator ==(LabelsArray x, LabelsArray y) => x.Equals(y);
 
-	public static bool operator !=(SmartLabel x, SmartLabel y) => !(x == y);
+	public static bool operator !=(LabelsArray x, LabelsArray y) => !(x == y);
 
-	public static implicit operator SmartLabel(string labels) => new(labels);
+	public static implicit operator LabelsArray(string labels) => new(labels);
 
-	public static implicit operator string(SmartLabel label) => label.ToString();
+	public static implicit operator string(LabelsArray labels) => labels.ToString();
 }

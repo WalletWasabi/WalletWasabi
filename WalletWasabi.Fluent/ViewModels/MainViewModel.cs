@@ -84,11 +84,6 @@ public partial class MainViewModel : ViewModelBase
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
-		this.WhenAnyValue(x => x.NavBar.SelectedWallet!.CurrentPage)
-			.WhereNotNull()
-			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
-			.Subscribe();
-
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
 			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)

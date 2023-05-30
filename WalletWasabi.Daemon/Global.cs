@@ -118,7 +118,7 @@ public class Global
 	private IndexStore IndexStore { get; }
 
 	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new (
+		new(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
