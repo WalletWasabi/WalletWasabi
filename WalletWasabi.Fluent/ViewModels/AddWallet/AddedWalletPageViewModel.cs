@@ -1,4 +1,5 @@
 using ReactiveUI;
+using System.Linq;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
@@ -33,6 +34,6 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		// Temporary workaround until refactoring is completed.
 		MainViewModel.Instance.NavBar.SelectedWallet =
-			MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _keyManager.WalletName);
+			MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name);
 	}
 }
