@@ -14,5 +14,5 @@ internal class NullWalletList : IWalletListModel
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	public IWalletModel? DefaultWallet { get; }
+	public IWalletModel? DefaultWallet => null;
 }
