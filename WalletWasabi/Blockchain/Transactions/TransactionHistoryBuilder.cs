@@ -39,7 +39,7 @@ public class TransactionHistoryBuilder
 			{
 				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
 				found.Amount += coin.Amount;
-				found.Label = SmartLabel.Merge(found.Label, containingTransaction.Label);
+				found.Labels = LabelsArray.Merge(found.Labels, containingTransaction.Labels);
 			}
 			else
 			{
@@ -48,7 +48,7 @@ public class TransactionHistoryBuilder
 					DateTime = dateTime,
 					Height = coin.Height,
 					Amount = coin.Amount,
-					Label = containingTransaction.Label,
+					Labels = containingTransaction.Labels,
 					TransactionId = coin.TransactionId,
 					BlockIndex = containingTransaction.BlockIndex,
 					BlockHash = containingTransaction.BlockHash,
@@ -76,7 +76,7 @@ public class TransactionHistoryBuilder
 						DateTime = dateTime,
 						Height = spenderTransaction.Height,
 						Amount = Money.Zero - coin.Amount,
-						Label = spenderTransaction.Label,
+						Labels = spenderTransaction.Labels,
 						TransactionId = spenderTxId,
 						BlockIndex = spenderTransaction.BlockIndex,
 						BlockHash = spenderTransaction.BlockHash,
@@ -98,20 +98,18 @@ public class TransactionHistoryBuilder
 
 	private Output GetOutput(TxOut txOut)
 	{
-		var amount = txOut.Value;
-		var address = txOut.ScriptPubKey.GetDestinationAddress(Wallet.Network);
-		return new Output(amount);
+		return new Output(txOut.Value);
 	}
 
 	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs
-		                       .Select(x => new KnownInput(x.Amount))
-		                       .OfType<IInput>();
+			.Select(x => new KnownInput(x.Amount))
+			.OfType<IInput>();
 
 		var unknown = transaction.ForeignInputs
-	                             .Select(_ => new ForeignInput())
-	                             .OfType<IInput>();
+			.Select(_ => new ForeignInput())
+			.OfType<IInput>();
 
 		return known.Concat(unknown);
 	}

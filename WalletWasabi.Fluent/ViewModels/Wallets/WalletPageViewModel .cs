@@ -48,6 +48,12 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Do(_ => ShowWallet())
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.IsSelected, x => x.CurrentPage)
+			.Where(t => t.Item1)
+			.Select(t => t.Item2)
+			.WhereNotNull()
+			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
+			.Subscribe();
 		SetIcon();
 	}
 
@@ -56,6 +62,10 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	public string Title => WalletModel.Name;
 
+	// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+	// Remove in next PR
+	public LoadingViewModel Loading { get; private set; }
+
 	private void ShowLogin()
 	{
 		CurrentPage = new LoginViewModel(UiContext, WalletModel, Wallet);
@@ -63,12 +73,25 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWalletLoading()
 	{
-		CurrentPage = new LoadingViewModel(Wallet);
+		// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+		// Remove in next PR
+		if (Loading is null)
+		{
+			Loading = new LoadingViewModel(Wallet);
+			Loading.Activate();
+		}
+		CurrentPage = Loading;
 		IsLoading = true;
 	}
 
 	private void ShowWallet()
 	{
+		// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+		// Remove in next PR
+		if (Loading is not null)
+		{
+			Loading.Deactivate();
+		}
 		WalletViewModel = WalletViewModel.Create(UiContext, this);
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
