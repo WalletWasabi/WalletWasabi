@@ -12,4 +12,8 @@ public class NullFileSystem : IFileSystem
 	public void OpenFolderInFileExplorer(string dirPath)
 	{
 	}
+
+	public Task OpenBrowserAsync(string url)
+	{
+	}
 }
