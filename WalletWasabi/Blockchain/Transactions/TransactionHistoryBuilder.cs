@@ -28,7 +28,7 @@ public class TransactionHistoryBuilder
 			return txRecordList;
 		}
 
-		var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
+		var allCoins = wallet.Coins.AsAllCoinsView();
 		foreach (SmartCoin coin in allCoins)
 		{
 			var containingTransaction = coin.Transaction;
