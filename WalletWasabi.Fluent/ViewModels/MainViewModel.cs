@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -52,6 +53,8 @@ public partial class MainViewModel : ViewModelBase
 		_navBar = new NavBarViewModel(UiContext);
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen, _navBar));
+
+		_navBar.Activate();
 
 		UiServices.Initialize(UiContext);
 
