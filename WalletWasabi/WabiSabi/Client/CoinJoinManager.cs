@@ -160,7 +160,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
+			async Task<ICoinsView> SanityChecksAndGetCoinCandidatesFunc()
 			{
 				if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 				{
@@ -564,14 +564,17 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+	private async Task<ICoinsView> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+	{
+		var coinsRegistry = await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false);
+		var coinCandidates = coinsRegistry
 			.Available()
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !coin.IsBanned)
 			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
+		return new CoinsView(coinCandidates);
+	}
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
