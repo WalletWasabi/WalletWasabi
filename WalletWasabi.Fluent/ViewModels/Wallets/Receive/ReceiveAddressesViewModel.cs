@@ -44,12 +44,12 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
-		return new AddressViewModel(UiContext, OnEditAddressAsync, OnShowAddressAsync, address);
+		return new AddressViewModel(UiContext, OnEditAddressAsync, address1 => OnShowAddressAsync(address1), address);
 	}
 
-	private async Task OnShowAddressAsync(IAddress a)
+	private void OnShowAddressAsync(IAddress a)
 	{
-		await Task.Run(() => UiContext.Navigate().To().ReceiveAddress(_wallet, a, Services.UiConfig.Autocopy));
+		UiContext.Navigate().To().ReceiveAddress(_wallet, a, Services.UiConfig.Autocopy);
 	}
 
 	private async Task OnEditAddressAsync(IAddress address)

@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Moq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using Xunit;
@@ -19,7 +18,7 @@ public class AddressViewModelTests
 		var sut = new AddressViewModel(
 			context,
 			_ => Task.CompletedTask,
-			_ => Task.CompletedTask,
+			_ => { },
 			address);
 
 		sut.HideAddressCommand.Execute(null);
@@ -33,7 +32,7 @@ public class AddressViewModelTests
 		var testAddress = new TestAddress("ad");
 		var labels = new LabelsArray("Label 1", "Label 2");
 		testAddress.SetLabels(labels);
-		var sut = new AddressViewModel(Mocks.ContextStub(), _ => Task.CompletedTask, _ => Task.CompletedTask, testAddress);
+		var sut = new AddressViewModel(Mocks.ContextStub(), _ => Task.CompletedTask, _ => { }, testAddress);
 
 		Assert.Equal(testAddress.Text, sut.AddressText);
 		Assert.Equal(labels, sut.Labels);

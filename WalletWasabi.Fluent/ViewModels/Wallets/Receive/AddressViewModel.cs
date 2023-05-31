@@ -7,7 +7,8 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using AddressAction = System.Func<WalletWasabi.Fluent.Models.Wallets.IAddress, System.Threading.Tasks.Task>;
+using AddressFunc = System.Func<WalletWasabi.Fluent.Models.Wallets.IAddress, System.Threading.Tasks.Task>;
+using AddressAction = System.Action<WalletWasabi.Fluent.Models.Wallets.IAddress>;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
@@ -16,7 +17,7 @@ public partial class AddressViewModel : ViewModelBase
 	[AutoNotify] private string _addressText;
 	[AutoNotify] private IEnumerable<string> _labels = new LabelsArray();
 
-	public AddressViewModel(UiContext context, AddressAction onEdit, AddressAction onShow, IAddress address)
+	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{
 		UiContext = context;
 		Address = address;
@@ -27,7 +28,7 @@ public partial class AddressViewModel : ViewModelBase
 		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(AddressText));
 		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddressAsync);
 		EditLabelCommand = ReactiveCommand.CreateFromTask(() => onEdit(address));
-		NavigateCommand = ReactiveCommand.CreateFromTask(() => onShow(address));
+		NavigateCommand = ReactiveCommand.Create(() => onShow(address));
 	}
 
 	private IAddress Address { get; }
