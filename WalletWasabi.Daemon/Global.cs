@@ -32,6 +32,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Daemon;
 
@@ -59,6 +60,7 @@ public class Global
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
+		CoinPrison = new(Config.DataDir);
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
@@ -94,7 +96,7 @@ public class Global
 	public HttpClientFactory HttpClientFactory { get; }
 
 	public HttpClientFactory CoordinatorHttpClientFactory { get; }
-
+	public CoinPrison CoinPrison { get; }
 	public LegalChecker LegalChecker { get; private set; }
 	public Config Config { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
@@ -220,7 +222,7 @@ public class Global
 					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 					Cache);
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider, CoinPrison);
 			}
 			finally
 			{

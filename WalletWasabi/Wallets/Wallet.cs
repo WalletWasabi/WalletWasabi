@@ -21,6 +21,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
@@ -184,7 +185,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		IBlockProvider blockProvider,
+		CoinPrison coinPrison)
 	{
 		if (State > WalletState.WaitingForInit)
 		{
@@ -198,8 +200,9 @@ public class Wallet : BackgroundService, IWallet
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
-			Coins = TransactionProcessor.Coins;
+			CoinsRegistry coinsRegistry = new(coinPrison);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, coinsRegistry);
+			Coins = coinsRegistry;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
@@ -550,7 +553,7 @@ public class Wallet : BackgroundService, IWallet
 	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
-		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new());
 		return wallet;
 	}
 
