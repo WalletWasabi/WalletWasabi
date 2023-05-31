@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using WalletWasabi.Fluent.Models.Wallets;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Models.FileSystem;
 
