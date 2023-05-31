@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -31,7 +32,10 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 				 .Subscribe();
 
 		Wallets = wallets;
+	}
 
+	public void Activate()
+	{
 		this.WhenAnyValue(x => x.SelectedWallet)
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
