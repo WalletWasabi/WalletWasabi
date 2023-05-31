@@ -221,9 +221,9 @@ public partial class MainViewModel : ViewModelBase
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
 		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(UiContext));
 		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(UiContext));
-		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
-		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
-		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel(UiContext));
+		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(UiContext));
+		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(UiContext));
 
 		WalletCoinsViewModel.RegisterLazy(() =>
 		{
