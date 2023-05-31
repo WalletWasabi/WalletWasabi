@@ -80,7 +80,7 @@ public class Wallet : BackgroundService, IWallet
 	public string WalletName => KeyManager.WalletName;
 
 	/// <summary>Unspent Transaction Outputs</summary>
-	public ICoinsView Coins { get; private set; }
+	public CoinsRegistry Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
@@ -118,14 +118,14 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
+	public Task<CoinsRegistry> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
+	public CoinsRegistry GetCoinjoinCoinCandidates() => Coins;
 
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
-		var allCoins = ((CoinsRegistry)Coins).AsAllCoinsView();
+		var allCoins = Coins.AsAllCoinsView();
 		foreach (SmartCoin coin in allCoins)
 		{
 			walletTransactions.Add(coin.Transaction);
@@ -574,8 +574,8 @@ public class Wallet : BackgroundService, IWallet
 
 		KeyManager.ToFile();
 	}
-	
-    private void SetWalletHeights(Height filterHeight)
+
+	private void SetWalletHeights(Height filterHeight)
 	{
 		if (KeyManager.GetBestHeight() < filterHeight)
 		{
