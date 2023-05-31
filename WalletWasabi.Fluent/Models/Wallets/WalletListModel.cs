@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -21,7 +22,7 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
-					  .Transform(wallet => new WalletModel(wallet))
+					  .TransformWithInlineUpdate(wallet => new WalletModel(wallet), (model, wallet) => { })
 
 					  // Refresh the collection when logged in.
 					  .AutoRefresh(x => x.IsLoggedIn)
