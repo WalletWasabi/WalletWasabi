@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Fluent.Models.Wallets;
+namespace WalletWasabi.Fluent.Models.FileSystem;
 
 public interface IFileSystem
 {
