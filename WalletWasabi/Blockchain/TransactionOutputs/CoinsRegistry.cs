@@ -5,11 +5,17 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
+	public CoinsRegistry(CoinPrison coinPrison)
+	{
+		CoinPrison = coinPrison;
+	}
+
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> Coins { get; } = new();
 
@@ -29,6 +35,8 @@ public class CoinsRegistry : ICoinsView
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+
+	public CoinPrison CoinPrison { get; }
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -240,7 +248,7 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
-	public ICoinsView Available() => AsCoinsView().Available();
+	public ICoinsView Available() => new CoinsView(AsCoinsView().Where(coin => !CoinPrison.IsCoinBanned(coin, DateTimeOffset.Now)));
 
 	public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
 
