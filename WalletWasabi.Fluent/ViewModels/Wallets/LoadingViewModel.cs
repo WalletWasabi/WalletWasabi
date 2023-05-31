@@ -78,6 +78,13 @@ public partial class LoadingViewModel : RoutableViewModel
 			.DisposeWith(_disposable);
 	}
 
+	// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+	// Remove in next PR
+	public void Deactivate()
+	{
+		_disposable?.Dispose();
+	}
+
 	private uint GetCurrentProcessedCount()
 	{
 		uint downloadedFilters = 0;
