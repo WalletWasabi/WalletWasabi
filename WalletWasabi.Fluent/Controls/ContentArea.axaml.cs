@@ -127,11 +127,11 @@ public class ContentArea : ContentControl
 		set => SetValue(HeaderBackgroundProperty, value);
 	}
 
-	protected override bool RegisterContentPresenter(IContentPresenter presenter)
+	protected override bool RegisterContentPresenter(ContentPresenter presenter)
 	{
 		var result = base.RegisterContentPresenter(presenter);
 
-		if (presenter is not ContentPresenter contentPresenter)
+		if (presenter is not { } contentPresenter)
 		{
 			return result;
 		}

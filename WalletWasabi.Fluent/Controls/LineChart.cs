@@ -501,7 +501,7 @@ public partial class LineChart : Control
 		var p2 = new Point(
 			state.AreaMargin.Left + state.AreaWidth,
 			state.AreaMargin.Top + state.AreaHeight + offset.Y + deflate);
-		var opacityState = context.PushOpacity(opacity, new Rect(p1, p2));
+		var opacityState = context.PushOpacity(opacity);
 		context.DrawLine(pen, p1, p2);
 		var p3 = new Point(p2.X, p2.Y);
 		var p4 = new Point(p2.X - size, p2.Y - size);
@@ -586,7 +586,7 @@ public partial class LineChart : Control
 			             * Matrix.CreateRotation(angleRadians)
 			             * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushTransform(matrix);
-			var opacityState = context.PushOpacity(opacity, new Rect(new Point(), constraintMax));
+			var opacityState = context.PushOpacity(opacity);
 			formattedTextLabels[i].SetForegroundBrush(foreground);
 			context.DrawText(formattedTextLabels[i], origin + offsetCenter);
 			opacityState.Dispose();
@@ -634,7 +634,7 @@ public partial class LineChart : Control
 		             * Matrix.CreateTranslation(xPosition, yPosition);
 		var labelTransform = context.PushTransform(matrix);
 		var offsetCenter = new Point(0, 0);
-		var opacityState = context.PushOpacity(opacity, new Rect(new Point(), constraint));
+		var opacityState = context.PushOpacity(opacity);
 		formattedText.SetForegroundBrush(foreground);
 		context.DrawText(formattedText, origin + offsetCenter);
 		opacityState.Dispose();
@@ -666,7 +666,7 @@ public partial class LineChart : Control
 		var p2 = new Point(
 			state.AreaMargin.Left + offset.X + deflate,
 			state.AreaMargin.Top + state.AreaHeight + offset.Y);
-		var opacityState = context.PushOpacity(opacity, new Rect(p1, p2));
+		var opacityState = context.PushOpacity(opacity);
 		context.DrawLine(pen, p1, p2);
 		var p3 = new Point(p1.X, p1.Y);
 		var p4 = new Point(p1.X - size, p1.Y + size);
@@ -767,7 +767,7 @@ public partial class LineChart : Control
 			             * Matrix.CreateRotation(angleRadians)
 			             * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushTransform(matrix);
-			var opacityState = context.PushOpacity(opacity, new Rect(new Point(), constraintMax));
+			var opacityState = context.PushOpacity(opacity);
 			formattedTextLabels[i].SetForegroundBrush(foreground);
 			context.DrawText(formattedTextLabels[i], origin + offsetCenter);
 			opacityState.Dispose();
@@ -814,7 +814,7 @@ public partial class LineChart : Control
 		             * Matrix.CreateTranslation(xPosition, yPosition);
 		var labelTransform = context.PushTransform(matrix);
 		var offsetCenter = new Point(0, size.Height / 2 - formattedText.Height / 2);
-		var opacityState = context.PushOpacity(opacity, new Rect(new Point(), constraint));
+		var opacityState = context.PushOpacity(opacity);
 		formattedText.SetForegroundBrush(foreground);
 		context.DrawText(formattedText, origin + offsetCenter);
 		opacityState.Dispose();

@@ -35,6 +35,8 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<int> MaxDecimalsProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
 
+	private static readonly string[] invalidCharacters = new string[1] { "\u007f" };
+
 	public CurrencyEntryBox()
 	{
 		Text = string.Empty;
@@ -119,17 +121,15 @@ public partial class CurrencyEntryBox : TextBox
 
 		if (IsReplacingWithImplicitDecimal(input))
 		{
-			ReplaceCurrentTextWithLeadingZero(e);
-
-			base.OnTextInput(e);
+			var result = ReplaceCurrentTextWithLeadingZero(e);
+			base.OnTextInput(result);
 			return;
 		}
 
 		if (IsInsertingImplicitDecimal(input))
 		{
-			InsertLeadingZeroForDecimal(e);
-
-			base.OnTextInput(e);
+			var result = InsertLeadingZeroForDecimal(e);
+			base.OnTextInput(result);
 			return;
 		}
 
@@ -158,21 +158,21 @@ public partial class CurrencyEntryBox : TextBox
 		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
 	}
 
-	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
+	private TextInputEventArgs ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
 	{
 		var finalText = "0" + e.Text;
 		Text = "";
-		e.Text = finalText;
 		CaretIndex = finalText.Length;
 		ClearSelection();
+		return new TextInputEventArgs {Text = finalText};
 	}
 
-	private void InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	private TextInputEventArgs InsertLeadingZeroForDecimal(TextInputEventArgs e)
 	{
 		var prependText = "0" + e.Text;
 		Text = Text.Insert(0, prependText);
-		e.Text = "";
 		CaretIndex += prependText.Length;
+		return new TextInputEventArgs {Text = ""};
 	}
 
 	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
@@ -255,7 +255,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	private void DoPasteCheck(KeyEventArgs e)
 	{
-		var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
+		var keymap = Application.Current?.PlatformSettings?.HotkeyConfiguration;
 
 		bool Match(IEnumerable<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
 
@@ -301,6 +301,21 @@ public partial class CurrencyEntryBox : TextBox
 
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to
 	// be committed to the TextPresenter in this control.
+
+	private string? RemoveInvalidCharacters(string? text)
+	{
+		if (text is null)
+		{
+			return null;
+		}
+
+		for (var i = 0; i < invalidCharacters.Length; i++)
+		{
+			text = text.Replace(invalidCharacters[i], string.Empty);
+		}
+
+		return text;
+	}
 
 	// An event in Avalonia's TextBox with this function should be implemented there for brevity.
 	private string PreComposeText(string input)

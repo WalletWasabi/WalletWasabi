@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Styling;
 using System.Reactive.Disposables;
+using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -11,6 +12,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 {
 	private TextLayout? _trimmedLayout;
  	private bool _cutOff;
+    private Size _constraint;
 
 	public FadeOutTextBlock()
 	{
@@ -69,14 +71,15 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
+		var scale = LayoutHelper.GetLayoutScale(this);
+		var padding = LayoutHelper.RoundLayoutThickness(Padding, scale, scale);
+
+		_constraint = availableSize.Deflate(padding);
+
 		if (string.IsNullOrEmpty(Text))
 		{
 			return new Size();
 		}
-
-		var padding = Padding;
-
-		availableSize = availableSize.Deflate(padding);
 
 		if (_constraint != availableSize)
 		{
@@ -84,7 +87,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 			NewCreateTextLayout(_constraint, Text);
 		}
 
-		var size = _trimmedLayout?.Bounds.Size ?? default;
+		var size = _trimmedLayout is null ? default : new Size(_trimmedLayout.Width, _trimmedLayout.Height);
 
 		OpacityMask = _cutOff ? FadeoutOpacityMask : Brushes.White;
 

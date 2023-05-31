@@ -156,7 +156,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 		};
 
 		_previousAnimationOngoing = true;
-		await translationAnimation.RunAsync(prevIndicator, null, _currentAnimationCts.Token);
+		await translationAnimation.RunAsync(prevIndicator, _currentAnimationCts.Token);
 		_previousAnimationOngoing = false;
 
 		prevIndicator.Opacity = 0;

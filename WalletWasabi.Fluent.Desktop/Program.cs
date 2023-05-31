@@ -186,6 +186,8 @@ public static class WasabiAppExtensions
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
 					{
+						// TODO: AvaloniaLocator.CurrentMutable no longer available so can't get IPlatformGraphics
+						/*
 						var platformGraphics = AvaloniaLocator.CurrentMutable.GetService<IPlatformGraphics>();
 #pragma warning disable CS0618
 						var renderer = platformGraphics?.UsesSharedContext == true
@@ -193,6 +195,7 @@ public static class WasabiAppExtensions
 							: null;
 #pragma warning restore CS0618
 						Logger.LogInfo($"Renderer: {renderer ?? "Avalonia Software"}");
+						*/
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
