@@ -15,5 +15,6 @@ public class NullFileSystem : IFileSystem
 
 	public Task OpenBrowserAsync(string url)
 	{
+		return Task.CompletedTask;
 	}
 }
