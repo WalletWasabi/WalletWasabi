@@ -1,7 +1,9 @@
-﻿namespace WalletWasabi.Fluent.Models.ClientConfig;
+namespace WalletWasabi.Fluent.Models.ClientConfig;
 
 public class NullClientConfig : IClientConfig
 {
+	public string DataDir => "";
+
 	public string WalletsDir => "";
 
 	public string WalletsBackupDir => "";
