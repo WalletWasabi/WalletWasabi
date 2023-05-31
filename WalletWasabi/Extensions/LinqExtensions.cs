@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Transactions;
@@ -99,16 +100,43 @@ public static class LinqExtensions
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
-	=> ofLength switch
 	{
-		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
-		1 => items.Select(item => new[] { item }),
-		_ => items.SelectMany((item, i) => items
-				.Skip(i + 1)
-				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }.Concat(result)))
-	};
+		if (ofLength == 0)
+		{
+			yield return Enumerable.Empty<T>();
+		}
+		else
+		{
+			var templates = new Stack<(List<T> Result, ArraySegment<T> Items)>();
 
+			void PushTemplates(List<T> curTemplate, ArraySegment<T> arr)
+			{
+				for (var i = arr.Count - 1; i >= 0; i--)
+				{
+					var newTemplate = new List<T>(curTemplate) { arr[i] };
+					templates.Push((newTemplate, arr[(i + 1)..]));
+				}
+			}
+
+			var itemsArr = items.ToArray();
+			PushTemplates(new List<T>(), itemsArr);
+
+			while (templates.Count > 0)
+			{
+				var (template, rest) = templates.Pop();
+				if (template.Count == ofLength)
+				{
+					yield return template;
+				}
+				else 
+				{
+					PushTemplates(template, rest);
+				}
+			}
+		}
+	}
+
+	
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength,
