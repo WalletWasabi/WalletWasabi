@@ -37,6 +37,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 		Source = source;
 		Source.RowSelection!.SingleSelect = true;
+		Source.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
