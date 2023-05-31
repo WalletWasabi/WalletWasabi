@@ -18,7 +18,7 @@ public partial class OpenDataFolderViewModel : TriggerCommandViewModel
 {
 	private OpenDataFolderViewModel()
 	{
-		TargetCommand = ReactiveCommand.Create(() => UiContext.FileSystem.OpenFolderInFileExplorer(UiContext.Config.WalletsDir));
+		TargetCommand = ReactiveCommand.Create(() => UiContext.FileSystem.OpenFolderInFileExplorer(UiContext.Config.DataDir));
 	}
 
 	public override ICommand TargetCommand { get; }
