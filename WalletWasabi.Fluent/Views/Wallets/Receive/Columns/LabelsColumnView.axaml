@@ -21,7 +21,7 @@
             <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
           </Button>
         </StackPanel>
-        <c:LabelsItemsPresenter ItemsSource="{Binding Label}"
+        <c:LabelsItemsPresenter ItemsSource="{Binding Labels}"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center" />
       </DockPanel>
