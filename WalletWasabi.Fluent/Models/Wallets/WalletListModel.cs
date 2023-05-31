@@ -26,9 +26,6 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 
 					  // Refresh the collection when logged in.
 					  .AutoRefresh(x => x.IsLoggedIn)
-
-					  // Sort the list to put the most recently logged in wallet to the top.
-					  .Sort(SortExpressionComparer<IWalletModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.Name))
 					  .Transform(x => x as IWalletModel);
 
 		// Materialize the Wallet list to determine the default wallet.
