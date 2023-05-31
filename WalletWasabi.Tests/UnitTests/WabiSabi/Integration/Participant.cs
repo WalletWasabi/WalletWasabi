@@ -95,7 +95,7 @@ internal class Participant
 		   .ToList();
 
 		// Run the coinjoin client task.
-		var ret = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(smartCoins), cancellationToken).ConfigureAwait(false);
+		var ret = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(new CoinsView(smartCoins)), cancellationToken).ConfigureAwait(false);
 
 		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 
