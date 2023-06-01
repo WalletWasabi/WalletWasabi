@@ -21,7 +21,6 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private const int MinQueryLength = 3;
 
 	private readonly CompositeDisposable _disposables = new();
-	private ReadOnlyObservableCollection<ISearchItem> _results;
 
 	public TransactionsSearchSource(IObservable<string> queries)
 	{
@@ -35,8 +34,6 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		sourceCache
 			.RefillFrom(results)
 			.DisposeWith(_disposables);
-
-		sourceCache.Connect().Bind(out _results);
 
 		Changes = sourceCache.Connect();
 	}
