@@ -88,6 +88,7 @@ public class Program
 
 			MainViewModel.Instance.ClearStacks();
 			MainViewModel.Instance.StatusIcon.Dispose();
+			MainViewModel.Instance.SearchBar.Dispose();
 
 			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
 		});
