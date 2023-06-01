@@ -36,7 +36,7 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
-	public CoinPrison CoinPrison { get; }
+	private CoinPrison CoinPrison { get; }
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -206,6 +206,11 @@ public class CoinsRegistry : ICoinsView
 		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 	}
 
+	public bool IsCoinBanned(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
+	{
+		return CoinPrison.IsCoinBanned(coin, when, out bannedUntil);
+	}
+
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 	{
 		lock (Lock)
@@ -248,7 +253,7 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
-	public ICoinsView Available() => new CoinsView(AsCoinsView().Where(coin => !CoinPrison.IsCoinBanned(coin, DateTimeOffset.Now)));
+	public ICoinsView Available() => new CoinsView(AsCoinsView().Where(coin => !CoinPrison.IsCoinBanned(coin, DateTimeOffset.Now, out _)));
 
 	public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
 

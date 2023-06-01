@@ -1,12 +1,14 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 
@@ -24,11 +26,16 @@ public class CoinPrison
 	public List<PrisonedCoinRecord> BannedCoins { get; set; } = new();
 	public string FilePath { get; set; }
 
-	public bool IsCoinBanned(SmartCoin coin, DateTimeOffset when)
+	public bool IsCoinBanned(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
+		bannedUntil = null;
 		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
 		{
-			return when > record.BannedUntil;
+			if (when < record.BannedUntil)
+			{
+				bannedUntil = record.BannedUntil;
+				return true;
+			}
 		}
 		return false;
 	}
