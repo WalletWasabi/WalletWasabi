@@ -25,7 +25,7 @@ public class AmountDecomposer
 				Math.Max(
 					ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
 					ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
-		MinAllowedOutputAmount = Math.Max(3 * minEconomicalOutput, allowedOutputAmount.Min);
+		MinAllowedOutputAmount = Math.Max(minEconomicalOutput, allowedOutputAmount.Min);
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
 		Random = random ?? Random.Shared;
