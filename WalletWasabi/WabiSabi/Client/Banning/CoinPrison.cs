@@ -54,4 +54,29 @@ public class CoinPrison
 		string json = JsonConvert.SerializeObject(BannedCoins);
 		File.WriteAllText(FilePath, json);
 	}
+
+	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
+	{
+		string prisonFilePath = Path.Combine(containingDirectory, "PrisonedCoins.json");
+		List<PrisonedCoinRecord> prisonedCoinsRecord = new();
+		try
+		{
+			IoHelpers.EnsureFileExists(prisonFilePath);
+
+			string data = File.ReadAllText(prisonFilePath);
+			if (string.IsNullOrWhiteSpace(data))
+			{
+				Logger.LogDebug("Prisoned coins file is empty.");
+				return new(containingDirectory);
+			}
+			prisonedCoinsRecord = JsonConvert.DeserializeObject<List<PrisonedCoinRecord>>(data)
+				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Reseting file.", exc);
+			File.Delete(prisonFilePath);
+		}
+		return new(containingDirectory) { BannedCoins = prisonedCoinsRecord };
+	}
 }
