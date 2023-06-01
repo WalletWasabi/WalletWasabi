@@ -1173,10 +1173,10 @@ hr {
 /* Firefox fixes */
 @supports (-moz-appearance:none) {
     .navbar {
-        background: rgba(0, 16, 31, 0.8);
+        background: rgba(0, 0, 0, 0.5);
     }
     .blured-section {
         background: rgba(0, 0, 0, 0.9);
-        background: linear-gradient(180deg, rgba(0, 16, 31, 0.8) 0%, rgba(0, 16, 31, 1) 80%);
+        background: linear-gradient(180deg, rgba(70, 70, 70, 0) 0%, rgba(0, 0, 0, 1) 80%);
     }
 }
