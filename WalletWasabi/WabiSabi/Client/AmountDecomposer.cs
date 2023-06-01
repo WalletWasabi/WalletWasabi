@@ -44,7 +44,6 @@ public class AmountDecomposer
 
 	public IOrderedEnumerable<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
-	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private Random Random { get; }
 
 	private ScriptType GetNextScriptType()
