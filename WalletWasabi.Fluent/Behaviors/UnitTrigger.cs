@@ -9,6 +9,14 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class SignalTrigger : DisposingTrigger
 {
+	public static readonly StyledProperty<IObservable<Unit>> SignalProperty = AvaloniaProperty.Register<SignalTrigger, IObservable<Unit>>("Signal");
+
+	public IObservable<Unit> Signal
+	{
+		get => GetValue(SignalProperty);
+		set => SetValue(SignalProperty, value);
+	}
+
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		this.WhenAnyObservable(x => x.Signal)
@@ -17,13 +25,5 @@ public class SignalTrigger : DisposingTrigger
 			.DisposeWith(disposables);
 
 		this.WhenAnyValue(x => x.Signal).Subscribe(observable => { });
-	}
-
-	public static readonly StyledProperty<IObservable<Unit>> SignalProperty = AvaloniaProperty.Register<SignalTrigger, IObservable<Unit>>("Signal");
-
-	public IObservable<Unit> Signal
-	{
-		get => GetValue(SignalProperty);
-		set => SetValue(SignalProperty, value);
 	}
 }
