@@ -33,11 +33,5 @@ public interface IWalletModel
 
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
-	Task<WalletLoginResult> TryLoginAsync(string password);
-
-	void Login();
-
-	void Logout();
-
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 }
