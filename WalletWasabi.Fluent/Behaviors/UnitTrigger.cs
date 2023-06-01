@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class SignalTrigger : DisposingTrigger
 {
-	public static readonly StyledProperty<IObservable<Unit>> SignalProperty = AvaloniaProperty.Register<SignalTrigger, IObservable<Unit>>("Signal");
+	public static readonly StyledProperty<IObservable<Unit>> SignalProperty = AvaloniaProperty.Register<SignalTrigger, IObservable<Unit>>(nameof(Signal));
 
 	public IObservable<Unit> Signal
 	{
