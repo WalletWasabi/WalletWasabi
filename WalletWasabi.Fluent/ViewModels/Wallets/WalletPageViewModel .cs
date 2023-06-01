@@ -75,6 +75,12 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWallet()
 	{
+		// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+		// Remove in next PR
+		if (Loading is not null)
+		{
+			Loading.Deactivate();
+		}
 		WalletViewModel = WalletViewModel.Create(UiContext, this);
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
