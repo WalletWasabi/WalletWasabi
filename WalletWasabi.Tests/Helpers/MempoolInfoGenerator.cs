@@ -73,11 +73,11 @@ public class MempoolInfoGenerator
 		};
 	}
 
-	public static MemPoolInfo GenerateRealBitcoinKnotsMemPoolInfo()
+	public static MemPoolInfo GenerateRealBitcoinKnotsMemPoolInfo(string filePath)
 	{
 		var response = new RPCResponse(
-			(JObject)JsonConvert.DeserializeObject(File.ReadAllText("./UnitTests/Data/MempoolInfoWithHistogram2.json"))!);
-		static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
+			(JObject)JsonConvert.DeserializeObject(File.ReadAllText(filePath))!);
+		static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken? jt) =>
 			jt switch
 			{
 				JObject jo => jo.Properties()
@@ -101,15 +101,16 @@ public class MempoolInfoGenerator
 				_ => Enumerable.Empty<FeeRateGroup>()
 			};
 
+		var info = response.Result;
 		return new MemPoolInfo()
 		{
-			Size = int.Parse((string)response.Result["size"], CultureInfo.InvariantCulture),
-			Bytes = int.Parse((string)response.Result["bytes"], CultureInfo.InvariantCulture),
-			Usage = int.Parse((string)response.Result["usage"], CultureInfo.InvariantCulture),
-			MaxMemPool = double.Parse((string)response.Result["maxmempool"], CultureInfo.InvariantCulture),
-			MemPoolMinFee = double.Parse((string)response.Result["mempoolminfee"], CultureInfo.InvariantCulture),
-			MinRelayTxFee = double.Parse((string)response.Result["minrelaytxfee"], CultureInfo.InvariantCulture),
-			Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]).ToArray()
+			Size = info.Value<int>("size"),
+			Bytes = info.Value<int>("bytes"),
+			Usage = info.Value<int>("usage"),
+			MaxMemPool = info.Value<double>("maxmempool"),
+			MemPoolMinFee = info.Value<double>("mempoolminfee"),
+			MinRelayTxFee = info.Value<double>("minrelaytxfee"),
+			Histogram = ExtractFeeRateGroups(info["fee_histogram"] ).ToArray()
 		};
 	}
 

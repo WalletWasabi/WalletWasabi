@@ -306,11 +306,13 @@ public class AllFeeEstimateTests
 		Assert.Equal(20, minFee); // this is the calculated MempoolMinFee needed to be in the top 200MB
 	}
 
-	[Fact]
-	public async Task RealWorldMempoolRpcMinFeeAsync()
+	[Theory]
+	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram1.json")]
+	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram2.json")]
+	public async Task RealWorldMempoolRpcMinFeeAsync(string filePath)
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo();
+		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
 		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(FeeRateResponse(2, 0m)); // all estimations a 0 s/b so, only estimations based on mempool.
