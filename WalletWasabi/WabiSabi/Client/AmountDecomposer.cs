@@ -512,7 +512,7 @@ public class AmountDecomposer
 			}
 		}
 
-		if (remaining >= MinAllowedOutputAmount + ChangeFee)
+		if (remaining >= MinAllowedOutputAmount)
 		{
 			denoms.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
