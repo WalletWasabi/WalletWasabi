@@ -184,7 +184,7 @@ public static class RPCClientExtensions
 				(feeGroup, accumulatedSize) => (FeeRate: feeGroup.To, AccumulatedSize: accumulatedSize))
 			.FirstOrDefault(x => x.AccumulatedSize > 200 * Mb)
 			.FeeRate;
-		
+
 		var feeGroupsByTarget = splittedFeeGroups.Zip(
 			accumulatedSizes,
 			(feeGroup, accumulatedSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
@@ -204,9 +204,9 @@ public static class RPCClientExtensions
 		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
 			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
 
-		var top200MbFeeRate = top200Mb ?? FeeRate.Zero; 
+		var top200MbFeeRate = top200Mb ?? FeeRate.Zero;
 		var sanityFeeRate = FeeRate.Max(top200MbFeeRate, mempoolInfo.GetSanityFeeRate());
-		
+
 		return (sanityFeeRate, feeRateByConfirmationTarget);
 	}
 

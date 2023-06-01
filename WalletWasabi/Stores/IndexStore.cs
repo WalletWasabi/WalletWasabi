@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>

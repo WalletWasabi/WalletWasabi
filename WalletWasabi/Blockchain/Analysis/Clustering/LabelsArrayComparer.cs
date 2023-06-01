@@ -12,6 +12,6 @@ public class LabelsArrayComparer : IComparer<LabelsArray>
 	}
 
 	public static LabelsArrayComparer OrdinalIgnoreCase { get; } = new(StringComparer.OrdinalIgnoreCase);
-	
+
 	public int Compare(LabelsArray x, LabelsArray y) => x.CompareTo(y, _comparer);
 }
