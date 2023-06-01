@@ -21,9 +21,7 @@ public class SignalTrigger : DisposingTrigger
 	{
 		this.WhenAnyObservable(x => x.Signal)
 			.Do(_ => Interaction.ExecuteActions(this, Actions, null))
-			.Subscribe(unit => { })
+			.Subscribe()
 			.DisposeWith(disposables);
-
-		this.WhenAnyValue(x => x.Signal).Subscribe(observable => { });
 	}
 }
