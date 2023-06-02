@@ -221,8 +221,6 @@ public class TagsBox : TemplatedControl
 					.FromEventPattern(suggestionListBox, nameof(PointerReleased))
 					.Subscribe(_ => RequestAdd = true)
 					.DisposeWith(_compositeDisposable);
-
-				_internalTextBox.PropertyChanged += (sender, eventArgs) => { Console.WriteLine($"{eventArgs.Property} -> {eventArgs.NewValue}"); };
 			})
 			.DisposeWith(_compositeDisposable);
 
