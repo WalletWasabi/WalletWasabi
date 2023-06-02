@@ -43,15 +43,21 @@ public partial class SearchBarViewModel : ReactiveObject, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		var canActivate = results.ToObservableChangeSet().ToCollection().Select(s => s.OfType<IActionableItem>().Count() == 1);
-		var navigateToSearchCommand = ReactiveCommand.CreateFromTask(() => ((IActionableItem) results.First()).OnExecution(), canActivate);
-		ActivateFirstItemCommand = navigateToSearchCommand;
-		FirstItemActivated = navigateToSearchCommand;
+		var activateFirstItemCommand = ReactiveCommand.CreateFromTask(() => ((IActionableItem) results.First()).Activate(), HasSingleItem(searchSource));
 
-		navigateToSearchCommand
+		ActivateFirstItemCommand = activateFirstItemCommand;
+		
+		activateFirstItemCommand
 			.Do(_ => Reset())
 			.Subscribe()
 			.DisposeWith(_disposables);
+
+		FirstItemActivated = activateFirstItemCommand;
+	}
+
+	private static IObservable<bool> HasSingleItem(ISearchSource searchSource)
+	{
+		return searchSource.Changes.ToCollection().Select(s => s.OfType<IActionableItem>().Count() == 1);
 	}
 
 	public IObservable<Unit> FirstItemActivated { get; }
