@@ -80,7 +80,10 @@ public class NavBarItem : ListBoxItem
 
 	private void NavBarItem_PointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-		Command.Execute(default);
+		if (Command.CanExecute(default))
+		{
+			Command.Execute(default);
+		}
 	}
 
 	private void UpdateIndicatorOrientationPseudoClasses(Orientation orientation)
