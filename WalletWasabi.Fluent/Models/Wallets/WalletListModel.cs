@@ -1,11 +1,9 @@
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
