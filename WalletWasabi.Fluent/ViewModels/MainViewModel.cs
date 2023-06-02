@@ -178,7 +178,13 @@ public partial class MainViewModel : ViewModelBase
 
 	public void InvalidateIsCoinJoinActive()
 	{
-		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.IsCoinJoining);
+		// TODO: Workaround for deprecation of WalletManagerViewModel
+		// REMOVE after IWalletModel.IsCoinjoining is implemented
+		IsCoinJoinActive =
+			NavBar.Wallets
+				  .Select(x => x.WalletViewModel)
+				  .WhereNotNull()
+				  .Any(x => x.IsCoinJoining);
 	}
 
 	public void Initialize()
