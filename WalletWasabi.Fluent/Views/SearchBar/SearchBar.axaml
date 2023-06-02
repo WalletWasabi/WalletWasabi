@@ -134,9 +134,9 @@
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
-      <behaviors:SignalTrigger Signal="{Binding FirstItemActivated}">
+      <DataTriggerBehavior Binding="{Binding IsSearchListVisible}" Value="False">
         <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
-      </behaviors:SignalTrigger>
+      </DataTriggerBehavior>
       <behaviors:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
         <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
       </behaviors:KeyDownTrigger>
