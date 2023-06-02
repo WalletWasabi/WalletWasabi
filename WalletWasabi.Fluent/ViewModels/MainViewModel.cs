@@ -81,10 +81,9 @@ public partial class MainViewModel : ViewModelBase
 				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		CurrentWallet =
-			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
-				.WhereNotNull()
-				.OfType<WalletViewModel>();
+		CurrentWallet = this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+							.WhereNotNull()
+							.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
