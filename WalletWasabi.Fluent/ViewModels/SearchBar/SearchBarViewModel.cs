@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
@@ -31,20 +31,20 @@ public partial class SearchBarViewModel : ReactiveObject
 		HasResults = itemsObservable
 			.Count()
 			.Select(i => i > 0)
+			.Replay(1)
 			.ReplayLastActive();
 
-		ActivateFirstItemCommand = ReactiveCommand.CreateFromTask(
-			async () =>
+		ActivateFirstItemCommand = ReactiveCommand.Create(() =>
 		{
 			if (_groups is [{ Items: [IActionableItem item] }])
 			{
-				await item.Activate();
+				item.Activate();
 				Reset();
 			}
 		});
 	}
 
-	public ReactiveCommand<Unit, Unit> ActivateFirstItemCommand { get; set; }
+	public ICommand ActivateFirstItemCommand { get; set; }
 
 	public IObservable<bool> HasResults { get; }
 
