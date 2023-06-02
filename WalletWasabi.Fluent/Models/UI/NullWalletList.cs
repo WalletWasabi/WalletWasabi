@@ -7,9 +7,8 @@ public class NullWalletList : IWalletListModel
 {
 	public NullWalletList()
 	{
-		Wallets =
-			Array.Empty<IWalletModel>()
-				 .AsObservableChangeSet(x => x.Name);
+		Wallets = Array.Empty<IWalletModel>()
+					   .AsObservableChangeSet(x => x.Name);
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
