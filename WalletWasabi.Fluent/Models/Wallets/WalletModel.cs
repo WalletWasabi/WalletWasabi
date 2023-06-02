@@ -24,14 +24,14 @@ internal class WalletModel : IWalletModel
 		_wallet = wallet;
 		_historyBuilder = new TransactionHistoryBuilder(_wallet);
 
-		RelevantTransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
-					  .ObserveOn(RxApp.MainThreadScheduler);
+		RelevantTransactionProcessed = Observable
+			.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		Transactions =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.TransactionId);
+		Transactions = Observable
+			.Defer(() => BuildSummary().ToObservable())
+			.Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
+			.ToObservableChangeSet(x => x.TransactionId);
 
 		Addresses = Observable
 			.Defer(() => GetAddresses().ToObservable())
@@ -66,8 +66,8 @@ internal class WalletModel : IWalletModel
 	private IEnumerable<IAddress> GetAddresses()
 	{
 		return _wallet.KeyManager
-					  .GetKeys()
-					  .Reverse()
-					  .Select(x => new Address(_wallet.KeyManager, x));
+			.GetKeys()
+			.Reverse()
+			.Select(x => new Address(_wallet.KeyManager, x));
 	}
 }
