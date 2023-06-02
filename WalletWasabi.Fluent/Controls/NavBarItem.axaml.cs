@@ -64,26 +64,20 @@ public class NavBarItem : ListBoxItem
 		{
 			UpdatePseudoClass(":selected", change.NewValue.GetValueOrDefault<bool>());
 		}
+	}
 
-		if (change.Property == CommandProperty)
+	protected override void OnPointerPressed(PointerPressedEventArgs e)
+	{
+		base.OnPointerPressed(e);
+
+		if (Command != null && Command.CanExecute(default))
 		{
-			if (change.NewValue.GetValueOrDefault<ICommand>() is { } command)
-			{
-				PointerPressed += NavBarItem_PointerPressed;
-			}
-			else
-			{
-				PointerPressed -= NavBarItem_PointerPressed;
-			}
+			Command.Execute(default);
 		}
 	}
 
 	private void NavBarItem_PointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-		if (Command.CanExecute(default))
-		{
-			Command.Execute(default);
-		}
 	}
 
 	private void UpdateIndicatorOrientationPseudoClasses(Orientation orientation)
