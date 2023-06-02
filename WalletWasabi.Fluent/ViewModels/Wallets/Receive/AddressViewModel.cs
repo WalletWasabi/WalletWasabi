@@ -1,42 +1,37 @@
+using System.Collections.Generic;
 using System.Reactive;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using AddressFunc = System.Func<WalletWasabi.Fluent.Models.Wallets.IAddress, System.Threading.Tasks.Task>;
+using AddressAction = System.Action<WalletWasabi.Fluent.Models.Wallets.IAddress>;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public partial class AddressViewModel : ViewModelBase
 {
-	[AutoNotify] private string _address;
+	[AutoNotify] private string _addressText;
+	[AutoNotify] private IEnumerable<string> _labels = new LabelsArray();
 
-	private AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
+	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{
-		_address = model.GetP2wpkhAddress(network).ToString();
+		UiContext = context;
+		Address = address;
+		_addressText = address.Text;
 
-		Labels = model.Labels;
+		this.WhenAnyValue(x => x.Address.Labels).BindTo(this, viewModel => viewModel.Labels);
 
-		CopyAddressCommand =
-			ReactiveCommand.CreateFromTask(async () =>
-			{
-				if (Application.Current is { Clipboard: { } clipboard })
-				{
-					await clipboard.SetTextAsync(Address);
-				}
-			});
-
-		HideAddressCommand =
-			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
-
-		EditLabelCommand =
-			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
-
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(UiContext, new WalletModel(wallet), new Address(wallet.KeyManager, model), Services.UiConfig.Autocopy)));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(AddressText));
+		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddressAsync);
+		EditLabelCommand = ReactiveCommand.CreateFromTask(() => onEdit(address));
+		NavigateCommand = ReactiveCommand.Create(() => onShow(address));
 	}
+
+	private IAddress Address { get; }
 
 	public ICommand CopyAddressCommand { get; }
 
@@ -46,5 +41,22 @@ public partial class AddressViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
-	public LabelsArray Labels { get; }
+	private async Task PromptHideAddressAsync()
+	{
+		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(Address.Labels));
+
+		if (result.Result == false)
+		{
+			return;
+		}
+
+		Address.Hide();
+
+		var isAddressCopied = await UiContext.Clipboard.GetTextAsync() == Address.Text;
+
+		if (isAddressCopied)
+		{
+			await UiContext.Clipboard.ClearAsync();
+		}
+	}
 }

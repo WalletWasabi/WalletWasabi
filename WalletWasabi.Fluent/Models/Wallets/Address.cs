@@ -65,13 +65,17 @@ public class Address : ReactiveObject, IAddress
 		}
 		catch (FormatException ex) when (ex.Message.Contains("network") && Network == Network.TestNet)
 		{
-			// This exception happens everytime on TestNet because of Wasabi Keypath handling.
+			// This exception happens every time on TestNet because of Wasabi Keypath handling.
 			// The user doesn't need to know about it.
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			var exMessage = cts.IsCancellationRequested ? "User response didn't arrive in time." : ex.ToUserFriendlyString();
+			if (cts.IsCancellationRequested)
+			{
+				throw new ApplicationException("User response didn't arrive in time.");
+			}
+
 			throw;
 		}
 	}
