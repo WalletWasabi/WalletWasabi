@@ -21,7 +21,11 @@ public class AmountDecomposer
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
-		MinAllowedOutputAmount = allowedOutputAmount.Min;
+		var minEconomicalOutput = FeeRate.GetFee(
+				Math.Max(
+					ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
+					ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
+		MinAllowedOutputAmount = Math.Max(minEconomicalOutput, allowedOutputAmount.Min);
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
 		Random = random ?? Random.Shared;
@@ -314,7 +318,7 @@ public class AmountDecomposer
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
-				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
+				tolerance: MinAllowedOutputAmount + ChangeFee,
 				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
 				stdDenoms: stdDenoms))
 			{
@@ -360,8 +364,11 @@ public class AmountDecomposer
 				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement()
 					?? denoms.FirstOrDefault(x => x.EffectiveCost <= remaining);
 
-				// We can only let this go forward if at least 2 outputs can be added (denom + potential change)
-				if (denom is null || remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).
+				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
+				if (denom is null ||
+					(remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					break;
 				}
@@ -415,8 +422,10 @@ public class AmountDecomposer
 			bool end = false;
 			while (denom.EffectiveCost <= remaining)
 			{
-				// We can only let this go forward if at least 2 output can be added (denom + potential change)
-				if (remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				// Continue only if there is enough remaining amount and size to create one output + change (if change will potentially be created).
+				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
+				if ((remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					end = true;
 					break;
