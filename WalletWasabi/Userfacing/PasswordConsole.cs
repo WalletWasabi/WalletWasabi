@@ -40,7 +40,7 @@ public static class PasswordConsole
 		}
 		catch (InvalidOperationException)
 		{
-			return Console.ReadLine();
+			return Console.ReadLine() ?? "";
 		}
 	}
 }
