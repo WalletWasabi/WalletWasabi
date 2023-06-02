@@ -212,7 +212,7 @@ public class AmountDecomposer
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
-		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
@@ -315,7 +315,7 @@ public class AmountDecomposer
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
 				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
-				maxCount: maxNumberOfOutputsAllowed,
+				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
 				stdDenoms: stdDenoms))
 			{
 				var currentSet = Decomposer.ToRealValuesArray(
