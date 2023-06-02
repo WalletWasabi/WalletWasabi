@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
@@ -194,13 +196,17 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		yield return new WalletBalanceTileViewModel(this);
+		var rateProvider = new ObservableExchangeRateProvider(Wallet.Synchronizer);
+		var walletModel = new WalletModel(Wallet);
+		var balances = new WalletBalancesModel(walletModel, rateProvider);
+
+		yield return new WalletBalanceTileViewModel(balances);
 
 		if (!IsWatchOnly)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, this);
 		}
 
-		yield return new BtcPriceTileViewModel(Wallet);
+		yield return new BtcPriceTileViewModel(balances);
 	}
 }
