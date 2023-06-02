@@ -7,8 +7,10 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
+using System.Reactive.Subjects;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
+using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -21,17 +23,14 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
 			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded)).Select(_ => Unit.Default)
-				      .StartWith(Unit.Default)
+					  .StartWith(Unit.Default)
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
-					  .Transform(wallet => new WalletModel(wallet))
+					  .TransformWithInlineUpdate(wallet => new WalletModel(wallet), (model, wallet) => { })
 
 					  // Refresh the collection when logged in.
 					  .AutoRefresh(x => x.IsLoggedIn)
-
-					  // Sort the list to put the most recently logged in wallet to the top.
-					  .Sort(SortExpressionComparer<IWalletModel>.Descending(i => i.Auth.IsLoggedIn).ThenByAscending(x => x.Name))
 					  .Transform(x => x as IWalletModel);
 
 		// Materialize the Wallet list to determine the default wallet.
