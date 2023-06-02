@@ -313,6 +313,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
+					CoinjoinError.NotEnoughCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					_ => GeneralErrorMessage

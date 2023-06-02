@@ -21,11 +21,7 @@ public class AmountDecomposer
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
-		var minEconomicalOutput = FeeRate.GetFee(
-				Math.Max(
-					ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
-					ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
-		MinAllowedOutputAmount = Math.Max(minEconomicalOutput, allowedOutputAmount.Min);
+		MinAllowedOutputAmount = CalculateMinAllowedOutputAmount(allowedOutputAmount.Min, FeeRate);
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
 		Random = random ?? Random.Shared;
@@ -34,6 +30,15 @@ public class AmountDecomposer
 		Denominations = CreateDenominations();
 
 		ChangeScriptType = GetNextScriptType();
+	}
+
+	public static Money CalculateMinAllowedOutputAmount(Money min, FeeRate feeRate)
+	{
+		var minEconomicalOutput = feeRate.GetFee(
+						Math.Max(
+							ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
+							ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
+		return Math.Max(minEconomicalOutput, min);
 	}
 
 	public FeeRate FeeRate { get; }
@@ -49,22 +54,32 @@ public class AmountDecomposer
 
 	private ScriptType GetNextScriptType()
 	{
-		if (!IsTaprootAllowed)
+		return GetNextScriptType(IsTaprootAllowed, Random);
+	}
+
+	private static ScriptType GetNextScriptType(bool isTaprootAllowed, Random random)
+	{
+		if (!isTaprootAllowed)
 		{
 			return ScriptType.P2WPKH;
 		}
 
-		return Random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
+		return random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
 	}
 
 	private IOrderedEnumerable<Output> CreateDenominations()
+	{
+		return CreateDenominations(FeeRate, MinAllowedOutputAmount, MaxAllowedOutputAmount, IsTaprootAllowed, Random);
+	}
+
+	public static IOrderedEnumerable<Output> CreateDenominations(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, bool isTaprootAllowed, Random random)
 	{
 		var denominations = new HashSet<Output>();
 
 		Output CreateDenom(double sats)
 		{
-			var scriptType = GetNextScriptType();
-			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
+			var scriptType = GetNextScriptType(isTaprootAllowed, random);
+			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, feeRate);
 		}
 
 		// Powers of 2
@@ -72,12 +87,12 @@ public class AmountDecomposer
 		{
 			var denom = CreateDenom(Math.Pow(2, i));
 
-			if (denom.Amount < MinAllowedOutputAmount)
+			if (denom.Amount < minAllowedOutputAmount)
 			{
 				continue;
 			}
 
-			if (denom.Amount > MaxAllowedOutputAmount)
+			if (denom.Amount > maxAllowedOutputAmount)
 			{
 				break;
 			}
@@ -90,12 +105,12 @@ public class AmountDecomposer
 		{
 			var denom = CreateDenom(Math.Pow(3, i));
 
-			if (denom.Amount < MinAllowedOutputAmount)
+			if (denom.Amount < minAllowedOutputAmount)
 			{
 				continue;
 			}
 
-			if (denom.Amount > MaxAllowedOutputAmount)
+			if (denom.Amount > maxAllowedOutputAmount)
 			{
 				break;
 			}
@@ -108,12 +123,12 @@ public class AmountDecomposer
 		{
 			var denom = CreateDenom(Math.Pow(3, i) * 2);
 
-			if (denom.Amount < MinAllowedOutputAmount)
+			if (denom.Amount < minAllowedOutputAmount)
 			{
 				continue;
 			}
 
-			if (denom.Amount > MaxAllowedOutputAmount)
+			if (denom.Amount > maxAllowedOutputAmount)
 			{
 				break;
 			}
@@ -126,12 +141,12 @@ public class AmountDecomposer
 		{
 			var denom = CreateDenom(Math.Pow(10, i));
 
-			if (denom.Amount < MinAllowedOutputAmount)
+			if (denom.Amount < minAllowedOutputAmount)
 			{
 				continue;
 			}
 
-			if (denom.Amount > MaxAllowedOutputAmount)
+			if (denom.Amount > maxAllowedOutputAmount)
 			{
 				break;
 			}
@@ -144,12 +159,12 @@ public class AmountDecomposer
 		{
 			var denom = CreateDenom(Math.Pow(10, i) * 2);
 
-			if (denom.Amount < MinAllowedOutputAmount)
+			if (denom.Amount < minAllowedOutputAmount)
 			{
 				continue;
 			}
 
-			if (denom.Amount > MaxAllowedOutputAmount)
+			if (denom.Amount > maxAllowedOutputAmount)
 			{
 				break;
 			}
@@ -162,12 +177,12 @@ public class AmountDecomposer
 		{
 			var denom = CreateDenom(Math.Pow(10, i) * 5);
 
-			if (denom.Amount < MinAllowedOutputAmount)
+			if (denom.Amount < minAllowedOutputAmount)
 			{
 				continue;
 			}
 
-			if (denom.Amount > MaxAllowedOutputAmount)
+			if (denom.Amount > maxAllowedOutputAmount)
 			{
 				break;
 			}
@@ -217,6 +232,12 @@ public class AmountDecomposer
 		var myInputSum = myInputs.Sum();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
+
+		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
+		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
+		{
+			throw new InvalidOperationException("Not enough coins registered to participate in the coinjoin.");
+		}
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
@@ -394,13 +415,6 @@ public class AmountDecomposer
 			{
 				// This goes to miners.
 				loss = remaining;
-			}
-
-			// This can happen when smallest denom is larger than the input sum.
-			if (currentSet.Count == 0)
-			{
-				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
-				currentSet.Add(change);
 			}
 
 			setCandidates.TryAdd(
