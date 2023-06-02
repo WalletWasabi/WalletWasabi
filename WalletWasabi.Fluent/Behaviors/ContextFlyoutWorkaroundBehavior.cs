@@ -62,7 +62,9 @@ public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 				return;
 			}
 
-			if (target.FindAncestorOfType<Window>() == AssociatedObject)
+			if (target.FindAncestorOfType<Window>() == AssociatedObject && (
+					e.Property == Control.ContextFlyoutProperty ||
+					e.Property == Button.FlyoutProperty))
 			{
 				_openFlyouts.Add(flyout);
 			}
