@@ -253,7 +253,9 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
-	public ICoinsView Available() => new CoinsView(AsCoinsView().Where(coin => !CoinPrison.IsCoinBanned(coin, DateTimeOffset.Now, out _)));
+	public ICoinsView Available() => AsCoinsView().Available();
+
+	public ICoinsView AvailableForCoinJoin() => new CoinsView(AsCoinsView().Where(coin => !CoinPrison.IsCoinBanned(coin, DateTimeOffset.Now, out _)));
 
 	public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
 

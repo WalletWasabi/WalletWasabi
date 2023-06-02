@@ -568,7 +568,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coinsRegistry = await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false);
 		var coinCandidates = coinsRegistry
-			.Available()
+			.AvailableForCoinJoin()
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
