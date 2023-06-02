@@ -18,7 +18,7 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
 			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded)).Select(_ => Unit.Default)
-				      .StartWith(Unit.Default)
+					  .StartWith(Unit.Default)
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
