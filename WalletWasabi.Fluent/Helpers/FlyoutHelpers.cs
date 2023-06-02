@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -9,16 +10,32 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class FlyoutHelpers
 {
-	public static void ShowFlyout(Control target, FlyoutBase flyout, IObservable<bool> condition, CompositeDisposable disposable)
+	public static void ShowFlyout(Control target, FlyoutBase flyout, IObservable<bool> condition, CompositeDisposable disposable, bool windowActivityRequired = true)
 	{
 		var window = VisualLocator
 			.Track(target, ancestorLevel: 0, ancestorType: typeof(Window))
 			.Cast<Window>();
 
 		window
-			.Select(window => window?.GetObservable(Window.IsActiveProperty) ?? Observable.Return(false))
+			.Select(window => window is { }
+				? Observable.FromEventPattern<PixelPointEventArgs>(
+					handler => window.PositionChanged += handler,
+					handler => window.PositionChanged -= handler)
+				: Observable.Never<EventPattern<PixelPointEventArgs>>())
 			.Switch()
-			.CombineLatest(condition, (isActive, condition) => isActive && condition)
+			.Subscribe(e => (e.Sender as Window)?.Focus())
+			.DisposeWith(disposable);
+
+		if (windowActivityRequired)
+		{
+			condition = condition.CombineLatest(
+				window
+					.Select(window => window?.GetObservable(Window.IsActiveProperty) ?? Observable.Return(false))
+					.Switch(),
+				static (condition, isActive) => condition && isActive);
+		}
+
+		condition
 			.Subscribe(isOpen =>
 			{
 				if (isOpen)
@@ -30,15 +47,6 @@ public static class FlyoutHelpers
 					flyout.Hide();
 				}
 			})
-			.DisposeWith(disposable);
-
-		window
-			.Select(window =>
-				Observable.FromEventPattern<PixelPointEventArgs>(
-					handler => window.PositionChanged += handler,
-					handler => window.PositionChanged -= handler))
-			.Switch()
-			.Subscribe(e => (e.Sender as Window)?.Focus())
 			.DisposeWith(disposable);
 	}
 }

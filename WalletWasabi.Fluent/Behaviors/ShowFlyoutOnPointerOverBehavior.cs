@@ -20,7 +20,7 @@ public class ShowFlyoutOnPointerOverBehavior : AttachedToVisualTreeBehavior<Cont
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(_ => target.IsPointerOver);
 
-			FlyoutHelpers.ShowFlyout(target, flyout, showFlyout, disposable);
+			FlyoutHelpers.ShowFlyout(target, flyout, showFlyout, disposable, windowActivityRequired: false);
 		}
 	}
 }
