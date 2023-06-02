@@ -290,7 +290,7 @@ public class AmountDecomposer
 		{
 			throw new InvalidOperationException("The decomposer is creating money. Aborting.");
 		}
-		if (totalOutputAmount + MinAllowedOutputAmount < myInputSum)
+		if (totalOutputAmount + MinAllowedOutputAmount + ChangeFee < myInputSum)
 		{
 			throw new InvalidOperationException("The decomposer is losing money. Aborting.");
 		}
@@ -318,7 +318,7 @@ public class AmountDecomposer
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
-				tolerance: MinAllowedOutputAmount, // Assume script type with higher cost to be more permissive.
+				tolerance: MinAllowedOutputAmount + ChangeFee,
 				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
 				stdDenoms: stdDenoms))
 			{
@@ -385,7 +385,7 @@ public class AmountDecomposer
 			}
 
 			var loss = Money.Zero;
-			if (remaining >= MinAllowedOutputAmount)
+			if (remaining >= MinAllowedOutputAmount + ChangeFee)
 			{
 				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
 				currentSet.Add(change);
@@ -450,7 +450,7 @@ public class AmountDecomposer
 		}
 
 		var loss = Money.Zero;
-		if (remaining >= MinAllowedOutputAmount)
+		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
 			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
@@ -505,7 +505,7 @@ public class AmountDecomposer
 
 		foreach (var denom in denominations)
 		{
-			if (denom.Amount < MinAllowedOutputAmount || remaining < MinAllowedOutputAmount)
+			if (denom.Amount < MinAllowedOutputAmount || remaining < MinAllowedOutputAmount + ChangeFee)
 			{
 				break;
 			}
@@ -517,7 +517,7 @@ public class AmountDecomposer
 			}
 		}
 
-		if (remaining >= MinAllowedOutputAmount)
+		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
 			denoms.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
