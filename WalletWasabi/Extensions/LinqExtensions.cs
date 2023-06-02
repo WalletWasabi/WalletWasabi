@@ -94,48 +94,39 @@ public static class LinqExtensions
 		=> source?.Any() is true;
 
 	/// <summary>
-	/// Recursive algorithm that generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
+	/// Generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
 	/// </summary>
 	/// <remarks>If you have numbers <c>1, 2, 3, 4</c>, then the output will contain <c>(2, 3, 4)</c> but not, for example, <c>(4, 3, 2)</c>.</remarks>
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
 	{
-		if (ofLength == 0)
-		{
-			yield return Enumerable.Empty<T>();
-		}
-		else
-		{
-			var templates = new Stack<(List<T> Result, ArraySegment<T> Items)>();
+		var itemsArr = items.ToArray();
+		var templates = new Stack<(List<T> Result, ArraySegment<T> Items)>();
+		templates.Push((new List<T>(), itemsArr));
 
-			void PushTemplates(List<T> curTemplate, ArraySegment<T> arr)
+		void PushTemplates(List<T> curTemplate, ArraySegment<T> arr)
+		{
+			for (var i = arr.Count - 1; i >= 0; i--)
 			{
-				for (var i = arr.Count - 1; i >= 0; i--)
-				{
-					var newTemplate = new List<T>(curTemplate) { arr[i] };
-					templates.Push((newTemplate, arr[(i + 1)..]));
-				}
+				var newTemplate = new List<T>(curTemplate) { arr[i] };
+				templates.Push((newTemplate, arr[(i + 1)..]));
 			}
+		}
 
-			var itemsArr = items.ToArray();
-			PushTemplates(new List<T>(), itemsArr);
-
-			while (templates.Count > 0)
+		while (templates.Count > 0)
+		{
+			var (template, rest) = templates.Pop();
+			if (template.Count == ofLength)
 			{
-				var (template, rest) = templates.Pop();
-				if (template.Count == ofLength)
-				{
-					yield return template;
-				}
-				else 
-				{
-					PushTemplates(template, rest);
-				}
+				yield return template;
+			}
+			else if (template.Count + rest.Count >= ofLength)
+			{
+				PushTemplates(template, rest);
 			}
 		}
 	}
-
 	
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,

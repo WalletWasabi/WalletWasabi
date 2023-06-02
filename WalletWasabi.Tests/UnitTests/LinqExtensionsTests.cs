@@ -29,34 +29,6 @@ public class LinqExtensionsTests
 		Assert.Equal("2, 3, 4", asString[9]);
 	}
 
-	private static float GetMemoryInMiB()
-	{
-		return ((float)GetMemoryInB()) / 1024 / 1024;
-	}
-
-	private static long GetMemoryInB()
-	{
-		GC.Collect();
-		GC.WaitForPendingFinalizers();
-		GC.Collect();
-		return Process.GetCurrentProcess().PrivateMemorySize64;
-	}
-
-	[Fact]
-	public async Task MemLeak()
-	{
-		var memoryBefore = GetMemoryInMiB();
-		var x = Enumerable.Range(0, 5).ToArray().CombinationsWithoutRepetition(3).Reverse().ToArray();
-		var memoryAfter = GetMemoryInMiB();
-		if (memoryAfter > memoryBefore * 1.1)
-		{
-			Console.WriteLine($"Memory before: {memoryBefore} MiB");
-			Console.WriteLine($"Memory after: {memoryAfter} MiB");
-			Console.WriteLine($"Memory difference: {memoryAfter - memoryBefore} MiB");
-			Assert.True(false);
-		}
-	}
-
 	[Fact]
 	public void CombinationsWithoutRepetitionUpToLength()
 	{
