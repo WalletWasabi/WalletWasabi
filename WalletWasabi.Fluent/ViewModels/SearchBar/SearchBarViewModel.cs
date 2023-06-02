@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
@@ -35,8 +36,7 @@ public partial class SearchBarViewModel : ReactiveObject, IDisposable
 		HasResults = searchSource.Changes
 			.Count()
 			.Select(i => i > 0)
-			.Replay(1)
-			.RefCount();
+			.ReplayLastActive();
 
 		searchSource.Changes
 			.Bind(out var results)
