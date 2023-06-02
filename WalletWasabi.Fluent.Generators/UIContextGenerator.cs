@@ -31,8 +31,8 @@ public class UiContextGenerator : ISourceGenerator
 		}
 
 		var constructors = ProcessViewModels(context, receiver.ClassDeclarations)
-						.OrderBy(x => x.Identifier.ValueText)
-						.ToArray();
+			.OrderBy(x => x.Identifier.ValueText)
+			.ToArray();
 
 		GenerateFluentNavigation(context, constructors);
 	}
@@ -70,10 +70,10 @@ public class UiContextGenerator : ISourceGenerator
 		var className = classSymbol.Name;
 		var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
-		var constructors =
-			classDeclaration.ChildNodes()
-							.OfType<ConstructorDeclarationSyntax>()
-							.ToArray();
+		var constructors = classDeclaration
+			.ChildNodes()
+			.OfType<ConstructorDeclarationSyntax>()
+			.ToArray();
 
 		foreach (var constructor in constructors)
 		{
@@ -101,8 +101,7 @@ public class UiContextGenerator : ISourceGenerator
 
 				var hasConstructorArgs = constructorArgs.Any();
 				var constructorArgsString = string.Join(",", constructorArgs);
-				var constructorString =
-					hasConstructorArgs
+				var constructorString = hasConstructorArgs
 					? $": this({constructorArgsString})"
 					: $": this()";
 
@@ -117,8 +116,7 @@ public class UiContextGenerator : ISourceGenerator
 					.Parameter(SyntaxFactory.Identifier("uiContext").WithLeadingTrivia(SyntaxFactory.Space))
 					.WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
-				var parametersString =
-					constructor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
+				var parametersString = constructor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
 
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
 
@@ -143,11 +141,11 @@ public class UiContextGenerator : ISourceGenerator
 
 				var tree = CSharpSyntaxTree.ParseText(sourceText, context.Compilation.SyntaxTrees.First().Options as CSharpParseOptions);
 
-				var newConstructor =
-					tree.GetRoot()
-						.DescendantNodes()
-						.OfType<ConstructorDeclarationSyntax>()
-						.First();
+				var newConstructor = tree
+					.GetRoot()
+					.DescendantNodes()
+					.OfType<ConstructorDeclarationSyntax>()
+					.First();
 
 				yield return newConstructor;
 			}
@@ -160,7 +158,8 @@ public class UiContextGenerator : ISourceGenerator
 		var namespaces = new List<string>();
 		var methods = new List<string>();
 
-		var newSyntaxTrees = constructors.Select(x => x.SyntaxTree)
+		var newSyntaxTrees = constructors
+			.Select(x => x.SyntaxTree)
 			.Where(x => !compilation.ContainsSyntaxTree(x))
 			.ToArray();
 
@@ -180,8 +179,7 @@ public class UiContextGenerator : ISourceGenerator
 				continue;
 			}
 
-			var viewModelTypeInfo =
-				semanticModel.GetDeclaredSymbol(cls);
+			var viewModelTypeInfo = semanticModel.GetDeclaredSymbol(cls);
 
 			if (viewModelTypeInfo == null)
 			{
@@ -197,10 +195,7 @@ public class UiContextGenerator : ISourceGenerator
 				.SelectMany(t => t.Type.GetNamespaces())
 				.ToArray();
 
-			var uiContextParam =
-				constructor.ParameterList
-					.Parameters
-					.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
+			var uiContextParam = constructor.ParameterList.Parameters.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
 
 			var methodParams = constructor.ParameterList;
 
@@ -209,7 +204,8 @@ public class UiContextGenerator : ISourceGenerator
 				methodParams = SyntaxFactory.ParameterList(methodParams.Parameters.Remove(uiContextParam));
 			}
 
-			var navigationMetadata = viewModelTypeInfo.GetAttributes()
+			var navigationMetadata = viewModelTypeInfo
+				.GetAttributes()
 				.FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
 
 			var defaultNavigationTarget = "DialogScreen";
@@ -221,7 +217,8 @@ public class UiContextGenerator : ISourceGenerator
 
 				if (navigationArgument.Value.Type is INamedTypeSymbol navigationTargetEnum)
 				{
-					var enumValue = navigationTargetEnum.GetMembers()
+					var enumValue = navigationTargetEnum
+						.GetMembers()
 						.OfType<IFieldSymbol>()
 						.FirstOrDefault(x => x.ConstantValue?.Equals(navigationArgument.Value.Value) == true);
 
@@ -266,7 +263,8 @@ public class UiContextGenerator : ISourceGenerator
 			methods.Add(methodString);
 		}
 
-		var usings = namespaces.Distinct()
+		var usings = namespaces
+			.Distinct()
 			.OrderBy(x => x)
 			.Select(n => $"using {n};")
 			.ToArray();

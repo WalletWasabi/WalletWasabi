@@ -11,7 +11,8 @@ public static class AnalyzerExtensions
 {
 	public static List<IdentifierNameSyntax> GetUiContextReferences(this SyntaxNode node, SemanticModel semanticModel)
 	{
-		return node.DescendantNodes()
+		return node
+			.DescendantNodes()
 			.OfType<IdentifierNameSyntax>()
 			.Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
 			.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
@@ -58,8 +59,7 @@ public static class AnalyzerExtensions
 
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
-		var typeInfo =
-			model.GetDeclaredSymbol(cls)
+		var typeInfo = model.GetDeclaredSymbol(cls)
 			?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
@@ -88,9 +88,9 @@ public static class AnalyzerExtensions
 	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
 	{
 		return GetNamespaceSymbols(typeSymbol)
-				.Where(x => !x.IsGlobalNamespace)
-				.Select(x => x.ToDisplayString())
-				.ToList();
+			.Where(x => !x.IsGlobalNamespace)
+			.Select(x => x.ToDisplayString())
+			.ToList();
 	}
 
 	private static IEnumerable<INamespaceSymbol> GetNamespaceSymbols(this ITypeSymbol? typeSymbol)
