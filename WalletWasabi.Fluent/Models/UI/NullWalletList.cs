@@ -1,9 +1,9 @@
-﻿using DynamicData;
+using DynamicData;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-internal class NullWalletList : IWalletListModel
+public class NullWalletList : IWalletListModel
 {
 	public NullWalletList()
 	{

@@ -1,6 +1,6 @@
 # The agreed procedure to deploy something to production
 
-1. Create a summary of what is going to be deployed. A link to the PRs labeled as `Affiliate` could be enough..
+1. Create a summary of what is going to be deployed. A link to the PRs labeled as `Affiliate` could be enough.
 2. Announce in the Integrations Slack channel the deployment of one specific commit to testnet, using the @here tag, and share the summary.
 3. Affiliates must acknowledge the notification.
 4. Affiliates must express whether they are willing to test what has been deployed or not.
