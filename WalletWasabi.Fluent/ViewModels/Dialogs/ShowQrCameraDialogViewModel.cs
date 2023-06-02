@@ -27,8 +27,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 		UiContext = context;
 	}
 
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
