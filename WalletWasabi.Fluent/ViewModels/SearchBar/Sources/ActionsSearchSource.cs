@@ -25,25 +25,24 @@ public class ActionsSearchSource : ISearchSource
 			.Filter(filter);
 	}
 
-	public UiContext UiContext { get; }
-
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+
+	public UiContext UiContext { get; }
 
 	private IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{
 		return NavigationManager.MetaData
 			.Where(m => m.Searchable)
-			.Select(
-				m =>
+			.Select(m =>
+			{
+				var onActivate = CreateOnActivateFunction(m);
+				var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category ?? "No category", m.Keywords)
 				{
-					var onActivate = CreateOnActivateFunction(m);
-					var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category ?? "No category", m.Keywords)
-					{
-						Icon = m.IconName,
-						IsDefault = true
-					};
-					return searchItem;
-				});
+					Icon = m.IconName,
+					IsDefault = true,
+				};
+				return searchItem;
+			});
 	}
 
 	private Func<Task> CreateOnActivateFunction(NavigationMetaData navigationMetaData)

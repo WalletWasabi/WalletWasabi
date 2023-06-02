@@ -31,7 +31,7 @@ public class KeyDownTrigger : DisposingTrigger
 		if (AssociatedObject is InputElement element)
 		{
 			element
-				.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown, EventRoutingStrategy, true)
+				.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown, EventRoutingStrategy)
 				.DisposeWith(disposables);
 		}
 	}
