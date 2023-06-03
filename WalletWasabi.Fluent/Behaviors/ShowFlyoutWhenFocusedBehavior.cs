@@ -37,7 +37,7 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject?.GetVisualRoot() is Control visualRoot &&
+		if (AssociatedObject?.GetVisualRoot() is Control &&
 			FlyoutBase.GetAttachedFlyout(AssociatedObject) is Flyout flyout)
 		{
 			var flyoutController = new FlyoutController(flyout)
@@ -87,7 +87,7 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 	}
 
 	// TODO: Remove with update to Avalonia 11.
-	// This is a workaroun over Flyout not inheriting from FlyoutPopupBase
+	// This is a workaround over Flyout not inheriting from FlyoutPopupBase
 	// and therefore not exposing OverlayDismissEventPassThroughElement.
 	// Set OverlayInputPassThroughElement on the flyout in XAML instead.
 	private IDisposable OverlayDismissEventPassThroughFixup(Control associatedObject, Flyout flyout)
@@ -99,8 +99,8 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 			?? throw new InvalidOperationException($"Could not find a {nameof(VisualLayerManager)}.");
 
 		var layers = manager.GetType()
-			.GetField("_layers", BindingFlags.Instance | BindingFlags.NonPublic)
-			?.GetValue(manager) as List<Control>
+			.GetField("_layers", BindingFlags.Instance | BindingFlags.NonPublic)?
+			.GetValue(manager) as List<Control>
 			?? throw new Exception("Could not find layers tp tweak.");
 
 		var oldLayer = manager.LightDismissOverlayLayer;

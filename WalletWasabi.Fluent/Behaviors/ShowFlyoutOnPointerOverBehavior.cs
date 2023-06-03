@@ -11,8 +11,7 @@ public class ShowFlyoutOnPointerOverBehavior : AttachedToVisualTreeBehavior<Cont
 {
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is { } target &&
-			FlyoutBase.GetAttachedFlyout(target) is { } flyout)
+		if (AssociatedObject is { } target && FlyoutBase.GetAttachedFlyout(target) is { } flyout)
 		{
 			var showFlyout = Observable
 				.FromEventPattern(target, nameof(AssociatedObject.PointerMoved))

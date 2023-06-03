@@ -52,8 +52,7 @@ public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 
 	private void FlyoutOpenChanged(AvaloniaPropertyChangedEventArgs<bool> e)
 	{
-		if (e.Sender is FlyoutBase flyout &&
-			flyout.Target is { } target)
+		if (e.Sender is FlyoutBase flyout && flyout.Target is { } target)
 		{
 			if (e.OldValue.Value)
 			{
@@ -62,9 +61,8 @@ public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 				return;
 			}
 
-			if (target.FindAncestorOfType<Window>() == AssociatedObject && (
-					e.Property == Control.ContextFlyoutProperty ||
-					e.Property == Button.FlyoutProperty))
+			if (target.FindAncestorOfType<Window>() == AssociatedObject &&
+				(e.Property == Control.ContextFlyoutProperty || e.Property == Button.FlyoutProperty))
 			{
 				_openFlyouts.Add(flyout);
 			}
