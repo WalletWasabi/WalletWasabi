@@ -115,6 +115,9 @@ public record RoundParameters
 
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
+
+	/// <returns>Min output amount that's economically reasonable to be registered with current network conditions.</returns>
+	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
 	public Money CalculateMinReasonableOutputAmount()
 	{
 		var minEconomicalOutput = MiningFeeRate.GetFee(
