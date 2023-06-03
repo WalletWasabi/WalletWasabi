@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using NBitcoin;
 using NBitcoin.Policy;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -84,6 +85,7 @@ public record RoundParameters
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee
 												  ?? new FeeRate(Money.Satoshis(1000));
+	public bool IsTaprootAllowed => AllowedOutputTypes.Contains(ScriptType.Taproot);
 
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
@@ -113,4 +115,12 @@ public record RoundParameters
 
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
+	public Money CalculateMinReasonableOutputAmount()
+	{
+		var minEconomicalOutput = MiningFeeRate.GetFee(
+						Math.Max(
+							ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
+							ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
+		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
+	}
 }
