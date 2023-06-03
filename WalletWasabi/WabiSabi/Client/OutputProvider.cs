@@ -20,12 +20,7 @@ public class OutputProvider
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize)
 	{
-		AmountDecomposer amountDecomposer = new(
-			roundParameters.MiningFeeRate,
-			roundParameters.CalculateMinReasonableOutputAmount(),
-			roundParameters.AllowedOutputAmounts.Max,
-			availableVsize,
-			roundParameters.IsTaprootAllowed);
+		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.CalculateMinReasonableOutputAmount(), roundParameters.AllowedOutputAmounts.Max, availableVsize, roundParameters.IsTaprootAllowed);
 
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 		return GetTxOuts(outputValues, DestinationProvider);

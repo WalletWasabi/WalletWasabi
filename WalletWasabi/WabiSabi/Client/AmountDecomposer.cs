@@ -26,13 +26,13 @@ public class AmountDecomposer
 				Math.Max(
 					ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
 					ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
-		MinReasonableOutputAmount = Math.Max(minEconomicalOutput, minReasonableOutputAmount);
+		MinAllowedOutputAmount = Math.Max(minEconomicalOutput, minReasonableOutputAmount);
 		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
 		Random = random ?? Random.Shared;
 
 		// Create many standard denominations.
-		Denominations = DenominationBuilder.CreateDenominations(MinReasonableOutputAmount, MaxAllowedOutputAmount, FeeRate, IsTaprootAllowed, Random);
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, IsTaprootAllowed, Random);
 
 		ChangeScriptType = GetNextScriptType(IsTaprootAllowed, Random);
 	}
@@ -40,7 +40,7 @@ public class AmountDecomposer
 	public FeeRate FeeRate { get; }
 	public int AvailableVsize { get; }
 	public bool IsTaprootAllowed { get; }
-	public Money MinReasonableOutputAmount { get; }
+	public Money MinAllowedOutputAmount { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
 	public IOrderedEnumerable<Output> Denominations { get; }
@@ -169,7 +169,7 @@ public class AmountDecomposer
 		{
 			throw new InvalidOperationException("The decomposer is creating money. Aborting.");
 		}
-		if (totalOutputAmount + MinReasonableOutputAmount + ChangeFee < myInputSum)
+		if (totalOutputAmount + MinAllowedOutputAmount + ChangeFee < myInputSum)
 		{
 			throw new InvalidOperationException("The decomposer is losing money. Aborting.");
 		}
@@ -197,7 +197,7 @@ public class AmountDecomposer
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
-				tolerance: MinReasonableOutputAmount + ChangeFee,
+				tolerance: MinAllowedOutputAmount + ChangeFee,
 				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
 				stdDenoms: stdDenoms))
 			{
@@ -246,8 +246,8 @@ public class AmountDecomposer
 				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).
 				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
 				if (denom is null ||
-					(remaining < denom.EffectiveCost + MinReasonableOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
-					(remaining >= denom.EffectiveCost + MinReasonableOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
+					(remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					break;
 				}
@@ -264,7 +264,7 @@ public class AmountDecomposer
 			}
 
 			var loss = Money.Zero;
-			if (remaining >= MinReasonableOutputAmount + ChangeFee)
+			if (remaining >= MinAllowedOutputAmount + ChangeFee)
 			{
 				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
 				currentSet.Add(change);
@@ -303,8 +303,8 @@ public class AmountDecomposer
 			{
 				// Continue only if there is enough remaining amount and size to create one output + change (if change will potentially be created).
 				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
-				if ((remaining < denom.EffectiveCost + MinReasonableOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
-					(remaining >= denom.EffectiveCost + MinReasonableOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
+				if ((remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					end = true;
 					break;
@@ -329,7 +329,7 @@ public class AmountDecomposer
 		}
 
 		var loss = Money.Zero;
-		if (remaining >= MinReasonableOutputAmount + ChangeFee)
+		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
 			naiveSet.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
@@ -384,7 +384,7 @@ public class AmountDecomposer
 
 		foreach (var denom in denominations)
 		{
-			if (denom.Amount < MinReasonableOutputAmount || remaining < MinReasonableOutputAmount + ChangeFee)
+			if (denom.Amount < MinAllowedOutputAmount || remaining < MinAllowedOutputAmount + ChangeFee)
 			{
 				break;
 			}
@@ -396,7 +396,7 @@ public class AmountDecomposer
 			}
 		}
 
-		if (remaining >= MinReasonableOutputAmount + ChangeFee)
+		if (remaining >= MinAllowedOutputAmount + ChangeFee)
 		{
 			denoms.Add(Output.FromAmount(remaining, ChangeScriptType, FeeRate));
 		}
