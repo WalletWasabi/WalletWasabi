@@ -22,7 +22,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.999-build20230531.3" />
+		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.999-build20230602.5" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-rc1.1" />

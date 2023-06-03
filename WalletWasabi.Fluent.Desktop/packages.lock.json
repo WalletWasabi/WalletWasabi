@@ -4,9 +4,9 @@
     "net7.0": {
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Direct",
-        "requested": "[11.0.999-build20230531.3, )",
-        "resolved": "11.0.999-build20230531.3",
-        "contentHash": "m4vzjNgtfuQC/OU/1B4qaRBFtRjLOGb5XXtKNZ2Sv6/ucahSQYkTfSvucwCd0WuO/kgkPaTvRN6edriARkDcaA==",
+        "requested": "[11.0.999-build20230602.5, )",
+        "resolved": "11.0.999-build20230602.5",
+        "contentHash": "53LcWc2uZ/4wp2TO0+1AOeNjV/YjYt01cNsYBCr2Gfh0eV0qBax2x8gHGjSFjoxMxITysuZ/jVHboenoagn6iA==",
         "dependencies": {
           "Avalonia": "11.0.0-rc1.1",
           "System.Reactive": "5.0.0"
@@ -806,7 +806,7 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "[11.0.0-rc1.1, )",
-          "Avalonia.Controls.TreeDataGrid": "[11.0.999-build20230531.3, )",
+          "Avalonia.Controls.TreeDataGrid": "[11.0.999-build20230602.5, )",
           "Avalonia.Diagnostics": "[11.0.0-rc1.1, )",
           "Avalonia.Fonts.Inter": "[11.0.0-rc1.1, )",
           "Avalonia.ReactiveUI": "[11.0.0-rc1.1, )",
