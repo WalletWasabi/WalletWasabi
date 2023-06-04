@@ -161,6 +161,21 @@ public class CoinJoinClient
 				continue;
 			}
 
+			var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+				roundParameters.CalculateMinReasonableOutputAmount(),
+				roundParameters.AllowedInputAmounts.Max,
+				roundParameters.MiningFeeRate,
+				roundParameters.IsTaprootAllowed,
+				Random.Shared).Min(x => x.EffectiveCost);
+			var effectiveInputSum = coins.Sum(x => x.EffectiveValue(roundParameters.MiningFeeRate));
+			if (smallestEffectiveDenom > effectiveInputSum)
+			{
+				excludeRound = currentRoundState.Id;
+				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. The smallest possible denomination '{smallestEffectiveDenom}' BTC is larger than the effective input sum '{effectiveInputSum}' BTC.");
+
+				continue;
+			}
+
 			break;
 		}
 		while (!cancellationToken.IsCancellationRequested);
