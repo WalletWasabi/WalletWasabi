@@ -4,6 +4,7 @@ using System.Linq;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
@@ -64,9 +65,9 @@ public class ReceiveViewModelTests
 
 		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
 
-		public IObservable<Money> Balance => throw new NotSupportedException();
-
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+
+		public IWalletBalancesModel Balances => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
