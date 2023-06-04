@@ -196,9 +196,8 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		var rateProvider = new ObservableExchangeRateProvider(Wallet.Synchronizer);
 		var walletModel = new WalletModel(Wallet);
-		var balances = new WalletBalancesModel(walletModel, rateProvider);
+		var balances = walletModel.Balances;
 
 		yield return new WalletBalanceTileViewModel(balances);
 

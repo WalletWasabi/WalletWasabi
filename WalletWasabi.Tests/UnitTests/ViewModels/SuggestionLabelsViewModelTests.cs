@@ -3,6 +3,7 @@ using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using Xunit;
 
@@ -148,7 +149,7 @@ public class SuggestionLabelsViewModelTests
 
 		public string Name => throw new NotSupportedException();
 		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
-		public IObservable<Money> Balance => throw new NotSupportedException();
+		public IWalletBalancesModel Balances => throw new NotSupportedException();
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)

@@ -9,6 +9,8 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -38,12 +40,14 @@ internal class WalletModel : IWalletModel
 			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
 			.ToObservableChangeSet(x => x.Text);
 
-		Balance = Observable
+		var balance = Observable
 			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
 			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
+
+		Balances = new WalletBalancesModel(balance, new ObservableExchangeRateProvider(wallet.Synchronizer));
 	}
 
-	public IObservable<Money> Balance { get; set; }
+	public IWalletBalancesModel Balances { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 

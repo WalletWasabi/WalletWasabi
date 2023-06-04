@@ -4,8 +4,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public interface IWalletBalancesModel
 {
-	IObservable<Money> BtcBalance { get; }
-	IObservable<decimal> UsdBalance { get; }
+	IObservable<Money> Btc { get; }
+	IObservable<decimal> Usd { get; }
 	IObservable<decimal> ExchangeRate { get; }
 	IObservable<bool> HasBalance { get; }
 }

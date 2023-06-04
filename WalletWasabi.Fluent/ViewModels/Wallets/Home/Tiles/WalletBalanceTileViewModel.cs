@@ -6,8 +6,8 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 {
 	public WalletBalanceTileViewModel(IWalletBalancesModel balances)
 	{
-		BtcBalance = balances.BtcBalance;
-		UsdBalance = balances.UsdBalance;
+		BtcBalance = balances.Btc;
+		UsdBalance = balances.Usd;
 		HasBalance = balances.HasBalance;
 	}
 

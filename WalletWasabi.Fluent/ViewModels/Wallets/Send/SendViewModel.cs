@@ -66,8 +66,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		var balances = new WalletBalancesModel(new WalletModel(_wallet), new ObservableExchangeRateProvider(_wallet.Synchronizer));
-		Balances = balances;
+		Balances = new WalletModel(_wallet).Balances;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -139,10 +138,10 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		_clipboardObserver = new ClipboardObserver(balances);
+		_clipboardObserver = new ClipboardObserver(Balances);
 	}
 
-	public WalletBalancesModel Balances { get; set; }
+	public IWalletBalancesModel Balances { get; set; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 
