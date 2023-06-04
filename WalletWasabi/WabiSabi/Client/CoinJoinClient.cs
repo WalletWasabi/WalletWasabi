@@ -330,11 +330,26 @@ public class CoinJoinClient
 		try
 		{
 			var roundId = roundState.Id;
+			var roundParameters = roundState.CoinjoinState.Parameters;
 
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
 				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+			}
+
+			var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+				roundParameters.CalculateMinReasonableOutputAmount(),
+				roundParameters.AllowedInputAmounts.Max,
+				roundParameters.MiningFeeRate,
+				roundParameters.IsTaprootAllowed,
+				Random.Shared).Min(x => x.EffectiveCost);
+			var effectiveInputSum = registeredAliceClientAndCircuits
+				.Select(x => x.AliceClient.SmartCoin)
+				.Sum(x => x.EffectiveValue(roundParameters.MiningFeeRate));
+			if (smallestEffectiveDenom > effectiveInputSum)
+			{
+				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"Aborting the round, because we couldn't register enough coins: the smallest possible denomination '{smallestEffectiveDenom}' BTC is larger than the effective input sum '{effectiveInputSum}' BTC.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
