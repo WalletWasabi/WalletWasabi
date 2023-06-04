@@ -22,11 +22,7 @@ public class AmountDecomposer
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
-		var minEconomicalOutput = FeeRate.GetFee(
-				Math.Max(
-					ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
-					ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
-		MinAllowedOutputAmount = Math.Max(minEconomicalOutput, minAllowedOutputAmount);
+		MinAllowedOutputAmount = minAllowedOutputAmount;
 		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
 		Random = random ?? Random.Shared;
