@@ -289,14 +289,13 @@ public partial class CurrencyEntryBox : TextBox
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
 			// Based on broad M0 money supply figures (80 900 000 000 000.00 USD).
-			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters
-			// plus adding 4 characters for the group separators.
+			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters.
 			// Bitcoin has "21 000 000 . 0000 0000".
-			// so Bitcoin has 8 whole places + the decimal point + 8 decimal places = 17 characters.
-			// plus adding 5 characters for the group separators.
-			if (text.Length > 17 + 5)
+			// Coincidentally the same character count as USD... weird.
+			// Plus adding 4 characters for the group separators.
+			if (text.Length > 17 + 4)
 			{
-				text = text[..(17 + 5)];
+				text = text[..(17 + 4)];
 			}
 
 			if (ValidateEntryText(text))
