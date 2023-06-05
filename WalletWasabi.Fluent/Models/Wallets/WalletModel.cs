@@ -53,7 +53,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
 			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
 
-		Balances = new WalletBalancesModel(balance, new ObservableExchangeRateProvider(wallet.Synchronizer));
+		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 	}
 
 	public IWalletBalancesModel Balances { get; }

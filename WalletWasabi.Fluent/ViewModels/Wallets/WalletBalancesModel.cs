@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class WalletBalancesModel : ReactiveObject, IWalletBalancesModel
 {
-	public WalletBalancesModel(IObservable<Money> balances, IObservableExchangeRateProvider exchangeRateProvider)
+	public WalletBalancesModel(IObservable<Money> balances, IExchangeRateProvider exchangeRateProvider)
 	{
 		ExchangeRate = exchangeRateProvider.BtcToUsdRate;
 		Btc = balances;

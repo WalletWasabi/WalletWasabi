@@ -3,9 +3,9 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Infrastructure;
 
-public class ObservableExchangeRateProvider : IObservableExchangeRateProvider
+public class ExchangeRateProvider : IExchangeRateProvider
 {
-	public ObservableExchangeRateProvider(WasabiSynchronizer synchronizer)
+	public ExchangeRateProvider(WasabiSynchronizer synchronizer)
 	{
 		Synchronizer = synchronizer;
 
