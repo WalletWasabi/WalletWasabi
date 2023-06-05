@@ -9,6 +9,8 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -27,14 +29,14 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		_historyBuilder = new TransactionHistoryBuilder(_wallet);
 
-		RelevantTransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
-					  .ObserveOn(RxApp.MainThreadScheduler);
+		RelevantTransactionProcessed = Observable
+			.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		Transactions =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.TransactionId);
+		Transactions = Observable
+			.Defer(() => BuildSummary().ToObservable())
+			.Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
+			.ToObservableChangeSet(x => x.TransactionId);
 
 		Addresses = Observable
 			.Defer(() => GetAddresses().ToObservable())
@@ -47,15 +49,30 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
 
+		var balance = Observable
+			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
+			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
+		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
+
+		Auth = new WalletAuthModel(_wallet);
+
 		Auth = new WalletAuthModel(this, _wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
 
+		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.Where(x => x)
 			.Take(1)
 			.Do(_ => Loader.Start())
 			.Subscribe();
+
+		// Stop the loader after load is completed
+		State.Where(x => x == WalletState.Started)
+			 .Do(_ => Loader.Stop())
+			 .Subscribe();
 	}
+
+	public IWalletBalancesModel Balances { get; }
 
 	public IWalletAuthModel Auth { get; }
 
@@ -96,8 +113,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	private IEnumerable<IAddress> GetAddresses()
 	{
 		return _wallet.KeyManager
-					  .GetKeys()
-					  .Reverse()
-					  .Select(x => new Address(_wallet.KeyManager, x));
+			.GetKeys()
+			.Reverse()
+			.Select(x => new Address(_wallet.KeyManager, x));
 	}
 }
