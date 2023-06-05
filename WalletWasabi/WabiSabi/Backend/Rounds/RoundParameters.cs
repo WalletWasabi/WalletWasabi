@@ -126,4 +126,6 @@ public record RoundParameters
 							ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
 		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
 	}
+
+	public MoneyRange CalculateReasonableOutputAmountRange() => new(CalculateMinReasonableOutputAmount(), AllowedOutputAmounts.Max);
 }
