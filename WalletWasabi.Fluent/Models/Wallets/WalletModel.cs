@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -14,10 +15,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-internal class WalletModel : IWalletModel
+public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionHistoryBuilder _historyBuilder;
+
+	[AutoNotify] private bool _isLoggedIn;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -37,6 +40,12 @@ internal class WalletModel : IWalletModel
 			.Defer(() => GetAddresses().ToObservable())
 			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
 			.ToObservableChangeSet(x => x.Text);
+
+		WalletType = WalletHelpers.GetType(_wallet.KeyManager);
+
+		State = Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
+						  .ObserveOn(RxApp.MainThreadScheduler)
+						  .Select(_ => _wallet.State);
 	}
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
@@ -45,7 +54,11 @@ internal class WalletModel : IWalletModel
 
 	public string Name => _wallet.WalletName;
 
+	public IObservable<WalletState> State { get; }
+
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
+
+	public WalletType WalletType { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
@@ -53,10 +66,36 @@ internal class WalletModel : IWalletModel
 		return new Address(_wallet.KeyManager, pubKey);
 	}
 
-	public bool IsHardwareWallet() => _wallet.KeyManager.IsHardwareWallet;
+	public bool IsHardwareWallet => _wallet.KeyManager.IsHardwareWallet;
 
-	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) =>
-		_wallet.GetLabelsWithRanking(intent);
+	public bool IsWatchOnlyWallet => _wallet.KeyManager.IsWatchOnly;
+
+	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
+	{
+		return _wallet.GetLabelsWithRanking(intent);
+	}
+
+	public async Task<WalletLoginResult> TryLoginAsync(string password)
+	{
+		string? compatibilityPassword = null;
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out compatibilityPassword));
+
+		var compatibilityPasswordUsed = compatibilityPassword is { };
+
+		var legalRequired = Services.LegalChecker.TryGetNewLegalDocs(out _);
+
+		return new(isPasswordCorrect, compatibilityPasswordUsed, legalRequired);
+	}
+
+	public void Login()
+	{
+		IsLoggedIn = true;
+	}
+
+	public void Logout()
+	{
+		_wallet.Logout();
+	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()
 	{

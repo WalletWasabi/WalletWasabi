@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -14,13 +16,27 @@ public interface IWalletModel
 {
 	public string Name { get; }
 
+	bool IsLoggedIn { get; }
+
+	IObservable<WalletState> State { get; }
+
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
+	bool IsHardwareWallet { get; }
+
+	bool IsWatchOnlyWallet { get; }
+
+	WalletType WalletType { get; }
+
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
-	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
+	Task<WalletLoginResult> TryLoginAsync(string password);
 
-	bool IsHardwareWallet();
+	void Login();
+
+	void Logout();
+
+	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 }

@@ -14,7 +14,7 @@ public static class AnalyzerExtensions
 		return node
 			.DescendantNodes()
 			.OfType<IdentifierNameSyntax>()
-			.Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
+			.Where(x => x.Identifier.ValueText == "UiContext") // faster verification
 			.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
 			.ToList();
 	}
@@ -60,7 +60,7 @@ public static class AnalyzerExtensions
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
 		var typeInfo = model.GetDeclaredSymbol(cls)
-			?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
+		               ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
 	}
