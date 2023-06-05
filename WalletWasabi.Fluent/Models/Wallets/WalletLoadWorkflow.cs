@@ -70,6 +70,11 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 				  .DisposeWith(_disposables);
 	}
 
+	public void Stop()
+	{
+		_disposables.Dispose();
+	}
+
 	private async Task LoadWalletAsync(bool isBackendAvailable)
 	{
 		if (IsLoading)

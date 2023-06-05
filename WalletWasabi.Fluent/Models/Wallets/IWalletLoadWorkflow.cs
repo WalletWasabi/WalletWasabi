@@ -6,5 +6,7 @@ public interface IWalletLoadWorkflow
 
 	void Start();
 
+	void Stop();
+
 	IObservable<(double PercentComplete, TimeSpan TimeRemaining)> Progress { get; }
 }
