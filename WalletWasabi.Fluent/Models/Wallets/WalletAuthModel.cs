@@ -16,14 +16,7 @@ public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 		_wallet = wallet;
 	}
 
-	public bool IsLegalRequired
-	{
-		get
-		{
-			var legalRequired = Services.LegalChecker.TryGetNewLegalDocs(out _);
-			return legalRequired;
-		}
-	}
+	public bool IsLegalRequired => Services.LegalChecker.TryGetNewLegalDocs(out _);
 
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{

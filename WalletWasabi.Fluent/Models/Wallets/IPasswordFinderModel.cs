@@ -12,7 +12,7 @@ public interface IPasswordFinderModel
 	bool UseNumbers { get; set; }
 	bool UseSymbols { get; set; }
 
-	Task<(bool, string?)> FindPasswordAsync(CancellationToken cancellationToken);
-
 	IObservable<(int Percentage, TimeSpan RemainingTime)> Progress { get; }
+
+	Task<(bool, string?)> FindPasswordAsync(CancellationToken cancellationToken);
 }
