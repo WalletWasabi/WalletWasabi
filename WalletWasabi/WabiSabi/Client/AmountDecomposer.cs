@@ -12,28 +12,25 @@ namespace WalletWasabi.WabiSabi.Client;
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
-	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
+	/// <param name="minAllowedOutputAmount">Min output amount that's allowed to be registered.</param>
+	/// <param name="maxAllowedOutputAmount">Max output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
 	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
+	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
 	{
 		FeeRate = feeRate;
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
-		var minEconomicalOutput = FeeRate.GetFee(
-				Math.Max(
-					ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
-					ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
-		MinAllowedOutputAmount = Math.Max(minEconomicalOutput, allowedOutputAmount.Min);
-		MaxAllowedOutputAmount = allowedOutputAmount.Max;
+		MinAllowedOutputAmount = minAllowedOutputAmount;
+		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
 		Random = random ?? Random.Shared;
 
 		// Create many standard denominations.
-		Denominations = CreateDenominations();
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, IsTaprootAllowed, Random);
 
-		ChangeScriptType = GetNextScriptType();
+		ChangeScriptType = GetNextScriptType(IsTaprootAllowed, Random);
 	}
 
 	public FeeRate FeeRate { get; }
@@ -47,136 +44,14 @@ public class AmountDecomposer
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private Random Random { get; }
 
-	private ScriptType GetNextScriptType()
+	public static ScriptType GetNextScriptType(bool isTaprootAllowed, Random random)
 	{
-		if (!IsTaprootAllowed)
+		if (!isTaprootAllowed)
 		{
 			return ScriptType.P2WPKH;
 		}
 
-		return Random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
-	}
-
-	private IOrderedEnumerable<Output> CreateDenominations()
-	{
-		var denominations = new HashSet<Output>();
-
-		Output CreateDenom(double sats)
-		{
-			var scriptType = GetNextScriptType();
-			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
-		}
-
-		// Powers of 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(2, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3 * 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 2 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 5 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 5);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
 	}
 
 	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)

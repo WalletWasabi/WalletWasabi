@@ -18,6 +18,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 	private readonly ObservableCollectionExtended<string> _suggestions;
 	private readonly ObservableCollectionExtended<string> _labels;
 	[AutoNotify] private bool _isCurrentTextValid;
+	[AutoNotify] private bool _forceAdd;
 
 	public SuggestionLabelsViewModel(IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{

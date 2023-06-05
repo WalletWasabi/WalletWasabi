@@ -59,6 +59,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
+		SuggestionLabels.ForceAdd = true;
 		var address = _wallet.GetNextReceiveAddress(SuggestionLabels.Labels);
 		SuggestionLabels.Labels.Clear();
 
