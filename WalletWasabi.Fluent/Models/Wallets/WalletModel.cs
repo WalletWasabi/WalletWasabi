@@ -66,7 +66,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		// Stop the loader after load is completed
 		State.Where(x => x == WalletState.Started)
-			 .Do(x => Loader.Stop())
+			 .Do(_ => Loader.Stop())
 			 .Subscribe();
 	}
 
