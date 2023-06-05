@@ -57,7 +57,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		Auth = new WalletAuthModel(_wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
 
-
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.Where(x => x)
@@ -71,9 +70,9 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Subscribe();
 	}
 
-        public IWalletBalancesModel Balances { get; }
-	
-        public IWalletAuthModel Auth { get; }
+	public IWalletBalancesModel Balances { get; }
+
+	public IWalletAuthModel Auth { get; }
 
 	public IWalletLoadWorkflow Loader { get; }
 
