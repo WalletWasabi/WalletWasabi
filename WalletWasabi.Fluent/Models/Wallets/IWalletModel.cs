@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -23,6 +24,8 @@ public interface IWalletModel
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+
+	IWalletBalancesModel Balances { get; }
 
 	bool IsHardwareWallet { get; }
 

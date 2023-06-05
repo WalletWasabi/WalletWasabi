@@ -10,6 +10,8 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -46,7 +48,15 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		State = Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
+
+		var balance = Observable
+			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
+			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
+
+		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 	}
+
+	public IWalletBalancesModel Balances { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
