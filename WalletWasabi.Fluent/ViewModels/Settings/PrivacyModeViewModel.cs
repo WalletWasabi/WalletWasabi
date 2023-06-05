@@ -1,43 +1,44 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
-[NavigationMetaData(Title = "Discreet Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
-public partial class PrivacyModeViewModel : NavBarItemViewModel
+[NavigationMetaData(Searchable = false, NavBarPosition = NavBarPosition.Bottom, NavBarSelectionMode = NavBarSelectionMode.Toggle)]
+public partial class PrivacyModeViewModel : RoutableViewModel
 {
+	private string _title = "";
 	[AutoNotify] private bool _privacyMode;
+	[AutoNotify] private string? _iconName;
+	[AutoNotify] private string? _iconNameFocused;
 
 	public PrivacyModeViewModel()
 	{
 		_privacyMode = Services.UiConfig.PrivacyMode;
 
-		SelectionMode = NavBarItemSelectionMode.Toggle;
-
-		ToggleTitle();
+		SetTitleAndIcon();
 
 		this.WhenAnyValue(x => x.PrivacyMode)
 			.Skip(1)
 			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(
-				x =>
-			{
-				ToggleTitle();
-				this.RaisePropertyChanged(nameof(IconName));
-				Services.UiConfig.PrivacyMode = x;
-			});
+			.Subscribe(x => Services.UiConfig.PrivacyMode = x);
 	}
 
-	public override string IconName => _privacyMode ? "nav_incognito_24_filled" : "nav_incognito_24_regular";
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+	}
 
-	public override void Toggle()
+	public void Toggle()
 	{
 		PrivacyMode = !PrivacyMode;
+		SetTitleAndIcon();
 	}
 
-	private void ToggleTitle()
+	public void SetTitleAndIcon()
 	{
-		Title = $"Discreet Mode {(_privacyMode ? "(On)" : "(Off)")}";
+		IconName = PrivacyMode ? "nav_incognito_24_filled" : "nav_incognito_24_regular";
+		Title = $"Discreet Mode {(PrivacyMode ? "(On)" : "(Off)")}";
 	}
 }

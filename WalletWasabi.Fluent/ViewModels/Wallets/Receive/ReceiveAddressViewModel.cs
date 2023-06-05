@@ -24,7 +24,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
-		IsHardwareWallet = wallet.IsHardwareWallet();
+		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -37,7 +37,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
+		QrCode = UiContext.QrCodeGenerator.Generate(model.Text.ToUpperInvariant());
 
 		if (IsAutoCopyEnabled)
 		{

@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -19,7 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 {
 	[AutoNotify] private bool _isModified;
@@ -28,7 +30,6 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	public SettingsPageViewModel()
 	{
 		_selectedTab = 0;
-		SelectionMode = NavBarItemSelectionMode.Button;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -61,5 +62,10 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		disposables.Add(
 			Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded));
+	}
+
+	public async Task Activate()
+	{
+		await NavigateDialogAsync(this);
 	}
 }

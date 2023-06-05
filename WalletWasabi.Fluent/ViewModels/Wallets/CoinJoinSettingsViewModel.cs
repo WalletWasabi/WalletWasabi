@@ -29,7 +29,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 
-	public CoinJoinSettingsViewModel(WalletViewModelBase walletViewModelBase)
+	public CoinJoinSettingsViewModel(WalletViewModel walletViewModelBase)
 	{
 		_wallet = walletViewModelBase.Wallet;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;

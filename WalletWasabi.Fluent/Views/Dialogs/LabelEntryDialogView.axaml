@@ -28,7 +28,8 @@
                TopItems="{Binding TopSuggestions}"
                Suggestions="{Binding Suggestions}"
                MaxTextLength="{StaticResource MaxLabelLength}"
-               IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
+               IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
+               ForceAdd="{Binding ForceAdd, Mode=TwoWay}">
       <i:Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
