@@ -31,6 +31,7 @@ public class TagsBox : TemplatedControl
 	private IList<string>? _suggestions;
 	private IEnumerable<string>? _items;
 	private IEnumerable<string>? _topItems;
+	private bool _requestAdd;
 
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
