@@ -30,9 +30,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
 
-	public virtual string IconName { get; protected set; } = "navigation_regular";
-	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
-
 	public ICommand? NextCommand { get; protected set; }
 
 	public ICommand? SkipCommand { get; protected set; }
@@ -107,6 +104,8 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
+		target = NavigationExtensions.GetTarget(this, target);
+
 		return await UiContext.Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
 

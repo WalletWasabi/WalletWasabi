@@ -8,8 +8,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -25,13 +23,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	IconName = "nav_add_circle_24_regular",
 	IconNameFocused = "nav_add_circle_24_filled",
 	NavigationTarget = NavigationTarget.DialogScreen,
-	NavBarPosition = NavBarPosition.Bottom)]
+	NavBarPosition = NavBarPosition.Bottom,
+	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
 	public AddWalletPageViewModel()
 	{
-		SelectionMode = NavBarItemSelectionMode.Button;
-
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
@@ -94,18 +91,18 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
 	}
 
-	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
-	{
-		MainViewModel.Instance.IsOobeBackgroundVisible = true;
-		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-		MainViewModel.Instance.IsOobeBackgroundVisible = false;
-	}
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+	}
+
+	public async Task Activate()
+	{
+		MainViewModel.Instance.IsOobeBackgroundVisible = true;
+		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+		MainViewModel.Instance.IsOobeBackgroundVisible = false;
 	}
 }

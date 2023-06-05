@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering;
 public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<LabelsArray>, IComparable<LabelsArray>
 {
 	private readonly string[]? _labels;
-	
+
 	public LabelsArray(params string[] labels) : this(labels as IEnumerable<string>)
 	{
 	}
@@ -17,12 +17,12 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 	public LabelsArray(IEnumerable<string>? labels)
 	{
 		_labels = (labels ?? Array.Empty<string>())
-		   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
-		   .Select(x => x.Trim())
-		   .Where(x => x.Length != 0)
-		   .Distinct(StringComparer.OrdinalIgnoreCase)
-		   .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-		   .ToArray();
+			.SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
+			.Select(x => x.Trim())
+			.Where(x => x.Length != 0)
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+			.ToArray();
 	}
 
 	public static LabelsArray Empty { get; } = new();
@@ -37,7 +37,7 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 	{
 		const string Separator = ", ";
 		int length = 0;
-		
+
 		foreach (var label in this)
 		{
 			length += label.Length + Separator.Length;
@@ -47,7 +47,7 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 		{
 			return string.Empty;
 		}
-		
+
 		return string.Create(length - Separator.Length, this, static (span, self) =>
 		{
 			var index = 0;
@@ -58,7 +58,7 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 				index += label.Length;
 
 				if (index < span.Length)
-				{					
+				{
 					Separator.CopyTo(span[index..]);
 					index += Separator.Length;
 				}
@@ -71,7 +71,7 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 	public int GetHashCode(IEqualityComparer<string>? comparer)
 	{
 		var hashCode = new HashCode();
-		
+
 		foreach (var label in this)
 		{
 			hashCode.Add(label, comparer);
@@ -105,7 +105,7 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 		// if SequenceCompareTo is accepted and implemented`.
 		var thisLabels = AsSpan();
 		var otherLabels = other.AsSpan();
-		
+
 		return CompareToSlow(
 			ref MemoryMarshal.GetReference(thisLabels),
 			thisLabels.Length,
@@ -116,24 +116,24 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 		static int CompareToSlow(ref string first, int firstLength, ref string second, int secondLength, IComparer<string> comparer)
 		{
 			int minLength = firstLength;
-            if (minLength > secondLength)
+			if (minLength > secondLength)
 			{
-                minLength = secondLength;
+				minLength = secondLength;
 			}
-			
-            for (int i = 0; i < minLength; i++)
-            {
-                int result = comparer.Compare(
+
+			for (int i = 0; i < minLength; i++)
+			{
+				int result = comparer.Compare(
 					Unsafe.Add(ref first, i),
 					Unsafe.Add(ref second, i));
-					
-                if (result != 0)
+
+				if (result != 0)
 				{
-                    return result;
+					return result;
 				}
-            }
-			
-            return firstLength.CompareTo(secondLength);
+			}
+
+			return firstLength.CompareTo(secondLength);
 		}
 	}
 
@@ -141,11 +141,12 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 		AsSpan().GetEnumerator();
 
 	IEnumerator<string> IEnumerable<string>.GetEnumerator() => GetEnumeratorAllocating();
+
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorAllocating();
 
 	private IEnumerator<string> GetEnumeratorAllocating() =>
 		(_labels ?? Enumerable.Empty<string>()).GetEnumerator();
-	
+
 	public static LabelsArray Merge(params LabelsArray[] labels) =>
 		Merge(labels as IEnumerable<LabelsArray>);
 

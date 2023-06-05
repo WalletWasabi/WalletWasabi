@@ -17,6 +17,8 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 	public const string UiContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
 	public const string UiContextFileSuffix = "_UiContext.cs";
 
+	private static readonly string[] ExcludedClasses = { "MainViewModel", "RoutableViewModel" };
+
 	internal static readonly DiagnosticDescriptor Rule1 =
 		new("WW001",
 			"Do not use UiContext or Navigation APIs in ViewModel Constructor",
@@ -54,17 +56,11 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 			return;
 		}
 
-		var excludedClasses = new[]
-		{
-			"MainViewModel",
-			"RoutableViewModel"
-		};
-
 		var isViewModel =
 			ctor.Parent is ClassDeclarationSyntax cls &&
 			cls.Identifier.ValueText is string className &&
 			className.EndsWith("ViewModel") &&
-			!excludedClasses.Contains(className);
+			!ExcludedClasses.Contains(className);
 
 		if (!isViewModel)
 		{
