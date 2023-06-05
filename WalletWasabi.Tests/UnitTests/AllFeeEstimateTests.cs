@@ -311,7 +311,7 @@ public class AllFeeEstimateTests
 	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram2.json", 12)]
 	public async Task RealWorldMempoolRpcMinFeeAsync(string filePath, int expectedMinFee)
 	{
-		// This test is for making sure we don't under fee.
+		// This test is for making sure we don't underpay the network fee.
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
 		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
@@ -329,7 +329,7 @@ public class AllFeeEstimateTests
 	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram2.json", 50)]
 	public async Task RealWorldMempoolRpcMaxFeeAsync(string filePath, int expectedMaxFee)
 	{
-		// This test is for making sure we don't overpay fee.
+		// This test is for making sure we don't overpay the network fee.
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
 		var any = EstimateSmartFeeMode.Conservative;
