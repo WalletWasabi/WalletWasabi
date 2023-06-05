@@ -9,6 +9,8 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -47,8 +49,14 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
 
+		var balance = Observable
+			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
+			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
+		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
+
 		Auth = new WalletAuthModel(_wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
+
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
@@ -63,7 +71,9 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Subscribe();
 	}
 
-	public IWalletAuthModel Auth { get; }
+        public IWalletBalancesModel Balances { get; }
+	
+        public IWalletAuthModel Auth { get; }
 
 	public IWalletLoadWorkflow Loader { get; }
 
