@@ -45,7 +45,7 @@ public class MempoolInfoGenerator
 			return new FeeRateGroup
 			{
 				Count = (uint)count,
-				Sizes = (uint)size * 4,
+				Sizes = (uint)size,
 				From = new FeeRate((decimal)range.from),
 				To = new FeeRate((decimal)range.to),
 				Fees = Money.Satoshis(avgFeeRate * size),

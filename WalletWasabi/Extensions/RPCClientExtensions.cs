@@ -81,8 +81,8 @@ public static class RPCClientExtensions
 		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
 		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
-		var minEstimationFor200Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(200));
-		var sanityFeeRate = FeeRate.Max(minEstimationFor200Mb, mempoolInfo.GetSanityFeeRate());
+		var minEstimationFor260Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(260 / 4));
+		var sanityFeeRate = FeeRate.Max(minEstimationFor260Mb, mempoolInfo.GetSanityFeeRate());
 			
 		var fixedEstimations = smartEstimations
 			.GroupJoin(
@@ -144,10 +144,10 @@ public static class RPCClientExtensions
 
 		const int Kb = 1_000;
 		const int Mb = 1_000 * Kb;
-		const int BlockSize = 1 * Mb;
+		const int BlockVirtualSize = 1 * Mb;
 		static IEnumerable<(int Size, FeeRate From, FeeRate To)> SplitFeeGroupInBlocks(FeeRateGroup group)
 		{
-			var (q, rest) = Math.DivRem(group.Sizes, BlockSize);
+			var (q, rest) = Math.DivRem(group.Sizes, BlockVirtualSize);
 			var gs = rest == 0
 				? Enumerable.Repeat(1 * Mb, (int) q)
 				: Enumerable.Repeat(1 * Mb, (int) q).Append((int) rest);
@@ -175,13 +175,13 @@ public static class RPCClientExtensions
 		// In this case the three first fee rate groups fit well in the next block so
 		// they have target=1 while the fourth will need to wait and for that reason it
 		// is target=2
-		var accumulatedSizes = splittedFeeGroups
+		var accumulatedVirtualSizes = splittedFeeGroups
 			.Select(x => x.Size)
 			.Scan(0m, (acc, size) => acc + size);
 
 		var feeGroupsByTarget = splittedFeeGroups.Zip(
-			accumulatedSizes,
-			(feeGroup, accumulatedSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
+			accumulatedVirtualSizes,
+			(feeGroup, accumulatedVirtualSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedVirtualSize / BlockVirtualSize)));
 
 		// Consolidates all the fee rate groups that share the same confirmation target.
 		// Following the previous example we have the fee rate groups with target in the
