@@ -12,6 +12,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 {
 	private TextLayout? _trimmedLayout;
  	private bool _cutOff;
+    private TextLayout? _noTrimLayout;
     private Size _constraint;
 
 	public FadeOutTextBlock()
@@ -33,6 +34,38 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		}
 	}.ToImmutable();
 
+	protected override void RenderTextLayout(DrawingContext context, Point origin)
+	{
+		var background = Background;
+
+		var bounds = Bounds;
+
+		if (background != null)
+		{
+			context.FillRectangle(background, Bounds);
+		}
+
+		if (_trimmedLayout is null || _noTrimLayout is null)
+		{
+			return;
+		}
+
+		var width = bounds.Size.Width;
+
+		var centerOffset = TextAlignment switch
+		{
+			TextAlignment.Center => (width - _trimmedLayout.Width) / 2.0,
+			TextAlignment.Right => width - _trimmedLayout.Width,
+			_ => 0.0
+		};
+
+		var (left, yPosition, _, _) = Padding;
+
+		using var a = context.PushPostTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
+		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
+		_noTrimLayout.Draw(context, origin);
+	}
+
 	private void NewCreateTextLayout(Size constraint, string? text)
 	{
 		if (constraint == default)
@@ -50,6 +83,21 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var width = constraint.Width;
 		var height = constraint.Height;
 		var lineHeight = LineHeight;
+
+		_noTrimLayout = new TextLayout(
+			text1,
+			typeface,
+			fontSize,
+			foreground,
+			textAlignment,
+			textWrapping,
+			TextTrimming.None,
+			textDecorations,
+			FlowDirection.LeftToRight,
+			width,
+			height,
+			lineHeight,
+			1);
 
 		_trimmedLayout = new TextLayout(
 			text1,
