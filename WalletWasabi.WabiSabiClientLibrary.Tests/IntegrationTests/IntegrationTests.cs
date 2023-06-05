@@ -22,14 +22,14 @@ public class IntegrationsTest
 	[ClassData(typeof(GetOutpusAmountsTestVectors))]
 	[ClassData(typeof(SelectInputsForRoundTestVectors))]
 	[ClassData(typeof(GetAnonymityScoresTestVectors))]
-	public async Task TestPostAsync([System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "xUnit1026")] string name, string method, string requestContentString, string expectedResponseContentString)
+	public async Task TestPostAsync([System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "xUnit1026")] string name, string method, string requestContentString, int expectedStatusCode, string expectedResponseContentString)
 	{
 		HttpClient client = _factory.CreateClient();
 
 		using StringContent requestContent = new StringContent(requestContentString, Encoding.UTF8, "application/json");
 		HttpResponseMessage response = await client.PostAsync(method, requestContent);
 
-		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+		Assert.Equal(expectedStatusCode, (int)response.StatusCode);
 
 		string responseContentString = await response.Content.ReadAsStringAsync();
 
@@ -37,7 +37,7 @@ public class IntegrationsTest
 	}
 }
 
-public class TestVectors : TheoryData<string, string, string, string>
+public class TestVectors : TheoryData<string, string, string, int, string>
 {
 	public TestVectors(string testVectorsFile, string methodName)
 	{
@@ -50,11 +50,11 @@ public class TestVectors : TheoryData<string, string, string, string>
 
 		foreach (TestVector testVector in testVectors)
 		{
-			Add(testVector.Name, methodName, JsonConvert.SerializeObject(testVector.Request), JsonConvert.SerializeObject(testVector.ExpectedResponse));
+			Add(testVector.Name, methodName, JsonConvert.SerializeObject(testVector.Request), testVector.ExpectedStatusCode, JsonConvert.SerializeObject(testVector.ExpectedResponse));
 		}
 	}
 
-	private record TestVector(string Name, string Method, object Request, object ExpectedResponse);
+	private record TestVector(string Name, object Request, int ExpectedStatusCode, object ExpectedResponse);
 }
 
 public class GetZeroCredentialRequestsTestVectors : TestVectors

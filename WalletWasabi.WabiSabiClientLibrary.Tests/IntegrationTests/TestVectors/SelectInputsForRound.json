@@ -38,6 +38,7 @@
       "semiPrivateThreshold": 2,
       "consolidationMode": false
     },
+    "expectedStatusCode": 200,
     "expectedResponse": {
       "indices": [
         1,

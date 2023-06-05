@@ -16,6 +16,7 @@
       ],
       "externalAmounts": []
     },
+    "expectedStatusCode": 200,
     "expectedResponse": {
       "outputAmounts": [
         16777216,

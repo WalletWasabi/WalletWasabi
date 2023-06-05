@@ -47,6 +47,7 @@
         }
       ]
     },
+    "expectedStatusCode": 200,
     "expectedResponse": {
       "results": [
         {
