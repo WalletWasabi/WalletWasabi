@@ -40,6 +40,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 
 	private void OnNext()
 	{
+		SuggestionLabels.ForceAdd = true;
 		Close(DialogResultKind.Normal, new LabelsArray(SuggestionLabels.Labels.ToArray()));
 	}
 

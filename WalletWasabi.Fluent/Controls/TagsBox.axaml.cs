@@ -14,6 +14,7 @@ using Avalonia.Metadata;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -34,6 +35,12 @@ public class TagsBox : TemplatedControl
 
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
+
+	public static readonly DirectProperty<TagsBox, bool> RequestAddProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, bool>(nameof(RequestAdd), o => o.RequestAdd);
+
+	public static readonly StyledProperty<bool> ForceAddProperty =
+		AvaloniaProperty.Register<TagsBox, bool>(nameof(ForceAdd));
 
 	public static readonly StyledProperty<string> WatermarkProperty =
 		TextBox.WatermarkProperty.AddOwner<TagsBox>();
@@ -105,6 +112,18 @@ public class TagsBox : TemplatedControl
 	{
 		get => GetValue(WatermarkProperty);
 		set => SetValue(WatermarkProperty, value);
+	}
+
+	public bool RequestAdd
+	{
+		get => _requestAdd;
+		set => SetAndRaise(RequestAddProperty, ref _requestAdd, value);
+	}
+
+	public bool ForceAdd
+	{
+		get => GetValue(ForceAddProperty);
+		set => SetValue(ForceAddProperty, value);
 	}
 
 	public bool RestrictInputToSuggestions
@@ -208,14 +227,13 @@ public class TagsBox : TemplatedControl
 
 		_autoCompleteBox.InternalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
-					.Subscribe(_ => ClearAndAddTags(CurrentText))
+					.Subscribe(_ => RequestAdd = true)
 					.DisposeWith(_compositeDisposable);
 
 		Observable
 			.FromEventPattern(_autoCompleteBox.SuggestionListBox, nameof(PointerReleased))
-			.Subscribe(_ => ClearAndAddTags(CurrentText))
+			.Subscribe(_ => RequestAdd = true)
 			.DisposeWith(_compositeDisposable);
-
 
 		_autoCompleteBox
 			.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
@@ -230,7 +248,28 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.WhereNotNull()
 			.Where(text => text.Contains(TagSeparator))
-			.Subscribe(_ => ClearAndAddTags(CurrentText))
+			.Subscribe(_ => RequestAdd = true)
+			.DisposeWith(_compositeDisposable);
+
+		Observable.Merge(
+				this.WhenAnyValue(x => x.RequestAdd).Where(x => x).Throttle(TimeSpan.FromMilliseconds(10)).ToSignal(),
+				this.WhenAnyValue(x => x.ForceAdd).Where(x => x).ToSignal())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(_ => CurrentText)
+			.Subscribe(currentText =>
+			{
+				Dispatcher.UIThread.Post(() =>
+				{
+					RequestAdd = false;
+					ForceAdd = false;
+				});
+				ClearInputField();
+				var tags = GetFinalTags(currentText, TagSeparator);
+				foreach (string tag in tags)
+				{
+					AddTag(tag);
+				}
+			})
 			.DisposeWith(_compositeDisposable);
 
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
@@ -277,7 +316,7 @@ public class TagsBox : TemplatedControl
 				break;
 
 			case Key.Enter or Key.Tab when !emptyInputField:
-				ClearAndAddTags(CurrentText);
+				RequestAdd = true;
 				e.Handled = true;
 				break;
 		}
@@ -377,7 +416,7 @@ public class TagsBox : TemplatedControl
 		if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
 		{
 			autoCompleteBox.Text = autoCompleteBox.SearchText;
-			ClearAndAddTags(CurrentText);
+			RequestAdd = true;
 			e.Handled = true;
 		}
 	}
@@ -403,18 +442,6 @@ public class TagsBox : TemplatedControl
 			_stringComparison = SuggestionsAreCaseSensitive
 				? StringComparison.CurrentCulture
 				: StringComparison.CurrentCultureIgnoreCase;
-		}
-	}
-
-	private void ClearAndAddTags(string currentText)
-	{
-		ClearInputField();
-
-		var tags = GetFinalTags(currentText, TagSeparator);
-
-		foreach (string tag in tags)
-		{
-			AddTag(tag);
 		}
 	}
 

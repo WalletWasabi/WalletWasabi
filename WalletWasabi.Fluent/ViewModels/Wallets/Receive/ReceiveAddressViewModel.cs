@@ -25,7 +25,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
-		IsHardwareWallet = wallet.IsHardwareWallet();
+		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);

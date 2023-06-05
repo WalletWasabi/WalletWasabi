@@ -1,4 +1,4 @@
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using WalletWasabi.Fluent.Models;

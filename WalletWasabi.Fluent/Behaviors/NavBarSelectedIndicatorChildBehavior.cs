@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -43,9 +43,8 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 		Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(parent.Classes, "CollectionChanged")
 			.Select(_ => parent.Classes)
 			.Select(x => x.Contains(":selected")
-						 && !x.Contains(":pressed")
-						 && !x.Contains(":dragging")
-						 && x.Contains(":selectable"))
+			             && !x.Contains(":pressed")
+			             && !x.Contains(":dragging"))
 			.DistinctUntilChanged()
 			.Where(x => x)
 			.ObserveOn(RxApp.MainThreadScheduler)
