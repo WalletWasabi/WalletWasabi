@@ -6,7 +6,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
