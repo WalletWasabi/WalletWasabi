@@ -61,7 +61,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 		var (left, yPosition, _, _) = Padding;
 
-		using var a = context.PushPostTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
+		using var a = context.PushTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
 		_noTrimLayout.Draw(context, origin);
 	}
