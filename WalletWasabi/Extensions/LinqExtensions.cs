@@ -105,15 +105,6 @@ public static class LinqExtensions
 		var templates = new Stack<(List<T> Result, ArraySegment<T> Items)>();
 		templates.Push((new List<T>(), itemsArr));
 
-		void PushTemplates(List<T> curTemplate, ArraySegment<T> arr)
-		{
-			for (var i = arr.Count - 1; i >= 0; i--)
-			{
-				var newTemplate = new List<T>(curTemplate) { arr[i] };
-				templates.Push((newTemplate, arr[(i + 1)..]));
-			}
-		}
-
 		while (templates.Count > 0)
 		{
 			var (template, rest) = templates.Pop();
@@ -123,7 +114,11 @@ public static class LinqExtensions
 			}
 			else if (template.Count + rest.Count >= ofLength)
 			{
-				PushTemplates(template, rest);
+				for (var i = rest.Count - 1; i >= 0; i--)
+				{
+					var newTemplate = new List<T>(template) { rest[i] };
+					templates.Push((newTemplate, rest[(i + 1)..]));
+				}
 			}
 		}
 	}
