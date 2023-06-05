@@ -32,6 +32,11 @@ public class TxPropagationVerifier
 		var lastNegativeResult = 0;
 		for (var i = 0; i < Attempts; i++)
 		{
+			if (cancel.IsCancellationRequested)
+			{
+				return;
+			}
+			
 			await Task.Delay(delay, cancel).ConfigureAwait(false);
 			var tasks = new List<Task<bool>>();
 			foreach (var txPropagationVerifier in Verifiers)
@@ -41,26 +46,31 @@ public class TxPropagationVerifier
 
 			while (tasks.Count > 0)
 			{
-				var result = await Task.WhenAny(tasks).ConfigureAwait(false);
-				tasks.Remove(result);
-				
-				if (result.Status == TaskStatus.Faulted)
+				var completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+				tasks = tasks.Except(new[] { completedTask }).ToList();
+
+				bool result;
+				try
+				{
+					result = await completedTask.ConfigureAwait(false);
+				}
+				catch
 				{
 					if (cancel.IsCancellationRequested)
 					{
 						return;
 					}
-					
+
 					// Call to this API provider failed, check result for next one.
 					continue;
 				}
 
-				if (result.Result)
+				if (result)
 				{
 					Logger.LogInfo($"Coinjoin TX {txid} was accepted by third party node in less than {delay.Seconds * (i + 1)} seconds.");
 					return;
 				}
-				
+
 				// Call to this API provider was successful, but the transaction was not present in its mempool
 				lastNegativeResult = i + 1;
 			}
