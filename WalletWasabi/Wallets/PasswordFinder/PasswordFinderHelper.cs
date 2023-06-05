@@ -21,7 +21,13 @@ public static class PasswordFinderHelper
 	public static bool TryFind(PasswordFinderOptions passwordFinderOptions, [NotNullWhen(true)] out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
 	{
 		foundPassword = null;
-		BitcoinEncryptedSecretNoEC encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
+		BitcoinEncryptedSecretNoEC? encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
+
+		// No secret in the watch-only mode.
+		if (encryptedSecret is null)
+		{
+			return false;
+		}
 
 		var charset = Charsets[passwordFinderOptions.Charset] + (passwordFinderOptions.UseNumbers ? "0123456789" : "") + (passwordFinderOptions.UseSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
