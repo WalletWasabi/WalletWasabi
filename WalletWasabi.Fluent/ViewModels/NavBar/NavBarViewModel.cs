@@ -27,8 +27,6 @@ public partial class NavBarViewModel : ViewModelBase
 		UiContext.WalletList
 				 .Wallets
 				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
-
-				 // Sort the list to put the most recently logged in wallet to the top.
 				 .AutoRefresh(x => x.IsLoggedIn)
 				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.WalletModel.Auth.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
 				 .Bind(out var wallets)
