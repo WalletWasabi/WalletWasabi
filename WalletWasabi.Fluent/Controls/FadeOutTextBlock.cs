@@ -36,14 +36,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 	protected override void RenderTextLayout(DrawingContext context, Point origin)
 	{
-		var background = Background;
-
 		var bounds = Bounds;
-
-		if (background != null)
-		{
-			context.FillRectangle(background, Bounds);
-		}
 
 		if (_trimmedLayout is null || _noTrimLayout is null)
 		{
@@ -62,8 +55,8 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var (left, yPosition, _, _) = Padding;
 
 		using var a = context.PushTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
-		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
-		_noTrimLayout.Draw(context, origin);
+		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, bounds) : Disposable.Empty;
+		_noTrimLayout.Draw(context, origin + new Point(_noTrimLayout.OverhangLeading, 0));
 	}
 
 	private void NewCreateTextLayout(Size constraint, string? text)
@@ -129,16 +122,18 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 			return new Size();
 		}
 
-		if (_constraint != availableSize)
+		var sizeNoTrim = _noTrimLayout is null ? default : new Size(_noTrimLayout.Width, _noTrimLayout.Height);
+
+		if (availableSize != sizeNoTrim)
 		{
 			_constraint = availableSize;
 			NewCreateTextLayout(_constraint, Text);
 		}
 
-		var size = _trimmedLayout is null ? default : new Size(_trimmedLayout.Width, _trimmedLayout.Height);
+		var sizeTrimmed = _trimmedLayout is null ? default : new Size(_trimmedLayout.Width, _trimmedLayout.Height);
 
 		OpacityMask = _cutOff ? FadeoutOpacityMask : Brushes.White;
 
-		return size.Inflate(padding);
+		return sizeTrimmed.Inflate(padding);
 	}
 }
