@@ -223,7 +223,7 @@ public class CoordinatorRound
 	public CoinVerifier? CoinVerifier { get; }
 	public RoundNonceProvider NonceProvider { get; }
 
-	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
+	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new();
 
 	private void SetInputRegistrationTimesout()
 	{

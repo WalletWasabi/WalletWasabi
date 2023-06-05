@@ -12,24 +12,25 @@ namespace WalletWasabi.WabiSabi.Client;
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
-	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
+	/// <param name="minAllowedOutputAmount">Min output amount that's allowed to be registered.</param>
+	/// <param name="maxAllowedOutputAmount">Max output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
 	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
+	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
 	{
 		FeeRate = feeRate;
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
-		MinAllowedOutputAmount = allowedOutputAmount.Min;
-		MaxAllowedOutputAmount = allowedOutputAmount.Max;
+		MinAllowedOutputAmount = minAllowedOutputAmount;
+		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
 		Random = random ?? Random.Shared;
 
 		// Create many standard denominations.
-		Denominations = CreateDenominations();
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, IsTaprootAllowed, Random);
 
-		ChangeScriptType = GetNextScriptType();
+		ChangeScriptType = GetNextScriptType(IsTaprootAllowed, Random);
 	}
 
 	public FeeRate FeeRate { get; }
@@ -43,136 +44,14 @@ public class AmountDecomposer
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private Random Random { get; }
 
-	private ScriptType GetNextScriptType()
+	public static ScriptType GetNextScriptType(bool isTaprootAllowed, Random random)
 	{
-		if (!IsTaprootAllowed)
+		if (!isTaprootAllowed)
 		{
 			return ScriptType.P2WPKH;
 		}
 
-		return Random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
-	}
-
-	private IOrderedEnumerable<Output> CreateDenominations()
-	{
-		var denominations = new HashSet<Output>();
-
-		Output CreateDenom(double sats)
-		{
-			var scriptType = GetNextScriptType();
-			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
-		}
-
-		// Powers of 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(2, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3 * 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 2 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 5 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 5);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
 	}
 
 	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
@@ -212,13 +91,20 @@ public class AmountDecomposer
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
-		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 8); // The absolute max possible with the smallest script type.
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
 		// Create the most naive decomposition for starter.
 		var naiveDecomp = CreateNaiveDecomposition(denoms, myInputSum, maxNumberOfOutputsAllowed);
 		setCandidates.Add(naiveDecomp.Key, naiveDecomp.Value);
+
+		// Create more pre-decompositions for sanity.
+		var preDecomps = CreatePreDecompositions(denoms, myInputSum, maxNumberOfOutputsAllowed);
+		foreach (var decomp in preDecomps)
+		{
+			setCandidates.TryAdd(decomp.Key, decomp.Value);
+		}
 
 		// Create many decompositions for optimization.
 		var changelessDecomps = CreateChangelessDecompositions(denoms, myInputSum, maxNumberOfOutputsAllowed);
@@ -232,27 +118,47 @@ public class AmountDecomposer
 
 		// If there are changeless candidates, don't even consider ones with change.
 		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
-		if (changelessCandidates.Any())
+		var changeAvoided = changelessCandidates.Any();
+		if (changeAvoided)
 		{
 			preCandidates = changelessCandidates;
 		}
 		preCandidates.Shuffle();
 
 		var orderedCandidates = preCandidates
-			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Prefer lower change.
+			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Less change is better.
 			.ThenBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomposition.Any(d => d.ScriptType == ScriptType.Taproot) && x.Decomposition.Any(d => d.ScriptType == ScriptType.P2WPKH) ? 0 : 1) // Prefer mixed scripts types.
 			.Select(x => x).ToList();
 
 		// We want to introduce randomness between the best selections.
-		var bestCandidateCost = orderedCandidates.First().Cost;
-		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
-		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+		// If we successfully avoided change, then what matters is cost,
+		// if we didn't then cost calculation is irrelevant, because the size of change is more costly.
+		(IEnumerable<Output> Decomp, Money Cost)[] finalCandidates;
+		if (changeAvoided)
+		{
+			var bestCandidateCost = orderedCandidates.First().Cost;
+			var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
+			finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+		}
+		else
+		{
+			// Change can only be max between: 100.000 satoshis, 10% of the inputs sum or 20% more than the best candidate change
+			var bestCandidateChange = FindChange(orderedCandidates.First().Decomposition, denomHashSet);
+			var changeTolerance = Money.Coins(
+				Math.Max(
+					Math.Max(
+						myInputSum.ToUnit(MoneyUnit.BTC) * 0.1m,
+						bestCandidateChange.ToUnit(MoneyUnit.BTC) * 1.2m),
+					Money.Satoshis(100000).ToUnit(MoneyUnit.BTC)));
+
+			finalCandidates = orderedCandidates.Where(x => FindChange(x.Decomposition, denomHashSet) <= changeTolerance).ToArray();
+		}
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
-		var largestAmount = finalCandidates.Select(x => x.Decomposition.First()).ToHashSet().RandomElement();
-		var finalCandidate = finalCandidates.Where(x => x.Decomposition.First() == largestAmount).RandomElement().Decomposition;
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
 
 		var totalOutputAmount = Money.Satoshis(finalCandidate.Sum(x => x.EffectiveCost));
 		if (totalOutputAmount > myInputSum)
@@ -272,6 +178,11 @@ public class AmountDecomposer
 		return finalCandidate;
 	}
 
+	private static Money FindChange(IEnumerable<Output> decomposition, HashSet<Output> denomHashSet)
+	{
+		return decomposition.Sum(x => denomHashSet.Contains(x) ? Money.Zero : x.Amount);
+	}
+
 	private IDictionary<int, (IEnumerable<Output> Decomp, Money Cost)> CreateChangelessDecompositions(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
 	{
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomp, Money Cost)>();
@@ -282,8 +193,8 @@ public class AmountDecomposer
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
-				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
-				maxCount: maxNumberOfOutputsAllowed,
+				tolerance: MinAllowedOutputAmount + ChangeFee,
+				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
 				stdDenoms: stdDenoms))
 			{
 				var currentSet = Decomposer.ToRealValuesArray(
@@ -314,6 +225,67 @@ public class AmountDecomposer
 		return setCandidates;
 	}
 
+	private IDictionary<int, (IEnumerable<Output> Decomp, Money Cost)> CreatePreDecompositions(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
+	{
+		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomp, Money Cost)>();
+
+		for (int i = 0; i < 10_000; i++)
+		{
+			var remainingVsize = AvailableVsize;
+			var remaining = myInputSum;
+			List<Output> currentSet = new();
+			while (true)
+			{
+				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement()
+					?? denoms.FirstOrDefault(x => x.EffectiveCost <= remaining);
+
+				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).
+				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
+				if (denom is null ||
+					(remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
+				{
+					break;
+				}
+
+				currentSet.Add(denom);
+				remaining -= denom.EffectiveCost;
+				remainingVsize -= denom.ScriptType.EstimateOutputVsize();
+
+				// Can't have more denoms than max - 1, where -1 is to account for possible change.
+				if (currentSet.Count >= maxNumberOfOutputsAllowed - 1)
+				{
+					break;
+				}
+			}
+
+			var loss = Money.Zero;
+			if (remaining >= MinAllowedOutputAmount + ChangeFee)
+			{
+				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
+				currentSet.Add(change);
+			}
+			else
+			{
+				// This goes to miners.
+				loss = remaining;
+			}
+
+			// This can happen when smallest denom is larger than the input sum.
+			if (currentSet.Count == 0)
+			{
+				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
+				currentSet.Add(change);
+			}
+
+			setCandidates.TryAdd(
+				CalculateHash(currentSet), // Create hash to ensure uniqueness.
+				(currentSet, loss + CalculateCost(currentSet)));
+		}
+
+		return setCandidates;
+	}
+
 	private KeyValuePair<int, (IEnumerable<Output> Decomp, Money Cost)> CreateNaiveDecomposition(IEnumerable<Output> denoms, Money myInputSum, int maxNumberOfOutputsAllowed)
 	{
 		var remainingVsize = AvailableVsize;
@@ -325,8 +297,10 @@ public class AmountDecomposer
 			bool end = false;
 			while (denom.EffectiveCost <= remaining)
 			{
-				// We can only let this go forward if at least 2 output can be added (denom + potential change)
-				if (remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				// Continue only if there is enough remaining amount and size to create one output + change (if change will potentially be created).
+				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
+				if ((remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					end = true;
 					break;

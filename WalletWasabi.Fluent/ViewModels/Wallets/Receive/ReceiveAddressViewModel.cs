@@ -37,7 +37,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
+		QrCode = UiContext.QrCodeGenerator.Generate(model.Text.ToUpperInvariant());
 
 		if (IsAutoCopyEnabled)
 		{
