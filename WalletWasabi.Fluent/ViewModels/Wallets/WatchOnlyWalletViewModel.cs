@@ -5,8 +5,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class WatchOnlyWalletViewModel : WalletViewModel
 {
-	internal WatchOnlyWalletViewModel(UiContext uiContext, Wallet wallet)
-		: base(uiContext, wallet)
+	internal WatchOnlyWalletViewModel(UiContext uiContext, WalletPageViewModel parent)
+		: base(uiContext, parent)
 	{
 	}
 }

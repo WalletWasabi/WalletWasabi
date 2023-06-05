@@ -21,7 +21,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
-	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
+	public WalletSettingsViewModel(WalletViewModel walletViewModelBase)
 	{
 		_wallet = walletViewModelBase.Wallet;
 		Title = $"{_wallet.WalletName} - Wallet Settings";
