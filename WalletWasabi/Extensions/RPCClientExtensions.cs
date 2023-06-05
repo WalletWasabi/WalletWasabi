@@ -15,9 +15,11 @@ namespace WalletWasabi.Extensions;
 
 public static class RPCClientExtensions
 {
-	public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, CancellationToken cancellationToken = default)
+	public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, bool simulateIfRegTest = false, CancellationToken cancellationToken = default)
 	{
+		EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative;
 		EstimateSmartFeeResponse result;
+
 		if (simulateIfRegTest && rpc.Network == Network.RegTest)
 		{
 			result = SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
