@@ -146,7 +146,7 @@
 
     <!-- Wallet List -->
     <DockPanel MaxWidth="75" LastChildFill="True">
-      <ListBox Items="{Binding Wallets}"
+      <ListBox ItemsSource="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
                SelectedItem="{Binding SelectedWallet}"
                Background="Transparent">
