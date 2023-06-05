@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
@@ -87,7 +88,6 @@ public record RoundParameters
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee
 												  ?? new FeeRate(Money.Satoshis(1000));
-	public bool IsTaprootAllowed => AllowedOutputTypes.Contains(ScriptType.Taproot);
 
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
@@ -122,12 +122,12 @@ public record RoundParameters
 	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
 	public Money CalculateMinReasonableOutputAmount()
 	{
-		var minEconomicalOutput = MiningFeeRate.GetFee(
-						Math.Max(
-							ScriptType.P2WPKH.EstimateInputVsize() + ScriptType.P2WPKH.EstimateOutputVsize(),
-							ScriptType.Taproot.EstimateInputVsize() + ScriptType.Taproot.EstimateOutputVsize()));
+		var minEconomicalOutput = MiningFeeRate.GetFee(MaxVsizeInputOutputPair);
 		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
 	}
+
+	private int MaxVsizeInputOutputPair => AllowedOutputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+	private ScriptType MaxVsizeInputOutputPairScriptType => AllowedOutputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
 
 	/// <returns>Smallest effective denom that's larger than min reasonable output amount. </returns>
 	public Money CalculateSmallestReasonableEffectiveDenomination()
@@ -136,7 +136,7 @@ public record RoundParameters
 				CalculateMinReasonableOutputAmount(),
 				AllowedInputAmounts.Max,
 				MiningFeeRate,
-				IsTaprootAllowed,
+				new List<ScriptType>() { MaxVsizeInputOutputPairScriptType },
 				Random.Shared)
 			.Min(x => x.EffectiveCost);
 
