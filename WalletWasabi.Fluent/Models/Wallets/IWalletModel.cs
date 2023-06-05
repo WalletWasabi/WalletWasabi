@@ -24,6 +24,7 @@ public interface IWalletModel
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+
 	IWalletBalancesModel Balances { get; }
 
 	bool IsHardwareWallet { get; }
