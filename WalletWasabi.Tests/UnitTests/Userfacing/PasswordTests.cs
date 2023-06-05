@@ -98,7 +98,7 @@ public class PasswordTests
 		Assert.True(PasswordHelper.IsTrimmable(original, out original));
 
 		Logger.TurnOff();
-		Assert.False(PasswordHelper.TryPassword(keyManager, "falsepassword", out _));
+		Assert.False(PasswordHelper.TryPassword(keyManager, "falsePassword", out _));
 
 		// This should pass
 		Assert.NotNull(PasswordHelper.GetMasterExtKey(keyManager, original!, out _));

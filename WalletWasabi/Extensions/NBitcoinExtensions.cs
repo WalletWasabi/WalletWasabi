@@ -27,8 +27,8 @@ public static class NBitcoinExtensions
 		}
 
 		using var listener = node.CreateListener();
-		var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
-		await node.SendMessageAsync(getdata).ConfigureAwait(false);
+		var getData = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
+		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
 		// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
@@ -151,7 +151,7 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.Height,
 			unsignedSmartTransaction.BlockHash,
 			unsignedSmartTransaction.BlockIndex,
-			unsignedSmartTransaction.Label,
+			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
 			unsignedSmartTransaction.FirstSeen);
 	}
@@ -393,10 +393,10 @@ public static class NBitcoinExtensions
 
 	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
 	{
-		var netFee = feeRate.GetFee(virtualSize);
-		var coordFee = coordinationFeeRate.GetFee(amount);
+		var networkFee = feeRate.GetFee(virtualSize);
+		var coordinationFee = coordinationFeeRate.GetFee(amount);
 
-		return amount - netFee - coordFee;
+		return amount - networkFee - coordinationFee;
 	}
 
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>

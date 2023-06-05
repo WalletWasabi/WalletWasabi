@@ -15,6 +15,6 @@ public class RoundBootstrapper : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		await Coordinator.MakeSureInputregistrableRoundRunningAsync().ConfigureAwait(false);
+		await Coordinator.MakeSureInputRegistrableRoundRunningAsync().ConfigureAwait(false);
 	}
 }

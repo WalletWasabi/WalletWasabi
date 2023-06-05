@@ -12,12 +12,12 @@ public class UnblindedSignatureJsonConverter : JsonConverter<UnblindedSignature>
 	/// <inheritdoc />
 	public override UnblindedSignature? ReadJson(JsonReader reader, Type objectType, UnblindedSignature? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		JArray arr = JArray.Load(reader);
+		JArray jArray = JArray.Load(reader);
 
-		var carr = ToFixedLengthByteArray(StringToBigInteger(arr[0].Value<string>()));
-		var sarr = ToFixedLengthByteArray(StringToBigInteger(arr[1].Value<string>()));
+		var cArray = ToFixedLengthByteArray(StringToBigInteger(jArray[0].Value<string>()));
+		var sArray = ToFixedLengthByteArray(StringToBigInteger(jArray[1].Value<string>()));
 
-		var signatureBytes = carr.Concat(sarr).ToArray();
+		var signatureBytes = cArray.Concat(sArray).ToArray();
 		var signature = ByteHelpers.ToHex(signatureBytes);
 
 		var sig = UnblindedSignature.Parse(signature);

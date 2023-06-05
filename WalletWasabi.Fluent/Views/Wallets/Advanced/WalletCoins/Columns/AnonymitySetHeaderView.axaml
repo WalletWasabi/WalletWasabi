@@ -7,9 +7,5 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.AnonymitySetHeaderView">
-  <PathIcon Data="{StaticResource shield_regular}"
-            Opacity="0.6"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            ToolTip.Tip="Anonymity Score" />
+  <TextBlock Text="AS" ToolTip.Tip="Anonymity Score" HorizontalAlignment="Center" />
 </UserControl>

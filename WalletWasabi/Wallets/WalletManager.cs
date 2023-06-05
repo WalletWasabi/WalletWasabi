@@ -199,7 +199,7 @@ public class WalletManager : IWalletProvider
 			}
 
 			Logger.LogWarning($"Wallet got corrupted.\n" +
-				$"Wallet Filepath: {walletFullPath}\n" +
+				$"Wallet file path: {walletFullPath}\n" +
 				$"Trying to recover it from backup.\n" +
 				$"Backup path: {walletBackupFullPath}\n" +
 				$"Exception: {ex}");
@@ -387,6 +387,14 @@ public class WalletManager : IWalletProvider
 		}
 
 		IsInitialized = true;
+	}
+
+	public void EnsureTurboSyncHeightConsistency()
+	{
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			km.EnsureTurboSyncHeightConsistency();
+		}
 	}
 
 	public void SetMaxBestHeight(uint bestHeight)

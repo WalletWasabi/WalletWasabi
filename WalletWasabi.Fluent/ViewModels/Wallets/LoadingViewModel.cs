@@ -7,12 +7,15 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class LoadingViewModel : ActivatableViewModel
+[NavigationMetaData(Title = null)]
+public partial class LoadingViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 
@@ -24,6 +27,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 	private uint _filtersToDownloadCount;
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
+	private CompositeDisposable? _disposable;
 
 	public LoadingViewModel(Wallet wallet)
 	{
@@ -37,16 +41,20 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-	protected override void OnActivated(CompositeDisposable disposables)
+	// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+	// Remove in next PR
+	public void Activate()
 	{
+		_disposable = new CompositeDisposable();
+
 		_stopwatch = Stopwatch.StartNew();
 
-		disposables.Add(Disposable.Create(() => _stopwatch.Stop()));
+		_disposable.Add(Disposable.Create(() => _stopwatch.Stop()));
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
 			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
-			.DisposeWith(disposables);
+			.DisposeWith(_disposable);
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
 			.SubscribeAsync(async _ =>
@@ -58,7 +66,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
 			})
-			.DisposeWith(disposables);
+			.DisposeWith(_disposable);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -67,7 +75,14 @@ public partial class LoadingViewModel : ActivatableViewModel
 				var processedCount = GetCurrentProcessedCount();
 				UpdateStatus(processedCount);
 			})
-			.DisposeWith(disposables);
+			.DisposeWith(_disposable);
+	}
+
+	// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
+	// Remove in next PR
+	public void Deactivate()
+	{
+		_disposable?.Dispose();
 	}
 
 	private uint GetCurrentProcessedCount()
@@ -105,7 +120,23 @@ public partial class LoadingViewModel : ActivatableViewModel
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
 
-		await UiServices.WalletManager.LoadWalletAsync(_wallet).ConfigureAwait(false);
+		if (_wallet.State != WalletState.Uninitialized)
+		{
+			throw new Exception("Wallet is already being logged in.");
+		}
+
+		try
+		{
+			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_wallet));
+		}
+		catch (OperationCanceledException ex)
+		{
+			Logger.LogTrace(ex);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)

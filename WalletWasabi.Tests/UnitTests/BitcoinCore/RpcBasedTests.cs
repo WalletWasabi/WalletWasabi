@@ -286,7 +286,7 @@ public class RpcBasedTests
 
 			await rpc.CreateWalletAsync("wallet");
 			await rpc.GenerateAsync(101);
-			var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+			var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
 
 			txs = await rpc.GetRawTransactionsAsync(new[] { txid }, CancellationToken.None);
 			Assert.Single(txs);
@@ -294,7 +294,7 @@ public class RpcBasedTests
 			List<uint256> txids = new();
 			for (int i = 0; i < 2; i++)
 			{
-				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
 				txids.Add(txid2);
 			}
 
@@ -304,7 +304,7 @@ public class RpcBasedTests
 			txids = new();
 			for (int i = 0; i < 20; i++)
 			{
-				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
 				txids.Add(txid2);
 			}
 

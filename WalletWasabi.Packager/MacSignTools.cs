@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -515,11 +515,8 @@ public static class MacSignTools
 			RedirectStandardError = true,
 			RedirectStandardOutput = true,
 			CreateNoWindow = true
-		});
-		if (process is null)
-		{
-			throw new InvalidOperationException("Could not start bash process.");
-		}
+		})
+		?? throw new InvalidOperationException("Could not start bash process.");
 		var result = process.StandardOutput.ReadToEnd();
 		process.WaitForExit();
 

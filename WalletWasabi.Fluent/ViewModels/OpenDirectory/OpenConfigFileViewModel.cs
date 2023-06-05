@@ -12,5 +12,5 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 	IconName = "document_regular")]
 public partial class OpenConfigFileViewModel : OpenFileViewModel
 {
-	public override string FilePath => Services.Config.FilePath;
+	public override string FilePath => Services.PersistentConfig.FilePath;
 }

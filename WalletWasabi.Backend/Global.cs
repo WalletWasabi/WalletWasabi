@@ -215,12 +215,8 @@ public class Global : IDisposable
 			{
 				if (blocks < 101)
 				{
-					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken);
-					if (generateBlocksResponse is null)
-					{
-						throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
-					}
-
+					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken)
+						?? throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
 					blockchainInfo = await rpcClient.GetBlockchainInfoAsync(cancellationToken);
 					blocks = blockchainInfo.Blocks;
 					if (blocks == 0)

@@ -220,7 +220,7 @@ public class Coordinator : IDisposable
 		}
 	}
 
-	public async Task MakeSureInputregistrableRoundRunningAsync()
+	public async Task MakeSureInputRegistrableRoundRunningAsync()
 	{
 		if (!Rounds.Any(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
 		{
@@ -320,12 +320,12 @@ public class Coordinator : IDisposable
 						var feePerInputs = fees.feePerInputs;
 						var feePerOutputs = fees.feePerOutputs;
 
-						Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
-						if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
+						Money newDenominationToGetInWithActiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
+						if (newDenominationToGetInWithActiveOutputs < RoundConfig.Denomination)
 						{
-							if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
+							if (newDenominationToGetInWithActiveOutputs > Money.Coins(0.01m))
 							{
-								RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
+								RoundConfig.Denomination = newDenominationToGetInWithActiveOutputs;
 								RoundConfig.ToFile();
 							}
 						}

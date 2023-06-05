@@ -3,6 +3,7 @@ using System.Net;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -35,12 +36,12 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-		_network = Services.Config.Network;
-		_startLocalBitcoinCoreOnStartup = Services.Config.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = Services.Config.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = Services.Config.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = Services.Config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = Services.Config.DustThreshold.ToString();
+		_network = Services.PersistentConfig.Network;
+		_startLocalBitcoinCoreOnStartup = Services.PersistentConfig.StartLocalBitcoinCoreOnStartup;
+		_localBitcoinCoreDataDir = Services.PersistentConfig.LocalBitcoinCoreDataDir;
+		_stopLocalBitcoinCoreOnShutdown = Services.PersistentConfig.StopLocalBitcoinCoreOnShutdown;
+		_bitcoinP2PEndPoint = Services.PersistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_dustThreshold = Services.PersistentConfig.DustThreshold.ToString();
 
 		this.WhenAnyValue(
 				x => x.Network,
@@ -99,26 +100,26 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 		}
 	}
 
-	protected override void EditConfigOnSave(Config config)
+	protected override void EditConfigOnSave(PersistentConfig persistentConfig)
 	{
-		if (Network == config.Network)
+		if (Network == persistentConfig.Network)
 		{
 			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
 			{
-				config.SetBitcoinP2pEndpoint(p2PEp);
+				persistentConfig.SetBitcoinP2pEndpoint(p2PEp);
 			}
 
-			config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-			config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-			config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+			persistentConfig.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
+			persistentConfig.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
+			persistentConfig.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
+			persistentConfig.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
 				? Money.Coins(threshold)
-				: Config.DefaultDustThreshold;
+				: PersistentConfig.DefaultDustThreshold;
 		}
 		else
 		{
-			config.Network = Network;
-			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			persistentConfig.Network = Network;
+			BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
 	}
 }

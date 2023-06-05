@@ -5,15 +5,16 @@ using System.Diagnostics;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.Wallets;
+using SecureRandom = WabiSabi.Crypto.Randomness.SecureRandom;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public static class CoinJoinCoinSelector
+public class CoinJoinCoinSelector
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
@@ -21,27 +22,37 @@ public static class CoinJoinCoinSelector
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
-	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	public static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
-		IEnumerable<TCoin> coins,
-		UtxoSelectionParameters parameters,
+	public CoinJoinCoinSelector(
 		bool consolidationMode,
 		int anonScoreTarget,
 		int semiPrivateThreshold,
-		Money liquidityClue,
 		WasabiRandom rnd)
+	{
+		ConsolidationMode = consolidationMode;
+		AnonScoreTarget = anonScoreTarget;
+		SemiPrivateThreshold = semiPrivateThreshold;
+		Rnd = rnd;
+	}
+
+	public bool ConsolidationMode { get; }
+	public int AnonScoreTarget { get; }
+	public int SemiPrivateThreshold { get; }
+	private WasabiRandom Rnd { get; }
+
+	public static CoinJoinCoinSelector FromWallet(IWallet wallet) =>
+		new(
+			wallet.ConsolidationMode,
+			wallet.AnonScoreTarget,
+			wallet.RedCoinIsolation ? Constants.SemiPrivateThreshold : 0,
+			SecureRandom.Instance);
+
+	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
+	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
-		if (semiPrivateThreshold < 0)
-		{
-			throw new ArgumentException("Cannot be negative", nameof(semiPrivateThreshold));
-		}
-
-		// Sanity check.
-		if (liquidityClue <= Money.Zero)
-		{
-			liquidityClue = Constants.MaximumNumberOfBitcoinsMoney;
-		}
+		liquidityClue = liquidityClue > Money.Zero
+			? liquidityClue
+			: Constants.MaximumNumberOfBitcoinsMoney;
 
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -49,21 +60,28 @@ public static class CoinJoinCoinSelector
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
+		// Sanity check.
+		if (!filteredCoins.Any())
+		{
+			Logger.LogInfo("No suitable coins for this round.");
+			return ImmutableList<TCoin>.Empty;
+		}
+
 		var privateCoins = filteredCoins
-			.Where(x => x.IsPrivate(anonScoreTarget))
+			.Where(x => x.IsPrivate(AnonScoreTarget))
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
+			.Where(x => x.IsSemiPrivate(AnonScoreTarget, SemiPrivateThreshold))
 			.ToArray();
 
-		// redCoins will only fill up if redCoinIsolaton is turned on. Otherwise the coin will be in semiPrivateCoins.
+		// redCoins will only fill up if redCoinIsolation is turned on. Otherwise the coin will be in semiPrivateCoins.
 		var redCoins = filteredCoins
-			.Where(x => x.IsRedCoin(semiPrivateThreshold))
+			.Where(x => x.IsRedCoin(SemiPrivateThreshold))
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			// Let's not mess up the logs when this function gets called many times.
+			Logger.LogInfo("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -86,8 +104,8 @@ public static class CoinJoinCoinSelector
 
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(rnd));
-		if (consolidationMode)
+			ConsolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(Rnd));
+		if (ConsolidationMode)
 		{
 			Logger.LogDebug($"Consolidation mode is on.");
 		}
@@ -169,7 +187,7 @@ public static class CoinJoinCoinSelector
 		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
 		foreach (var coin in remainingLargestNonPrivateCoins.OrderByDescending(x => x.Amount))
 		{
-			if (rnd.GetInt(1, 101) <= 50)
+			if (Rnd.GetInt(1, 101) <= 50)
 			{
 				selectedNonPrivateCoin = coin;
 				break;
@@ -225,7 +243,7 @@ public static class CoinJoinCoinSelector
 			percent = 80;
 		}
 
-		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
+		int sameTxAllowance = GetRandomBiasedSameTxAllowance(Rnd, percent);
 
 		List<TCoin> winner = new()
 		{
@@ -259,7 +277,7 @@ public static class CoinJoinCoinSelector
 		{
 			List<TCoin> bestReducedWinner = winner;
 			var bestAnonLoss = winnerAnonLoss;
-			bool winnerchanged = false;
+			bool winnerChanged = false;
 
 			// We always want to keep the non-private coins.
 			foreach (TCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
@@ -271,11 +289,11 @@ public static class CoinJoinCoinSelector
 				{
 					bestAnonLoss = anonLoss;
 					bestReducedWinner = reducedWinner.ToList();
-					winnerchanged = true;
+					winnerChanged = true;
 				}
 			}
 
-			if (!winnerchanged)
+			if (!winnerChanged)
 			{
 				break;
 			}
@@ -341,12 +359,8 @@ public static class CoinJoinCoinSelector
 			}
 			alternating.AddRange(skipped);
 
-			var coin = alternating.BiasedRandomElement(50);
-			if (coin is null)
-			{
-				throw new NotSupportedException("This is impossible.");
-			}
-
+			var coin = alternating.BiasedRandomElement(50)
+				?? throw new NotSupportedException("This is impossible.");
 			orderedCoins.Add(coin);
 			yield return coin;
 		}

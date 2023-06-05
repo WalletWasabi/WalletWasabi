@@ -29,12 +29,12 @@ public class BuiltTransactionData
 	public CoordinationFeeRate CoordinationFeeRate { get; }
 	public Money MinRegistrableAmount { get; }
 
-	public Body GetAffiliationData(string affiliationId)
+	public Body GetAffiliationData(string affiliationId, uint256 txId)
 	{
 		IEnumerable<Input> inputs = Inputs.Select(x => Input.FromAffiliateInput(x, affiliationId));
 		IEnumerable<Output> outputs = Outputs.Select(x => Output.FromTxOut(x));
 
-		return new Body(inputs, outputs, Network.ToSlip44CoinType(), CoordinationFeeRate.Rate, CoordinationFeeRate.PlebsDontPayThreshold.Satoshi, MinRegistrableAmount.Satoshi, GetUnixTimestamp());
+		return new Body(txId.ToString(), inputs, outputs, Network.ToSlip44CoinType(), CoordinationFeeRate.Rate, CoordinationFeeRate.PlebsDontPayThreshold.Satoshi, MinRegistrableAmount.Satoshi, GetUnixTimestamp());
 	}
 
 	private static long GetUnixTimestamp()

@@ -21,8 +21,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private DateTimeOffset? _bannedUntilUtc;
 	private bool _spentAccordingToBackend;
 
-	private ISecret? _secret;
-
 	private bool _confirmed;
 	private bool _isBanned;
 	private bool _isExcludedFromCoinJoin;
@@ -84,12 +82,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
-
 	public bool CoinJoinInProgress
 	{
 		get => _coinJoinInProgress;
@@ -119,16 +111,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public HdPubKey HdPubKey { get; }
 
-	/// <summary>
-	/// It's a secret, so it's usually going to be null. Do not use it.
-	/// This will not get serialized, because that's a security risk.
-	/// </summary>
-	public ISecret? Secret
-	{
-		get => _secret;
-		set => RaiseAndSetIfChanged(ref _secret, value);
-	}
-
 	public bool Confirmed
 	{
 		get => _confirmed;
@@ -149,6 +131,12 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _isExcludedFromCoinJoin;
 		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
+
+	public bool RegisterToHdPubKey()
+		=> HdPubKey.Coins.Add(this);
+
+	public bool UnregisterFromHdPubKey()
+		=> HdPubKey.Coins.Remove(this);
 
 	public bool IsImmature(int bestHeight)
 	{

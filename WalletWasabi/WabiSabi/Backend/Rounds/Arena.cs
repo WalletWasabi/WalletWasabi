@@ -127,7 +127,7 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x =>
 			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			&& x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 			.ToArray())
 		{
 			try
@@ -162,7 +162,7 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (round.InputCount < Config.MinInputCountByRound)
+				if (round.InputCount < round.Parameters.MinInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
@@ -171,9 +171,9 @@ public partial class Arena : PeriodicRunner
 
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
+					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
-				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
 					MaxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					SetRoundPhase(round, Phase.ConnectionConfirmation);
@@ -210,7 +210,7 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
 					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
 					// remove any spent inputs.
-					if (round.InputCount >= Config.MinInputCountByRound)
+					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
@@ -222,10 +222,10 @@ public partial class Arena : PeriodicRunner
 						}
 					}
 
-					if (round.InputCount < Config.MinInputCountByRound)
+					if (round.InputCount < round.Parameters.MinInputCountByRound)
 					{
 						EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
+						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({round.Parameters.MinInputCountByRound}).");
 					}
 					else
 					{
@@ -299,12 +299,23 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo("Trying to broadcast coinjoin.");
 					Coin[]? spentCoins = round.Alices.Select(x => x.Coin).ToArray();
 					Money networkFee = coinjoin.GetFee(spentCoins);
+					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
+					round.LogInfo($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
+					round.LogInfo($"Desired Fee Rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vByte.");
 
-					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
-					round.LogInfo(
-						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					// Added for monitoring reasons.
+					try
+					{
+						FeeRate targetFeeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+						round.LogInfo($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug($"Could not log fee rate monitoring: '{ex.Message}'.");
+					}
+
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
 					round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
 					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
@@ -334,8 +345,8 @@ public partial class Arena : PeriodicRunner
 					}
 
 					foreach (var address in coinjoin.Outputs
-								 .Select(x => x.ScriptPubKey)
-								 .Where(script => CoinJoinScriptStore?.Contains(script) is true))
+						.Select(x => x.ScriptPubKey)
+						.Where(script => CoinJoinScriptStore?.Contains(script) is true))
 					{
 						if (address == round.CoordinatorScript)
 						{
@@ -413,7 +424,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByRound)
+		if (round.InputCount >= round.Parameters.MinInputCountByRound)
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -452,7 +463,7 @@ public partial class Arena : PeriodicRunner
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
 				&& x.InputCount >= roundDestroyerInputCount).ToArray())
 			{
 				feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
@@ -469,7 +480,7 @@ public partial class Arena : PeriodicRunner
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
-									&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+									&& !x.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound)
 									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
@@ -530,7 +541,7 @@ public partial class Arena : PeriodicRunner
 			r = new Round(parameters, SecureRandom.Instance);
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
-				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
 				.ThenBy(x => x.InputCount);
 			times++;
@@ -563,7 +574,7 @@ public partial class Arena : PeriodicRunner
 
 	private void TimeoutAlices()
 	{
-		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
+		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)).ToArray())
 		{
 			var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
 			foreach (var alice in alicesToRemove)

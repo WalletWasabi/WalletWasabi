@@ -139,7 +139,7 @@ public partial class AboutViewModel : RoutableViewModel
 
 	public static string UserSupportLink => "https://github.com/zkSNACKs/WalletWasabi/discussions/5185";
 
-	public static string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
+	public static string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/new?template=bug-report.md";
 
 	public static string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
 

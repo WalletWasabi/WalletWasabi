@@ -44,7 +44,7 @@ public class WabiSabiConfig : ConfigBase
 	public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
 
 	/// <summary>
-	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
+	/// The width of the range proofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
 	[DefaultValueMoneyBtc("43000")]
 	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]

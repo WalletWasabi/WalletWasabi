@@ -12,6 +12,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -29,12 +30,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
-	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
-
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	public HistoryViewModel(WalletViewModel walletVm)
+	private HistoryViewModel(WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
@@ -78,10 +77,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		};
 
 		Source.RowSelection!.SingleSelect = true;
-
-		Source.RowSelection
-			.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(x => SelectedItem = x);
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
@@ -136,8 +131,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label),
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
 				MinWidth = new GridLength(100, GridUnitType.Pixel)
 			},
 			width: new GridLength(1, GridUnitType.Star));
@@ -209,13 +204,29 @@ public partial class HistoryViewModel : ActivatableViewModel
 			return item.Id == txid;
 		});
 
-		if (txnItem is { })
+		if (txnItem is { } && Source.RowSelection is { } selection)
 		{
-			SelectedItem = txnItem;
-			SelectedItem.IsFlashing = true;
+			// Clear the selection so re-selection will work.
+			Dispatcher.UIThread.Post(() => selection.Clear());
 
-			var index = _transactions.IndexOf(SelectedItem);
-			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
+			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
+			// Selecting first the root item, then the child solves the issue.
+			var index = _transactions.IndexOf(txnItem);
+			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
+
+			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
+				cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
+			{
+				txnItem.IsExpanded = true;
+				child.IsFlashing = true;
+
+				var childIndex = cjGroup.Children.IndexOf(child);
+				Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index, childIndex));
+			}
+			else
+			{
+				txnItem.IsFlashing = true;
+			}
 		}
 	}
 
@@ -263,14 +274,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(i, item, _walletVm, balance);
+				yield return new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance);
 			}
 
 			if (item.IsOwnCoinjoin)
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, _walletVm);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(UiContext, i, item, _walletVm);
 				}
 				else
 				{
@@ -284,7 +295,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
-					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
+					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
 					yield return singleCjItem;
 				}
 				else

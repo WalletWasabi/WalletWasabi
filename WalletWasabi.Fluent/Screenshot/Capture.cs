@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -14,27 +14,6 @@ namespace WalletWasabi.Fluent.Screenshot;
 
 public static class Capture
 {
-	private class CanvasRenderTarget : IRenderTarget
-	{
-		private readonly SKCanvas _canvas;
-		private readonly double _dpi;
-
-		public CanvasRenderTarget(SKCanvas canvas, double dpi)
-		{
-			_canvas = canvas;
-			_dpi = dpi;
-		}
-
-		public IDrawingContextImpl CreateDrawingContext(IVisualBrushRenderer? visualBrushRenderer)
-		{
-			return DrawingContextHelper.WrapSkiaCanvas(_canvas, new Vector(_dpi, _dpi), visualBrushRenderer);
-		}
-
-		public void Dispose()
-		{
-		}
-	}
-
 	public static void AttachCapture(this TopLevel root)
 	{
 		AttachCapture(root, new(Key.F6));
@@ -145,6 +124,27 @@ public static class Capture
 					picture.Serialize(stream);
 					break;
 				}
+		}
+	}
+
+	private class CanvasRenderTarget : IRenderTarget
+	{
+		private readonly SKCanvas _canvas;
+		private readonly double _dpi;
+
+		public CanvasRenderTarget(SKCanvas canvas, double dpi)
+		{
+			_canvas = canvas;
+			_dpi = dpi;
+		}
+
+		public IDrawingContextImpl CreateDrawingContext(IVisualBrushRenderer? visualBrushRenderer)
+		{
+			return DrawingContextHelper.WrapSkiaCanvas(_canvas, new Vector(_dpi, _dpi), visualBrushRenderer);
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

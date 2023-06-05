@@ -20,7 +20,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	[AutoNotify] private bool _hasPrivateBalance;
 	[AutoNotify] private bool _showPrivacyBar;
 
-	public PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
+	private PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
 	{
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
@@ -55,7 +55,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void ShowDetails()
 	{
-		UiContext.Navigate(NavigationTarget.DialogScreen).To(new PrivacyRingViewModel(_walletVm));
+		UiContext.Navigate().To().PrivacyRing(_walletVm);
 	}
 
 	private void Update()

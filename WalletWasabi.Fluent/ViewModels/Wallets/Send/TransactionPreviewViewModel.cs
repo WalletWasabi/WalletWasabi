@@ -22,6 +22,7 @@ using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -163,7 +164,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (Transaction is { })
 		{
-			var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+			bool saved = false;
+			try
+			{
+				saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync("Transaction Export", ex.ToUserFriendlyString(), "Wasabi was unable to export the PSBT.");
+			}
 
 			if (saved)
 			{
@@ -405,7 +415,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
 			.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
-			.DisposeWith(disposables);
+		.DisposeWith(disposables);
 
 		if (!isInHistory)
 		{

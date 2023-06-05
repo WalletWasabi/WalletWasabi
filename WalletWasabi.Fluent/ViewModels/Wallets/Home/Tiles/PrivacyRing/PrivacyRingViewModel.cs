@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -28,13 +29,14 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	[AutoNotify] private Thickness _margin;
 	[AutoNotify] private Thickness _negativeMargin;
 
-	public PrivacyRingViewModel(WalletViewModel walletViewModel)
+	public PrivacyRingViewModel(UiContext uiContext, WalletViewModel walletViewModel)
 	{
+		UiContext = uiContext;
 		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
-		PrivacyTile = new PrivacyControlTileViewModel(walletViewModel, false);
+		PrivacyTile = new PrivacyControlTileViewModel(UiContext, walletViewModel, false);
 		PrivacyTile.Activate(_disposables);
 
 		PreviewItems.Add(PrivacyTile);
@@ -114,10 +116,10 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin()
 	{
-		var groupsByPrivacy =
-			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-										 .OrderBy(x => (int)x.Key)
-										 .ToList();
+		var groupsByPrivacy = _walletViewModel.Wallet.Coins
+			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+			.OrderBy(x => (int)x.Key)
+			.ToList();
 
 		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
@@ -144,10 +146,10 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		var groupsByPrivacy =
-			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-										 .OrderBy(x => (int)x.Key)
-										 .ToList();
+		var groupsByPrivacy = _walletViewModel.Wallet.Coins
+			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+			.OrderBy(x => (int)x.Key)
+			.ToList();
 
 		foreach (var group in groupsByPrivacy)
 		{

@@ -10,7 +10,7 @@
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
-  <c:ContentArea Title="Unused Receive Addresses"
+  <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">

@@ -17,6 +17,8 @@ public interface INavigationStack<T> where T : INavigatable
 
 	void To(T viewmodel, NavigationMode mode = NavigationMode.Normal);
 
+	FluentNavigate To();
+
 	void Back();
 
 	void BackTo(T viewmodel);

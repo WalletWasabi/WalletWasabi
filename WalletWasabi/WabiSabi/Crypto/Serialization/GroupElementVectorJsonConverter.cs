@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Text.Json;
 using Newtonsoft.Json;
 using WabiSabi.Crypto.Groups;
-using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
@@ -15,9 +12,12 @@ public class GroupElementVectorJsonConverter : JsonConverter<GroupElementVector>
 	{
 		if (reader.TokenType == JsonToken.StartArray)
 		{
-			var ges = serializer.Deserialize<GroupElement[]>(reader);
+			var ges = serializer.Deserialize<GroupElement[]>(reader)
+				?? throw new JsonException("Array was expected. Null was given.");
+
 			return ReflectionUtils.CreateInstance<GroupElementVector>(ges);
 		}
+
 		throw new ArgumentException($"No valid serialized {nameof(GroupElement)} passed.");
 	}
 

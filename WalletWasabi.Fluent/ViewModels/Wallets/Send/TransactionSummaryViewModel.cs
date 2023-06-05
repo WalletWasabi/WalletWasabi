@@ -20,8 +20,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
-	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
-	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
+	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
+	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private string _fee = "";
 	[AutoNotify] private string _amount = "";
 
@@ -76,7 +76,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
-		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient.Labels));
+		Labels = new LabelsArray(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient));
 		TransactionHasPockets = Labels.Any();
 
 		Recipient = info.Recipient;

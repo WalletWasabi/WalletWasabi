@@ -279,7 +279,7 @@ public class BlockchainController : ControllerBase
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>
 	/// <response code="400">The provided hash was malformed or the count value is out of range</response>
-	/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
+	/// <response code="404">If the hash is not found. This happens at blockchain reorg.</response>
 	[HttpGet("filters")]
 	[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
 	[ProducesResponseType(204)]
