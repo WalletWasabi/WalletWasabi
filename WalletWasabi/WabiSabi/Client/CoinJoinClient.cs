@@ -161,12 +161,7 @@ public class CoinJoinClient
 				continue;
 			}
 
-			var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
-				roundParameters.CalculateMinReasonableOutputAmount(),
-				roundParameters.AllowedInputAmounts.Max,
-				roundParameters.MiningFeeRate,
-				roundParameters.IsTaprootAllowed,
-				Random.Shared).Min(x => x.EffectiveCost);
+			var smallestEffectiveDenom = roundParameters.CalculateSmallestReasonableEffectiveDenomination();
 			var effectiveInputSum = coins.Sum(x => x.EffectiveValue(roundParameters.MiningFeeRate));
 			if (smallestEffectiveDenom > effectiveInputSum)
 			{
@@ -338,12 +333,7 @@ public class CoinJoinClient
 				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
-			var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
-				roundParameters.CalculateMinReasonableOutputAmount(),
-				roundParameters.AllowedInputAmounts.Max,
-				roundParameters.MiningFeeRate,
-				roundParameters.IsTaprootAllowed,
-				Random.Shared).Min(x => x.EffectiveCost);
+			var smallestEffectiveDenom = roundParameters.CalculateSmallestReasonableEffectiveDenomination();
 			var effectiveInputSum = registeredAliceClientAndCircuits
 				.Select(x => x.AliceClient.SmartCoin)
 				.Sum(x => x.EffectiveValue(roundParameters.MiningFeeRate));

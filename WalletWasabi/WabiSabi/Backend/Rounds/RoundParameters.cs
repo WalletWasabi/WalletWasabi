@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
+using System.Linq;
 using NBitcoin;
 using NBitcoin.Policy;
 using WalletWasabi.Extensions;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -127,5 +129,22 @@ public record RoundParameters
 		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
 	}
 
-	public MoneyRange CalculateReasonableOutputAmountRange() => new(CalculateMinReasonableOutputAmount(), AllowedOutputAmounts.Max);
+	/// <returns>Smallest effective denom that's larger than min reasonable output amount. </returns>
+	public Money CalculateSmallestReasonableEffectiveDenomination()
+	{
+		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+				CalculateMinReasonableOutputAmount(),
+				AllowedInputAmounts.Max,
+				MiningFeeRate,
+				IsTaprootAllowed,
+				Random.Shared)
+			.Min(x => x.EffectiveCost);
+
+		return smallestEffectiveDenom is null
+			? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.")
+			: smallestEffectiveDenom;
+	}
+
+	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
+	public MoneyRange CalculateReasonableOutputAmountRange() => new(CalculateSmallestReasonableEffectiveDenomination(), AllowedOutputAmounts.Max);
 }
