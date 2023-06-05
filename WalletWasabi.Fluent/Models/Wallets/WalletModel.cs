@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -27,6 +26,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public WalletModel(Wallet wallet)
 	{
 		_wallet = wallet;
+
 		_historyBuilder = new TransactionHistoryBuilder(_wallet);
 
 		RelevantTransactionProcessed = Observable
@@ -52,11 +52,29 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		var balance = Observable
 			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
 			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
-
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
+
+		Auth = new WalletAuthModel(_wallet);
+		Loader = new WalletLoadWorkflow(_wallet);
+
+		// Start the Loader after wallet is logged in
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
+			.Where(x => x)
+			.Take(1)
+			.Do(_ => Loader.Start())
+			.Subscribe();
+
+		// Stop the loader after load is completed
+		State.Where(x => x == WalletState.Started)
+			 .Do(_ => Loader.Stop())
+			 .Subscribe();
 	}
 
 	public IWalletBalancesModel Balances { get; }
+
+	public IWalletAuthModel Auth { get; }
+
+	public IWalletLoadWorkflow Loader { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
@@ -83,28 +101,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return _wallet.GetLabelsWithRanking(intent);
-	}
-
-	public async Task<WalletLoginResult> TryLoginAsync(string password)
-	{
-		string? compatibilityPassword = null;
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out compatibilityPassword));
-
-		var compatibilityPasswordUsed = compatibilityPassword is { };
-
-		var legalRequired = Services.LegalChecker.TryGetNewLegalDocs(out _);
-
-		return new(isPasswordCorrect, compatibilityPasswordUsed, legalRequired);
-	}
-
-	public void Login()
-	{
-		IsLoggedIn = true;
-	}
-
-	public void Logout()
-	{
-		_wallet.Logout();
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()

@@ -78,6 +78,9 @@ public class ReceiveViewModelTests
 		public WalletType WalletType => throw new NotSupportedException();
 
 		public IWalletBalancesModel Balances => throw new NotSupportedException();
+		public IWalletAuthModel Auth => throw new NotImplementedException();
+
+		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

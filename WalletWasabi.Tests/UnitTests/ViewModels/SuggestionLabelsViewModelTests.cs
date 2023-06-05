@@ -167,6 +167,10 @@ public class SuggestionLabelsViewModelTests
 
 		public WalletType WalletType => throw new NotSupportedException();
 
+		public IWalletAuthModel Auth => throw new NotImplementedException();
+
+		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();

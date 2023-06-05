@@ -6,7 +6,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -28,9 +27,8 @@ public partial class NavBarViewModel : ViewModelBase
 		UiContext.WalletList
 				 .Wallets
 				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
-
-				 // Sort the list to put the most recently logged in wallet to the top.
-				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.WalletModel.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
+				 .AutoRefresh(x => x.IsLoggedIn)
+				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.WalletModel.Auth.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
 				 .Bind(out var wallets)
 				 .Subscribe();
 

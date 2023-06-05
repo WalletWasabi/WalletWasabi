@@ -26,34 +26,34 @@ public partial class WalletPageViewModel : ViewModelBase
 		// Wallet property must be removed
 		Wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
 
+		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
-			.Do(isLoggedIn =>
-			{
-				if (!isLoggedIn)
-				{
-					ShowLogin();
-				}
-				else if (isLoggedIn)
-				{
-					ShowWalletLoading();
-				}
-			})
+			.Where(x => !x)
+			.Do(_ => ShowLogin())
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.WalletModel.IsLoggedIn)
-			.BindTo(this, x => x.IsLoggedIn);
+		// Show Loading page when wallet is logged in
+		this.WhenAnyValue(x => x.IsLoggedIn)
+			.Where(x => x)
+			.Do(_ => ShowWalletLoading())
+			.Subscribe();
 
-		this.WhenAnyObservable(x => x.WalletModel.State)
-			.Where(x => x == WalletState.Started)
+		// Show main Wallet UI when wallet load is completed
+		this.WhenAnyObservable(x => x.WalletModel.Loader.LoadCompleted)
 			.Do(_ => ShowWallet())
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.WalletModel.Auth.IsLoggedIn)
+			.BindTo(this, x => x.IsLoggedIn);
+
+		// Navigate to current page when IsSelected and CurrentPage change
 		this.WhenAnyValue(x => x.IsSelected, x => x.CurrentPage)
 			.Where(t => t.Item1)
 			.Select(t => t.Item2)
 			.WhereNotNull()
 			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
 			.Subscribe();
+
 		SetIcon();
 	}
 
@@ -62,10 +62,6 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	public string Title => WalletModel.Name;
 
-	// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
-	// Remove in next PR
-	public LoadingViewModel Loading { get; private set; }
-
 	private void ShowLogin()
 	{
 		CurrentPage = new LoginViewModel(UiContext, WalletModel, Wallet);
@@ -73,25 +69,12 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWalletLoading()
 	{
-		// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
-		// Remove in next PR
-		if (Loading is null)
-		{
-			Loading = new LoadingViewModel(Wallet);
-			Loading.Activate();
-		}
-		CurrentPage = Loading;
+		CurrentPage = new LoadingViewModel(WalletModel);
 		IsLoading = true;
 	}
 
 	private void ShowWallet()
 	{
-		// Workaround for: https://github.com/zkSNACKs/WalletWasabi/pull/10576#discussion_r1209973481
-		// Remove in next PR
-		if (Loading is not null)
-		{
-			Loading.Deactivate();
-		}
 		WalletViewModel = WalletViewModel.Create(UiContext, this);
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
