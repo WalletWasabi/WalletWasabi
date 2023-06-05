@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -276,7 +275,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
-	public async Task ModifiedPasteAsync()
+	public async void ModifiedPasteAsync()
 	{
 		if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
 		{
