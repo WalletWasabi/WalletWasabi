@@ -8,7 +8,7 @@ using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class FadeOutTextBlock : TextBlock, IStyleable
+public class FadeOutTextBlock : TextBlock
 {
 	private TextLayout? _trimmedLayout;
  	private bool _cutOff;
@@ -20,7 +20,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		TextWrapping = TextWrapping.NoWrap;
 	}
 
-	public Type StyleKey { get; } = typeof(TextBlock);
+	protected override Type StyleKeyOverride => typeof(TextBlock);
 
 	private static readonly IBrush FadeoutOpacityMask = new LinearGradientBrush
 	{

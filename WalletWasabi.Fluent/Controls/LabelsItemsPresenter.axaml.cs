@@ -6,7 +6,7 @@ using Avalonia.Styling;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class LabelsItemsPresenter : ItemsControl, IStyleable
+public class LabelsItemsPresenter : ItemsControl
 {
 	public static readonly StyledProperty<double> MaxLabelWidthProperty =
 		AvaloniaProperty.Register<LabelsItemsPresenter, double>("MaxLabelWidth");
@@ -17,5 +17,5 @@ public class LabelsItemsPresenter : ItemsControl, IStyleable
 		set => SetValue(MaxLabelWidthProperty, value);
 	}
 
-	Type IStyleable.StyleKey => typeof(LabelsItemsPresenter);
+	protected override Type StyleKeyOverride => typeof(LabelsItemsPresenter);
 }
