@@ -45,7 +45,7 @@ public static class RPCClientExtensions
 		return resp;
 	}
 
-	private static Dictionary<int, int> SimulateRegTestFeeEstimation() =>
+	private static FeeRateByConfirmationTarget SimulateRegTestFeeEstimation() =>
 		Constants.ConfirmationTargets
 		.Select(target => SimulateRegTestFeeEstimation(target))
 		.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
