@@ -160,7 +160,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 				});
 			IsBusy = false;
 
-			//TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
+			// TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
 			var walletModel =
 				new WalletModel(
 					new WalletWasabi.Wallets.Wallet(

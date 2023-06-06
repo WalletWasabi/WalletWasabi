@@ -94,7 +94,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				//TODO: remove this after CoinjoinStateViewModel is decoupled
+				// TODO: remove this after CoinjoinStateViewModel is decoupled
 				var walletModel = new WalletModel(wallet);
 				await UiContext.Navigate().To().CoinJoinProfiles(walletModel, isNewWallet: false, NavigationTarget.DialogScreen).GetResultAsync();
 			}

@@ -89,7 +89,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			//TODO: remove this after AddedWalletPage is decoupled
+			// TODO: remove this after AddedWalletPage is decoupled
 			var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
 			Navigate().To().AddedWalletPage(wallet.KeyManager);
 		}

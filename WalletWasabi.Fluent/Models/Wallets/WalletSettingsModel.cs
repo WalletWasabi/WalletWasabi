@@ -55,7 +55,7 @@ public class WalletSettingsModel : IWalletSettingsModel
 	/// Prevents the automatic persistence of Wallet Settings when individual properties change.
 	/// This is useful when you want to change several properties, but only persist the settings once
 	/// </summary>
-	/// <returns>an IDisposable object that, when disposed, returns the WalletSettings back to normal operation (i.e save on each individual property change)</returns>
+	/// <returns>An IDisposable object that, when disposed, returns the WalletSettings back to normal operation (i.e save on each individual property change)</returns>
 	public IDisposable BatchChanges()
 	{
 		_batchChanges = true;

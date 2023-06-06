@@ -98,7 +98,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					return result;
 				});
 
-			//TODO: remove this after RecoverWalletViewModel is decoupled
+			// TODO: remove this after RecoverWalletViewModel is decoupled
 			var walletModel =
 				new WalletModel(
 					new WalletWasabi.Wallets.Wallet(
