@@ -93,6 +93,8 @@ public class ReceiveAddressViewModelTests
 
 		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
 
+		public IWalletSettingsModel Settings => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
