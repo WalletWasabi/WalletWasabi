@@ -8,7 +8,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(Title = "Edit Labels")]
-public partial class AddressLabelEditViewModel : DialogViewModelBase<LabelsArray>
+public partial class AddressLabelEditViewModel : DialogViewModelBase<LabelsArray?>
 {
 	[AutoNotify] private bool _isCurrentTextValid;
 
