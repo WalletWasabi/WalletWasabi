@@ -3,7 +3,6 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
@@ -18,17 +17,15 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _errorMessage;
 	[AutoNotify] private bool _isForgotPasswordVisible;
 
-	// TODO: finish partial refactor
-	// Wallet parameter must be removed.
-	private LoginViewModel(IWalletModel walletModel, Wallet wallet)
+	private LoginViewModel(IWalletModel wallet)
 	{
 		_password = "";
 		_errorMessage = "";
-		IsPasswordNeeded = !walletModel.IsWatchOnlyWallet;
-		WalletName = walletModel.Name;
-		WalletType = walletModel.WalletType;
+		IsPasswordNeeded = !wallet.IsWatchOnlyWallet;
+		WalletName = wallet.Name;
+		WalletType = wallet.WalletType;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletModel));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet));
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
@@ -87,9 +84,9 @@ public partial class LoginViewModel : RoutableViewModel
 		ErrorMessage = "";
 	}
 
-	private void OnForgotPassword(Wallet wallet)
+	private void OnForgotPassword(IWalletModel wallet)
 	{
-		UiContext.Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
+		UiContext.Navigate().To().PasswordFinderIntroduce(wallet);
 	}
 
 	private async Task<bool> ShowLegalAsync()

@@ -15,4 +15,6 @@ public interface IWalletAuthModel
 	void CompleteLogin();
 
 	void Logout();
+
+	IPasswordFinderModel GetPasswordFinder(string likelyPassword);
 }

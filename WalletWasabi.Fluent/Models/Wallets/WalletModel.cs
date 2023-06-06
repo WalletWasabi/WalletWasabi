@@ -54,7 +54,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 
-		Auth = new WalletAuthModel(_wallet);
+		Auth = new WalletAuthModel(this, _wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
 
 		// Start the Loader after wallet is logged in
