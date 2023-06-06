@@ -74,7 +74,7 @@ public static class RPCClientExtensions
 	{
 		var smartEstimations = rpc.Network == Network.RegTest
 			? SimulateRegTestFeeEstimation()
-			: await GetFeeEstimationsAsync(rpc, EstimateMode, cancel).ConfigureAwait(false);
+			: await GetFeeEstimationsAsync(rpc, cancel).ConfigureAwait(false);
 
 		var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
 
@@ -103,12 +103,12 @@ public static class RPCClientExtensions
 			rpcStatus.Synchronized);
 	}
 
-	private static async Task<FeeRateByConfirmationTarget> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode, CancellationToken cancel = default)
+	private static async Task<FeeRateByConfirmationTarget> GetFeeEstimationsAsync(IRPCClient rpc, CancellationToken cancel = default)
 	{
 		var batchClient = rpc.PrepareBatch();
 
 		var rpcFeeEstimationTasks = Constants.ConfirmationTargets
-			.Select(target => batchClient.EstimateSmartFeeAsync(target, estimateMode))
+			.Select(target => batchClient.EstimateSmartFeeAsync(target, EstimateMode))
 			.ToList();
 
 		await batchClient.SendBatchAsync(cancel).ConfigureAwait(false);
