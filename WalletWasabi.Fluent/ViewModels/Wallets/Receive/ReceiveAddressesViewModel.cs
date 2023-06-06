@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -53,10 +54,10 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private async Task OnEditAddressAsync(IAddress address)
 	{
-		var result = await Navigate().To().AddressLabelEdit(_wallet, address).GetResultAsync();
-		if (!result.IsEmpty)
+		var result = await NavigateDialogAsync(new AddressLabelEditViewModel(UiContext, _wallet, address), NavigationTarget.CompactDialogScreen);
+		if (result is { Kind: DialogResultKind.Normal })
 		{
-			address.SetLabels(result);
+			address.SetLabels(result.Result);
 		}
 	}
 }
