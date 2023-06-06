@@ -17,11 +17,11 @@ public static class RPCClientExtensions
 {
 	private const EstimateSmartFeeMode EstimateMode = EstimateSmartFeeMode.Conservative;
 
-	public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, bool simulateIfRegTest = false, CancellationToken cancellationToken = default)
+	public static async Task<EstimateSmartFeeResponse> EstimateConservativeSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, CancellationToken cancellationToken = default)
 	{
 		EstimateSmartFeeResponse result;
 
-		if (simulateIfRegTest && rpc.Network == Network.RegTest)
+		if (rpc.Network == Network.RegTest)
 		{
 			result = SimulateRegTestFeeEstimation(confirmationTarget);
 		}
