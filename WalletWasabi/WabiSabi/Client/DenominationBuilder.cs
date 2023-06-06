@@ -4,19 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public static class DenominationBuilder
 {
-	public static IOrderedEnumerable<Output> CreateDenominations(Money minAllowedOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, IEnumerable<ScriptType> allowedOutputTypes, Random random)
+	public static IOrderedEnumerable<Output> CreateDenominations(Money minAllowedOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, IEnumerable<ScriptType> allowedOutputTypes)
 	{
 		var denominations = new HashSet<Output>();
 
 		Output CreateDenom(double sats)
 		{
-			var scriptType = AmountDecomposer.GetNextScriptType(allowedOutputTypes, random);
+			var scriptType = allowedOutputTypes.RandomElement();
 			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, feeRate);
 		}
 

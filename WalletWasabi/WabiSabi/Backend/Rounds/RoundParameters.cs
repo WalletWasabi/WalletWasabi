@@ -136,8 +136,7 @@ public record RoundParameters
 				CalculateMinReasonableOutputAmount(),
 				AllowedInputAmounts.Max,
 				MiningFeeRate,
-				new List<ScriptType>() { MaxVsizeInputOutputPairScriptType },
-				Random.Shared)
+				new List<ScriptType>() { MaxVsizeInputOutputPairScriptType })
 			.Min(x => x.EffectiveCost);
 
 		return smallestEffectiveDenom is null

@@ -15,8 +15,7 @@ public class AmountDecomposer
 	/// <param name="minAllowedOutputAmount">Min output amount that's allowed to be registered.</param>
 	/// <param name="maxAllowedOutputAmount">Max output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, IEnumerable<ScriptType> allowedOutputTypes, Random? random = null)
+	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, IEnumerable<ScriptType> allowedOutputTypes)
 	{
 		FeeRate = feeRate;
 
@@ -25,12 +24,10 @@ public class AmountDecomposer
 		MinAllowedOutputAmount = minAllowedOutputAmount;
 		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
-		Random = random ?? Random.Shared;
-
 		// Create many standard denominations.
-		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes, Random);
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes);
 
-		ChangeScriptType = GetNextScriptType(AllowedOutputTypes, Random);
+		ChangeScriptType = AllowedOutputTypes.RandomElement();
 	}
 
 	public FeeRate FeeRate { get; }
@@ -42,12 +39,6 @@ public class AmountDecomposer
 	public IOrderedEnumerable<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
-	private Random Random { get; }
-
-	public static ScriptType GetNextScriptType(IEnumerable<ScriptType> allowedScriptTypes, Random random)
-	{
-		return allowedScriptTypes.RandomElement();
-	}
 
 	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
