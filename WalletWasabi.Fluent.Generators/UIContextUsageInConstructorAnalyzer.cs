@@ -16,6 +16,7 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 {
 	public const string UiContextType = "WalletWasabi.Fluent.Models.UI.UiContext";
 	public const string UiContextFileSuffix = "_UiContext.cs";
+	public const string DialogViewModelBaseType = "WalletWasabi.Fluent.ViewModels.Dialogs.Base.DialogViewModelBase<TResult>";
 
 	private static readonly string[] ExcludedClasses = { "MainViewModel", "RoutableViewModel" };
 

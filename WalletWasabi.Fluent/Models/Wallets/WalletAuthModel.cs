@@ -6,11 +6,13 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 {
+	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _isLoggedIn;
 
-	public WalletAuthModel(Wallet wallet)
+	public WalletAuthModel(IWalletModel walletModel, Wallet wallet)
 	{
+		_walletModel = walletModel;
 		_wallet = wallet;
 	}
 
@@ -39,5 +41,11 @@ public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 	public void Logout()
 	{
 		_wallet.Logout();
+		IsLoggedIn = false;
+	}
+
+	public IPasswordFinderModel GetPasswordFinder(string password)
+	{
+		return new PasswordFinderModel(_walletModel, _wallet, password);
 	}
 }
