@@ -167,17 +167,17 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wpkhInputs { get; set; } = true;
 
-	[DefaultValue(false)]
+	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trInputs { get; set; } = false;
+	public bool AllowP2trInputs { get; set; } = true;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wpkhOutputs { get; set; } = true;
 
-	[DefaultValue(false)]
+	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trOutputs { get; set; } = false;
+	public bool AllowP2trOutputs { get; set; } = true;
 
 	[DefaultValue(Constants.FallbackAffiliationMessageSignerKey)]
 	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]
