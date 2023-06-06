@@ -24,6 +24,8 @@ public class KeyDownTrigger : DisposingTrigger
 		set => SetValue(KeyProperty, value);
 	}
 
+	public bool MarkAsHandled { get; set; }
+
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is InputElement element)
@@ -38,6 +40,7 @@ public class KeyDownTrigger : DisposingTrigger
 	{
 		if (e.Key == Key)
 		{
+			e.Handled = MarkAsHandled;
 			Interaction.ExecuteActions(AssociatedObject, Actions, null);
 		}
 	}
