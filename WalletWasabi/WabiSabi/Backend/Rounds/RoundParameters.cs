@@ -115,6 +115,9 @@ public record RoundParameters
 			wabiSabiConfig.CoordinatorIdentifier);
 	}
 
+	private int MaxVsizeInputOutputPair => AllowedOutputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+	private ScriptType MaxVsizeInputOutputPairScriptType => AllowedOutputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
 
@@ -125,9 +128,6 @@ public record RoundParameters
 		var minEconomicalOutput = MiningFeeRate.GetFee(MaxVsizeInputOutputPair);
 		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
 	}
-
-	private int MaxVsizeInputOutputPair => AllowedOutputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
-	private ScriptType MaxVsizeInputOutputPairScriptType => AllowedOutputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
 
 	/// <returns>Smallest effective denom that's larger than min reasonable output amount. </returns>
 	public Money CalculateSmallestReasonableEffectiveDenomination()
