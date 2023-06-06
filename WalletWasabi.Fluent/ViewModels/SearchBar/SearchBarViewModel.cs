@@ -34,15 +34,20 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Replay(1)
 			.ReplayLastActive();
 
-		ActivateFirstItemCommand = ReactiveCommand.Create(() =>
-		{
-			if (_groups is [{ Items: [IActionableItem item] }])
+		ActivateFirstItemCommand = ReactiveCommand.Create(
+			() =>
 			{
-				item.Activate();
-				Reset();
-			}
-		});
+				if (_groups is [{ Items: [IActionableItem item] }])
+				{
+					item.Activate();
+					ClearAndHideSearchList();
+				}
+			});
+
+		ResetCommand = ReactiveCommand.Create(ClearAndHideSearchList);
 	}
+
+	public ICommand ResetCommand { get; }
 
 	public ICommand ActivateFirstItemCommand { get; set; }
 
@@ -50,7 +55,7 @@ public partial class SearchBarViewModel : ReactiveObject
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 
-	private void Reset()
+	private void ClearAndHideSearchList()
 	{
 		IsSearchListVisible = false;
 		SearchText = "";
