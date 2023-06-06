@@ -70,6 +70,30 @@ public static class AnalyzerExtensions
 		return node.IsSubTypeOf(model, "WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
 	}
 
+	public static (string? TypeName, IEnumerable<string> Namespaces) GetDialogResultType(this SyntaxNode node, SemanticModel model)
+	{
+		if (node is not ClassDeclarationSyntax cls)
+		{
+			return (null, Array.Empty<string>());
+		}
+
+		var currentType = model.GetDeclaredSymbol(cls);
+		while (currentType != null)
+		{
+			if (currentType.ConstructedFrom?.ToDisplayString() == UiContextAnalyzer.DialogViewModelBaseType)
+			{
+				var typeArgument = currentType.TypeArguments.FirstOrDefault();
+				if (typeArgument is { })
+				{
+					return (typeArgument.ToDisplayString(), typeArgument.GetNamespaces());
+				}
+			}
+			currentType = currentType.BaseType;
+		}
+
+		return (null, Array.Empty<string>());
+	}
+
 	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
 	{
 		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(model));
