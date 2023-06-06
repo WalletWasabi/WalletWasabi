@@ -54,8 +54,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private async Task OnEditAddressAsync(IAddress address)
 	{
-		var result = await NavigateDialogAsync(new AddressLabelEditViewModel(UiContext, _wallet, address), NavigationTarget.CompactDialogScreen);
-		if (result.Result is { } labels)
+		var result = await Navigate().To().AddressLabelEdit(_wallet, address).GetResultAsync();
+		if (result is { } labels)
 		{
 			address.SetLabels(labels);
 		}
