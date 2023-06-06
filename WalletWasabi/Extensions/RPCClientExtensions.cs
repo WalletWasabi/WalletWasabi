@@ -83,7 +83,8 @@ public static class RPCClientExtensions
 		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 		var minEstimationFor260Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(260 / 4));
 		var minSanityFeeRate = FeeRate.Max(minEstimationFor260Mb, mempoolInfo.GetSanityFeeRate());
-		var maxEstimationFor3Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(2));
+		var estimationForTarget2 = minEstimations.GetValueOrDefault(2);
+		var maxEstimationFor3Mb = new FeeRate(estimationForTarget2 > 0 ? (decimal)estimationForTarget2 : 5_000m);
 		var maxSanityFeeRate = maxEstimationFor3Mb;
 			
 		var fixedEstimations = smartEstimations
@@ -98,7 +99,7 @@ public static class RPCClientExtensions
 				{
 					var maxLowerBound = Math.Max(a.Estimation.Value, b.Value);
 					var maxMinFeeRate = Math.Max((int) minSanityFeeRate.SatoshiPerByte, maxLowerBound);
-					var minMaxFeeRate = Math.Min((int) maxSanityFeeRate.SatoshiPerByte, maxLowerBound);
+					var minMaxFeeRate = Math.Min((int) maxSanityFeeRate.SatoshiPerByte, maxMinFeeRate);
 					return (
 						Target: a.Estimation.Key,
 						FeeRate: minMaxFeeRate);

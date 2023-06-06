@@ -254,7 +254,7 @@ public class AllFeeEstimateTests
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
 		var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-		Assert.Equal(3_500, allFee.Estimations[2]);
+		Assert.Equal(3_000, allFee.Estimations[2]);
 		Assert.True(allFee.Estimations[3] > 500);
 		Assert.True(allFee.Estimations[1008] > 1);
 	}
