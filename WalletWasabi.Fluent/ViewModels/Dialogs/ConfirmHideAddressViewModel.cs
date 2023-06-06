@@ -4,14 +4,12 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
+[NavigationMetaData(Title = "Hide Address", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+public partial class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 {
-	private string _title;
-
 	public ConfirmHideAddressViewModel(LabelsArray labels)
 	{
 		Labels = labels;
-		_title = "Hide Address";
 
 		NextCommand = ReactiveCommand.Create(() => Close(result: true));
 		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
@@ -20,10 +18,4 @@ public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 	}
 
 	public LabelsArray Labels { get; }
-
-	public override string Title
-	{
-		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
-	}
 }

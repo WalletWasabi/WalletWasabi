@@ -1,6 +1,6 @@
 using ReactiveUI;
-using System;
 using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -30,9 +30,18 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 		_wallet = wallet;
 		_progress = new();
 		_progress.OnNext((0, TimeSpan.Zero));
+
+		LoadCompleted =
+			Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
+					  .ObserveOn(RxApp.MainThreadScheduler)
+					  .Select(x => x.EventArgs)
+					  .Where(x => x == WalletState.Started || (x == WalletState.Starting && wallet.KeyManager.SkipSynchronization))
+					  .ToSignal();
 	}
 
 	public IObservable<(double PercentComplete, TimeSpan TimeRemaining)> Progress => _progress;
+
+	public IObservable<Unit> LoadCompleted { get; }
 
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
@@ -68,6 +77,11 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 					  UpdateProgress(processedCount);
 				  })
 				  .DisposeWith(_disposables);
+	}
+
+	public void Stop()
+	{
+		_disposables.Dispose();
 	}
 
 	private async Task LoadWalletAsync(bool isBackendAvailable)
