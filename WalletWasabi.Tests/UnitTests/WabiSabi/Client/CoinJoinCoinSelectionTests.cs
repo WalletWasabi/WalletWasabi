@@ -53,14 +53,14 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure no coins are selected when there too small coins.
 		// Although the coin amount is larger than the smallest reasonable effective denomination, if the algorithm is right, then the effective input amount is considered.
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var coinsToSelectFrom = new[] { BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00016223m), anonymitySet: 1) };
+		var coinsToSelectFrom = new[] { BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00017423m), anonymitySet: 1) };
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
 			MinRegistrableAmount = Money.Coins(0.0001m),
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00016222m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
@@ -78,8 +78,8 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008111m + 0.00006900m), anonymitySet: 1),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008110m + 0.00006900m), anonymitySet: 1)
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008710m + 0.00006900m), anonymitySet: 1)
 		};
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
@@ -87,7 +87,7 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00016222m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
@@ -105,8 +105,8 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008111m + 0.00006900m), anonymitySet: 1),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008111m + 0.00006900m), anonymitySet: 1)
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1)
 		};
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
@@ -114,7 +114,7 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00016222m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
