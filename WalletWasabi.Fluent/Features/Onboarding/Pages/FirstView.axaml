@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:onboarding="clr-namespace:WalletWasabi.Fluent.Features.Onboarding"
+             xmlns:pages="clr-namespace:WalletWasabi.Fluent.Features.Onboarding.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Features.Onboarding.Pages.FirstView"
+             x:CompileBindings="True"
+             x:DataType="pages:FirstViewModel">
+
+  <UserControl.Styles>
+    <StyleInclude Source="/Features/Onboarding/ResourceDictionary1.axaml" />
+  </UserControl.Styles>
+
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+    <Image Width="120" Margin="20">
+      <Image.Resources>
+        <LinearGradientBrush x:Key="Brush0" StartPoint="40.660156,13.597656" EndPoint="24.507812,41.289062">
+          <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0" Color="#FFFFFFFF" />
+            <GradientStop Offset="0.254" Color="#FFE0E0E0" />
+            <GradientStop Offset="0.544" Color="#FFC5C5C5" />
+            <GradientStop Offset="0.8000001" Color="#FFB4B4B4" />
+            <GradientStop Offset="0.993" Color="#FFAFAFAF" />
+          </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="Brush1" Color="#FF77C600" />
+      </Image.Resources>
+      <DrawingImage>
+        <DrawingGroup>
+          <GeometryDrawing Brush="Transparent" Geometry="F1M0,0L69.3,0L69.3,55.1L0,55.1z" />
+          <GeometryDrawing Brush="{DynamicResource Brush0}" Geometry="F1 M47.8 25.1C42.6 15.7 39.5 6.6 38.5 1.2C34.5 3.6 31.8 4.8 27.8 7.2C29.4 14 31.9 20.6 35.3 26.7L21.1 26.7C20.7 26.2 20.3 25.7 20 25.1C15.5 17.6 12.5 9.5 10.8 1C6.9 3.4 4 4.8 0 7.2C2.2 16.6 6.2 25.5 11.6 33.5C16.9 41.2 23.6 47.9 31.4 53C34.7 49.9 37.2 47.5 40.5 44.4C37 42 33.7 39.3 30.6 36.4L41.5 36.4C46.6 42.8 52.8 48.3 59.6 52.8C62.9 49.7 65 47.5 68.3 44.3C64.6 42.1 61.2 39.4 58.1 36.3L69 36.3L69 26.5L48.9 26.5C48.5 26.2 48.1 25.6 47.8 25.1Z" />
+          <GeometryDrawing Brush="{DynamicResource Brush1}" Geometry="F1 M56.7 0L69.2 0L69.2 12.5L56.7 12.5L56.7 0Z" />
+        </DrawingGroup>
+      </DrawingImage>
+    </Image>
+    <TextBlock Text="Welcome to Wasabi Wallet" Classes="title1" />
+    <TextBlock Text="The 1st Rule of Wasabi" Classes="title2" />
+    <TextBlock Text="Wasabi is for self defense and self defense only" Classes="text" />
+  </StackPanel>
+</UserControl>

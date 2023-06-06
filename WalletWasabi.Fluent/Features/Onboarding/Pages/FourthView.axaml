@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:WalletWasabi.Fluent.Features.Onboarding.Pages"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Features.Onboarding.Pages.FourthView"
+             x:CompileBindings="True"
+             x:DataType="pages:FourthViewModel">
+
+  <UserControl.Styles>
+    <StyleInclude Source="/Features/Onboarding/ResourceDictionary1.axaml" />
+    <Style Selector="c|TileButton">
+      <Setter Property="MaxHeight" Value="120" />
+      <Setter Property="Width">
+        <Setter.Value>
+          <system:Double>NaN</system:Double>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="Height">
+        <Setter.Value>
+          <system:Double>NaN</system:Double>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="Margin" Value="30" />
+    </Style>
+    <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
+      <Setter Property="Margin" Value="0 0 0 0" />
+    </Style>
+  </UserControl.Styles>
+
+  
+
+  <Grid RowDefinitions="* Auto *" ColumnDefinitions="* * *">
+
+    <c:TileButton Text="Create a new wallet"
+                  Grid.ColumnSpan="3"
+                  Classes="action bottomtext"
+                  Icon="{StaticResource add_regular}"
+                  Command="{Binding CreateWalletCommand}" />
+
+    <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or"></TextBlock>
+
+    <c:TileButton Grid.Row="2" Grid.Column="0" Text="Connect to hardware wallet"
+                  Icon="{StaticResource calculator_regular}"
+                  Classes="bottomtext"
+                  Command="{Binding ConnectHardwareWalletCommand}">
+     
+    </c:TileButton>
+
+    <c:TileButton Grid.Row="2" Grid.Column="1" Text="Import a wallet"
+                  Icon="{StaticResource import_regular}"
+                  Classes="bottomtext"
+                  Command="{Binding ImportWalletCommand}" />
+
+    <c:TileButton Grid.Row="2" Grid.Column="2" Text="Recover a wallet"
+                  Icon="{StaticResource recover_arrow_right_regular}"
+                  Classes="bottomtext"
+                  Command="{Binding RecoverWalletCommand}" />
+  </Grid>
+</UserControl>

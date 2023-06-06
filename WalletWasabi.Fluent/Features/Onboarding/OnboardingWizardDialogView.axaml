@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ob="clr-namespace:WalletWasabi.Fluent.Features.Onboarding"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Features.Onboarding.OnboardingWizardDialogView"
+             x:DataType="ob:OnboardingWizardDialogViewModel"
+             x:CompileBindings="True">
+
+  <UserControl.Styles>
+    <Style Selector="controls|WizardControl /template/ Button#PART_NextButton">
+      <Setter Property="Width" Value="130" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <controls:WizardControl Wizard="{Binding Wizard}" />
+
+</UserControl>

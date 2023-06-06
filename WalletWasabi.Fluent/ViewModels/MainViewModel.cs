@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Features.Onboarding;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -87,21 +88,24 @@ public partial class MainViewModel : ViewModelBase
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
-			{
-				IsOobeBackgroundVisible = true;
+		var command = ReactiveCommand.CreateFromTask(() => UiContext.Navigate().NavigateDialogAsync(new OnboardingWizardDialogViewModel(UiContext), NavigationTarget.DialogScreen));
+		command.Execute().Subscribe();
 
-				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+		//RxApp.MainThreadScheduler.Schedule(async () =>
+		//{
+		//	if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+		//	{
+		//		IsOobeBackgroundVisible = true;
 
-				if (Services.WalletManager.HasWallet())
-				{
-					Services.UiConfig.Oobe = false;
-					IsOobeBackgroundVisible = false;
-				}
-			}
-		});
+		//		await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+
+		//		if (Services.WalletManager.HasWallet())
+		//		{
+		//			Services.UiConfig.Oobe = false;
+		//			IsOobeBackgroundVisible = false;
+		//		}
+		//	}
+		//});
 
 		SearchBar = CreateSearchBar();
 
