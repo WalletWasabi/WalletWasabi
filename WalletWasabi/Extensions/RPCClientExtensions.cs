@@ -70,9 +70,9 @@ public static class RPCClientExtensions
 	/// <summary>
 	/// Estimates fees for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
 	/// </summary>
-	public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, bool simulateIfRegTest = false, CancellationToken cancel = default)
+	public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, CancellationToken cancel = default)
 	{
-		var smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
+		var smartEstimations = rpc.Network == Network.RegTest
 			? SimulateRegTestFeeEstimation()
 			: await GetFeeEstimationsAsync(rpc, EstimateMode, cancel).ConfigureAwait(false);
 
