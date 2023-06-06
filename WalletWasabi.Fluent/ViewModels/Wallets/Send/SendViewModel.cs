@@ -130,7 +130,7 @@ public partial class SendViewModel : RoutableViewModel
 					await coinJoinManager.WalletEnteredSendingAsync(_wallet);
 				}
 
-				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
+				Navigate().To().TransactionPreview(walletVm, transactionInfo);
 			},
 			nextCommandCanExecute);
 

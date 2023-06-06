@@ -5,6 +5,7 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
@@ -27,13 +28,14 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
 
-	public SettingsPageViewModel()
+	public SettingsPageViewModel(UiContext uiContext)
 	{
+		UiContext = uiContext;
 		_selectedTab = 0;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		GeneralSettingsTab = new GeneralSettingsTabViewModel();
+		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext);
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 		AdvancedSettingsTab = new AdvancedSettingsTabViewModel();
 

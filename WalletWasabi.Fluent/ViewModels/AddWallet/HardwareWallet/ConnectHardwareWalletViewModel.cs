@@ -25,7 +25,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	[AutoNotify] private bool _existingWalletFound;
 	[AutoNotify] private bool _confirmationRequired;
 
-	public ConnectHardwareWalletViewModel(string walletName)
+	private ConnectHardwareWalletViewModel(string walletName)
 	{
 		_message = "";
 		WalletName = walletName;
@@ -188,7 +188,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void NavigateToNext(HwiEnumerateEntry device)
 	{
-		Navigate().To(new DetectedHardwareWalletViewModel(WalletName, device));
+		Navigate().To().DetectedHardwareWallet(WalletName, device);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

@@ -11,12 +11,23 @@ public static class AnalyzerExtensions
 {
 	public static List<IdentifierNameSyntax> GetUiContextReferences(this SyntaxNode node, SemanticModel semanticModel)
 	{
-		return node
-			.DescendantNodes()
-			.OfType<IdentifierNameSyntax>()
-			.Where(x => x.Identifier.ValueText == "UiContext") // faster verification
-			.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
-			.ToList();
+		var directReferences =
+			node.DescendantNodes()
+				.OfType<IdentifierNameSyntax>()
+				.Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
+				.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
+				.ToList();
+
+		var indirectReferences =
+			node.DescendantNodes()
+				.OfType<IdentifierNameSyntax>()
+				.Where(x => x.Identifier.ValueText is "Navigate" or "NavigateDialogAsync")
+				.Where(x => semanticModel.GetSymbolInfo(x).Symbol?.Kind == SymbolKind.Method)
+				.ToList();
+
+		return
+			directReferences.Concat(indirectReferences)
+							.ToList();
 	}
 
 	public static bool IsPrivate(this ConstructorDeclarationSyntax node)

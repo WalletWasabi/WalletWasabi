@@ -25,7 +25,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
-	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
+	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
 		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words.OrderBy(x => x.Index).ToList();
@@ -158,7 +158,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
 				});
 			IsBusy = false;
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+			await Navigate().To().CoinJoinProfiles(km, true).GetResultAsync();
 		}
 	}
 

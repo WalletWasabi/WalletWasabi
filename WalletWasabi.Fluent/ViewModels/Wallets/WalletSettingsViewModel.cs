@@ -21,7 +21,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
-	public WalletSettingsViewModel(WalletViewModel walletViewModelBase)
+	private WalletSettingsViewModel(WalletViewModel walletViewModelBase)
 	{
 		_wallet = walletViewModelBase.Wallet;
 		Title = $"{_wallet.WalletName} - Wallet Settings";
@@ -33,8 +33,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand =
-			ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(_wallet));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)

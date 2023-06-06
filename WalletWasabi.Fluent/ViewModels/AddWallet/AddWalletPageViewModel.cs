@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
-	public AddWalletPageViewModel()
+	private AddWalletPageViewModel()
 	{
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
@@ -48,12 +48,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnCreateWallet()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.AddNewWallet));
+		Navigate().To().WalletNamePage(WalletCreationOption.AddNewWallet);
 	}
 
 	private void OnConnectHardwareWallet()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ConnectToHardwareWallet));
+		Navigate().To().WalletNamePage(WalletCreationOption.ConnectToHardwareWallet);
 	}
 
 	private async Task OnImportWalletAsync()
@@ -72,12 +72,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			var validationError = WalletHelpers.ValidateWalletName(walletName);
 			if (validationError is { })
 			{
-				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
+				Navigate().To().WalletNamePage(WalletCreationOption.ImportWallet, filePath);
 				return;
 			}
 
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			Navigate().To().AddedWalletPage(keyManager);
 		}
 		catch (Exception ex)
 		{
@@ -88,7 +88,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnRecoverWallet()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
+		Navigate().To().WalletNamePage(WalletCreationOption.RecoverWallet);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
