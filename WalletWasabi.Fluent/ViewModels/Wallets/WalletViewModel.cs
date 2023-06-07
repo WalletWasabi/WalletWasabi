@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -103,7 +105,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(Wallet));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(new WalletModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -234,14 +236,17 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		yield return new WalletBalanceTileViewModel(this);
+		var walletModel = new WalletModel(Wallet);
+		var balances = walletModel.Balances;
+
+		yield return new WalletBalanceTileViewModel(balances);
 
 		if (!IsWatchOnly)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, this);
 		}
 
-		yield return new BtcPriceTileViewModel(Wallet);
+		yield return new BtcPriceTileViewModel(balances);
 	}
 
 	public int CompareTo(WalletViewModel? other)

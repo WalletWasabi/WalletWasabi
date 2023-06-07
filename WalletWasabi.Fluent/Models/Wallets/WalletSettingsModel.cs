@@ -8,12 +8,33 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 {
 	private readonly KeyManager _keyManager;
-	[AutoNotify] private bool _isNewWallet;
 	private bool _isDirty;
+
+	[AutoNotify] private bool _isNewWallet;
+	[AutoNotify] private bool _autoCoinjoin;
+	[AutoNotify] private bool _isCoinjoinProfileSelected;
+	[AutoNotify] private bool _preferPsbtWorkflow;
+	[AutoNotify] private Money _plebStopThreshold;
+	[AutoNotify] private int _anonScoreTarget;
+	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false)
 	{
 		_keyManager = keyManager;
+
+		_isNewWallet = isNewWallet;
+		_isDirty = isNewWallet;
+
+		_autoCoinjoin = _keyManager.AutoCoinJoin;
+		_isCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
+		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
+		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
+		_anonScoreTarget = _keyManager.AnonScoreTarget;
+		_redCoinIsolation = _keyManager.RedCoinIsolation;
+		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
+
+		WalletName = _keyManager.WalletName;
 
 		this.WhenAnyValue(
 			x => x.AutoCoinjoin,
@@ -26,35 +47,9 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
-
-		_isNewWallet = isNewWallet;
-		_isDirty = isNewWallet;
-
-		WalletName = _keyManager.WalletName;
-		AutoCoinjoin = _keyManager.AutoCoinJoin;
-		IsCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
-		PreferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
-		PlebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
-		AnonScoreTarget = _keyManager.AnonScoreTarget;
-		RedCoinIsolation = _keyManager.RedCoinIsolation;
-		FeeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 	}
 
 	public string WalletName { get; }
-
-	public bool AutoCoinjoin { get; set; }
-
-	public bool IsCoinjoinProfileSelected { get; set; }
-
-	public bool PreferPsbtWorkflow { get; set; }
-
-	public Money PlebStopThreshold { get; set; }
-
-	public int AnonScoreTarget { get; set; }
-
-	public bool RedCoinIsolation { get; set; }
-
-	public int FeeRateMedianTimeFrameHours { get; set; }
 
 	public void Save()
 	{

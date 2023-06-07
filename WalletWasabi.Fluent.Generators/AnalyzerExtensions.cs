@@ -70,9 +70,8 @@ public static class AnalyzerExtensions
 
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
-		var typeInfo =
-			model.GetDeclaredSymbol(cls)
-			?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
+		var typeInfo = model.GetDeclaredSymbol(cls)
+		               ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
 	}
@@ -124,9 +123,9 @@ public static class AnalyzerExtensions
 	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
 	{
 		return GetNamespaceSymbols(typeSymbol)
-				.Where(x => !x.IsGlobalNamespace)
-				.Select(x => x.ToDisplayString())
-				.ToList();
+			.Where(x => !x.IsGlobalNamespace)
+			.Select(x => x.ToDisplayString())
+			.ToList();
 	}
 
 	private static IEnumerable<INamespaceSymbol> GetNamespaceSymbols(this ITypeSymbol? typeSymbol)
