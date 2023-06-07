@@ -15,6 +15,7 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>
+		<AvaloniaVersion>11.0.0-rc1.1</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -33,7 +34,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
 		<DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
+		<PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
