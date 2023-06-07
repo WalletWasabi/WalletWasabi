@@ -134,7 +134,7 @@ public record RoundParameters
 	{
 		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
 				CalculateMinReasonableOutputAmount(),
-				AllowedInputAmounts.Max,
+				AllowedOutputAmounts.Max,
 				MiningFeeRate,
 				new List<ScriptType>() { MaxVsizeInputOutputPairScriptType })
 			.Min(x => x.EffectiveCost);
