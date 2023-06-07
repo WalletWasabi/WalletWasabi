@@ -71,21 +71,19 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 
 	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByCoin()
 	{
-		return
-			_walletViewModel.Wallet.Coins
-								   .Select(coin => new PrivacyBarItemViewModel(this, coin))
-								   .OrderBy(x => x.PrivacyLevel)
-								   .ThenByDescending(x => x.Amount)
-								   .ToList();
+		return _walletViewModel.Wallet.Coins
+			.Select(coin => new PrivacyBarItemViewModel(this, coin))
+			.OrderBy(x => x.PrivacyLevel)
+			.ThenByDescending(x => x.Amount)
+			.ToList();
 	}
 
 	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByPrivacyLevel()
 	{
-		return
-			_walletViewModel.Wallet.Coins
-								   .GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-								   .OrderBy(x => (int)x.Key)
-								   .Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
-								   .ToList();
+		return _walletViewModel.Wallet.Coins
+			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+			.OrderBy(x => (int)x.Key)
+			.Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+			.ToList();
 	}
 }
