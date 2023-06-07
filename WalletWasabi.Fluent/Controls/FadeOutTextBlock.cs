@@ -58,7 +58,34 @@ public class FadeOutTextBlock : TextBlock
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, bounds) : Disposable.Empty;
 		_noTrimLayout.Draw(context, origin + new Point(_noTrimLayout.OverhangLeading, 0));
 	}
+	private readonly record struct SimpleTextSource : ITextSource
+	{
+		private readonly string _text;
+		private readonly TextRunProperties _defaultProperties;
 
+		public SimpleTextSource(string text, TextRunProperties defaultProperties)
+		{
+			_text = text;
+			_defaultProperties = defaultProperties;
+		}
+
+		public TextRun? GetTextRun(int textSourceIndex)
+		{
+			if (textSourceIndex > _text.Length)
+			{
+				return new TextEndOfParagraph();
+			}
+
+			var runText = _text.AsMemory(textSourceIndex);
+
+			if (runText.IsEmpty)
+			{
+				return new TextEndOfParagraph();
+			}
+
+			return new TextCharacters(runText, _defaultProperties);
+		}
+	}
 	private void NewCreateTextLayout(Size constraint, string? text)
 	{
 		if (constraint == default)
@@ -67,45 +94,35 @@ public class FadeOutTextBlock : TextBlock
 		}
 
 		var text1 = text ?? "";
-		var typeface = new Typeface(FontFamily, FontStyle, FontWeight);
-		var fontSize = FontSize;
-		var foreground = Foreground;
-		var textAlignment = TextAlignment;
-		var textWrapping = TextWrapping;
-		var textDecorations = TextDecorations;
-		var width = constraint.Width;
-		var height = constraint.Height;
-		var lineHeight = LineHeight;
+
+		var typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
+
+		var defaultProperties = new GenericTextRunProperties(
+			typeface,
+			FontSize,
+			TextDecorations,
+			Foreground);
+
+		var paragraphProperties = new GenericTextParagraphProperties(FlowDirection, TextAlignment, true, false,
+			defaultProperties, TextWrapping, LineHeight, 0, LetterSpacing);
+
+		var textSource = new SimpleTextSource(text ?? "", defaultProperties);
 
 		_noTrimLayout = new TextLayout(
-			text1,
-			typeface,
-			fontSize,
-			foreground,
-			textAlignment,
-			textWrapping,
+			textSource,
+			paragraphProperties,
 			TextTrimming.None,
-			textDecorations,
-			FlowDirection.LeftToRight,
-			width,
-			height,
-			lineHeight,
-			1);
+			_constraint.Width,
+			_constraint.Height,
+			MaxLines);;
 
 		_trimmedLayout = new TextLayout(
-			text1,
-			typeface,
-			fontSize,
-			foreground,
-			textAlignment,
-			textWrapping,
+			textSource,
+			paragraphProperties,
 			TextTrimming.CharacterEllipsis,
-			textDecorations,
-			FlowDirection.LeftToRight,
-			width,
-			height,
-			lineHeight,
-			1);
+			_constraint.Width,
+			_constraint.Height,
+			MaxLines);;
 
 		_cutOff = _trimmedLayout.TextLines[0].HasCollapsed;
 	}
