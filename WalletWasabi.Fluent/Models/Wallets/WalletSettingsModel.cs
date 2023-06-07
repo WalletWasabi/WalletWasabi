@@ -80,5 +80,11 @@ public class WalletSettingsModel : IWalletSettingsModel
 		{
 			_wallet.KeyManager.ToFile();
 		}
+
+		// TODO: remove this
+		if (!Services.WalletManager.WalletExists(_wallet.KeyManager.MasterFingerprint))
+		{
+			Services.WalletManager.AddWallet(_wallet.KeyManager);
+		}
 	}
 }
