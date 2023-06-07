@@ -12,24 +12,25 @@ namespace WalletWasabi.WabiSabi.Client;
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
-	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
+	/// <param name="minAllowedOutputAmount">Min output amount that's allowed to be registered.</param>
+	/// <param name="maxAllowedOutputAmount">Max output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
 	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
+	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
 	{
 		FeeRate = feeRate;
 
 		AvailableVsize = availableVsize;
 		IsTaprootAllowed = isTaprootAllowed;
-		MinAllowedOutputAmount = allowedOutputAmount.Min;
-		MaxAllowedOutputAmount = allowedOutputAmount.Max;
+		MinAllowedOutputAmount = minAllowedOutputAmount;
+		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
 		Random = random ?? Random.Shared;
 
 		// Create many standard denominations.
-		Denominations = CreateDenominations();
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, IsTaprootAllowed, Random);
 
-		ChangeScriptType = GetNextScriptType();
+		ChangeScriptType = GetNextScriptType(IsTaprootAllowed, Random);
 	}
 
 	public FeeRate FeeRate { get; }
@@ -43,136 +44,14 @@ public class AmountDecomposer
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private Random Random { get; }
 
-	private ScriptType GetNextScriptType()
+	public static ScriptType GetNextScriptType(bool isTaprootAllowed, Random random)
 	{
-		if (!IsTaprootAllowed)
+		if (!isTaprootAllowed)
 		{
 			return ScriptType.P2WPKH;
 		}
 
-		return Random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
-	}
-
-	private IOrderedEnumerable<Output> CreateDenominations()
-	{
-		var denominations = new HashSet<Output>();
-
-		Output CreateDenom(double sats)
-		{
-			var scriptType = GetNextScriptType();
-			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, FeeRate);
-		}
-
-		// Powers of 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(2, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3 * 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i));
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 2 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 2);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 5 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 5);
-
-			if (denom.Amount < MinAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > MaxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
 	}
 
 	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
@@ -314,7 +193,7 @@ public class AmountDecomposer
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
-				tolerance: MinAllowedOutputAmount + FeeRate.GetFee(ScriptType.Taproot.EstimateOutputVsize()), // Assume script type with higher cost to be more permissive.
+				tolerance: MinAllowedOutputAmount + ChangeFee,
 				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
 				stdDenoms: stdDenoms))
 			{
@@ -360,8 +239,11 @@ public class AmountDecomposer
 				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement()
 					?? denoms.FirstOrDefault(x => x.EffectiveCost <= remaining);
 
-				// We can only let this go forward if at least 2 outputs can be added (denom + potential change)
-				if (denom is null || remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).
+				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
+				if (denom is null ||
+					(remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					break;
 				}
@@ -415,8 +297,10 @@ public class AmountDecomposer
 			bool end = false;
 			while (denom.EffectiveCost <= remaining)
 			{
-				// We can only let this go forward if at least 2 output can be added (denom + potential change)
-				if (remaining < MinAllowedOutputAmount + ChangeFee || remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+				// Continue only if there is enough remaining amount and size to create one output + change (if change will potentially be created).
+				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
+				if ((remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					end = true;
 					break;
