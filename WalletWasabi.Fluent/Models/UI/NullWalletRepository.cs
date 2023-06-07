@@ -7,13 +7,12 @@ namespace WalletWasabi.Fluent.Models.UI;
 
 #nullable disable
 
-internal class NullWalletRepository : IWalletRepository
+public class NullWalletRepository : IWalletRepository
 {
 	public NullWalletRepository()
 	{
-		Wallets =
-			Array.Empty<IWalletModel>()
-				 .AsObservableChangeSet(x => x.Name);
+		Wallets = Array.Empty<IWalletModel>()
+					   .AsObservableChangeSet(x => x.Name);
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
