@@ -57,6 +57,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 				if (_wallet.Settings.IsCoinjoinProfileSelected)
 				{
 					_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
+					_wallet.Settings.Save();
 				}
 				else
 				{

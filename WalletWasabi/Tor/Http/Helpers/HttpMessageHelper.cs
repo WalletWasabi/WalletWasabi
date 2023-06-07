@@ -133,30 +133,35 @@ public static class HttpMessageHelper
 			: throw new FormatException("There's no CRLF.");
 	}
 
-	public static byte[]? HandleGzipCompression(HttpContentHeaders contentHeaders, byte[]? decodedBodyArray)
+	public static byte[] DecompressGzipContentIfRequired(HttpContentHeaders contentHeaders, byte[] contentBytes)
 	{
-		if (decodedBodyArray is null || !decodedBodyArray.Any())
+		if (contentBytes.Length == 0)
 		{
-			return decodedBodyArray;
+			return contentBytes;
 		}
 
-		if (contentHeaders?.ContentEncoding is { } && contentHeaders.ContentEncoding.Contains("gzip"))
+		if (contentHeaders.ContentEncoding.Contains("gzip"))
 		{
-			using (var src = new MemoryStream(decodedBodyArray))
+			using (var src = new MemoryStream(contentBytes))
 			using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
+			using (var targetStream = new MemoryStream())
 			{
-				using var targetStream = new MemoryStream();
 				unzipStream.CopyTo(targetStream);
-				decodedBodyArray = targetStream.ToArray();
+				contentBytes = targetStream.ToArray();
 			}
+
+			// Content-Length is removed, since it no longer applies to the decompressed content.
+			contentHeaders.ContentLength = null;
+
 			contentHeaders.ContentEncoding.Remove("gzip");
+
 			if (!contentHeaders.ContentEncoding.Any())
 			{
 				contentHeaders.Remove("Content-Encoding");
 			}
 		}
 
-		return decodedBodyArray;
+		return contentBytes;
 	}
 
 	public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken cancellationToken)

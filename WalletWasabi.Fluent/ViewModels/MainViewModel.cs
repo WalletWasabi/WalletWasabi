@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -80,10 +82,9 @@ public partial class MainViewModel : ViewModelBase
 				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		CurrentWallet =
-			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
-				.WhereNotNull()
-				.OfType<WalletViewModel>();
+		CurrentWallet = this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
@@ -314,7 +315,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new ReceiveViewModel(UiContext, walletViewModel.Wallet);
+				return new ReceiveViewModel(UiContext, new WalletModel(walletViewModel.Wallet));
 			}
 
 			return null;
