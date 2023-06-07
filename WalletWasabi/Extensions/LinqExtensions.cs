@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Transactions;
@@ -93,22 +94,35 @@ public static class LinqExtensions
 		=> source?.Any() is true;
 
 	/// <summary>
-	/// Recursive algorithm that generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
+	/// Generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
 	/// </summary>
 	/// <remarks>If you have numbers <c>1, 2, 3, 4</c>, then the output will contain <c>(2, 3, 4)</c> but not, for example, <c>(4, 3, 2)</c>.</remarks>
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
-	=> ofLength switch
 	{
-		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
-		1 => items.Select(item => new[] { item }),
-		_ => items.SelectMany((item, i) => items
-				.Skip(i + 1)
-				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }.Concat(result)))
-	};
+		var itemsArr = items.ToArray();
+		var templates = new Stack<(List<T> Result, ArraySegment<T> Items)>();
+		templates.Push((new List<T>(), itemsArr));
 
+		while (templates.Count > 0)
+		{
+			var (template, rest) = templates.Pop();
+			if (template.Count == ofLength)
+			{
+				yield return template;
+			}
+			else if (template.Count + rest.Count >= ofLength)
+			{
+				for (var i = rest.Count - 1; i >= 0; i--)
+				{
+					var newTemplate = new List<T>(template) { rest[i] };
+					templates.Push((newTemplate, rest[(i + 1)..]));
+				}
+			}
+		}
+	}
+	
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength,

@@ -26,34 +26,34 @@ public partial class WalletPageViewModel : ViewModelBase
 		// Wallet property must be removed
 		Wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
 
+		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
-			.Do(isLoggedIn =>
-			{
-				if (!isLoggedIn)
-				{
-					ShowLogin();
-				}
-				else if (isLoggedIn)
-				{
-					ShowWalletLoading();
-				}
-			})
+			.Where(x => !x)
+			.Do(_ => ShowLogin())
+			.Subscribe();
+
+		// Show Loading page when wallet is logged in
+		this.WhenAnyValue(x => x.IsLoggedIn)
+			.Where(x => x)
+			.Do(_ => ShowWalletLoading())
+			.Subscribe();
+
+		// Show main Wallet UI when wallet load is completed
+		this.WhenAnyObservable(x => x.WalletModel.Loader.LoadCompleted)
+			.Do(_ => ShowWallet())
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Auth.IsLoggedIn)
 			.BindTo(this, x => x.IsLoggedIn);
 
-		this.WhenAnyObservable(x => x.WalletModel.State)
-			.Where(x => x == WalletState.Started)
-			.Do(_ => ShowWallet())
-			.Subscribe();
-
+		// Navigate to current page when IsSelected and CurrentPage change
 		this.WhenAnyValue(x => x.IsSelected, x => x.CurrentPage)
 			.Where(t => t.Item1)
 			.Select(t => t.Item2)
 			.WhereNotNull()
 			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
 			.Subscribe();
+
 		SetIcon();
 	}
 
