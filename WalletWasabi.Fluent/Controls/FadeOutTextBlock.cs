@@ -114,7 +114,7 @@ public class FadeOutTextBlock : TextBlock
 			TextTrimming.None,
 			_constraint.Width,
 			_constraint.Height,
-			MaxLines);;
+			MaxLines);
 
 		_trimmedLayout = new TextLayout(
 			textSource,
@@ -122,7 +122,7 @@ public class FadeOutTextBlock : TextBlock
 			TextTrimming.CharacterEllipsis,
 			_constraint.Width,
 			_constraint.Height,
-			MaxLines);;
+			MaxLines);
 
 		_cutOff = _trimmedLayout.TextLines[0].HasCollapsed;
 	}
