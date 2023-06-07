@@ -106,7 +106,7 @@ public class FadeOutTextBlock : TextBlock
 		var paragraphProperties = new GenericTextParagraphProperties(FlowDirection, TextAlignment, true, false,
 			defaultProperties, TextWrapping, LineHeight, 0, LetterSpacing);
 
-		var textSource = new SimpleTextSource(text ?? "", defaultProperties);
+		var textSource = new SimpleTextSource(text1 ?? "", defaultProperties);
 
 		_noTrimLayout = new TextLayout(
 			textSource,
