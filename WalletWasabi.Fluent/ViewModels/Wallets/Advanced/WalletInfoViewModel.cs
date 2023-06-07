@@ -21,7 +21,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	[AutoNotify] private string _showButtonText = "Show sensitive data";
 	[AutoNotify] private string _lockIconString = "eye_show_regular";
 
-	public WalletInfoViewModel(WalletViewModel walletViewModelBase)
+	private WalletInfoViewModel(WalletViewModel walletViewModelBase)
 	{
 		var wallet = walletViewModelBase.Wallet;
 		var network = wallet.Network;

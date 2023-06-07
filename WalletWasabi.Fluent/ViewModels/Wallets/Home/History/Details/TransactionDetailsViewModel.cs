@@ -26,7 +26,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
 
-	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 

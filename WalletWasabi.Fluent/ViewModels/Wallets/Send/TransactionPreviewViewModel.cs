@@ -43,7 +43,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
+	private TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = walletViewModel.Wallet;
@@ -177,7 +177,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (saved)
 			{
-				Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				Navigate().To().Success("The PSBT has been successfully created.");
 			}
 		}
 	}
@@ -205,7 +205,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
 			? new CustomFeeRateDialogViewModel(_info)
-			: new SendFeeViewModel(_wallet, _info, false);
+			: new SendFeeViewModel(UiContext, _wallet, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
@@ -265,7 +265,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (_info.FeeRate == FeeRate.Zero)
 		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(UiContext, _wallet, _info, true));
 			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 			{
 				_info.FeeRate = newFeeRate;
@@ -454,7 +454,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource?.Cancel();
-				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
+				Navigate().To().SendSuccess(_wallet, finalTransaction);
 			}
 			catch (Exception ex)
 			{

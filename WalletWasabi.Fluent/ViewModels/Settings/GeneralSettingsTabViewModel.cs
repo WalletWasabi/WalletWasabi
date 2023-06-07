@@ -35,7 +35,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
 
-	public GeneralSettingsTabViewModel()
+	private GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 		_autoCopy = Services.UiConfig.Autocopy;

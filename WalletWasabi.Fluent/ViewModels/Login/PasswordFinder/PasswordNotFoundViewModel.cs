@@ -16,7 +16,7 @@ public partial class PasswordNotFoundViewModel : RoutableViewModel
 
 	private void OnNext(IWalletModel wallet)
 	{
-		var page = new PasswordFinderIntroduceViewModel(wallet);
+		var page = new PasswordFinderIntroduceViewModel(UiContext, wallet);
 		UiContext.Navigate().To(page, mode: NavigationMode.Clear);
 		if (page.NextCommand is { } cmd)
 		{

@@ -91,10 +91,6 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task<bool> ShowLegalAsync()
 	{
-		var legalDocs = new TermsAndConditionsViewModel();
-
-		var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
-
-		return dialogResult.Result;
+		return await Navigate().To().TermsAndConditions().GetResultAsync();
 	}
 }

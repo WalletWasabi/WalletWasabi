@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 [NavigationMetaData(Title = "Broadcast Transaction")]
 public partial class BroadcastTransactionViewModel : RoutableViewModel
 {
-	public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
+	private BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 	{
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -88,7 +88,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 		try
 		{
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
-			Navigate().To(new SuccessViewModel("The transaction has been successfully broadcasted."));
+			Navigate().To().Success("The transaction has been successfully broadcasted.");
 		}
 		catch (Exception ex)
 		{
