@@ -50,7 +50,7 @@ public class AmountDecomposerTests
 		var theirCoinEffectiveValues = GenerateRandomCoins().Take(30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 
-		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, availableVsize, isTaprootEnabled, Random);
+		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange.Min, allowedOutputAmountRange.Max, availableVsize, isTaprootEnabled, Random);
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
 		var totalEffectiveValue = registeredCoinEffectiveValues.Sum(x => x);

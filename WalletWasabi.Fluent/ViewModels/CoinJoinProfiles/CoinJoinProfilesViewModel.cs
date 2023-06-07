@@ -16,7 +16,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
+	private CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
@@ -86,7 +86,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			Navigate().To().AddedWalletPage(keyManager);
 		}
 		else
 		{

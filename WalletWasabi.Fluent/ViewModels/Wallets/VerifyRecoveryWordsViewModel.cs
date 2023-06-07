@@ -24,7 +24,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isMnemonicsValid;
 	private Mnemonic? _currentMnemonics;
 
-	public VerifyRecoveryWordsViewModel(Wallet wallet)
+	private VerifyRecoveryWordsViewModel(Wallet wallet)
 	{
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -82,7 +82,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 			if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
 			{
-				Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."), NavigationMode.Clear);
+				Navigate().To().Success("Your Recovery Words have been verified and are correct.", navigationMode: NavigationMode.Clear);
 			}
 			else
 			{

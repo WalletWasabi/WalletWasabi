@@ -133,30 +133,35 @@ public static class HttpMessageHelper
 			: throw new FormatException("There's no CRLF.");
 	}
 
-	public static byte[]? HandleGzipCompression(HttpContentHeaders contentHeaders, byte[]? decodedBodyArray)
+	public static byte[] DecompressGzipContentIfRequired(HttpContentHeaders contentHeaders, byte[] contentBytes)
 	{
-		if (decodedBodyArray is null || !decodedBodyArray.Any())
+		if (contentBytes.Length == 0)
 		{
-			return decodedBodyArray;
+			return contentBytes;
 		}
 
-		if (contentHeaders?.ContentEncoding is { } && contentHeaders.ContentEncoding.Contains("gzip"))
+		if (contentHeaders.ContentEncoding.Contains("gzip"))
 		{
-			using (var src = new MemoryStream(decodedBodyArray))
+			using (var src = new MemoryStream(contentBytes))
 			using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
+			using (var targetStream = new MemoryStream())
 			{
-				using var targetStream = new MemoryStream();
 				unzipStream.CopyTo(targetStream);
-				decodedBodyArray = targetStream.ToArray();
+				contentBytes = targetStream.ToArray();
 			}
+
+			// Content-Length is removed, since it no longer applies to the decompressed content.
+			contentHeaders.ContentLength = null;
+
 			contentHeaders.ContentEncoding.Remove("gzip");
+
 			if (!contentHeaders.ContentEncoding.Any())
 			{
 				contentHeaders.Remove("Content-Encoding");
 			}
 		}
 
-		return decodedBodyArray;
+		return contentBytes;
 	}
 
 	public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken cancellationToken)
@@ -239,22 +244,8 @@ public static class HttpMessageHelper
 		return await GetBytesTillEndAsync(stream, cancellationToken).ConfigureAwait(false);
 	}
 
-	private static Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken cancellationToken)
+	private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders responseHeaders, CancellationToken cancellationToken)
 	{
-		return GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, cancellationToken);
-	}
-
-	private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders? requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken cancellationToken)
-	{
-		if (responseHeaders is null && requestHeaders is null)
-		{
-			throw new ArgumentException("Response and request headers cannot be both null.");
-		}
-		else if (responseHeaders is { } && requestHeaders is { })
-		{
-			throw new ArgumentException("Either response or request headers has to be null.");
-		}
-
 		// https://tools.ietf.org/html/rfc7230#section-4.1.3
 		// 4.1.3.Decoding Chunked
 		// A process for decoding the chunked transfer coding can be represented
@@ -333,21 +324,6 @@ public static class HttpMessageHelper
 			responseHeaders.ResponseHeaders.Remove("Transfer-Encoding");
 			responseHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
 			responseHeaders.ResponseHeaders.Remove("Trailer");
-		}
-		if (requestHeaders is { })
-		{
-			var trailerHeaderStruct = trailerHeaderSection.ToHttpRequestHeaders();
-			AssertValidHeaders(trailerHeaderStruct.RequestHeaders, trailerHeaderStruct.ContentHeaders);
-
-			// https://tools.ietf.org/html/rfc7230#section-4.1.2
-			// When a chunked message containing a non-empty trailer is received,
-			// the recipient MAY process the fields(aside from those forbidden
-			// above) as if they were appended to the message's header section.
-			CopyHeaders(trailerHeaderStruct.RequestHeaders, requestHeaders.RequestHeaders);
-
-			requestHeaders.RequestHeaders.Remove("Transfer-Encoding");
-			requestHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
-			requestHeaders.RequestHeaders.Remove("Trailer");
 		}
 
 		return decodedBody.ToArray();

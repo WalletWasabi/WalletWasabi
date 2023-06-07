@@ -128,8 +128,8 @@ public class CoordinatorRound
 	private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
 	private object RegisteredUnblindedSignaturesLock { get; }
 
-	private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
-	public static AsyncLock ConnectionConfirmationLock { get; } = new AsyncLock();
+	private static AsyncLock RoundSynchronizerLock { get; } = new();
+	public static AsyncLock ConnectionConfirmationLock { get; } = new();
 
 	private object PhaseLock { get; }
 
@@ -223,7 +223,7 @@ public class CoordinatorRound
 	public CoinVerifier? CoinVerifier { get; }
 	public RoundNonceProvider NonceProvider { get; }
 
-	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
+	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new();
 
 	private void SetInputRegistrationTimesout()
 	{
