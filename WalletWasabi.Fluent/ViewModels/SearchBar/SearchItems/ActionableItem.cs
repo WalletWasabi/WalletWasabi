@@ -13,14 +13,14 @@ public class ActionableItem : IActionableItem
 	{
 		Name = name;
 		Description = description;
-		OnExecution = onExecution;
+		Activate = onExecution;
 		Category = category;
 		Keywords = keywords ?? Enumerable.Empty<string>();
 		Command = ReactiveCommand.CreateFromTask(onExecution);
 	}
 
 	public ICommand Command { get; set; }
-	public Func<Task> OnExecution { get; }
+	public Func<Task> Activate { get; }
 	public string Name { get; }
 	public string Description { get; }
 	public ComposedKey Key => new(Name);

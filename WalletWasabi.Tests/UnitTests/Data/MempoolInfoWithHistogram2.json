@@ -1,0 +1,331 @@
+{
+  "result": {
+    "loaded": true,
+    "size": 129775,
+    "bytes": 172971662,
+    "usage": 669685264,
+    "total_fee": 16.31760645,
+    "maxmempool": 2000000000,
+    "mempoolminfee": 0.00001000,
+    "minrelaytxfee": 0.00001000,
+    "unbroadcastcount": 2,
+    "fee_histogram": {
+      "1": {
+        "sizes": 19661294,
+        "count": 2683,
+        "fees": 22645197,
+        "from_feerate": 1,
+        "to_feerate": 2
+      },
+      "2": {
+        "sizes": 23669393,
+        "count": 7967,
+        "fees": 51061557,
+        "from_feerate": 2,
+        "to_feerate": 3
+      },
+      "3": {
+        "sizes": 11631236,
+        "count": 6255,
+        "fees": 39338372,
+        "from_feerate": 3,
+        "to_feerate": 4
+      },
+      "4": {
+        "sizes": 7434339,
+        "count": 12744,
+        "fees": 30908049,
+        "from_feerate": 4,
+        "to_feerate": 5
+      },
+      "5": {
+        "sizes": 5641976,
+        "count": 15485,
+        "fees": 29255329,
+        "from_feerate": 5,
+        "to_feerate": 6
+      },
+      "6": {
+        "sizes": 2736023,
+        "count": 3610,
+        "fees": 17292228,
+        "from_feerate": 6,
+        "to_feerate": 7
+      },
+      "7": {
+        "sizes": 1254310,
+        "count": 2652,
+        "fees": 9112795,
+        "from_feerate": 7,
+        "to_feerate": 8
+      },
+      "8": {
+        "sizes": 4607913,
+        "count": 8611,
+        "fees": 41428110,
+        "from_feerate": 8,
+        "to_feerate": 10
+      },
+      "10": {
+        "sizes": 9957426,
+        "count": 17348,
+        "fees": 105062447,
+        "from_feerate": 10,
+        "to_feerate": 12
+      },
+      "12": {
+        "sizes": 58277023,
+        "count": 12491,
+        "fees": 784842062,
+        "from_feerate": 12,
+        "to_feerate": 14
+      },
+      "14": {
+        "sizes": 18267894,
+        "count": 30833,
+        "fees": 277341269,
+        "from_feerate": 14,
+        "to_feerate": 17
+      },
+      "17": {
+        "sizes": 7610672,
+        "count": 2721,
+        "fees": 129648898,
+        "from_feerate": 17,
+        "to_feerate": 20
+      },
+      "20": {
+        "sizes": 400160,
+        "count": 1134,
+        "fees": 8149148,
+        "from_feerate": 20,
+        "to_feerate": 25
+      },
+      "25": {
+        "sizes": 187340,
+        "count": 512,
+        "fees": 4571216,
+        "from_feerate": 25,
+        "to_feerate": 30
+      },
+      "30": {
+        "sizes": 453972,
+        "count": 1557,
+        "fees": 15372959,
+        "from_feerate": 30,
+        "to_feerate": 40
+      },
+      "40": {
+        "sizes": 553067,
+        "count": 1932,
+        "fees": 24505102,
+        "from_feerate": 40,
+        "to_feerate": 50
+      },
+      "50": {
+        "sizes": 225318,
+        "count": 683,
+        "fees": 11833274,
+        "from_feerate": 50,
+        "to_feerate": 60
+      },
+      "60": {
+        "sizes": 172526,
+        "count": 226,
+        "fees": 10128666,
+        "from_feerate": 60,
+        "to_feerate": 70
+      },
+      "70": {
+        "sizes": 143716,
+        "count": 129,
+        "fees": 10569690,
+        "from_feerate": 70,
+        "to_feerate": 80
+      },
+      "80": {
+        "sizes": 41405,
+        "count": 120,
+        "fees": 3385599,
+        "from_feerate": 80,
+        "to_feerate": 100
+      },
+      "100": {
+        "sizes": 35214,
+        "count": 35,
+        "fees": 3690172,
+        "from_feerate": 100,
+        "to_feerate": 120
+      },
+      "120": {
+        "sizes": 2413,
+        "count": 12,
+        "fees": 305108,
+        "from_feerate": 120,
+        "to_feerate": 140
+      },
+      "140": {
+        "sizes": 3280,
+        "count": 17,
+        "fees": 491612,
+        "from_feerate": 140,
+        "to_feerate": 170
+      },
+      "170": {
+        "sizes": 1022,
+        "count": 4,
+        "fees": 190441,
+        "from_feerate": 170,
+        "to_feerate": 200
+      },
+      "200": {
+        "sizes": 2030,
+        "count": 10,
+        "fees": 430307,
+        "from_feerate": 200,
+        "to_feerate": 250
+      },
+      "250": {
+        "sizes": 441,
+        "count": 3,
+        "fees": 116837,
+        "from_feerate": 250,
+        "to_feerate": 300
+      },
+      "300": {
+        "sizes": 259,
+        "count": 1,
+        "fees": 84201,
+        "from_feerate": 300,
+        "to_feerate": 400
+      },
+      "400": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 400,
+        "to_feerate": 500
+      },
+      "500": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 500,
+        "to_feerate": 600
+      },
+      "600": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 600,
+        "to_feerate": 700
+      },
+      "700": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 700,
+        "to_feerate": 800
+      },
+      "800": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 800,
+        "to_feerate": 1000
+      },
+      "1000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 1000,
+        "to_feerate": 1200
+      },
+      "1200": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 1200,
+        "to_feerate": 1400
+      },
+      "1400": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 1400,
+        "to_feerate": 1700
+      },
+      "1700": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 1700,
+        "to_feerate": 2000
+      },
+      "2000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 2000,
+        "to_feerate": 2500
+      },
+      "2500": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 2500,
+        "to_feerate": 3000
+      },
+      "3000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 3000,
+        "to_feerate": 4000
+      },
+      "4000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 4000,
+        "to_feerate": 5000
+      },
+      "5000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 5000,
+        "to_feerate": 6000
+      },
+      "6000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 6000,
+        "to_feerate": 7000
+      },
+      "7000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 7000,
+        "to_feerate": 8000
+      },
+      "8000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 8000,
+        "to_feerate": 10000
+      },
+      "10000": {
+        "sizes": 0,
+        "count": 0,
+        "fees": 0,
+        "from_feerate": 10000,
+        "to_feerate": 9223372036854775807
+      },
+      "total_fees": 1631760645
+    }
+  }
+}

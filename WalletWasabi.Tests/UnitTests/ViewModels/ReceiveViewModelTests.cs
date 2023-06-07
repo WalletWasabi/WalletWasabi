@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
+using WalletWasabi.Wallets;
 using Xunit;
 using TransactionSummary = WalletWasabi.Blockchain.Transactions.TransactionSummary;
 
@@ -61,14 +64,40 @@ public class ReceiveViewModelTests
 		}
 
 		public string Name => throw new NotSupportedException();
+		public bool IsLoggedIn => throw new NotSupportedException();
+
+		public IObservable<WalletState> State => throw new NotSupportedException();
 
 		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
 
-		public IObservable<Money> Balance => throw new NotSupportedException();
-
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+		public bool IsHardwareWallet => throw new NotSupportedException();
+
+		public bool IsWatchOnlyWallet => throw new NotSupportedException();
+
+		public WalletType WalletType => throw new NotSupportedException();
+
+		public IWalletBalancesModel Balances => throw new NotSupportedException();
+		public IWalletAuthModel Auth => throw new NotImplementedException();
+
+		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
+		{
+			throw new NotSupportedException();
+		}
+
+		public Task<WalletLoginResult> TryLoginAsync(string password)
+		{
+			throw new NotSupportedException();
+		}
+
+		public void Login()
+		{
+			throw new NotSupportedException();
+		}
+
+		public void Logout()
 		{
 			throw new NotSupportedException();
 		}
@@ -76,11 +105,6 @@ public class ReceiveViewModelTests
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
 			return ImmutableArray<(string Label, int Score)>.Empty;
-		}
-
-		public bool IsHardwareWallet()
-		{
-			return false;
 		}
 	}
 

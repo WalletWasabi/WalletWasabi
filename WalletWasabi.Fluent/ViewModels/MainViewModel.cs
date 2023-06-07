@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -58,10 +59,10 @@ public partial class MainViewModel : ViewModelBase
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
-		_addWalletPage = new AddWalletPageViewModel();
-		_settingsPage = new SettingsPageViewModel();
+		_addWalletPage = new AddWalletPageViewModel(UiContext);
+		_settingsPage = new SettingsPageViewModel(UiContext);
 		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel();
+		_navBar = new NavBarViewModel(UiContext);
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
@@ -80,8 +81,7 @@ public partial class MainViewModel : ViewModelBase
 				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		CurrentWallet =
-			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+		CurrentWallet = this.WhenAnyValue(x => x.MainScreen.CurrentPage)
 			.WhereNotNull()
 			.OfType<WalletViewModel>();
 
@@ -93,7 +93,7 @@ public partial class MainViewModel : ViewModelBase
 			{
 				IsOobeBackgroundVisible = true;
 
-				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+				await UiContext.Navigate().To().WelcomePage(_addWalletPage).GetResultAsync();
 
 				if (Services.WalletManager.HasWallet())
 				{
@@ -176,7 +176,13 @@ public partial class MainViewModel : ViewModelBase
 
 	public void InvalidateIsCoinJoinActive()
 	{
-		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.IsCoinJoining);
+		// TODO: Workaround for deprecation of WalletManagerViewModel
+		// REMOVE after IWalletModel.IsCoinjoining is implemented
+		IsCoinJoinActive =
+			NavBar.Wallets
+				  .Select(x => x.WalletViewModel)
+				  .WhereNotNull()
+				  .Any(x => x.IsCoinJoining);
 	}
 
 	public void Initialize()
@@ -213,9 +219,9 @@ public partial class MainViewModel : ViewModelBase
 			return _settingsPage;
 		});
 
-		AboutViewModel.RegisterLazy(() => new AboutViewModel());
-		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
+		AboutViewModel.RegisterLazy(() => new AboutViewModel(UiContext));
+		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(UiContext));
+		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(UiContext));
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
@@ -259,7 +265,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new WalletStatsViewModel(walletViewModel);
+				return new WalletStatsViewModel(UiContext, walletViewModel);
 			}
 
 			return null;
@@ -282,7 +288,7 @@ public partial class MainViewModel : ViewModelBase
 						}
 					}
 
-					return new WalletInfoViewModel(walletViewModel);
+					return new WalletInfoViewModel(UiContext, walletViewModel);
 				}
 
 				return AuthorizeWalletInfo();

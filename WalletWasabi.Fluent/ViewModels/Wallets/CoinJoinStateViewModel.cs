@@ -93,7 +93,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				await UiContext.Navigate().NavigateDialogAsync(new CoinJoinProfilesViewModel(wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
+				await UiContext.Navigate().To().CoinJoinProfiles(wallet.KeyManager, isNewWallet: false, NavigationTarget.DialogScreen).GetResultAsync();
 			}
 
 			if (wallet.KeyManager.IsCoinjoinProfileSelected)
