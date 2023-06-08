@@ -151,7 +151,7 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.Height,
 			unsignedSmartTransaction.BlockHash,
 			unsignedSmartTransaction.BlockIndex,
-			unsignedSmartTransaction.Label,
+			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
 			unsignedSmartTransaction.FirstSeen);
 	}

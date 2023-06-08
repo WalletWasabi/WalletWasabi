@@ -4,7 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -29,6 +30,7 @@ public class IndexStore : IAsyncDisposable
 
 		// Migration data.
 		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
+		OldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
 		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
 		RunMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath);
 
@@ -59,6 +61,9 @@ public class IndexStore : IAsyncDisposable
 	/// <summary>Mature index path for migration purposes.</summary>
 	private string OldIndexFilePath { get; }
 
+	/// <summary>Immature index path for migration purposes.</summary>
+	private string OldImmatureIndexFilePath { get; }
+
 	/// <summary>SQLite file path for migration purposes.</summary>
 	private string NewIndexFilePath { get; }
 
@@ -88,7 +93,31 @@ public class IndexStore : IAsyncDisposable
 				await Task.Run(MigrateToSqliteNoLock, cancellationToken).ConfigureAwait(false);
 			}
 
+			// If the automatic migration to SQLite is stopped or somehow disrupted, we would not delete the old index data.
+			// So check it every time.
+			RemoveOldIndexFilesIfExist();
+
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private void RemoveOldIndexFilesIfExist()
+	{
+		if (File.Exists(OldIndexFilePath))
+		{
+			try
+			{
+				File.Delete($"{OldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
+				File.Delete(OldImmatureIndexFilePath);
+				File.Delete($"{OldIndexFilePath}.dig");
+				File.Delete(OldIndexFilePath);
+
+				Logger.LogInfo("Removed old index file data.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
 		}
 	}
 

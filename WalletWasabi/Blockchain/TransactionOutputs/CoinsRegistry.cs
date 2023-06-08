@@ -10,26 +10,25 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
-	public CoinsRegistry()
-	{
-		Coins = new HashSet<SmartCoin>();
-		SpentCoins = new HashSet<SmartCoin>();
-		LatestCoinsSnapshot = new HashSet<SmartCoin>();
-		LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
-		InvalidateSnapshot = false;
-		CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
-		Lock = new object();
-	}
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> Coins { get; } = new();
 
-	private HashSet<SmartCoin> Coins { get; }
-	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
-	private object Lock { get; set; }
-	private HashSet<SmartCoin> SpentCoins { get; }
-	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
 
-	public bool IsEmpty => !AsCoinsView().Any();
+	private object Lock { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> SpentCoins { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -39,6 +38,7 @@ public class CoinsRegistry : ICoinsView
 			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 			InvalidateSnapshot = false;
 		}
+
 		return new CoinsView(LatestCoinsSnapshot);
 	}
 
@@ -50,6 +50,7 @@ public class CoinsRegistry : ICoinsView
 			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 			InvalidateSnapshot = false;
 		}
+
 		return new CoinsView(LatestSpentCoinsSnapshot);
 	}
 
@@ -104,10 +105,12 @@ public class CoinsRegistry : ICoinsView
 							}
 						}
 					}
+
 					InvalidateSnapshot = true;
 				}
 			}
 		}
+
 		return added;
 	}
 
@@ -128,6 +131,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				SpentCoins.Remove(toRemove);
 			}
+
 			toRemove.UnregisterFromHdPubKey();
 
 			var removedCoinOutPoint = toRemove.Outpoint;
@@ -146,6 +150,7 @@ public class CoinsRegistry : ICoinsView
 				}
 			}
 		}
+
 		InvalidateSnapshot = true;
 		return coinsToRemove;
 	}
@@ -154,6 +159,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		tx.TryAddWalletInput(spentCoin);
 		spentCoin.SpenderTransaction = tx;
+
 		lock (Lock)
 		{
 			if (Coins.Remove(spentCoin))
@@ -215,7 +221,9 @@ public class CoinsRegistry : ICoinsView
 					toAdd.Add(destroyedCoin);
 				}
 			}
+
 			InvalidateSnapshot = true;
+
 			return (new CoinsView(toRemove), new CoinsView(toAdd));
 		}
 	}

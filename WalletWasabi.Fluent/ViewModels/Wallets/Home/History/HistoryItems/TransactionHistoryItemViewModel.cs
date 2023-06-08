@@ -17,7 +17,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		Money balance)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = transactionSummary.Label;
+		Labels = transactionSummary.Labels;
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
@@ -28,9 +28,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		var amount = transactionSummary.Amount;
 		SetAmount(amount);
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			UiContext.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletVm)));
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)

@@ -7,13 +7,12 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
-
   <i:Interaction.Behaviors>
     <behaviors:NavBarSelectedIndicatorParentBehavior />
   </i:Interaction.Behaviors>
@@ -32,9 +31,6 @@
       <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
-      <Setter Property="IsSelected" Value="{Binding IsSelected}" />
-      <Setter Property="Command" Value="{Binding OpenCommand}" />
     </Style>
 
     <Style Selector="c|NavBarItem StackPanel">
@@ -76,7 +72,7 @@
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse">
+    <Style Selector="Ellipse.loadingindicator">
       <Setter Property="Fill" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Width" Value="8" />
       <Setter Property="Height" Value="8" />
@@ -91,11 +87,11 @@
       </Setter>
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse:not(.isLoading).isLoggedIn">
+    <Style Selector="Ellipse:not(.isLoading).isLoggedIn">
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse.isLoading.isLoggedIn">
+    <Style Selector="Ellipse.isLoading.isLoggedIn">
       <Style.Animations>
         <Animation IterationCount="Infinite" Duration="0:0:1">
           <KeyFrame Cue="50%">
@@ -105,14 +101,24 @@
       </Style.Animations>
     </Style>
 
-    <Style Selector="c|NavBarItem Ellipse.isLoggedIn.isCoinjoining">
+    <Style Selector="Ellipse.isLoggedIn.isCoinjoining">
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="ClipToBounds" Value="False"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
-
     <!-- Bottom items -->
     <ItemsControl Items="{Binding BottomItems}"
                   DockPanel.Dock="Bottom">
@@ -123,7 +129,7 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.DataTemplates>
         <DataTemplate DataType="vm:NavBarItemViewModel">
-          <c:NavBarItem>
+          <c:NavBarItem Command="{Binding OpenCommand}">
             <StackPanel>
               <PathIcon Classes="new size24" />
               <LayoutTransformControl>
@@ -139,27 +145,34 @@
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
-    <ScrollViewer>
-      <ItemsControl Items="{Binding Wallets}">
-        <ItemsControl.DataTemplates>
-          <DataTemplate DataType="vmw:WalletViewModelBase">
-            <c:NavBarItem ToolTip.Tip="{Binding Title}">
-              <Panel>
-                <Ellipse Classes.isLoading="{Binding IsLoading}"
+    <DockPanel MaxWidth="75" LastChildFill="True">
+      <ListBox Items="{Binding Wallets}"
+               SelectionMode="AlwaysSelected"
+               SelectedItem="{Binding SelectedWallet}"
+               Background="Transparent">
+        <Interaction.Behaviors>
+          <behaviors:ListBoxReselectingBehavior />
+        </Interaction.Behaviors>
+        <ListBox.DataTemplates>
+          <DataTemplate DataType="vmw:WalletPageViewModel">
+            <c:NavBarItem IsSelected="{Binding $parent[ListBoxItem].IsSelected}">
+              <Panel ToolTip.Tip="{Binding Title}">
+                <Ellipse Classes="loadingindicator"
+                         Classes.isLoading="{Binding IsLoading}"
                          Classes.isLoggedIn="{Binding IsLoggedIn}"
-                         Classes.isCoinjoining="{Binding IsCoinJoining}" />
-                <StackPanel>
-                  <PathIcon Classes="new size24" />
+                         Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                  <PathIcon Classes="new size24 wallet"
+                            Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}" />
                   <LayoutTransformControl>
-                    <c:FadeOutTextBlock Text="{Binding Title}" />
+                    <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
                   </LayoutTransformControl>
                 </StackPanel>
               </Panel>
             </c:NavBarItem>
           </DataTemplate>
-        </ItemsControl.DataTemplates>
-      </ItemsControl>
-    </ScrollViewer>
-
+        </ListBox.DataTemplates>
+      </ListBox>
+    </DockPanel>
   </DockPanel>
 </UserControl>

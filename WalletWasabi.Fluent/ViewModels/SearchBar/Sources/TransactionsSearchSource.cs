@@ -51,6 +51,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	private static Task NavigateTo(WalletViewModel wallet, HistoryItemViewModelBase item)
 	{
+		MainViewModel.Instance.NavBar.SelectedWallet = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
 		wallet.NavigateAndHighlight(item.Id);
 		return Task.CompletedTask;
 	}
@@ -86,9 +87,12 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	private static IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)> GetTransactionsByWallet()
 	{
-		return UiServices.WalletManager.Wallets
-			.Where(x => x.IsLoggedIn && x.WalletState == WalletState.Started)
-			.OfType<WalletViewModel>()
+		// TODO: This is a workaround to get all the transactions from currently loaded wallets. REMOVE after UIDecoupling #26
+
+		return MainViewModel.Instance.NavBar.Wallets
+			.Where(x => x.IsLoggedIn && x.Wallet.State == WalletState.Started)
+			.Select(x => x.WalletViewModel)
+			.WhereNotNull()
 			.Select(
 				x => (Wallet: x,
 					x.History.Transactions.Concat(x.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().SelectMany(y => y.Children))));

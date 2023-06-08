@@ -37,9 +37,9 @@ public class CoinsView : ICoinsView
 
 	public ICoinsView DescendantOf(SmartCoin coin)
 	{
-		IEnumerable<SmartCoin> Generator(SmartCoin scoin)
+		IEnumerable<SmartCoin> Generator(SmartCoin sCoin)
 		{
-			foreach (var child in ChildrenOf(scoin))
+			foreach (var child in ChildrenOf(sCoin))
 			{
 				foreach (var childDescendant in Generator(child))
 				{

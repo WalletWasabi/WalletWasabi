@@ -128,9 +128,9 @@ public class WalletTests
 
 		// Mine some coins, make a few bech32 transactions then make it confirm.
 		await rpc.GenerateAsync(1);
-		var key = keyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
+		var key = keyManager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		var tx2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
-		key = keyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
+		key = keyManager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		var tx3 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 		var tx4 = await rpc.SendToAddressAsync(key.GetP2pkhAddress(network), Money.Coins(0.1m));
 		var tx5 = await rpc.SendToAddressAsync(key.GetP2shOverP2wpkhAddress(network), Money.Coins(0.1m));
@@ -301,12 +301,12 @@ public class WalletTests
 			Assert.Equal(new Height((int)bitcoinStore.SmartHeaderChain.TipHeight), firstCoin.Height);
 			Assert.InRange(firstCoin.Index, 0U, 1U);
 			Assert.True(firstCoin.IsAvailable());
-			Assert.Equal("foo label", firstCoin.HdPubKey.Label);
+			Assert.Equal("foo label", firstCoin.HdPubKey.Labels);
 			Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 			Assert.Null(firstCoin.SpenderTransaction);
 			Assert.Equal(txId, firstCoin.TransactionId);
 			Assert.Single(keyManager.GetKeys(KeyState.Used, false));
-			Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
+			Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Labels);
 
 			// Get some money, make it confirm.
 			var key2 = keyManager.GetNextReceiveKey("bar label");
@@ -329,9 +329,9 @@ public class WalletTests
 			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 1, secondCoin.Height.Value);
 			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight), thirdCoin.Height);
 			Assert.True(thirdCoin.IsAvailable());
-			Assert.Equal("foo label", firstCoin.HdPubKey.Label);
-			Assert.Equal("bar label", secondCoin.HdPubKey.Label);
-			Assert.Equal("bar label", thirdCoin.HdPubKey.Label);
+			Assert.Equal("foo label", firstCoin.HdPubKey.Labels);
+			Assert.Equal("bar label", secondCoin.HdPubKey.Labels);
+			Assert.Equal("bar label", thirdCoin.HdPubKey.Labels);
 			Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 			Assert.Equal(key2.P2wpkhScript, secondCoin.ScriptPubKey);
 			Assert.Equal(key2.P2wpkhScript, thirdCoin.ScriptPubKey);
@@ -351,8 +351,8 @@ public class WalletTests
 			Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
 			Assert.Equal(58, keyManager.GetKeys().Count());
 
-			Assert.Single(keyManager.GetKeys(x => x.Label == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal));
-			Assert.Single(keyManager.GetKeys(x => x.Label == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
+			Assert.Single(keyManager.GetKeys(x => x.Labels == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal));
+			Assert.Single(keyManager.GetKeys(x => x.Labels == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
 
 			// REORG TESTS
 			var txId4 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.03m), replaceable: true);
@@ -379,7 +379,7 @@ public class WalletTests
 			Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, rbfCoin.Height.Value);
 			Assert.True(rbfCoin.IsAvailable());
-			Assert.Equal("bar label", rbfCoin.HdPubKey.Label);
+			Assert.Equal("bar label", rbfCoin.HdPubKey.Labels);
 			Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
 			Assert.Null(rbfCoin.SpenderTransaction);
 			Assert.Equal(tx4bumpRes.TransactionId, rbfCoin.TransactionId);
@@ -395,8 +395,8 @@ public class WalletTests
 			Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
 			Assert.Equal(58, keyManager.GetKeys().Count());
 
-			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
-			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
+			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "foo label"));
+			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "bar label"));
 
 			// TEST MEMPOOL
 			var txId5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));

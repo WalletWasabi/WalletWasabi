@@ -42,7 +42,7 @@ public class Config
 	public bool JsonRpcServerEnabled => GetEffectiveBool(PersistentConfig.JsonRpcServerEnabled, key: "JsonRpcServerEnabled");
 	public string JsonRpcUser => GetEffectiveString(PersistentConfig.JsonRpcUser, key: "JsonRpcUser");
 	public string JsonRpcPassword => GetEffectiveString(PersistentConfig.JsonRpcPassword, key: "JsonRpcPassword");
-	public string[] JsonRpcServerPrefixes => GetEffectiveValue(PersistentConfig.JsonRpcServerPrefixes, x => new [] { x }, key: "JsonRpcServerPrefixes");
+	public string[] JsonRpcServerPrefixes => GetEffectiveValue(PersistentConfig.JsonRpcServerPrefixes, x => new[] { x }, key: "JsonRpcServerPrefixes");
 	public Money DustThreshold => GetEffectiveValue(PersistentConfig.DustThreshold, x =>
 		{
 			if (Money.TryParse(x, out var money))
@@ -63,7 +63,7 @@ public class Config
 
 	public bool EnableGpu => GetEffectiveBool(PersistentConfig.EnableGpu, key: "EnableGpu");
 	public string CoordinatorIdentifier => GetEffectiveString(PersistentConfig.CoordinatorIdentifier, key: "CoordinatorIdentifier");
-	public ServiceConfiguration ServiceConfiguration => new (GetBitcoinP2pEndPoint(), DustThreshold);
+	public ServiceConfiguration ServiceConfiguration => new(GetBitcoinP2pEndPoint(), DustThreshold);
 
 	private EndPoint GetEffectiveEndPoint(EndPoint valueInConfigFile, string key) =>
 		GetEffectiveValue(

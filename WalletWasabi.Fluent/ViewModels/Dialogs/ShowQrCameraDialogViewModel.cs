@@ -22,12 +22,10 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	public ShowQrCameraDialogViewModel(UiContext context, Network network)
 	{
 		_network = network;
-		
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		UiContext = context;
 	}
-
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

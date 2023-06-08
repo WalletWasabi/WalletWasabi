@@ -56,8 +56,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	private void AboutExecute()
 	{
-		MainViewModel.Instance.DialogScreen.To(
-			new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null));
+		MainViewModel.Instance.DialogScreen.To().About(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null);
 	}
 
 	private IObservable<bool> AboutCanExecute()
@@ -80,7 +79,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return;
 		}
 
-		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
+		UiContext.Navigate().To().ShuttingDown(this, restartRequest);
 	}
 
 	public bool CanShutdown(bool restart)

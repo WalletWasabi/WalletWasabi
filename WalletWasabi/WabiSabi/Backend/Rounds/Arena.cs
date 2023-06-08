@@ -299,14 +299,14 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
-					round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
-					round.LogInfo($"Desired Fee Rate: {round.Parameters.MiningFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					round.LogInfo($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
+					round.LogInfo($"Desired Fee Rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vByte.");
 
 					// Added for monitoring reasons.
 					try
 					{
 						FeeRate targetFeeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-						round.LogInfo($"Current Fee Rate on the Network: {targetFeeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
+						round.LogInfo($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vByte. Confirmation target is: {(int)Config.ConfirmationTarget} blocks.");
 					}
 					catch (Exception ex)
 					{
@@ -342,8 +342,8 @@ public partial class Arena : PeriodicRunner
 					}
 
 					foreach (var address in coinjoin.Outputs
-								 .Select(x => x.ScriptPubKey)
-								 .Where(script => CoinJoinScriptStore?.Contains(script) is true))
+						.Select(x => x.ScriptPubKey)
+						.Where(script => CoinJoinScriptStore?.Contains(script) is true))
 					{
 						if (address == round.CoordinatorScript)
 						{

@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
-	public DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
+	private DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
 	{
 		WalletName = walletName;
 		CancelCts = new CancellationTokenSource();
@@ -60,7 +60,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
 			km.SetIcon(Type);
 
-			Navigate().To(new AddedWalletPageViewModel(km));
+			Navigate().To().AddedWalletPage(km);
 		}
 		catch (Exception ex)
 		{

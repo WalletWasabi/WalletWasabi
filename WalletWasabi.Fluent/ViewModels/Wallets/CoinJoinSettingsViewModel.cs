@@ -29,7 +29,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 
-	public CoinJoinSettingsViewModel(WalletViewModelBase walletViewModelBase)
+	private CoinJoinSettingsViewModel(WalletViewModel walletViewModelBase)
 	{
 		_wallet = walletViewModelBase.Wallet;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
@@ -49,9 +49,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 				}
 				else
 				{
-					await NavigateDialogAsync(
-						new CoinJoinProfilesViewModel(_wallet.KeyManager, false),
-						NavigationTarget.DialogScreen);
+					await Navigate().To().CoinJoinProfiles(_wallet.KeyManager, false).GetResultAsync();
 				}
 
 				if (_wallet.KeyManager.IsCoinjoinProfileSelected)
@@ -105,9 +103,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 	private async Task SelectCoinjoinProfileAsync()
 	{
-		await NavigateDialogAsync(
-			new CoinJoinProfilesViewModel(_wallet.KeyManager, false),
-			NavigationTarget.DialogScreen);
+		await Navigate().To().CoinJoinProfiles(_wallet.KeyManager, false).GetResultAsync();
 		AutoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 	}
 }
