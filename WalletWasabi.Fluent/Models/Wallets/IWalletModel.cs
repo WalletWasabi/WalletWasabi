@@ -18,6 +18,8 @@ public interface IWalletModel
 
 	IObservable<WalletState> State { get; }
 
+	IObservable<IChangeSet<ICoinModel>> Coins { get; }
+
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
