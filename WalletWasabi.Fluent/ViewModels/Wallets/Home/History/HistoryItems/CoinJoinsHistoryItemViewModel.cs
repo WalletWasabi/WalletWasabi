@@ -89,7 +89,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 		SetAmount(
 			CoinJoinTransactions.Sum(x => x.Amount),
-			CoinJoinTransactions.Sum(x => x.Amount ?? Money.Zero));
+			CoinJoinTransactions.Sum(x => x.Fee ?? Money.Zero));
 
 		UpdateDateString();
 	}
