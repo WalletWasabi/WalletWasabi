@@ -47,6 +47,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 				if (x.NewValue is { } b)
 				{
+					Services.UiConfig.LastSelectedWallet = b.Wallet.WalletName;
 					b.IsSelected = true;
 				}
 			})
