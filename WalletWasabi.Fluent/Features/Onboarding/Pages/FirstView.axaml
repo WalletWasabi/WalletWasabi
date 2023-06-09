@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:onboarding="clr-namespace:WalletWasabi.Fluent.Features.Onboarding"
              xmlns:pages="clr-namespace:WalletWasabi.Fluent.Features.Onboarding.Pages"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Features.Onboarding.Pages.FirstView"
@@ -10,11 +9,11 @@
              x:DataType="pages:FirstViewModel">
 
   <UserControl.Styles>
-    <StyleInclude Source="/Features/Onboarding/ResourceDictionary1.axaml" />
+    <StyleInclude Source="/Features/Onboarding/Common.axaml" />
   </UserControl.Styles>
 
   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-    <Image Width="120" Margin="20">
+    <Image Width="120" Margin="0 -50 0 0">
       <Image.Resources>
         <LinearGradientBrush x:Key="Brush0" StartPoint="40.660156,13.597656" EndPoint="24.507812,41.289062">
           <LinearGradientBrush.GradientStops>
@@ -36,7 +35,7 @@
       </DrawingImage>
     </Image>
     <TextBlock Text="Welcome to Wasabi Wallet" Classes="title1" />
-    <TextBlock Text="The 1st Rule of Wasabi" Classes="title2" />
-    <TextBlock Text="Wasabi is for self defense and self defense only" Classes="text" />
+    <TextBlock Text="The 1st Rule of Wasabi" Classes="title2" HorizontalAlignment="Center" />
+    <TextBlock Text="&quot;Wasabi is for self defense and self defense only&quot;" Classes="text" />
   </StackPanel>
 </UserControl>

@@ -11,9 +11,10 @@
              x:DataType="pages:FourthViewModel">
 
   <UserControl.Styles>
-    <StyleInclude Source="/Features/Onboarding/ResourceDictionary1.axaml" />
+    <StyleInclude Source="/Features/Onboarding/Common.axaml" />
     <Style Selector="c|TileButton">
-      <Setter Property="MaxHeight" Value="120" />
+      <Setter Property="Padding" Value="15" />
+      <Setter Property="Margin" Value="15" />
       <Setter Property="Width">
         <Setter.Value>
           <system:Double>NaN</system:Double>
@@ -24,17 +25,30 @@
           <system:Double>NaN</system:Double>
         </Setter.Value>
       </Setter>
-      <Setter Property="Margin" Value="30" />
     </Style>
     <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
       <Setter Property="Margin" Value="0 0 0 0" />
+    </Style>
+    <Style Selector="c|TileButton /template/ TextBlock#PART_Text">
+      <Setter Property="Margin" Value="0 0 10 0" />
     </Style>
   </UserControl.Styles>
 
   
 
-  <Grid RowDefinitions="* Auto *" ColumnDefinitions="* * *">
+  <Grid Width="600" Height="300">
 
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition />
+      <ColumnDefinition />
+      <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+
+    <Grid.RowDefinitions>
+      <RowDefinition />
+      <RowDefinition Height="Auto" />
+      <RowDefinition />
+    </Grid.RowDefinitions>
     <c:TileButton Text="Create a new wallet"
                   Grid.ColumnSpan="3"
                   Classes="action bottomtext"

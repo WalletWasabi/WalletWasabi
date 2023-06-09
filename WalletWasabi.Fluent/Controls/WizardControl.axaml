@@ -33,7 +33,7 @@
           </Button>
           <DockPanel Margin="20">
             <Panel DockPanel.Dock="Bottom">
-              <ListBox Background="Transparent" HorizontalAlignment="Center"
+              <ListBox IsHitTestVisible="False" Background="Transparent" HorizontalAlignment="Center"
                        SelectedItem="{Binding ActivePage^, Mode=OneWay}"
                        Items="{Binding Pages}">
                 <ListBox.Styles>

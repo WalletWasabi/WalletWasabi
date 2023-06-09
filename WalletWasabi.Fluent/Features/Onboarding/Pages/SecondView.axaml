@@ -9,7 +9,7 @@
              x:DataType="pages:SecondViewModel">
 
   <UserControl.Styles>
-    <StyleInclude Source="/Features/Onboarding/ResourceDictionary1.axaml" />
+    <StyleInclude Source="/Features/Onboarding/Common.axaml" />
   </UserControl.Styles>
 
   <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
