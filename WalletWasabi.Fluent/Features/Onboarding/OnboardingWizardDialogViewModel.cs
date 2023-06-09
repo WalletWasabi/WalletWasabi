@@ -42,8 +42,8 @@ public partial class OnboardingWizardDialogViewModel : DialogViewModelBase<Unit>
 			fourthViewModel
 		};
 
-		Wizard = new WizardViewModel(pages);
+		Wizard = new Wizard(pages);
 	}
 
-	public WizardViewModel Wizard { get; }
+	public Wizard Wizard { get; }
 }

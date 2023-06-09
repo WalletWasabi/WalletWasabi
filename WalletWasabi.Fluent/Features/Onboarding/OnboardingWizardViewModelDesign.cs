@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
@@ -8,9 +9,9 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Features.Onboarding;
 
-public class WizardDesign : IWizardViewModel
+public class WizardDesign : IWizard
 {
-	public IWizardPage ActivePage => (IWizardPage) (Pages.FirstOrDefault() ?? new object());
+	public IObservable<IWizardPage> ActivePage => Observable.Return(Pages.First());
 	public IList<IWizardPage> Pages { get; }
 	public ICommand GoNextCommand { get; set; }
 	public IReactiveCommand BackCommand { get; set; }

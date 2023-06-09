@@ -1,41 +1,32 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Reactive;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Features.Onboarding;
 
-public partial class WizardViewModel : ReactiveObject, IWizardViewModel
+public partial class Wizard : ReactiveObject, IWizard
 {
-	public WizardViewModel(IList<IWizardPage> pages)
+	[AutoNotify] private int _currentPageIndex;
+
+	public Wizard(IList<IWizardPage> pages)
 	{
 		Pages = pages;
 
-		ActivePage = Pages.First();
-		GoNextCommand = ReactiveCommand.Create(
-			() =>
-			{
-				CurrentPageIndex++;
-				return ActivePage = Pages[CurrentPageIndex];
-			},
-			this.WhenAnyValue(x => x.CurrentPageIndex, x => x < Pages.Count-1));
+		var canGoNext = this.WhenAnyValue(x => x.CurrentPageIndex, x => x < Pages.Count - 1);
+		var canBack = this.WhenAnyValue(x => x.CurrentPageIndex, x => x > 0);
 
-		BackCommand = ReactiveCommand.Create(() =>
-			{
-				CurrentPageIndex--;
-				return ActivePage = Pages[CurrentPageIndex];
-			},
-			this.WhenAnyValue(x => x.CurrentPageIndex, x => x > 0));
+		GoNextCommand = ReactiveCommand.Create(() => CurrentPageIndex++, canGoNext);
+		BackCommand = ReactiveCommand.Create(() => CurrentPageIndex--, canBack);
+
+		ActivePage = this.WhenAnyValue(x => x.CurrentPageIndex).Select(i => Pages[i]);
 	}
+
+	public IObservable<IWizardPage> ActivePage { get; }
 
 	public IReactiveCommand BackCommand { get; set; }
 
 	public ICommand GoNextCommand { get; set; }
-
-	[AutoNotify] private int _currentPageIndex;
-
-	[AutoNotify] private IWizardPage _activePage;
 
 	public IList<IWizardPage> Pages { get; }
 }

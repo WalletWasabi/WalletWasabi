@@ -5,9 +5,9 @@ using WalletWasabi.Fluent.Features.Onboarding;
 namespace WalletWasabi.Fluent.Controls;
 public class WizardControl : TemplatedControl
 {
-	public static readonly StyledProperty<IWizardViewModel> WizardProperty = AvaloniaProperty.Register<WizardControl, IWizardViewModel>(nameof(WizardProperty));
+	public static readonly StyledProperty<IWizard> WizardProperty = AvaloniaProperty.Register<WizardControl, IWizard>(nameof(WizardProperty));
 
-	public IWizardViewModel Wizard
+	public IWizard Wizard
 	{
 		get => GetValue(WizardProperty);
 		set => SetValue(WizardProperty, value);

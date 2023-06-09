@@ -4,9 +4,9 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Features.Onboarding;
 
-public interface IWizardViewModel
+public interface IWizard
 {
-	IWizardPage ActivePage { get; }
+	IObservable<IWizardPage> ActivePage { get; }
 	IList<IWizardPage> Pages { get; }
 	ICommand GoNextCommand { get; set; }
 	IReactiveCommand BackCommand { get; set; }

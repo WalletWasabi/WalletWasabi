@@ -34,7 +34,7 @@
           <DockPanel Margin="20">
             <Panel DockPanel.Dock="Bottom">
               <ListBox Background="Transparent" HorizontalAlignment="Center"
-                       SelectedItem="{Binding ActivePage, Mode=OneWay}"
+                       SelectedItem="{Binding ActivePage^, Mode=OneWay}"
                        Items="{Binding Pages}">
                 <ListBox.Styles>
                   <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
@@ -63,11 +63,11 @@
               </ListBox>
               <Button x:Name="PART_NextButton"
                       Command="{Binding GoNextCommand}"
-                      Opacity="{Binding ActivePage.ShowNext, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
-                      Content="{Binding ActivePage.NextText}" Classes="action" HorizontalAlignment="Right" />
+                      Opacity="{Binding ActivePage^.ShowNext, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+                      Content="{Binding ActivePage^.NextText}" Classes="action" HorizontalAlignment="Right" />
 
             </Panel>
-            <Carousel Items="{Binding Pages}" SelectedItem="{Binding ActivePage}">
+            <Carousel Items="{Binding Pages}" SelectedItem="{Binding ActivePage^}">
               <Carousel.PageTransition>
                 <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
                            SlideInEasing="{StaticResource FluentEasing}" />
