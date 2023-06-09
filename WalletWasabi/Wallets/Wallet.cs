@@ -667,7 +667,7 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
 	}
 
-	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, SmartLabel> hdPubKeysWithLabels)
+	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)
 	{
 		if (!hdPubKeysWithLabels.Any())
 		{
@@ -690,7 +690,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
     
-    public void SetFinalBestHeight(Height filterHeight)
+    private void SetFinalBestHeight(Height filterHeight)
     {
 	    if (KeyManager.GetBestHeight() < filterHeight)
 	    {
