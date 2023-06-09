@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets;
 
-public class ClosedWatchOnlyWalletView : UserControl
+public class LoadingView : UserControl
 {
-	public ClosedWatchOnlyWalletView()
+	public LoadingView()
 	{
 		InitializeComponent();
 	}

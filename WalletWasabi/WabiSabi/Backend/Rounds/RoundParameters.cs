@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using NBitcoin;
 using NBitcoin.Policy;
+using WalletWasabi.Extensions;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -85,6 +89,9 @@ public record RoundParameters
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee
 												  ?? new FeeRate(Money.Satoshis(1000));
 
+	private int MaxVsizeInputOutputPair => AllowedOutputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+	private ScriptType MaxVsizeInputOutputPairScriptType => AllowedOutputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		Network network,
@@ -113,4 +120,33 @@ public record RoundParameters
 
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
+
+	/// <returns>Min output amount that's economically reasonable to be registered with current network conditions.</returns>
+	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
+	public Money CalculateMinReasonableOutputAmount()
+	{
+		var minEconomicalOutput = MiningFeeRate.GetFee(MaxVsizeInputOutputPair);
+		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
+	}
+
+	public Money CalculateSmallestReasonableEffectiveDenomination()
+		=> CalculateSmallestReasonableEffectiveDenomination(CalculateMinReasonableOutputAmount(), AllowedOutputAmounts.Max, MiningFeeRate, MaxVsizeInputOutputPairScriptType);
+
+	/// <returns>Smallest effective denom that's larger than min reasonable output amount. </returns>
+	public static Money CalculateSmallestReasonableEffectiveDenomination(Money minReasonableOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, ScriptType maxVsizeInputOutputPairScriptType)
+	{
+		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+				minReasonableOutputAmount,
+				maxAllowedOutputAmount,
+				feeRate,
+				new List<ScriptType>() { maxVsizeInputOutputPairScriptType })
+			.Min(x => x.EffectiveCost);
+
+		return smallestEffectiveDenom is null
+			? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.")
+			: smallestEffectiveDenom;
+	}
+
+	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
+	public MoneyRange CalculateReasonableOutputAmountRange() => new(CalculateSmallestReasonableEffectiveDenomination(), AllowedOutputAmounts.Max);
 }

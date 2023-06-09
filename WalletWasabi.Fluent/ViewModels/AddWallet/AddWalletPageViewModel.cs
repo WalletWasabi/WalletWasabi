@@ -8,8 +8,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -25,13 +23,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	IconName = "nav_add_circle_24_regular",
 	IconNameFocused = "nav_add_circle_24_filled",
 	NavigationTarget = NavigationTarget.DialogScreen,
-	NavBarPosition = NavBarPosition.Bottom)]
+	NavBarPosition = NavBarPosition.Bottom,
+	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
-	public AddWalletPageViewModel()
+	private AddWalletPageViewModel()
 	{
-		SelectionMode = NavBarItemSelectionMode.Button;
-
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
@@ -51,12 +48,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnCreateWallet()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.AddNewWallet));
+		Navigate().To().WalletNamePage(WalletCreationOption.AddNewWallet);
 	}
 
 	private void OnConnectHardwareWallet()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ConnectToHardwareWallet));
+		Navigate().To().WalletNamePage(WalletCreationOption.ConnectToHardwareWallet);
 	}
 
 	private async Task OnImportWalletAsync()
@@ -75,12 +72,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			var validationError = WalletHelpers.ValidateWalletName(walletName);
 			if (validationError is { })
 			{
-				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
+				Navigate().To().WalletNamePage(WalletCreationOption.ImportWallet, filePath);
 				return;
 			}
 
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			Navigate().To().AddedWalletPage(keyManager);
 		}
 		catch (Exception ex)
 		{
@@ -91,14 +88,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnRecoverWallet()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
-	}
-
-	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
-	{
-		MainViewModel.Instance.IsOobeBackgroundVisible = true;
-		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-		MainViewModel.Instance.IsOobeBackgroundVisible = false;
+		Navigate().To().WalletNamePage(WalletCreationOption.RecoverWallet);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -107,5 +97,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+	}
+
+	public async Task Activate()
+	{
+		MainViewModel.Instance.IsOobeBackgroundVisible = true;
+		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+		MainViewModel.Instance.IsOobeBackgroundVisible = false;
 	}
 }

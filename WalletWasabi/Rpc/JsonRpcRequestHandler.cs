@@ -138,12 +138,12 @@ public class JsonRpcRequestHandler<TService>
 
 			var missingParameters = methodParameters.Count - parameters.Count;
 			parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
-		
+
 			if (procedureMetadata.RequiresInitialization && MetadataProvider.TryGetInitializer(out var initializer))
 			{
 				initializer.Invoke(Service, new object[] { path, procedureMetadata.RequiresInitialization });
 			}
-			
+
 			var result = procedureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 			if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response

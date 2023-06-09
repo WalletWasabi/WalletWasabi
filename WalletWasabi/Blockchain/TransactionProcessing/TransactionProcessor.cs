@@ -304,14 +304,14 @@ public class TransactionProcessor
 			{
 				spenderKey.LatestSpendingHeight = txHeight;
 			}
-			else if ((Height) spenderKey.LatestSpendingHeight < txHeight)
+			else if ((Height)spenderKey.LatestSpendingHeight < txHeight)
 			{
 				// Key spent its coins earlier in history but was reused and spent again.
 				spenderKey.LatestSpendingHeight = txHeight;
 			}
 		}
 	}
-	
+
 	public void UndoBlock(Height blockHeight)
 	{
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);

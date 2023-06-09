@@ -11,12 +11,23 @@ public static class AnalyzerExtensions
 {
 	public static List<IdentifierNameSyntax> GetUiContextReferences(this SyntaxNode node, SemanticModel semanticModel)
 	{
-		return
+		var directReferences =
 			node.DescendantNodes()
-			 .OfType<IdentifierNameSyntax>()
-			 .Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
-			 .Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
-			 .ToList();
+				.OfType<IdentifierNameSyntax>()
+				.Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
+				.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
+				.ToList();
+
+		var indirectReferences =
+			node.DescendantNodes()
+				.OfType<IdentifierNameSyntax>()
+				.Where(x => x.Identifier.ValueText is "Navigate" or "NavigateDialogAsync")
+				.Where(x => semanticModel.GetSymbolInfo(x).Symbol?.Kind == SymbolKind.Method)
+				.ToList();
+
+		return
+			directReferences.Concat(indirectReferences)
+							.ToList();
 	}
 
 	public static bool IsPrivate(this ConstructorDeclarationSyntax node)
@@ -59,9 +70,8 @@ public static class AnalyzerExtensions
 
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
-		var typeInfo =
-			model.GetDeclaredSymbol(cls)
-			?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
+		var typeInfo = model.GetDeclaredSymbol(cls)
+		               ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
 	}
@@ -69,6 +79,30 @@ public static class AnalyzerExtensions
 	public static bool IsRoutableViewModel(this SyntaxNode node, SemanticModel model)
 	{
 		return node.IsSubTypeOf(model, "WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
+	}
+
+	public static (string? TypeName, IEnumerable<string> Namespaces) GetDialogResultType(this SyntaxNode node, SemanticModel model)
+	{
+		if (node is not ClassDeclarationSyntax cls)
+		{
+			return (null, Array.Empty<string>());
+		}
+
+		var currentType = model.GetDeclaredSymbol(cls);
+		while (currentType != null)
+		{
+			if (currentType.ConstructedFrom?.ToDisplayString() == UiContextAnalyzer.DialogViewModelBaseType)
+			{
+				var typeArgument = currentType.TypeArguments.FirstOrDefault();
+				if (typeArgument is { })
+				{
+					return (typeArgument.ToDisplayString(), typeArgument.GetNamespaces());
+				}
+			}
+			currentType = currentType.BaseType;
+		}
+
+		return (null, Array.Empty<string>());
 	}
 
 	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
@@ -89,9 +123,9 @@ public static class AnalyzerExtensions
 	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
 	{
 		return GetNamespaceSymbols(typeSymbol)
-				.Where(x => !x.IsGlobalNamespace)
-				.Select(x => x.ToDisplayString())
-				.ToList();
+			.Where(x => !x.IsGlobalNamespace)
+			.Select(x => x.ToDisplayString())
+			.ToList();
 	}
 
 	private static IEnumerable<INamespaceSymbol> GetNamespaceSymbols(this ITypeSymbol? typeSymbol)

@@ -38,8 +38,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		HashCode = PubKeyHash.GetHashCode();
 
 		Index = (int)FullKeyPath.Indexes[4];
-		NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
-		
+
 		int change = (int)FullKeyPath.Indexes[3];
 		if (change == 0)
 		{
@@ -101,7 +100,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public KeyId PubKeyHash { get; }
 
 	public int Index { get; }
-	public KeyPath NonHardenedKeyPath { get; }
 	public bool IsInternal { get; }
 
 	private int HashCode { get; }
