@@ -14,4 +14,6 @@ public class NullWalletList : IWalletListModel
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
 	public IWalletModel? DefaultWallet => null;
+
+	public IWalletModel? SelectedWallet { get; set; } = null;
 }

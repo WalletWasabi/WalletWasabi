@@ -11,6 +11,8 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class WalletListModel : ReactiveObject, IWalletListModel
 {
+	[AutoNotify] private IWalletModel? _selectedWallet;
+
 	public WalletListModel()
 	{
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
@@ -34,6 +36,11 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 		DefaultWallet =
 			wallets.FirstOrDefault(item => item.Name == Services.UiConfig.LastSelectedWallet)
 			?? wallets.FirstOrDefault();
+
+		this.WhenAnyValue(x => x.SelectedWallet)
+			.WhereNotNull()
+			.Do(x => Services.UiConfig.LastSelectedWallet = x.Name)
+			.Subscribe();
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }

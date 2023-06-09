@@ -48,6 +48,7 @@ public partial class NavBarViewModel : ViewModelBase
 				if (x.NewValue is { } b)
 				{
 					b.IsSelected = true;
+					UiContext.WalletList.SelectedWallet = b.WalletModel;
 				}
 			})
 			.Subscribe();

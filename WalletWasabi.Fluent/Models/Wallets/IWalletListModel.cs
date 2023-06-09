@@ -7,4 +7,6 @@ public interface IWalletListModel
 	IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
 	IWalletModel? DefaultWallet { get; }
+
+	IWalletModel? SelectedWallet { get; set; }
 }
