@@ -25,6 +25,7 @@ public class TransactionProcessor
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 		Coins = new();
 		BlockchainAnalyzer = new();
+		SafetyCoinjoins = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -37,6 +38,7 @@ public class TransactionProcessor
 
 	public CoinsRegistry Coins { get; }
 	public BlockchainAnalyzer BlockchainAnalyzer { get; }
+	public SafetyCoinjoins SafetyCoinjoins { get; }
 	public Money DustThreshold { get; }
 
 	#region Progress
@@ -124,6 +126,9 @@ public class TransactionProcessor
 		}
 
 		uint256 txId = tx.GetHash();
+
+		// ToDo: is this correct?
+		Money prevBalance = Coins.Sum(x => x.Amount);
 
 		// If we already have the transaction, then let's work on that.
 		if (TransactionStore.TryGetTransaction(txId, out var foundTx))
@@ -280,6 +285,8 @@ public class TransactionProcessor
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
+
+		SafetyCoinjoins.Process(result.Transaction, prevBalance);
 
 		return result;
 	}
