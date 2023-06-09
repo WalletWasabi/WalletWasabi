@@ -513,14 +513,13 @@ public class CoinJoinManager : BackgroundService
 				foreach (var hdPubKey in w.KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 				{
 					w.KeyManager.SetKeyState(state, hdPubKey);
+					w.KeyManager.ToFile();
 				}
 			}
 			else
 			{
 				k.KeyChain?.TrySetScriptStates(state, scripts);
 			}
-
-			(k as Wallet)?.KeyManager.ToFile();
 		}
 	}
 
