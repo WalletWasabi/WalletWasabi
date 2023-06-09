@@ -37,7 +37,7 @@
       </StackPanel>
       <StackPanel>
         <TextBlock Text="Plebs don't pay" Classes="title2 Animated" />
-        <TextBlock Text="Coins less than or equal to ₿0.01 don't pay the coordination fees at all." Classes="text" />
+        <TextBlock Text="Coins less than or equal to 0.01 BTC don't pay the coordination fees at all." Classes="text" />
       </StackPanel>
       <StackPanel>
         <TextBlock Text="Friends don't pay" Classes="title2 Animated" />

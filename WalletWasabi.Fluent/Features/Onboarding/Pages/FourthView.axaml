@@ -13,8 +13,7 @@
   <UserControl.Styles>
     <StyleInclude Source="/Features/Onboarding/Common.axaml" />
     <Style Selector="c|TileButton">
-      <Setter Property="Padding" Value="15" />
-      <Setter Property="Margin" Value="15" />
+      <Setter Property="Cursor" Value="Hand" />
       <Setter Property="Width">
         <Setter.Value>
           <system:Double>NaN</system:Double>
@@ -25,18 +24,37 @@
           <system:Double>NaN</system:Double>
         </Setter.Value>
       </Setter>
+      <Setter Property="Margin" Value="10"></Setter>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border x:Name="PART_Border"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  Background="{TemplateBinding Background}">
+            <Grid RowDefinitions="5* 4*">
+              <Panel Grid.Row="0">
+                <PathIcon x:Name="PART_Icon"
+                          Data="{TemplateBinding Icon}"
+                          Width="{TemplateBinding IconSize}"
+                          Height="{TemplateBinding IconSize}" />
+              </Panel>
+              <TextBlock Grid.Row="1" x:Name="PART_Text"
+                         DockPanel.Dock="Bottom"
+                         Text="{TemplateBinding Text}"
+                         Foreground="{TemplateBinding Foreground}" />
+            </Grid>
+          </Border>
+        </ControlTemplate>
+      </Setter>
     </Style>
     <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
-      <Setter Property="Margin" Value="0 0 0 0" />
-    </Style>
-    <Style Selector="c|TileButton /template/ TextBlock#PART_Text">
-      <Setter Property="Margin" Value="0 0 10 0" />
+      <Setter Property="Margin" Value="0" />
     </Style>
   </UserControl.Styles>
 
-  
 
-  <Grid Width="600" Height="300">
+
+  <Grid Width="530" Height="350">
 
     <Grid.ColumnDefinitions>
       <ColumnDefinition />
@@ -61,7 +79,7 @@
                   Icon="{StaticResource calculator_regular}"
                   Classes="bottomtext"
                   Command="{Binding ConnectHardwareWalletCommand}">
-     
+
     </c:TileButton>
 
     <c:TileButton Grid.Row="2" Grid.Column="1" Text="Import a wallet"

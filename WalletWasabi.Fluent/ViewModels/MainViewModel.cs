@@ -88,6 +88,7 @@ public partial class MainViewModel : ViewModelBase
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
+		IsOobeBackgroundVisible = true;
 		var command = ReactiveCommand.CreateFromTask(() => UiContext.Navigate().NavigateDialogAsync(new OnboardingWizardDialogViewModel(UiContext), NavigationTarget.DialogScreen));
 		command.Execute().Subscribe();
 
