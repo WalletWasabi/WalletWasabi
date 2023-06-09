@@ -149,7 +149,8 @@
       <ListBox Items="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
                SelectedItem="{Binding SelectedWallet}"
-               Background="Transparent">
+               Background="Transparent"
+               VirtualizationMode="None">
         <Interaction.Behaviors>
           <behaviors:ListBoxReselectingBehavior />
         </Interaction.Behaviors>
