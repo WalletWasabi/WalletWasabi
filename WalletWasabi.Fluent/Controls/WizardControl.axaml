@@ -22,54 +22,57 @@
     <!-- Set Defaults -->
     <Setter Property="Template">
       <ControlTemplate TargetType="controls:WizardControl">
-        <DockPanel DataContext="{Binding Wizard, RelativeSource={RelativeSource TemplatedParent}}" Margin="20">
-          <Panel DockPanel.Dock="Bottom">
-            <ListBox Background="Transparent" HorizontalAlignment="Center"
-                     SelectedItem="{Binding ActivePage, Mode=OneWay}"
-                     Items="{Binding Pages}">
-              <ListBox.Styles>
-                <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-                  <Setter Property="Background" Value="Transparent" />
-                </Style>
-                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                  <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-                </Style>
-                <Style Selector="ListBoxItem">
-                  <Setter Property="Opacity" Value="0.3" />
-                </Style>
-                <Style Selector="ListBoxItem:selected">
-                  <Setter Property="Opacity" Value="1" />
-                </Style>
-              </ListBox.Styles>
-              <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-              </ListBox.ItemsPanel>
-              <ListBox.ItemTemplate>
-                <DataTemplate>
-                  <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-            <Button x:Name="PART_NextButton"
-              Command="{Binding GoNextCommand}"
-                    Opacity="{Binding ActivePage.ShowNext, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
-                    Content="{Binding ActivePage.NextText}" Classes="action" HorizontalAlignment="Right" />
-            <Button x:Name="PART_BackButton"
-                    Classes="plain"
-                    HorizontalAlignment="Left"
-                    Opacity="{Binding BackCommand.CanExecute^, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
-                    Command="{Binding BackCommand}">
-              <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
-            </Button>
-          </Panel>
-          <Carousel Items="{Binding Pages}" SelectedItem="{Binding ActivePage}">
-            <Carousel.PageTransition>
-              <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
-                         SlideInEasing="{StaticResource FluentEasing}" />
-            </Carousel.PageTransition>
-          </Carousel>
+        <DockPanel DataContext="{Binding Wizard, RelativeSource={RelativeSource TemplatedParent}}">
+          <Button x:Name="PART_BackButton" DockPanel.Dock="Top"
+                  Margin="8 6"
+                  Classes="plain"
+                  HorizontalAlignment="Left"
+                  Opacity="{Binding BackCommand.CanExecute^, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+                  Command="{Binding BackCommand}">
+            <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+          </Button>
+          <DockPanel Margin="20">
+            <Panel DockPanel.Dock="Bottom">
+              <ListBox Background="Transparent" HorizontalAlignment="Center"
+                       SelectedItem="{Binding ActivePage, Mode=OneWay}"
+                       Items="{Binding Pages}">
+                <ListBox.Styles>
+                  <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Background" Value="Transparent" />
+                  </Style>
+                  <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                    <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+                  </Style>
+                  <Style Selector="ListBoxItem">
+                    <Setter Property="Opacity" Value="0.3" />
+                  </Style>
+                  <Style Selector="ListBoxItem:selected">
+                    <Setter Property="Opacity" Value="1" />
+                  </Style>
+                </ListBox.Styles>
+                <ListBox.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Button x:Name="PART_NextButton"
+                      Command="{Binding GoNextCommand}"
+                      Opacity="{Binding ActivePage.ShowNext, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+                      Content="{Binding ActivePage.NextText}" Classes="action" HorizontalAlignment="Right" />
+
+            </Panel>
+            <Carousel Items="{Binding Pages}" SelectedItem="{Binding ActivePage}">
+              <Carousel.PageTransition>
+                <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
+                           SlideInEasing="{StaticResource FluentEasing}" />
+              </Carousel.PageTransition>
+            </Carousel></DockPanel>
         </DockPanel>
       </ControlTemplate>
     </Setter>
