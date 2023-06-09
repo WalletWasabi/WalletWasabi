@@ -315,7 +315,6 @@ public class CoinJoinClient
 		try
 		{
 			var roundId = roundState.Id;
-			var roundParameters = roundState.CoinjoinState.Parameters;
 
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
