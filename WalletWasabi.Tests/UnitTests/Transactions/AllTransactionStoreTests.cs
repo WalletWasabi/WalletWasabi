@@ -215,18 +215,18 @@ public class AllTransactionStoreTests
 		// Duplication is resolved with labels merged.
 		var mempoolFileContent = new[]
 		{
-				new SmartTransaction(uTx1.Transaction, uTx1.Height, label: "buz, qux").ToLine(),
-				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: "buz, qux").ToLine(),
-				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: "foo, bar").ToLine(),
+				new SmartTransaction(uTx1.Transaction, uTx1.Height, labels: "buz, qux").ToLine(),
+				new SmartTransaction(uTx2.Transaction, uTx2.Height, labels: "buz, qux").ToLine(),
+				new SmartTransaction(uTx2.Transaction, uTx2.Height, labels: "foo, bar").ToLine(),
 				uTx3.ToLine(),
-				new SmartTransaction(cTx1.Transaction, Height.Mempool, label: new SmartLabel("buz", "qux")).ToLine()
+				new SmartTransaction(cTx1.Transaction, Height.Mempool, labels: new LabelsArray("buz", "qux")).ToLine()
 			};
 		var txFileContent = new[]
 		{
-				new SmartTransaction(cTx1.Transaction, cTx1.Height, label: new SmartLabel("foo", "bar")).ToLine(),
+				new SmartTransaction(cTx1.Transaction, cTx1.Height, labels: new LabelsArray("foo", "bar")).ToLine(),
 				cTx2.ToLine(),
 				cTx3.ToLine(),
-				new SmartTransaction(uTx1.Transaction, new Height(2), label: "foo, bar").ToLine()
+				new SmartTransaction(uTx1.Transaction, new Height(2), labels: "foo, bar").ToLine()
 			};
 		await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
 		await File.WriteAllLinesAsync(txFile, txFileContent);
@@ -420,8 +420,8 @@ public class AllTransactionStoreTests
 		const int ReorgedBlockHeight = 34532;
 		uint256 reorgedBlockHash = new(5);
 
-		var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
-		var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+		var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, labels: "buz, qux");
+		var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, labels: "buz, qux");
 		Assert.True(txStore.TryUpdate(tx1Confirmed));
 		Assert.True(txStore.TryUpdate(tx2Confirmed));
 

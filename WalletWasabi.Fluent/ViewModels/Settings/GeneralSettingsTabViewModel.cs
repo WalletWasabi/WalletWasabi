@@ -34,7 +34,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
 
-	public GeneralSettingsTabViewModel()
+	private GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 		_autoCopy = Services.UiConfig.Autocopy;
@@ -55,7 +55,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				x =>
 				{
 					Services.UiConfig.DarkModeEnabled = x;
-					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
+					Navigate().To().ThemeChange(x ? Theme.Dark : Theme.Light);
 				});
 
 		this.WhenAnyValue(x => x.AutoCopy)

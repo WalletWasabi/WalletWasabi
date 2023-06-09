@@ -28,7 +28,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 
-	public RecoverWalletViewModel(string walletName)
+	private RecoverWalletViewModel(string walletName)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -97,7 +97,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					return result;
 				});
 
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
+			await Navigate().To().CoinJoinProfiles(keyManager, isNewWallet: true).GetResultAsync();
 		}
 		catch (Exception ex)
 		{

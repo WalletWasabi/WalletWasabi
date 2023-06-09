@@ -134,12 +134,19 @@ public partial class CurrencyEntryBox : TextBox
 
 		var preComposedText = PreComposeText(input);
 
-		decimal fiatValue = 0;
+		var isValid = ValidateEntryText(preComposedText);
 
-		e.Handled = !(ValidateEntryText(preComposedText) &&
-					  decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out fiatValue));
+		preComposedText = preComposedText
+			.Replace("\r", "")
+			.Replace("\n", "")
+			.Replace("\t", "")
+			.Replace(" ", "");
 
-		if (IsFiat & !e.Handled)
+		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
+
+		e.Handled = !(isValid && parsed);
+
+		if (IsFiat && !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}

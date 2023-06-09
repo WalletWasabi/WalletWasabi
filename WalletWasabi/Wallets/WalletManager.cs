@@ -395,6 +395,7 @@ public class WalletManager : IWalletProvider
 			km.EnsureTurboSyncHeightConsistency();
 		}
 	}
+
 	public void SetMaxBestHeight(uint bestHeight)
 	{
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))

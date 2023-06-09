@@ -117,7 +117,7 @@ public static class BitcoinFactory
 	}
 
 	public static HdPubKey CreateHdPubKey(KeyManager km)
-		=> km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
+		=> km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 
 	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, bool confirmed = true, int anonymitySet = 1)
 		=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), confirmed, anonymitySet);

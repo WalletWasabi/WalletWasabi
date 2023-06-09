@@ -136,7 +136,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			});
 	}
 
-	private void RestoreExpandedRows(IEnumerable<SmartLabel> oldItemsLabels)
+	private void RestoreExpandedRows(IEnumerable<LabelsArray> oldItemsLabels)
 	{
 		var itemsToExpand = _itemsCollection.Where(item => oldItemsLabels.Any(label => item.Labels.Equals(label)));
 

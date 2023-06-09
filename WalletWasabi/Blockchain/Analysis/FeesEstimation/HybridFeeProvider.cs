@@ -24,7 +24,7 @@ public class HybridFeeProvider : IHostedService
 
 	public RpcFeeProvider? RpcFeeProvider { get; }
 	public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
-	private object Lock { get; } = new object();
+	private object Lock { get; } = new();
 	public AllFeeEstimate? AllFeeEstimate { get; private set; }
 	private AbandonedTasks ProcessingEvents { get; } = new();
 

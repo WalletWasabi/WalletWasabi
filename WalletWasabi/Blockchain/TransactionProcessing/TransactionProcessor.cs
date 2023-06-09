@@ -216,7 +216,7 @@ public class TransactionProcessor
 			{
 				if (!foundKey.IsInternal)
 				{
-					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					tx.Labels = LabelsArray.Merge(tx.Labels, foundKey.Labels);
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
@@ -304,7 +304,7 @@ public class TransactionProcessor
 			{
 				spenderKey.LatestSpendingHeight = txHeight;
 			}
-			else if ((Height) spenderKey.LatestSpendingHeight < txHeight)
+			else if ((Height)spenderKey.LatestSpendingHeight < txHeight)
 			{
 				// Key spent its coins earlier in history but was reused and spent again.
 				// It can also happen during resync if sync was incorrect.
@@ -312,7 +312,7 @@ public class TransactionProcessor
 			}
 		}
 	}
-	
+
 	public void UndoBlock(Height blockHeight)
 	{
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);

@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -24,7 +24,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
-		IsHardwareWallet = wallet.IsHardwareWallet();
+		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -37,7 +37,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
+		QrCode = UiContext.QrCodeGenerator.Generate(model.Text.ToUpperInvariant());
 
 		if (IsAutoCopyEnabled)
 		{
@@ -53,7 +53,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	public string Address { get; }
 
-	public IEnumerable<string> Labels { get; }
+	public LabelsArray Labels { get; }
 
 	public bool IsHardwareWallet { get; }
 

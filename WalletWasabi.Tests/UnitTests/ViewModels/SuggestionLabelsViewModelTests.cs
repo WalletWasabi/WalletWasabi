@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
@@ -137,6 +140,24 @@ public class SuggestionLabelsViewModelTests
 		Assert.Empty(sut.TopSuggestions);
 	}
 
+	[Fact]
+	public void SuggestionsShouldNotContainDuplicates()
+	{
+		var labels = new List<(string Label, int Score)>
+		{
+			("label 1", 1),
+			("label 2", 1),
+			("label 3", 4),
+			("Label 1", 1),
+			("Label 2", 2),
+			("Label 3", 3),
+		};
+		var wallet = new TestWallet(labels);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+
+		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
+	}
+
 	private class TestWallet : IWalletModel
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
@@ -147,9 +168,26 @@ public class SuggestionLabelsViewModelTests
 		}
 
 		public string Name => throw new NotSupportedException();
+
 		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
-		public IObservable<Money> Balance => throw new NotSupportedException();
+
+		public IWalletBalancesModel Balances => throw new NotSupportedException();
+
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
+
+		public bool IsLoggedIn => throw new NotSupportedException();
+
+		public IObservable<WalletState> State => throw new NotSupportedException();
+
+		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
+
+		public bool IsWatchOnlyWallet => throw new NotSupportedException();
+
+		public WalletType WalletType => throw new NotSupportedException();
+
+		public IWalletAuthModel Auth => throw new NotImplementedException();
+
+		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
@@ -161,7 +199,17 @@ public class SuggestionLabelsViewModelTests
 			return _mostUsedLabels;
 		}
 
-		public bool IsHardwareWallet()
+		public Task<WalletLoginResult> TryLoginAsync(string password)
+		{
+			throw new NotSupportedException();
+		}
+
+		public void Login()
+		{
+			throw new NotSupportedException();
+		}
+
+		public void Logout()
 		{
 			throw new NotSupportedException();
 		}
