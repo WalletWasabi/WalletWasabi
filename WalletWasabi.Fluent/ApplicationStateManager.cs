@@ -1,11 +1,10 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
-using WalletWasabi.Fluent.Behaviors;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
@@ -224,6 +223,7 @@ public class ApplicationStateManager : IMainWindowService
 
 	void IMainWindowService.Shutdown(bool restart)
 	{
+		_lifetime.MainWindow.BringToFront();
 		_restartRequest = restart;
 		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}

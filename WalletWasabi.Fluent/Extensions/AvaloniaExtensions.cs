@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Extensions;
@@ -14,5 +15,17 @@ public static class AvaloniaExtensions
 		return Observable.FromEventPattern<TEventArgs>(
 			add => target.AddHandler(routedEvent, add, routingStrategies),
 			remove => target.RemoveHandler(routedEvent, remove));
+	}
+
+	public static void BringToFront(this Window? window)
+	{
+		if (window is null)
+		{
+			return;
+		}
+
+		var currentValue = window.Topmost;
+		window.Topmost = !currentValue;
+		window.Topmost = currentValue;
 	}
 }
