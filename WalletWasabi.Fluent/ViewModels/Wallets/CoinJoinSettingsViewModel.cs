@@ -57,6 +57,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 				if (_wallet.Settings.IsCoinjoinProfileSelected)
 				{
 					_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
+					_wallet.Settings.Save();
 				}
 				else
 				{
@@ -76,6 +77,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 					if (Money.TryParse(x, out var result) && result != _wallet.Settings.PlebStopThreshold)
 					{
 						_wallet.Settings.PlebStopThreshold = result;
+						_wallet.Settings.Save();
 					}
 				});
 	}
