@@ -1,7 +1,4 @@
 using NBitcoin;
-using ReactiveUI;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
@@ -10,23 +7,10 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public class WalletSettingsModel : IWalletSettingsModel
 {
 	private readonly Wallet _wallet;
-	private bool _batchChanges;
 
 	public WalletSettingsModel(Wallet wallet)
 	{
 		_wallet = wallet;
-
-		this.WhenAnyValue(
-			x => x.AutoCoinjoin,
-			x => x.IsCoinjoinProfileSelected,
-			x => x.PreferPsbtWorkflow,
-			x => x.PlebStopThreshold,
-			x => x.AnonScoreTarget,
-			x => x.RedCoinIsolation,
-			x => x.FeeRateMedianTimeFrameHours)
-			.Skip(1)
-			.Do(_ => Save())
-			.Subscribe();
 
 		AutoCoinjoin = _wallet.KeyManager.AutoCoinJoin;
 		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
@@ -51,22 +35,7 @@ public class WalletSettingsModel : IWalletSettingsModel
 
 	public int FeeRateMedianTimeFrameHours { get; set; }
 
-	/// <summary>
-	/// Prevents the automatic persistence of Wallet Settings when individual properties change.
-	/// This is useful when you want to change several properties, but only persist the settings once
-	/// </summary>
-	/// <returns>An IDisposable object that, when disposed, returns the WalletSettings back to normal operation (i.e save on each individual property change)</returns>
-	public IDisposable BatchChanges()
-	{
-		_batchChanges = true;
-		return Disposable.Create(() =>
-		{
-			_batchChanges = false;
-			Save();
-		});
-	}
-
-	private void Save()
+	public void Save()
 	{
 		_wallet.KeyManager.AutoCoinJoin = AutoCoinjoin;
 		_wallet.KeyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
@@ -76,15 +45,6 @@ public class WalletSettingsModel : IWalletSettingsModel
 		_wallet.KeyManager.RedCoinIsolation = RedCoinIsolation;
 		_wallet.KeyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours, false);
 
-		if (!_batchChanges)
-		{
-			_wallet.KeyManager.ToFile();
-		}
-
-		// TODO: remove this
-		if (!Services.WalletManager.WalletExists(_wallet.KeyManager.MasterFingerprint))
-		{
-			Services.WalletManager.AddWallet(_wallet.KeyManager);
-		}
+		_wallet.KeyManager.ToFile();
 	}
 }

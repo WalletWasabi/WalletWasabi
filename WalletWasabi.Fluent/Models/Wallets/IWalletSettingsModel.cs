@@ -18,5 +18,5 @@ public interface IWalletSettingsModel
 
 	int FeeRateMedianTimeFrameHours { get; set; }
 
-	IDisposable BatchChanges();
+	void Save();
 }

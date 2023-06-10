@@ -79,22 +79,20 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		using (walletModel.Settings.BatchChanges())
-		{
-			walletModel.Settings.RedCoinIsolation = selected.RedCoinIsolation;
-			walletModel.Settings.AnonScoreTarget = selected.AnonScoreTarget;
-			walletModel.Settings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
-			walletModel.Settings.IsCoinjoinProfileSelected = true;
-		}
+		walletModel.Settings.RedCoinIsolation = selected.RedCoinIsolation;
+		walletModel.Settings.AnonScoreTarget = selected.AnonScoreTarget;
+		walletModel.Settings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
+		walletModel.Settings.IsCoinjoinProfileSelected = true;
 
 		if (isNewWallet)
 		{
-			// TODO: remove this after AddedWalletPage is decoupled
-			var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
-			Navigate().To().AddedWalletPage(wallet.KeyManager);
+			// TODO: REMOVE THIS
+			var keyManager = (walletModel as WalletModel).Wallet.KeyManager;
+			Navigate().To().AddedWalletPage(keyManager);
 		}
 		else
 		{
+			walletModel.Settings.Save();
 			Close(DialogResultKind.Normal, true);
 		}
 	}
