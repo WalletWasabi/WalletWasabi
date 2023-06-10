@@ -63,12 +63,12 @@
       </Setter>
     </Style>
 
-    <Style Selector="c|NavBarItem:selected StackPanel LayoutTransformControl">
+    <Style Selector="ListBoxItem:selected StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
 
-    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
+    <Style Selector="ListBoxItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
@@ -108,12 +108,34 @@
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0"/>
       <Setter Property="ClipToBounds" Value="False"/>
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+            <behaviors:NavBarSelectedIndicatorChildBehavior />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
     </Style>
     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
     </Style>
     <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Selected State -->
+    <Style Selector="ListBoxItem:selected c|NavBarItem /template/ Border#SelectionBackground">
+      <Setter Property="Opacity" Value="0.1" />
+    </Style>
+
+    <!-- Selected PointerOver State -->
+    <Style Selector="ListBoxItem:selected:pointerover c|NavBarItem /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
+    </Style>
+
+    <!-- Selected Pressed State -->
+    <Style Selector="ListBoxItem:selected:pressed c|NavBarItem /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
     </Style>
 
   </UserControl.Styles>
@@ -156,7 +178,7 @@
         </Interaction.Behaviors>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <c:NavBarItem IsSelected="{Binding $parent[ListBoxItem].IsSelected}">
+            <c:NavBarItem>
               <Panel ToolTip.Tip="{Binding Title}">
                 <Ellipse Classes="loadingindicator"
                          Classes.isLoading="{Binding IsLoading}"
