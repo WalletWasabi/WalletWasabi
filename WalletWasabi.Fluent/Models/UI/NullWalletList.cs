@@ -15,5 +15,7 @@ public class NullWalletList : IWalletListModel
 
 	public IWalletModel? DefaultWallet => null;
 
-	public IWalletModel? SelectedWallet { get; set; } = null;
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
+	}
 }

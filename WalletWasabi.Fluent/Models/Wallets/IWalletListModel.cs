@@ -8,5 +8,5 @@ public interface IWalletListModel
 
 	IWalletModel? DefaultWallet { get; }
 
-	IWalletModel? SelectedWallet { get; set; }
+	void StoreLastSelectedWallet(IWalletModel wallet);
 }
