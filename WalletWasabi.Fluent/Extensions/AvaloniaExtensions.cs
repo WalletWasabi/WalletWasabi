@@ -24,8 +24,7 @@ public static class AvaloniaExtensions
 			return;
 		}
 
-		var currentValue = window.Topmost;
-		window.Topmost = !currentValue;
-		window.Topmost = currentValue;
+		window.Topmost = !window.Topmost;
+		window.Topmost = !window.Topmost;
 	}
 }
