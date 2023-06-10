@@ -56,6 +56,7 @@ public class ApplicationStateManager : IMainWindowService
 				Trigger.ShutdownPrevented,
 				() =>
 				{
+					_lifetime.MainWindow.BringToFront();
 					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 					_restartRequest = false; // reset the value.
 				});
@@ -223,7 +224,6 @@ public class ApplicationStateManager : IMainWindowService
 
 	void IMainWindowService.Shutdown(bool restart)
 	{
-		_lifetime.MainWindow.BringToFront();
 		_restartRequest = restart;
 		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
