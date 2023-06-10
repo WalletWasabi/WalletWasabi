@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -222,6 +223,19 @@ public class TagsBox : TemplatedControl
 					.Subscribe(_ => RequestAdd = true)
 					.DisposeWith(_compositeDisposable);
 			})
+			.DisposeWith(_compositeDisposable);
+
+		Observable
+			.FromEventPattern<CancelEventArgs>(_autoCompleteBox, nameof(_autoCompleteBox.DropDownOpening))
+			.Select(x => (AutoCompleteBox: (x.Sender as AutoCompleteBox)!, EventArgs: x.EventArgs))
+			.Where(x => string.IsNullOrEmpty(x.AutoCompleteBox.Text))
+			.Subscribe(x => x.EventArgs.Cancel = true)
+			.DisposeWith(_compositeDisposable);
+
+		_autoCompleteBox
+			.WhenAnyValue(x => x.Text)
+			.Where(string.IsNullOrEmpty)
+			.Subscribe(_ => _autoCompleteBox.IsDropDownOpen = false)
 			.DisposeWith(_compositeDisposable);
 
 		_autoCompleteBox
