@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.Features.Onboarding;
+namespace WalletWasabi.Fluent.Infrastructure;
 
 public interface IWizardPage : IValid
 {

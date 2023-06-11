@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.ViewModels.Onboarding;
 
 namespace WalletWasabi.Fluent.Features.Onboarding;
 

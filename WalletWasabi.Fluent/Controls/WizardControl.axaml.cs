@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using WalletWasabi.Fluent.Features.Onboarding;
+using WalletWasabi.Fluent.ViewModels.Onboarding;
 
 namespace WalletWasabi.Fluent.Controls;
 public class WizardControl : TemplatedControl

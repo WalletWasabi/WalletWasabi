@@ -1,9 +1,9 @@
 using System.Reactive.Linq;
 using Avalonia.Controls;
-using WalletWasabi.Fluent.Features.Onboarding;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.Controls;
 
 public class SampleWizardPageViewModel : ViewModelBase, IWizardPage
 {

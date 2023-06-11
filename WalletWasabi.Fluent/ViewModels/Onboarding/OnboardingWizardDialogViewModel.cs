@@ -1,11 +1,13 @@
 using System.Reactive;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.Features.Onboarding.Pages;
+using WalletWasabi.Fluent.Features.Onboarding;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Onboarding.Pages;
 
-namespace WalletWasabi.Fluent.Features.Onboarding;
+namespace WalletWasabi.Fluent.ViewModels.Onboarding;
 
 [NavigationMetaData(Title = "Welcome")]
 public partial class OnboardingWizardDialogViewModel : DialogViewModelBase<Unit>

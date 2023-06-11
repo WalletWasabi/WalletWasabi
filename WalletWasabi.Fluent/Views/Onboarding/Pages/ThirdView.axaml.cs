@@ -1,15 +1,15 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Features.Onboarding.Pages;
-public partial class FourthView : UserControl
+namespace WalletWasabi.Fluent.Views.Onboarding.Pages;
+public partial class ThirdView : UserControl
 {
-	public FourthView()
+	public ThirdView()
 	{
 		InitializeComponent();
 	}
 
-	
+
 	private void InitializeComponent()
 	{
 		AvaloniaXamlLoader.Load(this);

@@ -27,6 +27,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using OnboardingWizardDialogViewModel = WalletWasabi.Fluent.ViewModels.Onboarding.OnboardingWizardDialogViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels;
 

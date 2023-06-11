@@ -6,8 +6,9 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Infrastructure;
 
-namespace WalletWasabi.Fluent.Features.Onboarding;
+namespace WalletWasabi.Fluent.ViewModels.Onboarding;
 
 public class WizardDesign : IWizard
 {

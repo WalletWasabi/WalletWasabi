@@ -2,9 +2,9 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.Infrastructure;
 
-namespace WalletWasabi.Fluent.Features.Onboarding.Pages;
+namespace WalletWasabi.Fluent.ViewModels.Onboarding.Pages;
 
 public class FourthViewModel : ViewModelBase, IWizardPage
 {

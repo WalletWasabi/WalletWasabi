@@ -1,19 +1,18 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:WalletWasabi.Fluent.Controls"
-        xmlns:onboarding="clr-namespace:WalletWasabi.Fluent.Features.Onboarding"
-        xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
-        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
+        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+        xmlns:onboarding1="clr-namespace:WalletWasabi.Fluent.ViewModels.Onboarding">
   <Design.PreviewWith>
     <controls:WizardControl Width="600" Height="300">
       <controls:WizardControl.Wizard>
-        <onboarding:WizardDesign>
-          <onboarding:WizardDesign.PagesCollection>
-            <fluent:SampleWizardPageViewModel />
-            <fluent:SampleWizardPageViewModel />
-            <fluent:SampleWizardPageViewModel />
-          </onboarding:WizardDesign.PagesCollection>
-        </onboarding:WizardDesign>
+        <onboarding1:WizardDesign>
+          <onboarding1:WizardDesign.PagesCollection>
+            <controls:SampleWizardPageViewModel />
+            <controls:SampleWizardPageViewModel />
+            <controls:SampleWizardPageViewModel />
+          </onboarding1:WizardDesign.PagesCollection>
+        </onboarding1:WizardDesign>
       </controls:WizardControl.Wizard>
     </controls:WizardControl>
   </Design.PreviewWith>

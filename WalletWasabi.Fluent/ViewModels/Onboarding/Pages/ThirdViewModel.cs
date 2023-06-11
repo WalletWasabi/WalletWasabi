@@ -1,7 +1,7 @@
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.Infrastructure;
 
-namespace WalletWasabi.Fluent.Features.Onboarding.Pages;
+namespace WalletWasabi.Fluent.ViewModels.Onboarding.Pages;
 
 public class ThirdViewModel : ViewModelBase, IWizardPage
 {

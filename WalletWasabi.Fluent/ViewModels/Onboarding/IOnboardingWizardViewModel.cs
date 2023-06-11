@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Infrastructure;
 
-namespace WalletWasabi.Fluent.Features.Onboarding;
+namespace WalletWasabi.Fluent.ViewModels.Onboarding;
 
 public interface IWizard
 {

@@ -2,14 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:pages="clr-namespace:WalletWasabi.Fluent.Features.Onboarding.Pages"
+             xmlns:pages="clr-namespace:WalletWasabi.Fluent.ViewModels.Onboarding.Pages"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Features.Onboarding.Pages.SecondView"
+             x:Class="WalletWasabi.Fluent.Views.Onboarding.Pages.SecondView"
              x:CompileBindings="True"
              x:DataType="pages:SecondViewModel">
 
   <UserControl.Styles>
-    <StyleInclude Source="/Features/Onboarding/Common.axaml" />
+    <StyleInclude Source="/Views/Onboarding/Pages/Common.axaml" />
   </UserControl.Styles>
 
   <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
