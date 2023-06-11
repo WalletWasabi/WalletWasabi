@@ -11,15 +11,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing;
 
 public class SafetyCoinjoins
 {
-	private List<SmartTransaction> RecentTransactions { get; set; }
-	private Money PrevBalance { get; set; }
-	private int TrailingCoinjoinCountRequirement { get; set; }
-
-	/// <summary>
-	/// It should not matter that we fully mixed our wallet until the safety coinjoin mechanism isn't satisfied.
-	/// </summary>
-	public bool DoSafetyCoinjoin { get; private set; }
-
 	// Temporarily disabling CS8618 warning for non-nullable properties that are not initialized in the constructor.
 	// This is because these properties ('RecentTransactions', 'PrevBalance', 'TrailingCoinjoinCountRequirement') are
 	// guaranteed to be non-null as they are always initialized in the 'SetStartingConditions' method which is called from
@@ -45,6 +36,15 @@ public class SafetyCoinjoins
 	}
 
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+	private List<SmartTransaction> RecentTransactions { get; set; }
+	private Money PrevBalance { get; set; }
+	private int TrailingCoinjoinCountRequirement { get; set; }
+
+	/// <summary>
+	/// It should not matter that we fully mixed our wallet until the safety coinjoin mechanism isn't satisfied.
+	/// </summary>
+	public bool DoSafetyCoinjoin { get; private set; }
 
 	/// <param name="prevBalance">Wallet balance before the transaction was added.</param>
 	public void Process(SmartTransaction tx, Money prevBalance)
