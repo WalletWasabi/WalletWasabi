@@ -18,14 +18,15 @@ public class TransactionProcessor
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
 		KeyManager keyManager,
+		SafetyCoinjoins safetyCoinjoins,
 		Money dustThreshold)
 	{
 		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+		SafetyCoinjoins = safetyCoinjoins;
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 		Coins = new();
 		BlockchainAnalyzer = new();
-		SafetyCoinjoins = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;

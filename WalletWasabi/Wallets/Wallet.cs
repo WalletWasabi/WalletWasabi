@@ -75,6 +75,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public BitcoinStore BitcoinStore { get; private set; }
 	public KeyManager KeyManager { get; }
+	public SafetyCoinjoins SafetyCoinjoins { get; } = new();
 	public WasabiSynchronizer Synchronizer { get; private set; }
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
@@ -198,7 +199,7 @@ public class Wallet : BackgroundService, IWallet
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, SafetyCoinjoins, ServiceConfiguration.DustThreshold);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;

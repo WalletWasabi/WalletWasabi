@@ -1429,6 +1429,7 @@ public class TransactionProcessorTests
 		return new TransactionProcessor(
 			transactionStore,
 			keyManager,
+			new(),
 			Money.Coins(0.0001m));
 	}
 }
