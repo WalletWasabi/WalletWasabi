@@ -9,6 +9,9 @@ using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
+/// <summary>
+/// https://github.com/zkSNACKs/WalletWasabi/issues/10567
+/// </summary>
 public class SafetyCoinjoins
 {
 	// Temporarily disabling CS8618 warning for non-nullable properties that are not initialized in the constructor.

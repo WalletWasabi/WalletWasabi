@@ -113,6 +113,11 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
+	/// <summary>
+	/// It should not matter that we fully mixed our wallet until the safety coinjoin mechanism isn't satisfied.
+	/// </summary>
+	public bool DoSafetyCoinjoin => SafetyCoinjoins.DoSafetyCoinjoin;
+
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;

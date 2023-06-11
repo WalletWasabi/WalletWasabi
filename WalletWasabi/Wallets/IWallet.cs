@@ -23,6 +23,11 @@ public interface IWallet
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
 
+	/// <summary>
+	/// It should not matter that we fully mixed our wallet until the safety coinjoin mechanism isn't satisfied.
+	/// </summary>
+	bool DoSafetyCoinjoin { get; }
+
 	Task<bool> IsWalletPrivateAsync();
 
 	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();

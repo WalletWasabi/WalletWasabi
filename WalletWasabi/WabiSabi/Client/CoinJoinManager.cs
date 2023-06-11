@@ -180,7 +180,8 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				// If all coins are already private, then don't mix.
-				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
+				// Except if the safety coinjoin mechanism is in effect.
+				if (walletToStart.DoSafetyCoinjoin || await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
 				{
 					walletToStart.LogTrace("All mixed!");
 
