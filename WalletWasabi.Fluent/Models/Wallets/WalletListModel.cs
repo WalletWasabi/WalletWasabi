@@ -39,4 +39,9 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
 	public IWalletModel? DefaultWallet { get; }
+
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
+		Services.UiConfig.LastSelectedWallet = wallet.Name;
+	}
 }
