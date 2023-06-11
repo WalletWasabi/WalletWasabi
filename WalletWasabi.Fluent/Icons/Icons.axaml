@@ -70,10 +70,10 @@
       <PathIcon Data="{StaticResource arrow_sync_regular}" />
       <PathIcon Data="{StaticResource person_regular}" />
       <!-- Wallet icons -->
-      <!--<PathIcon Data="{StaticResource Ledger}" />
+      <PathIcon Data="{StaticResource Ledger}" />
       <PathIcon Data="{StaticResource Trezor}" />
       <PathIcon Data="{StaticResource Coldcard}" />
-      <PathIcon Data="{StaticResource General}" />-->
+      <PathIcon Data="{StaticResource General}" />
     </WrapPanel>
   </Design.PreviewWith>
   <Style>
