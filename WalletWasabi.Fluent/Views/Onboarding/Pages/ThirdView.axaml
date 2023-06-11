@@ -33,7 +33,7 @@
       </StackPanel>
       <StackPanel>
         <TextBlock Text="Mining Fee" Classes="title2" />
-        <TextBlock Text="The market standard in mini fee will also be added." Classes="text" />
+        <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
       </StackPanel>
       <StackPanel>
         <TextBlock Text="Plebs don't pay" Classes="title2 Animated" />
