@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -89,25 +90,12 @@ public partial class MainViewModel : ViewModelBase
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
-		IsOobeBackgroundVisible = true;
-		var command = ReactiveCommand.CreateFromTask(() => UiContext.Navigate().NavigateDialogAsync(new OnboardingWizardDialogViewModel(UiContext), NavigationTarget.DialogScreen));
-		command.Execute().Subscribe();
-
-		//RxApp.MainThreadScheduler.Schedule(async () =>
-		//{
-		//	if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
-		//	{
-		//		IsOobeBackgroundVisible = true;
-
-		//		await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
-
-		//		if (Services.WalletManager.HasWallet())
-		//		{
-		//			Services.UiConfig.Oobe = false;
-		//			IsOobeBackgroundVisible = false;
-		//		}
-		//	}
-		//});
+		var showWelcomeWizardCommand = CreateShowWelcomeWizardCommand();
+		
+		if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+		{
+			showWelcomeWizardCommand.Execute().Subscribe();
+		}
 
 		SearchBar = CreateSearchBar();
 
@@ -122,6 +110,24 @@ public partial class MainViewModel : ViewModelBase
 		}
 
 		Instance = this;
+	}
+
+	private ReactiveCommand<Unit, DialogResult<Unit>> CreateShowWelcomeWizardCommand()
+	{
+		return ReactiveCommand.CreateFromTask(
+			async () =>
+			{
+				IsOobeBackgroundVisible = true;
+				var result = await UiContext.Navigate().NavigateDialogAsync(new OnboardingWizardDialogViewModel(UiContext), NavigationTarget.DialogScreen);
+
+				if (Services.WalletManager.HasWallet())
+				{
+					Services.UiConfig.Oobe = false;
+					IsOobeBackgroundVisible = false;
+				}
+
+				return result;
+			});
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
