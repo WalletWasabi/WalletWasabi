@@ -10,7 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
 /// <summary>
-/// https://github.com/zkSNACKs/WalletWasabi/issues/10567
+/// Dive deeper here: https://github.com/zkSNACKs/WalletWasabi/issues/10567
 /// </summary>
 public class SafetyCoinjoins
 {
