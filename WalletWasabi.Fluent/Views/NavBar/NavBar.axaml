@@ -63,12 +63,12 @@
       </Setter>
     </Style>
 
-    <Style Selector="ListBoxItem:selected StackPanel LayoutTransformControl">
+    <Style Selector="c|NavBarItem.selected StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
 
-    <Style Selector="ListBoxItem:selected PathIcon" x:CompileBindings="False">
+    <Style Selector="c|NavBarItem.selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
@@ -124,17 +124,17 @@
     </Style>
 
     <!-- Selected State -->
-    <Style Selector="ListBoxItem:selected c|NavBarItem /template/ Border#SelectionBackground">
+    <Style Selector="c|NavBarItem.selected /template/ Border#SelectionBackground">
       <Setter Property="Opacity" Value="0.1" />
     </Style>
 
     <!-- Selected PointerOver State -->
-    <Style Selector="ListBoxItem:selected:pointerover c|NavBarItem /template/ Border">
+    <Style Selector="c|NavBarItem.selected:pointerover /template/ Border">
       <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
     </Style>
 
     <!-- Selected Pressed State -->
-    <Style Selector="ListBoxItem:selected:pressed c|NavBarItem /template/ Border">
+    <Style Selector="c|NavBarItem.selected:pressed /template/ Border">
       <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
     </Style>
 
@@ -178,7 +178,7 @@
         </Interaction.Behaviors>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <c:NavBarItem>
+            <c:NavBarItem Classes.selected="{Binding IsSelected}">
               <Panel ToolTip.Tip="{Binding Title}">
                 <Ellipse Classes="loadingindicator"
                          Classes.isLoading="{Binding IsLoading}"
