@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -97,7 +98,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					return result;
 				});
 
-			await Navigate().To().CoinJoinProfiles(keyManager, isNewWallet: true).GetResultAsync();
+			// TODO: remove this after RecoverWalletViewModel is decoupled
+			var walletModel =
+				new WalletModel(
+					new WalletWasabi.Wallets.Wallet(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network,
+						keyManager));
+
+			await Navigate().To().CoinJoinProfiles(walletModel, isNewWallet: true).GetResultAsync();
 		}
 		catch (Exception ex)
 		{
