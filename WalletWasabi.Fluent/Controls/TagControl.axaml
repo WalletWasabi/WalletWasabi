@@ -60,7 +60,7 @@
     <Setter Property="ContentTemplate">
       <DataTemplate DataType="x:String">
         <TextBlock Text="{Binding .}"
-                   MaxWidth="120"
+                   MaxWidth="{DynamicResource LabelMaxWidth}"
                    TextTrimming="CharacterEllipsis" />
       </DataTemplate>
     </Setter>

@@ -60,7 +60,7 @@ public class WalletManager : IWalletProvider
 	private AsyncLock StartStopWalletLock { get; } = new();
 
 	private BitcoinStore BitcoinStore { get; set; }
-	public WasabiSynchronizer? Synchronizer { get; private set; }
+	private WasabiSynchronizer? Synchronizer { get; set; }
 	private ServiceConfiguration ServiceConfiguration { get; set; }
 	private bool IsInitialized { get; set; }
 
@@ -68,7 +68,7 @@ public class WalletManager : IWalletProvider
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private IBlockProvider BlockProvider { get; set; }
-	public string WorkDir { get; }
+	private string WorkDir { get; }
 
 	private void RefreshWalletList()
 	{
@@ -108,13 +108,11 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public bool HasWallet() => AnyWallet(_ => true);
-
-	public bool AnyWallet(Func<Wallet, bool> predicate)
+	public bool HasWallet()
 	{
 		lock (Lock)
 		{
-			return Wallets.Any(predicate);
+			return Wallets.Count > 0;
 		}
 	}
 
@@ -201,7 +199,7 @@ public class WalletManager : IWalletProvider
 			}
 
 			Logger.LogWarning($"Wallet got corrupted.\n" +
-				$"Wallet Filepath: {walletFullPath}\n" +
+				$"Wallet file path: {walletFullPath}\n" +
 				$"Trying to recover it from backup.\n" +
 				$"Backup path: {walletBackupFullPath}\n" +
 				$"Exception: {ex}");
@@ -389,6 +387,14 @@ public class WalletManager : IWalletProvider
 		}
 
 		IsInitialized = true;
+	}
+
+	public void EnsureTurboSyncHeightConsistency()
+	{
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			km.EnsureTurboSyncHeightConsistency();
+		}
 	}
 
 	public void SetMaxBestHeight(uint bestHeight)

@@ -6,13 +6,16 @@ using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public static class TextHelpers
+public static partial class TextHelpers
 {
 	public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
 
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
 	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddSIfPlural(n)}" : "";
+
+	[GeneratedRegex(@"\s+")]
+	private static partial Regex ParseLabelRegex();
 
 	private static void AddIfNotEmpty(List<string> list, string item)
 	{
@@ -70,7 +73,16 @@ public static class TextHelpers
 		return moneyString;
 	}
 
-	public static string ParseLabel(this string text) => Regex.Replace(text, @"\s+", " ").Trim();
+	public static string ParseLabel(this string text) => ParseLabelRegex().Replace(text, " ").Trim();
+
+	public static string TotalTrim(this string text)
+	{
+		return text
+			.Replace("\r", "")
+			.Replace("\n", "")
+			.Replace("\t", "")
+			.Replace(" ", "");
+	}
 
 	public static string GetPrivacyMask(int repeatCount)
 	{

@@ -73,12 +73,12 @@ public class CoinjoinAnalyzer
 		IEnumerable<WalletVirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
 		IEnumerable<ForeignVirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
 
-		Money amount = walletVirtualOutputs.Where(o => o.Coins.Select(c => c.Outpoint).Contains(transactionOutput.Outpoint)).First().Amount;
+		Money amount = walletVirtualOutputs.First(o => o.Coins.Select(c => c.Outpoint).Contains(transactionOutput.Outpoint)).Amount;
 		bool IsRelevantVirtualOutput(ForeignVirtualOutput output) => relevantOutpoints is null || relevantOutpoints.Intersect(output.OutPoints).Any();
 
 		// Count the outputs that have the same value as our transactionOutput.
-		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(o => o.Amount == amount).Count();
-		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(o => o.Amount == amount).Where(IsRelevantVirtualOutput).Count();
+		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Count(o => o.Amount == amount);
+		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Count(o => o.Amount == amount && IsRelevantVirtualOutput(o));
 
 		// The anonymity set should increase by the number of equal-valued foreign outputs.
 		// If we have multiple equal-valued wallet outputs, then we divide the increase evenly between them.

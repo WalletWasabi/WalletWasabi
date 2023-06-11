@@ -2,7 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.ZeroKnowledge;
+using WabiSabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.WabiSabi.Client;
 

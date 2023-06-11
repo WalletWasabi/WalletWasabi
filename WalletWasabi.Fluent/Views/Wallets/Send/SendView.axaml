@@ -8,6 +8,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
+             xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -57,11 +58,11 @@
           <!-- Balance -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
             <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-              <TextBlock DataContext="{Binding Balance}">
+              <TextBlock DataContext="{Binding Balances}">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-                    <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
+                    <Binding Path="Btc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
+                    <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
@@ -154,8 +155,10 @@
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
             </i:Interaction.Behaviors>
           </c:DualCurrencyEntryBox>

@@ -6,7 +6,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DynamicData;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -90,6 +92,23 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 					await foreach (var suggestion in suggestions)
 					{
+						var changeAvoidanceSuggestions = Suggestions.OfType<ChangeAvoidanceSuggestionViewModel>().ToArray();
+						var newSuggestionAmount = suggestion.GetAmount();
+
+						// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
+						if (changeAvoidanceSuggestions.Any(x => x.GetAmount() == newSuggestionAmount))
+						{
+							continue;
+						}
+
+						// If BnB solution has the same amount as the original transaction, only suggest that one and stop searching.
+						if (newSuggestionAmount == transaction.CalculateDestinationAmount())
+						{
+							Suggestions.RemoveMany(changeAvoidanceSuggestions);
+							Suggestions.Add(suggestion);
+							return;
+						}
+
 						Suggestions.Add(suggestion);
 					}
 				}

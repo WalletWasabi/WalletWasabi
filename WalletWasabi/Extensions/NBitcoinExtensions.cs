@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,12 +19,6 @@ namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
-	private static NumberFormatInfo CurrencyNumberFormat = new()
-	{
-		NumberGroupSeparator = " ",
-		NumberDecimalDigits = 0
-	};
-
 	public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 	{
 		if (node.State == NodeState.Connected)
@@ -34,8 +27,8 @@ public static class NBitcoinExtensions
 		}
 
 		using var listener = node.CreateListener();
-		var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
-		await node.SendMessageAsync(getdata).ConfigureAwait(false);
+		var getData = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
+		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
 		// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
@@ -59,11 +52,6 @@ public static class NBitcoinExtensions
 		}
 	}
 
-	public static IEnumerable<Coin> GetCoins(this TxOutList me, Script script)
-	{
-		return me.AsCoins().Where(c => c.ScriptPubKey == script);
-	}
-
 	public static string ToHex(this IBitcoinSerializable me)
 	{
 		return ByteHelpers.ToHex(me.ToBytes());
@@ -82,56 +70,12 @@ public static class NBitcoinExtensions
 		me.Inputs.Any(i => Script.IsNullOrEmpty(i.ScriptSig)) ||
 		me.Outputs.Any(o => o.ScriptPubKey.IsScriptType(ScriptType.Witness));
 
-	public static bool HasIndistinguishableOutputs(this Transaction me)
-	{
-		var hashset = new HashSet<long>();
-		foreach (var name in me.Outputs.Select(x => x.Value))
-		{
-			if (!hashset.Add(name))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 	{
 		return me.Outputs.GroupBy(x => x.Value)
 			.ToDictionary(x => x.Key, y => y.Count())
 			.Select(x => (x.Key, x.Value))
 			.Where(x => includeSingle || x.Value > 1);
-	}
-
-	public static int GetAnonymitySet(this Transaction me, uint outputIndex)
-		=> me.GetAnonymitySets(new[] { outputIndex }).First().Value;
-
-	public static IDictionary<uint, int> GetAnonymitySets(this Transaction me, IEnumerable<uint> outputIndices)
-	{
-		var anonsets = new Dictionary<uint, int>();
-		var inputCount = me.Inputs.Count;
-
-		var indistinguishableOutputs = me.Outputs
-			.GroupBy(x => x.ScriptPubKey)
-			.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
-			.GroupBy(x => x.Value)
-			.ToDictionary(x => x.Key, y => y.Count());
-
-		foreach (var outputIndex in outputIndices)
-		{
-			// 1. Get the output corresponting to the output index.
-			var output = me.Outputs[outputIndex];
-
-			// 2. Get the number of equal outputs.
-			int equalOutputs = indistinguishableOutputs[output.Value];
-
-			// 3. Anonymity set cannot be larger than the number of inputs.
-			var anonSet = Math.Min(equalOutputs, inputCount);
-
-			anonsets.Add(outputIndex, anonSet);
-		}
-
-		return anonsets;
 	}
 
 	/// <summary>
@@ -151,11 +95,6 @@ public static class NBitcoinExtensions
 		return Money.Satoshis((me.Satoshi / 100m) * perc);
 	}
 
-	public static decimal ToUsd(this Money me, decimal btcExchangeRate)
-	{
-		return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
-	}
-
 	public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, CompactSignature signature)
 	{
 		PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
@@ -163,7 +102,7 @@ public static class NBitcoinExtensions
 	}
 
 	/// <summary>
-	/// If scriptpubkey is already present, just add the value.
+	/// If scriptPubKey is already present, just add the value.
 	/// </summary>
 	public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
 	{
@@ -212,7 +151,7 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.Height,
 			unsignedSmartTransaction.BlockHash,
 			unsignedSmartTransaction.BlockIndex,
-			unsignedSmartTransaction.Label,
+			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
 			unsignedSmartTransaction.FirstSeen);
 	}
@@ -263,11 +202,6 @@ public static class NBitcoinExtensions
 			map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
 		}
 		list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
-	}
-
-	public static Money GetTotalFee(this FeeRate me, int vsize)
-	{
-		return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
 	}
 
 	public static IEnumerable<TransactionDependencyNode> ToDependencyGraph(this IEnumerable<Transaction> txs)
@@ -356,22 +290,6 @@ public static class NBitcoinExtensions
 		}
 
 		return null;
-	}
-
-	private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
-	{
-		var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
-
-		return privacyMode
-			? $"### {currency}"
-			: exchangeRate == default
-				? $"??? {currency}"
-				: $"{dollars.ToString("N", CurrencyNumberFormat)} {currency}";
-	}
-
-	public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
-	{
-		return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
 	}
 
 	/// <summary>
@@ -475,10 +393,10 @@ public static class NBitcoinExtensions
 
 	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
 	{
-		var netFee = feeRate.GetFee(virtualSize);
-		var coordFee = coordinationFeeRate.GetFee(amount);
+		var networkFee = feeRate.GetFee(virtualSize);
+		var coordinationFee = coordinationFeeRate.GetFee(amount);
 
-		return amount - netFee - coordFee;
+		return amount - networkFee - coordinationFee;
 	}
 
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>

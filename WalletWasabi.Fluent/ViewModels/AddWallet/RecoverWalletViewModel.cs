@@ -10,6 +10,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
@@ -17,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -27,7 +29,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 
-	public RecoverWalletViewModel(string walletName)
+	private RecoverWalletViewModel(string walletName)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -96,12 +98,20 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					return result;
 				});
 
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
+			// TODO: remove this after RecoverWalletViewModel is decoupled
+			var walletModel =
+				new WalletModel(
+					new WalletWasabi.Wallets.Wallet(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network,
+						keyManager));
+
+			await Navigate().To().CoinJoinProfiles(walletModel, isNewWallet: true).GetResultAsync();
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.Message, "Wasabi was unable to recover the wallet.");
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Wasabi was unable to recover the wallet.");
 		}
 
 		IsBusy = false;

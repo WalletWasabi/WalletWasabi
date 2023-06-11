@@ -137,9 +137,9 @@ public class TransactionProcessor
 		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpends = new List<SmartCoin>();
-			foreach (var txin in tx.Transaction.Inputs)
+			foreach (var txIn in tx.Transaction.Inputs)
 			{
-				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txin.PrevOut, out var coins))
+				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txIn.PrevOut, out var coins))
 				{
 					doubleSpends.AddRange(coins);
 				}
@@ -216,7 +216,7 @@ public class TransactionProcessor
 			{
 				if (!foundKey.IsInternal)
 				{
-					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					tx.Labels = LabelsArray.Merge(tx.Labels, foundKey.Labels);
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
@@ -268,6 +268,12 @@ public class TransactionProcessor
 			}
 		}
 
+		if (tx.Confirmed)
+		{
+			// Update for TurboSync - save spending height for internal keys if there is a spender tx and no more coins left on the key.
+			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
+		}
+
 		if (result.IsNews)
 		{
 			TransactionStore.AddOrUpdate(tx);
@@ -282,6 +288,29 @@ public class TransactionProcessor
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
+
+	private static void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
+	{
+		foreach (var spenderKey in internalKeys)
+		{
+			if (spenderKey.Coins.Any(x => !x.IsSpent()))
+			{
+				// The key still has unspent coins.
+				continue;
+			}
+
+			// All the coins on this key were spent. Mark it as retired and store the block height.
+			if (spenderKey.LatestSpendingHeight is null)
+			{
+				spenderKey.LatestSpendingHeight = txHeight;
+			}
+			else if ((Height)spenderKey.LatestSpendingHeight < txHeight)
+			{
+				// Key spent its coins earlier in history but was reused and spent again.
+				spenderKey.LatestSpendingHeight = txHeight;
+			}
+		}
+	}
 
 	public void UndoBlock(Height blockHeight)
 	{

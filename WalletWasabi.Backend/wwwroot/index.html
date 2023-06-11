@@ -27,6 +27,15 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="img/favicon.ico">
     <title>Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin</title>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "url": "https://wasabiwallet.io",
+      "logo": "https://wasabiwallet.io/img/wasabi_logo.png"
+    }
+    </script>
 </head>
 
 <body class="pt-100vh">
@@ -36,9 +45,10 @@
             <a class="logo" href="index.html">
                 <img src="img/logo.svg" alt="Wasabi Wallet">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <input type="checkbox" id="navswitch">
+            <label for="navswitch" class="navbar-toggler">
                 <span class="navbar-toggler-icon"></span>
-            </button>
+            </label>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item active">
@@ -102,11 +112,6 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-xl-12">
-                                <img src="img/screenshots/webpage_ui_compilation-02.png" class="w-100" />
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -158,7 +163,7 @@
                             </li>
                             <li>
                                 <h2 class="title">Affordable</h2>
-                                <p>Coinjoining coins with a value above 0.01 BTC costs 0.3% as a <a href="https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Backend" target="_blank">coordinator</a> fee + <a href="https://mempool.space/" target="_blank">mining fees</a>. Inputs of 0.01 BTC or below don't pay coordinator fees, nor remixes, even after one transaction. Thus, a payment made with coinjoined funds allows the sender and the recipient to remix their coins without paying any coordinator fees.</p>
+                                <p>Coinjoining coins with a value above 0.01 BTC costs 0.3% as a <a href="https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Backend" target="_blank">coordinator</a> fee + <a href="https://mempool.space/" target="_blank">mining fees</a>. Inputs of 0.01 BTC or below don't pay coordinator fees, nor do remixes, even after one transaction. Thus, a payment made with coinjoined funds allows the sender and the recipient to remix their coins without paying any coordinator fees.</p>
                             </li>
                         </ul>
                     </div>
@@ -187,9 +192,9 @@
                                         <div class="my-4">
                                             <div class="system-text">WINDOWS 10+</div>
                                         </div>
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.msi" target="_blank" class="btn btn-primary w-100">Download</a>
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.msi" target="_blank" class="btn btn-primary w-100">Download</a>
                                         <div class="small-text mt-4">
-                                            .msi <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.msi.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#windows" target="_blank">guide</a></span>
+                                            .msi <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.msi.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#windows" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
@@ -199,9 +204,9 @@
                                         <div class="my-4">
                                             <div class="system-text">MACOS 10.15+ INTEL</div>
                                         </div>
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.dmg" target="_blank" class="btn btn-primary w-100">Download</a>
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.dmg" target="_blank" class="btn btn-primary w-100">Download</a>
                                         <div class="small-text mt-4">
-                                            .dmg <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.dmg.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" target="_blank">guide</a></span>
+                                            .dmg <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.dmg.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
@@ -211,9 +216,9 @@
                                         <div class="my-4">
                                             <div class="system-text">MACOS 10.15+ M1, M2</div>
                                         </div>
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2-arm64.dmg" target="_blank" class="btn btn-primary w-100">Download</a>
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3-arm64.dmg" target="_blank" class="btn btn-primary w-100">Download</a>
                                         <div class="small-text mt-4">
-                                            .dmg <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2-arm64.dmg.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" target="_blank">guide</a></span>
+                                            .dmg <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3-arm64.dmg.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
@@ -223,9 +228,9 @@
                                         <div class="my-4">
                                             <div class="system-text">UBUNTU / DEBIAN</div>
                                         </div>
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.deb" target="_blank" class="btn btn-primary w-100">Download</a>
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.deb" target="_blank" class="btn btn-primary w-100">Download</a>
                                         <div class="small-text mt-4">
-                                            .deb <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.deb.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#debian-and-ubuntu" target="_blank">guide</a></span>
+                                            .deb <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.deb.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#debian-and-ubuntu" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
@@ -235,9 +240,9 @@
                                         <div class="my-4">
                                             <div class="system-text">OTHER LINUX</div>
                                         </div>
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.tar.gz" target="_blank" class="btn btn-primary w-100">Download</a>
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.tar.gz" target="_blank" class="btn btn-primary w-100">Download</a>
                                         <div class="small-text mt-4">
-                                            .tar.gz <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.2.2/Wasabi-2.0.2.2.tar.gz.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#other-linux" target="_blank">guide</a></span>
+                                            .tar.gz <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v2.0.3/Wasabi-2.0.3.tar.gz.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#other-linux" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>

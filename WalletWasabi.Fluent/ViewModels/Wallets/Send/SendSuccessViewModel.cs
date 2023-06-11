@@ -11,7 +11,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	private readonly SmartTransaction _finalTransaction;
 
-	public SendSuccessViewModel(Wallet wallet, SmartTransaction finalTransaction)
+	private SendSuccessViewModel(Wallet wallet, SmartTransaction finalTransaction)
 	{
 		_wallet = wallet;
 		_finalTransaction = finalTransaction;

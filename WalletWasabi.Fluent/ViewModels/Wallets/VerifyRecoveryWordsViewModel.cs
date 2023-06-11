@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -23,7 +24,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isMnemonicsValid;
 	private Mnemonic? _currentMnemonics;
 
-	public VerifyRecoveryWordsViewModel(Wallet wallet)
+	private VerifyRecoveryWordsViewModel(Wallet wallet)
 	{
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -81,7 +82,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 			if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
 			{
-				Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."), NavigationMode.Clear);
+				Navigate().To().Success("Your Recovery Words have been verified and are correct.", navigationMode: NavigationMode.Clear);
 			}
 			else
 			{
@@ -92,7 +93,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.Message, "Wasabi was unable to verify the recovery words.");
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Wasabi was unable to verify the recovery words.");
 		}
 	}
 

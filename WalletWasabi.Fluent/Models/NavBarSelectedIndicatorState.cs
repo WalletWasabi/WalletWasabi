@@ -72,8 +72,14 @@ public class NavBarSelectedIndicatorState : IDisposable
 		var prevIndicator = _activeIndicator;
 		var nextIndicator = next;
 
+		if (prevIndicator is null)
+		{
+			SetActive(nextIndicator);
+			return;
+		}
+
 		// user clicked twice
-		if (prevIndicator is null || prevIndicator.Equals(nextIndicator))
+		if (prevIndicator.Equals(nextIndicator))
 		{
 			return;
 		}

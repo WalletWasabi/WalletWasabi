@@ -1,11 +1,13 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
@@ -24,11 +26,13 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
+	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
-		ApplicationViewModel = new ApplicationViewModel(this);
+
+		UiContext = uiContext;
+		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
@@ -98,12 +102,13 @@ public class ApplicationStateManager : IMainWindowService
 		Open,
 	}
 
+	internal UiContext UiContext { get; }
 	internal ApplicationViewModel ApplicationViewModel { get; }
 
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		// Shutdown prevention will only work if you directly run the executable.
-		e.Cancel = !ApplicationViewModel.CanShutdown();
+		e.Cancel = !ApplicationViewModel.CanShutdown(false);
 
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
@@ -126,7 +131,7 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown()))
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
 			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
@@ -220,6 +225,6 @@ public class ApplicationStateManager : IMainWindowService
 	void IMainWindowService.Shutdown(bool restart)
 	{
 		_restartRequest = restart;
-		_stateMachine.Fire(ApplicationViewModel.CanShutdown() ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
+		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }

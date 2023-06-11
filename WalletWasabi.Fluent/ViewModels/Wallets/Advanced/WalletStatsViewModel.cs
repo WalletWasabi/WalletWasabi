@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
 	Title = "Wallet Stats",
-	Caption = "Displays wallet stats",
+	Caption = "Display wallet stats",
 	IconName = "nav_wallet_24_regular",
 	Order = 3,
 	Category = "Wallet",
@@ -36,7 +36,7 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _nonCoinjointransactionCount;
 	[AutoNotify] private int _coinjoinTransactionCount;
 
-	public WalletStatsViewModel(WalletViewModel walletViewModel)
+	private WalletStatsViewModel(WalletViewModel walletViewModel)
 	{
 		_wallet = walletViewModel.Wallet;
 		_walletViewModel = walletViewModel;

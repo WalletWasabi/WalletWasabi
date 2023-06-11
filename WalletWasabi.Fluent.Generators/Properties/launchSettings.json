@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\WalletWasabi.Fluent\\WalletWasabi.Fluent.csproj"
+    }
+  }
+}

@@ -15,15 +15,27 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <c:InfoMessage Opacity="0.5"
-                     HorizontalAlignment="Center"
-                     DockPanel.Dock="Bottom">
-        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
-      </c:InfoMessage>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition MinHeight="70" Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="20" />
+      </Grid.RowDefinitions>
 
-      <Panel>
-        <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl" Margin="0 10 0 0">
+      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
+        <Panel.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy recovery words"
+                      Command="{Binding CopyToClipboardCommand}">
+              <MenuItem.Icon>
+                <PathIcon Data="{StaticResource clipboard_text_regular}" />
+              </MenuItem.Icon>
+            </MenuItem>
+          </ContextMenu>
+        </Panel.ContextMenu>
+        <ItemsControl Items="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
@@ -45,14 +57,17 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Grid ColumnDefinitions="*,1,*,1,*"
-              HorizontalAlignment="Center" VerticalAlignment="Center"
-              Width="{Binding #ItemsControl.Bounds.Width}"
-              Height="{Binding #ItemsControl.Bounds.Height}">
-          <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="1" />
-          <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="3" />
+        <Grid ColumnDefinitions="*,1,*,1,*">
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
+          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
       </Panel>
-    </DockPanel>
+
+      <c:InfoMessage Opacity="0.5"
+                     HorizontalAlignment="Center"
+                     Grid.Row="4">
+        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
+      </c:InfoMessage>
+    </Grid>
   </c:ContentArea>
 </UserControl>

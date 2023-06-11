@@ -1,8 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Avalonia;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,48 +19,51 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private string? _amount;
-	[AutoNotify] private SmartLabel? _labels;
+	[AutoNotify] private string _dateString;
+	[AutoNotify] private Money? _amount;
+	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private string? _amountText = "";
 
-	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-		CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionIdAsync);
+
+		Fee = transactionSummary.Fee;
+		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
 
-	public ICommand CopyTransactionIdCommand { get; }
+	public bool IsFeeVisible { get; set; }
 
-	private async Task OnCopyTransactionIdAsync()
-	{
-		if (TransactionId is null)
-		{
-			return;
-		}
-
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			await clipboard.SetTextAsync(TransactionId);
-		}
-	}
+	public Money? Fee { get; set; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		Date = transactionSummary.DateTime.ToLocalTime();
+		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.TransactionId.ToString();
-		Labels = transactionSummary.Label;
+		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false);
+
+		if (transactionSummary.Amount < Money.Zero)
+		{
+			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			AmountText = "Outgoing";
+		}
+		else
+		{
+			Amount = transactionSummary.Amount;
+			AmountText = "Incoming";
+		}
+
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
 

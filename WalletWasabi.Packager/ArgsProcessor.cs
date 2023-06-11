@@ -49,7 +49,7 @@ public class ArgsProcessor
 
 		try
 		{
-			var appleidArg = Args.Where(a => a.Contains("appleid", StringComparison.InvariantCultureIgnoreCase)).First();
+			var appleidArg = Args.First(a => a.Contains("appleid", StringComparison.InvariantCultureIgnoreCase));
 			var parameters = appleidArg.Split("=")[1];
 			var idAndPassword = parameters.Split(":");
 			appleId = idAndPassword[0];

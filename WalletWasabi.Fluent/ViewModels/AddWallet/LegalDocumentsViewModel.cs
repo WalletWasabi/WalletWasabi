@@ -20,7 +20,7 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string? _content;
 
-	public LegalDocumentsViewModel()
+	private LegalDocumentsViewModel()
 	{
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 

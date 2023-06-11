@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -72,6 +74,8 @@ public class Dialog : ContentControl
 
 	public static readonly StyledProperty<bool> ShowAlertProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(ShowAlert));
+
+	private static readonly Stack<Dialog> AllOpenedDialogStack = new();
 
 	public Dialog()
 	{
@@ -239,6 +243,41 @@ public class Dialog : ContentControl
 		}
 	}
 
+	private void HandleDialogFocus(bool isOpen)
+	{
+		if (isOpen)
+		{
+			if (AllOpenedDialogStack.TryPeek(out var previous))
+			{
+				previous.IsEnabled = false;
+			}
+
+			AllOpenedDialogStack.Push(this);
+
+			Focus();
+		}
+		else
+		{
+			if (AllOpenedDialogStack.Count > 0)
+			{
+				AllOpenedDialogStack.Pop();
+			}
+
+			if (AllOpenedDialogStack.TryPeek(out var previous))
+			{
+				previous.IsEnabled = true;
+				previous.Focus();
+			}
+			else
+			{
+				if (this.GetVisualRoot() is TopLevel topLevel)
+				{
+					topLevel.Focus();
+				}
+			}
+		}
+	}
+
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
 		base.OnPropertyChanged(change);
@@ -248,6 +287,8 @@ public class Dialog : ContentControl
 			var isOpen = change.NewValue.GetValueOrDefault<bool>();
 
 			PseudoClasses.Set(":open", isOpen);
+
+			HandleDialogFocus(isOpen);
 
 			if (!isOpen)
 			{
@@ -294,13 +335,13 @@ public class Dialog : ContentControl
 		}
 
 		if (IsDialogOpen
-		    && IsActive
-		    && EnableCancelOnPressed
-		    && !IsBusy
-		    && _dismissPanel is { }
-		    && _overlayPanel is { }
-		    && _canCancelOpenedOnPointerPressed
-		    && _canCancelActivatedOnPointerPressed)
+			&& IsActive
+			&& EnableCancelOnPressed
+			&& !IsBusy
+			&& _dismissPanel is { }
+			&& _overlayPanel is { }
+			&& _canCancelOpenedOnPointerPressed
+			&& _canCancelActivatedOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
 			var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;

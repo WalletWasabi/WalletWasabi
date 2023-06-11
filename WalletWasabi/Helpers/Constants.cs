@@ -68,9 +68,9 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 2, 2);
+	public static readonly Version ClientVersion = new(2, 0, 3, 0);
 
-	public static readonly Version HwiVersion = new("2.1.1");
+	public static readonly Version HwiVersion = new("2.2.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
 	public static readonly Version Ww1LegalDocumentsVersion = new(3, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);

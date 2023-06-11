@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -18,54 +18,126 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Confirm Recovery Words")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
-	private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
-	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
-	[AutoNotify] private bool _isSkipEnable;
+	private readonly List<RecoveryWordViewModel> _words;
+	private readonly Mnemonic _mnemonic;
+	private readonly string _walletName;
 
-	public ConfirmRecoveryWordsViewModel(
-		List<RecoveryWordViewModel> mnemonicWords,
-		Mnemonic mnemonic,
-		string walletName)
+	[AutoNotify] private bool _isSkipEnabled;
+	[AutoNotify] private RecoveryWordViewModel _currentWord;
+	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
+
+	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
-		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
-#if RELEASE
-		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
-#else
-		_isSkipEnable = true;
-#endif
-		var nextCommandCanExecute =
-			_confirmationWordsSourceList
+		_availableWords = new List<RecoveryWordViewModel>();
+		_words = words.OrderBy(x => x.Index).ToList();
+		_currentWord = words.First();
+		_mnemonic = mnemonic;
+		_walletName = walletName;
+	}
+
+	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
+
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		ConfirmationWords.Clear();
+
+		var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+
+		confirmationWordsSourceList
+			.DisposeWith(disposables)
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+			.Bind(ConfirmationWords)
+			.OnItemAdded(x => x.Reset())
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(mnemonic, walletName), nextCommandCanExecute);
-
-		if (_isSkipEnable)
-		{
-			SkipCommand = ReactiveCommand.Create(() => NextCommand.Execute(null));
-		}
-
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 
-		_confirmationWordsSourceList
+		var nextCommandCanExecute =
+			confirmationWordsSourceList
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.OnItemAdded(x => x.Reset())
-			.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
-			.Bind(out _confirmationWords)
-			.Subscribe();
+			.WhenValueChanged(x => x.IsConfirmed)
+			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
-		// Select random words to confirm.
-		_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => Random.Shared.NextDouble()).Take(3));
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+
+		SetSkip();
+
+		confirmationWordsSourceList.AddRange(_words);
+
+		AvailableWords = confirmationWordsSourceList.Items
+			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+			.OrderBy(x => x.Word)
+			.ToList();
+
+		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();
+
+		availableWordsSourceList
+			.DisposeWith(disposables)
+			.Connect()
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Subscribe(x => OnWordSelectionChanged(x.Sender));
+
+		availableWordsSourceList.AddRange(AvailableWords);
+
+		SetNextWord();
+
+		var enableCancel = Services.WalletManager.HasWallet();
+		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 
-	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
+	private void SetNextWord()
+	{
+		if (ConfirmationWords.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
+		{
+			CurrentWord = nextWord;
+		}
 
-	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
+		EnableAvailableWords(true);
+	}
+
+	private void OnWordSelectionChanged(RecoveryWordViewModel selectedWord)
+	{
+		if (selectedWord.IsSelected)
+		{
+			CurrentWord.SelectedWord = selectedWord.Word;
+		}
+		else
+		{
+			CurrentWord.SelectedWord = null;
+		}
+
+		if (CurrentWord.IsConfirmed)
+		{
+			selectedWord.IsConfirmed = true;
+			SetNextWord();
+		}
+		else if (!selectedWord.IsSelected)
+		{
+			EnableAvailableWords(true);
+		}
+		else
+		{
+			EnableAvailableWords(false);
+			selectedWord.IsEnabled = true;
+		}
+	}
+
+	private void EnableAvailableWords(bool enable)
+	{
+		foreach (var w in AvailableWords)
+		{
+			w.IsEnabled = enable;
+		}
+	}
+
+	private async Task OnNextAsync()
 	{
 		var dialogResult = await NavigateDialogAsync(
 			new CreatePasswordDialogViewModel("Add Password", "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.", enableEmpty: true),
@@ -84,10 +156,19 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 					{
 						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
 					};
-					return walletGenerator.GenerateWallet(walletName, password, mnemonics);
+					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
 				});
 			IsBusy = false;
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+
+			// TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
+			var walletModel =
+				new WalletModel(
+					new WalletWasabi.Wallets.Wallet(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network,
+						km));
+
+			await Navigate().To().CoinJoinProfiles(walletModel, true).GetResultAsync();
 		}
 	}
 
@@ -96,20 +177,17 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		Navigate().Clear();
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private void SetSkip()
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+#if RELEASE
+		IsSkipEnabled = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
+#else
+		IsSkipEnabled = true;
+#endif
 
-		var enableCancel = Services.WalletManager.HasWallet();
-		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		base.OnNavigatedFrom(isInHistory);
-		if (!isInHistory)
+		if (IsSkipEnabled)
 		{
-			_confirmationWordsSourceList.Dispose();
+			SkipCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 		}
 	}
 }

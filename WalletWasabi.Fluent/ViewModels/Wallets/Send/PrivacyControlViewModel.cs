@@ -2,8 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -43,34 +46,41 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		Close(DialogResultKind.Normal, coins);
 	}
 
-	private void InitializeLabels()
+	private async Task InitializeLabelsAsync()
 	{
 		var privateThreshold = _wallet.AnonScoreTarget;
 
-		LabelSelection.Reset(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
-		LabelSelection.SetUsedLabel(_usedCoins, privateThreshold);
+		await LabelSelection.ResetAsync(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
+		await LabelSelection.SetUsedLabelAsync(_usedCoins, privateThreshold);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		if (!isInHistory)
-		{
-			InitializeLabels();
-		}
-
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => InitializeLabels())
+			.SubscribeAsync(_ => InitializeLabelsAsync())
 			.DisposeWith(disposables);
 
-		if (_isSilent)
+		Dispatcher.UIThread.InvokeAsync(async () =>
 		{
-			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
+			IsBusy = true;
 
-			Complete(autoSelectedPockets);
-		}
+			if (!isInHistory)
+			{
+				await InitializeLabelsAsync();
+			}
+
+			if (_isSilent)
+			{
+				var autoSelectedPockets = await LabelSelection.AutoSelectPocketsAsync();
+
+				Complete(autoSelectedPockets);
+			}
+
+			IsBusy = false;
+		});
 	}
 }

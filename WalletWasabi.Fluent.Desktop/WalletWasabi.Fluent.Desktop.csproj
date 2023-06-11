@@ -34,7 +34,6 @@
 		<Copyright>MIT</Copyright>
 		<PackageId>Wasabi Wallet Fluent</PackageId>
 		<AssemblyTitle>Wasabi Wallet</AssemblyTitle>
-		<Company>zkSNACKs</Company>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
 		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
@@ -44,7 +43,7 @@
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
-		<AvaloniaVersion>0.10.18</AvaloniaVersion>
+		<AvaloniaVersion>0.10.21</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -6,6 +6,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
+using WalletWasabi.Daemon;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -33,7 +34,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
 
-	public GeneralSettingsTabViewModel()
+	private GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 		_autoCopy = Services.UiConfig.Autocopy;
@@ -44,9 +45,9 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
 			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
 			: FeeDisplayUnit.Satoshis;
-		_useTor = Services.Config.UseTor;
-		_terminateTorOnExit = Services.Config.TerminateTorOnExit;
-		_downloadNewVersion = Services.Config.DownloadNewVersion;
+		_useTor = Services.PersistentConfig.UseTor;
+		_terminateTorOnExit = Services.PersistentConfig.TerminateTorOnExit;
+		_downloadNewVersion = Services.PersistentConfig.DownloadNewVersion;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
@@ -54,7 +55,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				x =>
 				{
 					Services.UiConfig.DarkModeEnabled = x;
-					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
+					Navigate().To().ThemeChange(x ? Theme.Dark : Theme.Light);
 				});
 
 		this.WhenAnyValue(x => x.AutoCopy)
@@ -112,10 +113,10 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
 		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
 
-	protected override void EditConfigOnSave(Config config)
+	protected override void EditConfigOnSave(PersistentConfig persistentConfig)
 	{
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
-		config.DownloadNewVersion = DownloadNewVersion;
+		persistentConfig.UseTor = UseTor;
+		persistentConfig.TerminateTorOnExit = TerminateTorOnExit;
+		persistentConfig.DownloadNewVersion = DownloadNewVersion;
 	}
 }

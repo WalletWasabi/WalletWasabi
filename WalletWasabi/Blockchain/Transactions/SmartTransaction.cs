@@ -22,14 +22,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
-	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, SmartLabel? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
+	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, LabelsArray? labels = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
 
 		// Because we don't modify those transactions, we can cache the hash
 		Transaction.PrecomputeHash(false, true);
 
-		Label = label ?? SmartLabel.Empty;
+		Labels = labels ?? LabelsArray.Empty;
 
 		Height = height;
 		BlockHash = blockHash;
@@ -43,10 +43,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
 		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
-		_isWasabi2Cj = new Lazy<bool>(() => Transaction.Outputs.Count >= 2 // Sanity check.
-					&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
-					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), true); // Outputs are ordered descending.
+		_isWasabi2Cj = new Lazy<bool>(
+			() => Transaction.Outputs.Count >= 2 // Sanity check.
+			&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+			&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
+			isThreadSafe: true);
 	}
 
 	#endregion Constructors
@@ -161,9 +163,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
-	public SmartLabel Label { get; set; }
+	[JsonProperty(PropertyName = "Label")]
+	[JsonConverter(typeof(LabelsArrayJsonConverter))]
+	public LabelsArray Labels { get; set; }
 
 	[JsonProperty]
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
@@ -177,8 +179,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		set
 		{
-			// If it's null, let FirstSeen's default to be set.
-			// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
+			// If it's null, let the default of FirstSeen to be set.
+			// If it's not null, then check if FirstSeen has just been recently set to UtcNow which is its default.
 			if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
 			{
 				FirstSeen = value.Value;
@@ -286,9 +288,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 
 		// Merge labels.
-		if (Label != tx.Label)
+		if (Labels != tx.Labels)
 		{
-			Label = SmartLabel.Merge(Label, tx.Label);
+			Labels = LabelsArray.Merge(Labels, tx.Labels);
 			updated = true;
 		}
 
@@ -300,7 +302,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
+	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>
@@ -347,7 +349,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			Height,
 			BlockHash,
 			BlockIndex,
-			Label,
+			Labels,
 			FirstSeen.ToUnixTimeSeconds(),
 			IsReplacement);
 	}
@@ -361,7 +363,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		try
 		{
-			// First is redundant txhash serialization.
+			// First is redundant txHash serialization.
 			var heightString = parts[2];
 			var blockHashString = parts[3];
 			var blockIndexString = parts[4];
@@ -381,7 +383,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				blockIndex = 0;
 			}
-			var label = new SmartLabel(labelString);
+			var label = new LabelsArray(labelString);
 			DateTimeOffset firstSeen = default;
 			if (long.TryParse(firstSeenString, out long unixSeconds))
 			{

@@ -29,6 +29,12 @@ public class JsonSerializationOptions
 				new TimeSpanJsonConverter(),
 				new CoinJsonConverter(),
 				new CoinJoinEventJsonConverter(),
+				new GroupElementVectorJsonConverter(),
+				new ScalarVectorJsonConverter(),
+				new IssuanceRequestJsonConverter(),
+				new CredentialPresentationJsonConverter(),
+				new ProofJsonConverter(),
+				new MacJsonConverter()
 			}
 	};
 

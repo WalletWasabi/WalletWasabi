@@ -13,7 +13,7 @@ public static class TextReaderExtensions
 	// If CRLF is true, the line ends only at ("\r\n").
 	public static string? ReadLine(this TextReader me, bool strictCRLF = false)
 	{
-		if (strictCRLF == false)
+		if (!strictCRLF)
 		{
 			return me.ReadLine();
 		}

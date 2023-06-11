@@ -89,7 +89,7 @@ public class Global : IDisposable
 
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
 		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled;
-		CoinVerifier? coinVerifier = null;
+
 		if (coinVerifierEnabled)
 		{
 			try
@@ -110,11 +110,10 @@ public class Global : IDisposable
 				HttpClient.BaseAddress = url;
 				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
+				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
 				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
-				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
-				CoinVerifier = coinVerifier;
-				WhiteList = whitelist;
+				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
+
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
@@ -125,7 +124,7 @@ public class Global : IDisposable
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		await HostedServices.StartAllAsync(cancel);
@@ -168,12 +167,8 @@ public class Global : IDisposable
 			{
 				if (blocks < 101)
 				{
-					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken);
-					if (generateBlocksResponse is null)
-					{
-						throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
-					}
-
+					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken)
+						?? throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
 					blockchainInfo = await rpcClient.GetBlockchainInfoAsync(cancellationToken);
 					blocks = blockchainInfo.Blocks;
 					if (blocks == 0)

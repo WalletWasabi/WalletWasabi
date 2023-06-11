@@ -44,7 +44,7 @@ public class WabiSabiConfig : ConfigBase
 	public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
 
 	/// <summary>
-	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
+	/// The width of the range proofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
 	[DefaultValueMoneyBtc("43000")]
 	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -167,17 +167,17 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wpkhInputs { get; set; } = true;
 
-	[DefaultValue(false)]
+	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trInputs { get; set; } = false;
+	public bool AllowP2trInputs { get; set; } = true;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wpkhOutputs { get; set; } = true;
 
-	[DefaultValue(false)]
+	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trOutputs { get; set; } = false;
+	public bool AllowP2trOutputs { get; set; } = true;
 
 	[DefaultValue(Constants.FallbackAffiliationMessageSignerKey)]
 	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]

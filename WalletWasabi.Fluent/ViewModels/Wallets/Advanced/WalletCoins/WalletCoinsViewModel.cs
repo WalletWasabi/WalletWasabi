@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 [NavigationMetaData(
 	Title = "Wallet Coins (UTXOs)",
-	Caption = "Displays wallet coins",
+	Caption = "Display wallet coins",
 	IconName = "nav_wallet_24_regular",
 	Order = 0,
 	Category = "Wallet",
@@ -39,7 +39,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	[AutoNotify]
 	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
-	public WalletCoinsViewModel(WalletViewModel walletVm)
+	private WalletCoinsViewModel(WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -131,14 +131,14 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var wallet = _walletVm.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 
-		var addressDialog = new AddressEntryDialogViewModel(wallet.Network);
+		var addressDialog = new AddressEntryDialogViewModel(UiContext, wallet.Network);
 		var addressResult = await NavigateDialogAsync(addressDialog, NavigationTarget.CompactDialogScreen);
 		if (addressResult.Result is not { } address || address.Address is null)
 		{
 			return;
 		}
 
-		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? SmartLabel.Empty);
+		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? LabelsArray.Empty);
 		var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 		if (result.Result is not { } label)
 		{
@@ -155,7 +155,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			IsFixedAmount = true,
 		};
 
-		Navigate().To(new TransactionPreviewViewModel(_walletVm, info));
+		Navigate().To().TransactionPreview(_walletVm, info);
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
@@ -205,8 +205,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
-				CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x))
+				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => GetOrderingPriority(x)),
+				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => GetOrderingPriority(x))
 			},
 			width: new GridLength(0, GridUnitType.Auto));
 	}
@@ -220,8 +220,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
-				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount),
+				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => x.Amount),
+				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => x.Amount),
 				MinWidth = new GridLength(145, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
@@ -237,10 +237,10 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
-				CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
+				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => x.AnonymitySet),
+				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => x.AnonymitySet)
 			},
-			width: new GridLength(50, GridUnitType.Pixel));
+			width: new GridLength(55, GridUnitType.Pixel));
 	}
 
 	private static IColumn<WalletCoinViewModel> LabelsColumn()
@@ -252,8 +252,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
-				CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel),
+				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
+				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => x.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
 				MinWidth = new GridLength(100, GridUnitType.Pixel)
 			},
 			width: new GridLength(1, GridUnitType.Star));

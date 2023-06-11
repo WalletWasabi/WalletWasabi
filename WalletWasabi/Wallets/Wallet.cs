@@ -79,9 +79,7 @@ public class Wallet : BackgroundService, IWallet
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
-	/// <summary>
-	/// Unspent Transaction Outputs
-	/// </summary>
+	/// <summary>Unspent Transaction Outputs</summary>
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
@@ -90,7 +88,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-	public FilterModel LastProcessedFilter { get; private set; }
+	public FilterModel? LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
 
@@ -118,9 +116,9 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
-
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
+
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
@@ -141,7 +139,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
-		return KeyManager.GetNextReceiveKey(new SmartLabel(destinationLabels));
+		return KeyManager.GetNextReceiveKey(new LabelsArray(destinationLabels));
 	}
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
@@ -412,6 +410,7 @@ public class Wallet : BackgroundService, IWallet
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
+					SetWalletHeights(new Height(filterModel.Header.Height));
 				}
 			}
 
@@ -430,7 +429,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
+			var task = BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
 
 			if (task is { })
 			{
@@ -459,6 +458,11 @@ public class Wallet : BackgroundService, IWallet
 				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1),
 			cancel).ConfigureAwait(false);
+
+		if (LastProcessedFilter is { } lastProcessedFilter)
+		{
+			SetWalletHeights(new Height(lastProcessedFilter.Header.Height));
+		}
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -521,7 +525,7 @@ public class Wallet : BackgroundService, IWallet
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
 				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
 
 			TransactionProcessor.Process(txsToProcess);
@@ -554,5 +558,28 @@ public class Wallet : BackgroundService, IWallet
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
+	}
+
+	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)
+	{
+		if (!hdPubKeysWithLabels.Any())
+		{
+			return;
+		}
+
+		foreach (var item in hdPubKeysWithLabels)
+		{
+			item.Key.SetLabel(item.Value);
+		}
+
+		KeyManager.ToFile();
+	}
+
+	private void SetWalletHeights(Height filterHeight)
+	{
+		if (KeyManager.GetBestHeight() < filterHeight)
+		{
+			KeyManager.SetBestHeights(filterHeight, filterHeight);
+		}
 	}
 }

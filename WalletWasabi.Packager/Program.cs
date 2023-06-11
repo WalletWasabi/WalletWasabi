@@ -454,9 +454,9 @@ public static class Program
 					var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
 					if (number.Length == 1 && int.TryParse(number.First(), out int size))
 					{
-						string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
-						Directory.CreateDirectory(destFolder);
-						file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
+						string destinationFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
+						Directory.CreateDirectory(destinationFolder);
+						file.CopyTo(Path.Combine(destinationFolder, $"{ExecutableName}.png"));
 					}
 				}
 
@@ -501,14 +501,14 @@ public static class Program
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
-				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
+				string debDesktopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
 				commands = new string[]
 				{
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
-					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
+					$"sudo chmod -R 0644 {debDesktopFileLinuxPath}",
 					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 				};
 
@@ -599,12 +599,8 @@ public static class Program
 			RedirectStandardInput = isWriteToStandardInput,
 			RedirectStandardOutput = redirectStandardOutput,
 			WorkingDirectory = workingDirectory
-		});
-
-		if (process is null)
-		{
-			throw new InvalidOperationException($"Process '{command}' is invalid.");
-		}
+		})
+		?? throw new InvalidOperationException($"Process '{command}' is invalid.");
 
 		if (isWriteToStandardInput)
 		{

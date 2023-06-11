@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,6 +22,7 @@ using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -40,7 +43,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
+	private TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = walletViewModel.Wallet;
@@ -62,11 +65,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.Subscribe(x =>
+			.SubscribeAsync(async x =>
 			{
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
-					UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
+					await UpdateTransactionAsync(PreviewTransactionSummary, ca.TransactionResult);
 				}
 				else
 				{
@@ -75,7 +78,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.Subscribe(x =>
+			.SubscribeAsync(async x =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
@@ -83,7 +86,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
+					await UpdateTransactionAsync(CurrentTransactionSummary, ca.TransactionResult);
 				}
 			});
 
@@ -125,12 +128,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.Create(() =>
+		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (_undoHistory.TryPop(out var previous))
 			{
 				_info = previous.Item2;
-				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
+				await UpdateTransactionAsync(CurrentTransactionSummary, previous.Item1, false);
 				CanUndo = _undoHistory.Any();
 			}
 		});
@@ -161,16 +164,25 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (Transaction is { })
 		{
-			var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+			bool saved = false;
+			try
+			{
+				saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync("Transaction Export", ex.ToUserFriendlyString(), "Wasabi was unable to export the PSBT.");
+			}
 
 			if (saved)
 			{
-				Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				Navigate().To().Success("The PSBT has been successfully created.");
 			}
 		}
 	}
 
-	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
+	private async Task UpdateTransactionAsync(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
 	{
 		if (!summary.IsPreview)
 		{
@@ -180,7 +192,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			Transaction = transaction;
-			CheckChangePocketAvailable(Transaction);
+			await CheckChangePocketAvailableAsync(Transaction);
 			_currentTransactionInfo = _info.Clone();
 		}
 
@@ -193,7 +205,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
 			? new CustomFeeRateDialogViewModel(_info)
-			: new SendFeeViewModel(_wallet, _info, false);
+			: new SendFeeViewModel(UiContext, _wallet, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
@@ -212,7 +224,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (newTransaction is { })
 		{
-			UpdateTransaction(CurrentTransactionSummary, newTransaction);
+			await UpdateTransactionAsync(CurrentTransactionSummary, newTransaction);
 		}
 	}
 
@@ -253,7 +265,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (_info.FeeRate == FeeRate.Zero)
 		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(UiContext, _wallet, _info, true));
 			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 			{
 				_info.FeeRate = newFeeRate;
@@ -350,7 +362,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			Logger.LogError(ex);
 
-			await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
+			await ShowErrorAsync(
+				"Transaction Building",
+				ex.ToUserFriendlyString(),
 				"Wasabi was unable to create your transaction.");
 
 			return null;
@@ -367,7 +381,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (!result)
 		{
-			await ShowErrorAsync("Transaction Building", "The transaction cannot be sent because its fee is more than the payment amount.",
+			await ShowErrorAsync(
+				"Transaction Building",
+				"The transaction cannot be sent because its fee is more than the payment amount.",
 				"Wasabi was unable to create your transaction.");
 
 			return false;
@@ -384,7 +400,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
-			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
+			await UpdateTransactionAsync(CurrentTransactionSummary, initialTransaction);
 		}
 		else
 		{
@@ -399,7 +415,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
 			.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
-			.DisposeWith(disposables);
+		.DisposeWith(disposables);
 
 		if (!isInHistory)
 		{
@@ -436,13 +452,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
+				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource?.Cancel();
-				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
+				Navigate().To().SendSuccess(_wallet, finalTransaction);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+				await ShowErrorAsync(
+					"Transaction",
+					ex.ToUserFriendlyString(),
 					"Wasabi was unable to send your transaction.");
 			}
 
@@ -469,8 +488,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 	}
 
-	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction,
-		TransactionInfo transactionInfo)
+	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
 	{
 		if (transactionInfo.PayJoinClient is { })
 		{
@@ -498,7 +516,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private void CheckChangePocketAvailable(BuildTransactionResult transaction)
+	private async Task CheckChangePocketAvailableAsync(BuildTransactionResult transaction)
 	{
 		if (!_info.IsSelectedCoinModificationEnabled)
 		{
@@ -509,7 +527,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		labelSelection.Reset(pockets);
+		await labelSelection.ResetAsync(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}

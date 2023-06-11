@@ -1,6 +1,6 @@
 using NBitcoin;
+using WabiSabi.CredentialRequesting;
 using WalletWasabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models;
 

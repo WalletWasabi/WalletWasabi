@@ -9,11 +9,13 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
+using static WalletWasabi.Userfacing.CurrencyInput;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class CurrencyEntryBox : TextBox
+public partial class CurrencyEntryBox : TextBox
 {
 	public static readonly StyledProperty<string> CurrencyCodeProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(CurrencyCode));
@@ -33,45 +35,9 @@ public class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<int> MaxDecimalsProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
 
-	private readonly CultureInfo _customCultureInfo;
-	private readonly char _decimalSeparator = '.';
-	private readonly char _groupSeparator = ' ';
-	private readonly Regex _regexBtcFormat;
-	private readonly Regex _regexDecimalCharsOnly;
-	private readonly Regex _regexConsecutiveSpaces;
-	private readonly Regex _regexGroupAndDecimal;
-
 	public CurrencyEntryBox()
 	{
-		_customCultureInfo = new CultureInfo("")
-		{
-			NumberFormat =
-			{
-				CurrencyGroupSeparator = _groupSeparator.ToString(),
-				NumberGroupSeparator = _groupSeparator.ToString(),
-				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-				NumberDecimalSeparator = _decimalSeparator.ToString()
-			}
-		};
-
 		Text = string.Empty;
-
-		_regexBtcFormat =
-			new Regex(
-				$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
-				RegexOptions.Compiled);
-
-		_regexDecimalCharsOnly =
-			new Regex(
-				$"^[0-9{_groupSeparator}{_decimalSeparator}]*$", RegexOptions.Compiled);
-
-		_regexConsecutiveSpaces =
-			new Regex(
-				$"{_groupSeparator}{{2,}}", RegexOptions.Compiled);
-
-		_regexGroupAndDecimal =
-			new Regex(
-				$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 
 		PseudoClasses.Set(":noexchangerate", true);
 		PseudoClasses.Set(":isrightside", false);
@@ -141,7 +107,7 @@ public class CurrencyEntryBox : TextBox
 
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		var input = e.Text ?? "";
+		var input = e.Text == null ? "" : e.Text.TotalTrim();
 
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
@@ -169,12 +135,15 @@ public class CurrencyEntryBox : TextBox
 
 		var preComposedText = PreComposeText(input);
 
-		decimal fiatValue = 0;
+		var isValid = ValidateEntryText(preComposedText);
 
-		e.Handled = !(ValidateEntryText(preComposedText) &&
-					  decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+		preComposedText = preComposedText.TotalTrim();
 
-		if (IsFiat & !e.Handled)
+		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
+
+		e.Handled = !(isValid && parsed);
+
+		if (IsFiat && !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
@@ -209,28 +178,40 @@ public class CurrencyEntryBox : TextBox
 		CaretIndex += prependText.Length;
 	}
 
+	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
+	private static partial Regex RegexBtcFormat();
+
+	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
+	private static partial Regex RegexDecimalCharsOnly();
+
+	[GeneratedRegex($"{GroupSeparator}{{2,}}")]
+	private static partial Regex RegexConsecutiveSpaces();
+
+	[GeneratedRegex($"[{GroupSeparator}{DecimalSeparator}]+")]
+	private static partial Regex RegexGroupAndDecimal();
+
 	private bool ValidateEntryText(string preComposedText)
 	{
 		// Check if it has a decimal separator.
-		var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
-		var match = _regexBtcFormat.Match(preComposedText);
+		var trailingDecimal = preComposedText.Length > 0 && preComposedText.EndsWith(DecimalSeparator);
+		var match = RegexBtcFormat().Match(preComposedText);
 
 		// Ignore group chars on count of the whole part of the decimal.
 		var wholeStr = match.Groups["Whole"].ToString();
-		var whole = _regexGroupAndDecimal.Replace(wholeStr, "").Length;
+		var whole = RegexGroupAndDecimal().Replace(wholeStr, "").Length;
 
-		var fracStr = match.Groups["Frac"].ToString().Replace($"{_groupSeparator}", "");
-		var frac = _regexGroupAndDecimal.Replace(fracStr, "").Length;
+		var fracStr = match.Groups["Frac"].ToString().Replace(GroupSeparator, "");
+		var frac = RegexGroupAndDecimal().Replace(fracStr, "").Length;
 
 		// Check for consecutive spaces (2 or more) and leading spaces.
-		var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
-												   _regexConsecutiveSpaces.IsMatch(preComposedText));
+		var rule1 = preComposedText.Length > 1 && (preComposedText.StartsWith(GroupSeparator) ||
+												   RegexConsecutiveSpaces().IsMatch(preComposedText));
 
 		// Check for trailing spaces in the whole number part and in the last part of the precomp string.
-		var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
+		var rule2 = whole >= 8 && (preComposedText.EndsWith(GroupSeparator) || wholeStr.EndsWith(GroupSeparator));
 
 		// Check for non-numeric chars.
-		var rule3 = !_regexDecimalCharsOnly.IsMatch(preComposedText);
+		var rule3 = !RegexDecimalCharsOnly().IsMatch(preComposedText);
 		if (rule1 || rule2 || rule3)
 		{
 			return false;
@@ -243,10 +224,9 @@ public class CurrencyEntryBox : TextBox
 		}
 
 		// Passthrough the decimal place char or the group separator.
-		switch (preComposedText.Length)
+		if (preComposedText == DecimalSeparator && !trailingDecimal)
 		{
-			case 1 when preComposedText[0] == _decimalSeparator && !trailingDecimal:
-				return false;
+			return false;
 		}
 
 		if (IsFiat)

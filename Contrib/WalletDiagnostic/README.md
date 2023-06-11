@@ -36,7 +36,7 @@ Run Wasabi, open the wallet you are interested in.
 Next open a terminal and enter:
 
 ```bash
-dotnet fsi coinsgraph.fsx <wallet-name> <initial-txid> | dot -Tpng | feh  -
+dotnet fsi txgraph.fsx <wallet-name> <initial-txid> | dot -Tpng | feh  -
 ```
 
 ## The result

@@ -36,22 +36,22 @@ public static class ServiceFactory
 			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
-		var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
-		foreach (var coin in scoins)
+		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+		foreach (var coin in sCoins)
 		{
-			foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
+			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Labels.IsEmpty && c.HdPubKey.Labels == coin.HdPubKey.Labels))
 			{
 				sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 			}
 		}
 
-		var uniqueCoins = scoins.Distinct().Count();
-		if (uniqueCoins != scoins.Length)
+		var uniqueCoins = sCoins.Distinct().Count();
+		if (uniqueCoins != sCoins.Length)
 		{
-			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{scoins.Length}, unique coins:{uniqueCoins}.");
+			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Length}, unique coins:{uniqueCoins}.");
 		}
 
-		var coinsView = new CoinsView(scoins);
+		var coinsView = new CoinsView(sCoins);
 		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
 	}

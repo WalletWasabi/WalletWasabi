@@ -5,6 +5,7 @@ using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -12,16 +13,16 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Recipient")]
-public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?>
+public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray?>
 {
 	private readonly Wallet _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, SmartLabel label)
+	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
+		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
 		{
-			Labels = { label.Labels }
+			Labels = { labels.AsEnumerable() }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -39,7 +40,8 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 
 	private void OnNext()
 	{
-		Close(DialogResultKind.Normal, new SmartLabel(SuggestionLabels.Labels.ToArray()));
+		SuggestionLabels.ForceAdd = true;
+		Close(DialogResultKind.Normal, new LabelsArray(SuggestionLabels.Labels.ToArray()));
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

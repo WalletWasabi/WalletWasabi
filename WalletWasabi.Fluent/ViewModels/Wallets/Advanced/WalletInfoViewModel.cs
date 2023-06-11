@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
 	Title = "Wallet Info",
-	Caption = "Displays wallet info",
+	Caption = "Display wallet info",
 	IconName = "nav_wallet_24_regular",
 	Order = 4,
 	Category = "Wallet",
@@ -21,7 +21,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	[AutoNotify] private string _showButtonText = "Show sensitive data";
 	[AutoNotify] private string _lockIconString = "eye_show_regular";
 
-	public WalletInfoViewModel(WalletViewModelBase walletViewModelBase)
+	private WalletInfoViewModel(WalletViewModel walletViewModelBase)
 	{
 		var wallet = walletViewModelBase.Wallet;
 		var network = wallet.Network;

@@ -124,7 +124,7 @@ public class CoinVerifier : IAsyncDisposable
 		{
 			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout)
 			{
-				CoinVerifyItems.TryRemove(coin, out var _);
+				CoinVerifyItems.TryRemove(coin, out _);
 
 				// This should never happen.
 				if (!item.Task.IsCompleted)
@@ -278,7 +278,7 @@ public class CoinVerifier : IAsyncDisposable
 
 					Logger.LogError($"Coin verification has failed for coin '{coin.Outpoint}' with '{ex}'.");
 
-					// Do not throw an exception here - unobserverved exception prevention.
+					// Do not throw an exception here - unobserved exception prevention.
 				}
 			},
 			verificationCancellationToken);

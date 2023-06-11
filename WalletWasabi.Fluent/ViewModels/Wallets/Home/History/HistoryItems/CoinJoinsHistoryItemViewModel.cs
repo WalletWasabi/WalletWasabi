@@ -6,16 +6,15 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
+public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private readonly WalletViewModel _walletVm;
 
-	public CoinJoinsHistoryItemViewModel(
+	private CoinJoinsHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary firstItem,
 		WalletViewModel walletVm)
@@ -28,7 +27,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		IsCoinJoinGroup = true;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
+			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
@@ -47,6 +46,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 			var item = CoinJoinTransactions[i];
 
 			var transaction = new CoinJoinHistoryItemViewModel(
+				UiContext,
 				i,
 				item,
 				_walletVm,
@@ -86,7 +86,10 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
 		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
-		SetAmount(CoinJoinTransactions.Sum(x => x.Amount));
+
+		SetAmount(
+			CoinJoinTransactions.Sum(x => x.Amount),
+			CoinJoinTransactions.Sum(x => x.Fee ?? Money.Zero));
 
 		UpdateDateString();
 	}
@@ -98,8 +101,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		var lastDate = dates.Max().ToLocalTime();
 
 		DateString = firstDate.Day == lastDate.Day
-			? $"{firstDate:MM/dd/yyyy}"
-			: $"{firstDate:MM/dd/yyyy} - {lastDate:MM/dd/yyyy}";
+			? $"{firstDate.ToUserFacingString(withTime: false)}"
+			: $"{firstDate.ToUserFacingString(withTime: false)} - {lastDate.ToUserFacingString(withTime: false)}";
 	}
 
 	public void SetBalance(Money balance)
