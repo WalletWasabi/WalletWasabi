@@ -189,7 +189,7 @@
               <StackPanel>
                 <TextBlock Text="Friends don't pay" Classes="title2 Animated" />
                 <TextBlock
-                  Text="Transaction outputs one hop from a coinjoin away as well remixes are besised a mining fee free."
+                  Text="Transaction outputs one hop from a coinjoin away as well remixes are besides a mining fee free."
                   Classes="text" />
               </StackPanel>
             </UniformGrid>
