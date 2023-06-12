@@ -140,6 +140,24 @@ public class SuggestionLabelsViewModelTests
 		Assert.Empty(sut.TopSuggestions);
 	}
 
+	[Fact]
+	public void SuggestionsShouldNotContainDuplicates()
+	{
+		var labels = new List<(string Label, int Score)>
+		{
+			("label 1", 1),
+			("label 2", 1),
+			("label 3", 4),
+			("Label 1", 1),
+			("Label 2", 2),
+			("Label 3", 3),
+		};
+		var wallet = new TestWallet(labels);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+
+		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
+	}
+
 	private class TestWallet : IWalletModel
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
@@ -170,6 +188,8 @@ public class SuggestionLabelsViewModelTests
 		public IWalletAuthModel Auth => throw new NotImplementedException();
 
 		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
+
+		public IWalletSettingsModel Settings => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

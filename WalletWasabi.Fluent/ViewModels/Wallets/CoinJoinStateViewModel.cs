@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -93,7 +94,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				await UiContext.Navigate().To().CoinJoinProfiles(wallet.KeyManager, isNewWallet: false, NavigationTarget.DialogScreen).GetResultAsync();
+				// TODO: remove this after CoinjoinStateViewModel is decoupled
+				var walletModel = new WalletModel(wallet);
+				await UiContext.Navigate().To().CoinJoinProfiles(walletModel, isNewWallet: false, NavigationTarget.DialogScreen).GetResultAsync();
 			}
 
 			if (wallet.KeyManager.IsCoinjoinProfileSelected)

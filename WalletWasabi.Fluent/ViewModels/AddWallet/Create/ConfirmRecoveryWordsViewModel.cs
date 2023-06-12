@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -158,7 +159,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
 				});
 			IsBusy = false;
-			await Navigate().To().CoinJoinProfiles(km, true).GetResultAsync();
+
+			// TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
+			var walletModel =
+				new WalletModel(
+					new WalletWasabi.Wallets.Wallet(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network,
+						km));
+
+			await Navigate().To().CoinJoinProfiles(walletModel, true).GetResultAsync();
 		}
 	}
 

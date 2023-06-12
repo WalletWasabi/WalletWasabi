@@ -34,6 +34,8 @@ public interface IWalletModel
 
 	IWalletLoadWorkflow Loader { get; }
 
+	IWalletSettingsModel Settings { get; }
+
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
