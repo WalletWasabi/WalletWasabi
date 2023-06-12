@@ -127,8 +127,9 @@
       <SolidColorBrush x:Key="SeparatorBackgroundBrush" Opacity="0.5" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.5" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
-      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Opacity="0.25"
-                       Color="{StaticResource SystemBaseMediumLowColor}" />
+      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush"
+                       Opacity="0.25"
+                       Color="{DynamicResource SystemAccentColor}" />
 
       <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource ActionForegroundColor}" />
       <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource ActionColor}" />
@@ -169,7 +170,7 @@
       <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent" />
-      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundColor" Color="Transparent" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundColor" Color="Transparent" />
 
       <SolidColorBrush x:Key="GlassEdgeColor"
@@ -185,8 +186,9 @@
       <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
           <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
-      <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
-                      ResourceKey="DataGridRowSelectedBackgroundColor" />
+      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush"
+                       Opacity="0.25"
+                       Color="{DynamicResource SystemAccentColor}" />
       <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
        <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
@@ -354,7 +356,8 @@
       <SolidColorBrush x:Key="SeparatorBackgroundBrush" Opacity="0.5" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.5" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
-      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Opacity="0.25"
+      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush"
+                       Opacity="0.25"
                        Color="{StaticResource SystemBaseMediumLowColor}" />
 
       <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource ActionForegroundColor}" />
@@ -396,7 +399,7 @@
       <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent" />
-      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundColor" Color="Transparent" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundColor" Color="Transparent" />
 
       <SolidColorBrush x:Key="GlassEdgeColor"
@@ -412,8 +415,9 @@
       <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
           <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
-      <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
-                      ResourceKey="DataGridRowSelectedBackgroundColor" />
+      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
+                       Opacity="0.25"
+                       Color="{StaticResource SystemBaseMediumLowColor}" />
       <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
        <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
