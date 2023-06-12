@@ -34,7 +34,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
 
-		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
+		ImportWalletCommand = ReactiveCommand.CreateFromTask(OnImportWalletAsync);
 
 		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
 	}
