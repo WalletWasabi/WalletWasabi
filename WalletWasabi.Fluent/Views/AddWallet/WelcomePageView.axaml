@@ -2,239 +2,316 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
              x:CompileBindings="True">
-  <i:Interaction.Behaviors>
-    <behaviors:FocusOnAttachedBehavior />
-  </i:Interaction.Behaviors>
 
   <UserControl.Styles>
-    <Style Selector="controls|ContentArea /template/ StackPanel#PART_Header">
-      <Setter Property="Height" Value="32" />
+
+    <Style Selector="TextBlock">
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.text">
+      <Setter Property="Opacity" Value="0.5" />
+      <Setter Property="FontWeight" Value="Light" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style Selector="TextBlock.title2">
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Margin" Value="0 8" />
+      <Setter Property="Padding" Value="0 4 8 4" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="TextBlock.title1">
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="FontSize" Value="31" />
+    </Style>
+
+    <Style Selector="TextBlock.Animated">
+      <Setter Property="Background">
+        <Setter.Value>
+          <LinearGradientBrush>
+            <GradientStop Offset="0" Color="#3234D286" />
+            <GradientStop Offset="1" Color="#34D286" />
+          </LinearGradientBrush>
+        </Setter.Value>
+      </Setter>
+      <Style.Animations>
+        <Animation Duration="0:0:1" Delay="0:0:1">
+          <Animation.Easing>
+            <CubicEaseIn />
+          </Animation.Easing>
+          <KeyFrame Cue="0%">
+            <Setter Property="Background">
+              <Setter.Value>
+                <LinearGradientBrush>
+                  <GradientStop Offset="0" Color="Transparent" />
+                  <GradientStop Offset="0" Color="Transparent" />
+                </LinearGradientBrush>
+              </Setter.Value>
+            </Setter>
+          </KeyFrame>
+          <KeyFrame Cue="5%">
+            <Setter Property="Background">
+              <Setter.Value>
+                <LinearGradientBrush>
+                  <GradientStop Offset="0" Color="#1F34D286" />
+                  <GradientStop Offset="1" Color="#2934D286" />
+                </LinearGradientBrush>
+              </Setter.Value>
+            </Setter>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
     </Style>
   </UserControl.Styles>
 
-  <controls:ContentArea EnableCancel="False"
-                        EnableBack="{Binding CanGoBack^}"
-                        EnableNext="True"
-                        ClipToBounds="False"
-                        NextContent="{Binding NextLabel}"
-                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="fluent:WizardPage">
+      <ContentControl ContentTemplate="{Binding Template}" />
+    </DataTemplate>
+  </UserControl.DataTemplates>
 
-    <DockPanel LastChildFill="True">
+  <UserControl.Resources>
+    <collections:ArrayList x:Key="Pages" x:CompileBindings="False">
 
-      <!-- Indicator & Buttons -->
-      <Panel DockPanel.Dock="Bottom">
+      <fluent:WizardPage>
+        <DataTemplate>
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+            <Image Width="120" Margin="0 -50 0 0">
+              <Image.Resources>
+                <LinearGradientBrush x:Key="Brush0" StartPoint="40.660156,13.597656" EndPoint="24.507812,41.289062">
+                  <LinearGradientBrush.GradientStops>
+                    <GradientStop Offset="0" Color="#FFFFFFFF" />
+                    <GradientStop Offset="0.254" Color="#FFE0E0E0" />
+                    <GradientStop Offset="0.544" Color="#FFC5C5C5" />
+                    <GradientStop Offset="0.8000001" Color="#FFB4B4B4" />
+                    <GradientStop Offset="0.993" Color="#FFAFAFAF" />
+                  </LinearGradientBrush.GradientStops>
+                </LinearGradientBrush>
+                <SolidColorBrush x:Key="Brush1" Color="#FF77C600" />
+              </Image.Resources>
+              <DrawingImage>
+                <DrawingGroup>
+                  <GeometryDrawing Brush="Transparent" Geometry="F1M0,0L69.3,0L69.3,55.1L0,55.1z" />
+                  <GeometryDrawing Brush="{DynamicResource Brush0}"
+                                   Geometry="F1 M47.8 25.1C42.6 15.7 39.5 6.6 38.5 1.2C34.5 3.6 31.8 4.8 27.8 7.2C29.4 14 31.9 20.6 35.3 26.7L21.1 26.7C20.7 26.2 20.3 25.7 20 25.1C15.5 17.6 12.5 9.5 10.8 1C6.9 3.4 4 4.8 0 7.2C2.2 16.6 6.2 25.5 11.6 33.5C16.9 41.2 23.6 47.9 31.4 53C34.7 49.9 37.2 47.5 40.5 44.4C37 42 33.7 39.3 30.6 36.4L41.5 36.4C46.6 42.8 52.8 48.3 59.6 52.8C62.9 49.7 65 47.5 68.3 44.3C64.6 42.1 61.2 39.4 58.1 36.3L69 36.3L69 26.5L48.9 26.5C48.5 26.2 48.1 25.6 47.8 25.1Z" />
+                  <GeometryDrawing Brush="{DynamicResource Brush1}"
+                                   Geometry="F1 M56.7 0L69.2 0L69.2 12.5L56.7 12.5L56.7 0Z" />
+                </DrawingGroup>
+              </DrawingImage>
+            </Image>
+            <TextBlock Text="Welcome to Wasabi Wallet" Classes="title1" />
+            <TextBlock Text="The 1st Rule of Wasabi" Classes="title2" HorizontalAlignment="Center" />
+            <TextBlock Text="&quot;Wasabi is for self defense and self defense only&quot;" Classes="text" />
+          </StackPanel>
+        </DataTemplate>
+      </fluent:WizardPage>
+      <fluent:WizardPage>
+        <DataTemplate>
+          <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
-        <ListBox HorizontalAlignment="Center"
-                 SelectedIndex="{Binding SelectedIndex}"
-                 Background="Transparent"
-                 IsHitTestVisible="False">
-          <ListBox.Styles>
-            <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="Transparent" />
-            </Style>
-            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-            </Style>
-            <Style Selector="ListBoxItem">
-              <Setter Property="Opacity" Value="0.3" />
-            </Style>
-            <Style Selector="ListBoxItem:selected">
-              <Setter Property="Opacity" Value="1" />
-            </Style>
-            <Style Selector="Ellipse">
-              <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}" />
-              <Setter Property="Width" Value="9" />
-              <Setter Property="Height" Value="9" />
-            </Style>
-          </ListBox.Styles>
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="5" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <Ellipse />
-          <Ellipse />
-        </ListBox>
+            <TextBlock DockPanel.Dock="Top" Text="Start using Wasabi Wallet" Classes="title1" Margin="0 -60 0 0" />
+            <UniformGrid>
 
-        <!-- Carousel nav buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-          <StackPanel.Styles>
-            <Style Selector="Button">
-              <Setter Property="Width" Value="30" />
-              <Setter Property="Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackground}" />
-              <Setter Property="Height" Value="30" />
-              <Setter Property="HorizontalContentAlignment" Value="Center" />
-              <Setter Property="VerticalContentAlignment" Value="Center" />
-              <Setter Property="Padding" Value="0" />
-              <Setter Property="BorderThickness" Value="0" />
-            </Style>
-            <Style Selector="Button:disabled">
-              <Setter Property="Opacity" Value="0.2" />
-            </Style>
-            <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPointerOver}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-            </Style>
-            <Style Selector="Button:pressed  /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPressed}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-            </Style>
-            <Style Selector="Button > PathIcon">
-              <Setter Property="Width" Value="5" />
-            </Style>
-          </StackPanel.Styles>
-        </StackPanel>
-      </Panel>
+              <UniformGrid.Styles>
+                <Style Selector="TextBlock">
+                  <Setter Property="TextAlignment" Value="Left" />
+                  <Setter Property="TextWrapping" Value="Wrap" />
+                </Style>
+                <Style Selector="StackPanel">
+                  <Setter Property="Margin" Value="20" />
+                </Style>
+              </UniformGrid.Styles>
 
-      <!-- Pages -->
-      <Carousel SelectedIndex="{Binding SelectedIndex}"
-                ClipToBounds="False"
-                DockPanel.Dock="Top"
-                Margin="0 10">
-        <i:Interaction.Behaviors>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding BackCommand}"
-                                                     IsEnabled="{Binding CanGoBack^}" Key="Left" />
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}"
-                                                     IsEnabled="{Binding EnableNextKey}" Key="Right" />
-        </i:Interaction.Behaviors>
-        <Carousel.Styles>
-          <Style Selector="TextBlock.text">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="Opacity" Value="0.5" />
-            <Setter Property="FontWeight" Value="Light" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Margin" Value="0 0 0 6" />
-          </Style>
-
-          <Style Selector="TextBlock.title2">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="TextAlignment" Value="Left" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="FontSize" Value="16" />
-          </Style>
-
-          <Style Selector="TextBlock.title1">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="TextAlignment" Value="Left" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="FontSize" Value="31" />
-            <Setter Property="Margin" Value="0 0 0 20" />
-          </Style>
-
-          <Style Selector="Viewbox.icon">
-            <Setter Property="MaxHeight" Value="50" />
-            <Setter Property="DockPanel.Dock" Value="Bottom" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-          </Style>
-        </Carousel.Styles>
-        <Carousel.PageTransition>
-          <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
-                     SlideInEasing="{StaticResource FluentEasing}" />
-        </Carousel.PageTransition>
-
-        <!-- Welcome to Wasabi -->
-        <DockPanel LastChildFill="True" VerticalAlignment="Center">
-          <TextBlock Classes="title1" FontWeight="Bold" DockPanel.Dock="Top" HorizontalAlignment="Center">
-            Welcome to Wasabi Wallet!
-          </TextBlock>
-          <DockPanel LastChildFill="True">
-            <Panel DockPanel.Dock="Right"
-                   MaxWidth="230"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Right">
-              <ExperimentalAcrylicBorder Margin="2">
-                <ExperimentalAcrylicBorder.Material>
-                  <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                               TintColor="White"
-                                               TintOpacity="0"
-                                               FallbackColor="White"
-                                               MaterialOpacity="0" />
-                </ExperimentalAcrylicBorder.Material>
-              </ExperimentalAcrylicBorder>
-              <Viewbox>
-                <Panel>
-                  <Border Width="465.5" Height="465.5" />
-                  <Path Fill="{DynamicResource TextControlForeground}" Opacity="0.75"
-                        Data="M 14 37 L 14 452 L 453 452 L 453 189 L 322 189 L 322 37 L 14 37 z " />
-                  <Path Fill="#FF77C200" Opacity="0.75" Data="M 322 18 H 458 V 189 H 322 Z" />
-                  <Path Fill="{DynamicResource RegionColor}"
-                        Data="M0 0v465.5h465.5V0H0zm363.6 76.1h74.6v73.3h-74.6V76zM91.1 81.6a479.5 479.5 0 0 0 54.2 142.3l6.8 9.5h84a474.6 474.6 0 0 1-43.3-115.2L255 82.9a528 528 0 0 0 55.6 141l6.8 9.5h119.3v58.3h-65c19 20.4 40.6 35.3 59.6 47.5l-51.5 50.2c-25.8-17.7-70.5-50.2-107.1-97.7H209c20.4 17.7 44.8 39.4 58.3 47.5l-54.2 50.2A430 430 0 0 1 96.5 274.1a481 481 0 0 1-69.2-156c23-13.5 40.7-21.6 63.8-36.5z" />
-                </Panel>
-              </Viewbox>
-            </Panel>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Classes="title2">
-                Bitcoin wallet
-              </TextBlock>
-              <TextBlock Classes="text">
-                Receive and send money, securely and privately.
-              </TextBlock>
-              <TextBlock Classes="title2">
-                Non-custodial
-              </TextBlock>
-              <TextBlock Classes="text">
-                You are in full control, nobody can steal from you.
-              </TextBlock>
-              <TextBlock Classes="title2">
-                Private by default
-              </TextBlock>
-              <TextBlock Classes="text">
-                Because your transactions are nobody else's business.
-              </TextBlock>
-              <TextBlock Classes="title2">
-                Open Source
-              </TextBlock>
-              <TextBlock Classes="text">
-                     Verify what’s going on and help us improve.
-              </TextBlock>
-            </StackPanel>
-
+              <StackPanel>
+                <TextBlock Text="Bitcoin Wallet" Classes="title2" />
+                <TextBlock Text="Receive and send money, securely and privately." Classes="text" />
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="Private by default" Classes="title2" />
+                <TextBlock Text="Because your transaction are nobody else's business." Classes="text" />
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="Non-custodial" Classes="title2" />
+                <TextBlock Text="You are in full control. Nobody can steal from you." Classes="text" />
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="Open Source" Classes="title2" />
+                <TextBlock Text="Verify what's going on and help us improve." Classes="text" />
+              </StackPanel>
+            </UniformGrid>
           </DockPanel>
+        </DataTemplate>
+      </fluent:WizardPage>
+      <fluent:WizardPage>
+        <DataTemplate>
+          <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
-        </DockPanel>
-        <!-- Get started -->
-        <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-          <TextBlock TextAlignment="Center"
-                     Text="The 1st Rule of Wasabi: Wasabi is for self defense and self defense only"
-                     Opacity="0.6"
-                     FontWeight="Light"
-                     LineHeight="22"
-                     DockPanel.Dock="Bottom"
-                     Margin="0 15" />
-          <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
-                     DockPanel.Dock="Bottom" />
-          <Panel Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
-            <ExperimentalAcrylicBorder Margin="2">
-              <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                             TintColor="White"
-                                             TintOpacity="0"
-                                             FallbackColor="White"
-                                             MaterialOpacity="0" />
-              </ExperimentalAcrylicBorder.Material>
-            </ExperimentalAcrylicBorder>
-            <Viewbox>
-              <Panel>
-                <Border Width="465.5" Height="465.5" />
-                <Path Fill="{DynamicResource TextControlForeground}" Opacity="0.75"
-                      Data="M 14 37 L 14 452 L 453 452 L 453 189 L 322 189 L 322 37 L 14 37 z " />
-                <Path Fill="#FF77C200" Opacity="0.75" Data="M 322 18 H 458 V 189 H 322 Z" />
-                <Path Fill="{DynamicResource RegionColor}"
-                      Data="M0 0v465.5h465.5V0H0zm363.6 76.1h74.6v73.3h-74.6V76zM91.1 81.6a479.5 479.5 0 0 0 54.2 142.3l6.8 9.5h84a474.6 474.6 0 0 1-43.3-115.2L255 82.9a528 528 0 0 0 55.6 141l6.8 9.5h119.3v58.3h-65c19 20.4 40.6 35.3 59.6 47.5l-51.5 50.2c-25.8-17.7-70.5-50.2-107.1-97.7H209c20.4 17.7 44.8 39.4 58.3 47.5l-54.2 50.2A430 430 0 0 1 96.5 274.1a481 481 0 0 1-69.2-156c23-13.5 40.7-21.6 63.8-36.5z" />
-              </Panel>
-            </Viewbox>
-          </Panel>
-        </DockPanel>
-      </Carousel>
-    </DockPanel>
-  </controls:ContentArea>
+            <TextBlock Text="Full Fee Transparency" Classes="title1" DockPanel.Dock="Top" Margin="0 -60 0 0" />
+            <UniformGrid Columns="2">
+
+              <UniformGrid.Styles>
+                <Style Selector="TextBlock">
+                  <Setter Property="TextAlignment" Value="Left" />
+                  <Setter Property="TextWrapping" Value="Wrap" />
+                </Style>
+                <Style Selector="StackPanel">
+                  <Setter Property="Margin" Value="20" />
+                </Style>
+              </UniformGrid.Styles>
+
+              <StackPanel>
+                <TextBlock TextAlignment="Left" Text="Coinjoin Fee" Classes="title2" />
+                <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="Mining Fee" Classes="title2" />
+                <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="Plebs don't pay" Classes="title2 Animated" />
+                <TextBlock Text="Coins less than or equal to 0.01 BTC don't pay the coordination fees at all."
+                           Classes="text" />
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="Friends don't pay" Classes="title2 Animated" />
+                <TextBlock
+                  Text="Transaction outputs one hop from a coinjoin away as well remixes are besised a mining fee free."
+                  Classes="text" />
+              </StackPanel>
+            </UniformGrid>
+          </DockPanel>
+        </DataTemplate>
+      </fluent:WizardPage>
+      <fluent:WizardPage>
+        <DataTemplate>
+          <Grid Width="530" Height="350">
+
+            <Grid.Styles>
+              <Style Selector="c|TileButton">
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Width">
+                  <Setter.Value>
+                    <system:Double>NaN</system:Double>
+                  </Setter.Value>
+                </Setter>
+                <Setter Property="Height">
+                  <Setter.Value>
+                    <system:Double>NaN</system:Double>
+                  </Setter.Value>
+                </Setter>
+                <Setter Property="Margin" Value="10"></Setter>
+                <Setter Property="Template">
+                  <ControlTemplate>
+                    <Border x:Name="PART_Border"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            Background="{TemplateBinding Background}">
+                      <Grid RowDefinitions="5* 4*">
+                        <Panel Grid.Row="0">
+                          <PathIcon x:Name="PART_Icon"
+                                    Data="{TemplateBinding Icon}"
+                                    Width="{TemplateBinding IconSize}"
+                                    Height="{TemplateBinding IconSize}" />
+                        </Panel>
+                        <TextBlock Grid.Row="1" x:Name="PART_Text"
+                                   DockPanel.Dock="Bottom"
+                                   Text="{TemplateBinding Text}"
+                                   Foreground="{TemplateBinding Foreground}" />
+                      </Grid>
+                    </Border>
+                  </ControlTemplate>
+                </Setter>
+              </Style>
+              <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
+                <Setter Property="Margin" Value="0" />
+              </Style>
+            </Grid.Styles>
+
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition />
+              <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+              <RowDefinition />
+              <RowDefinition Height="Auto" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <c:TileButton Text="Create a new wallet"
+                          Grid.ColumnSpan="3"
+                          Classes="action bottomtext"
+                          Icon="{StaticResource add_regular}"
+                          Command="{Binding CreateWalletCommand}" />
+
+            <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or"></TextBlock>
+
+            <c:TileButton Grid.Row="2" Grid.Column="0" Text="Connect to hardware wallet"
+                          Icon="{StaticResource calculator_regular}"
+                          Classes="bottomtext"
+                          Command="{Binding ConnectHardwareWalletCommand}">
+
+            </c:TileButton>
+
+            <c:TileButton Grid.Row="2" Grid.Column="1" Text="Import a wallet"
+                          Icon="{StaticResource import_regular}"
+                          Classes="bottomtext"
+                          Command="{Binding ImportWalletCommand}" />
+
+            <c:TileButton Grid.Row="2" Grid.Column="2" Text="Recover a wallet"
+                          Icon="{StaticResource recover_arrow_right_regular}"
+                          Classes="bottomtext"
+                          Command="{Binding RecoverWalletCommand}" />
+          </Grid>
+        </DataTemplate>
+      </fluent:WizardPage>
+    </collections:ArrayList>
+  </UserControl.Resources>
+
+  <DockPanel>
+
+    <ListBox DockPanel.Dock="Bottom" IsHitTestVisible="False" Background="Transparent" HorizontalAlignment="Center"
+             SelectedItem="{Binding #Carousel.SelectedIndex, Mode=OneWay}"
+             Items="{Binding Source={StaticResource Pages}}">
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+          <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+        </Style>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Opacity" Value="0.3" />
+        </Style>
+        <Style Selector="ListBoxItem:selected">
+          <Setter Property="Opacity" Value="1" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <Carousel x:Name="Carousel" Items="{Binding Source={StaticResource Pages}}" />
+  </DockPanel>
+
 </UserControl>
