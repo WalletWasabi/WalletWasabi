@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Reactive.Subjects;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 using WalletWasabi.Blockchain.Keys;
@@ -54,6 +53,7 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 	{
 		Services.UiConfig.LastSelectedWallet = wallet.Name;
 	}
+
 	public async Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
 		var keyManager = await Task.Run(() =>

@@ -43,8 +43,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
 			.ToObservableChangeSet(x => x.Text);
 
-		WalletType = WalletHelpers.GetType(_wallet.KeyManager);
-
 		State = Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
@@ -91,8 +89,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IObservable<WalletState> State { get; }
 
 	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
-
-	public WalletType WalletType { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{

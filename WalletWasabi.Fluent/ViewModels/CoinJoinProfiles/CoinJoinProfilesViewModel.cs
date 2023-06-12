@@ -4,9 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -86,13 +84,11 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			// TODO: REMOVE THIS
-			var keyManager = (walletModel as WalletModel).Wallet.KeyManager;
-			Navigate().To().AddedWalletPage(keyManager);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		else
 		{
-			walletModel.Settings.Save();
+			walletSettings.Save();
 			Close(DialogResultKind.Normal, true);
 		}
 	}
