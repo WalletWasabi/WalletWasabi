@@ -8,6 +8,7 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:addWallet1="clr-namespace:WalletWasabi.Fluent.Views.AddWallet"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
@@ -197,7 +198,7 @@
       </fluent:WizardPage>
       <fluent:WizardPage>
         <DataTemplate>
-          <Grid Width="530" Height="350">
+          <Grid Width="530" Height="350" DataContext="{Binding $parent[addWallet1:WelcomePageView].((addWallet:WelcomePageViewModel)DataContext)}">
 
             <Grid.Styles>
               <Style Selector="c|TileButton">
@@ -257,7 +258,7 @@
                           Icon="{StaticResource add_regular}"
                           Command="{Binding CreateWalletCommand}" />
 
-            <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or"></TextBlock>
+            <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or" />
 
             <c:TileButton Grid.Row="2" Grid.Column="0" Text="Connect to hardware wallet"
                           Icon="{StaticResource calculator_regular}"
