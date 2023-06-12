@@ -47,9 +47,11 @@ public class CoinJoinCoinSelector
 			SecureRandom.Instance);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
+	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue, WasabiRandom? selectorRnd = null)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
+		selectorRnd ??= Rnd;
+
 		liquidityClue = liquidityClue > Money.Zero
 			? liquidityClue
 			: Constants.MaximumNumberOfBitcoinsMoney;
@@ -93,7 +95,7 @@ public class CoinJoinCoinSelector
 
 		// We want to isolate red coins from each other. We only let a single red coin get into our selection candidates.
 		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
-		var red = redCoins.RandomElement();
+		var red = redCoins.RandomElement(Rnd);
 		if (red is not null)
 		{
 			allowedNonPrivateCoins.Add(red);
@@ -111,7 +113,7 @@ public class CoinJoinCoinSelector
 		}
 		Logger.LogDebug($"Targeted {nameof(inputCount)}: {inputCount}.");
 
-		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins).ToArray();
+		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins, Rnd).ToArray();
 
 		// Deprioritize private coins those are too large.
 		var smallerPrivateCoins = biasShuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
@@ -125,7 +127,7 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"{nameof(allowedCoins)}: {allowedCoins.Length} coins, valued at {Money.Satoshis(allowedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		// Shuffle coins, while randomly biasing towards lower AS.
-		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
+		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins, Rnd).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestNonPrivateCoins = allowedNonPrivateCoins
@@ -184,10 +186,10 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
-		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
+		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(selectorRnd); // Select randomly at first just to have a starting value.
 		foreach (var coin in remainingLargestNonPrivateCoins.OrderByDescending(x => x.Amount))
 		{
-			if (Rnd.GetInt(1, 101) <= 50)
+			if (selectorRnd.GetInt(1, 101) <= 50)
 			{
 				selectedNonPrivateCoin = coin;
 				break;
@@ -202,7 +204,7 @@ public class CoinJoinCoinSelector
 
 		var finalCandidate = bestRepGroups
 			.Where(x => x.Contains(selectedNonPrivateCoin))
-			.RandomElement();
+			.RandomElement(Rnd);
 		if (finalCandidate is null)
 		{
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
@@ -243,7 +245,7 @@ public class CoinJoinCoinSelector
 			percent = 80;
 		}
 
-		int sameTxAllowance = GetRandomBiasedSameTxAllowance(Rnd, percent);
+		int sameTxAllowance = GetRandomBiasedSameTxAllowance(selectorRnd, percent);
 
 		List<TCoin> winner = new()
 		{
@@ -331,10 +333,10 @@ public class CoinJoinCoinSelector
 			}
 		}
 
-		return winner.ToShuffled().ToImmutableList();
+		return winner.ToShuffled(Rnd).ToImmutableList();
 	}
 
-	private static IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins)
+	private static IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins, WasabiRandom rnd)
 		where TCoin : ISmartCoin
 	{
 		var orderedCoins = new List<TCoin>();
@@ -359,8 +361,7 @@ public class CoinJoinCoinSelector
 			}
 			alternating.AddRange(skipped);
 
-			var coin = alternating.BiasedRandomElement(50)
-				?? throw new NotSupportedException("This is impossible.");
+			var coin = alternating.BiasedRandomElement(biasPercent: 50, rnd)!;
 			orderedCoins.Add(coin);
 			yield return coin;
 		}
