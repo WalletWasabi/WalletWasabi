@@ -27,8 +27,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		var confirmations = transactionSummary.GetConfirmations();
 		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 
-		var amount = transactionSummary.Amount;
-		SetAmount(amount);
+		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(

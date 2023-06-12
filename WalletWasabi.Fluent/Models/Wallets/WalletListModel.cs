@@ -46,11 +46,14 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
 	public IWalletModel? DefaultWallet { get; }
+	public bool HasWallet => Services.WalletManager.HasWallet();
 
 	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
 
-	public bool HasWallet => Services.WalletManager.HasWallet();
-
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
+		Services.UiConfig.LastSelectedWallet = wallet.Name;
+	}
 	public async Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
 		var keyManager = await Task.Run(() =>

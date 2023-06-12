@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -82,14 +84,15 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
 		walletSettings.IsCoinjoinProfileSelected = true;
 
-		var wallet = UiContext.WalletList.SaveWallet(walletSettings);
-
 		if (isNewWallet)
 		{
-			Navigate().To().AddedWalletPage(wallet);
+			// TODO: REMOVE THIS
+			var keyManager = (walletModel as WalletModel).Wallet.KeyManager;
+			Navigate().To().AddedWalletPage(keyManager);
 		}
 		else
 		{
+			walletModel.Settings.Save();
 			Close(DialogResultKind.Normal, true);
 		}
 	}

@@ -1,6 +1,8 @@
 using ReactiveUI;
 using System.Linq;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -35,5 +37,15 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		// Temporary workaround until refactoring is completed.
 		MainViewModel.Instance.NavBar.SelectedWallet =
 			MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name);
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		if (!Services.WalletManager.WalletExists(_keyManager.MasterFingerprint))
+		{
+			Services.WalletManager.AddWallet(_keyManager);
+		}
 	}
 }
