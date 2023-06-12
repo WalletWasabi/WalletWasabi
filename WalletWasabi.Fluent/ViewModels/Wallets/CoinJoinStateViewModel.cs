@@ -315,6 +315,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.NoCoinsToMix => WaitingForConfirmedFundsMessage,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
+					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
 					_ => GeneralErrorMessage
 				};
 				break;
