@@ -21,7 +21,7 @@ public class NullWalletList : IWalletListModel
 
 	public Task<IWalletModel> RecoverWallet(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
-		return Task.FromResult(default(IWalletModel));
+		throw new NotImplementedException();
 	}
 
 	public void StoreLastSelectedWallet(IWalletModel wallet)
