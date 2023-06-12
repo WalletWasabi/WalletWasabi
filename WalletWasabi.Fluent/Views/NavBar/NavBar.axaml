@@ -169,11 +169,15 @@
       <ListBox ItemsSource="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
                SelectedItem="{Binding SelectedWallet}"
-               Background="Transparent"
-               VirtualizationMode="None">
+               Background="Transparent">
         <Interaction.Behaviors>
           <behaviors:ListBoxReselectingBehavior />
         </Interaction.Behaviors>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
             <c:NavBarItem Classes.selected="{Binding IsSelected}">
