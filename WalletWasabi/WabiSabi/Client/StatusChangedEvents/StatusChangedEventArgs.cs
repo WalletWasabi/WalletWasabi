@@ -17,7 +17,7 @@ public enum CompletionStatus
 
 public enum CoinjoinError
 {
-	NoCoinsToMix,
+	NoCoinsEligibleToMix,
 	AutoConjoinDisabled,
 	UserInSendWorkflow,
 	NotEnoughUnprivateBalance,

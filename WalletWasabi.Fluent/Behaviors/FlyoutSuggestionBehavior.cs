@@ -91,7 +91,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 	private IDisposable Displayer(IObservable<Control> targets)
 	{
 		var targetTextBoxes = targets
-			.Select(target => GotFocusEvents(target).Delay(TimeSpan.FromSeconds(0.2), RxApp.MainThreadScheduler))	// Wait a bit to stabilize after GotFocus
+			.Select(target => GotFocusEvents(target).Delay(TimeSpan.FromSeconds(0.2), RxApp.MainThreadScheduler))   // Wait a bit to stabilize after GotFocus
 			.Switch()
 			.Select(eventPattern => (TextBox?)eventPattern.Sender)
 			.WhereNotNull();

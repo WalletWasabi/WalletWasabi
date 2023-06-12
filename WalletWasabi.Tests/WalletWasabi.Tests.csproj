@@ -69,7 +69,10 @@
 		<None Update="./UnitTests/Data/StrobeTestVectors.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="./UnitTests/Data/MempoolInfoWithHistogram.json">
+		<None Update="./UnitTests/Data/MempoolInfoWithHistogram1.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="./UnitTests/Data/MempoolInfoWithHistogram2.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="./UnitTests/Data/VerboseBlock.json">

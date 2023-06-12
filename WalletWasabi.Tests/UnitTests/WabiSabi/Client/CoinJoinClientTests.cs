@@ -72,7 +72,7 @@ public class CoinJoinClientTests
 		var km = ServiceFactory.CreateKeyManager(password, true);
 		var destinationProvider = new InternalDestinationProvider(km);
 
-		var txOuts = CoinJoinClient.GetTxOuts(outputs, destinationProvider);
+		var txOuts = OutputProvider.GetTxOuts(outputs, destinationProvider);
 
 		// All the outputs were generated.
 		Assert.Equal(txOuts.Count(), outputs.Length);

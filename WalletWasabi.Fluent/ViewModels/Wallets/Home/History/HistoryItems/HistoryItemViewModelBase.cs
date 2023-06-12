@@ -42,7 +42,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public SmartLabel Label { get; init; } = SmartLabel.Empty;
+	public LabelsArray Labels { get; init; }
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -75,11 +75,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
-	protected void SetAmount(Money amount)
+	protected void SetAmount(Money amount, Money? fee)
 	{
 		if (amount < Money.Zero)
 		{
-			OutgoingAmount = amount * -1;
+			OutgoingAmount = -amount - (fee ?? Money.Zero);
 		}
 		else
 		{
@@ -89,65 +89,51 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public virtual bool HasChildren() => false;
 
-	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return -1;
-			}
-			else if (y is null)
-			{
-				return 1;
-			}
-			else
-			{
-				if (!x.IsConfirmed && y.IsConfirmed)
-				{
-					return -1;
-				}
-				else if (x.IsConfirmed && !y.IsConfirmed)
-				{
-					return 1;
-				}
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
-		};
+		return Sort(selector, comparer, reverse: false);
 	}
 
-	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
+	{
+		return Sort(selector, comparer, reverse: true);
+	}
+
+	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer, bool reverse)
 	{
 		return (x, y) =>
 		{
+			var ordering = reverse ? -1 : 1;
+
 			if (x is null && y is null)
 			{
 				return 0;
 			}
-			else if (x is null)
+
+			if (x is null)
 			{
-				return 1;
+				return -ordering;
 			}
-			else if (y is null)
+
+			if (y is null)
 			{
-				return -1;
+				return ordering;
 			}
-			else
+
+			// Confirmation comparison must be the same for both sort directions..
+			var result = x.IsConfirmed.CompareTo(y.IsConfirmed);
+			if (result == 0)
 			{
-				if (!x.IsConfirmed && y.IsConfirmed)
-				{
-					return -1;
-				}
-				else if (x.IsConfirmed && !y.IsConfirmed)
-				{
-					return 1;
-				}
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
+				var xValue = selector(x);
+				var yValue = selector(y);
+
+				result =
+					comparer?.Compare(xValue, yValue) ??
+					Comparer<T>.Default.Compare(xValue, yValue);
+				result *= ordering;
 			}
+
+			return result;
 		};
 	}
 }

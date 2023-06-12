@@ -2,7 +2,9 @@ using Microsoft.Data.Sqlite;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -26,30 +28,48 @@ public class IndexStore : IAsyncDisposable
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
-		string indexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-
-		try
-		{
-			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: indexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
-		}
-		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{indexFilePath}'.");
-
-			// The database file can still be in use, clear all pools to unlock the filter database file.
-			SqliteConnection.ClearAllPools();
-			File.Delete(indexFilePath);
-			throw;
-		}
+		// Migration data.
+		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
+		OldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
+		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+		RunMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath);
 
 		if (network == Network.RegTest)
 		{
-			IndexStorage.Clear(); // RegTest is not a global ledger, better to delete it.
+			File.Delete(NewIndexFilePath);
+		}
+
+		try
+		{
+			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{NewIndexFilePath}'.");
+
+			// The database file can still be in use, clear all pools to unlock the filter database file.
+			SqliteConnection.ClearAllPools();
+			File.Delete(NewIndexFilePath);
+			throw;
 		}
 	}
 
 	public event EventHandler<FilterModel>? Reorged;
+
 	public event EventHandler<FilterModel>? NewFilter;
+
+	/// <summary>Mature index path for migration purposes.</summary>
+	private string OldIndexFilePath { get; }
+
+	/// <summary>Immature index path for migration purposes.</summary>
+	private string OldImmatureIndexFilePath { get; }
+
+	/// <summary>SQLite file path for migration purposes.</summary>
+	private string NewIndexFilePath { get; }
+
+	/// <summary>Run migration if SQLite file does not exist.</summary>
+	private bool RunMigration { get; }
+
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Filter disk storage.</summary>
@@ -67,7 +87,95 @@ public class IndexStore : IAsyncDisposable
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
+			// Migration code.
+			if (RunMigration)
+			{
+				await Task.Run(MigrateToSqliteNoLock, cancellationToken).ConfigureAwait(false);
+			}
+
+			// If the automatic migration to SQLite is stopped or somehow disrupted, we would not delete the old index data.
+			// So check it every time.
+			RemoveOldIndexFilesIfExist();
+
 			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private void RemoveOldIndexFilesIfExist()
+	{
+		if (File.Exists(OldIndexFilePath))
+		{
+			try
+			{
+				File.Delete($"{OldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
+				File.Delete(OldImmatureIndexFilePath);
+				File.Delete($"{OldIndexFilePath}.dig");
+				File.Delete(OldIndexFilePath);
+
+				Logger.LogInfo("Removed old index file data.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
+		}
+	}
+
+	private void MigrateToSqliteNoLock()
+	{
+		int i = 0;
+
+		try
+		{
+			Logger.LogWarning("Migration of block filters to SQLite format is about to begin. Please wait a moment.");
+
+			Stopwatch stopwatch = Stopwatch.StartNew();
+
+			List<string> filters = new(capacity: 100_000);
+
+			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+			using (BufferedStream bs = new(fs))
+			using (StreamReader sr = new(bs))
+			{
+				while (true)
+				{
+					i++;
+					string? line = sr.ReadLine();
+
+					if (line is null)
+					{
+						break;
+					}
+
+					// Starting filter is already added at this point.
+					if (i == 1)
+					{
+						continue;
+					}
+
+					filters.Add(line);
+
+					if (i % 100_000 == 0)
+					{
+						IndexStorage.BulkAppend(filters);
+						filters.Clear();
+					}
+				}
+			}
+
+			IndexStorage.BulkAppend(filters);
+
+			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+
+			SqliteConnection.ClearAllPools();
+
+			// Do not run migration code again if it fails.
+			File.Delete(NewIndexFilePath);
+			File.Delete(OldIndexFilePath);
 		}
 	}
 
@@ -76,8 +184,7 @@ public class IndexStore : IAsyncDisposable
 	{
 		try
 		{
-			// TODO: Replace the message with a new one. Staying with this one to allow comparisons.
-			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading");
+			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "Block filters loading");
 
 			int i = 0;
 

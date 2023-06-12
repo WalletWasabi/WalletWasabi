@@ -300,7 +300,7 @@ public static class WabiSabiFactory
 		return CreateTestCoinJoinClient(
 			httpClientFactory,
 			new KeyChain(keyManager, new Kitchen("")),
-			new InternalDestinationProvider(keyManager),
+			new OutputProvider(new InternalDestinationProvider(keyManager)),
 			roundStateUpdater,
 			keyManager.RedCoinIsolation);
 	}
@@ -308,20 +308,20 @@ public static class WabiSabiFactory
 	public static CoinJoinClient CreateTestCoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
-		IDestinationProvider destinationProvider,
+		OutputProvider outputProvider,
 		RoundStateUpdater roundStateUpdater,
 		bool redCoinIsolation)
 	{
+		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
+		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold, SecureRandom.Instance);
 		var mock = new Mock<CoinJoinClient>(
 			httpClientFactory,
 			keyChain,
-			destinationProvider,
+			outputProvider,
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
+			coinSelector,
 			new LiquidityClueProvider(),
-			int.MaxValue,
-			true,
-			redCoinIsolation,
 			TimeSpan.Zero,
 			TimeSpan.Zero);
 

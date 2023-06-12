@@ -1,21 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using Dispatcher = Avalonia.Threading.Dispatcher;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
-	public RecoveryWordsViewModel(Mnemonic mnemonic, string walletName)
+	private RecoveryWordsViewModel(Mnemonic mnemonic, string walletName)
 	{
 		MnemonicWords = new List<RecoveryWordViewModel>();
 
@@ -38,12 +37,20 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 	private void OnNext(Mnemonic mnemonic, string walletName)
 	{
-		Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, mnemonic, walletName));
+		Navigate().To().ConfirmRecoveryWords(MnemonicWords, mnemonic, walletName);
 	}
 
 	private void OnCancel()
 	{
 		Navigate().Clear();
+	}
+
+	private string GetRecoveryWordsString()
+	{
+		var words = MnemonicWords.Select(x => x.Word).ToArray();
+		var text = string.Join(" ", words);
+
+		return text;
 	}
 
 	private async Task OnCopyToClipboardAsync()
@@ -53,23 +60,25 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 			return;
 		}
 
-		var words =
-			MnemonicWords.Select(x => x.Word).ToArray();
-
-		var text = string.Join(" ", words);
+		var text = GetRecoveryWordsString();
 
 		await Application.Current.Clipboard.SetTextAsync(text);
+	}
 
-		Observable.Timer(TimeSpan.FromSeconds(30))
-				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .SubscribeAsync(async _ =>
-					{
-						var currentText = await Application.Current.Clipboard.GetTextAsync();
-						if (currentText == text)
-						{
-							await Application.Current.Clipboard.ClearAsync();
-						}
-					});
+	private async Task ClearRecoveryWordsFromClipboardAsync()
+	{
+		if (Application.Current?.Clipboard is null)
+		{
+			return;
+		}
+
+		var currentText = await Application.Current.Clipboard.GetTextAsync();
+		var recoveryWordsString = GetRecoveryWordsString();
+
+		if (currentText == recoveryWordsString)
+		{
+			await Application.Current.Clipboard.ClearAsync();
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -78,5 +87,12 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+
+		Dispatcher.UIThread.InvokeAsync(ClearRecoveryWordsFromClipboardAsync);
 	}
 }

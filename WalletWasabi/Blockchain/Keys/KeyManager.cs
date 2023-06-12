@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
@@ -111,7 +109,7 @@ public class KeyManager
 	}
 
 	[OnSerializing]
-	private void OnSerializingdMethod(StreamingContext context)
+	private void OnSerializingMethod(StreamingContext context)
 	{
 		HdPubKeys.Clear();
 		HdPubKeys.AddRange(HdPubKeyCache);
@@ -142,9 +140,11 @@ public class KeyManager
 
 	#region Properties
 
+	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
 	[JsonProperty(PropertyName = "EncryptedSecret")]
 	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
+	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
 	[JsonProperty(PropertyName = "ChainCode")]
 	public byte[]? ChainCode { get; }
 
@@ -209,6 +209,7 @@ public class KeyManager
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
+	[MemberNotNullWhen(returnValue: false, nameof(ChainCode))]
 	public bool IsWatchOnly => EncryptedSecret is null;
 
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
@@ -314,7 +315,7 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	internal HdPubKey GenerateNewKey(LabelsArray labels, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
 							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
@@ -323,15 +324,15 @@ public class KeyManager
 		{
 			var view = HdPubKeyCache.GetView(hdPubKeyRegistry.KeyPath);
 			var (keyPath, extPubKey) = hdPubKeyRegistry.GenerateNewKey(view);
-			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, label, keyState);
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, labels, keyState);
 			HdPubKeyCache.AddKey(hdPubKey, scriptPubKeyType);
 			return hdPubKey;
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(SmartLabel label)
+	public HdPubKey GetNextReceiveKey(LabelsArray labels)
 	{
-		if (label.IsEmpty)
+		if (labels.IsEmpty)
 		{
 			throw new InvalidOperationException("Label is required.");
 		}
@@ -340,7 +341,7 @@ public class KeyManager
 		{
 			// Find the next clean external key with empty label.
 			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-			if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
+			if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is not { } newKey)
 			{
 				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
 				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
@@ -348,7 +349,7 @@ public class KeyManager
 
 				newKey = newHdPubKeys.First();
 			}
-			newKey.SetLabel(label);
+			newKey.SetLabel(labels);
 
 			SkipSynchronization = false;
 
@@ -391,15 +392,6 @@ public class KeyManager
 			({ } k, null) => GetKeys(x => x.KeyState == k),
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
-
-	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
-	{
-		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		lock (CriticalStateLock)
-		{
-			return HdPubKeyCache.GetView(keySource.KeyPath);
-		}
-	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
@@ -456,21 +448,21 @@ public class KeyManager
 	{
 		if (IsWatchOnly)
 		{
-			throw new SecurityException("This is a watchonly wallet.");
+			throw new SecurityException("This is a watch-only wallet.");
 		}
 
 		password ??= "";
 
 		var passwordHash = password.GetHashCode();
 
-		if (MasterKeyAndPasswordHash is { MasterKey: var masterkey, PasswordHash: var storedPasswordHash })
+		if (MasterKeyAndPasswordHash is { MasterKey: var masterKey, PasswordHash: var storedPasswordHash })
 		{
 			if (passwordHash != storedPasswordHash)
 			{
 				throw new SecurityException("Invalid password.");
 			}
 
-			return masterkey;
+			return masterKey;
 		}
 
 		try
@@ -579,7 +571,7 @@ public class KeyManager
 		var availableCandidates = HdPubKeyCache
 			.GetView(hdPubKeyGenerator.KeyPath)
 			.CleanKeys
-			.Where(x => x.Label.IsEmpty)
+			.Where(x => x.Labels.IsEmpty)
 			.Take(missingLockedKeys)
 			.ToList();
 
@@ -624,16 +616,51 @@ public class KeyManager
 		}
 	}
 
+	public Height GetBestTurboSyncHeight()
+	{
+		lock (CriticalStateLock)
+		{
+			return BlockchainState.TurboSyncHeight;
+		}
+	}
+
 	public Network GetNetwork()
 	{
 		return BlockchainState.Network;
 	}
 
-	public void SetBestHeight(Height height)
+	public void SetBestHeight(Height height, bool toFile = true)
 	{
 		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
+			EnsureTurboSyncHeightConsistency(false);
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+
+	public void SetBestTurboSyncHeight(Height height, bool toFile = true)
+	{
+		lock (CriticalStateLock)
+		{
+			BlockchainState.TurboSyncHeight = height;
+
+			if (toFile)
+			{
+				ToFile();
+			}
+		}
+	}
+
+	public void SetBestHeights(Height height, Height turboSyncHeight)
+	{
+		lock (CriticalStateLock)
+		{
+			SetBestTurboSyncHeight(turboSyncHeight, false);
+			SetBestHeight(height, false);
 			ToFile();
 		}
 	}
@@ -646,8 +673,25 @@ public class KeyManager
 			var newHeight = Math.Min(prevHeight, height);
 			if (prevHeight != newHeight)
 			{
-				SetBestHeight(newHeight);
+				SetBestHeights(newHeight, newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+			}
+		}
+	}
+
+	public void EnsureTurboSyncHeightConsistency(bool toFile = true)
+	{
+		lock (CriticalStateLock)
+		{
+			if (BlockchainState.TurboSyncHeight < BlockchainState.Height)
+			{
+				// TurboSyncHeight can't be behind BestHeight
+				BlockchainState.TurboSyncHeight = BlockchainState.Height;
+			}
+
+			if (toFile)
+			{
+				ToFile();
 			}
 		}
 	}
@@ -694,7 +738,7 @@ public class KeyManager
 			if (lastNetwork is null || lastNetwork != expectedNetwork)
 			{
 				BlockchainState.Network = expectedNetwork;
-				SetBestHeight(0);
+				SetBestHeights(0, 0);
 
 				if (lastNetwork is { })
 				{
@@ -708,7 +752,7 @@ public class KeyManager
 	#endregion BlockchainState
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
-		new(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
+		new(x.ExtPubKey.PubKey, x.KeyPath, LabelsArray.Empty, KeyState.Clean);
 
 	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
 	{

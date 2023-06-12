@@ -26,7 +26,7 @@ public class Program
 			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 			.Build();
 
-		var exitCode = await app.RunAsConsoleAsync();
+		var exitCode = await app.RunAsConsoleAsync().ConfigureAwait(false);
 		return (int)exitCode;
 	}
 
