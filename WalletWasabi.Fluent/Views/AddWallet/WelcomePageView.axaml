@@ -6,9 +6,9 @@
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
-             mc:Ignorable="d" d:DesignWidth="800"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
              x:CompileBindings="True">
@@ -86,7 +86,7 @@
   <UserControl.Resources>
     <collections:ArrayList x:Key="Pages" x:CompileBindings="False">
 
-      <fluent:WizardPage>
+      <fluent:WizardPage NextText="Get started">
         <DataTemplate>
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
             <Image Width="120" Margin="0 -50 0 0">
@@ -118,7 +118,7 @@
           </StackPanel>
         </DataTemplate>
       </fluent:WizardPage>
-      <fluent:WizardPage>
+      <fluent:WizardPage NextText="Fees">
         <DataTemplate>
           <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
@@ -155,7 +155,7 @@
           </DockPanel>
         </DataTemplate>
       </fluent:WizardPage>
-      <fluent:WizardPage>
+      <fluent:WizardPage NextText="Continue">
         <DataTemplate>
           <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
@@ -283,35 +283,51 @@
 
   <DockPanel>
 
-    <ListBox DockPanel.Dock="Bottom" IsHitTestVisible="False" Background="Transparent" HorizontalAlignment="Center"
-             SelectedItem="{Binding #Carousel.SelectedIndex, Mode=OneWay}"
-             Items="{Binding Source={StaticResource Pages}}">
-      <ListBox.Styles>
-        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-          <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-        </Style>
-        <Style Selector="ListBoxItem">
-          <Setter Property="Opacity" Value="0.3" />
-        </Style>
-        <Style Selector="ListBoxItem:selected">
-          <Setter Property="Opacity" Value="1" />
-        </Style>
-      </ListBox.Styles>
-      <ListBox.ItemsPanel>
-        <ItemsPanelTemplate>
-          <StackPanel Orientation="Horizontal" />
-        </ItemsPanelTemplate>
-      </ListBox.ItemsPanel>
-      <ListBox.ItemTemplate>
-        <DataTemplate>
-          <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
-    <Carousel x:Name="Carousel" Items="{Binding Source={StaticResource Pages}}" />
+    <Button x:Name="PART_BackButton" DockPanel.Dock="Top"
+            Margin="8 6"
+            Classes="plain"
+            HorizontalAlignment="Left"
+            Opacity="{Binding CanGoBack^, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+            Command="{Binding BackCommand}">
+      <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+    </Button>
+    <Panel DockPanel.Dock="Bottom">
+      <ListBox IsHitTestVisible="False" Background="Transparent" HorizontalAlignment="Center"
+               SelectedIndex="{Binding #Carousel.SelectedIndex, Mode=OneWay}"
+               Items="{Binding Source={StaticResource Pages}}">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+          </Style>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Opacity" Value="0.3" />
+          </Style>
+          <Style Selector="ListBoxItem:selected">
+            <Setter Property="Opacity" Value="1" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <Button Command="{Binding NextCommand}" Width="130" Height="40"
+              HorizontalContentAlignment="Center"
+              Opacity="{Binding #Carousel.((fluent:WizardPage)SelectedItem).IsNextVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+              Content="{Binding #Carousel.((fluent:WizardPage)SelectedItem).NextText, FallbackValue=''}"
+              Classes="action" HorizontalAlignment="Right" />
+    </Panel>
+    <Carousel x:Name="Carousel" SelectedIndex="{Binding SelectedIndex}"
+              Items="{Binding Source={StaticResource Pages}}" ItemCount="{Binding ItemCount, Mode=OneWayToSource}" />
   </DockPanel>
 
 </UserControl>

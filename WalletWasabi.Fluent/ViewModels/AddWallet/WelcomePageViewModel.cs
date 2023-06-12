@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -20,10 +21,18 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		_addWalletPage = addWalletPage;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
+		
+		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, x => x > 0);
+		CanGoNext = this.WhenAnyValue(x => x.SelectedIndex, x => x.ItemCount, (x, y) => x < y -1);
+		NextCommand = ReactiveCommand.Create(() => SelectedIndex++, CanGoNext);
+		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 	}
 
+	public IObservable<bool> CanGoNext { get; }
+	public IObservable<bool> CanGoBack { get; }
+
+	[AutoNotify] private int _itemCount;
 	public ICommand RecoverWalletCommand { get; }
-	public IObservable<object> SelectedItem { get; }
 	public ICommand ImportWalletCommand { get; }
 	public ICommand ConnectHardwareWalletCommand { get; }
 	public ICommand CreateWalletCommand { get; }
