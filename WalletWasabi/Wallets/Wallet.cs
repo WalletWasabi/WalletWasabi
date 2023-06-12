@@ -595,12 +595,30 @@ public class Wallet : BackgroundService, IWallet
 		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
 			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
 			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
-		
-		IEnumerable<byte[]> keysToTest = KeyManager.GetHdPubKeysWithScriptBytes()
-			.Where(x => stepPredicate(x.HdPubKey))
-			.Select(x => x.ScriptBytes);
 
-		return keysToTest.ToList();
+		var keysToTest = KeyManager.GetHdPubKeysWithScriptBytes()
+			.Where(x => stepPredicate(x.HdPubKey))
+			.ToList();
+  
+		if (syncType == SyncType.Turbo && keysToTest.All(x => x.HdPubKey.KeyState != KeyState.Used))
+		{
+			var groupedKeys = keysToTest.OrderBy(x => x.HdPubKey.FullKeyPath).GroupBy(
+				x => new 
+			{ 
+				x.HdPubKey.IsInternal,
+				ScriptType = x.HdPubKey.FullKeyPath.GetScriptTypeFromKeyPath()
+			});
+
+			keysToTest = new List<HdPubKeyCache.HdPubKeyScriptBytesPair>();
+
+			foreach (var group in groupedKeys)
+			{
+				var elementsToAdd = group.Take(KeyManager.AbsoluteMinGapLimit);
+				keysToTest.AddRange(elementsToAdd.Select(x => x));
+			}
+		}
+		
+		return keysToTest.Select(x => x.ScriptBytes).ToList();
 	}
 	
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, SyncType syncType, CancellationToken cancel)
