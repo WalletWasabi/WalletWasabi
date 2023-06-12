@@ -46,6 +46,13 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 
 	public bool HasWallet => Services.WalletManager.HasWallet();
 
+	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
+
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
+		Services.UiConfig.LastSelectedWallet = wallet.Name;
+	}
+
 	public async Task<IWalletModel> RecoverWallet(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
 		var keyManager = await Task.Run(() =>
@@ -77,12 +84,5 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 					keyManager));
 
 		return walletModel;
-	}
-
-	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
-
-	public void StoreLastSelectedWallet(IWalletModel wallet)
-	{
-		Services.UiConfig.LastSelectedWallet = wallet.Name;
 	}
 }
