@@ -13,4 +13,6 @@ public interface IWalletListModel
 	bool HasWallet { get; }
 
 	Task<IWalletModel> RecoverWallet(string walletName, string password, Mnemonic mnemonic, int minGapLimit);
+
+	void StoreLastSelectedWallet(IWalletModel wallet);
 }

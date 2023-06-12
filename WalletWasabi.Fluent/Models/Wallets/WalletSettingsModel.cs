@@ -1,20 +1,41 @@
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class WalletSettingsModel : IWalletSettingsModel
+public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 {
-	private readonly Wallet _wallet;
-	private bool _batchChanges;
+	private readonly KeyManager _keyManager;
+	private bool _isDirty;
 
-	public WalletSettingsModel(Wallet wallet)
+	[AutoNotify] private bool _isNewWallet;
+	[AutoNotify] private bool _autoCoinjoin;
+	[AutoNotify] private bool _isCoinjoinProfileSelected;
+	[AutoNotify] private bool _preferPsbtWorkflow;
+	[AutoNotify] private Money _plebStopThreshold;
+	[AutoNotify] private int _anonScoreTarget;
+	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private int _feeRateMedianTimeFrameHours;
+
+	public WalletSettingsModel(Wallet wallet, bool isNewWallet = false)
 	{
-		_wallet = wallet;
+		_keyManager = wallet.KeyManager;
+
+		_isNewWallet = isNewWallet;
+		_isDirty = isNewWallet;
+
+		_autoCoinjoin = _keyManager.AutoCoinJoin;
+		_isCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
+		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
+		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
+		_anonScoreTarget = _keyManager.AnonScoreTarget;
+		_redCoinIsolation = _keyManager.RedCoinIsolation;
+		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
+
+		WalletName = _keyManager.WalletName;
 
 		this.WhenAnyValue(
 			x => x.AutoCoinjoin,
@@ -25,66 +46,32 @@ public class WalletSettingsModel : IWalletSettingsModel
 			x => x.RedCoinIsolation,
 			x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
-			.Do(_ => Save())
+			.Do(_ => SetValues())
 			.Subscribe();
-
-		AutoCoinjoin = _wallet.KeyManager.AutoCoinJoin;
-		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
-		PreferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
-		PlebStopThreshold = wallet.KeyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
-		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-		RedCoinIsolation = _wallet.KeyManager.RedCoinIsolation;
-		FeeRateMedianTimeFrameHours = _wallet.KeyManager.FeeRateMedianTimeFrameHours;
 	}
 
-	public bool AutoCoinjoin { get; set; }
+	public string WalletName { get; }
 
-	public bool IsCoinjoinProfileSelected { get; set; }
-
-	public bool PreferPsbtWorkflow { get; set; }
-
-	public Money PlebStopThreshold { get; set; }
-
-	public int AnonScoreTarget { get; set; }
-
-	public bool RedCoinIsolation { get; set; }
-
-	public int FeeRateMedianTimeFrameHours { get; set; }
-
-	/// <summary>
-	/// Prevents the automatic persistence of Wallet Settings when individual properties change.
-	/// This is useful when you want to change several properties, but only persist the settings once
-	/// </summary>
-	/// <returns>An IDisposable object that, when disposed, returns the WalletSettings back to normal operation (i.e save on each individual property change)</returns>
-	public IDisposable BatchChanges()
+	public void Save()
 	{
-		_batchChanges = true;
-		return Disposable.Create(() =>
+		if (_isDirty)
 		{
-			_batchChanges = false;
-			Save();
-		});
+			_keyManager.ToFile();
+
+			_isDirty = false;
+		}
 	}
 
-	private void Save()
+	private void SetValues()
 	{
-		_wallet.KeyManager.AutoCoinJoin = AutoCoinjoin;
-		_wallet.KeyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
-		_wallet.KeyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
-		_wallet.KeyManager.PlebStopThreshold = PlebStopThreshold;
-		_wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget, false);
-		_wallet.KeyManager.RedCoinIsolation = RedCoinIsolation;
-		_wallet.KeyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours, false);
+		_keyManager.AutoCoinJoin = AutoCoinjoin;
+		_keyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
+		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
+		_keyManager.PlebStopThreshold = PlebStopThreshold;
+		_keyManager.SetAnonScoreTarget(AnonScoreTarget, false);
+		_keyManager.RedCoinIsolation = RedCoinIsolation;
+		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 
-		if (!_batchChanges)
-		{
-			_wallet.KeyManager.ToFile();
-		}
-
-		// TODO: remove this
-		if (!Services.WalletManager.WalletExists(_wallet.KeyManager.MasterFingerprint))
-		{
-			Services.WalletManager.AddWallet(_wallet.KeyManager);
-		}
+		_isDirty = true;
 	}
 }

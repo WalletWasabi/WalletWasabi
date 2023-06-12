@@ -71,6 +71,9 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Subscribe();
 	}
 
+	// TODO: Remove this
+	public Wallet Wallet => _wallet;
+
 	public IWalletBalancesModel Balances { get; }
 
 	public IWalletAuthModel Auth { get; }

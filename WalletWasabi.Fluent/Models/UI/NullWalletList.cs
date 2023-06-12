@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using NBitcoin;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -17,10 +17,14 @@ public class NullWalletList : IWalletListModel
 
 	public IWalletModel? DefaultWallet => null;
 
-	public bool HasWallet => throw new NotImplementedException();
+	public bool HasWallet => false;
 
 	public Task<IWalletModel> RecoverWallet(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
 		return Task.FromResult(default(IWalletModel));
+	}
+
+        public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
 	}
 }
