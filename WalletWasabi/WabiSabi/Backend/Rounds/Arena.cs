@@ -276,10 +276,6 @@ public partial class Arena : PeriodicRunner
 					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
 					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
-					var highestFeeRateTask = async () => (await Rpc.EstimateConservativeSmartFeeAsync(2, cancellationToken).ConfigureAwait(false)).FeeRate;
-
-					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask).ConfigureAwait(false);
-
 					round.CoinjoinState = FinalizeTransaction(round.Id, coinjoin);
 
 					if (!allReady && phaseExpired)
@@ -638,75 +634,24 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	internal static async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, Func<Task<FeeRate>> highestFeeRateAsyncMethod)
+	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
 	{
-		// SharedOverhead calculated into EstimatedVsize.
-		var sizeToPayFor = coinjoin.EstimatedVsize + blameScript.EstimateOutputVsize();
-		var miningFee = sizeToPayFor == 0
-			? Money.Zero
-			: round.Parameters.MiningFeeRate.GetFee(sizeToPayFor);
+		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
+		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
 
-		// Subtract 1 sat to avoid off-by-one error coming from roundings.
-		var diffMoney = coinjoin.Balance - miningFee - Money.Satoshis(1);
+		var expectedCoordinationFee = round.Alices.Where(a => !a.IsCoordinationFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		var availableCoordinationFee = coinjoin.Balance - miningFee;
 
-		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
+		round.LogInfo($"Expected coordination fee: {expectedCoordinationFee} - Available coordination: {availableCoordinationFee}.");
+
+		if (availableCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 		{
-			// If diff is smaller than max fee rate of a tx, then add it as fee.
-			var highestFeeRate = await highestFeeRateAsyncMethod().ConfigureAwait(false);
-
-			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
-			if (coinjoin.EffectiveFeeRate > highestFeeRate)
-			{
-				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
-
-				if (allReady)
-				{
-					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signaled ready. Added amount: '{diffMoney}'.");
-				}
-				else
-				{
-					round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
-				}
-			}
-			else
-			{
-				if (allReady)
-				{
-					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
-				}
-				else
-				{
-					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
-				}
-			}
-		}
-		else if (!allReady)
-		{
-			round.LogWarning($"Could not add blame script, because the amount was too small: {diffMoney}.");
-		}
-
-		return coinjoin;
-	}
-
-	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
-	{
-		var coordinationFee = round.Alices.Where(a => !a.IsCoordinationFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
-		if (coordinationFee == 0)
-		{
-			round.LogInfo($"Coordination fee wasn't taken, because it was free for everyone. Hurray!");
+			coinjoin = coinjoin.AddOutput(new TxOut(availableCoordinationFee, coordinatorScriptPubKey))
+				.AsPayingForSharedOverhead();
 		}
 		else
 		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
-
-			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
-			{
-				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey)).AsPayingForSharedOverhead();
-			}
-			else
-			{
-				round.LogWarning($"Effective coordination fee wasn't taken, because it was too small: {effectiveCoordinationFee}.");
-			}
+			round.LogWarning($"Available coordination fee wasn't taken, because it was too small: {availableCoordinationFee}.");
 		}
 
 		return coinjoin;
