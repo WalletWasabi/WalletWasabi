@@ -320,27 +320,19 @@ public static class Program
 				}
 			}
 
-			// Rename the final exe.
-			string oldExecutablePath;
-			string newExecutablePath;
-			if (target.StartsWith("win"))
-			{
-				oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop.exe");
-				newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
-
-				// Delete unused executables.
-				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.exe"));
-			}
-			else // Linux & OSX
-			{
-				oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop");
-				newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
-
-				// Delete unused executables.
-				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
-			}
-
+			// Rename WalletWasabi.Fluent.Desktop(.exe) -> wassabee(.exe).
+			string executableExtension = target.StartsWith("win") ? ".exe" : "";
+			string oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent.Desktop{executableExtension}");
+			string newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}{executableExtension}");
 			File.Move(oldExecutablePath, newExecutablePath);
+
+			// Rename WalletWasabi.Daemon(.exe) -> wassabeed(.exe).
+			oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.Daemon{executableExtension}");
+			newExecutablePath = Path.Combine(currentBinDistDirectory, $"{DaemonExecutableName}{executableExtension}");
+			File.Move(oldExecutablePath, newExecutablePath);
+
+			// Delete unused executables.
+			File.Delete(Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent{executableExtension}"));
 
 			// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 			if (OnlyBinaries)
