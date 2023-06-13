@@ -32,7 +32,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	private Wallet? ActiveWallet { get; set; }
 
 	[JsonRpcMethod("listunspentcoins")]
-	public object[] GetUnspentCoinList()
+	public object[] GetUnspentCoinList(int anonScoreDecimals = 2)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
@@ -44,7 +44,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				txid = x.TransactionId.ToString(),
 				index = x.Index,
 				amount = x.Amount.Satoshi,
-				anonymityScore = x.HdPubKey.AnonymitySet,
+				anonymityScore = Math.Round(x.HdPubKey.AnonymitySet, anonScoreDecimals),
 				confirmed = x.Confirmed,
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.HdPubKey.Labels.ToString(),
@@ -54,7 +54,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("listcoins")]
-	public object[] GetCoinList()
+	public object[] GetCoinList(int anonScoreDecimals = 2)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
@@ -70,7 +70,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				txid = x.TransactionId.ToString(),
 				index = x.Index,
 				amount = x.Amount.Satoshi,
-				anonymityScore = x.HdPubKey.AnonymitySet,
+				anonymityScore = Math.Round(x.HdPubKey.AnonymitySet, anonScoreDecimals),
 				confirmed = x.Confirmed,
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
