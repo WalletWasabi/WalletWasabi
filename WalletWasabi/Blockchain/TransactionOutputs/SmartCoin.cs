@@ -169,7 +169,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsReplaceable() => Transaction.IsRBF;
 
 	/// <returns>False if external, or the tx inputs are all external.</returns>
-	/// <remarks>https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public bool IsSufficientlyDistancedFromExternalKeys()
 	{
 		if (!HdPubKey.IsInternal)
