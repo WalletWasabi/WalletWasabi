@@ -25,6 +25,8 @@ namespace WalletWasabi.Packager;
 public static class Program
 {
 	public const string PfxPath = "C:\\digicert.pfx";
+
+	public const string DaemonExecutableName = Constants.DaemonExecutableName;
 	public const string ExecutableName = Constants.ExecutableName;
 
 	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
@@ -413,7 +415,7 @@ public static class Program
 				Console.WriteLine($"# Move '{publishedFolder}' to '{newFolderPath}'.");
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
-				string chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
+				string chmodExecutablesArgs = $$"""-type f \( -name '{{ExecutableName}}' -o -name '{{DaemonExecutableName}}' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \) -exec chmod +x {} \;""";
 
 				string[] commands = new string[]
 				{
