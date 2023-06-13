@@ -90,9 +90,9 @@ internal class Participant
 		}
 
 		var smartCoins = SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
-		   .Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
-		   .Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
-		   .ToList();
+			.Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
+			.Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
+			.ToList();
 
 		// Run the coinjoin client task.
 		var ret = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(new CoinsView(smartCoins)), cancellationToken).ConfigureAwait(false);

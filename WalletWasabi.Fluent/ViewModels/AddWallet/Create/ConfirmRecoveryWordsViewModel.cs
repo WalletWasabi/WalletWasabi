@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -25,7 +26,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
-	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
+	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
 		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words.OrderBy(x => x.Index).ToList();
@@ -70,11 +71,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		confirmationWordsSourceList.AddRange(_words);
 
-		AvailableWords =
-			confirmationWordsSourceList.Items
-									   .Select(x => new RecoveryWordViewModel(x.Index, x.Word))
-									   .OrderBy(x => x.Word)
-									   .ToList();
+		AvailableWords = confirmationWordsSourceList.Items
+			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+			.OrderBy(x => x.Word)
+			.ToList();
 
 		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
@@ -159,7 +159,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
 				});
 			IsBusy = false;
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+
+			// TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
+			var walletModel =
+				new WalletModel(
+					new WalletWasabi.Wallets.Wallet(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network,
+						km));
+
+			await Navigate().To().CoinJoinProfiles(walletModel, true).GetResultAsync();
 		}
 	}
 

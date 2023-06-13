@@ -12,7 +12,7 @@ internal class PlainTextElementFactory : TreeDataGridElementFactory
 			base.CreateElement(data);
 	}
 
-	protected override string GetDataRecycleKey(object data)
+	protected override string GetDataRecycleKey(object? data)
 	{
 		return data is PlainTextCell ?
 			typeof(TreeDataGridPlainTextCell).FullName! :

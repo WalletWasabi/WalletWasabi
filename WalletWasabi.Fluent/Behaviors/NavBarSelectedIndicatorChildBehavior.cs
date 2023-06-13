@@ -1,9 +1,11 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -13,14 +15,9 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 		AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
 			"NavBarItemParent");
 
-	public static Control GetNavBarItemParent(Control element)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		return element.GetValue(NavBarItemParentProperty);
-	}
-
-	public static void SetNavBarItemParent(Control element, Control value)
-	{
-		element.SetValue(NavBarItemParentProperty, value);
+		Dispatcher.UIThread.Post(() => OnLoaded(disposable), DispatcherPriority.Loaded);
 	}
 
 	private void OnLoaded(CompositeDisposable disposable)
@@ -30,37 +27,31 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 			return;
 		}
 
+		var selectionIndicator = AssociatedObject.GetVisualDescendants().OfType<Border>().FirstOrDefault(x => x.Name == "SelectionIndicator");
 		var sharedState = NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
-		if (sharedState is null)
+
+		if (sharedState is null || selectionIndicator is null)
 		{
 			Detach();
 			return;
 		}
 
-		var parent = GetNavBarItemParent(AssociatedObject);
-
-		Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(parent.Classes, "CollectionChanged")
-			.Select(_ => parent.Classes)
+		Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(AssociatedObject.Classes, "CollectionChanged")
+			.Select(_ => AssociatedObject.Classes)
 			.Select(x => x.Contains(":selected")
-						 && !x.Contains(":pressed")
-						 && !x.Contains(":dragging")
-						 && x.Contains(":selectable"))
+			             && !x.Contains(":pressed")
+			             && !x.Contains(":dragging"))
 			.DistinctUntilChanged()
 			.Where(x => x)
 			.ObserveOn(AvaloniaScheduler.Instance)
-			.Subscribe(_ => sharedState.AnimateIndicatorAsync(AssociatedObject))
+			.Subscribe(_ => sharedState.AnimateIndicatorAsync(selectionIndicator))
 			.DisposeWith(disposable);
 
-		AssociatedObject.Opacity = 0;
+		selectionIndicator.Opacity = 0;
 
-		if (parent.Classes.Contains(":selected"))
+		if (AssociatedObject.Classes.Contains(":selected"))
 		{
-			sharedState.SetActive(AssociatedObject);
+			sharedState.SetActive(selectionIndicator);
 		}
-	}
-
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
-	{
-		Dispatcher.UIThread.Post(() => OnLoaded(disposable), DispatcherPriority.Loaded);
 	}
 }

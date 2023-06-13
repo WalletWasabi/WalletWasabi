@@ -26,7 +26,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
 
-	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
@@ -52,8 +52,18 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.Abs();
-		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
+
+		if (transactionSummary.Amount < Money.Zero)
+		{
+			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			AmountText = "Outgoing";
+		}
+		else
+		{
+			Amount = transactionSummary.Amount;
+			AmountText = "Incoming";
+		}
+
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
 

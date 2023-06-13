@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 using WalletWasabi.Wallets;
 
@@ -16,7 +15,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _fullyMixed;
 	[AutoNotify] private string _percentText = "";
-	[AutoNotify] private string _balancePrivateBtc = "";
+	[AutoNotify] private Money _balancePrivate = Money.Zero;
 	[AutoNotify] private bool _hasPrivateBalance;
 	[AutoNotify] private bool _showPrivacyBar;
 
@@ -55,7 +54,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void ShowDetails()
 	{
-		UiContext.Navigate(NavigationTarget.DialogScreen).To(new PrivacyRingViewModel(UiContext, _walletVm));
+		UiContext.Navigate().To().PrivacyRing(_walletVm);
 	}
 
 	private void Update()
@@ -70,8 +69,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		FullyMixed = pcPrivate >= 100;
 
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		HasPrivateBalance = privateAmount > Money.Zero;
-		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
+		BalancePrivate = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		HasPrivateBalance = BalancePrivate > Money.Zero;
 	}
 }

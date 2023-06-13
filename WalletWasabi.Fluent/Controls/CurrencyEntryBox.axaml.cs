@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
@@ -106,7 +107,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		var input = e.Text ?? "";
+		var input = e.Text == null ? "" : e.Text.TotalTrim();
 
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
@@ -134,12 +135,15 @@ public partial class CurrencyEntryBox : TextBox
 
 		var preComposedText = PreComposeText(input);
 
-		decimal fiatValue = 0;
+		var isValid = ValidateEntryText(preComposedText);
 
-		e.Handled = !(ValidateEntryText(preComposedText) &&
-					  decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out fiatValue));
+		preComposedText = preComposedText.TotalTrim();
 
-		if (IsFiat & !e.Handled)
+		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
+
+		e.Handled = !(isValid && parsed);
+
+		if (IsFiat && !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
