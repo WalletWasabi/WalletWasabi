@@ -393,11 +393,15 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public IEnumerable<HdPubKeyCache.HdPubKeyScriptBytesPair> GetHdPubKeysWithScriptBytes()
+	/// <summary>
+	/// This function can only be called for wallet synchronization.
+	/// It's unsafe because it doesn't assert that the GapLimit is respected.
+	/// GapLimit should be enforced whenever a transaction is discovered.
+	/// </summary>
+	public IEnumerable<HdPubKeyCache.HdPubKeyScriptBytesPair> UnsafeGetHdPubKeysWithScriptBytes()
 	{
 		lock (CriticalStateLock)
 		{
-			AssertCleanKeysIndexed();
 			return HdPubKeyCache.GetHdPubKeysWithScriptBytes();
 		}
 	}
