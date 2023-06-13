@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Extensions;
+using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -166,6 +167,22 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 	public bool IsReplaceable() => Transaction.IsRBF;
+
+	/// <returns>False if external, or the tx inputs are all external.</returns>
+	/// <remarks>https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	public bool IsSufficientlyDistancedFromExternalKeys()
+	{
+		if (!HdPubKey.IsInternal)
+		{
+			return false;
+		}
+		else if (Transaction.WalletInputs.All(x => !x.HdPubKey.IsInternal))
+		{
+			return false;
+		}
+
+		return true;
+	}
 
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 
