@@ -95,32 +95,6 @@ public static class NBitcoinExtensions
 		return Money.Satoshis((me.Satoshi / 100m) * perc);
 	}
 
-	/// <summary>
-	/// If scriptPubKey is already present, just add the value.
-	/// </summary>
-	public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
-	{
-		var found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
-		if (found is { })
-		{
-			found.Value += money;
-		}
-		else
-		{
-			me.Add(money, scriptPubKey);
-		}
-	}
-
-	public static string ToZpub(this ExtPubKey extPubKey, Network network)
-	{
-		var data = extPubKey.ToBytes();
-		var version = (network == Network.Main)
-			? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
-			: new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
-
-		return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
-	}
-
 	public static string ToZPrv(this ExtKey extKey, Network network)
 	{
 		var data = extKey.ToBytes();
