@@ -95,7 +95,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 	private TimeSpan RequestInterval { get; }
 	private int MaxFiltersToSync { get; }
-	public BitcoinStore BitcoinStore { get; }
+	private BitcoinStore BitcoinStore { get; }
 	private FilterProcessor FilterProcessor { get; }
 
 	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
