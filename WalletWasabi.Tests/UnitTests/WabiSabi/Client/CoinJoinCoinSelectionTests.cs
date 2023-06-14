@@ -35,8 +35,13 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
+
+		foreach (var sc in coinsToSelectFrom)
+		{
+			sc.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+		}
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
