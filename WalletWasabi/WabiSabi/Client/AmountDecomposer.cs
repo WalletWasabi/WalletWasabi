@@ -335,7 +335,7 @@ public class AmountDecomposer
 		var secondLargestInput = inputEffectiveValues.OrderByDescending(x => x).Skip(1).First();
 		var demonsForBreakDown = Denominations
 			.Where(x => x.EffectiveCost <= secondLargestInput) // Take only affordable denominations.
-			.OrderByDescending(x => x.EffectiveAmount); // If the amount is the same, the cheaper to spend should be the first - so greedy will take that.
+			.OrderByDescending(x => x.EffectiveCost); // If the amount is the same, the cheaper to spend should be the first - so greedy will take that.
 
 		Dictionary<Output, long> denomFrequencies = new();
 		foreach (var input in inputEffectiveValues)

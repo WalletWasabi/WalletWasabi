@@ -130,6 +130,6 @@ public static class DenominationBuilder
 		}
 
 		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return denominations.OrderByDescending(x => x.EffectiveCost);
 	}
 }

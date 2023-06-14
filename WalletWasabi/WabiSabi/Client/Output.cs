@@ -18,7 +18,6 @@ public record Output
 
 	public Money Amount { get; }
 	public ScriptType ScriptType { get; }
-	public Money EffectiveAmount => Amount - Fee;
 	public Money EffectiveCost => Amount + Fee;
 	public Money InputFee { get; }
 	public Money Fee { get; }
