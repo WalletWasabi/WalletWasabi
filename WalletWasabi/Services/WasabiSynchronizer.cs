@@ -64,7 +64,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	public SynchronizeResponse? LastResponse { get; private set; }
 	public HttpClientFactory HttpClientFactory { get; }
-	public WasabiClient WasabiClient { get; }
+	private WasabiClient WasabiClient { get; }
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>
 	public decimal UsdExchangeRate
@@ -96,7 +96,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	private TimeSpan RequestInterval { get; }
 	private int MaxFiltersToSync { get; }
 	public BitcoinStore BitcoinStore { get; }
-	public FilterProcessor FilterProcessor { get; }
+	private FilterProcessor FilterProcessor { get; }
 
 	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
