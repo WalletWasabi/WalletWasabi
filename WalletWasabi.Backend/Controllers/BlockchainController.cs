@@ -77,7 +77,7 @@ public class BlockchainController : ControllerBase
 
 		return Cache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, token),
+			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(token),
 			options: CacheEntryOptions,
 			cancellationToken);
 	}
