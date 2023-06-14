@@ -35,6 +35,17 @@
 
       <Separator />
 
+      <!-- Amount -->
+      <c:PreviewItem Icon="{StaticResource person_regular}"
+                     Label="Destination address"
+                     CopyableContent="{Binding Amount}">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding DestinationAddress}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator />
+
       <!-- Fee -->
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"

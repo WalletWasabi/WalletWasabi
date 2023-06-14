@@ -34,11 +34,14 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = transactionSummary.Fee;
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
+		DestinationAddress = transactionSummary.DestinationAddress.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
+
+	public string DestinationAddress { get; set; }
 
 	public bool IsFeeVisible { get; set; }
 

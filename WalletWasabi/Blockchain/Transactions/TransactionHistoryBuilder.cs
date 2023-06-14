@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,9 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
+				var outputs = GetOutputs(containingTransaction, wallet.Network).ToList();
+				var destination = GetDestinationAddress(outputs);
+
 				txRecordList.Add(new TransactionSummary
 				{
 					DateTime = dateTime,
@@ -54,7 +58,8 @@ public class TransactionHistoryBuilder
 					BlockHash = containingTransaction.BlockHash,
 					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
 					Inputs = GetInputs(containingTransaction),
-					Outputs = GetOutputs(containingTransaction),
+					Outputs = outputs,
+					DestinationAddress = destination,
 				});
 			}
 
@@ -71,6 +76,9 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
+					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
+					var destinationAddress = GetDestinationAddress(outputs);
+
 					txRecordList.Add(new TransactionSummary
 					{
 						DateTime = dateTime,
@@ -82,7 +90,8 @@ public class TransactionHistoryBuilder
 						BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
 						Inputs = GetInputs(spenderTransaction),
-						Outputs = GetOutputs(spenderTransaction),
+						Outputs = outputs,
+						DestinationAddress = destinationAddress,
 					});
 				}
 			}
@@ -91,14 +100,19 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction)
+	private BitcoinAddress GetDestinationAddress(IEnumerable<Output> outputs) => outputs
+		.OrderByDescending(output => output.Amount)
+		.Select(x => x.DestinationAddress)
+		.First();
+
+	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
 	{
-		return smartTransaction.Transaction.Outputs.Select(GetOutput);
+		return smartTransaction.Transaction.Outputs.Select(txOut => GetOutput(txOut, network));
 	}
 
-	private Output GetOutput(TxOut txOut)
+	private Output GetOutput(TxOut txOut, Network network)
 	{
-		return new Output(txOut.Value);
+		return new Output(txOut.Value, txOut.ScriptPubKey.GetDestinationAddress(network));
 	}
 
 	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
