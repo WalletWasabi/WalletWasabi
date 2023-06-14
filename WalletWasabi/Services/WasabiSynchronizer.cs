@@ -51,8 +51,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 		FilterProcessor = new FilterProcessor(bitcoinStore);
 		HttpClientFactory = httpClientFactory;
 		WasabiClient = httpClientFactory.SharedWasabiClient;
-
-		StopCts = new CancellationTokenSource();
 	}
 
 	#region EventsPropertiesMembers
@@ -102,7 +100,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
 	/// <summary>Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.</summary>
-	private CancellationTokenSource StopCts { get; }
+	private CancellationTokenSource StopCts { get; } = new();
 
 	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
