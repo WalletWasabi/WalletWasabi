@@ -8,6 +8,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -46,8 +47,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 		LastResponse = null;
 		_running = StateNotStarted;
-		BitcoinStore = bitcoinStore;
-		FilterProcessor = new FilterProcessor(BitcoinStore);
+		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
+		FilterProcessor = new FilterProcessor(bitcoinStore);
 		HttpClientFactory = httpClientFactory;
 		WasabiClient = httpClientFactory.SharedWasabiClient;
 
@@ -95,7 +96,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 	private TimeSpan RequestInterval { get; }
 	private int MaxFiltersToSync { get; }
-	private BitcoinStore BitcoinStore { get; }
+	private SmartHeaderChain SmartHeaderChain { get; }
 	private FilterProcessor FilterProcessor { get; }
 
 	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
@@ -136,7 +137,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						try
 						{
 							response = await WasabiClient
-								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
+								.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
 
 							// NOT GenSocksServErr
