@@ -95,12 +95,6 @@ public static class NBitcoinExtensions
 		return Money.Satoshis((me.Satoshi / 100m) * perc);
 	}
 
-	public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, CompactSignature signature)
-	{
-		PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
-		return pubKey.WitHash == address.Hash;
-	}
-
 	/// <summary>
 	/// If scriptPubKey is already present, just add the value.
 	/// </summary>
