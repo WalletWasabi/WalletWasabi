@@ -176,7 +176,8 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		{
 			return false;
 		}
-		else if (Transaction.WalletInputs.All(x => !x.HdPubKey.IsInternal))
+
+		if (Transaction.WalletInputs.All(x => !x.HdPubKey.IsInternal))
 		{
 			return false;
 		}
