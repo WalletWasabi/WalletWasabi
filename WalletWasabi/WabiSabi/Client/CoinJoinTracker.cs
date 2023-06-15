@@ -37,7 +37,7 @@ public class CoinJoinTracker : IDisposable
 	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public bool StopWhenAllMixed { get; set; }
-	public bool OverridePlebStop { get; set; }
+	public bool OverridePlebStop { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }
