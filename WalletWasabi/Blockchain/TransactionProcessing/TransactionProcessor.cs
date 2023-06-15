@@ -235,12 +235,6 @@ public class TransactionProcessor
 				// If we did not have it.
 				if (Coins.TryAdd(newCoin))
 				{
-					// If the coin was banned from coinjoining before.
-					if (Coins.IsCoinBanned(newCoin, DateTimeOffset.Now, out DateTimeOffset? bannedUntil))
-					{
-						newCoin.BannedUntilUtc = bannedUntil;
-					}
-
 					result.NewlyReceivedCoins.Add(newCoin);
 				}
 				else // If we had this coin already.
