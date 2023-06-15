@@ -26,7 +26,7 @@ public static class DenominationBuilder
 		{
 			var denom = CreateDenom(Math.Pow(2, i));
 
-			if (denom.Amount < minAllowedOutputAmount)
+			if (denom.EffectiveAmount < minAllowedOutputAmount)
 			{
 				continue;
 			}
@@ -44,7 +44,7 @@ public static class DenominationBuilder
 		{
 			var denom = CreateDenom(Math.Pow(3, i));
 
-			if (denom.Amount < minAllowedOutputAmount)
+			if (denom.EffectiveAmount < minAllowedOutputAmount)
 			{
 				continue;
 			}
@@ -62,7 +62,7 @@ public static class DenominationBuilder
 		{
 			var denom = CreateDenom(Math.Pow(3, i) * 2);
 
-			if (denom.Amount < minAllowedOutputAmount)
+			if (denom.EffectiveAmount < minAllowedOutputAmount)
 			{
 				continue;
 			}
@@ -80,7 +80,7 @@ public static class DenominationBuilder
 		{
 			var denom = CreateDenom(Math.Pow(10, i));
 
-			if (denom.Amount < minAllowedOutputAmount)
+			if (denom.EffectiveAmount < minAllowedOutputAmount)
 			{
 				continue;
 			}
@@ -98,7 +98,7 @@ public static class DenominationBuilder
 		{
 			var denom = CreateDenom(Math.Pow(10, i) * 2);
 
-			if (denom.Amount < minAllowedOutputAmount)
+			if (denom.EffectiveAmount < minAllowedOutputAmount)
 			{
 				continue;
 			}
@@ -116,7 +116,7 @@ public static class DenominationBuilder
 		{
 			var denom = CreateDenom(Math.Pow(10, i) * 5);
 
-			if (denom.Amount < minAllowedOutputAmount)
+			if (denom.EffectiveAmount < minAllowedOutputAmount)
 			{
 				continue;
 			}
