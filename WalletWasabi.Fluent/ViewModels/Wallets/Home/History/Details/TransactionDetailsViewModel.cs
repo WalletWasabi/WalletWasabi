@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
@@ -34,14 +35,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = transactionSummary.Fee;
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddress = transactionSummary.DestinationAddress.ToString();
+		DestinationAddresses = transactionSummary.DestinationAddresses;
+		DestinationAddressesList = string.Join(Environment.NewLine, transactionSummary.DestinationAddresses);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
 
-	public string DestinationAddress { get; set; }
+	public string DestinationAddressesList { get; set; }
+
+	public IEnumerable<BitcoinAddress> DestinationAddresses { get; set; }
 
 	public bool IsFeeVisible { get; set; }
 

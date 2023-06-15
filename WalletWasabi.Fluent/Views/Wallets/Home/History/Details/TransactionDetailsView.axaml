@@ -36,12 +36,18 @@
       <Separator />
 
       <!-- Destination Address -->
-      <c:PreviewItem Icon="{StaticResource person_regular}"
-                     Label="Destination address"
-                     CopyableContent="{Binding DestinationAddress}">
-        <c:PrivacyContentControl>
-          <TextBlock Text="{Binding DestinationAddress}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
+      <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                     Label="Destination addresses"
+                     CopyableContent="{Binding DestinationAddressesList}">
+        <ItemsControl Items="{Binding DestinationAddresses}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <c:PrivacyContentControl>
+                <TextBlock Text="{Binding}" Classes="monoSpaced" />
+              </c:PrivacyContentControl>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </c:PreviewItem>
 
       <Separator />
