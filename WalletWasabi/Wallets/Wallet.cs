@@ -246,6 +246,7 @@ public class Wallet : BackgroundService, IWallet
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
+					LoadBannedCoins();
 				}
 			}
 
@@ -257,6 +258,17 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Initialized;
 			throw;
+		}
+	}
+
+	private void LoadBannedCoins()
+	{
+		foreach (var coin in Coins)
+		{
+			if (Coins.TryGetBannedCoin(coin, DateTimeOffset.UtcNow, out var bannedUntil))
+			{
+				coin.BannedUntilUtc = bannedUntil;
+			}
 		}
 	}
 
