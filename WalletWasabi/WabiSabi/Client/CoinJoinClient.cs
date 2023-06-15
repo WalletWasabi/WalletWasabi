@@ -276,6 +276,12 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
+			
+			// Coinjoin succeeded but wallet had no input in it.
+			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
+			{
+				throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "No inputs participated in this round.");
+			}
 
 			return roundState.EndRoundState switch
 			{

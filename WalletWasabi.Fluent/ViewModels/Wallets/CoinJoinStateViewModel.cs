@@ -318,6 +318,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
+					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
 					_ => GeneralErrorMessage
 				};
 				break;
