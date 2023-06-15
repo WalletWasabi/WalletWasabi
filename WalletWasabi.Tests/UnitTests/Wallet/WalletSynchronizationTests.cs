@@ -59,6 +59,40 @@ public class WalletSynchronizationTests
 	}
 
 	[Fact]
+	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again and spend to an external key in a different block.
+	// Verifies that the wallet will process the spend correctly when it doesn't have the coins in its CoinsRegistry at the time of spending.
+	public async Task InternalAddressReuseThenSpendOnExternalKeyTestAsync()
+	{
+		using var testSetup = new TestSetup("InternalAddressReuseThenSpendOnExternalKeyTestAsync");
+		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
+
+		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
+		var firstInternalKeyScript = wallet.GetNextInternalDestinations(1).Single().ScriptPubKey;
+		var walletExternalKeyScript = wallet.GetNextDestinations(1, false).Single().ScriptPubKey;
+
+		// First receive.
+		await SendToAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, testSetup, CancellationToken.None);
+
+		// Send the money away.
+		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, testSetup, CancellationToken.None);
+
+		// Address re-use.
+		await SendToAsync(minerWallet, wallet, Money.Coins(2), firstInternalKeyScript, testSetup, CancellationToken.None);
+
+		// Self spend the coins to an external key.
+		await SendToAsync(wallet, wallet, Money.Coins(2), walletExternalKeyScript, testSetup, CancellationToken.None);
+
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseNoBlockOverlapTestAsync");
+		var coins = wallet1.Coins as CoinsRegistry;
+
+		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
+		Assert.Single(coins!.Available());
+
+		await wallet1.PerformWalletSynchronizationAsync(SyncType.NonTurbo, CancellationToken.None);
+		Assert.Single(coins!.Available());
+	}
+
+	[Fact]
 	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
 	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
