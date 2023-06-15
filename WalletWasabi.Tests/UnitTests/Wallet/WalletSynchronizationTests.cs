@@ -29,70 +29,82 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 public class WalletSynchronizationTests
 {
 	[Fact]
+	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again.
+	// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
 	public async Task InternalAddressReuseNoBlockOverlapTestAsync()
 	{
-		var baseTestElements = new BaseTestElements();
-		var (minerWallet, minerDestination, wallet, destination) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(baseTestElements);
+		var testSetup = new TestSetup();
+		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
+
+		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
+		var firstInternalKeyScript = wallet.GetNextInternalDestinations(1).Single().ScriptPubKey;
 
 		// First receive.
-		await SendToAsync(minerWallet, wallet, Money.Coins(1), destination.ScriptPubKey, baseTestElements, CancellationToken.None);
+		await SendToAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, testSetup, CancellationToken.None);
 
 		// Send the money away.
-		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerDestination.ScriptPubKey, baseTestElements, CancellationToken.None);
+		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, testSetup, CancellationToken.None);
 
 		// Address re-use.
-		await SendToAsync(minerWallet, wallet, Money.Coins(2), destination.ScriptPubKey, baseTestElements, CancellationToken.None);
+		await SendToAsync(minerWallet, wallet, Money.Coins(2), firstInternalKeyScript, testSetup, CancellationToken.None);
 
-		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(baseTestElements, wallet, destination, "InternalAddressReuseNoBlockOverlapTestAsync");
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseNoBlockOverlapTestAsync");
+		var coins = wallet1.Coins as CoinsRegistry;
 
 		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
-		await wallet1.PerformWalletSynchronizationAsync(SyncType.NonTurbo, CancellationToken.None);
+		Assert.Single(coins!.AsAllCoinsView());
 
-		var coins = wallet1.Coins as CoinsRegistry;
+		await wallet1.PerformWalletSynchronizationAsync(SyncType.NonTurbo, CancellationToken.None);
 		Assert.Equal(2, coins!.AsAllCoinsView().Count());
 	}
 
 	[Fact]
+	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
+	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
 	{
-		var baseTestElements = new BaseTestElements();
-		var (minerWallet, minerDestination, wallet, destination) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(baseTestElements);
-		var walletExtDestination = wallet.GetNextDestinations(1, false).Single();
+		var testSetup = new TestSetup();
+		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
+
+		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
+		var firstInternalKeyScript = wallet.GetNextInternalDestinations(1).Single().ScriptPubKey;
+		var walletExternalKeyScript = wallet.GetNextDestinations(1, false).Single().ScriptPubKey;
 
 		// First receive.
-		await SendToAsync(minerWallet, wallet, Money.Coins(1), destination.ScriptPubKey, baseTestElements, CancellationToken.None);
+		await SendToAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, testSetup, CancellationToken.None);
 
 		// Send the money away.
-		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerDestination.ScriptPubKey, baseTestElements, CancellationToken.None);
+		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, testSetup, CancellationToken.None);
 
 		// Reuse internal key + receive a standard TX in the same block.
-		var reuseInternalKeyTx = new TxSkeleton(Money.Coins(2), destination.ScriptPubKey, baseTestElements.FeeRate, minerWallet);
-		var receiveStandardTx = new TxSkeleton(Money.Coins(3), walletExtDestination.ScriptPubKey, baseTestElements.FeeRate, minerWallet);
-		SendSeveralTxSameBlock(new[] { reuseInternalKeyTx, receiveStandardTx }, baseTestElements, minerDestination.ScriptPubKey, CancellationToken.None);
+		var reuseInternalKeyTx = new TxSkeleton(Money.Coins(2), firstInternalKeyScript, testSetup.FeeRate, minerWallet);
+		var receiveStandardTx = new TxSkeleton(Money.Coins(3), walletExternalKeyScript, testSetup.FeeRate, minerWallet);
+		SendSeveralTxSameBlock(new[] { reuseInternalKeyTx, receiveStandardTx }, testSetup, minerFirstKeyScript, CancellationToken.None);
 
-		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(baseTestElements, wallet, destination, "InternalAddressReuseWithBlockOverlapTestAsync");
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseWithBlockOverlapTestAsync");
+		var coins = wallet1.Coins as CoinsRegistry;
 
 		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
-		await wallet1.PerformWalletSynchronizationAsync(SyncType.NonTurbo, CancellationToken.None);
+		Assert.Equal(3, coins!.AsAllCoinsView().Count());
 
-		var coins = wallet1.Coins as CoinsRegistry;
+		await wallet1.PerformWalletSynchronizationAsync(SyncType.NonTurbo, CancellationToken.None);
 		Assert.Equal(3, coins!.AsAllCoinsView().Count());
 	}
 
-	private async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(BaseTestElements baseTestElements, TestWallet wallet, IDestination oneKeyOfTestWallet, string callerName)
+	private async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestSetup testSetup, TestWallet wallet, Script oneScriptPubKeyOfTestWallet, string callerName)
 	{
 		KeyManager keyManager = KeyManager.CreateNewWatchOnly(wallet.ExtKey.Derive(KeyPath.Parse("m/84'/0'/0'")).Neuter(), null!);
 		var keys = keyManager.GetKeys(k => true); //Make sure keys are asserted.
 
-		Assert.Contains(keys.Where(key => key.IsInternal), key => key.P2wpkhScript == oneKeyOfTestWallet.ScriptPubKey);
+		Assert.Contains(keys.Where(key => key.IsInternal), key => key.P2wpkhScript == oneScriptPubKeyOfTestWallet);
 
 		var dir = Common.GetWorkDir("WalletSynchronizationTests", callerName);
 
 		// Warning disabled because objects are disposed in the calling function.
 #pragma warning disable CA2000 // Dispose objects before losing scope
-		var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), baseTestElements.Network, new SmartHeaderChain());
+		var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), testSetup.Network, new SmartHeaderChain());
 
-		var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), baseTestElements.Network);
+		var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), testSetup.Network);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
 		var mempoolService = new MempoolService();
@@ -100,7 +112,7 @@ public class WalletSynchronizationTests
 		var blockRepositoryMock = new Mock<IRepository<uint256, Block>>();
 		blockRepositoryMock
 			.Setup(br => br.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.Returns((uint256 hash, CancellationToken _) => Task.FromResult(baseTestElements.BlockChain[hash])!);
+			.Returns((uint256 hash, CancellationToken _) => Task.FromResult(testSetup.BlockChain[hash])!);
 		blockRepositoryMock
 			.Setup(br => br.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns((Block _, CancellationToken _) => Task.CompletedTask);
@@ -108,7 +120,7 @@ public class WalletSynchronizationTests
 		var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blockRepositoryMock.Object);
 		await bitcoinStore.InitializeAsync(); //StartingFilter already added to IndexStore after this line.
 
-		var filters = BuildFiltersForBlockChain(baseTestElements);
+		var filters = BuildFiltersForBlockChain(testSetup);
 		await indexStore.AddNewFiltersAsync(filters.Skip(1));
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
@@ -116,12 +128,12 @@ public class WalletSynchronizationTests
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 		using MemoryCache cache = new(new MemoryCacheOptions());
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(baseTestElements.Network, serviceConfiguration, null);
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(testSetup.Network, serviceConfiguration, null);
 		SmartBlockProvider blockProvider = new(bitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, cache);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(baseTestElements.Network, bitcoinStore, keyManager, synchronizer, dir, serviceConfiguration, feeProvider, blockProvider);
+		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(testSetup.Network, bitcoinStore, keyManager, synchronizer, dir, serviceConfiguration, feeProvider, blockProvider);
 	}
-	private async Task<(TestWallet, IDestination, TestWallet, IDestination)> AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(BaseTestElements baseTestElements)
+	private async Task<(TestWallet, TestWallet)> AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(TestSetup baseTestElements)
 	{
 		baseTestElements.Rpc.OnGenerateToAddressAsync = (blockCount, address) => Task.FromResult(
 			Enumerable
@@ -140,27 +152,26 @@ public class WalletSynchronizationTests
 
 		var minerWallet = new TestWallet("MinerWallet", baseTestElements.Rpc);
 		await minerWallet.GenerateAsync(101, CancellationToken.None);
-		var minerDestination = minerWallet.GetNextDestinations(1, false).Single();
+		var minerCoinbaseDestinationScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
 
 		var wallet = new TestWallet("wallet", baseTestElements.Rpc);
-		var destination = wallet.GetNextInternalDestinations(1).Single();
 
 		baseTestElements.Rpc.OnSendRawTransactionAsync = (tx) =>
 		{
-			CreateBlock(baseTestElements, minerDestination.ScriptPubKey.GetDestinationAddress(baseTestElements.Network)!, new[] { tx });
+			CreateBlock(baseTestElements, minerCoinbaseDestinationScript.GetDestinationAddress(baseTestElements.Network)!, new[] { tx });
 			return tx.GetHash();
 		};
 
-		return (minerWallet, minerDestination, wallet, destination);
+		return (minerWallet, wallet);
 	}
 
-	private async Task SendToAsync(TestWallet spendingWallet, TestWallet receivingWallet, Money amount, Script destinationScript, BaseTestElements baseTestElements, CancellationToken cancel)
+	private async Task SendToAsync(TestWallet spendingWallet, TestWallet receivingWallet, Money amount, Script destinationScript, TestSetup testSetup, CancellationToken cancel)
 	{
-		var tx = await spendingWallet.SendToAsync(amount, destinationScript, baseTestElements.FeeRate, cancel);
+		var tx = await spendingWallet.SendToAsync(amount, destinationScript, testSetup.FeeRate, cancel);
 		receivingWallet.ScanTransaction(tx);
 	}
 
-	private Block CreateBlock(BaseTestElements baseTestElements, BitcoinAddress address, IEnumerable<Transaction>? transactions = null)
+	private Block CreateBlock(TestSetup baseTestElements, BitcoinAddress address, IEnumerable<Transaction>? transactions = null)
 	{
 		Block block = baseTestElements.Network.Consensus.ConsensusFactory.CreateBlock();
 		block.Header.HashPrevBlock = baseTestElements.BlockChain.Keys.LastOrDefault() ?? uint256.Zero;
@@ -182,7 +193,7 @@ public class WalletSynchronizationTests
 		return block;
 	}
 
-	private IEnumerable<FilterModel> BuildFiltersForBlockChain(BaseTestElements baseTestElements)
+	private IEnumerable<FilterModel> BuildFiltersForBlockChain(TestSetup baseTestElements)
 	{
 		Dictionary<OutPoint, Script> outPoints = baseTestElements.BlockChain.Values
 			.SelectMany(block => block.Transactions)
@@ -225,7 +236,7 @@ public class WalletSynchronizationTests
 		return filters;
 	}
 
-	private IEnumerable<uint256> SendSeveralTxSameBlock(IEnumerable<TxSkeleton> txs, BaseTestElements baseTestElements, Script minerDestination, CancellationToken cancel)
+	private IEnumerable<uint256> SendSeveralTxSameBlock(IEnumerable<TxSkeleton> txs, TestSetup baseTestElements, Script minerDestination, CancellationToken cancel)
 	{
 		List<(Transaction Tx, TestWallet SpendingWallet)> signedTxsWithSigner = new();
 		const int FinalSignedTxVirtualSize = 222;
@@ -259,14 +270,14 @@ public class WalletSynchronizationTests
 		return signedTxsWithSigner.Select(x => x.Tx.GetHash());
 	}
 
-	private class BaseTestElements
+	private class TestSetup
 	{
 		public Network Network { get; }
 		public FeeRate FeeRate { get; }
 		public MockRpcClient Rpc { get; }
 		public Dictionary<uint256, Block> BlockChain { get; }
 
-		public BaseTestElements()
+		public TestSetup()
 		{
 			Network = Network.RegTest;
 			FeeRate = FeeRate.Zero;
