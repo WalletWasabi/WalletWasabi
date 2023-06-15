@@ -35,10 +35,10 @@
 
       <Separator />
 
-      <!-- Amount -->
+      <!-- Destination Address -->
       <c:PreviewItem Icon="{StaticResource person_regular}"
                      Label="Destination address"
-                     CopyableContent="{Binding Amount}">
+                     CopyableContent="{Binding DestinationAddress}">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding DestinationAddress}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
