@@ -75,6 +75,15 @@ public static partial class TextHelpers
 
 	public static string ParseLabel(this string text) => ParseLabelRegex().Replace(text, " ").Trim();
 
+	public static string TotalTrim(this string text)
+	{
+		return text
+			.Replace("\r", "")
+			.Replace("\n", "")
+			.Replace("\t", "")
+			.Replace(" ", "");
+	}
+
 	public static string GetPrivacyMask(int repeatCount)
 	{
 		return new string(UiConstants.PrivacyChar, repeatCount);

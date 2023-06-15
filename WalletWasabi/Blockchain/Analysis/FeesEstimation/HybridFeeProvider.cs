@@ -24,7 +24,7 @@ public class HybridFeeProvider : IHostedService
 
 	public RpcFeeProvider? RpcFeeProvider { get; }
 	public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
-	private object Lock { get; } = new object();
+	private object Lock { get; } = new();
 	public AllFeeEstimate? AllFeeEstimate { get; private set; }
 	private AbandonedTasks ProcessingEvents { get; } = new();
 
@@ -129,7 +129,7 @@ public class HybridFeeProvider : IHostedService
 				var accuracy = fees.IsAccurate ? "Accurate" : "Inaccurate";
 				var from = fees.Estimations.First();
 				var to = fees.Estimations.Last();
-				Logger.LogInfo($"{accuracy} fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} at {from.Value} sat/vByte to target {to.Key} at {to.Value} sat/vByte.");
+				Logger.LogInfo($"{accuracy} fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} blocks at {from.Value} sat/vByte to target {to.Key} blocks at {to.Value} sat/vByte.");
 				AllFeeEstimateChanged?.Invoke(this, fees);
 			}
 		}

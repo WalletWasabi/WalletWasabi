@@ -128,8 +128,8 @@ public class CoordinatorRound
 	private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
 	private object RegisteredUnblindedSignaturesLock { get; }
 
-	private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
-	public static AsyncLock ConnectionConfirmationLock { get; } = new AsyncLock();
+	private static AsyncLock RoundSynchronizerLock { get; } = new();
+	public static AsyncLock ConnectionConfirmationLock { get; } = new();
 
 	private object PhaseLock { get; }
 
@@ -223,7 +223,7 @@ public class CoordinatorRound
 	public CoinVerifier? CoinVerifier { get; }
 	public RoundNonceProvider NonceProvider { get; }
 
-	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
+	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new();
 
 	private void SetInputRegistrationTimesout()
 	{
@@ -864,7 +864,7 @@ public class CoordinatorRound
 			}
 
 			// 7.2. Get the most optimal FeeRate.
-			FeeRate optimalFeeRate = (await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			FeeRate optimalFeeRate = (await RpcClient.EstimateConservativeSmartFeeAsync(AdjustedConfirmationTarget).ConfigureAwait(false)).FeeRate;
 
 			if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
 			{
@@ -937,7 +937,7 @@ public class CoordinatorRound
 		var outputSizeInBytes = Constants.OutputSizeInBytes;
 		try
 		{
-			var feeRate = (await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			var feeRate = (await rpc.EstimateConservativeSmartFeeAsync(confirmationTarget).ConfigureAwait(false)).FeeRate;
 
 			// Make sure min relay fee (1000 sat) is hit.
 			feePerInputs = Math.Max(feeRate.GetFee(inputSizeInBytes), Money.Satoshis(500));
@@ -1192,7 +1192,7 @@ public class CoordinatorRound
 					Money networkFee = CoinJoin.GetFee(spentCoins);
 					Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
 					FeeRate feeRate = CoinJoin.GetFeeRate(spentCoins);
-					Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
 					Logger.LogInfo($"Round ({RoundId}): Number of inputs: {CoinJoin.Inputs.Count}.");
 					Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
 					Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");

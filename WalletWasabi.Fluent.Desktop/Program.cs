@@ -90,7 +90,7 @@ public class Program
 			MainViewModel.Instance.StatusIcon.Dispose();
 
 			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
-		});		
+		});
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)

@@ -14,7 +14,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private string? _nextLabel;
 	[AutoNotify] private bool _enableNextKey = true;
 
-	public WelcomePageViewModel(AddWalletPageViewModel addWalletPage)
+	private WelcomePageViewModel(AddWalletPageViewModel addWalletPage)
 	{
 		_addWalletPage = addWalletPage;
 

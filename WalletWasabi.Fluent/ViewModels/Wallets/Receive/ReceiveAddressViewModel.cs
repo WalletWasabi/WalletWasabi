@@ -1,9 +1,10 @@
-using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -14,13 +15,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
+	private readonly IWalletModel _wallet;
+
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
+		_wallet = wallet;
 		UiContext = uiContext;
 		Model = model;
 		Address = model.Text;
 		Labels = model.Labels;
-		IsHardwareWallet = wallet.IsHardwareWallet();
+		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -33,18 +37,12 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		QrCode = UiContext.QrCodeGenerator.Generate(model.Text);
+		QrCode = UiContext.QrCodeGenerator.Generate(model.Text.ToUpperInvariant());
 
 		if (IsAutoCopyEnabled)
 		{
 			CopyAddressCommand.Execute(null);
 		}
-
-		wallet.Addresses
-			.Watch(model.Text)
-			.Where(change => change.Current.IsUsed)
-			.Do(_ => UiContext.Navigate(CurrentTarget).Back())
-			.Subscribe();
 	}
 
 	public bool IsAutoCopyEnabled { get; }
@@ -55,13 +53,25 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	public string Address { get; }
 
-	public IEnumerable<string> Labels { get; }
+	public LabelsArray Labels { get; }
 
 	public bool IsHardwareWallet { get; }
 
 	public IObservable<bool[,]> QrCode { get; }
 
 	private IAddress Model { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_wallet.Addresses
+			.Watch(Model.Text)
+			.Where(change => change.Current.IsUsed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
+	}
 
 	private async Task ShowOnHwWalletAsync()
 	{

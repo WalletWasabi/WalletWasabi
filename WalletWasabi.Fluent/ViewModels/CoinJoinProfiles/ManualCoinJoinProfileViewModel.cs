@@ -1,4 +1,4 @@
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
@@ -11,7 +11,7 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		RedCoinIsolation = redCoinIsolation;
 	}
 
-	public ManualCoinJoinProfileViewModel(KeyManager keyManager) : this(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours, keyManager.RedCoinIsolation)
+	public ManualCoinJoinProfileViewModel(IWalletSettingsModel walletSettings) : this(walletSettings.AnonScoreTarget, walletSettings.FeeRateMedianTimeFrameHours, walletSettings.RedCoinIsolation)
 	{
 	}
 

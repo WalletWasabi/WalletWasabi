@@ -24,6 +24,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -44,7 +45,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
-	private SmartLabel _parsedLabel = SmartLabel.Empty;
+	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
@@ -65,7 +66,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(walletVm);
+		Balances = new WalletModel(_wallet).Balances;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -129,7 +130,7 @@ public partial class SendViewModel : RoutableViewModel
 					await coinJoinManager.WalletEnteredSendingAsync(_wallet);
 				}
 
-				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
+				Navigate().To().TransactionPreview(walletVm, transactionInfo);
 			},
 			nextCommandCanExecute);
 
@@ -137,15 +138,14 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		var exchangeRates = this.WhenAnyValue(x => x.WalletVm.Wallet.Synchronizer.UsdExchangeRate);
-		var balances = this.WhenAnyValue(x => x.WalletVm.UiTriggers.BalanceUpdateTrigger).Select(_ => walletVm.Wallet.Coins.TotalAmount());
-
-		_clipboardObserver = new ClipboardObserver(new WalletBalances(exchangeRates, balances));
+		_clipboardObserver = new ClipboardObserver(Balances);
 	}
 
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged();
+	public IWalletBalancesModel Balances { get; set; }
 
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged();
+	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
+
+	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
@@ -276,7 +276,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			result = true;
 
-			_parsedLabel = url.Label is { } label ? new SmartLabel(label) : SmartLabel.Empty;
+			_parsedLabel = url.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
 
 			PayJoinEndPoint = url.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
@@ -299,7 +299,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
-			_parsedLabel = SmartLabel.Empty;
+			_parsedLabel = LabelsArray.Empty;
 		}
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
@@ -327,8 +327,6 @@ public partial class SendViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
-
-		Balance.Activate(disposables);
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}

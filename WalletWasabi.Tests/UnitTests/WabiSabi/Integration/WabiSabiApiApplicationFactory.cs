@@ -91,11 +91,4 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
 		new(new ClearnetHttpClient(httpClient));
-
-	private static AffiliationManager NewMockAffiliationManager()
-	{
-		Mock<AffiliationManager> mockManager = new();
-		mockManager.Setup(x => x.GetAffiliateInformation()).Returns(AffiliateInformation.Empty);
-		return mockManager.Object;
-	}
 }

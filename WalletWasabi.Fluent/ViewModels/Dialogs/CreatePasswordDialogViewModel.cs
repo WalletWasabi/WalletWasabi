@@ -7,6 +7,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
+[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 {
 	[AutoNotify] private string? _confirmPassword;

@@ -42,7 +42,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public SmartLabel Label { get; init; } = SmartLabel.Empty;
+	public LabelsArray Labels { get; init; }
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -75,11 +75,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
-	protected void SetAmount(Money amount)
+	protected void SetAmount(Money amount, Money? fee)
 	{
 		if (amount < Money.Zero)
 		{
-			OutgoingAmount = amount * -1;
+			OutgoingAmount = -amount - (fee ?? Money.Zero);
 		}
 		else
 		{
@@ -89,17 +89,17 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public virtual bool HasChildren() => false;
 
-	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		return Sort(selector, reverse: false);
+		return Sort(selector, comparer, reverse: false);
 	}
 
-	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		return Sort(selector, reverse: true);
+		return Sort(selector, comparer, reverse: true);
 	}
 
-	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, bool reverse)
+	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer, bool reverse)
 	{
 		return (x, y) =>
 		{
@@ -124,7 +124,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			var result = x.IsConfirmed.CompareTo(y.IsConfirmed);
 			if (result == 0)
 			{
-				result = Comparer<T>.Default.Compare(selector(x), selector(y));
+				var xValue = selector(x);
+				var yValue = selector(y);
+
+				result =
+					comparer?.Compare(xValue, yValue) ??
+					Comparer<T>.Default.Compare(xValue, yValue);
 				result *= ordering;
 			}
 

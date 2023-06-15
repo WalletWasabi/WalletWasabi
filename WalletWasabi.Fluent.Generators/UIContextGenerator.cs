@@ -31,8 +31,8 @@ public class UiContextGenerator : ISourceGenerator
 		}
 
 		var constructors = ProcessViewModels(context, receiver.ClassDeclarations)
-						.OrderBy(x => x.Identifier.ValueText)
-						.ToArray();
+			.OrderBy(x => x.Identifier.ValueText)
+			.ToArray();
 
 		GenerateFluentNavigation(context, constructors);
 	}
@@ -70,10 +70,10 @@ public class UiContextGenerator : ISourceGenerator
 		var className = classSymbol.Name;
 		var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
-		var constructors =
-			classDeclaration.ChildNodes()
-							.OfType<ConstructorDeclarationSyntax>()
-							.ToArray();
+		var constructors = classDeclaration
+			.ChildNodes()
+			.OfType<ConstructorDeclarationSyntax>()
+			.ToArray();
 
 		foreach (var constructor in constructors)
 		{
@@ -95,33 +95,28 @@ public class UiContextGenerator : ISourceGenerator
 			}
 			else
 			{
-				var constructorArgs =
-					  constructor.ParameterList.Parameters
-						  .Select(x => x.Identifier.ValueText)
-						  .ToArray();
+				var constructorArgs = constructor.ParameterList.Parameters
+					.Select(x => x.Identifier.ValueText)
+					.ToArray();
 
 				var hasConstructorArgs = constructorArgs.Any();
 				var constructorArgsString = string.Join(",", constructorArgs);
-				var constructorString =
-					hasConstructorArgs
+				var constructorString = hasConstructorArgs
 					? $": this({constructorArgsString})"
 					: $": this()";
 
-				var parameterUsings =
-					constructor.ParameterList.Parameters
-									  .Where(p => p.Type is not null)
-									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
-									  .Where(t => t.Type is not null)
-									  .Select(t => $"using {t.Type!.ContainingNamespace.ToDisplayString()};")
-									  .ToArray();
+				var parameterUsings = constructor.ParameterList.Parameters
+					.Where(p => p.Type is not null)
+					.Select(p => semanticModel.GetTypeInfo(p.Type!))
+					.Where(t => t.Type is not null)
+					.Select(t => $"using {t.Type!.ContainingNamespace.ToDisplayString()};")
+					.ToArray();
 
-				var uiContextParameter =
-					SyntaxFactory.Parameter(SyntaxFactory.Identifier("uiContext")
-														 .WithLeadingTrivia(SyntaxFactory.Space))
-								 .WithType(SyntaxFactory.ParseTypeName("UiContext"));
+				var uiContextParameter = SyntaxFactory
+					.Parameter(SyntaxFactory.Identifier("uiContext").WithLeadingTrivia(SyntaxFactory.Space))
+					.WithType(SyntaxFactory.ParseTypeName("UiContext"));
 
-				var parametersString =
-					constructor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
+				var parametersString = constructor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
 
 				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
 
@@ -146,11 +141,11 @@ public class UiContextGenerator : ISourceGenerator
 
 				var tree = CSharpSyntaxTree.ParseText(sourceText, context.Compilation.SyntaxTrees.First().Options as CSharpParseOptions);
 
-				var newConstructor =
-					tree.GetRoot()
-						.DescendantNodes()
-						.OfType<ConstructorDeclarationSyntax>()
-						.First();
+				var newConstructor = tree
+					.GetRoot()
+					.DescendantNodes()
+					.OfType<ConstructorDeclarationSyntax>()
+					.First();
 
 				yield return newConstructor;
 			}
@@ -163,10 +158,10 @@ public class UiContextGenerator : ISourceGenerator
 		var namespaces = new List<string>();
 		var methods = new List<string>();
 
-		var newSyntaxTrees =
-			constructors.Select(x => x.SyntaxTree)
-				 .Where(x => !compilation.ContainsSyntaxTree(x))
-				 .ToArray();
+		var newSyntaxTrees = constructors
+			.Select(x => x.SyntaxTree)
+			.Where(x => !compilation.ContainsSyntaxTree(x))
+			.ToArray();
 
 		compilation = compilation.AddSyntaxTrees(newSyntaxTrees);
 
@@ -184,8 +179,7 @@ public class UiContextGenerator : ISourceGenerator
 				continue;
 			}
 
-			var viewModelTypeInfo =
-				semanticModel.GetDeclaredSymbol(cls);
+			var viewModelTypeInfo = semanticModel.GetDeclaredSymbol(cls);
 
 			if (viewModelTypeInfo == null)
 			{
@@ -194,18 +188,14 @@ public class UiContextGenerator : ISourceGenerator
 
 			var className = cls.Identifier.ValueText;
 
-			var constructorNamespaces =
-					constructor.ParameterList.Parameters
-									  .Where(p => p.Type is not null)
-									  .Select(p => semanticModel.GetTypeInfo(p.Type!))
-									  .Where(t => t.Type is not null)
-									  .SelectMany(t => t.Type.GetNamespaces())
-									  .ToArray();
+			var constructorNamespaces = constructor.ParameterList.Parameters
+				.Where(p => p.Type is not null)
+				.Select(p => semanticModel.GetTypeInfo(p.Type!))
+				.Where(t => t.Type is not null)
+				.SelectMany(t => t.Type.GetNamespaces())
+				.ToArray();
 
-			var uiContextParam =
-				constructor.ParameterList
-					.Parameters
-					.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
+			var uiContextParam = constructor.ParameterList.Parameters.FirstOrDefault(x => x.Type.IsUiContextType(semanticModel));
 
 			var methodParams = constructor.ParameterList;
 
@@ -214,24 +204,23 @@ public class UiContextGenerator : ISourceGenerator
 				methodParams = SyntaxFactory.ParameterList(methodParams.Parameters.Remove(uiContextParam));
 			}
 
-			var navigationMetadata =
-				viewModelTypeInfo.GetAttributes()
-								 .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
+			var navigationMetadata = viewModelTypeInfo
+				.GetAttributes()
+				.FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == NavigationMetaDataGenerator.NavigationMetaDataAttributeDisplayString);
 
 			var defaultNavigationTarget = "DialogScreen";
 
 			if (navigationMetadata != null)
 			{
-				var navigationArgument =
-					navigationMetadata.NamedArguments
-									  .FirstOrDefault(x => x.Key == "NavigationTarget");
+				var navigationArgument = navigationMetadata.NamedArguments
+					.FirstOrDefault(x => x.Key == "NavigationTarget");
 
 				if (navigationArgument.Value.Type is INamedTypeSymbol navigationTargetEnum)
 				{
-					var enumValue =
-						navigationTargetEnum.GetMembers()
-											.OfType<IFieldSymbol>()
-											.FirstOrDefault(x => x.ConstantValue?.Equals(navigationArgument.Value.Value) ?? false);
+					var enumValue = navigationTargetEnum
+						.GetMembers()
+						.OfType<IFieldSymbol>()
+						.FirstOrDefault(x => x.ConstantValue?.Equals(navigationArgument.Value.Value) == true);
 
 					if (enumValue != null)
 					{
@@ -263,7 +252,32 @@ public class UiContextGenerator : ISourceGenerator
 
 			var methodName = className.Replace("ViewModel", "");
 
-			var methodString =
+			var (dialogReturnType, dialogReturnTypeNamespace) = cls.GetDialogResultType(semanticModel);
+
+			foreach (var ns in dialogReturnTypeNamespace)
+			{
+				namespaces.Add(ns);
+			}
+
+			if (dialogReturnType is { })
+			{
+				var dialogString =
+					$$"""
+						public FluentDialog<{{dialogReturnType}}> {{methodName}}{{methodParams}}
+						{
+						    var dialog = new {{className}}{{constructorArgs.ToFullString()}};
+							var target = UiContext.Navigate(navigationTarget);
+							target.To(dialog, navigationMode);
+
+							return new FluentDialog<{{dialogReturnType}}>(target.NavigateDialogAsync(dialog, navigationMode));
+						}
+
+					""";
+				methods.Add(dialogString);
+			}
+			else
+			{
+				var methodString =
 				$$"""
 					public void {{methodName}}{{methodParams}}
 					{
@@ -271,20 +285,19 @@ public class UiContextGenerator : ISourceGenerator
 					}
 
 				""";
-			methods.Add(methodString);
+				methods.Add(methodString);
+			}
 		}
 
-		var usings =
-			namespaces.Distinct()
-					  .OrderBy(x => x)
-					  .Select(n => $"using {n};")
-					  .ToArray();
+		var usings = namespaces
+			.Distinct()
+			.OrderBy(x => x)
+			.Select(n => $"using {n};")
+			.ToArray();
 
-		var usingsString =
-			string.Join(Environment.NewLine, usings);
+		var usingsString = string.Join(Environment.NewLine, usings);
 
-		var methodsString =
-			string.Join(Environment.NewLine, methods);
+		var methodsString = string.Join(Environment.NewLine, methods);
 
 		var sourceText =
 			$$"""

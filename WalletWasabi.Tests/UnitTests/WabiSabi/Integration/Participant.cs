@@ -84,15 +84,15 @@ internal class Participant
 
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{
-			var hdPubKey = new HdPubKey(extPubKey.PubKey, KeyPath.Parse($"m/84'/0/0/0/{extPubKey.Child}"), SmartLabel.Empty, KeyState.Clean);
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, KeyPath.Parse($"m/84'/0/0/0/{extPubKey.Child}"), LabelsArray.Empty, KeyState.Clean);
 			hdPubKey.SetAnonymitySet(1); // bug if not settled
 			return hdPubKey;
 		}
 
 		var smartCoins = SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
-		   .Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
-		   .Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
-		   .ToList();
+			.Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
+			.Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
+			.ToList();
 
 		// Run the coinjoin client task.
 		var ret = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(smartCoins), cancellationToken).ConfigureAwait(false);

@@ -7,14 +7,14 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Please wait to shut down...")]
+[NavigationMetaData(Title = "Please wait to shut down...", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ShuttingDownViewModel : RoutableViewModel
 {
 	private readonly ApplicationViewModel _applicationViewModel;
 	private readonly bool _restart;
 	private readonly CoinJoinManager _coinJoinManager;
 
-	public ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
+	private ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
 	{
 		_applicationViewModel = applicationViewModel;
 		_restart = restart;

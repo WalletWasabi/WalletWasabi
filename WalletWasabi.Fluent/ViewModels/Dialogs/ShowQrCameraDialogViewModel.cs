@@ -1,10 +1,9 @@
 using Avalonia.Media.Imaging;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;
@@ -22,12 +21,10 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	public ShowQrCameraDialogViewModel(UiContext context, Network network)
 	{
 		_network = network;
-		
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		UiContext = context;
 	}
-
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -52,11 +49,10 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 				},
 				onError: error =>
 				{
-					RxApp.MainThreadScheduler.Schedule(async () =>
+					Dispatcher.UIThread.Post(async () =>
 					{
-						await ShowErrorAsync(Title, error.Message, "Something went wrong");
-
 						Close();
+						await ShowErrorAsync(Title, error.Message, "Something went wrong", NavigationTarget.CompactDialogScreen);
 					});
 				})
 			.DisposeWith(disposables);

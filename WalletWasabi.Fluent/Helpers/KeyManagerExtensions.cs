@@ -9,9 +9,9 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class KeyManagerExtensions
 {
-	public static IEnumerable<SmartLabel> GetChangeLabels(this KeyManager km) =>
-		km.GetKeys(isInternal: true).Select(x => x.Label);
+	public static IEnumerable<LabelsArray> GetChangeLabels(this KeyManager km) =>
+		km.GetKeys(isInternal: true).Select(x => x.Labels);
 
-	public static IEnumerable<SmartLabel> GetReceiveLabels(this KeyManager km) =>
-		km.GetKeys(isInternal: false).Select(x => x.Label);
+	public static IEnumerable<LabelsArray> GetReceiveLabels(this KeyManager km) =>
+		km.GetKeys(isInternal: false).Select(x => x.Labels);
 }
