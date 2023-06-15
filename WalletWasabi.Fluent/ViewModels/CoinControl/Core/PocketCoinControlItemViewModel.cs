@@ -73,9 +73,9 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		_disposables.Dispose();
 	}
 
-	private static int GetAnonScore(IEnumerable<SmartCoin> pocketCoins)
+	private static int? GetAnonScore(IEnumerable<SmartCoin> pocketCoins)
 	{
-		var allScores = pocketCoins.Select(x => (int)x.AnonymitySet);
+		var allScores = pocketCoins.Select(x => (int?)x.AnonymitySet);
 		return CommonOrDefault(allScores.ToList());
 	}
 
@@ -91,7 +91,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 
 		for (var i = 1; i < list.Count; i++)
 		{
-			if (Equals(list[i], commonItem))
+			if (!Equals(list[i], commonItem))
 			{
 				return default;
 			}
