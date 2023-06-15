@@ -23,14 +23,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
-		if (walletSettings.IsNewWallet)
-		{
-			_selectedProfile = Profiles[1];
-		}
-		else
-		{
-			_selectedProfile = IdentifySelectedProfile(walletSettings);
-		}
+		_selectedProfile = walletSettings.IsNewWallet ? Profiles[1] : IdentifySelectedProfile(walletSettings);
 	}
 
 	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
