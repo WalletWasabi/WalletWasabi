@@ -1431,6 +1431,6 @@ public class TransactionProcessorTests
 			transactionStore,
 			keyManager,
 			Money.Coins(0.0001m),
-			new CoinsRegistry(new CoinPrison()));
+			new CoinsRegistry(new CoinPrison("")));
 	}
 }

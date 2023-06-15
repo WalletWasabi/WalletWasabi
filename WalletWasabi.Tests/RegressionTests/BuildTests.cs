@@ -233,7 +233,7 @@ public class BuildTests
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new());
+		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, coinPrison: new(""));
 
 		var baseTip = await rpc.GetBestBlockHashAsync();
 

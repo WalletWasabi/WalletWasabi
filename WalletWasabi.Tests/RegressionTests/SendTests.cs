@@ -71,7 +71,7 @@ public class SendTests
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new());
+		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, coinPrison: new(""));
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");
@@ -555,7 +555,7 @@ public class SendTests
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new());
+		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, coinPrison: new());
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");

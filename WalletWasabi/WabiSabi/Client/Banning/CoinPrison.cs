@@ -14,10 +14,6 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoinPrison
 {
-	public CoinPrison() : this("")
-	{
-	}
-
 	public CoinPrison(string filePath)
 	{
 		FilePath = filePath;
