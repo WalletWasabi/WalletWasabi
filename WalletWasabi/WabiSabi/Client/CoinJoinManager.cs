@@ -451,6 +451,13 @@ public class CoinJoinManager : BackgroundService
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 
+		if (finishedCoinJoin.BannedCoins.Any())
+		{
+			Wallet currentWallet = (Wallet)wallet;
+			var coinsRegistry = currentWallet.Coins;
+			coinsRegistry.BanCoins(finishedCoinJoin.BannedCoins);
+		}
+
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
 		// When to stop mixing:
@@ -567,13 +574,9 @@ public class CoinJoinManager : BackgroundService
 	private async Task<ICoinsView> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
 	{
 		var coinsRegistry = await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false);
-		var coinCandidates = coinsRegistry
-			.AvailableForCoinJoin()
-			.Confirmed()
-			.Where(coin => !coin.IsExcludedFromCoinJoin)
-			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
-		return new CoinsView(coinCandidates);
+		var coinCandidates = coinsRegistry.AvailableForCoinJoin(CoinRefrigerator, bestHeight);
+
+		return coinCandidates;
 	}
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)

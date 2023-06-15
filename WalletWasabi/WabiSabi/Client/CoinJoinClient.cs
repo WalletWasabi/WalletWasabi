@@ -451,7 +451,9 @@ public class CoinJoinClient
 						{
 							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
 						}
-						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						var bannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						coin.BannedUntilUtc = bannedUntilUtc;
+						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntilUtc));
 						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 						break;
 

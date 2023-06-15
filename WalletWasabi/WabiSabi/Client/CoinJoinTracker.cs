@@ -36,6 +36,7 @@ public class CoinJoinTracker : IDisposable
 
 	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
+	public List<(SmartCoin, DateTimeOffset)> BannedCoins { get; private set; } = new();
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
 
@@ -66,6 +67,10 @@ public class CoinJoinTracker : IDisposable
 
 			case RoundEnded roundEnded:
 				roundEnded.IsStopped = IsStopped;
+				break;
+
+			case CoinBanned coinBanned:
+				BannedCoins.Add((coinBanned.Coin, coinBanned.BanUntilUtc));
 				break;
 		}
 
