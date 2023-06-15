@@ -22,7 +22,7 @@ public class CoinPrison
 	public List<PrisonedCoinRecord> BannedCoins { get; set; } = new();
 	public string FilePath { get; set; }
 
-	public bool IsCoinBanned(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
+	public bool TryGetBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
 		bannedUntil = null;
 		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
@@ -80,6 +80,6 @@ public class CoinPrison
 			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Reseting file.", exc);
 			File.Delete(prisonFilePath);
 		}
-		return new(containingDirectory) { BannedCoins = prisonedCoinsRecord };
+		return new(prisonFilePath) { BannedCoins = prisonedCoinsRecord };
 	}
 }

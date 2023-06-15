@@ -5,6 +5,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
@@ -17,7 +18,7 @@ public class CoinsRegistry : ICoinsView
 	}
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> Coins { get; } = new();
+	private HashSet<SmartCoin> Coins { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
@@ -206,9 +207,9 @@ public class CoinsRegistry : ICoinsView
 		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 	}
 
-	public bool IsCoinBanned(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
+	public bool TryGetBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
-		return CoinPrison.IsCoinBanned(coin, when, out bannedUntil);
+		return CoinPrison.TryGetBannedCoin(coin, when, out bannedUntil);
 	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
@@ -255,7 +256,31 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Available() => AsCoinsView().Available();
 
-	public ICoinsView AvailableForCoinJoin() => new CoinsView(AsCoinsView().Where(coin => !CoinPrison.IsCoinBanned(coin, DateTimeOffset.Now, out _)));
+	public ICoinsView AvailableForCoinJoin(CoinRefrigerator coinRefrigerator, int bestHeight)
+	{
+		var availableCoins = Confirmed()
+			.Available()
+			.Where(coin => !CoinPrison.TryGetBannedCoin(coin, DateTimeOffset.Now, out _))
+			.Where(coin => !coin.IsExcludedFromCoinJoin)
+			.Where(coin => !coin.IsImmature(bestHeight))
+			.Where(coin => !coinRefrigerator.IsFrozen(coin))
+			.ToHashSet();
+
+		return new CoinsRegistry(CoinPrison)
+		{
+			Coins = availableCoins,
+			LatestCoinsSnapshot = LatestCoinsSnapshot,
+			LatestSpentCoinsSnapshot = LatestSpentCoinsSnapshot
+		};
+	}
+
+	public void BanCoins(List<(SmartCoin Coin, DateTimeOffset BannedUntilUtc)> bannedCoins)
+	{
+		foreach (var banInfo in bannedCoins)
+		{
+			CoinPrison.Add(banInfo.Coin, banInfo.BannedUntilUtc);
+		}
+	}
 
 	public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
 
