@@ -33,7 +33,7 @@ public class WalletSynchronizationTests
 	// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
 	public async Task InternalAddressReuseNoBlockOverlapTestAsync()
 	{
-		var testSetup = new TestSetup();
+		using var testSetup = new TestSetup("InternalAddressReuseNoBlockOverlapTestAsync");
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -63,7 +63,7 @@ public class WalletSynchronizationTests
 	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
 	{
-		var testSetup = new TestSetup();
+		using var testSetup = new TestSetup("InternalAddressReuseWithBlockOverlapTestAsync");
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -98,14 +98,9 @@ public class WalletSynchronizationTests
 
 		Assert.Contains(keys.Where(key => key.IsInternal), key => key.P2wpkhScript == oneScriptPubKeyOfTestWallet);
 
-		var dir = Common.GetWorkDir("WalletSynchronizationTests", callerName);
+		var indexStore = testSetup.IndexStore;
 
-		// Warning disabled because objects are disposed in the calling function.
-#pragma warning disable CA2000 // Dispose objects before losing scope
-		var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), testSetup.Network, new SmartHeaderChain());
-
-		var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), testSetup.Network);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+		var transactionStore = testSetup.TransactionStore;
 
 		var mempoolService = new MempoolService();
 
@@ -131,7 +126,7 @@ public class WalletSynchronizationTests
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(testSetup.Network, serviceConfiguration, null);
 		SmartBlockProvider blockProvider = new(bitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, cache);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(testSetup.Network, bitcoinStore, keyManager, synchronizer, dir, serviceConfiguration, feeProvider, blockProvider);
+		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(testSetup.Network, bitcoinStore, keyManager, synchronizer, testSetup.Dir, serviceConfiguration, feeProvider, blockProvider);
 	}
 	private async Task<(TestWallet, TestWallet)> AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(TestSetup baseTestElements)
 	{
@@ -270,19 +265,31 @@ public class WalletSynchronizationTests
 		return signedTxsWithSigner.Select(x => x.Tx.GetHash());
 	}
 
-	private class TestSetup
+	private class TestSetup : IDisposable
 	{
 		public Network Network { get; }
 		public FeeRate FeeRate { get; }
 		public MockRpcClient Rpc { get; }
 		public Dictionary<uint256, Block> BlockChain { get; }
+		public IndexStore IndexStore { get; }
+		public AllTransactionStore TransactionStore { get; }
+		public string Dir { get; }
 
-		public TestSetup()
+		public TestSetup(string callerName)
 		{
 			Network = Network.RegTest;
 			FeeRate = FeeRate.Zero;
 			Rpc = new MockRpcClient();
 			BlockChain = new Dictionary<uint256, Block>();
+			Dir = Common.GetWorkDir("WalletSynchronizationTests", callerName);
+			IndexStore = new IndexStore(Path.Combine(Dir, "indexStore"), Network, new SmartHeaderChain());
+			TransactionStore = new AllTransactionStore(Path.Combine(Dir, "transactionStore"), Network);
+		}
+
+		public async void Dispose()
+		{
+			await IndexStore.DisposeAsync();
+			await TransactionStore.DisposeAsync();
 		}
 	}
 
