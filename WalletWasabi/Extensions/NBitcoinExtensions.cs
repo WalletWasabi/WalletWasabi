@@ -490,4 +490,7 @@ public static class NBitcoinExtensions
 
 		return ownershipProof;
 	}
+	
+	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
+		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 }
