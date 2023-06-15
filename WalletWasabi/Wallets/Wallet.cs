@@ -553,7 +553,7 @@ public class Wallet : BackgroundService, IWallet
 	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
-		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new());
+		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, coinPrison: new(""));
 		return wallet;
 	}
 
