@@ -80,11 +80,11 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 	}
 
 	/// <summary>
-	/// Return the common item in the list. If there's any item that is not equal, it returns <c>default</c>.
+	/// Returns the common item in the list, if any.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="list"></param>
-	/// <returns></returns>
+	/// <typeparam name="T">Type of the item</typeparam>
+	/// <param name="list">List of items to determine the common item.</param>
+	/// <returns>The common item or <c>default</c> if there is no common item.</returns>
 	private static T? CommonOrDefault<T>(IList<T> list)
 	{
 		var commonItem = list[0];
