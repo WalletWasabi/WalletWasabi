@@ -2,9 +2,10 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.AddWallet;
-public partial class WelcomePage4 : UserControl
+
+public class WelcomePage3View : UserControl
 {
-	public WelcomePage4()
+	public WelcomePage3View()
 	{
 		InitializeComponent();
 	}

@@ -3,7 +3,48 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePage3">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePage3View">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.Animated">
+      <Setter Property="Background">
+        <Setter.Value>
+          <LinearGradientBrush>
+            <GradientStop Offset="0" Color="#3234D286" />
+            <GradientStop Offset="1" Color="#34D286" />
+          </LinearGradientBrush>
+        </Setter.Value>
+      </Setter>
+      <Style.Animations>
+        <Animation Duration="0:0:1" Delay="0:0:1">
+          <Animation.Easing>
+            <CubicEaseIn />
+          </Animation.Easing>
+          <KeyFrame Cue="0%">
+            <Setter Property="Background">
+              <Setter.Value>
+                <LinearGradientBrush>
+                  <GradientStop Offset="0" Color="Transparent" />
+                  <GradientStop Offset="0" Color="Transparent" />
+                </LinearGradientBrush>
+              </Setter.Value>
+            </Setter>
+          </KeyFrame>
+          <KeyFrame Cue="5%">
+            <Setter Property="Background">
+              <Setter.Value>
+                <LinearGradientBrush>
+                  <GradientStop Offset="0" Color="#1F34D286" />
+                  <GradientStop Offset="1" Color="#2934D286" />
+                </LinearGradientBrush>
+              </Setter.Value>
+            </Setter>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
   <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
     <TextBlock Text="Full Fee Transparency" Classes="title1" DockPanel.Dock="Top" Margin="0 -60 0 0" />

@@ -39,4 +39,19 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\AddWallet\WelcomePage1View.axaml.cs">
+	    <DependentUpon>WelcomePage1View.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\AddWallet\WelcomePage2View.axaml.cs">
+	    <DependentUpon>WelcomePage2View.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\AddWallet\WelcomePage3View.axaml.cs">
+	    <DependentUpon>WelcomePage3View.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\AddWallet\WelcomePage4View.axaml.cs">
+	    <DependentUpon>WelcomePage4View.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>

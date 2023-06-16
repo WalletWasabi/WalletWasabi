@@ -1,7 +1,7 @@
 using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Metadata;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.Controls.Wizard;
 
 public class WizardPage
 {

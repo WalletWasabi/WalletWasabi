@@ -2,13 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
-             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:addWallet1="clr-namespace:WalletWasabi.Fluent.Views.AddWallet"
+             xmlns:wizard="clr-namespace:WalletWasabi.Fluent.Controls.Wizard"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
@@ -39,73 +38,36 @@
       <Setter Property="FontSize" Value="31" />
     </Style>
 
-    <Style Selector="TextBlock.Animated">
-      <Setter Property="Background">
-        <Setter.Value>
-          <LinearGradientBrush>
-            <GradientStop Offset="0" Color="#3234D286" />
-            <GradientStop Offset="1" Color="#34D286" />
-          </LinearGradientBrush>
-        </Setter.Value>
-      </Setter>
-      <Style.Animations>
-        <Animation Duration="0:0:1" Delay="0:0:1">
-          <Animation.Easing>
-            <CubicEaseIn />
-          </Animation.Easing>
-          <KeyFrame Cue="0%">
-            <Setter Property="Background">
-              <Setter.Value>
-                <LinearGradientBrush>
-                  <GradientStop Offset="0" Color="Transparent" />
-                  <GradientStop Offset="0" Color="Transparent" />
-                </LinearGradientBrush>
-              </Setter.Value>
-            </Setter>
-          </KeyFrame>
-          <KeyFrame Cue="5%">
-            <Setter Property="Background">
-              <Setter.Value>
-                <LinearGradientBrush>
-                  <GradientStop Offset="0" Color="#1F34D286" />
-                  <GradientStop Offset="1" Color="#2934D286" />
-                </LinearGradientBrush>
-              </Setter.Value>
-            </Setter>
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
   </UserControl.Styles>
 
   <UserControl.DataTemplates>
-    <DataTemplate DataType="fluent:WizardPage">
+    <DataTemplate DataType="wizard:WizardPage">
       <ContentControl ContentTemplate="{Binding Template}" />
     </DataTemplate>
   </UserControl.DataTemplates>
 
   <UserControl.Resources>
     <collections:ArrayList x:Key="Pages" x:CompileBindings="False">
-      <fluent:WizardPage NextText="Get started">
+      <wizard:WizardPage NextText="Get started">
         <DataTemplate>
-          <addWallet1:WelcomePage1 />
+          <addWallet1:WelcomePage1View />
         </DataTemplate>
-      </fluent:WizardPage>
-      <fluent:WizardPage NextText="Fees">
+      </wizard:WizardPage>
+      <wizard:WizardPage NextText="Fees">
         <DataTemplate>
-          <addWallet1:WelcomePage2 />
+          <addWallet1:WelcomePage2View />
         </DataTemplate>
-      </fluent:WizardPage>
-      <fluent:WizardPage NextText="Continue">
+      </wizard:WizardPage>
+      <wizard:WizardPage NextText="Continue">
         <DataTemplate>
-          <addWallet1:WelcomePage3 />
+          <addWallet1:WelcomePage3View />
         </DataTemplate>
-      </fluent:WizardPage>
-      <fluent:WizardPage>
+      </wizard:WizardPage>
+      <wizard:WizardPage>
         <DataTemplate>
-          <addWallet1:WelcomePage4 />
+          <addWallet1:WelcomePage4View />
         </DataTemplate>
-      </fluent:WizardPage>
+      </wizard:WizardPage>
     </collections:ArrayList>
   </UserControl.Resources>
 
@@ -150,8 +112,8 @@
       </ListBox>
       <Button Command="{Binding NextCommand}" Width="130" Height="40"
               HorizontalContentAlignment="Center"
-              Opacity="{Binding #Carousel.((fluent:WizardPage)SelectedItem).IsNextVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
-              Content="{Binding #Carousel.((fluent:WizardPage)SelectedItem).NextText, FallbackValue=''}"
+              Opacity="{Binding #Carousel.((wizard:WizardPage)SelectedItem).IsNextVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+              Content="{Binding #Carousel.((wizard:WizardPage)SelectedItem).NextText, FallbackValue=''}"
               Classes="action" HorizontalAlignment="Right" />
     </Panel>
     <Carousel x:Name="Carousel" SelectedIndex="{Binding SelectedIndex}"
