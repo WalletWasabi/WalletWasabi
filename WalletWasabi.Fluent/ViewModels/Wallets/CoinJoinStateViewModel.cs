@@ -31,7 +31,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingRoundMessage = "Waiting for a round";
 	private const string PlebStopMessage = "Coinjoining might be uneconomical";
 	private const string PlebStopMessageBelow = "Receive more funds or press Play to bypass";
-	private const string NoCoinsEligibleToMixMessage = "Not enough funds eligible to coinjoin";
+	private const string NoCoinsEligibleToMixMessage = "Not enough funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Waiting for closed send dialog";
 	private const string AllPrivateMessage = "Hurray! Your funds are private";
 	private const string GeneralErrorMessage = "Waiting for valid conditions";
