@@ -93,6 +93,50 @@ public class WalletSynchronizationTests
 	}
 
 	[Fact]
+	// Reuse 2 internal keys then send all funds away, then receive on first one, send to second one, then send on an external key.
+	// This aims to make sure that the CoinsRegistry will catch all the history.
+	public async Task InternalAddressReuseChainThenSpendOnExternalKeyTestAsync()
+	{
+		await using var testSetup = new TestSetup("InternalAddressReuseThenSpendOnExternalKeyTestAsync");
+		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
+
+		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
+		var firstInternalKeyScript = wallet.GetNextInternalDestinations(1).Single().ScriptPubKey;
+		var secondInternalKeyScript = wallet.GetNextInternalDestinations(1).Single().ScriptPubKey;
+		var walletExternalKeyScript = wallet.GetNextDestinations(1, false).Single().ScriptPubKey;
+
+		// First address reuse and send money away
+		await SendToAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, testSetup, CancellationToken.None);
+		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, testSetup, CancellationToken.None);
+		await SendToAsync(minerWallet, wallet, Money.Coins(2), firstInternalKeyScript, testSetup, CancellationToken.None);
+		await SendToAsync(wallet, minerWallet, Money.Coins(2), minerFirstKeyScript, testSetup, CancellationToken.None);
+
+		// Second address reuse and send money away
+		await SendToAsync(minerWallet, wallet, Money.Coins(1), secondInternalKeyScript, testSetup, CancellationToken.None);
+		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, testSetup, CancellationToken.None);
+		await SendToAsync(minerWallet, wallet, Money.Coins(2), secondInternalKeyScript, testSetup, CancellationToken.None);
+		await SendToAsync(wallet, minerWallet, Money.Coins(2), minerFirstKeyScript, testSetup, CancellationToken.None);
+
+		// Receive again on first internal key
+		await SendToAsync(minerWallet, wallet, Money.Coins(3), firstInternalKeyScript, testSetup, CancellationToken.None);
+
+		// Self spend the coins to second internal key
+		await SendToAsync(wallet, wallet, Money.Coins(3), secondInternalKeyScript, testSetup, CancellationToken.None);
+
+		// Self spend the coins to an external key
+		await SendToAsync(wallet, wallet, Money.Coins(3), walletExternalKeyScript, testSetup, CancellationToken.None);
+
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseNoBlockOverlapTestAsync");
+		var coins = wallet1.Coins as CoinsRegistry;
+
+		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
+		Assert.Single(coins!.Available());
+
+		await wallet1.PerformWalletSynchronizationAsync(SyncType.NonTurbo, CancellationToken.None);
+		Assert.Equal(7, coins!.AsAllCoinsView().Count());
+	}
+
+	[Fact]
 	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
 	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
