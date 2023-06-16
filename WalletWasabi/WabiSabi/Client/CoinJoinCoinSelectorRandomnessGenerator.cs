@@ -9,12 +9,21 @@ namespace WalletWasabi.WabiSabi.Client;
 /// </summary>
 public class CoinJoinCoinSelectorRandomnessGenerator
 {
-	public CoinJoinCoinSelectorRandomnessGenerator(WasabiRandom rnd)
+	public CoinJoinCoinSelectorRandomnessGenerator(int maxInputsCount, WasabiRandom rnd)
 	{
 		Rnd = rnd;
+		MaxInputsCount = maxInputsCount;
+
+		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
+		for (int i = 1; i <= maxInputsCount; i++)
+		{
+			Distance.Add(i, Math.Abs(i - maxInputsCount));
+		}
 	}
 
 	public WasabiRandom Rnd { get; }
+	private int MaxInputsCount { get; }
+	private Dictionary<int, int> Distance { get; } = new();
 
 	public virtual int GetRandomBiasedSameTxAllowance(int percent)
 	{
@@ -36,16 +45,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	/// <returns>A number: 1, 2, .., <see cref="CoinJoinCoinSelector.MaxInputsRegistrableByWallet"/>.</returns>
 	public virtual int GetInputTarget()
 	{
-		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
-		int targetInputCount = CoinJoinCoinSelector.MaxInputsRegistrableByWallet;
-
-		var distance = new Dictionary<int, int>();
-		for (int i = 1; i <= CoinJoinCoinSelector.MaxInputsRegistrableByWallet; i++)
-		{
-			distance.TryAdd(i, Math.Abs(i - targetInputCount));
-		}
-
-		foreach (var best in distance.OrderBy(x => x.Value))
+		foreach (var best in Distance.OrderBy(x => x.Value))
 		{
 			if (Rnd.GetInt(0, 10) < 5)
 			{
@@ -53,6 +53,6 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 			}
 		}
 
-		return targetInputCount;
+		return MaxInputsCount;
 	}
 }

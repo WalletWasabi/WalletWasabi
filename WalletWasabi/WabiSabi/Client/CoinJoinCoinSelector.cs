@@ -32,7 +32,7 @@ public class CoinJoinCoinSelector
 		AnonScoreTarget = anonScoreTarget;
 		SemiPrivateThreshold = semiPrivateThreshold;
 
-		Generator = generator ?? new(SecureRandom.Instance);
+		Generator = generator ?? new(MaxInputsRegistrableByWallet, SecureRandom.Instance);
 	}
 
 	public bool ConsolidationMode { get; }

@@ -252,7 +252,7 @@ public class CoinJoinCoinSelectionTests
 	private static CoinJoinCoinSelectorRandomnessGenerator CreateSelectorGenerator(int inputTarget, int? sameTxAllowance = null)
 	{
 		WasabiRandom rng = InsecureRandom.Instance;
-		Mock<CoinJoinCoinSelectorRandomnessGenerator> mockGenerator = new(MockBehavior.Loose, rng) { CallBase = true };
+		Mock<CoinJoinCoinSelectorRandomnessGenerator> mockGenerator = new(MockBehavior.Loose, CoinJoinCoinSelector.MaxInputsRegistrableByWallet, rng) { CallBase = true };
 		_ = mockGenerator.Setup(c => c.GetInputTarget())
 			.Returns(inputTarget);
 
