@@ -370,7 +370,8 @@ public class CoinJoinCoinSelector
 		where TCoin : ISmartCoin
 	{
 		var effectiveInputSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
-		if (effectiveInputSum >= parameters.AllowedOutputAmounts.Min)
+		var maxInputSize = parameters.AllowedInputScriptTypes.Max(x => x.EstimateInputVsize());
+		if (effectiveInputSum >= parameters.AllowedOutputAmounts.Min + parameters.MiningFeeRate.GetFee(maxInputSize))
 		{
 			var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
 			return groups.TryAdd(k, group);

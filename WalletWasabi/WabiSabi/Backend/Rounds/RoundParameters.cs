@@ -140,7 +140,7 @@ public record RoundParameters
 				maxAllowedOutputAmount,
 				feeRate,
 				new List<ScriptType>() { maxVsizeInputOutputPairScriptType })
-			.Min(x => x.EffectiveCost);
+			.Min(x => x.Amount);
 
 		return smallestEffectiveDenom is null
 			? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.")

@@ -80,7 +80,7 @@ public class AmountDecomposer
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
 
 		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
-		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
+		if (MinAllowedOutputAmount + ChangeFee > myInputSum)
 		{
 			throw new InvalidOperationException("Not enough coins registered to participate in the coinjoin.");
 		}
