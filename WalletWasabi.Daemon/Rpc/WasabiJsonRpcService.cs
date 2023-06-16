@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -18,6 +18,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Daemon.Rpc;
 
+[SuppressMessage("ReSharper", "CoVariantArrayConversion")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
 public class WasabiJsonRpcService : IJsonRpcService
 {
 	public WasabiJsonRpcService(Global global)
@@ -35,18 +38,19 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(x => new
-		{
-			txid = x.TransactionId.ToString(),
-			index = x.Index,
-			amount = x.Amount.Satoshi,
-			anonymitySet = x.HdPubKey.AnonymitySet,
-			confirmed = x.Confirmed,
-			confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-			label = x.HdPubKey.Label.ToString(),
-			keyPath = x.HdPubKey.FullKeyPath.ToString(),
-			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
-		}).ToArray();
+		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(
+			x => new
+			{
+				txid = x.TransactionId.ToString(),
+				index = x.Index,
+				amount = x.Amount.Satoshi,
+				anonymityScore = x.HdPubKey.AnonymitySet,
+				confirmed = x.Confirmed,
+				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+				label = x.HdPubKey.Labels.ToString(),
+				keyPath = x.HdPubKey.FullKeyPath.ToString(),
+				address = x.HdPubKey.GetAddress(Global.Network).ToString()
+			}).ToArray();
 	}
 
 	[JsonRpcMethod("listcoins")]
@@ -60,18 +64,19 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
 		}
-		return coinRegistry.AsAllCoinsView().Select(x => new
-		{
-			txid = x.TransactionId.ToString(),
-			index = x.Index,
-			amount = x.Amount.Satoshi,
-			anonymitySet = x.HdPubKey.AnonymitySet,
-			confirmed = x.Confirmed,
-			confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-			keyPath = x.HdPubKey.FullKeyPath.ToString(),
-			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString(),
-			spentBy = x.SpenderTransaction?.GetHash().ToString()
-		}).ToArray();
+		return coinRegistry.AsAllCoinsView().Select(
+			x => new
+			{
+				txid = x.TransactionId.ToString(),
+				index = x.Index,
+				amount = x.Amount.Satoshi,
+				anonymityScore = x.HdPubKey.AnonymitySet,
+				confirmed = x.Confirmed,
+				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+				keyPath = x.HdPubKey.FullKeyPath.ToString(),
+				address = x.HdPubKey.GetAddress(Global.Network).ToString(),
+				spentBy = x.SpenderTransaction?.GetHash().ToString()
+			}).ToArray();
 	}
 
 	[JsonRpcMethod("createwallet", initializable: false)]
@@ -91,15 +96,30 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var km = activeWallet.KeyManager;
+		var accounts = new[]
+		{
+			new
+			{
+				name = "segwit",
+				publicKey = km.SegwitExtPubKey.ToString(Global.Network),
+				keyPath = $"m/{km.SegwitAccountKeyPath}"
+			}
+		};
 		return new
 		{
 			walletName = activeWallet.WalletName,
 			walletFile = km.FilePath,
-			State = activeWallet.State.ToString(),
-			extendedAccountPublicKey = km.SegwitExtPubKey.ToString(Global.Network),
-			extendedAccountZpub = km.SegwitExtPubKey.ToZpub(Global.Network),
-			accountKeyPath = $"m/{km.SegwitAccountKeyPath}",
+			state = activeWallet.State.ToString(),
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
+			accounts = km.TaprootExtPubKey is { } taprootExtPubKey
+					? accounts.Append(
+						new
+						{
+							name = "taproot",
+							publicKey = taprootExtPubKey.ToString(Global.Network),
+							keyPath = $"m/{km.TaprootAccountKeyPath}"
+						})
+					: accounts,
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
 						.Sum(c => c.Amount.Satoshi)
@@ -113,15 +133,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label));
+		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new LabelsArray(label));
 
 		return new
 		{
-			address = hdKey.GetP2wpkhAddress(Global.Network).ToString(),
+			address = hdKey.GetAddress(Global.Network).ToString(),
 			keyPath = hdKey.FullKeyPath.ToString(),
-			label = hdKey.Label,
+			label = hdKey.Labels.ToString(),
 			publicKey = hdKey.PubKey.ToHex(),
-			p2wpkh = hdKey.P2wpkhScript.ToHex()
+			scriptPubKey = hdKey.GetAssumedScriptPubKey().ToHex()
 		};
 	}
 
@@ -145,13 +165,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 			filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
 			network = Global.Network.Name,
 			exchangeRate = sync.UsdExchangeRate,
-			peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(x => new
-			{
-				isConnected = x.IsConnected,
-				lastSeen = x.LastSeen,
-				endpoint = x.Peer.Endpoint.ToString(),
-				userAgent = x.PeerVersion.UserAgent,
-			}).ToArray(),
+			peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(
+				x => new
+				{
+					isConnected = x.IsConnected,
+					lastSeen = x.LastSeen,
+					endpoint = x.Peer.Endpoint.ToString(),
+					userAgent = x.PeerVersion.UserAgent,
+				}).ToArray(),
 		};
 	}
 
@@ -165,9 +186,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var sync = Global.Synchronizer;
-		var payment = new PaymentIntent(payments.Select(p =>
-			new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
+		var payment = new PaymentIntent(
+			payments.Select(
+				p =>
+				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
 		var result = activeWallet.BuildTransaction(
 			password,
@@ -216,15 +238,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 		AssertWalletIsLoaded();
 		var txHistoryBuilder = new TransactionHistoryBuilder(activeWallet);
 		var summary = txHistoryBuilder.BuildHistorySummary();
-		return summary.Select(x => new
-		{
-			datetime = x.DateTime,
-			height = x.Height.Value,
-			amount = x.Amount.Satoshi,
-			label = x.Label,
-			tx = x.TransactionId,
-			islikelycoinjoin = x.IsOwnCoinjoin
-		}).ToArray();
+		return summary.Select(
+			x => new
+			{
+				datetime = x.DateTime,
+				height = x.Height.Value,
+				amount = x.Amount.Satoshi,
+				label = x.Labels.ToString(),
+				tx = x.TransactionId,
+				islikelycoinjoin = x.IsOwnCoinjoin
+			}).ToArray();
 	}
 
 	[JsonRpcMethod("listkeys")]
@@ -234,17 +257,18 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var keys = activeWallet.KeyManager.GetKeys();
-		return keys.Select(x => new
-		{
-			fullKeyPath = x.FullKeyPath.ToString(),
-			@internal = x.IsInternal,
-			keyState = x.KeyState,
-			label = x.Label.ToString(),
-			p2wpkhScript = x.P2wpkhScript.ToString(),
-			pubkey = x.PubKey.ToString(),
-			pubKeyHash = x.PubKeyHash.ToString(),
-			address = x.GetP2wpkhAddress(Global.Network).ToString()
-		}).ToArray();
+		return keys.Select(
+			x => new
+			{
+				fullKeyPath = x.FullKeyPath.ToString(),
+				@internal = x.IsInternal,
+				keyState = x.KeyState,
+				label = x.Labels.ToString(),
+				scriptPubKey = x.GetAssumedScriptPubKey().ToString(),
+				pubkey = x.PubKey.ToString(),
+				pubKeyHash = x.PubKeyHash.ToString(),
+				address = x.GetAddress(Global.Network).ToString()
+			}).ToArray();
 	}
 
 	[JsonRpcMethod("startcoinjoin")]

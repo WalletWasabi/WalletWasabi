@@ -167,7 +167,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
@@ -217,7 +217,7 @@ public class CoinJoinClient
 		var waitRoundEndedTask = Task.Run(async () =>
 		{
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitRoundEndedTaskCts.Token, cancellationToken);
-			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, linkedCts.Token).ConfigureAwait(false);
+			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.Ended, linkedCts.Token).ConfigureAwait(false);
 
 			// Indicate that the round was ended. Cancel ongoing operations those are using this CTS.
 			roundEndedCts.Cancel();
@@ -247,7 +247,17 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+
+			try
+			{
+				roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
+				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), ex);
+			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
 
@@ -266,7 +276,12 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+			
+			// Coinjoin succeeded but wallet had no input in it.
+			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
+			{
+				throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "No inputs participated in this round.");
+			}
 
 			return roundState.EndRoundState switch
 			{
@@ -310,7 +325,7 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
@@ -364,7 +379,6 @@ public class CoinJoinClient
 		{
 			PersonCircuit? personCircuit = null;
 			bool disposeCircuit = true;
-
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
@@ -392,35 +406,69 @@ public class CoinJoinClient
 			}
 			catch (WabiSabiProtocolException wpe)
 			{
-				if (wpe.ErrorCode is WabiSabiProtocolErrorCode.RoundNotFound)
+				switch (wpe.ErrorCode)
 				{
-					// if the round does not exist then it ended/aborted.
-					registrationsCts.Cancel();
-					confirmationsCts.Cancel();
-					roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
-				}
-				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
-				{
-					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
-					{
-						roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
-						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
-						{
-							// Cancel all remaining pending input registrations because they will arrive late too.
-							registrationsCts.Cancel();
+					case WabiSabiProtocolErrorCode.RoundNotFound:
+						// if the round does not exist then it ended/aborted.
+						roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
+						registrationsCts.Cancel();
+						confirmationsCts.Cancel();
+						break;
 
-							if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+					case WabiSabiProtocolErrorCode.WrongPhase:
+						if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
+						{
+							roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
+							if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 							{
-								// Cancel all remaining pending connection confirmations because they will arrive late too.
-								confirmationsCts.Cancel();
+								// Cancel all remaining pending input registrations because they will arrive late too.
+								registrationsCts.Cancel();
+
+								if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+								{
+									// Cancel all remaining pending connection confirmations because they will arrive late too.
+									confirmationsCts.Cancel();
+								}
 							}
 						}
-					}
-					else
-					{
-						throw new InvalidOperationException(
-							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
-					}
+						else
+						{
+							throw new InvalidOperationException(
+								$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
+						}
+						break;
+
+					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+						roundState.LogInfo($"{coin.Coin.Outpoint} was already registered.");
+						break;
+
+					case WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection:
+						roundState.LogInfo($"{coin.Coin.Outpoint} already confirmed connection.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputSpent:
+						coin.SpentAccordingToBackend = true;
+						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+						if (inputBannedExData is null)
+						{
+							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+						}
+						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+						coin.SpentAccordingToBackend = false;
+						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
+						break;
+
+					default:
+						roundState.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
+						break;
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -530,7 +578,7 @@ public class CoinJoinClient
 					x => x.ScriptPubKey,
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
-				.All(x => x >= 0L);
+				.All(x => x >= Money.Zero);
 
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}

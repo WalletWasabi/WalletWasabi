@@ -26,7 +26,7 @@
       </MenuItem>
       <MenuItem Header="Copy Label"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Label, StringFormat={}{0}}">
+                CommandParameter="{Binding Labels, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource entities_regular}" />
         </MenuItem.Icon>

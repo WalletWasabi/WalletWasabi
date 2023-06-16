@@ -16,7 +16,7 @@ public class Kitchen
 
 	private string? Salt { get; set; } = null;
 	private string? Soup { get; set; } = null;
-	private object RefrigeratorLock { get; } = new object();
+	private object RefrigeratorLock { get; } = new();
 
 	[MemberNotNullWhen(returnValue: true, nameof(Salt), nameof(Soup))]
 	public bool HasIngredients => Salt is not null && Soup is not null;

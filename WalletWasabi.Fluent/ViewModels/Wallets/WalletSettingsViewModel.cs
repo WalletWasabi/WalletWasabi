@@ -1,9 +1,9 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -18,33 +18,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
-	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
+	private WalletSettingsViewModel(IWalletModel walletModel)
 	{
-		_wallet = walletViewModelBase.Wallet;
-		Title = $"{_wallet.WalletName} - Wallet Settings";
-		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
-		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
-		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
+		_wallet = walletModel;
+		Title = $"{_wallet.Name} - Wallet Settings";
+		_preferPsbtWorkflow = _wallet.Settings.PreferPsbtWorkflow;
+		IsHardwareWallet = _wallet.IsHardwareWallet;
+		IsWatchOnly = _wallet.IsWatchOnlyWallet;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand =
-			ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
+		// TODO: Finish partial refactor
+		// this must be removed after VerifyRecoveryWords has been decoupled
+		var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(wallet));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
-			.Subscribe(
-				value =>
-				{
-					_wallet.KeyManager.PreferPsbtWorkflow = value;
-					_wallet.KeyManager.ToFile();
-					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-				});
+			.Subscribe(value =>
+			{
+				_wallet.Settings.PreferPsbtWorkflow = value;
+				_wallet.Settings.Save();
+			});
 	}
 
 	public bool IsHardwareWallet { get; }

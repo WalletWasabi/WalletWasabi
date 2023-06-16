@@ -161,7 +161,7 @@ public class SmartCoinSelectorTests
 		// Create cluster-grouped keys
 		foreach (var targetCoin in coins)
 		{
-			var key = KeyManager.GenerateNewKey(new SmartLabel(targetCoin.Cluster), KeyState.Clean, false);
+			var key = KeyManager.GenerateNewKey(new LabelsArray(targetCoin.Cluster), KeyState.Clean, false);
 
 			if (!generatedKeyGroup.ContainsKey(targetCoin.Cluster))
 			{

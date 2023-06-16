@@ -6,7 +6,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Coinjoin Strategy Settings")]
+[NavigationMetaData(Title = "Coinjoin Strategy Settings", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	[AutoNotify] private bool _redCoinIsolation;
@@ -52,7 +52,5 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		}
 	}
 
-	public record ManualCoinJoinProfileDialogViewModelResult(ManualCoinJoinProfileViewModel Profile)
-	{
-	}
+	public record ManualCoinJoinProfileDialogViewModelResult(ManualCoinJoinProfileViewModel Profile);
 }

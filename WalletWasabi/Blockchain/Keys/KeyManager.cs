@@ -189,7 +189,7 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
-	public int AnonScoreTarget { get; private set; } = DefaultAnonScoreTarget;
+	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTarget;
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
@@ -315,7 +315,7 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	internal HdPubKey GenerateNewKey(LabelsArray labels, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
 							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
@@ -324,15 +324,15 @@ public class KeyManager
 		{
 			var view = HdPubKeyCache.GetView(hdPubKeyRegistry.KeyPath);
 			var (keyPath, extPubKey) = hdPubKeyRegistry.GenerateNewKey(view);
-			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, label, keyState);
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, labels, keyState);
 			HdPubKeyCache.AddKey(hdPubKey, scriptPubKeyType);
 			return hdPubKey;
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(SmartLabel label)
+	public HdPubKey GetNextReceiveKey(LabelsArray labels)
 	{
-		if (label.IsEmpty)
+		if (labels.IsEmpty)
 		{
 			throw new InvalidOperationException("Label is required.");
 		}
@@ -341,7 +341,7 @@ public class KeyManager
 		{
 			// Find the next clean external key with empty label.
 			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-			if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
+			if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is not { } newKey)
 			{
 				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
 				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
@@ -349,7 +349,7 @@ public class KeyManager
 
 				newKey = newHdPubKeys.First();
 			}
-			newKey.SetLabel(label);
+			newKey.SetLabel(labels);
 
 			SkipSynchronization = false;
 
@@ -392,15 +392,6 @@ public class KeyManager
 			({ } k, null) => GetKeys(x => x.KeyState == k),
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
-
-	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
-	{
-		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		lock (CriticalStateLock)
-		{
-			return HdPubKeyCache.GetView(keySource.KeyPath);
-		}
-	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
@@ -580,7 +571,7 @@ public class KeyManager
 		var availableCandidates = HdPubKeyCache
 			.GetView(hdPubKeyGenerator.KeyPath)
 			.CleanKeys
-			.Where(x => x.Label.IsEmpty)
+			.Where(x => x.Labels.IsEmpty)
 			.Take(missingLockedKeys)
 			.ToList();
 
@@ -624,7 +615,7 @@ public class KeyManager
 			return BlockchainState.Height;
 		}
 	}
-	
+
 	public Height GetBestTurboSyncHeight()
 	{
 		lock (CriticalStateLock)
@@ -656,7 +647,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.TurboSyncHeight = height;
-			
+
 			if (toFile)
 			{
 				ToFile();
@@ -704,7 +695,7 @@ public class KeyManager
 			}
 		}
 	}
-	
+
 	public void SetIcon(string icon)
 	{
 		Icon = icon;
@@ -716,16 +707,7 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetAnonScoreTarget(int anonScoreTarget, bool toFile = true)
-	{
-		AnonScoreTarget = anonScoreTarget;
-		if (toFile)
-		{
-			ToFile();
-		}
-	}
-
-	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
+	public void SetFeeRateMedianTimeFrame(int hours)
 	{
 		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
 		{
@@ -733,10 +715,6 @@ public class KeyManager
 		}
 
 		FeeRateMedianTimeFrameHours = hours;
-		if (toFile)
-		{
-			ToFile();
-		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
@@ -761,7 +739,7 @@ public class KeyManager
 	#endregion BlockchainState
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
-		new(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
+		new(x.ExtPubKey.PubKey, x.KeyPath, LabelsArray.Empty, KeyState.Clean);
 
 	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
 	{

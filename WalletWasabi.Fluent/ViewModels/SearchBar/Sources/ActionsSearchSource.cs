@@ -39,7 +39,7 @@ public class ActionsSearchSource : ISearchSource
 				var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category ?? "No category", m.Keywords)
 				{
 					Icon = m.IconName,
-					IsDefault = true,
+					IsDefault = true
 				};
 				return searchItem;
 			});
