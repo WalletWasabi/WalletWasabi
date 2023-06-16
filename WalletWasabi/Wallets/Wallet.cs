@@ -114,7 +114,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
-	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
+	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 1;
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
@@ -142,10 +142,11 @@ public class Wallet : BackgroundService, IWallet
 		return KeyManager.GetNextReceiveKey(new LabelsArray(destinationLabels));
 	}
 
-	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
+	public double GetPrivacyPercentage()
 	{
-		var privateAmount = coins.FilterBy(x => x.IsPrivate(privateThreshold)).TotalAmount();
-		var normalAmount = coins.FilterBy(x => !x.IsPrivate(privateThreshold)).TotalAmount();
+		var coins = new CoinsView(Coins);
+		var privateAmount = coins.FilterBy(x => x.IsPrivate(AnonScoreTarget)).TotalAmount();
+		var normalAmount = coins.FilterBy(x => !x.IsPrivate(AnonScoreTarget)).TotalAmount();
 
 		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
 		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
