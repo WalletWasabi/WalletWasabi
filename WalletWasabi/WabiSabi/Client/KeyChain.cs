@@ -35,6 +35,8 @@ public class KeyChain : IKeyChain
 		{
 			KeyManager.SetKeyState(state, hdPubKey);
 		}
+
+		KeyManager.ToFile();
 	}
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)

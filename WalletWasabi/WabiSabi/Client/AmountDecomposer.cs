@@ -15,44 +15,30 @@ public class AmountDecomposer
 	/// <param name="minAllowedOutputAmount">Min output amount that's allowed to be registered.</param>
 	/// <param name="maxAllowedOutputAmount">Max output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, bool isTaprootAllowed, Random? random = null)
+	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, IEnumerable<ScriptType> allowedOutputTypes)
 	{
 		FeeRate = feeRate;
 
 		AvailableVsize = availableVsize;
-		IsTaprootAllowed = isTaprootAllowed;
+		AllowedOutputTypes = allowedOutputTypes;
 		MinAllowedOutputAmount = minAllowedOutputAmount;
 		MaxAllowedOutputAmount = maxAllowedOutputAmount;
 
-		Random = random ?? Random.Shared;
-
 		// Create many standard denominations.
-		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, IsTaprootAllowed, Random);
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes);
 
-		ChangeScriptType = GetNextScriptType(IsTaprootAllowed, Random);
+		ChangeScriptType = AllowedOutputTypes.RandomElement();
 	}
 
 	public FeeRate FeeRate { get; }
 	public int AvailableVsize { get; }
-	public bool IsTaprootAllowed { get; }
+	public IEnumerable<ScriptType> AllowedOutputTypes { get; }
 	public Money MinAllowedOutputAmount { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
 	public IOrderedEnumerable<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
-	private Random Random { get; }
-
-	public static ScriptType GetNextScriptType(bool isTaprootAllowed, Random random)
-	{
-		if (!isTaprootAllowed)
-		{
-			return ScriptType.P2WPKH;
-		}
-
-		return random.NextDouble() < 0.5 ? ScriptType.P2WPKH : ScriptType.Taproot;
-	}
 
 	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
@@ -92,6 +78,12 @@ public class AmountDecomposer
 		var myInputSum = myInputs.Sum();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
+
+		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
+		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
+		{
+			throw new InvalidOperationException("Not enough coins registered to participate in the coinjoin.");
+		}
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();
 
@@ -269,13 +261,6 @@ public class AmountDecomposer
 			{
 				// This goes to miners.
 				loss = remaining;
-			}
-
-			// This can happen when smallest denom is larger than the input sum.
-			if (currentSet.Count == 0)
-			{
-				var change = Output.FromAmount(remaining, ChangeScriptType, FeeRate);
-				currentSet.Add(change);
 			}
 
 			setCandidates.TryAdd(

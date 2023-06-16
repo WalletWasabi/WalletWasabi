@@ -63,14 +63,9 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			km.SetIcon(Type);
 
 			// TODO: remove this after current ViewModel has been decoupled
-			var wallet =
-				new WalletModel(
-					new WalletWasabi.Wallets.Wallet(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network,
-						km));
+			var walletSettings = new WalletSettingsModel(km, true);
 
-			Navigate().To().AddedWalletPage(wallet);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{

@@ -1,22 +1,25 @@
 using ReactiveUI;
 using System.Linq;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(Title = "Success")]
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
-	private readonly IWalletModel _wallet;
+	private readonly IWalletSettingsModel _walletSettings;
 
-	private AddedWalletPageViewModel(IWalletModel wallet)
+	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings)
 	{
-		_wallet = wallet;
+		_walletSettings = walletSettings;
 
-		WalletName = wallet.Name;
-		WalletType = wallet.WalletType;
+		WalletName = walletSettings.WalletName;
+		WalletType = walletSettings.WalletType;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 		EnableBack = false;
@@ -34,6 +37,13 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		// Temporary workaround until refactoring is completed.
 		MainViewModel.Instance.NavBar.SelectedWallet =
-			MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name);
+			MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _walletSettings.WalletName);
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		UiContext.WalletList.SaveWallet(_walletSettings);
 	}
 }
