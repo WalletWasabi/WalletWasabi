@@ -38,7 +38,7 @@
       <!-- Destination Address -->
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Label="Destination addresses"
-                     CopyableContent="{Binding DestinationAddressesList}">
+                     CopyableContent="{Binding DestinationAddressesText}">
         <ItemsControl Items="{Binding DestinationAddresses}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
