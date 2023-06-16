@@ -9,7 +9,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePage4View">
   <Grid Width="530" Height="350"
-        DataContext="{Binding $parent[p:WelcomePageView].((addWallet:WelcomePageViewModel)DataContext)}">
+        DataContext="{Binding $parent[p:WelcomePageView].((addWallet:WelcomePageViewModel)DataContext)}"
+        ColumnDefinitions="*,*,*" RowDefinitions="*,Auto,*">
     <Grid.Styles>
       <Style Selector="c|TileButton">
         <Setter Property="Cursor" Value="Hand" />
@@ -51,17 +52,6 @@
       </Style>
     </Grid.Styles>
 
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition />
-      <ColumnDefinition />
-      <ColumnDefinition />
-    </Grid.ColumnDefinitions>
-
-    <Grid.RowDefinitions>
-      <RowDefinition />
-      <RowDefinition Height="Auto" />
-      <RowDefinition />
-    </Grid.RowDefinitions>
     <c:TileButton Text="Create a new wallet"
                   Grid.ColumnSpan="3"
                   Classes="action bottomtext"
