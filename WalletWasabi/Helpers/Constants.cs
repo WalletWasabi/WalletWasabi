@@ -60,7 +60,12 @@ public static class Constants
 	public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+	/// <summary>Executable file name of Wasabi Wallet Daemon application (without extension).</summary>
+	public const string DaemonExecutableName = $"{ExecutableName}d";
+
+	/// <summary>Executable file name of Wasabi Wallet UI application (without extension).</summary>
 	public const string ExecutableName = "wassabee";
+
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
