@@ -88,7 +88,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		SetNextWord();
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletList.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 
@@ -139,36 +139,18 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
-		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.", enableEmpty: true),
-			NavigationTarget.CompactDialogScreen);
+		var dialogCaption = "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.";
+		var password = await Navigate().To().CreatePasswordDialog("Add Password", dialogCaption, enableEmpty: true).GetResultAsync();
 
-		if (dialogResult.Result is { } password)
+		if (password is { })
 		{
 			IsBusy = true;
 
-			var (km, mnemonic) = await Task.Run(
-				() =>
-				{
-					var walletGenerator = new WalletGenerator(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network)
-					{
-						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
-					};
-					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
-				});
+			var walletSettings = await UiContext.WalletList.CreateNewWalletAsync(_walletName, password, _mnemonic);
+
 			IsBusy = false;
 
-			// TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
-			var walletModel =
-				new WalletModel(
-					new WalletWasabi.Wallets.Wallet(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network,
-						km));
-
-			await Navigate().To().CoinJoinProfiles(walletModel, true).GetResultAsync();
+			await Navigate().To().CoinJoinProfiles(walletSettings).GetResultAsync();
 		}
 	}
 

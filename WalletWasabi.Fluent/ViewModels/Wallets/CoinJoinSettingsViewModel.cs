@@ -51,7 +51,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 				}
 				else
 				{
-					await Navigate().To().CoinJoinProfiles(_wallet, false).GetResultAsync();
+					await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
 				}
 
 				if (_wallet.Settings.IsCoinjoinProfileSelected)
@@ -105,7 +105,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 	private async Task SelectCoinjoinProfileAsync()
 	{
-		await Navigate().To().CoinJoinProfiles(_wallet, false).GetResultAsync();
+		await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
 		AutoCoinJoin = _wallet.Settings.AutoCoinjoin;
 	}
 }
