@@ -33,7 +33,7 @@ public class WalletSynchronizationTests
 	// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
 	public async Task InternalAddressReuseNoBlockOverlapTestAsync()
 	{
-		using var testSetup = new TestSetup("InternalAddressReuseNoBlockOverlapTestAsync");
+		await using var testSetup = new TestSetup("InternalAddressReuseNoBlockOverlapTestAsync");
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -63,7 +63,7 @@ public class WalletSynchronizationTests
 	// Verifies that the wallet will process the spend correctly when it doesn't have the coins in its CoinsRegistry at the time of spending.
 	public async Task InternalAddressReuseThenSpendOnExternalKeyTestAsync()
 	{
-		using var testSetup = new TestSetup("InternalAddressReuseThenSpendOnExternalKeyTestAsync");
+		await using var testSetup = new TestSetup("InternalAddressReuseThenSpendOnExternalKeyTestAsync");
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -97,7 +97,7 @@ public class WalletSynchronizationTests
 	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
 	{
-		using var testSetup = new TestSetup("InternalAddressReuseWithBlockOverlapTestAsync");
+		await using var testSetup = new TestSetup("InternalAddressReuseWithBlockOverlapTestAsync");
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -299,7 +299,7 @@ public class WalletSynchronizationTests
 		return signedTxsWithSigner.Select(x => x.Tx.GetHash());
 	}
 
-	private class TestSetup : IDisposable
+	private class TestSetup : IAsyncDisposable
 	{
 		public Network Network { get; }
 		public FeeRate FeeRate { get; }
@@ -320,7 +320,7 @@ public class WalletSynchronizationTests
 			TransactionStore = new AllTransactionStore(Path.Combine(Dir, "transactionStore"), Network);
 		}
 
-		public async void Dispose()
+		public async ValueTask DisposeAsync()
 		{
 			await IndexStore.DisposeAsync();
 			await TransactionStore.DisposeAsync();
