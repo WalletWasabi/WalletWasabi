@@ -90,7 +90,7 @@ public class TransactionProcessor
 		}
 	}
 
-	public ProcessedResult Process(SmartTransaction tx)
+	public ProcessedResult Process(SmartTransaction tx, bool force = false)
 	{
 		ProcessedResult ret;
 		lock (Lock)
@@ -99,7 +99,7 @@ public class TransactionProcessor
 			try
 			{
 				QueuedTxCount = 1;
-				ret = ProcessNoLock(tx);
+				ret = ProcessNoLock(tx, force);
 			}
 			finally
 			{
@@ -113,7 +113,7 @@ public class TransactionProcessor
 		return ret;
 	}
 
-	private ProcessedResult ProcessNoLock(SmartTransaction tx)
+	private ProcessedResult ProcessNoLock(SmartTransaction tx, bool force = false)
 	{
 		var result = new ProcessedResult(tx);
 

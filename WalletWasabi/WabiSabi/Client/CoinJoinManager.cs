@@ -9,10 +9,12 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -521,6 +523,16 @@ public class CoinJoinManager : BackgroundService
 			{
 				k.KeyChain?.TrySetScriptStates(state, scripts);
 			}
+		}
+	}
+
+	private async Task MakeWalletsBelieveTransactionAsync(Transaction tx)
+	{
+		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
+		foreach (var wallet in wallets.OfType<Wallet>())
+		{
+			var smartTransaction = new SmartTransaction(tx, Height.Mempool);
+			wallet.TransactionProcessor.Process(smartTransaction);
 		}
 	}
 
