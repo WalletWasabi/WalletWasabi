@@ -30,6 +30,9 @@ public static class AvaloniaExtensions
 		}
 		window.Show();
 		window.Topmost = true;
-		window.Topmost = false;
+		if (window.Topmost)
+		{
+			window.Topmost = false;
+		}
 	}
 }
