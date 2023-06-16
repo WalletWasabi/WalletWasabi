@@ -12,7 +12,11 @@ public interface IWalletListModel
 
 	bool HasWallet { get; }
 
-	Task<IWalletModel> RecoverWallet(string walletName, string password, Mnemonic mnemonic, int minGapLimit);
+	Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit);
+
+	Task<IWalletSettingsModel> CreateNewWalletAsync(string walletName, string password, Mnemonic mnemonic);
+
+	IWalletModel SaveWallet(IWalletSettingsModel walletSettings);
 
 	void StoreLastSelectedWallet(IWalletModel wallet);
 }

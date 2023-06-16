@@ -3,8 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -60,7 +62,10 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
 			km.SetIcon(Type);
 
-			Navigate().To().AddedWalletPage(km);
+			// TODO: remove this after current ViewModel has been decoupled
+			var walletSettings = new WalletSettingsModel(km, true);
+
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{
