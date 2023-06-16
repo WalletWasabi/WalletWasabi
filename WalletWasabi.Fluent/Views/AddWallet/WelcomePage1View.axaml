@@ -9,14 +9,14 @@
       <Image.Resources>
         <LinearGradientBrush x:Key="Brush0" StartPoint="40.660156,13.597656" EndPoint="24.507812,41.289062">
           <LinearGradientBrush.GradientStops>
-            <GradientStop Offset="0" Color="{DynamicResource WasabiLogo1}" />
-            <GradientStop Offset="0.254" Color="{DynamicResource WasabiLogo2}" />
-            <GradientStop Offset="0.544" Color="{DynamicResource WasabiLogo3}" />
-            <GradientStop Offset="0.8000001" Color="{DynamicResource WasabiLogo4}" />
-            <GradientStop Offset="0.993" Color="{DynamicResource WasabiLogo5}" />
+            <GradientStop Offset="0" Color="{DynamicResource WelcomePageLogoColor1}" />
+            <GradientStop Offset="0.254" Color="{DynamicResource WelcomePageLogoColor2}" />
+            <GradientStop Offset="0.544" Color="{DynamicResource WelcomePageLogoColor3}" />
+            <GradientStop Offset="0.8000001" Color="{DynamicResource WelcomePageLogoColor4}" />
+            <GradientStop Offset="0.993" Color="{DynamicResource WelcomePageLogoColor5}" />
           </LinearGradientBrush.GradientStops>
         </LinearGradientBrush>
-        <SolidColorBrush x:Key="Brush1" Color="{DynamicResource WasabiLogo6}" />
+        <SolidColorBrush x:Key="Brush1" Color="{DynamicResource WelcomePageLogoColor6}" />
       </Image.Resources>
       <DrawingImage>
         <DrawingGroup>

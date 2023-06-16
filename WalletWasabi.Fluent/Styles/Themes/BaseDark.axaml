@@ -49,12 +49,12 @@
           <Color x:Key="ActionColorLight2">#FF1FA75D</Color>
           <Color x:Key="ActionColorLight3">#FF159148</Color>
           <Color x:Key="ActionColor">#34D286</Color>
-          <Color x:Key="WasabiLogo1">#FFFFFFFF</Color>
-          <Color x:Key="WasabiLogo2">#FFE0E0E0</Color>
-          <Color x:Key="WasabiLogo3">#FFC5C5C5</Color>
-          <Color x:Key="WasabiLogo4">#FFB4B4B4</Color>
-          <Color x:Key="WasabiLogo5">#FFAFAFAF</Color>
-          <Color x:Key="WasabiLogo6">#FF77C600</Color>
+          <Color x:Key="WelcomePageLogoColor1">#FFFFFFFF</Color>
+          <Color x:Key="WelcomePageLogoColor2">#FFE0E0E0</Color>
+          <Color x:Key="WelcomePageLogoColor3">#FFC5C5C5</Color>
+          <Color x:Key="WelcomePageLogoColor4">#FFB4B4B4</Color>
+          <Color x:Key="WelcomePageLogoColor5">#FFAFAFAF</Color>
+          <Color x:Key="WelcomePageLogoColor6">#FF77C600</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
