@@ -43,13 +43,13 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(transactionSummary);
 	}
 
-	public string DestinationAddressesText { get; set; }
+	public string DestinationAddressesText { get; }
 
-	public IEnumerable<BitcoinAddress> DestinationAddresses { get; set; }
+	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
 
-	public bool IsFeeVisible { get; set; }
+	public bool IsFeeVisible { get; }
 
-	public Money? Fee { get; set; }
+	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
