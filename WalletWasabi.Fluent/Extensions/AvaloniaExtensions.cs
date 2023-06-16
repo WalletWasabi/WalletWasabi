@@ -29,6 +29,7 @@ public static class AvaloniaExtensions
 			window.Hide();
 		}
 		window.Show();
+
 		window.Topmost = true;
 		if (window.Topmost)
 		{
