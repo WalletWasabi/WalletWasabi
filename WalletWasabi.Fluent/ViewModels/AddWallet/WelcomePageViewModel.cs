@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -31,9 +32,9 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		NextCommand = ReactiveCommand.Create(() => SelectedIndex++, CanGoNext);
 		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 
-		CreateWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletNamePage(WalletCreationOption.AddNewWallet));
+		CreateWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletName(WalletCreationOption.AddNewWallet));
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletNamePage(WalletCreationOption.ConnectToHardwareWallet));
-		ImportWalletCommand = ReactiveCommand.Create(OnImportWalletAsync);
+		ImportWalletCommand = ReactiveCommand.CreateFromTask(OnImportWalletAsync);
 		RecoverWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletNamePage(WalletCreationOption.RecoverWallet));
 	}
 
@@ -65,7 +66,11 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			}
 
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To().AddedWalletPage(keyManager);
+
+			// TODO: Remove this after current ViewModel is decoupled
+			var walletSettings = new WalletSettingsModel(keyManager, true);
+
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{
