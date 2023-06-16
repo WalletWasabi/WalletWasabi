@@ -24,11 +24,15 @@ public static class AvaloniaExtensions
 			return;
 		}
 
-		if (window.IsVisible)
+		if (!window.IsActive)
 		{
-			window.Hide();
+			if (window.IsVisible)
+			{
+				window.Hide();
+			}
+
+			window.Show();
 		}
-		window.Show();
 
 		window.Topmost = true;
 		if (window.Topmost)
