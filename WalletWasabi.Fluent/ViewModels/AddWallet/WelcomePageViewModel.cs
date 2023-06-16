@@ -32,7 +32,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		NextCommand = ReactiveCommand.Create(() => SelectedIndex++, CanGoNext);
 		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 
-		CreateWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletName(WalletCreationOption.AddNewWallet));
+		CreateWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletNamePage(WalletCreationOption.AddNewWallet));
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletNamePage(WalletCreationOption.ConnectToHardwareWallet));
 		ImportWalletCommand = ReactiveCommand.CreateFromTask(OnImportWalletAsync);
 		RecoverWalletCommand = ReactiveCommand.Create(() => uiContext.Navigate().To().WalletNamePage(WalletCreationOption.RecoverWallet));
