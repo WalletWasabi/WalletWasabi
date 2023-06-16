@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePage3">
+  <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+    <TextBlock Text="Full Fee Transparency" Classes="title1" DockPanel.Dock="Top" Margin="0 -60 0 0" />
+    <UniformGrid Columns="2">
+
+      <UniformGrid.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="TextAlignment" Value="Left" />
+          <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="StackPanel">
+          <Setter Property="Margin" Value="20" />
+        </Style>
+      </UniformGrid.Styles>
+
+      <StackPanel>
+        <TextBlock TextAlignment="Left" Text="Coinjoin Fee" Classes="title2" />
+        <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Text="Mining Fee" Classes="title2" />
+        <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Text="Plebs don't pay" Classes="title2 Animated" />
+        <TextBlock Text="Coins less than or equal to 0.01 BTC don't pay the coordination fees at all."
+                   Classes="text" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Text="Friends don't pay" Classes="title2 Animated" />
+        <TextBlock
+          Text="Transaction outputs one hop from a coinjoin away as well remixes are besides a mining fee free."
+          Classes="text" />
+      </StackPanel>
+    </UniformGrid>
+  </DockPanel>
+</UserControl>

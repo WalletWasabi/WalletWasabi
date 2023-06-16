@@ -86,197 +86,24 @@
 
   <UserControl.Resources>
     <collections:ArrayList x:Key="Pages" x:CompileBindings="False">
-
       <fluent:WizardPage NextText="Get started">
         <DataTemplate>
-          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-            <Image Width="120" Margin="0 -50 0 0">
-              <Image.Resources>
-                <LinearGradientBrush x:Key="Brush0" StartPoint="40.660156,13.597656" EndPoint="24.507812,41.289062">
-                  <LinearGradientBrush.GradientStops>
-                    <GradientStop Offset="0" Color="{DynamicResource WasabiLogo1}" />
-                    <GradientStop Offset="0.254" Color="{DynamicResource WasabiLogo2}" />
-                    <GradientStop Offset="0.544" Color="{DynamicResource WasabiLogo3}" />
-                    <GradientStop Offset="0.8000001" Color="{DynamicResource WasabiLogo4}" />
-                    <GradientStop Offset="0.993" Color="{DynamicResource WasabiLogo5}" />
-                  </LinearGradientBrush.GradientStops>
-                </LinearGradientBrush>
-                <SolidColorBrush x:Key="Brush1" Color="{DynamicResource WasabiLogo6}" />
-              </Image.Resources>
-              <DrawingImage>
-                <DrawingGroup>
-                  <GeometryDrawing Brush="Transparent" Geometry="F1M0,0L69.3,0L69.3,55.1L0,55.1z" />
-                  <GeometryDrawing Brush="{DynamicResource Brush0}"
-                                   Geometry="F1 M47.8 25.1C42.6 15.7 39.5 6.6 38.5 1.2C34.5 3.6 31.8 4.8 27.8 7.2C29.4 14 31.9 20.6 35.3 26.7L21.1 26.7C20.7 26.2 20.3 25.7 20 25.1C15.5 17.6 12.5 9.5 10.8 1C6.9 3.4 4 4.8 0 7.2C2.2 16.6 6.2 25.5 11.6 33.5C16.9 41.2 23.6 47.9 31.4 53C34.7 49.9 37.2 47.5 40.5 44.4C37 42 33.7 39.3 30.6 36.4L41.5 36.4C46.6 42.8 52.8 48.3 59.6 52.8C62.9 49.7 65 47.5 68.3 44.3C64.6 42.1 61.2 39.4 58.1 36.3L69 36.3L69 26.5L48.9 26.5C48.5 26.2 48.1 25.6 47.8 25.1Z" />
-                  <GeometryDrawing Brush="{DynamicResource Brush1}"
-                                   Geometry="F1 M56.7 0L69.2 0L69.2 12.5L56.7 12.5L56.7 0Z" />
-                </DrawingGroup>
-              </DrawingImage>
-            </Image>
-            <TextBlock Text="Welcome to Wasabi Wallet" Classes="title1" />
-            <TextBlock Text="The 1st Rule of Wasabi" Classes="title2" HorizontalAlignment="Center" />
-            <TextBlock Text="&quot;Wasabi is for self defense and self defense only&quot;" Classes="text" />
-          </StackPanel>
+          <addWallet1:WelcomePage1 />
         </DataTemplate>
       </fluent:WizardPage>
       <fluent:WizardPage NextText="Fees">
         <DataTemplate>
-          <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-
-            <TextBlock DockPanel.Dock="Top" Text="Start using Wasabi Wallet" Classes="title1" Margin="0 -60 0 0" />
-            <UniformGrid>
-
-              <UniformGrid.Styles>
-                <Style Selector="TextBlock">
-                  <Setter Property="TextAlignment" Value="Left" />
-                  <Setter Property="TextWrapping" Value="Wrap" />
-                </Style>
-                <Style Selector="StackPanel">
-                  <Setter Property="Margin" Value="20" />
-                </Style>
-              </UniformGrid.Styles>
-
-              <StackPanel>
-                <TextBlock Text="Bitcoin Wallet" Classes="title2" />
-                <TextBlock Text="Receive and send money, securely and privately." Classes="text" />
-              </StackPanel>
-              <StackPanel>
-                <TextBlock Text="Private by default" Classes="title2" />
-                <TextBlock Text="Because your transactions are nobody else's business." Classes="text" />
-              </StackPanel>
-              <StackPanel>
-                <TextBlock Text="Non-custodial" Classes="title2" />
-                <TextBlock Text="You are in full control. Nobody can steal from you." Classes="text" />
-              </StackPanel>
-              <StackPanel>
-                <TextBlock Text="Open Source" Classes="title2" />
-                <TextBlock Text="Verify what's going on and help us improve." Classes="text" />
-              </StackPanel>
-            </UniformGrid>
-          </DockPanel>
+          <addWallet1:WelcomePage2 />
         </DataTemplate>
       </fluent:WizardPage>
       <fluent:WizardPage NextText="Continue">
         <DataTemplate>
-          <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-
-            <TextBlock Text="Full Fee Transparency" Classes="title1" DockPanel.Dock="Top" Margin="0 -60 0 0" />
-            <UniformGrid Columns="2">
-
-              <UniformGrid.Styles>
-                <Style Selector="TextBlock">
-                  <Setter Property="TextAlignment" Value="Left" />
-                  <Setter Property="TextWrapping" Value="Wrap" />
-                </Style>
-                <Style Selector="StackPanel">
-                  <Setter Property="Margin" Value="20" />
-                </Style>
-              </UniformGrid.Styles>
-
-              <StackPanel>
-                <TextBlock TextAlignment="Left" Text="Coinjoin Fee" Classes="title2" />
-                <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
-              </StackPanel>
-              <StackPanel>
-                <TextBlock Text="Mining Fee" Classes="title2" />
-                <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
-              </StackPanel>
-              <StackPanel>
-                <TextBlock Text="Plebs don't pay" Classes="title2 Animated" />
-                <TextBlock Text="Coins less than or equal to 0.01 BTC don't pay the coordination fees at all."
-                           Classes="text" />
-              </StackPanel>
-              <StackPanel>
-                <TextBlock Text="Friends don't pay" Classes="title2 Animated" />
-                <TextBlock
-                  Text="Transaction outputs one hop from a coinjoin away as well remixes are besides a mining fee free."
-                  Classes="text" />
-              </StackPanel>
-            </UniformGrid>
-          </DockPanel>
+          <addWallet1:WelcomePage3 />
         </DataTemplate>
       </fluent:WizardPage>
       <fluent:WizardPage>
         <DataTemplate>
-          <Grid Width="530" Height="350" DataContext="{Binding $parent[addWallet1:WelcomePageView].((addWallet:WelcomePageViewModel)DataContext)}">
-
-            <Grid.Styles>
-              <Style Selector="c|TileButton">
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="Width">
-                  <Setter.Value>
-                    <system:Double>NaN</system:Double>
-                  </Setter.Value>
-                </Setter>
-                <Setter Property="Height">
-                  <Setter.Value>
-                    <system:Double>NaN</system:Double>
-                  </Setter.Value>
-                </Setter>
-                <Setter Property="Margin" Value="10"></Setter>
-                <Setter Property="Template">
-                  <ControlTemplate>
-                    <Border x:Name="PART_Border"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            Background="{TemplateBinding Background}">
-                      <Grid RowDefinitions="5* 4*">
-                        <Panel Grid.Row="0">
-                          <PathIcon x:Name="PART_Icon"
-                                    Data="{TemplateBinding Icon}"
-                                    Width="{TemplateBinding IconSize}"
-                                    Height="{TemplateBinding IconSize}" />
-                        </Panel>
-                        <TextBlock Grid.Row="1" x:Name="PART_Text"
-                                   DockPanel.Dock="Bottom"
-                                   Text="{TemplateBinding Text}"
-                                   Foreground="{TemplateBinding Foreground}" />
-                      </Grid>
-                    </Border>
-                  </ControlTemplate>
-                </Setter>
-              </Style>
-              <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
-                <Setter Property="Margin" Value="0" />
-              </Style>
-            </Grid.Styles>
-
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition />
-              <ColumnDefinition />
-              <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-
-            <Grid.RowDefinitions>
-              <RowDefinition />
-              <RowDefinition Height="Auto" />
-              <RowDefinition />
-            </Grid.RowDefinitions>
-            <c:TileButton Text="Create a new wallet"
-                          Grid.ColumnSpan="3"
-                          Classes="action bottomtext"
-                          Icon="{StaticResource add_regular}"
-                          Command="{Binding CreateWalletCommand}" />
-
-            <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or" />
-
-            <c:TileButton Grid.Row="2" Grid.Column="0" Text="Connect to hardware wallet"
-                          Icon="{StaticResource calculator_regular}"
-                          Classes="bottomtext"
-                          Command="{Binding ConnectHardwareWalletCommand}">
-
-            </c:TileButton>
-
-            <c:TileButton Grid.Row="2" Grid.Column="1" Text="Import a wallet"
-                          Icon="{StaticResource import_regular}"
-                          Classes="bottomtext"
-                          Command="{Binding ImportWalletCommand}" />
-
-            <c:TileButton Grid.Row="2" Grid.Column="2" Text="Recover a wallet"
-                          Icon="{StaticResource recover_arrow_right_regular}"
-                          Classes="bottomtext"
-                          Command="{Binding RecoverWalletCommand}" />
-          </Grid>
+          <addWallet1:WelcomePage4 />
         </DataTemplate>
       </fluent:WizardPage>
     </collections:ArrayList>
