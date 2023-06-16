@@ -114,7 +114,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
-	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 1;
+	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
@@ -142,17 +142,12 @@ public class Wallet : BackgroundService, IWallet
 		return KeyManager.GetNextReceiveKey(new LabelsArray(destinationLabels));
 	}
 
-	public double GetPrivacyPercentage()
+	public int GetPrivacyPercentage()
 	{
-		var coins = new CoinsView(Coins);
-		var privateAmount = coins.FilterBy(x => x.IsPrivate(AnonScoreTarget)).TotalAmount();
-		var normalAmount = coins.FilterBy(x => !x.IsPrivate(AnonScoreTarget)).TotalAmount();
+		var currentPrivacyScore = Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, x.IsPrivate(AnonScoreTarget) ? AnonScoreTarget - 1 : AnonScoreTarget - 2));
+		var maxPrivacyScore = Coins.TotalAmount().Satoshi * (AnonScoreTarget - 1);
+		int pcPrivate = maxPrivacyScore == 0M ? 100 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
 
-		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
-		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
-		var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
-
-		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
 	}
 

@@ -61,7 +61,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void Update()
 	{
-		var pcPrivate = (int)(_wallet.GetPrivacyPercentage() * 100);
+		int pcPrivate = _wallet.GetPrivacyPercentage();
 
 		PercentText = $"{pcPrivate} %";
 
