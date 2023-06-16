@@ -142,7 +142,7 @@
               </StackPanel>
               <StackPanel>
                 <TextBlock Text="Private by default" Classes="title2" />
-                <TextBlock Text="Because your transaction are nobody else's business." Classes="text" />
+                <TextBlock Text="Because your transactions are nobody else's business." Classes="text" />
               </StackPanel>
               <StackPanel>
                 <TextBlock Text="Non-custodial" Classes="title2" />
