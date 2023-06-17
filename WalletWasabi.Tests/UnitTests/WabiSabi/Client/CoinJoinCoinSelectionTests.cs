@@ -60,7 +60,7 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableDenomination());
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
@@ -87,7 +87,7 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableDenomination());
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
@@ -114,7 +114,7 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableDenomination());
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
