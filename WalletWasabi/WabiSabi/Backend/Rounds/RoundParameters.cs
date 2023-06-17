@@ -135,16 +135,16 @@ public record RoundParameters
 	/// <returns>Smallest effective denom that's larger than min reasonable output amount. </returns>
 	public static Money CalculateSmallestReasonableDenomination(Money minReasonableOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, ScriptType maxVsizeInputOutputPairScriptType)
 	{
-		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+		var smallestDenom = DenominationBuilder.CreateDenominations(
 				minReasonableOutputAmount,
 				maxAllowedOutputAmount,
 				feeRate,
 				new List<ScriptType>() { maxVsizeInputOutputPairScriptType })
 			.Min(x => x.Amount);
 
-		return smallestEffectiveDenom is null
+		return smallestDenom is null
 			? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.")
-			: smallestEffectiveDenom;
+			: smallestDenom;
 	}
 
 	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
