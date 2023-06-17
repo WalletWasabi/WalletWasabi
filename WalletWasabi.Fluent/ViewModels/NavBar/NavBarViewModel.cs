@@ -48,7 +48,7 @@ public partial class NavBarViewModel : ViewModelBase
 				if (x.NewValue is { } b)
 				{
 					b.IsSelected = true;
-					UiContext.WalletList.StoreLastSelectedWallet(b.WalletModel);
+					UiContext.WalletRepository.StoreLastSelectedWallet(b.WalletModel);
 				}
 			})
 			.Subscribe();

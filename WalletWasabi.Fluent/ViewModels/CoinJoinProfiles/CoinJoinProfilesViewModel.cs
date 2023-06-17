@@ -75,15 +75,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
 		walletSettings.IsCoinjoinProfileSelected = true;
 
-		var wallet = UiContext.WalletRepository.SaveWallet(walletSettings);
-
 		if (isNewWallet)
 		{
 			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		else
 		{
-			walletSettings.Save();
+			UiContext.WalletRepository.SaveWallet(walletSettings);
 			Close(DialogResultKind.Normal, true);
 		}
 	}
