@@ -34,7 +34,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
 
-		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
+		ImportWalletCommand = ReactiveCommand.CreateFromTask(OnImportWalletAsync);
 
 		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
 	}
@@ -79,15 +79,10 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
 
-			// TODO: remove this after current ViewModel has been decoupled
-			var wallet =
-				new WalletModel(
-					new WalletWasabi.Wallets.Wallet(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network,
-						keyManager));
+			// TODO: Remove this after current ViewModel is decoupled
+			var walletSettings = new WalletSettingsModel(keyManager, true);
 
-			Navigate().To().AddedWalletPage(wallet);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{

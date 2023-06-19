@@ -19,7 +19,7 @@ public class NullWalletRepository : IWalletRepository
 
 	public IWalletModel? DefaultWallet => null;
 
-	public bool HasWallet => throw new NotImplementedException();
+	public bool HasWallet => false;
 
 	public Task<IWalletSettingsModel> CreateNewWalletAsync(string walletName, string password, Mnemonic mnemonic)
 	{
@@ -34,5 +34,9 @@ public class NullWalletRepository : IWalletRepository
 	public Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
 		return Task.FromResult(default(IWalletSettingsModel));
+	}
+
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
 	}
 }

@@ -17,4 +17,6 @@ public interface IWalletRepository
 	Task<IWalletSettingsModel> CreateNewWalletAsync(string walletName, string password, Mnemonic mnemonic);
 
 	IWalletModel SaveWallet(IWalletSettingsModel walletSettings);
+
+	void StoreLastSelectedWallet(IWalletModel wallet);
 }

@@ -35,6 +35,23 @@
 
       <Separator />
 
+      <!-- Destination Address -->
+      <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                     Label="Destination addresses"
+                     CopyableContent="{Binding DestinationAddressesText}">
+        <ItemsControl Items="{Binding DestinationAddresses}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <c:PrivacyContentControl>
+                <TextBlock Text="{Binding}" Classes="monoSpaced" />
+              </c:PrivacyContentControl>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </c:PreviewItem>
+
+      <Separator />
+
       <!-- Fee -->
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"
