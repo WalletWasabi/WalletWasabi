@@ -19,7 +19,8 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	}
 
 	public ManualCoinJoinProfileViewModel(IWalletSettingsModel walletSettings)
-		: this(walletSettings.AnonScoreTarget,
+		: this(
+			  walletSettings.AnonScoreTarget,
 			  walletSettings.RedCoinIsolation,
 			  walletSettings.CoinjoinProbabilityDaily,
 			  walletSettings.CoinjoinProbabilityWeekly,
