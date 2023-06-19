@@ -307,7 +307,6 @@ public class TransactionProcessor
 			else if ((Height)spenderKey.LatestSpendingHeight < txHeight)
 			{
 				// Key spent its coins earlier in history but was reused and spent again.
-				// It can also happen during resync if sync was incorrect.
 				spenderKey.LatestSpendingHeight = txHeight;
 			}
 		}
