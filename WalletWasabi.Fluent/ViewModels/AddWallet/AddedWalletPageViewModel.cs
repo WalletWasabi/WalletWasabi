@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
 	private readonly IWalletSettingsModel _walletSettings;
+	private IWalletModel _wallet;
 
 	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings)
 	{
@@ -41,6 +42,6 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		UiContext.WalletList.SaveWallet(_walletSettings);
+		_wallet = UiContext.WalletRepository.SaveWallet(_walletSettings);
 	}
 }
