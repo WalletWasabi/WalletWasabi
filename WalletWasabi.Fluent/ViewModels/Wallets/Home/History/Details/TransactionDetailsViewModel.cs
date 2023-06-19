@@ -36,14 +36,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Fee = transactionSummary.Fee;
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
-		DestinationAddressesText = string.Join(Environment.NewLine, transactionSummary.DestinationAddresses);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
-
-	public string DestinationAddressesText { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
