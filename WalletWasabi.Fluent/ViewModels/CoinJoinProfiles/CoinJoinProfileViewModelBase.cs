@@ -10,7 +10,9 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual bool RedCoinIsolation { get; } = false;
 
-	public virtual int FeeRateMedianTimeFrameHours { get; }
+	public virtual double CoinjoinProbabilityDaily { get; } = 0.7;
+	public virtual double CoinjoinProbabilityWeekly { get; } = 0.8;
+	public virtual double CoinjoinProbabilityMonthly { get; } = 0.9;
 
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
 	{
@@ -41,11 +43,15 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget == AnonScoreTarget && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
+		return profile.AnonScoreTarget == AnonScoreTarget
+			&& profile.RedCoinIsolation == RedCoinIsolation
+			&& profile.CoinjoinProbabilityDaily == CoinjoinProbabilityDaily
+			&& profile.CoinjoinProbabilityWeekly == CoinjoinProbabilityWeekly
+			&& profile.CoinjoinProbabilityMonthly == CoinjoinProbabilityMonthly;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours);
+		return HashCode.Combine(AnonScoreTarget, CoinjoinProbabilityDaily, CoinjoinProbabilityWeekly, CoinjoinProbabilityMonthly);
 	}
 }

@@ -41,7 +41,6 @@ public class CoinJoinClient
 		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		LiquidityClueProvider liquidityClueProvider,
-		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
@@ -51,7 +50,6 @@ public class CoinJoinClient
 		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
-		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -67,8 +65,6 @@ public class CoinJoinClient
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-
-	private TimeSpan FeeRateMedianTimeFrame { get; }
 	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -85,7 +81,6 @@ public class CoinJoinClient
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
-					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
 					&& roundState.Id != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
@@ -113,11 +108,6 @@ public class CoinJoinClient
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
-		}
-
-		if (!IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
-		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
 
 		return roundState;
@@ -276,7 +266,7 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			
+
 			// Coinjoin succeeded but wallet had no input in it.
 			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
 			{
@@ -695,22 +685,6 @@ public class CoinJoinClient
 		};
 
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
-	}
-
-	public bool IsRoundEconomic(FeeRate roundFeeRate)
-	{
-		if (FeeRateMedianTimeFrame == default)
-		{
-			return true;
-		}
-
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(FeeRateMedianTimeFrame, out var medianFeeRate))
-		{
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			return roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m;
-		}
-
-		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)

@@ -84,6 +84,10 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
+	public double CoinjoinProbabilityDaily => KeyManager.CoinjoinProbabilityDaily;
+	public double CoinjoinProbabilityWeekly => KeyManager.CoinjoinProbabilityWeekly;
+	public double CoinjoinProbabilityMonthly => KeyManager.CoinjoinProbabilityMonthly;
+
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
@@ -107,8 +111,6 @@ public class Wallet : BackgroundService, IWallet
 		State == WalletState.Started // Only running wallets
 		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
 		&& Kitchen.HasIngredients;
-
-	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 

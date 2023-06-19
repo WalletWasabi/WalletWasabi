@@ -51,7 +51,6 @@ public class CoinJoinTrackerFactory
 			CoordinatorIdentifier,
 			coinSelector,
 			LiquidityClueProvider,
-			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, CancellationToken);

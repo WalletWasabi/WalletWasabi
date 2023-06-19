@@ -28,13 +28,6 @@
           <Slider Minimum="2" Maximum="300" Value="{Binding AnonScoreTarget}" />
         </DockPanel>
       </StackPanel>
-
-      <DockPanel ToolTip.Tip="Only coinjoin when the fee rate is below the median of this time period.">
-        <TextBlock Text="Coinjoin time preference" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  Items="{Binding TimeFrames}"
-                  SelectedItem="{Binding SelectedTimeFrame}" />
-      </DockPanel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

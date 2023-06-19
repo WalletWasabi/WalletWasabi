@@ -10,25 +10,19 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private double _coinjoinProbabilityDaily;
+	[AutoNotify] private double _coinjoinProbabilityWeekly;
+	[AutoNotify] private double _coinjoinProbabilityMonthly;
 	[AutoNotify] private int _anonScoreTarget;
-	[AutoNotify] private TimeFrameItem[] _timeFrames;
-	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
 		_redCoinIsolation = current.RedCoinIsolation;
+		_coinjoinProbabilityDaily = current.CoinjoinProbabilityDaily;
+		_coinjoinProbabilityWeekly = current.CoinjoinProbabilityWeekly;
+		_coinjoinProbabilityMonthly = current.CoinjoinProbabilityMonthly;
 
 		_anonScoreTarget = current.AnonScoreTarget;
-
-		_timeFrames = new[]
-		{
-			new TimeFrameItem("Hours", TimeSpan.Zero),
-			new TimeFrameItem("Days", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
-			new TimeFrameItem("Weeks", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
-			new TimeFrameItem("Months", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
-		};
-
-		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateMedianTimeFrameHours)) ?? _timeFrames.First();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -38,9 +32,11 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		{
 			var isolateRed = RedCoinIsolation;
 			var target = AnonScoreTarget;
-			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
+			var coinjoinProbabilityDaily = CoinjoinProbabilityDaily;
+			var coinjoinProbabilityWeekly = CoinjoinProbabilityWeekly;
+			var coinjoinProbabilityMonthly = CoinjoinProbabilityMonthly;
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed)));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, isolateRed, coinjoinProbabilityDaily, coinjoinProbabilityWeekly, coinjoinProbabilityMonthly)));
 		});
 	}
 

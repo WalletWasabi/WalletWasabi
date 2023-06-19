@@ -25,7 +25,6 @@ public class KeyManager
 	public const int DefaultAnonScoreTarget = 5;
 	public const bool DefaultAutoCoinjoin = false;
 	public const bool DefaultRedCoinIsolation = false;
-	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -191,14 +190,20 @@ public class KeyManager
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
 	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTarget;
 
-	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
-	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
-
 	[JsonProperty(PropertyName = "IsCoinjoinProfileSelected")]
 	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
+
+	[JsonProperty(PropertyName = "CoinjoinProbabilityDaily")]
+	public double CoinjoinProbabilityDaily { get; set; } = 0.7;
+
+	[JsonProperty(PropertyName = "CoinjoinProbabilityWeekly")]
+	public double CoinjoinProbabilityWeekly { get; set; } = 0.8;
+
+	[JsonProperty(PropertyName = "CoinjoinProbabilityMonthly")]
+	public double CoinjoinProbabilityMonthly { get; set; } = 0.9;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();
@@ -705,16 +710,6 @@ public class KeyManager
 	public void SetIcon(WalletType type)
 	{
 		SetIcon(type.ToString());
-	}
-
-	public void SetFeeRateMedianTimeFrame(int hours)
-	{
-		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
-		{
-			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only one of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
-		}
-
-		FeeRateMedianTimeFrameHours = hours;
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)

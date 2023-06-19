@@ -6,6 +6,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
 	// https://github.com/zkSNACKs/WalletWasabi/pull/10468#issuecomment-1506284198
 	public const int MinAnonScore = 27;
+
 	public const int MaxAnonScore = 76;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
@@ -24,8 +25,9 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int AnonScoreTarget { get; }
 	public override bool RedCoinIsolation { get; } = true;
-
-	public override int FeeRateMedianTimeFrameHours => 0;
+	public override double CoinjoinProbabilityDaily { get; } = 0.5;
+	public override double CoinjoinProbabilityWeekly { get; } = 0.5;
+	public override double CoinjoinProbabilityMonthly { get; } = 0.5;
 
 	private static int GetRandom(int minInclusive, int maxExclusive)
 	{
@@ -44,11 +46,21 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget < MaxAnonScore && profile.AnonScoreTarget >= MinAnonScore && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
+		return profile.AnonScoreTarget < MaxAnonScore
+			&& profile.AnonScoreTarget >= MinAnonScore
+			&& profile.RedCoinIsolation == RedCoinIsolation
+			&& profile.CoinjoinProbabilityDaily == CoinjoinProbabilityDaily
+			&& profile.CoinjoinProbabilityWeekly == CoinjoinProbabilityWeekly
+			&& profile.CoinjoinProbabilityMonthly == CoinjoinProbabilityMonthly;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, RedCoinIsolation);
+		return HashCode.Combine(
+			AnonScoreTarget,
+			RedCoinIsolation,
+			CoinjoinProbabilityDaily,
+			CoinjoinProbabilityWeekly,
+			CoinjoinProbabilityMonthly);
 	}
 }

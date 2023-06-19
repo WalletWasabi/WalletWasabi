@@ -23,7 +23,9 @@ public interface IWalletSettingsModel
 
 	bool RedCoinIsolation { get; set; }
 
-	int FeeRateMedianTimeFrameHours { get; set; }
+	double CoinjoinProbabilityDaily { get; set; }
+	double CoinjoinProbabilityWeekly { get; set; }
+	double CoinjoinProbabilityMonthly { get; set; }
 
 	void Save();
 }

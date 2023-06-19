@@ -71,8 +71,10 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		var isNewWallet = walletSettings.IsNewWallet;
 
 		walletSettings.RedCoinIsolation = selected.RedCoinIsolation;
+		walletSettings.CoinjoinProbabilityDaily = selected.CoinjoinProbabilityDaily;
+		walletSettings.CoinjoinProbabilityWeekly = selected.CoinjoinProbabilityWeekly;
+		walletSettings.CoinjoinProbabilityMonthly = selected.CoinjoinProbabilityMonthly;
 		walletSettings.AnonScoreTarget = selected.AnonScoreTarget;
-		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
 		walletSettings.IsCoinjoinProfileSelected = true;
 
 		if (isNewWallet)
