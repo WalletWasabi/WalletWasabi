@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Reactive.Subjects;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -50,10 +49,14 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
 	public IWalletModel? DefaultWallet { get; }
+	public bool HasWallet => Services.WalletManager.HasWallet();
 
 	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
 
-	public bool HasWallet => Services.WalletManager.HasWallet();
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
+		Services.UiConfig.LastSelectedWallet = wallet.Name;
+	}
 
 	public string GetNextWalletName()
 	{

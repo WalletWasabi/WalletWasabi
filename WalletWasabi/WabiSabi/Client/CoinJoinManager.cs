@@ -514,6 +514,8 @@ public class CoinJoinManager : BackgroundService
 				{
 					w.KeyManager.SetKeyState(state, hdPubKey);
 				}
+
+				w.KeyManager.ToFile();
 			}
 			else
 			{

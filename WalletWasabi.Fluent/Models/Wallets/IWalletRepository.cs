@@ -20,4 +20,6 @@ public interface IWalletRepository
 	IWalletModel SaveWallet(IWalletSettingsModel walletSettings);
 
 	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
+
+	void StoreLastSelectedWallet(IWalletModel wallet);
 }

@@ -1,7 +1,6 @@
 using Avalonia.Media.Imaging;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Runtime.InteropServices;
 using ZXing.QrCode;
 using SkiaSharp;
@@ -9,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using QRackers.Capturing;
 using QRackers.Capturing.Utilities;
+using QRackers.Capturing.Devices;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -28,6 +28,7 @@ public class QrCodeReader : IQrCodeReader
 				var devices = new CaptureDevices();
 				var device = devices
 					.EnumerateDescriptors()
+					.Where(static d => d is not VideoForWindowsDeviceDescriptor)
 					.SelectMany(static d => d.Characteristics, static (d, c) => new { d, c })
 					.FirstOrDefault() ?? throw new InvalidOperationException("Could not find a device.");
 

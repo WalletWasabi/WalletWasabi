@@ -4,7 +4,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -25,8 +24,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		var confirmations = transactionSummary.GetConfirmations();
 		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 
-		var amount = transactionSummary.Amount;
-		SetAmount(amount);
+		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
 

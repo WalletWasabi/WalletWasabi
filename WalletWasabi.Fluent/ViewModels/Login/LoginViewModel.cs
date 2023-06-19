@@ -23,7 +23,7 @@ public partial class LoginViewModel : RoutableViewModel
 		_errorMessage = "";
 		IsPasswordNeeded = !wallet.IsWatchOnlyWallet;
 		WalletName = wallet.Name;
-		WalletType = wallet.WalletType;
+		WalletType = wallet.Settings.WalletType;
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet));
 
