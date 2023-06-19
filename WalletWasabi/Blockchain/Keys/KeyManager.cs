@@ -159,6 +159,9 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
+	
+	[JsonProperty(PropertyName = "UseTurboSync")]
+	public bool UseTurboSync { get; private set; } = true;
 
 	[JsonProperty(PropertyName = "MinGapLimit")]
 	public int MinGapLimit { get; private set; }

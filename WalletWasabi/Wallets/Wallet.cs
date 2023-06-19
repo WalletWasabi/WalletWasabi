@@ -246,8 +246,11 @@ public class Wallet : BackgroundService, IWallet
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
 
-					// Continue wallet synchronization in the background for all keys skipped by TurboSync.
-					FinalSynchronizationTask = Task.Run(() => PerformFinalSynchronizationAsync(cancel), cancel);
+					if (KeyManager.UseTurboSync)
+					{
+						// Continue wallet synchronization in the background for all keys skipped by TurboSync.
+						FinalSynchronizationTask = Task.Run(() => PerformFinalSynchronizationAsync(cancel), cancel);
+					}
 				}
 			}
 
@@ -507,7 +510,7 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
-		await PerformWalletSynchronizationAsync(SyncType.Turbo, cancel).ConfigureAwait(false);
+		await PerformWalletSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 
 		if (LastProcessedFilter is { } lastProcessedFilter)
 		{
