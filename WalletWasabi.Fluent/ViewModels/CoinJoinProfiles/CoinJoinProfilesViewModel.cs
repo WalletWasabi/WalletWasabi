@@ -81,7 +81,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		}
 		else
 		{
-			walletSettings.Save();
+			UiContext.WalletRepository.SaveWallet(walletSettings);
 			Close(DialogResultKind.Normal, true);
 		}
 	}
