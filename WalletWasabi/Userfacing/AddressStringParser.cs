@@ -1,64 +1,26 @@
 using NBitcoin;
-using NBitcoin.Payment;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Userfacing;
 
 public static class AddressStringParser
 {
-	public const string Bip21UriScheme = "bitcoin:";
+	public static bool TryParse(string text, Network expectedNetwork, [NotNullWhen(true)] out Bip21UriParser.Result? result)
+		=> TryParse(text, expectedNetwork, out result, out _);
 
-	public static bool TryParseBitcoinAddress(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
-		=> TryParseBitcoinAddress(text, expectedNetwork, out _, out url);
-
-	public static bool TryParseBitcoinAddress(string text, Network expectedNetwork, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
+	/// <summary>
+	/// Parses either a Bitcoin address or a BIP21 URI string.
+	/// </summary>
+	/// <seealso href="https://github.com/lightning/bolts/blob/master/11-payment-encoding.md"/>
+	public static bool TryParse(
+		string text,
+		Network expectedNetwork,
+		[NotNullWhen(true)] out Bip21UriParser.Result? result,
+		out string? errorMessage)
 	{
-		url = null;
-
-		if (text is null || expectedNetwork is null)
-		{
-			errorMessage = "Internal error.";
-			return false;
-		}
-
-		text = text.Trim();
-
-		if (text.Length is > 100 or < 20)
-		{
-			errorMessage = "Invalid input length.";
-			return false;
-		}
-
-		if (!TryGetBitcoinUrlBuilder($"{Bip21UriScheme}{text}", expectedNetwork, out url))
-		{
-			Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
-
-			if (!TryGetBitcoinUrlBuilder($"{Bip21UriScheme}{text}", networkGuess, out url))
-			{
-				errorMessage = "Failed to parse a Bitcoin address.";
-			}
-			else
-			{
-				errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
-			}
-
-			return false;
-		}
-		else
-		{
-			errorMessage = null;
-			return true;
-		}
-	}
-
-	public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
-		=> TryParseBitcoinUrl(text, expectedNetwork, out _, out url);
-
-	public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
-	{
+		result = null;
 		errorMessage = null;
-		url = null;
 
 		if (text is null || expectedNetwork is null)
 		{
@@ -68,87 +30,67 @@ public static class AddressStringParser
 
 		text = text.Trim();
 
-		if (text.Length is > 1000 or < 20)
+		if (text == "")
 		{
 			errorMessage = "Input length is invalid.";
 			return false;
 		}
 
-		if (!text.StartsWith(Bip21UriScheme, true, CultureInfo.InvariantCulture))
-		{
-			errorMessage = $"'{Bip21UriScheme}' prefix is missing.";
-			return false;
-		}
-
-		if (TryGetBitcoinUrlBuilder(text, expectedNetwork, out BitcoinUrlBuilder? builder))
-		{
-			if (builder.Address is { } address && address.Network == expectedNetwork)
-			{
-				url = builder;
-				return true;
-			}
-
-			errorMessage = "Failed to parse a Bitcoin address.";
-			return false;
-		}
-
-		Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
-
-		if (TryGetBitcoinUrlBuilder(text, networkGuess, out builder) && builder.Address is { })
-		{
-			errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
-			return false;
-		}
-
-		errorMessage = "Failed to parse Bitcoin URI.";
-		return false;
-	}
-
-	private static bool TryGetBitcoinUrlBuilder(string text, Network network, [NotNullWhen(true)] out BitcoinUrlBuilder? builder)
-	{
-		try
-		{
-			builder = new(text, network);
-			return true;
-		}
-		catch (FormatException)
-		{
-			builder = null;
-			return false;
-		}
-	}
-
-	public static bool TryParse(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? result)
-		=> TryParse(text, expectedNetwork, out _, out result);
-
-	public static bool TryParse(string text, Network expectedNetwork, out string? errorMessage, [NotNullWhen(true)] out BitcoinUrlBuilder? result)
-	{
-		result = null;
-
-		if (string.IsNullOrWhiteSpace(text))
-		{
-			errorMessage = null;
-			return false;
-		}
-
+		// Too long URIs/Bitcoin address are unsupported.
 		if (text.Length > 1000)
 		{
 			errorMessage = "Input is too long.";
 			return false;
 		}
 
-		if (TryParseBitcoinAddress(text, expectedNetwork, out errorMessage, out BitcoinUrlBuilder? addressResult))
+		// Lightning addresses are unsupported.
+		bool isLightningAddress = text.StartsWith("lnbc", StringComparison.Ordinal) // Lightning on main.
+			|| text.StartsWith("lntb", StringComparison.Ordinal) // Lightning on testnet.
+			|| text.StartsWith("lntbs", StringComparison.Ordinal) // Lightning on signet.
+			|| text.StartsWith("lnbcrt", StringComparison.Ordinal) // Lightning on regtest
+			|| text.StartsWith("lnurl", StringComparison.Ordinal); // Lightning invoice.
+
+		if (isLightningAddress)
 		{
-			result = addressResult;
-			return true;
+			errorMessage = "Lightning addresses are not supported.";
+			return false;
 		}
-		else
+
+		Bip21UriParser.Error? error;
+
+		// Parse a Bitcoin address (not BIP21 URI string)
+		if (!text.StartsWith($"{Bip21UriParser.UriScheme}:", StringComparison.OrdinalIgnoreCase))
 		{
-			// If the input does not start with "bitcoin:", then we prefer the error message from previous parsing attempt.
-			if (text.StartsWith(Bip21UriScheme, StringComparison.Ordinal) && TryParseBitcoinUrl(text, expectedNetwork, out errorMessage, out BitcoinUrlBuilder? builder))
+			if (!Bip21UriParser.TryParseBitcoinAddressForNetwork(text, expectedNetwork, out BitcoinAddress? address))
 			{
-				result = builder;
+				error = Bip21UriParser.ErrorInvalidAddress with { Details = text };
+			}
+			else
+			{
+				Uri uri = new($"{Bip21UriParser.UriScheme}:{text}");
+				result = new Bip21UriParser.Result(uri, expectedNetwork, address);
 				return true;
+			}
+		}
+		else // Parse BIP21 URI string.
+		{
+			if (Bip21UriParser.TryParse(input: text, expectedNetwork, out result, out error))
+			{
+				return true;
+			}
+		}
+
+		errorMessage = error.Message;
+
+		// Special check to verify if the provided Bitcoin address is not for a different Bitcoin network.
+		if (error.IsOfSameType(Bip21UriParser.ErrorInvalidAddress))
+		{
+			Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
+
+			if (Bip21UriParser.TryParseBitcoinAddressForNetwork(error.Details!, networkGuess, out _))
+			{
+				errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
+				return false;
 			}
 		}
 

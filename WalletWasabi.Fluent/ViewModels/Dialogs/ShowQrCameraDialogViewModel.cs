@@ -1,13 +1,13 @@
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using NBitcoin;
-using NBitcoin.Payment;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Threading;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
@@ -37,7 +37,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.Subscribe(
 				onNext: result =>
 				{
-					if (AddressStringParser.TryParse(result.decoded, _network, out string? errorMessage, out BitcoinUrlBuilder? uriBuilder))
+					if (AddressStringParser.TryParse(result.decoded, _network, out Bip21UriParser.Result? parserResult, out string? errorMessage))
 					{
 						Close(DialogResultKind.Normal, result.decoded);
 					}
@@ -46,7 +46,10 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 						// Remember last error message and last QR content.
 						if (errorMessage is not null)
 						{
-							ErrorMessage = errorMessage;
+							if (!string.IsNullOrEmpty(result.decoded))
+							{
+								ErrorMessage = errorMessage;
+							}
 						}
 
 						if (!string.IsNullOrEmpty(result.decoded))
