@@ -204,15 +204,11 @@ public class WalletSynchronizationTests
 		var filters = BuildFiltersForBlockChain(testSetup);
 		await indexStore.AddNewFiltersAsync(filters.Skip(1));
 
-		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
-		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => null!);
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, testSetup.HttpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
-		using MemoryCache cache = new(new MemoryCacheOptions());
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(testSetup.Network, serviceConfiguration, null);
-		SmartBlockProvider blockProvider = new(bitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, cache);
+		SmartBlockProvider blockProvider = new(bitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, testSetup.Cache);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(testSetup.Network, bitcoinStore, keyManager, synchronizer, testSetup.Dir, serviceConfiguration, feeProvider, blockProvider);
+		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(testSetup.Network, bitcoinStore, keyManager, synchronizer, testSetup.Dir, testSetup.ServiceConfiguration, feeProvider, blockProvider);
 	}
 
 	private async Task<(TestWallet, TestWallet)> AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(TestSetup baseTestElements)
@@ -362,6 +358,9 @@ public class WalletSynchronizationTests
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
 		public string Dir { get; }
+		public HttpClientFactory HttpClientFactory { get; }
+		public ServiceConfiguration ServiceConfiguration { get; }
+		public MemoryCache Cache { get; }
 
 		public TestSetup(string callerName)
 		{
@@ -372,12 +371,17 @@ public class WalletSynchronizationTests
 			Dir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
 			IndexStore = new IndexStore(Path.Combine(Dir, "indexStore"), Network, new SmartHeaderChain());
 			TransactionStore = new AllTransactionStore(Path.Combine(Dir, "transactionStore"), Network);
+			HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
+			ServiceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
+			Cache = new MemoryCache(new MemoryCacheOptions());
 		}
 
 		public async ValueTask DisposeAsync()
 		{
 			await IndexStore.DisposeAsync();
 			await TransactionStore.DisposeAsync();
+			await HttpClientFactory.DisposeAsync();
+			Cache.Dispose();
 		}
 	}
 
