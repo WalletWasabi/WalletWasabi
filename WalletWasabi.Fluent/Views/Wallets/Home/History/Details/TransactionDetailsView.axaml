@@ -51,7 +51,7 @@
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-      <Separator />
+      <Separator IsVisible="{Binding !!DestinationAddresses.Count}" />
 
       <!-- Fee -->
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
