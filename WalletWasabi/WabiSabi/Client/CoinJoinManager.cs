@@ -582,6 +582,7 @@ public class CoinJoinManager : BackgroundService
 		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
 			.Confirmed()
+			.Where(coin => !CoinsUsedInCoinjoins[openedWallet.WalletName].Contains(coin))
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
 			.Where(coin => !coin.IsBanned)
