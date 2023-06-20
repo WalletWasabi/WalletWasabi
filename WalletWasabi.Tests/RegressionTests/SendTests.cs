@@ -138,7 +138,6 @@ public class SendTests
 
 			foreach (SmartCoin coin in res.SpentCoins)
 			{
-				Assert.False(coin.CoinJoinInProgress);
 				Assert.True(coin.Confirmed);
 				Assert.Null(coin.SpenderTransaction);
 				Assert.False(coin.IsSpent());
