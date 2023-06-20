@@ -24,7 +24,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 	private IRPCClient Rpc { get; }
 	private List<Coin> Utxos { get; } = new();
-	public ExtKey ExtKey { get; }
+	private ExtKey ExtKey { get; }
 	private Dictionary<Script, ExtKey> ScriptPubKeys { get; } = new();
 	private uint NextKeyIndex { get; set; } = 0;
 
@@ -109,6 +109,9 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		signedTx.Sign(secrets, inputsToSign);
 		return signedTx;
 	}
+
+	public ExtPubKey GetSegwitAccountExtPubKey() =>
+		ExtKey.Derive(KeyPath.Parse("m/84'/0'/0'")).Neuter();
 
 	public ExtPubKey GetExtPubKey(Script scriptPubKey) =>
 		ScriptPubKeys[scriptPubKey].Neuter();
