@@ -28,9 +28,11 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class WalletSynchronizationTests
 {
+	/// <summary>
+	/// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again.
+	/// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
+	/// </summary>
 	[Fact]
-	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again.
-	// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
 	public async Task InternalAddressReuseNoBlockOverlapTestAsync()
 	{
 		var node = await MockNode.CreateNodeAsync();
@@ -60,9 +62,11 @@ public class WalletSynchronizationTests
 		Assert.Equal(2, coins.AsAllCoinsView().Count());
 	}
 
+	/// <summary>
+	/// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again and spend to an external key in a different block.
+	/// Verifies that the wallet will process the spend correctly when it doesn't have the coins in its CoinsRegistry at the time of spending.
+	/// </summary>
 	[Fact]
-	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again and spend to an external key in a different block.
-	// Verifies that the wallet will process the spend correctly when it doesn't have the coins in its CoinsRegistry at the time of spending.
 	public async Task InternalAddressReuseThenSpendOnExternalKeyTestAsync()
 	{
 		var node = await MockNode.CreateNodeAsync();
@@ -96,9 +100,11 @@ public class WalletSynchronizationTests
 		Assert.Single(coins.Available());
 	}
 
+	/// <summary>
+	/// Reuse 2 internal keys then send all funds away, then receive on first one, send to second one, then send on an external key.
+	/// This aims to make sure that the CoinsRegistry will catch all the history.
+	/// </summary>
 	[Fact]
-	// Reuse 2 internal keys then send all funds away, then receive on first one, send to second one, then send on an external key.
-	// This aims to make sure that the CoinsRegistry will catch all the history.
 	public async Task InternalAddressReuseChainThenSpendOnExternalKeyTestAsync()
 	{
 		var node = await MockNode.CreateNodeAsync();
@@ -142,9 +148,11 @@ public class WalletSynchronizationTests
 		Assert.Equal(7, coins.AsAllCoinsView().Count());
 	}
 
+	/// <summary>
+	/// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
+	/// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
+	/// </summary>
 	[Fact]
-	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
-	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
 	{
 		var node = await MockNode.CreateNodeAsync();
