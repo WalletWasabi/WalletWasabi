@@ -281,7 +281,7 @@ public class Wallet : BackgroundService, IWallet
 
 					break;
 				}
-				catch (Exception ex)
+				catch (InvalidOperationException ex)
 				{
 					// Retry until cancellation is requested
 					Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying: '{ex}'.");
