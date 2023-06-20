@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,7 +43,10 @@ public class CoinJoinClient
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan feeRateMedianTimeFrame = default,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
+		double coinjoinProbabilityDaily = 1,
+		double coinjoinProbabilityWeekly = 1,
+		double coinjoinProbabilityMonthly = 1)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -52,6 +56,9 @@ public class CoinJoinClient
 		LiquidityClueProvider = liquidityClueProvider;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
+		CoinjoinProbabilityDaily = coinjoinProbabilityDaily;
+		CoinjoinProbabilityWeekly = coinjoinProbabilityWeekly;
+		CoinjoinProbabilityMonthly = coinjoinProbabilityMonthly;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -67,8 +74,10 @@ public class CoinJoinClient
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-
 	private TimeSpan FeeRateMedianTimeFrame { get; }
+	public double CoinjoinProbabilityDaily { get; }
+	public double CoinjoinProbabilityWeekly { get; }
+	public double CoinjoinProbabilityMonthly { get; }
 	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -86,6 +95,7 @@ public class CoinJoinClient
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
+					&& !ShouldSkipRandomly(roundState.CoinjoinState.Parameters.MiningFeeRate)
 					&& roundState.Id != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
@@ -276,7 +286,7 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			
+
 			// Coinjoin succeeded but wallet had no input in it.
 			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
 			{
@@ -711,6 +721,40 @@ public class CoinJoinClient
 		}
 
 		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
+	}
+
+	public bool ShouldSkipRandomly(FeeRate roundFeeRate)
+	{
+		var day = TimeSpan.FromHours(24);
+		var week = TimeSpan.FromHours(168);
+		var month = TimeSpan.FromHours(720);
+
+		var dailyProbability = 1d;
+		var weeklyProbability = 1d;
+		var monthlyProbability = 1d;
+
+		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(day, out var medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			dailyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : CoinjoinProbabilityDaily;
+		}
+
+		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(week, out medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			weeklyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : CoinjoinProbabilityWeekly;
+		}
+
+		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(month, out medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			monthlyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : CoinjoinProbabilityMonthly;
+		}
+
+		var averageProbabilityPercentage = (int)(100 * (dailyProbability + weeklyProbability + monthlyProbability) / 3d);
+		var rand = SecureRandom.GetInt(1, 101);
+
+		return averageProbabilityPercentage >= rand;
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
