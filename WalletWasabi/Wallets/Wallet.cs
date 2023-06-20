@@ -592,16 +592,16 @@ public class Wallet : BackgroundService, IWallet
 	{
 		if (syncType == SyncType.Complete)
 		{
-			return KeyManager.UnsafeGetHdPubKeysWithScriptBytes().Select(x => x.ScriptBytes).ToList();
+			return KeyManager.UnsafeGetSynchronizationInfos().Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes).ToList();
 		}
 
 		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
 			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
 			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
 		
-		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetHdPubKeysWithScriptBytes()
-			.Where(x => stepPredicate(x.HdPubKey))
-			.Select(x => x.ScriptBytes);
+		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetSynchronizationInfos()
+			.Where(x => stepPredicate(x.ScriptBytesHdPubKeyPair.HdPubKey))
+			.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
 
 		return keysToTest.ToList();
 	}

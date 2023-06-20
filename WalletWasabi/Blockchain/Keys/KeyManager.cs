@@ -401,11 +401,11 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public IEnumerable<HdPubKeyCache.HdPubKeyScriptBytesPair> UnsafeGetHdPubKeysWithScriptBytes()
+	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			return HdPubKeyCache.GetHdPubKeysWithScriptBytes();
+			return HdPubKeyCache.GetSynchronizationInfos();
 		}
 	}
 
