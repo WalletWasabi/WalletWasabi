@@ -10,6 +10,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private double _coinjoinProbabilityDaily;
+	[AutoNotify] private double _coinjoinProbabilityWeekly;
+	[AutoNotify] private double _coinjoinProbabilityMonthly;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
@@ -17,6 +20,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
 		_redCoinIsolation = current.RedCoinIsolation;
+		_coinjoinProbabilityDaily = current.CoinjoinProbabilityDaily;
+		_coinjoinProbabilityWeekly = current.CoinjoinProbabilityWeekly;
+		_coinjoinProbabilityMonthly = current.CoinjoinProbabilityMonthly;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
@@ -39,8 +45,11 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var isolateRed = RedCoinIsolation;
 			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
+			var coinjoinProbabilityDaily = CoinjoinProbabilityDaily;
+			var coinjoinProbabilityWeekly = CoinjoinProbabilityWeekly;
+			var coinjoinProbabilityMonthly = CoinjoinProbabilityMonthly;
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed)));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, coinjoinProbabilityDaily, coinjoinProbabilityWeekly, coinjoinProbabilityMonthly)));
 		});
 	}
 

@@ -19,6 +19,9 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private double _coinjoinProbabilityDaily;
+	[AutoNotify] private double _coinjoinProbabilityWeekly;
+	[AutoNotify] private double _coinjoinProbabilityMonthly;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false)
@@ -34,6 +37,9 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
 		_redCoinIsolation = _keyManager.RedCoinIsolation;
+		_coinjoinProbabilityDaily = _keyManager.CoinjoinProbabilityDaily;
+		_coinjoinProbabilityWeekly = _keyManager.CoinjoinProbabilityWeekly;
+		_coinjoinProbabilityMonthly = _keyManager.CoinjoinProbabilityMonthly;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
 		WalletName = _keyManager.WalletName;
@@ -47,6 +53,15 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 			x => x.AnonScoreTarget,
 			x => x.RedCoinIsolation,
 			x => x.FeeRateMedianTimeFrameHours)
+			.Skip(1)
+			.Do(_ => SetValues())
+			.Subscribe();
+
+		// This should go to the previous WhenAnyValue, it's just that it's not working for some reason.
+		this.WhenAnyValue(
+			x => x.CoinjoinProbabilityDaily,
+			x => x.CoinjoinProbabilityWeekly,
+			x => x.CoinjoinProbabilityMonthly)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -80,6 +95,9 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
+		_keyManager.CoinjoinProbabilityDaily = CoinjoinProbabilityDaily;
+		_keyManager.CoinjoinProbabilityWeekly = CoinjoinProbabilityWeekly;
+		_keyManager.CoinjoinProbabilityMonthly = CoinjoinProbabilityMonthly;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 
 		_isDirty = true;

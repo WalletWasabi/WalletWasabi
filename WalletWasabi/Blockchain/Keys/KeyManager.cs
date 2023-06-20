@@ -200,6 +200,15 @@ public class KeyManager
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
+	[JsonProperty(PropertyName = "CoinjoinProbabilityDaily")]
+	public double CoinjoinProbabilityDaily { get; set; } = 0.7;
+
+	[JsonProperty(PropertyName = "CoinjoinProbabilityWeekly")]
+	public double CoinjoinProbabilityWeekly { get; set; } = 0.8;
+
+	[JsonProperty(PropertyName = "CoinjoinProbabilityMonthly")]
+	public double CoinjoinProbabilityMonthly { get; set; } = 0.9;
+
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();
 

@@ -22,6 +22,9 @@ public interface IWallet
 	bool ConsolidationMode { get; }
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
+	double CoinjoinProbabilityDaily { get; }
+	double CoinjoinProbabilityWeekly { get; }
+	double CoinjoinProbabilityMonthly { get; }
 
 	Task<bool> IsWalletPrivateAsync();
 

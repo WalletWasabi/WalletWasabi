@@ -83,6 +83,9 @@ public class Wallet : BackgroundService, IWallet
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+	public double CoinjoinProbabilityDaily => KeyManager.CoinjoinProbabilityDaily;
+	public double CoinjoinProbabilityWeekly => KeyManager.CoinjoinProbabilityWeekly;
+	public double CoinjoinProbabilityMonthly => KeyManager.CoinjoinProbabilityMonthly;
 
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; private set; }
