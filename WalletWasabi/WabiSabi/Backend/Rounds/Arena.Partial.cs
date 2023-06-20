@@ -238,8 +238,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 						await amountRealCredentialTask.ConfigureAwait(false),
 						await vsizeRealCredentialTask.ConfigureAwait(false));
 
-					// Update the coinjoin state, adding the confirmed input.
-					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
 					alice.ConfirmedConnection = true;
 
 					return response;

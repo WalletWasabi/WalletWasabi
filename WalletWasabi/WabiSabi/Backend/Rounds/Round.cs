@@ -131,6 +131,14 @@ public class Round
 		return InputRegistrationTimeFrame.HasExpired;
 	}
 
+	public void AddInputsToConstructionState()
+	{
+		foreach (var alice in Alices)
+		{
+			CoinjoinState = Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, CoinJoinInputCommitmentData);
+		}
+	}
+
 	public ConstructionState AddInput(Coin coin, OwnershipProof ownershipProof, CoinJoinInputCommitmentData coinJoinInputCommitmentData)
 		=> Assert<ConstructionState>().AddInput(coin, ownershipProof, coinJoinInputCommitmentData);
 

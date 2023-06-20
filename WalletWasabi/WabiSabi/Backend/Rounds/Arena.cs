@@ -192,6 +192,7 @@ public partial class Arena : PeriodicRunner
 			{
 				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
+					round.AddInputsToConstructionState();
 					SetRoundPhase(round, Phase.OutputRegistration);
 				}
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
@@ -227,6 +228,7 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
+						round.AddInputsToConstructionState();
 						SetRoundPhase(round, Phase.OutputRegistration);
 					}
 				}

@@ -1,5 +1,8 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 using WalletWasabi.WabiSabi.Backend;
@@ -33,6 +36,46 @@ public class StepConnectionConfirmationTests
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
+		Assert.Equal(4, round.CoinjoinState.Inputs.Count());
+		Assert.Equal(4, round.Alices.Count());
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
+	public async Task AliceSpentAsync()
+	{
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 4,
+			MinInputCountByRoundMultiplier = 0.5,
+			ConnectionConfirmationTimeout = TimeSpan.Zero
+		};
+		var round = WabiSabiFactory.CreateRound(cfg);
+		var a1 = WabiSabiFactory.CreateAlice(round);
+		var a2 = WabiSabiFactory.CreateAlice(round);
+		var a3 = WabiSabiFactory.CreateAlice(round);
+		var a4 = WabiSabiFactory.CreateAlice(round);
+		a1.ConfirmedConnection = true;
+		a2.ConfirmedConnection = true;
+		a3.ConfirmedConnection = true;
+		a4.ConfirmedConnection = false;
+		round.Alices.Add(a1);
+		round.Alices.Add(a2);
+		round.Alices.Add(a3);
+		round.Alices.Add(a4);
+		round.SetPhase(Phase.ConnectionConfirmation);
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
+		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsIn<uint256>(a1.Coin.Outpoint.Hash), It.IsIn<int>((int)a1.Coin.Outpoint.N), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync((NBitcoin.RPC.GetTxOutResponse?)null);
+
+		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, new Prison()).CreateAndStartAsync(round);
+
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+		Assert.Equal(Phase.OutputRegistration, round.Phase);
+		Assert.Equal(2, round.CoinjoinState.Inputs.Count());
+		Assert.Equal(2, round.Alices.Count());
 
 		await arena.StopAsync(CancellationToken.None);
 	}
