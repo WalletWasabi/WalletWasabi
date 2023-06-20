@@ -43,7 +43,6 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
-	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
@@ -408,8 +407,7 @@ public class CoinJoinManager : BackgroundService
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 			if (result is SuccessfulCoinJoinResult successfulCoinjoin)
 			{
-				CoinRefrigerator.Freeze(successfulCoinjoin.Coins);
-				await MarkDestinationsUsedAsync(successfulCoinjoin.OutputScripts).ConfigureAwait(false);
+				await MakeWalletsProcessTransactionAsync(successfulCoinjoin.UnsignedCoinJoin).ConfigureAwait(false);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
@@ -420,8 +418,11 @@ public class CoinJoinManager : BackgroundService
 		catch (UnknownRoundEndingException ex)
 		{
 			// Assuming that the round might be broadcast but our client was not able to get the ending status.
-			CoinRefrigerator.Freeze(ex.Coins);
-			await MarkDestinationsUsedAsync(ex.OutputScripts).ConfigureAwait(false);
+			if (ex.UnsignedCoinJoin is { })
+			{
+				await MakeWalletsProcessTransactionAsync(ex.UnsignedCoinJoin).ConfigureAwait(false);
+			}
+
 			Logger.LogDebug(ex);
 		}
 		catch (CoinJoinClientException clientException)
@@ -501,42 +502,14 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	/// <summary>
-	/// Mark all the outputs we had in any of our wallets used.
-	/// </summary>
-	private async Task MarkDestinationsUsedAsync(ImmutableList<Script> outputs)
+	private async Task MakeWalletsProcessTransactionAsync(Transaction tx)
 	{
-		var scripts = outputs.ToHashSet();
-		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
-		foreach (var k in wallets)
-		{
-			var kc = k.KeyChain;
-			var state = KeyState.Used;
-
-			// Watch only wallets have no key chains.
-			if (kc is null && k is Wallet w)
-			{
-				foreach (var hdPubKey in w.KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
-				{
-					w.KeyManager.SetKeyState(state, hdPubKey);
-				}
-
-				w.KeyManager.ToFile();
-			}
-			else
-			{
-				k.KeyChain?.TrySetScriptStates(state, scripts);
-			}
-		}
-	}
-
-	private async Task MakeWalletsBelieveTransactionAsync(Transaction tx)
-	{
+		// We will process the unsigned cj transaction and believe it is in the mempool.
 		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
 		foreach (var wallet in wallets.OfType<Wallet>())
 		{
 			var smartTransaction = new SmartTransaction(tx, Height.Mempool);
-			wallet.TransactionProcessor.Process(smartTransaction);
+			wallet.TransactionProcessor.Process(smartTransaction, true);
 		}
 	}
 
@@ -588,8 +561,7 @@ public class CoinJoinManager : BackgroundService
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !coin.IsBanned)
-			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
+			.Where(coin => !coin.IsBanned);
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{

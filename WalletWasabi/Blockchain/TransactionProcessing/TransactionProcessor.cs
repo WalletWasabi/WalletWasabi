@@ -90,7 +90,7 @@ public class TransactionProcessor
 		}
 	}
 
-	public ProcessedResult Process(SmartTransaction tx, bool force = false)
+	public ProcessedResult Process(SmartTransaction tx, bool forcedMempoolReplacement = false)
 	{
 		ProcessedResult ret;
 		lock (Lock)
@@ -99,7 +99,7 @@ public class TransactionProcessor
 			try
 			{
 				QueuedTxCount = 1;
-				ret = ProcessNoLock(tx, force);
+				ret = ProcessNoLock(tx, forcedMempoolReplacement);
 			}
 			finally
 			{
@@ -113,7 +113,7 @@ public class TransactionProcessor
 		return ret;
 	}
 
-	private ProcessedResult ProcessNoLock(SmartTransaction tx, bool force = false)
+	private ProcessedResult ProcessNoLock(SmartTransaction tx, bool forcedMempoolReplacement = false)
 	{
 		var result = new ProcessedResult(tx);
 
@@ -153,7 +153,7 @@ public class TransactionProcessor
 					// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 					// spending transaction but a replacement transaction.
 					var isReplacementTx = doubleSpends.Any(x => x.IsReplaceable());
-					if (isReplacementTx)
+					if (isReplacementTx || forcedMempoolReplacement)
 					{
 						// Undo the replaced transaction by removing the coins it created (if other coin
 						// spends it, remove that too and so on) and restoring those that it replaced.

@@ -256,7 +256,7 @@ public class CoinJoinClient
 			catch (Exception ex)
 			{
 				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
-				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), ex);
+				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), unsignedCoinJoin, ex);
 			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
@@ -276,7 +276,7 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			
+
 			// Coinjoin succeeded but wallet had no input in it.
 			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
 			{
