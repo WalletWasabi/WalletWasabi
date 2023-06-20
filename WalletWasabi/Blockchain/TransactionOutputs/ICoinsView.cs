@@ -13,8 +13,6 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView ChildrenOf(SmartCoin coin);
 
-	ICoinsView CoinJoinInProcess();
-
 	ICoinsView Confirmed();
 
 	ICoinsView DescendantOf(SmartCoin coin);

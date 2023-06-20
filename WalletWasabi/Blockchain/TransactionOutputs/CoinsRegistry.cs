@@ -236,8 +236,6 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
 
-	public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
-
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
 	public ICoinsView DescendantOf(SmartCoin coin) => AsCoinsView().DescendantOf(coin);
