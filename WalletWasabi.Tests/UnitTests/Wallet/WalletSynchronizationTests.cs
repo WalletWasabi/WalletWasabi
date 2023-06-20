@@ -28,12 +28,14 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class WalletSynchronizationTests
 {
+	/// <summary>
+	/// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again.
+	/// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
+	/// </summary>
 	[Fact]
-	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again.
-	// Verifies that the wallet won't find the last TX during Turbo sync but will find it during NonTurbo.
 	public async Task InternalAddressReuseNoBlockOverlapTestAsync()
 	{
-		await using var testSetup = new TestSetup("InternalAddressReuseNoBlockOverlapTestAsync");
+		await using var testSetup = new TestSetup(nameof(InternalAddressReuseNoBlockOverlapTestAsync));
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -48,7 +50,7 @@ public class WalletSynchronizationTests
 		// Address re-use.
 		await SendToAsync(minerWallet, wallet, Money.Coins(2), firstInternalKeyScript, testSetup, CancellationToken.None);
 
-		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseNoBlockOverlapTestAsync");
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, nameof(InternalAddressReuseNoBlockOverlapTestAsync));
 		var coins = wallet1.Coins as CoinsRegistry;
 
 		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
@@ -58,12 +60,14 @@ public class WalletSynchronizationTests
 		Assert.Equal(2, coins!.AsAllCoinsView().Count());
 	}
 
+	/// <summary>
+	/// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again and spend to an external key in a different block.
+	/// Verifies that the wallet will process the spend correctly when it doesn't have the coins in its CoinsRegistry at the time of spending.
+	/// </summary>
 	[Fact]
-	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again and spend to an external key in a different block.
-	// Verifies that the wallet will process the spend correctly when it doesn't have the coins in its CoinsRegistry at the time of spending.
 	public async Task InternalAddressReuseThenSpendOnExternalKeyTestAsync()
 	{
-		await using var testSetup = new TestSetup("InternalAddressReuseThenSpendOnExternalKeyTestAsync");
+		await using var testSetup = new TestSetup(nameof(InternalAddressReuseThenSpendOnExternalKeyTestAsync));
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -82,7 +86,7 @@ public class WalletSynchronizationTests
 		// Self spend the coins to an external key.
 		await SendToAsync(wallet, wallet, Money.Coins(2), walletExternalKeyScript, testSetup, CancellationToken.None);
 
-		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseNoBlockOverlapTestAsync");
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, nameof(InternalAddressReuseThenSpendOnExternalKeyTestAsync));
 		var coins = wallet1.Coins as CoinsRegistry;
 
 		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
@@ -92,12 +96,14 @@ public class WalletSynchronizationTests
 		Assert.Single(coins!.Available());
 	}
 
+	/// <summary>
+	/// Reuse 2 internal keys then send all funds away, then receive on first one, send to second one, then send on an external key.
+	/// This aims to make sure that the CoinsRegistry will catch all the history.
+	/// </summary>
 	[Fact]
-	// Reuse 2 internal keys then send all funds away, then receive on first one, send to second one, then send on an external key.
-	// This aims to make sure that the CoinsRegistry will catch all the history.
 	public async Task InternalAddressReuseChainThenSpendOnExternalKeyTestAsync()
 	{
-		await using var testSetup = new TestSetup("InternalAddressReuseThenSpendOnExternalKeyTestAsync");
+		await using var testSetup = new TestSetup(nameof(InternalAddressReuseChainThenSpendOnExternalKeyTestAsync));
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -126,7 +132,7 @@ public class WalletSynchronizationTests
 		// Self spend the coins to an external key
 		await SendToAsync(wallet, wallet, Money.Coins(3), walletExternalKeyScript, testSetup, CancellationToken.None);
 
-		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseNoBlockOverlapTestAsync");
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, nameof(InternalAddressReuseChainThenSpendOnExternalKeyTestAsync));
 		var coins = wallet1.Coins as CoinsRegistry;
 
 		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
@@ -136,12 +142,14 @@ public class WalletSynchronizationTests
 		Assert.Equal(7, coins!.AsAllCoinsView().Count());
 	}
 
+	/// <summary>
+	/// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
+	/// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
+	/// </summary>
 	[Fact]
-	// Receive on an internal key then spend (-> Key in subset SyncType.NonTurbo) then receive again but in the same block receive on an external key.
-	// Verifies that the wallet will find the TX reusing internal key twice (once in Turbo because of the TX on ext key in the same block and again in NonTurbo), but will process it without issues.
 	public async Task InternalAddressReuseWithBlockOverlapTestAsync()
 	{
-		await using var testSetup = new TestSetup("InternalAddressReuseWithBlockOverlapTestAsync");
+		await using var testSetup = new TestSetup(nameof(InternalAddressReuseWithBlockOverlapTestAsync));
 		var (minerWallet, wallet) = await AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(testSetup);
 
 		var minerFirstKeyScript = minerWallet.GetNextDestinations(1, false).Single().ScriptPubKey;
@@ -159,7 +167,7 @@ public class WalletSynchronizationTests
 		var receiveStandardTx = new TxSkeleton(Money.Coins(3), walletExternalKeyScript, testSetup.FeeRate, minerWallet);
 		SendSeveralTxSameBlock(new[] { reuseInternalKeyTx, receiveStandardTx }, testSetup, minerFirstKeyScript, CancellationToken.None);
 
-		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, "InternalAddressReuseWithBlockOverlapTestAsync");
+		using var wallet1 = await CreateRealWalletBasedOnTestWalletAsync(testSetup, wallet, firstInternalKeyScript, nameof(InternalAddressReuseWithBlockOverlapTestAsync));
 		var coins = wallet1.Coins as CoinsRegistry;
 
 		await wallet1.PerformWalletSynchronizationAsync(SyncType.Turbo, CancellationToken.None);
@@ -206,6 +214,7 @@ public class WalletSynchronizationTests
 
 		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(testSetup.Network, bitcoinStore, keyManager, synchronizer, testSetup.Dir, serviceConfiguration, feeProvider, blockProvider);
 	}
+
 	private async Task<(TestWallet, TestWallet)> AddBaseRpcFunctionalitiesAndCreateTestWalletsAsync(TestSetup baseTestElements)
 	{
 		baseTestElements.Rpc.OnGenerateToAddressAsync = (blockCount, address) => Task.FromResult(
@@ -334,6 +343,7 @@ public class WalletSynchronizationTests
 				// Sending whole coin.
 				tx.Outputs[0].ScriptPubKey = txSkeleton.ScriptPubKey;
 			}
+
 			signedTxsWithSigner.Add((txSkeleton.SpendingWallet.SignTransaction(tx), txSkeleton.SpendingWallet));
 			txSkeleton.SpendingWallet.ScanTransaction(tx);
 		}
@@ -359,7 +369,7 @@ public class WalletSynchronizationTests
 			FeeRate = FeeRate.Zero;
 			Rpc = new MockRpcClient();
 			BlockChain = new Dictionary<uint256, Block>();
-			Dir = Common.GetWorkDir("WalletSynchronizationTests", callerName);
+			Dir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
 			IndexStore = new IndexStore(Path.Combine(Dir, "indexStore"), Network, new SmartHeaderChain());
 			TransactionStore = new AllTransactionStore(Path.Combine(Dir, "transactionStore"), Network);
 		}
