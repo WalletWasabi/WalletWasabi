@@ -84,12 +84,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
-	public bool CoinJoinInProgress
-	{
-		get => _coinJoinInProgress;
-		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
-	}
-
 	public DateTimeOffset? BannedUntilUtc
 	{
 		get => _bannedUntilUtc;
