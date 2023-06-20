@@ -42,8 +42,8 @@
           <ItemsControl Items="{Binding DestinationAddresses}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <c:PreviewItem CopyableContent="{Binding}">
-                  <TextBlock Text="{Binding}" />
+                <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
+                  <TextBlock Classes="monoSpaced" Text="{Binding}" />
                 </c:PreviewItem>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
