@@ -4,15 +4,14 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Helpers;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -23,7 +22,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	private readonly string? _importFilePath;
 	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 
-	public WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
+	private WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
 	{
 		_importFilePath = importFilePath;
 
@@ -53,15 +52,15 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				Navigate().To(new RecoveryWordsViewModel(_mnemonic.Value, walletName));
+				Navigate().To().RecoveryWords(_mnemonic.Value, walletName);
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:
-				Navigate().To(new ConnectHardwareWalletViewModel(walletName));
+				Navigate().To().ConnectHardwareWallet(walletName);
 				break;
 
 			case WalletCreationOption.RecoverWallet:
-				Navigate().To(new RecoverWalletViewModel(walletName));
+				Navigate().To().RecoverWallet(walletName);
 				break;
 
 			case WalletCreationOption.ImportWallet when _importFilePath is { }:
@@ -78,7 +77,11 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		try
 		{
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+
+			// TODO: remove this after current ViewModel has been decoupled
+			var walletSettings = new WalletSettingsModel(keyManager, true);
+
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{

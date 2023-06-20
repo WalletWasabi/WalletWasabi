@@ -1,6 +1,5 @@
 using NBitcoin;
 using ReactiveUI;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -17,7 +16,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private int _anonymitySet;
-	[AutoNotify] private SmartLabel _smartLabel = "";
+	[AutoNotify] private LabelsArray _labels = "";
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
 	[AutoNotify] private bool _isSelected;
@@ -34,7 +33,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 
 		Coin.WhenAnyValue(c => c.IsExcludedFromCoinJoin).Subscribe(x => IsExcludedFromCoinJoin = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => Labels = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
 		CoinJoinInProgress = cjManager.IsCoinInCoinJoin(coin);
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
@@ -50,52 +49,6 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	public ICommand ToggleSelectCommand { get; }
 
 	public SmartCoin Coin { get; }
-
-	public static Comparison<WalletCoinViewModel?> SortAscending<T>(Func<WalletCoinViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return -1;
-			}
-			else if (y is null)
-			{
-				return 1;
-			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
-		};
-	}
-
-	public static Comparison<WalletCoinViewModel?> SortDescending<T>(Func<WalletCoinViewModel, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
-			{
-				return 0;
-			}
-			else if (x is null)
-			{
-				return 1;
-			}
-			else if (y is null)
-			{
-				return -1;
-			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
-			}
-		};
-	}
 
 	public void Dispose()
 	{

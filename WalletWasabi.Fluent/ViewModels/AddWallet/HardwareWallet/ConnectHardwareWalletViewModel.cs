@@ -25,11 +25,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	[AutoNotify] private bool _existingWalletFound;
 	[AutoNotify] private bool _confirmationRequired;
 
-	public ConnectHardwareWalletViewModel(string walletName)
+	private ConnectHardwareWalletViewModel(string walletName)
 	{
 		_message = "";
 		WalletName = walletName;
-		Wallets = UiServices.WalletManager.Wallets;
 		AbandonedTasks = new AbandonedTasks();
 		CancelCts = new CancellationTokenSource();
 
@@ -52,9 +51,9 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public string WalletName { get; }
 
-	public ObservableCollection<WalletViewModelBase> Wallets { get; }
+	public ObservableCollection<WalletViewModel> Wallets { get; }
 
-	public WalletViewModelBase? ExistingWallet { get; set; }
+	public WalletViewModel? ExistingWallet { get; set; }
 
 	public ICommand NavigateToExistingWalletLoginCommand { get; }
 
@@ -79,10 +78,13 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
+		if (ExistingWallet is { })
 		{
 			Navigate().Clear();
-			ExistingWallet.OpenCommand.Execute(default);
+
+			// Temporary workaround
+			MainViewModel.Instance.NavBar.SelectedWallet =
+				MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == ExistingWallet.Wallet.WalletName);
 		}
 	}
 
@@ -186,7 +188,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void NavigateToNext(HwiEnumerateEntry device)
 	{
-		Navigate().To(new DetectedHardwareWalletViewModel(WalletName, device));
+		Navigate().To().DetectedHardwareWallet(WalletName, device);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

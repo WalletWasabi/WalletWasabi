@@ -44,7 +44,7 @@ public class CoinJoinTracker : IDisposable
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }
-	public bool IsStopped { get; private set; }
+	public bool IsStopped { get; set; }
 
 	public void Stop()
 	{

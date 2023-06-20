@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
@@ -20,33 +21,56 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private string _dateString;
-	[AutoNotify] private string? _amount;
-	[AutoNotify] private SmartLabel? _labels;
+	[AutoNotify] private Money? _amount;
+	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
 
-	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
+
+		Fee = transactionSummary.Fee;
+		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
+		DestinationAddresses = transactionSummary.DestinationAddresses;
+		DestinationAddressesText = string.Join(Environment.NewLine, transactionSummary.DestinationAddresses);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
 
+	public string DestinationAddressesText { get; }
+
+	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
+
+	public bool IsFeeVisible { get; }
+
+	public Money? Fee { get; }
+
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
 		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.TransactionId.ToString();
-		Labels = transactionSummary.Label;
+		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.Abs().ToString(fplus: false, trimExcessZero: false);
-		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
+
+		if (transactionSummary.Amount < Money.Zero)
+		{
+			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			AmountText = "Outgoing";
+		}
+		else
+		{
+			Amount = transactionSummary.Amount;
+			AmountText = "Incoming";
+		}
+
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
 

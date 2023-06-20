@@ -9,15 +9,13 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -28,7 +26,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 
-	public RecoverWalletViewModel(string walletName)
+	private RecoverWalletViewModel(string walletName)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -49,13 +47,10 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			async () => await OnNextAsync(walletName),
 			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
 
-		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnAdvancedRecoveryOptionsDialogAsync());
+		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
 	}
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
-
-	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
 
 	private int MinGapLimit { get; set; } = 114;
 
@@ -63,11 +58,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(string walletName)
 	{
-		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", "Type the password of the wallet if there is one"),
-			NavigationTarget.CompactDialogScreen);
-
-		if (dialogResult.Result is not { } password || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
+		var password = await Navigate().To().CreatePasswordDialog("Add Password", "Type the password of the wallet if there is one").GetResultAsync();
+		if (password is not { } || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
 		{
 			return;
 		}
@@ -76,28 +68,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		try
 		{
-			var keyManager = await Task.Run(() =>
-				{
-					var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-
-					var result = KeyManager.Recover(
-						currentMnemonics,
-						password,
-						Services.WalletManager.Network,
-						AccountKeyPath,
-						null,
-						"", // Make sure it is not saved into a file yet.
-						MinGapLimit);
-
-					result.AutoCoinJoin = true;
-
-					// Set the filepath but we will only write the file later when the Ui workflow is done.
-					result.SetFilePath(walletFilePath);
-
-					return result;
-				});
-
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
+			var wallet = await UiContext.WalletList.RecoverWalletAsync(walletName, password, currentMnemonics, MinGapLimit);
+			await Navigate().To().CoinJoinProfiles(wallet).GetResultAsync();
 		}
 		catch (Exception ex)
 		{
@@ -110,11 +82,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await NavigateDialogAsync(
-			new AdvancedRecoveryOptionsViewModel(MinGapLimit),
-			NavigationTarget.CompactDialogScreen);
-
-		if (result.Kind == DialogResultKind.Normal && result.Result is { } minGapLimit)
+		var result = await Navigate().To().AdvancedRecoveryOptions(MinGapLimit).GetResultAsync();
+		if (result is { } minGapLimit)
 		{
 			MinGapLimit = minGapLimit;
 		}
@@ -144,7 +113,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletList.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 }

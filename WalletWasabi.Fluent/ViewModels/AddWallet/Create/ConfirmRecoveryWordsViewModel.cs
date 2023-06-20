@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -25,7 +26,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
-	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
+	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
 		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words.OrderBy(x => x.Index).ToList();
@@ -70,11 +71,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		confirmationWordsSourceList.AddRange(_words);
 
-		AvailableWords =
-			confirmationWordsSourceList.Items
-									   .Select(x => new RecoveryWordViewModel(x.Index, x.Word))
-									   .OrderBy(x => x.Word)
-									   .ToList();
+		AvailableWords = confirmationWordsSourceList.Items
+			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+			.OrderBy(x => x.Word)
+			.ToList();
 
 		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
@@ -88,7 +88,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		SetNextWord();
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletList.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 
@@ -139,27 +139,18 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
-		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.", enableEmpty: true),
-			NavigationTarget.CompactDialogScreen);
+		var dialogCaption = "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.";
+		var password = await Navigate().To().CreatePasswordDialog("Add Password", dialogCaption, enableEmpty: true).GetResultAsync();
 
-		if (dialogResult.Result is { } password)
+		if (password is { })
 		{
 			IsBusy = true;
 
-			var (km, mnemonic) = await Task.Run(
-				() =>
-				{
-					var walletGenerator = new WalletGenerator(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network)
-					{
-						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
-					};
-					return walletGenerator.GenerateWallet(_walletName, password, _mnemonic);
-				});
+			var walletSettings = await UiContext.WalletList.CreateNewWalletAsync(_walletName, password, _mnemonic);
+
 			IsBusy = false;
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+
+			await Navigate().To().CoinJoinProfiles(walletSettings).GetResultAsync();
 		}
 	}
 

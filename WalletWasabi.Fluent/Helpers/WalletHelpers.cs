@@ -24,15 +24,15 @@ public static class WalletHelpers
 	}
 
 	/// <returns>Labels ordered by blockchain.</returns>
-	public static IEnumerable<SmartLabel> GetTransactionLabels() => Services.BitcoinStore.TransactionStore.GetLabels();
+	public static IEnumerable<LabelsArray> GetTransactionLabels() => Services.BitcoinStore.TransactionStore.GetLabels();
 
-	public static IEnumerable<SmartLabel> GetReceiveAddressLabels() =>
+	public static IEnumerable<LabelsArray> GetReceiveAddressLabels() =>
 		Services.WalletManager
 			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
 			.Select(x => x.KeyManager)
 			.SelectMany(x => x.GetReceiveLabels());
 
-	public static IEnumerable<SmartLabel> GetChangeAddressLabels() =>
+	public static IEnumerable<LabelsArray> GetChangeAddressLabels() =>
 		Services.WalletManager
 			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
 			.Select(x => x.KeyManager)

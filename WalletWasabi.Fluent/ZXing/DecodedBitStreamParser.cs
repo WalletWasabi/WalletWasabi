@@ -281,7 +281,7 @@ namespace ZXing.QrCode.Internal
                 encoding = StringUtils.PLATFORM_DEFAULT_ENCODING_T;
 
             result.Append(encoding.GetString(buffer, 0, buffer.Length));
-            
+
             return true;
         }
 

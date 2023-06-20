@@ -48,19 +48,7 @@ public class QrCode : Control
 				}
 			});
 
-		_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(async address =>
-		{
-			await SaveQrCodeAsync(address);
-			return Unit.Default;
-		});
-
-		SaveCommand.ThrownExceptions
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(_ =>
-			{
-				// The error is thrown also in ReceiveAddressViewModel -> SaveQrCodeCommand.ThrownExceptions.
-				// However we need to catch it here too but to avoid duplicate logging we don't do anything here.
-			});
+		_saveCommand = ReactiveCommand.CreateFromTask<string>(SaveQrCodeAsync);
 	}
 
 	private bool[,]? FinalMatrix { get; set; }

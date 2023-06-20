@@ -383,30 +383,30 @@ public class SendTests
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			Assert.Single(res.InnerWalletOutputs);
-			Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().HdPubKey.Label);
+			Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().HdPubKey.Labels);
 
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 			res = wallet.BuildTransaction(
 				password,
 				new PaymentIntent(
-					new DestinationRequest(new Key(), amountToSend, label: "outgoing"),
-					new DestinationRequest(new Key(), amountToSend, label: "outgoing2")),
+					new DestinationRequest(new Key(), amountToSend, labels: "outgoing"),
+					new DestinationRequest(new Key(), amountToSend, labels: "outgoing2")),
 				FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true);
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Equal(2, res.OuterWalletOutputs.Count());
-			IEnumerable<string> change = res.InnerWalletOutputs.Single().HdPubKey.Label;
+			IEnumerable<string> change = res.InnerWalletOutputs.Single().HdPubKey.Labels;
 			Assert.Contains("outgoing", change);
 			Assert.Contains("outgoing2", change);
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
 			IEnumerable<SmartCoin> unconfirmedCoins = wallet.Coins.Where(x => x.Height == Height.Mempool).ToArray();
-			IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.HdPubKey.Label).ToArray();
+			IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.HdPubKey.Labels).ToArray();
 			Assert.Contains("outgoing", unconfirmedCoinLabels);
 			Assert.Contains("outgoing2", unconfirmedCoinLabels);
-			IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label);
+			IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Labels);
 			Assert.Contains("outgoing", allKeyLabels);
 			Assert.Contains("outgoing2", allKeyLabels);
 
@@ -415,10 +415,10 @@ public class SendTests
 			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 			var bestHeight = new Height(bitcoinStore.SmartHeaderChain.TipHeight);
-			IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.HdPubKey.Label);
+			IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.HdPubKey.Labels);
 			Assert.Contains("outgoing", confirmedCoinLabels);
 			Assert.Contains("outgoing2", confirmedCoinLabels);
-			allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label);
+			allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Labels);
 			Assert.Contains("outgoing", allKeyLabels);
 			Assert.Contains("outgoing2", allKeyLabels);
 
@@ -471,7 +471,7 @@ public class SendTests
 				password,
 				new PaymentIntent(
 					new DestinationRequest(scp1, MoneyRequest.CreateChange()),
-					new DestinationRequest(scp2, Money.Coins(0.0003m), label: "outgoing")),
+					new DestinationRequest(scp2, Money.Coins(0.0003m), labels: "outgoing")),
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 
 			Assert.Contains(scp1, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
@@ -493,7 +493,7 @@ public class SendTests
 				password,
 				new PaymentIntent(
 					new DestinationRequest(newChangeK.P2wpkhScript, MoneyRequest.CreateChange(), "boo"),
-					new DestinationRequest(new Key(), Money.Coins(0.0003m), label: "outgoing")),
+					new DestinationRequest(new Key(), Money.Coins(0.0003m), labels: "outgoing")),
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 
 			Assert.True(res.FeePercentOfSent > 1);
@@ -501,7 +501,7 @@ public class SendTests
 			Assert.Single(res.InnerWalletOutputs);
 			SmartCoin changeRes = res.InnerWalletOutputs.Single();
 			Assert.Equal(newChangeK.P2wpkhScript, changeRes.ScriptPubKey);
-			Assert.Equal(newChangeK.Label, changeRes.HdPubKey.Label);
+			Assert.Equal(newChangeK.Labels, changeRes.HdPubKey.Labels);
 			Assert.Equal(KeyState.Clean, newChangeK.KeyState); // Still clean, because the tx wasn't yet propagated.
 
 			#endregion FeePcHigh
