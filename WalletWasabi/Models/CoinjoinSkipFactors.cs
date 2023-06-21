@@ -21,16 +21,16 @@ public class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 	public static CoinjoinSkipFactors CostMinimizing => new(0.1, 0.2, 0.3);
 	public static CoinjoinSkipFactors PrivacyMaximizing => new(0.5, 0.5, 0.5);
 
+	public double Daily { get; }
+	public double Weekly { get; }
+	public double Monthly { get; }
+
 	public static CoinjoinSkipFactors FromString(string str)
 	{
 		var parts = str.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 		var factors = new CoinjoinSkipFactors(double.Parse(parts[0]), double.Parse(parts[1]), double.Parse(parts[2]));
 		return factors;
 	}
-
-	public double Daily { get; }
-	public double Weekly { get; }
-	public double Monthly { get; }
 
 	public override string ToString() => $"{Daily}-{Weekly}-{Monthly}";
 
