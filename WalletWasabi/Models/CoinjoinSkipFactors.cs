@@ -1,9 +1,12 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 namespace WalletWasabi.Models;
 
@@ -30,6 +33,40 @@ public class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 		var parts = str.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 		var factors = new CoinjoinSkipFactors(double.Parse(parts[0]), double.Parse(parts[1]), double.Parse(parts[2]));
 		return factors;
+	}
+
+	public bool ShouldSkipRoundRandomly(WasabiRandom random, FeeRate roundFeeRate, IDictionary<TimeSpan, FeeRate> coinJoinFeeRateMedians)
+	{
+		var day = TimeSpan.FromHours(24);
+		var week = TimeSpan.FromHours(168);
+		var month = TimeSpan.FromHours(720);
+
+		var dailyProbability = 1d;
+		var weeklyProbability = 1d;
+		var monthlyProbability = 1d;
+
+		if (coinJoinFeeRateMedians.TryGetValue(day, out var medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			dailyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : Daily;
+		}
+
+		if (coinJoinFeeRateMedians.TryGetValue(week, out medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			weeklyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : Weekly;
+		}
+
+		if (coinJoinFeeRateMedians.TryGetValue(month, out medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			monthlyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : Monthly;
+		}
+
+		var averageProbabilityPercentage = (int)(100 * (dailyProbability + weeklyProbability + monthlyProbability) / 3d);
+		var rand = random.GetInt(1, 101);
+
+		return averageProbabilityPercentage < rand;
 	}
 
 	public override string ToString() => $"{Daily}-{Weekly}-{Monthly}";

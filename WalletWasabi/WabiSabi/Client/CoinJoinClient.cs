@@ -90,7 +90,7 @@ public class CoinJoinClient
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
-					&& !ShouldSkipRandomly(roundState.CoinjoinState.Parameters.MiningFeeRate)
+					&& !SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundState.CoinjoinState.Parameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians)
 					&& roundState.Id != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
@@ -716,40 +716,6 @@ public class CoinJoinClient
 		}
 
 		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
-	}
-
-	public bool ShouldSkipRandomly(FeeRate roundFeeRate)
-	{
-		var day = TimeSpan.FromHours(24);
-		var week = TimeSpan.FromHours(168);
-		var month = TimeSpan.FromHours(720);
-
-		var dailyProbability = 1d;
-		var weeklyProbability = 1d;
-		var monthlyProbability = 1d;
-
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(day, out var medianFeeRate))
-		{
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			dailyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : SkipFactors.Daily;
-		}
-
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(week, out medianFeeRate))
-		{
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			weeklyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : SkipFactors.Weekly;
-		}
-
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(month, out medianFeeRate))
-		{
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			monthlyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : SkipFactors.Monthly;
-		}
-
-		var averageProbabilityPercentage = (int)(100 * (dailyProbability + weeklyProbability + monthlyProbability) / 3d);
-		var rand = SecureRandom.GetInt(1, 101);
-
-		return averageProbabilityPercentage < rand;
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
