@@ -567,7 +567,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	/// <summary>
-	/// Go through the filters and queue to download the matches.
+	/// Go through the filters and queue the matches to download.
 	/// </summary>
 	public async Task PerformWalletSynchronizationAsync(SyncType syncType, CancellationToken cancel)
 	{
