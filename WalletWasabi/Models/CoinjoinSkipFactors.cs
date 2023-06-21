@@ -14,9 +14,9 @@ public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 {
 	public CoinjoinSkipFactors(double daily, double weekly, double monthly)
 	{
-		Daily = daily;
-		Weekly = weekly;
-		Monthly = monthly;
+		Daily = Math.Max(0d, Math.Min(daily, 1d));
+		Weekly = Math.Max(0d, Math.Min(weekly, 1d));
+		Monthly = Math.Max(0d, Math.Min(monthly, 1d));
 	}
 
 	public static CoinjoinSkipFactors NoSkip => new(1, 1, 1);
@@ -30,7 +30,7 @@ public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 
 	public static CoinjoinSkipFactors FromString(string str)
 	{
-		var parts = str.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+		var parts = str.Split('_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 		if (!double.TryParse(parts[0], out var daily))
 		{
@@ -85,7 +85,7 @@ public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 		return averageProbabilityPercentage < rand;
 	}
 
-	public override string ToString() => $"{Daily}-{Weekly}-{Monthly}";
+	public override string ToString() => $"{Daily}_{Weekly}_{Monthly}";
 
 	#region Equality
 
