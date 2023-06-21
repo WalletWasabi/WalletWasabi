@@ -51,7 +51,7 @@ public class WalletManager : IWalletProvider
 	/// </summary>
 	public event EventHandler<Wallet>? WalletAdded;
 
-	private CancellationTokenSource CancelAllInitialization { get; } = new();
+	private CancellationTokenSource CancelAllTasks { get; } = new();
 
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private HashSet<Wallet> Wallets { get; } = new();
@@ -128,7 +128,7 @@ public class WalletManager : IWalletProvider
 				throw new OperationCanceledException("Object was already disposed.");
 			}
 
-			if (CancelAllInitialization.IsCancellationRequested)
+			if (CancelAllTasks.IsCancellationRequested)
 			{
 				throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 			}
@@ -142,7 +142,7 @@ public class WalletManager : IWalletProvider
 		// Wait for the WalletManager to be initialized.
 		while (!IsInitialized)
 		{
-			await Task.Delay(100, CancelAllInitialization.Token).ConfigureAwait(false);
+			await Task.Delay(100, CancelAllTasks.Token).ConfigureAwait(false);
 		}
 
 		if (wallet.State == WalletState.WaitingForInit)
@@ -150,11 +150,11 @@ public class WalletManager : IWalletProvider
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 
-		using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
 			{
-				var cancel = CancelAllInitialization.Token;
+				var cancel = CancelAllTasks.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
@@ -270,12 +270,12 @@ public class WalletManager : IWalletProvider
 
 		try
 		{
-			CancelAllInitialization?.Cancel();
-			CancelAllInitialization?.Dispose();
+			CancelAllTasks?.Cancel();
+			CancelAllTasks?.Dispose();
 		}
 		catch (ObjectDisposedException)
 		{
-			Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
+			Logger.LogWarning($"{nameof(CancelAllTasks)} is disposed. This can occur due to an error while processing the wallet.");
 		}
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
