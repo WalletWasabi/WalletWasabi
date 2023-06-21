@@ -38,7 +38,8 @@ public class KeyManager
 		new HDFingerprintJsonConverter(),
 		new ExtPubKeyJsonConverter(),
 		new KeyPathJsonConverter(),
-		new MoneyBtcJsonConverter()
+		new MoneyBtcJsonConverter(),
+		new CoinjoinSkipFactorsJsonConverter()
 	};
 
 	[JsonConstructor]
@@ -200,7 +201,7 @@ public class KeyManager
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
-	[JsonProperty(ItemConverterType = typeof(CoinjoinSkipFactorsJsonConverter), PropertyName = "CoinjoinSkipFactors")]
+	[JsonProperty(PropertyName = "CoinjoinSkipFactors")]
 	public CoinjoinSkipFactors CoinjoinSkipFactors { get; set; } = CoinjoinSkipFactors.SpeedMaximizing;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
