@@ -10,7 +10,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 namespace WalletWasabi.Models;
 
-public class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
+public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 {
 	public CoinjoinSkipFactors(double daily, double weekly, double monthly)
 	{
@@ -31,7 +31,23 @@ public class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 	public static CoinjoinSkipFactors FromString(string str)
 	{
 		var parts = str.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-		var factors = new CoinjoinSkipFactors(double.Parse(parts[0]), double.Parse(parts[1]), double.Parse(parts[2]));
+
+		if (!double.TryParse(parts[0], out var daily))
+		{
+			daily = 1d;
+		}
+
+		if (!double.TryParse(parts[1], out var weekly))
+		{
+			weekly = 1d;
+		}
+
+		if (!double.TryParse(parts[2], out var monthly))
+		{
+			monthly = 1d;
+		}
+
+		var factors = new CoinjoinSkipFactors(daily, weekly, monthly);
 		return factors;
 	}
 
