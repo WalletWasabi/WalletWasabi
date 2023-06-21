@@ -754,7 +754,7 @@ public class CoinJoinClient
 		var averageProbabilityPercentage = (int)(100 * (dailyProbability + weeklyProbability + monthlyProbability) / 3d);
 		var rand = SecureRandom.GetInt(1, 101);
 
-		return averageProbabilityPercentage >= rand;
+		return averageProbabilityPercentage < rand;
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
