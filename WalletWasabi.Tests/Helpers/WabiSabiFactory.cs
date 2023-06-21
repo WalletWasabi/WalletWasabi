@@ -323,7 +323,10 @@ public static class WabiSabiFactory
 			coinSelector,
 			new LiquidityClueProvider(),
 			TimeSpan.Zero,
-			TimeSpan.Zero);
+			TimeSpan.Zero,
+			1,
+			1,
+			1);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
