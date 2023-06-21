@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -22,9 +23,7 @@ public interface IWalletSettingsModel
 	int AnonScoreTarget { get; set; }
 
 	bool RedCoinIsolation { get; set; }
-	double CoinjoinProbabilityDaily { get; set; }
-	double CoinjoinProbabilityWeekly { get; set; }
-	double CoinjoinProbabilityMonthly { get; set; }
+	CoinjoinSkipFactors CoinjoinSkipFactors { get; set; }
 	int FeeRateMedianTimeFrameHours { get; set; }
 
 	void Save();

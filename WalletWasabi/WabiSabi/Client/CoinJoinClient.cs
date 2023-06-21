@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -44,9 +45,7 @@ public class CoinJoinClient
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
-		double coinjoinProbabilityDaily = 1,
-		double coinjoinProbabilityWeekly = 1,
-		double coinjoinProbabilityMonthly = 1)
+		CoinjoinSkipFactors? skipFactors = null)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -56,9 +55,7 @@ public class CoinJoinClient
 		LiquidityClueProvider = liquidityClueProvider;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
-		CoinjoinProbabilityDaily = coinjoinProbabilityDaily;
-		CoinjoinProbabilityWeekly = coinjoinProbabilityWeekly;
-		CoinjoinProbabilityMonthly = coinjoinProbabilityMonthly;
+		SkipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -75,9 +72,7 @@ public class CoinJoinClient
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	public double CoinjoinProbabilityDaily { get; }
-	public double CoinjoinProbabilityWeekly { get; }
-	public double CoinjoinProbabilityMonthly { get; }
+	private CoinjoinSkipFactors SkipFactors { get; }
 	private TimeSpan MaxWaitingTimeForRound { get; } = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -736,19 +731,19 @@ public class CoinJoinClient
 		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(day, out var medianFeeRate))
 		{
 			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			dailyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : CoinjoinProbabilityDaily;
+			dailyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : SkipFactors.Daily;
 		}
 
 		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(week, out medianFeeRate))
 		{
 			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			weeklyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : CoinjoinProbabilityWeekly;
+			weeklyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : SkipFactors.Weekly;
 		}
 
 		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(month, out medianFeeRate))
 		{
 			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			monthlyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : CoinjoinProbabilityMonthly;
+			monthlyProbability = roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m ? 1 : SkipFactors.Monthly;
 		}
 
 		var averageProbabilityPercentage = (int)(100 * (dailyProbability + weeklyProbability + monthlyProbability) / 3d);
