@@ -278,7 +278,7 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			
+
 			// Coinjoin succeeded but wallet had no input in it.
 			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
 			{
@@ -530,8 +530,6 @@ public class CoinJoinClient
 			})
 			.ToImmutableArray();
 
-		CoinsUsedInCoinjoin = smartCoins.ToImmutableList();
-
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
 		var successfulAlices = aliceClients
@@ -539,6 +537,8 @@ public class CoinJoinClient
 			.Where(r => r.AliceClient is not null && r.PersonCircuit is not null)
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
+
+		CoinsUsedInCoinjoin = successfulAlices.Select(alice => alice.Item1.SmartCoin).ToImmutableList();
 
 		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
 		{
