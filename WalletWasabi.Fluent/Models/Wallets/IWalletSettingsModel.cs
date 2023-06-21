@@ -23,7 +23,9 @@ public interface IWalletSettingsModel
 	int AnonScoreTarget { get; set; }
 
 	bool RedCoinIsolation { get; set; }
+
 	CoinjoinSkipFactors CoinjoinSkipFactors { get; set; }
+
 	int FeeRateMedianTimeFrameHours { get; set; }
 
 	void Save();
