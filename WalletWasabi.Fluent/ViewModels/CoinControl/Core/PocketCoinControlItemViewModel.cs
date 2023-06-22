@@ -26,8 +26,8 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
 		IsCoinjoining = pocketCoins.Any(cjManager.IsCoinInCoinJoin);
-        AnonymityScore = GetAnonScore(pocketCoins);
-        Labels = pocket.Labels;
+		AnonymityScore = GetAnonScore(pocketCoins);
+		Labels = pocket.Labels;
 		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
 		ScriptType = null;
