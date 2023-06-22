@@ -46,7 +46,7 @@ public class Bip21UriParserTests
 
 		Assert.False(Bip21UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=", Network.Main, out result, out error));
 		Assert.Null(result);
-		AssertEqualErrors(Bip21UriParser.ErrorInvalidAmountValue, error);
+		AssertEqualErrors(Bip21UriParser.ErrorMissingAmountValue, error);
 
 		Assert.False(Bip21UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=XYZ", Network.Main, out result, out error));
 		Assert.Null(result);
