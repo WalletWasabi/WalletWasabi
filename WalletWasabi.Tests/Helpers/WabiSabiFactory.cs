@@ -5,6 +5,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
@@ -16,8 +17,10 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
@@ -353,4 +356,22 @@ public static class WabiSabiFactory
 	}
 
 	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
+
+	public static Prison CreatePrison()
+	{
+		var coinjoinIdStore = new Mock<ICoinJoinIdStore>();
+		coinjoinIdStore.Setup(x => x.Contains(uint256.One)).Returns(true);
+		return new Prison(
+			new DoSConfiguration(
+				Severity: 1.0m,
+				MinTimeForFailedToVerify: TimeSpan.FromDays(30),
+				MinTimeForCheating: TimeSpan.FromDays(1),
+				MinimumTimeInPrison: TimeSpan.FromHours(1),
+				PenaltyFactorForDisruptingConfirmation: 1.0m,
+				PenaltyFactorForDisruptingSigning: 1.5m,
+				PenaltyFactorForDisruptingByDoubleSpending: 3.0m),
+			coinjoinIdStore.Object,
+			Enumerable.Empty<Offender>(),
+			Channel.CreateUnbounded<Offender>().Writer);
+	}
 }

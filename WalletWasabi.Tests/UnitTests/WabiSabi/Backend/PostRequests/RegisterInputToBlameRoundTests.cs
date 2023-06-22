@@ -67,10 +67,10 @@ public class RegisterInputToBlameRoundTests
 		Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(alice.Coin);
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync(round, blameRound);
 
-		prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
+		prison.FailedToConfirm(bannedCoin, alice.Coin.Amount, round.Id);
 
 		var req = WabiSabiFactory.CreateInputRegistrationRequest(key: key, round: blameRound, prevout: bannedCoin);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterInputAsync(req, CancellationToken.None));

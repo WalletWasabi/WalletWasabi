@@ -76,7 +76,7 @@ public class StepTransactionSigningTests
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
@@ -94,7 +94,11 @@ public class StepTransactionSigningTests
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
 		Assert.Equal(EndRoundState.TransactionBroadcastFailed, round.EndRoundState);
-		Assert.Empty(prison.GetInmates());
+
+		var now = DateTimeOffset.UtcNow;
+		Assert.All(
+			new [] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
+			prevOut => Assert.False(prison.IsBanned(prevOut, now)));
 
 		await arena.StopAsync(token);
 	}
@@ -118,7 +122,7 @@ public class StepTransactionSigningTests
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
@@ -141,7 +145,10 @@ public class StepTransactionSigningTests
 		// There should be no inmate, because we aren't punishing spenders with banning
 		// as there's no reason to ban already spent UTXOs,
 		// the cost of spending the UTXO is the punishment instead.
-		Assert.Empty(prison.GetInmates());
+		var now = DateTimeOffset.UtcNow;
+		Assert.All(
+			new [] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
+			prevOut => Assert.False(prison.IsBanned(prevOut, now)));
 
 		await arena.StopAsync(token);
 	}
@@ -165,7 +172,7 @@ public class StepTransactionSigningTests
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
@@ -182,7 +189,8 @@ public class StepTransactionSigningTests
 		Assert.Equal(Phase.Ended, round.Phase);
 		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
 		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
-		Assert.Contains(aliceClient2.SmartCoin.Outpoint, prison.GetInmates().Select(x => x.Utxo));
+
+		Assert.True(prison.IsBanned(aliceClient2.SmartCoin.Outpoint, DateTimeOffset.UtcNow));
 
 		await arena.StopAsync(token);
 	}
@@ -209,7 +217,7 @@ public class StepTransactionSigningTests
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
@@ -228,7 +236,7 @@ public class StepTransactionSigningTests
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Single(arena.Rounds.Where(x => x is BlameRound));
 		var badOutpoint = alice3.Coin.Outpoint;
-		Assert.Contains(badOutpoint, prison.GetInmates().Select(x => x.Utxo));
+		Assert.True(prison.IsBanned(badOutpoint, DateTimeOffset.UtcNow));
 
 		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
 		var blameRound = Assert.IsType<BlameRound>(onlyRound);

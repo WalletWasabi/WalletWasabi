@@ -2,12 +2,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public record TimeFrame
 {
-	private TimeFrame(DateTimeOffset startTime, TimeSpan duration)
+	public TimeFrame(DateTimeOffset startTime, TimeSpan duration)
 	{
 		StartTime = startTime;
 		Duration = duration;
 	}
 
+	public static TimeFrame Zero = TimeFrame.Create(TimeSpan.Zero);
+	
 	public static TimeFrame Create(TimeSpan duration) =>
 		new(DateTimeOffset.MinValue, duration);
 
@@ -19,4 +21,7 @@ public record TimeFrame
 	public bool HasExpired => HasStarted && EndTime < DateTimeOffset.UtcNow;
 
 	public TimeFrame StartNow() => this with { StartTime = DateTimeOffset.UtcNow };
+
+	public bool Includes(DateTimeOffset dateTime) =>
+		dateTime >= StartTime && dateTime < EndTime;
 }
