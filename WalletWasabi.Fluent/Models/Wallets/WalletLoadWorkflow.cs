@@ -95,9 +95,17 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
+		if (isBackendAvailable)
 		{
-			await Task.Delay(1000).ConfigureAwait(false);
+			while (RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
+			{
+				if (Services.TerminationRequestedTask.IsCompleted)
+				{
+					return;
+				}
+
+				await Task.Delay(1000).ConfigureAwait(false);
+			}
 		}
 
 		if (_wallet.State != WalletState.Uninitialized)
@@ -121,9 +129,17 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
 	{
-		while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+		if (isBackendAvailable)
 		{
-			await Task.Delay(500).ConfigureAwait(false);
+			while (Services.Synchronizer.LastResponse is null)
+			{
+				if (Services.TerminationRequestedTask.IsCompleted)
+				{
+					return;
+				}
+
+				await Task.Delay(500).ConfigureAwait(false);
+			}
 		}
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;

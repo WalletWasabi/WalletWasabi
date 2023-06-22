@@ -169,7 +169,7 @@ public static class WasabiAppExtensions
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
+				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService.TerminationRequested.Task);
 
 				AppBuilder
 					.Configure(() => new App(

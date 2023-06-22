@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.StatusChecker;
@@ -38,6 +40,7 @@ public static class Services
 
 	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
 	public static UpdateManager? UpdateManager { get; private set; }
+	public static Task TerminationRequestedTask { get; private set; } = null!;
 
 	public static bool IsInitialized { get; private set; }
 
@@ -46,7 +49,7 @@ public static class Services
 	/// </summary>
 	/// <param name="global">The global instance.</param>
 	/// <param name="singleInstanceChecker">The singleInstanceChecker instance.</param>
-	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker)
+	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker, Task terminationRequestedTask)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
@@ -75,6 +78,7 @@ public static class Services
 		SingleInstanceChecker = singleInstanceChecker;
 		TorStatusChecker = global.TorStatusChecker;
 		UpdateManager = global.UpdateManager;
+		TerminationRequestedTask = terminationRequestedTask;
 
 		IsInitialized = true;
 	}
