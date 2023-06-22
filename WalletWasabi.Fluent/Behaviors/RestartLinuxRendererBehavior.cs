@@ -24,6 +24,7 @@ public class RestartRendererBehavior : AttachedToVisualTreeBehavior<Window>
 				AssociatedObject.Renderer.Start();
 				AssociatedObject.Activate();
 			})
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(disposable);
 	}
 }
