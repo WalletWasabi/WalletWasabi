@@ -47,8 +47,6 @@ public class App : Application
 
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
-				//_backendInitialiseAsync!.Invoke().GetAwaiter().GetResult();
-
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{

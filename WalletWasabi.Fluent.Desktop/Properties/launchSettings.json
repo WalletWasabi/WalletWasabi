@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "WalletWasabi.Fluent.Desktop": {
-      "commandName": "Project",
-      "commandLineArgs": "--LogLevel=debug"
-    }
-  }
-}
