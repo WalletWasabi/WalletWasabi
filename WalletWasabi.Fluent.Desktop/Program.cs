@@ -85,6 +85,21 @@ public class Program
 	private static void TerminateApplication()
 	{
 		Logger.LogError("TerminateApplication called.");
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			Window? mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+			if (mainWindow is not null)
+			{
+				mainWindow.Close();
+
+				MainViewModel.Instance.ClearStacks();
+				MainViewModel.Instance.StatusIcon.Dispose();
+
+				AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
+			}
+		});
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
