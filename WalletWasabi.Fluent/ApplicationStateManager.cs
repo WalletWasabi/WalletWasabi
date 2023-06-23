@@ -1,10 +1,13 @@
 using System.ComponentModel;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
@@ -82,6 +85,15 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
+
+		// Cancellation was requested during application startup.
+		if (Services.TerminateService.CancellationToken.IsCancellationRequested)
+		{
+			Dispatcher.UIThread.Post(() =>
+			{
+				_stateMachine.Fire(Trigger.ShutdownRequested);
+			});
+		}
 	}
 
 	private enum Trigger

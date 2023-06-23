@@ -83,9 +83,6 @@ public class Global
 	/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
 	private AsyncLock InitializationAsyncLock { get; } = new();
 
-	/// <summary>Cancellation token to cancel <see cref="InitializeNoWalletAsync(TerminateService)"/> processing.</summary>
-	private CancellationTokenSource StoppingCts { get; } = new();
-
 	public string DataDir { get; }
 	public TorSettings TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
@@ -134,7 +131,7 @@ public class Global
 				return;
 			}
 
-			CancellationToken cancel = StoppingCts.Token;
+			CancellationToken cancel = terminateService.CancellationToken;
 
 			try
 			{
@@ -224,7 +221,7 @@ public class Global
 			}
 			finally
 			{
-				Logger.LogTrace("Initialization finished.");
+				Logger.LogDebug("Initialization finished.");
 			}
 		}
 	}
@@ -331,7 +328,6 @@ public class Global
 		if (!_disposeRequested)
 		{
 			_disposeRequested = true;
-			StoppingCts.Cancel();
 		}
 		else
 		{
@@ -461,7 +457,6 @@ public class Global
 			}
 			finally
 			{
-				StoppingCts.Dispose();
 				Logger.LogTrace("Dispose finished.");
 			}
 		}

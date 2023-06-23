@@ -22,6 +22,8 @@ using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Avalonia.Controls;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -82,15 +84,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() =>
-		{
-			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow.Close();
-
-			MainViewModel.Instance.ClearStacks();
-			MainViewModel.Instance.StatusIcon.Dispose();
-
-			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
-		});
+		Logger.LogError("TerminateApplication called.");
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -169,17 +163,27 @@ public static class WasabiAppExtensions
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
+
+				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
 				AppBuilder
 					.Configure(() => new App(
 						backendInitialiseAsync: async () =>
 						{
-							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
+							try
+							{
+								// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+								await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
 
-							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+								// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+								await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+
+								MainViewModel.Instance.Initialize();
+							}
+							catch (OperationCanceledException)
+							{
+								Logger.LogError("Initialization stopped by user.");
+							}
 						}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
