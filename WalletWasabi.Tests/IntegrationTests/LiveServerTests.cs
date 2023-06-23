@@ -26,22 +26,24 @@ public class LiveServerTests : IAsyncLifetime
 		LiveServerTestsFixture = liveServerTestsFixture;
 
 		TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-		TorManager = new(Common.TorSettings);
+		TorProcessManager = new(Common.TorSettings);
 	}
 
-	private TorProcessManager TorManager { get; }
+	private TorProcessManager TorProcessManager { get; }
 	private TorHttpPool TorHttpPool { get; }
 	private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 	public async Task InitializeAsync()
 	{
-		await TorManager.StartAsync();
+		using CancellationTokenSource startTimeoutCts = new(TimeSpan.FromMinutes(2));
+
+		await TorProcessManager.StartAsync(startTimeoutCts.Token);
 	}
 
 	public async Task DisposeAsync()
 	{
 		await TorHttpPool.DisposeAsync();
-		await TorManager.DisposeAsync();
+		await TorProcessManager.DisposeAsync();
 	}
 
 	#region Blockchain
