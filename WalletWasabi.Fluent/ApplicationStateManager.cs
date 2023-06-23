@@ -85,15 +85,6 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
-
-		// Cancellation was requested during application startup.
-		if (Services.TerminateService.CancellationToken.IsCancellationRequested)
-		{
-			Dispatcher.UIThread.Post(() =>
-			{
-				_stateMachine.Fire(Trigger.ShutdownRequested);
-			});
-		}
 	}
 
 	private enum Trigger

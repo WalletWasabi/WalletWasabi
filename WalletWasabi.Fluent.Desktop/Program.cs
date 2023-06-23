@@ -24,6 +24,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Avalonia.Controls;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.Views;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -181,7 +182,7 @@ public static class WasabiAppExtensions
 
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-				AppBuilder
+				AppBuilder appBuilder = AppBuilder
 					.Configure(() => new App(
 						backendInitialiseAsync: async () =>
 						{
@@ -208,10 +209,25 @@ public static class WasabiAppExtensions
 						Logger.LogInfo($"Renderer: {glInterface?.PrimaryContext.GlInterface.Renderer ?? "Avalonia Software"}");
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-					})
-					.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+					});
+
+				appBuilder.Start(AppMain, app.AppConfig.Arguments);
+
 				return Task.CompletedTask;
 			});
+	}
+
+	/// <summary>
+	///	Application entry point. Avalonia is completely initialized.
+	/// </summary>
+	/// <seealso href="https://docs.avaloniaui.net/docs/getting-started/application-lifetimes"/>
+	static void AppMain(Application app, string[] args)
+	{
+		// Do you startup code here.
+		new MainWindow().Show();
+
+		// Start the main loop.
+		app.Run(Services.TerminateService.CancellationToken);
 	}
 
 	private static UiConfig LoadOrCreateUiConfig(string dataDir)
