@@ -45,7 +45,8 @@ public class TransactionHistoryBuilder
 			else
 			{
 				var outputs = GetOutputs(containingTransaction, wallet.Network).ToList();
-				var destinationAddresses = GetDestinationAddresses(outputs);
+				var inputs = GetInputs(containingTransaction).ToList();
+				var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
 				txRecordList.Add(new TransactionSummary
 				{
@@ -77,7 +78,8 @@ public class TransactionHistoryBuilder
 				else
 				{
 					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
-					var destinationAddresses = GetDestinationAddresses(outputs);
+					var inputs = GetInputs(containingTransaction).ToList();
+					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
 					txRecordList.Add(new TransactionSummary
 					{
@@ -100,12 +102,37 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<Output> outputs)
+	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
 	{
-		var myOwnNonInternalOutputs = outputs.OfType<OwnOutput>().Where(x => !x.IsInternal).Cast<Output>();
-		var foreignOutputs = outputs.OfType<ForeignOutput>().Cast<Output>();
+		var myOwnInputs = inputs.OfType<KnownInput>().ToList();
+		var foreignInputs = inputs.OfType<ForeignInput>().ToList();
+		var myOwnOutputs = outputs.OfType<OwnOutput>().ToList();
+		var foreignOutputs = outputs.OfType<ForeignOutput>().ToList();
+		
+		// All inputs and outputs are my own, transaction is a self-spend.
+		if (!foreignInputs.Any() && !foreignOutputs.Any())
+		{
+			// Classic self-spend to an external address.
+			if (myOwnOutputs.Any(x => !x.IsInternal))
+			{
+				// Destination are the external addresses.
+				return myOwnOutputs.Where(x => !x.IsInternal).Select(x => x.DestinationAddress);
+			}
+			// Edge-case: self-spend to an internal address.
+			// We can't know the destination, return all the outputs.
+			return myOwnOutputs.Select(x => x.DestinationAddress);
+		}
 
-		return myOwnNonInternalOutputs.Concat(foreignOutputs).Select(x => x.DestinationAddress);
+		// All inputs are foreign but some outputs are my own, someone is sending a transaction to me.
+		if (!myOwnInputs.Any() && myOwnOutputs.Any())
+		{
+			// All outputs that are my own are the destination.
+			return myOwnOutputs.Select(x => x.DestinationAddress);
+		}
+		
+		// I'm sending a transaction to someone else.
+		// All outputs that are not my own are the destination.
+		return foreignOutputs.Select(x => x.DestinationAddress);
 	}
 
 	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
