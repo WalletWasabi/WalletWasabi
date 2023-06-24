@@ -213,17 +213,7 @@ public static class WasabiAppExtensions
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					});
 
-				// appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
-				ClassicDesktopStyleApplicationLifetime lifetime = new()
-				{
-					Args = app.AppConfig.Arguments,
-					ShutdownMode = ShutdownMode.OnLastWindowClose
-				};
-
-				appBuilder.SetupWithLifetime(lifetime);
-				//int exitCode = lifetime.Start(app.AppConfig.Arguments);
-
-				appBuilder.Instance.Run(Services.TerminateService.CancellationToken);
+				appBuilder.StartWithWasabiClassicDesktopLifetime(app.AppConfig.Arguments, ShutdownMode.OnLastWindowClose, Services.TerminateService.CancellationToken);
 
 				return Task.CompletedTask;
 			});
