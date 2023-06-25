@@ -53,7 +53,9 @@ public class WalletTests
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
 
-		(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(1), 1000, bitcoinStore, httpClientFactory);
