@@ -35,7 +35,7 @@
 
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
-                   Label="receiver"
+                   Label="recipient"
                    CopyableContent="{Binding Recipient}">
       <c:LabelsItemsPresenter Items="{Binding Recipient}"
                               HorizontalAlignment="Left"
