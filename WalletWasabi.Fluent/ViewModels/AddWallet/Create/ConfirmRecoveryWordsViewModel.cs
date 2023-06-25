@@ -88,7 +88,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		SetNextWord();
 
-		var enableCancel = UiContext.WalletList.HasWallet;
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 
@@ -146,7 +146,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			var walletSettings = await UiContext.WalletList.CreateNewWalletAsync(_walletName, password, _mnemonic);
+			var walletSettings = await UiContext.WalletRepository.CreateNewWalletAsync(_walletName, password, _mnemonic);
 
 			IsBusy = false;
 

@@ -13,11 +13,11 @@ using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletListModel : ReactiveObject, IWalletListModel
+public partial class WalletRepository : ReactiveObject, IWalletRepository
 {
 	private ReadOnlyObservableCollection<IWalletModel> _wallets;
 
-	public WalletListModel()
+	public WalletRepository()
 	{
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
