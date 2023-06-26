@@ -46,7 +46,7 @@ public class TransactionHistoryBuilder
 			{
 				var outputs = GetOutputs(containingTransaction, wallet.Network).ToList();
 				var inputs = GetInputs(containingTransaction).ToList();
-				var destinationAddresses = GetDestinationsAddresses(inputs, outputs);
+				var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
 				txRecordList.Add(new TransactionSummary
 				{
@@ -79,7 +79,7 @@ public class TransactionHistoryBuilder
 				{
 					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
 					var inputs = GetInputs(containingTransaction).ToList();
-					var destinationAddresses = GetDestinationsAddresses(inputs, outputs);
+					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
 					txRecordList.Add(new TransactionSummary
 					{
@@ -102,7 +102,7 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private IEnumerable<BitcoinAddress> GetDestinationsAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
+	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
 	{
 		var myOwnInputs = inputs.OfType<KnownInput>().ToList();
 		var foreignInputs = inputs.OfType<ForeignInput>().ToList();
