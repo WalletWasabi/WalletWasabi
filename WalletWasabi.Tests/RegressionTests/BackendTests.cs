@@ -16,6 +16,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Logging;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -70,7 +71,8 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastReplayTxAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
 
 		var utxos = await rpc.ListUnspentAsync();
 		var utxo = utxos[0];
@@ -89,7 +91,7 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastInvalidTxAsync()
 	{
-		await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 
 		using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
@@ -107,7 +109,9 @@ public class BackendTests
 	[Fact]
 	public async Task FilterBuilderTestAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		Backend.Global global = setup.Global;
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
@@ -175,9 +179,11 @@ public class BackendTests
 	[Fact]
 	public async Task StatusRequestTestAsync()
 	{
-		var requestUri = "btc/Blockchain/status";
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		Backend.Global global = setup.Global;
 
-		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		var requestUri = "btc/Blockchain/status";
 
 		var segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
 		var taprootIndexBuilderService = global.TaprootIndexBuilderService;

@@ -1,9 +1,12 @@
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
@@ -22,6 +25,9 @@ namespace WalletWasabi.Tests.RegressionTests;
 
 public class RegTestSetup : IAsyncDisposable
 {
+	[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "The variable must be a field unless refactored.")]
+	public long FiltersProcessedByWalletCount;
+
 	public RegTestSetup(RegTestFixture regTestFixture, string dir)
 	{
 		RegTestFixture = regTestFixture;
@@ -43,6 +49,7 @@ public class RegTestSetup : IAsyncDisposable
 	public Network Network => RpcClient.Network;
 	public Coordinator Coordinator => Global.Coordinator!;
 	public ServiceConfiguration ServiceConfiguration { get; }
+	public string Password { get; } = "password";
 
 	public static async Task<RegTestSetup> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
@@ -86,6 +93,25 @@ public class RegTestSetup : IAsyncDisposable
 				await Task.Delay(100);
 			}
 		}
+	}
+
+	public async Task WaitForFiltersToBeProcessedAsync(TimeSpan timeout, int numberOfFiltersToWaitFor)
+	{
+		var times = 0;
+		while (Interlocked.Read(ref FiltersProcessedByWalletCount) < numberOfFiltersToWaitFor)
+		{
+			if (times > timeout.TotalSeconds)
+			{
+				throw new TimeoutException($"{nameof(Wallet)} test timed out. Filter was not processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref FiltersProcessedByWalletCount)}.");
+			}
+			await Task.Delay(TimeSpan.FromSeconds(1));
+			times++;
+		}
+	}
+
+	public void Wallet_NewFilterProcessed(object? sender, FilterModel e)
+	{
+		Interlocked.Increment(ref FiltersProcessedByWalletCount);
 	}
 
 	public async ValueTask DisposeAsync()

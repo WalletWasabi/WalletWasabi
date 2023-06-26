@@ -39,7 +39,15 @@ public class BuildTests
 	[Fact]
 	public async Task BuildTransactionValidationsTestAsync()
 	{
-		(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		Network network = setup.Network;
+		BitcoinStore bitcoinStore = setup.BitcoinStore;
+		Backend.Global global = setup.Global;
+		string password = setup.Password;
+		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -73,9 +81,10 @@ public class BuildTests
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
-		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
+		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
 
-		var scp = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
+		using Key key = new();
+		var scp = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
 
 		PaymentIntent validIntent = new(scp, Money.Coins(1));
 		PaymentIntent invalidIntent = new(new DestinationRequest(scp, Money.Coins(10 * 1000 * 1000)), new DestinationRequest(scp, Money.Coins(12 * 1000 * 1000)));
@@ -136,7 +145,7 @@ public class BuildTests
 
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
-			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 			{
@@ -189,9 +198,9 @@ public class BuildTests
 		}
 		finally
 		{
-			await wallet.StopAsync(CancellationToken.None);
+			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
-			await feeProvider.StopAsync(CancellationToken.None);
+			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
@@ -200,8 +209,15 @@ public class BuildTests
 	[Fact]
 	public async Task BuildTransactionReorgsTestAsync()
 	{
-		(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
-		bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		Network network = setup.Network;
+		BitcoinStore bitcoinStore = setup.BitcoinStore;
+		Backend.Global global = setup.Global;
+		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
+		string password = setup.Password;
+
+		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
 		// Create the services.
 		// 1. Create connection service.
 		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -257,7 +273,7 @@ public class BuildTests
 
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
-			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 			var coin = Assert.Single(wallet.Coins);
 			Assert.True(coin.Confirmed);
@@ -287,9 +303,9 @@ public class BuildTests
 			await rpc.InvalidateBlockAsync(tip); // Reorg 2
 
 			// Generate three new blocks (replace the previous invalidated ones)
-			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(3);
-			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
+			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 			await Task.Delay(100); // Wait for tx processing.
 
 			var coin4 = Assert.Single(wallet.Coins);
@@ -318,7 +334,7 @@ public class BuildTests
 
 			// Test synchronization after fork with different transactions.
 			// Create a fork that invalidates the blocks containing the funding transaction
-			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			await rpc.InvalidateBlockAsync(baseTip);
 			try
 			{
@@ -347,7 +363,8 @@ public class BuildTests
 			{
 				if (onAddress)
 				{
-					overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, new Key().GetAddress(ScriptPubKeyType.Segwit, network)));
+					using Key newKey = new();
+					overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, newKey.GetAddress(ScriptPubKeyType.Segwit, network)));
 				}
 				else
 				{
@@ -364,7 +381,7 @@ public class BuildTests
 				h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 			await rpc.SendRawTransactionAsync(srtxwwres.SignedTransaction);
 			await rpc.GenerateAsync(10);
-			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
+			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
 			var eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 			var doubleSpend = Assert.Single(eventArgs.SuccessfullyDoubleSpentCoins);
 			Assert.Equal(invalidCoin.TransactionId, doubleSpend.TransactionId);
@@ -404,15 +421,15 @@ public class BuildTests
 			Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxId.TransactionId));
 
 			// Confirm the coin
-			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(1);
-			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 			Assert.Single(wallet.Coins.Where(x => x.Confirmed && x.TransactionId == fundingBumpTxId.TransactionId));
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= Common.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
