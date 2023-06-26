@@ -185,11 +185,7 @@ public class CoinVerifier : IAsyncDisposable
 			item.Dispose();
 			return false;
 		}
-		var r = new CoinVerifyResult(coin, ShouldBan: true, ShouldRemove: true);
-		item.SetResult(r);
-		CoinBlacklisted?.SafeInvoke(this, coin);
 
-		return true;
 		if (oneHop)
 		{
 			var result = new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false);
