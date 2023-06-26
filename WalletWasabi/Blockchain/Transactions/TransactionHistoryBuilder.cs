@@ -118,6 +118,7 @@ public class TransactionHistoryBuilder
 				// Destination are the external addresses.
 				return myOwnOutputs.Where(x => !x.IsInternal).Select(x => x.DestinationAddress);
 			}
+
 			// Edge-case: self-spend to an internal address.
 			// We can't know the destination, return all the outputs.
 			return myOwnOutputs.Select(x => x.DestinationAddress);
