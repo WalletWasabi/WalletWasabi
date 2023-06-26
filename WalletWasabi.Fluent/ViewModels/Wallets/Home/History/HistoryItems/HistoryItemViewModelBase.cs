@@ -75,11 +75,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
-	protected void SetAmount(Money amount)
+	protected void SetAmount(Money amount, Money? fee)
 	{
 		if (amount < Money.Zero)
 		{
-			OutgoingAmount = amount * -1;
+			OutgoingAmount = -amount - (fee ?? Money.Zero);
 		}
 		else
 		{

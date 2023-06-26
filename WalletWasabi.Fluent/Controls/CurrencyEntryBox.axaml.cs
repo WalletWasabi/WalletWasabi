@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
@@ -106,7 +107,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		var input = e.Text ?? "";
+		var input = e.Text == null ? "" : e.Text.TotalTrim();
 
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
@@ -136,11 +137,7 @@ public partial class CurrencyEntryBox : TextBox
 
 		var isValid = ValidateEntryText(preComposedText);
 
-		preComposedText = preComposedText
-			.Replace("\r", "")
-			.Replace("\n", "")
-			.Replace("\t", "")
-			.Replace(" ", "");
+		preComposedText = preComposedText.TotalTrim();
 
 		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
 
