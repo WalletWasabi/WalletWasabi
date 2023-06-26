@@ -23,14 +23,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
-		if (walletSettings.IsNewWallet)
-		{
-			_selectedProfile = Profiles[1];
-		}
-		else
-		{
-			_selectedProfile = IdentifySelectedProfile(walletSettings);
-		}
+		_selectedProfile = walletSettings.IsNewWallet ? Profiles[1] : IdentifySelectedProfile(walletSettings);
 	}
 
 	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
@@ -82,14 +75,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
 		walletSettings.IsCoinjoinProfileSelected = true;
 
-		var wallet = UiContext.WalletRepository.SaveWallet(walletSettings);
-
 		if (isNewWallet)
 		{
-			Navigate().To().AddedWalletPage(wallet);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		else
 		{
+			UiContext.WalletRepository.SaveWallet(walletSettings);
 			Close(DialogResultKind.Normal, true);
 		}
 	}

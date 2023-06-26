@@ -22,7 +22,7 @@ namespace WalletWasabi.BitcoinCore;
 
 public class CoreNode
 {
-	public CoreNode(string dataDir, Network network, MempoolService mempoolService, CoreConfig config, EndPoint p2pEndPoint, EndPoint rpcEndPoint)
+	public CoreNode(string dataDir, Network network, MempoolService mempoolService, CoreConfig config, EndPoint p2pEndPoint, EndPoint rpcEndPoint, IRPCClient rpcClient)
 	{
 		DataDir = dataDir;
 		Network = network;
@@ -30,11 +30,12 @@ public class CoreNode
 		Config = config;
 		P2pEndPoint = p2pEndPoint;
 		RpcEndPoint = rpcEndPoint;
+		RpcClient = rpcClient;
 	}
 
 	public EndPoint P2pEndPoint { get; }
 	public EndPoint RpcEndPoint { get; }
-	public IRPCClient RpcClient { get; private set; }
+	public IRPCClient RpcClient { get; }
 	private BitcoindRpcProcessBridge Bridge { get; set; }
 	public string DataDir { get; }
 	public Network Network { get; }
@@ -95,13 +96,13 @@ public class CoreNode
 			throw new InvalidOperationException($"Failed to get RPC endpoint on {rpcHost}:{rpcPort}.");
 		}
 
-		CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService, coreConfig, p2pEndPoint, rpcEndPoint);
+		RPCClient rpcClient = new(
+			authenticationString: $"{authString}",
+			rpcEndPoint.ToString(coreNodeParams.Network.DefaultPort),
+			coreNodeParams.Network);
+		CachedRpcClient cachedRpcClient = new(rpcClient, coreNodeParams.Cache);
 
-		var rpcClient = new RPCClient(
-			$"{authString}",
-			coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort),
-			coreNode.Network);
-		coreNode.RpcClient = new CachedRpcClient(rpcClient, coreNodeParams.Cache);
+		CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService, coreConfig, p2pEndPoint, rpcEndPoint, cachedRpcClient);
 
 		if (coreNodeParams.TryRestart)
 		{

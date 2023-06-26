@@ -35,7 +35,7 @@ public class CoordinatorRoundTests
 		using var key = new Key();
 		tx.Outputs.Add(Money.Coins(1.9995m), key.PubKey.ScriptPubKey);
 
-		// Under normal circunstances
+		// Under normal circumstances
 		{
 			rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 			{

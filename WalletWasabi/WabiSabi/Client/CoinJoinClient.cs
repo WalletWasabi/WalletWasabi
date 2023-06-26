@@ -29,7 +29,7 @@ public class CoinJoinClient
 	private static readonly TimeSpan ExtraRoundTimeoutMargin = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
-	// timings only depends on the input-reg timeout.
+	// timings only depends on the input-reg timeout and signing requests which timings must be larger.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
@@ -277,6 +277,12 @@ public class CoinJoinClient
 
 			roundState.LogInfo(msg);
 
+			// Coinjoin succeeded but wallet had no input in it.
+			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
+			{
+				throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "No inputs participated in this round.");
+			}
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
@@ -373,7 +379,6 @@ public class CoinJoinClient
 		{
 			PersonCircuit? personCircuit = null;
 			bool disposeCircuit = true;
-
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
@@ -401,35 +406,69 @@ public class CoinJoinClient
 			}
 			catch (WabiSabiProtocolException wpe)
 			{
-				if (wpe.ErrorCode is WabiSabiProtocolErrorCode.RoundNotFound)
+				switch (wpe.ErrorCode)
 				{
-					// if the round does not exist then it ended/aborted.
-					registrationsCts.Cancel();
-					confirmationsCts.Cancel();
-					roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
-				}
-				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
-				{
-					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
-					{
-						roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
-						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
-						{
-							// Cancel all remaining pending input registrations because they will arrive late too.
-							registrationsCts.Cancel();
+					case WabiSabiProtocolErrorCode.RoundNotFound:
+						// if the round does not exist then it ended/aborted.
+						roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
+						registrationsCts.Cancel();
+						confirmationsCts.Cancel();
+						break;
 
-							if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+					case WabiSabiProtocolErrorCode.WrongPhase:
+						if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
+						{
+							roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
+							if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 							{
-								// Cancel all remaining pending connection confirmations because they will arrive late too.
-								confirmationsCts.Cancel();
+								// Cancel all remaining pending input registrations because they will arrive late too.
+								registrationsCts.Cancel();
+
+								if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+								{
+									// Cancel all remaining pending connection confirmations because they will arrive late too.
+									confirmationsCts.Cancel();
+								}
 							}
 						}
-					}
-					else
-					{
-						throw new InvalidOperationException(
-							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
-					}
+						else
+						{
+							throw new InvalidOperationException(
+								$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
+						}
+						break;
+
+					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+						roundState.LogInfo($"{coin.Coin.Outpoint} was already registered.");
+						break;
+
+					case WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection:
+						roundState.LogInfo($"{coin.Coin.Outpoint} already confirmed connection.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputSpent:
+						coin.SpentAccordingToBackend = true;
+						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+						if (inputBannedExData is null)
+						{
+							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+						}
+						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+						coin.SpentAccordingToBackend = false;
+						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
+						break;
+
+					default:
+						roundState.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
+						break;
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -550,7 +589,10 @@ public class CoinJoinClient
 		DateTimeOffset signingEndTime,
 		CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
+		// Maximum signing request delay is 50 seconds, because
+		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
+		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,

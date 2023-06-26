@@ -864,7 +864,7 @@ public class CoordinatorRound
 			}
 
 			// 7.2. Get the most optimal FeeRate.
-			FeeRate optimalFeeRate = (await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			FeeRate optimalFeeRate = (await RpcClient.EstimateConservativeSmartFeeAsync(AdjustedConfirmationTarget).ConfigureAwait(false)).FeeRate;
 
 			if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
 			{
@@ -937,7 +937,7 @@ public class CoordinatorRound
 		var outputSizeInBytes = Constants.OutputSizeInBytes;
 		try
 		{
-			var feeRate = (await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			var feeRate = (await rpc.EstimateConservativeSmartFeeAsync(confirmationTarget).ConfigureAwait(false)).FeeRate;
 
 			// Make sure min relay fee (1000 sat) is hit.
 			feePerInputs = Math.Max(feeRate.GetFee(inputSizeInBytes), Money.Satoshis(500));

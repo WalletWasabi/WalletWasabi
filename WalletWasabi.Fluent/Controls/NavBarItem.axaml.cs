@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.Controls;
 /// Container for NavBarItems.
 /// </summary>
 [PseudoClasses(":horizontal", ":vertical", ":selected")]
-public class NavBarItem : ListBoxItem
+public class NavBarItem : ContentControl
 {
 	public static readonly StyledProperty<ICommand?> CommandProperty =
 		AvaloniaProperty.Register<NavBarItem, ICommand?>(nameof(Command));
@@ -58,11 +58,6 @@ public class NavBarItem : ListBoxItem
 		if (change.Property == IndicatorOrientationProperty)
 		{
 			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
-		}
-
-		if (change.Property == IsSelectedProperty)
-		{
-			UpdatePseudoClass(":selected", change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 

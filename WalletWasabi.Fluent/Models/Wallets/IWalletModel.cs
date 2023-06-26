@@ -30,8 +30,6 @@ public interface IWalletModel
 
 	bool IsWatchOnlyWallet { get; }
 
-	WalletType WalletType { get; }
-
 	IWalletAuthModel Auth { get; }
 
 	IWalletLoadWorkflow Loader { get; }
