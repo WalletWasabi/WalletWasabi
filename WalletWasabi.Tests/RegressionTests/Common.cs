@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -64,6 +65,7 @@ public static class Common
 		}
 	}
 
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Convert this method to a setup object and dispose correctly.")]
 	public static async Task<(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
 		int numberOfBlocksToGenerate,
@@ -82,8 +84,8 @@ public static class Common
 		var serviceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
 		var dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
-		await using var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
-		await using var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
+		var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
+		var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
 		var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
