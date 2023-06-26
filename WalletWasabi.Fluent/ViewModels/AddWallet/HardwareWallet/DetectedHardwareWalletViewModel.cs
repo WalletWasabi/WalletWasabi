@@ -55,9 +55,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		try
 		{
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options, CancelCts.Token);
-			var wallet = UiContext.WalletRepository.SaveWallet(walletSettings);
-
-			Navigate().To().AddedWalletPage(wallet);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{

@@ -23,6 +23,7 @@ public enum CoinjoinError
 	NotEnoughUnprivateBalance,
 	BackendNotSynchronized,
 	AllCoinsPrivate,
+	UserWasntInRound
 }
 
 public class StatusChangedEventArgs : EventArgs

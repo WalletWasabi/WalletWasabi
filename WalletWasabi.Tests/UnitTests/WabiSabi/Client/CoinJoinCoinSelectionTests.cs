@@ -48,6 +48,84 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
+	public void SelectNothingFromTooSmallCoin()
+	{
+		// This test is to make sure no coins are selected when there too small coins.
+		// Although the coin amount is larger than the smallest reasonable effective denomination, if the algorithm is right, then the effective input amount is considered.
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = new[] { BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00017423m), anonymitySet: 1) };
+		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
+		{
+			MinRegistrableAmount = Money.Coins(0.0001m),
+			MaxRegistrableAmount = Money.Coins(430),
+		});
+
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.Empty(coins);
+	}
+
+	[Fact]
+	public void SelectNothingFromTooSmallSetOfCoins()
+	{
+		// This test is to make sure no coins are selected when there too small coins.
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008710m + 0.00006900m), anonymitySet: 1)
+		};
+		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
+		{
+			MinRegistrableAmount = Money.Coins(0.0001m),
+			MaxRegistrableAmount = Money.Coins(430),
+		});
+
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.Empty(coins);
+	}
+
+	[Fact]
+	public void SelectSomethingFromJustEnoughSetOfCoins()
+	{
+		// This test is to make sure the coins are selected when the selection's effective sum is exactly the smallest reasonable effective denom.
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1)
+		};
+		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
+		{
+			MinRegistrableAmount = Money.Coins(0.0001m),
+			MaxRegistrableAmount = Money.Coins(430),
+		});
+
+		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, ConfigureRng(5));
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.NotEmpty(coins);
+	}
+
+	[Fact]
 	public void SelectNonPrivateCoinFromOneNonPrivateCoinInBigSetOfCoinsConsolidationMode()
 	{
 		// This test is to make sure that we select the non-private coin in the set.

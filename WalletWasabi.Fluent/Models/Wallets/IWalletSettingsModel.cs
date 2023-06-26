@@ -1,10 +1,15 @@
 using NBitcoin;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public interface IWalletSettingsModel
 {
 	string WalletName { get; }
+
+	WalletType WalletType { get; }
+
+	bool IsNewWallet { get; }
 
 	bool PreferPsbtWorkflow { get; set; }
 
@@ -19,8 +24,6 @@ public interface IWalletSettingsModel
 	bool RedCoinIsolation { get; set; }
 
 	int FeeRateMedianTimeFrameHours { get; set; }
-
-	bool IsNewWallet { get; }
 
 	void Save();
 }

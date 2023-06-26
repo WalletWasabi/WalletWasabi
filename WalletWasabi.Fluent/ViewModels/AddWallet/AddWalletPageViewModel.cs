@@ -79,9 +79,8 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			}
 
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-			var wallet = UiContext.WalletRepository.SaveWallet(walletSettings);
 
-			Navigate().To().AddedWalletPage(wallet);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{
