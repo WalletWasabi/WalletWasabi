@@ -55,6 +55,7 @@
                   Grid.ColumnSpan="3"
                   Classes="action bottomtext"
                   Icon="{StaticResource add_regular}"
+                  IsDefault="True"
                   Command="{Binding CreateWalletCommand}" />
 
     <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or" />

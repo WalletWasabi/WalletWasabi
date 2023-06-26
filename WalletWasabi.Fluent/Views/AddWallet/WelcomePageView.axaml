@@ -86,6 +86,7 @@
             Margin="8 6"
             Classes="plain"
             HorizontalAlignment="Left"
+            Focusable="{Binding CanGoBack^}"
             Opacity="{Binding CanGoBack^, Converter={x:Static c:BoolOpacityConverters.BoolToOpacity}}"
             Command="{Binding BackCommand}">
       <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
@@ -103,6 +104,7 @@
           </Style>
           <Style Selector="ListBoxItem">
             <Setter Property="Opacity" Value="0.3" />
+            <Setter Property="IsTabStop" Value="False" />
           </Style>
           <Style Selector="ListBoxItem:selected">
             <Setter Property="Opacity" Value="1" />
@@ -115,12 +117,14 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <Ellipse IsTabStop="False" IsHitTestVisible="False" Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
+            <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
       <Button Command="{Binding NextCommand}" Width="130" Height="40"
+              IsDefault="True"
               HorizontalContentAlignment="Center"
+              Focusable="{Binding CanGoNext^}"
               Opacity="{Binding #Carousel.((w:WizardPage)SelectedItem).IsNextVisible, Converter={x:Static c:BoolOpacityConverters.BoolToOpacity}}"
               Content="{Binding #Carousel.((w:WizardPage)SelectedItem).NextText, FallbackValue=''}"
               Classes="action" HorizontalAlignment="Right" />
@@ -131,9 +135,9 @@
 
   <i:Interaction.Behaviors>
     <bs:FocusOnAttachedBehavior  IsEnabled="True" />
-    <bs:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel">
+    <!--<bs:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel">
       <InvokeCommandAction Command="{Binding NextCommand}" />
-    </bs:KeyDownTrigger>
+    </bs:KeyDownTrigger>-->
     <bs:KeyDownTrigger Key="Right" EventRoutingStrategy="Tunnel">
       <InvokeCommandAction Command="{Binding NextCommand}" />
     </bs:KeyDownTrigger>
