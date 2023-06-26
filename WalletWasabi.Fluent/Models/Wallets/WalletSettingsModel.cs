@@ -2,6 +2,8 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -35,6 +37,7 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
 		WalletName = _keyManager.WalletName;
+		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
 			x => x.AutoCoinjoin,
@@ -50,6 +53,8 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 	}
 
 	public string WalletName { get; }
+
+	public WalletType WalletType { get; }
 
 	public void Save()
 	{

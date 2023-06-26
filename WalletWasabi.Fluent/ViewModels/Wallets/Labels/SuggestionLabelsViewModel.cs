@@ -46,7 +46,10 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 		var mostUsedLabels = _wallet.GetMostUsedLabels(Intent);
 		_sourceLabels.Clear();
 		_sourceLabels.AddRange(
-			mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Score)));
+			mostUsedLabels
+				.OrderByDescending(x => x.Score)
+				.DistinctBy(x => x.Label, StringComparer.OrdinalIgnoreCase)
+				.Select(x => new SuggestionLabelViewModel(x.Label, x.Score)));
 	}
 
 	private void CreateSuggestions(int topSuggestionsCount)

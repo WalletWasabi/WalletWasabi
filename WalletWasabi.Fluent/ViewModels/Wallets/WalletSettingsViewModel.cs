@@ -40,7 +40,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
-			.Subscribe(value => _wallet.Settings.PreferPsbtWorkflow = value);
+			.Subscribe(value =>
+			{
+				_wallet.Settings.PreferPsbtWorkflow = value;
+				_wallet.Settings.Save();
+			});
 	}
 
 	public bool IsHardwareWallet { get; }

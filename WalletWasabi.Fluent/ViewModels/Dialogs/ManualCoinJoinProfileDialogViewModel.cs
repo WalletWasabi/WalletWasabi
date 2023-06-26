@@ -52,7 +52,5 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		}
 	}
 
-	public record ManualCoinJoinProfileDialogViewModelResult(ManualCoinJoinProfileViewModel Profile)
-	{
-	}
+	public record ManualCoinJoinProfileDialogViewModelResult(ManualCoinJoinProfileViewModel Profile);
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
@@ -94,7 +95,11 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool MainViewCanShutdown()
 	{
-		return !MainViewModel.Instance.IsDialogOpen();
+		// Main view can shutdown when:
+		// - no open dialog
+		// - or no wallets available
+		return !MainViewModel.Instance.IsDialogOpen()
+		       || !MainViewModel.Instance.NavBar.Wallets.Any();
 	}
 
 	public bool CoinJoinCanShutdown()
