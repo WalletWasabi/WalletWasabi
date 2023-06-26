@@ -70,7 +70,7 @@ public class CoinPrison
 			if (string.IsNullOrWhiteSpace(data))
 			{
 				Logger.LogDebug("Prisoned coins file is empty.");
-				return new(containingDirectory);
+				return new(prisonFilePath);
 			}
 			prisonedCoinsRecord = JsonConvert.DeserializeObject<List<PrisonedCoinRecord>>(data)
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
