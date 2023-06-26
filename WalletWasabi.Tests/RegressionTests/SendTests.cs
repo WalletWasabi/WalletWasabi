@@ -70,8 +70,8 @@ public class SendTests
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
+		walletManager.RegisterServices(feeProvider, blockProvider);
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");
@@ -559,8 +559,8 @@ public class SendTests
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-		walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
+		walletManager.RegisterServices(feeProvider, blockProvider);
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");

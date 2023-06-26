@@ -95,10 +95,7 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-	{
-		var walletManager = new WalletManager(Config.Network, Config.DataDir, new WalletDirectories(Config.Network, Config.DataDir));
-		return new Global(Config.DataDir, Config, walletManager);
-	}
+		=> new(Config.DataDir, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
