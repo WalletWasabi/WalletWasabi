@@ -10,6 +10,7 @@
       2. Share their findings. In case there is any, then iterate.
       3. Give the Wasabi team the final approval.
       4. The Wasabi team and the Affiliates must agree on a release date for production deployment.
+5. Don't forget to make the discussion in the maintenance repository with a short summary.
 
 # How to deploy
 

@@ -23,4 +23,6 @@ public interface IWalletRepository
 	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
 
 	IWalletModel? GetExistingWallet(HwiEnumerateEntry device);
+
+	void StoreLastSelectedWallet(IWalletModel wallet);
 }

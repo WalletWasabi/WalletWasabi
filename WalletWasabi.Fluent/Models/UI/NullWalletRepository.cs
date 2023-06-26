@@ -21,7 +21,7 @@ public class NullWalletRepository : IWalletRepository
 
 	public IWalletModel? DefaultWallet => null;
 
-	public bool HasWallet => throw new NotImplementedException();
+	public bool HasWallet => false;
 
 	public IWalletModel GetExistingWallet(HwiEnumerateEntry device)
 	{
@@ -46,5 +46,9 @@ public class NullWalletRepository : IWalletRepository
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
 		return null;
+	}
+
+	public void StoreLastSelectedWallet(IWalletModel wallet)
+	{
 	}
 }
