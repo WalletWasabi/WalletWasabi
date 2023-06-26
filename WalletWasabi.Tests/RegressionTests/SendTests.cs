@@ -383,8 +383,10 @@ public class SendTests
 			Script receive2 = keyManager.GetNextReceiveKey("foo").P2wpkhScript;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
+			// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
+			Assert.Equal("foo, my label", res.HdPubKeysWithNewLabels.Values.Single());
 			Assert.Single(res.InnerWalletOutputs);
-			Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().HdPubKey.Labels);
+			Assert.Equal("foo", res.InnerWalletOutputs.Single().HdPubKey.Labels);
 
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 			res = wallet.BuildTransaction(
@@ -397,11 +399,14 @@ public class SendTests
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Equal(2, res.OuterWalletOutputs.Count());
+			IEnumerable<string> la = res.HdPubKeysWithNewLabels.Values.Single().Select(x => x);
+			Assert.Contains("outgoing", la);
+			Assert.Contains("outgoing2", la);
 			IEnumerable<string> change = res.InnerWalletOutputs.Single().HdPubKey.Labels;
-			Assert.Contains("outgoing", change);
-			Assert.Contains("outgoing2", change);
+			Assert.Empty(change);
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
+			wallet.UpdateUsedHdPubKeysLabels(res.HdPubKeysWithNewLabels);
 
 			IEnumerable<SmartCoin> unconfirmedCoins = wallet.Coins.Where(x => x.Height == Height.Mempool).ToArray();
 			IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.HdPubKey.Labels).ToArray();
