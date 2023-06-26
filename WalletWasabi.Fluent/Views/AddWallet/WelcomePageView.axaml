@@ -4,14 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:addWallet1="clr-namespace:WalletWasabi.Fluent.Views.AddWallet"
              xmlns:wizard="clr-namespace:WalletWasabi.Fluent.Controls.Wizard"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
-             x:CompileBindings="True">
+             x:CompileBindings="True"
+             x:Name="UserControl">
 
   <UserControl.Styles>
 
@@ -49,24 +49,32 @@
   <UserControl.Resources>
     <collections:ArrayList x:Key="Pages" x:CompileBindings="False">
       <wizard:WizardPage NextText="Get started">
-        <DataTemplate>
-          <addWallet1:WelcomePage1View />
-        </DataTemplate>
+        <wizard:WizardPage.Template>
+          <DataTemplate>
+            <addWallet1:WelcomePage1View />
+          </DataTemplate>
+        </wizard:WizardPage.Template>
       </wizard:WizardPage>
       <wizard:WizardPage NextText="Fees">
-        <DataTemplate>
-          <addWallet1:WelcomePage2View />
-        </DataTemplate>
+        <wizard:WizardPage.Template>
+          <DataTemplate>
+            <addWallet1:WelcomePage2View />
+          </DataTemplate>
+        </wizard:WizardPage.Template>
       </wizard:WizardPage>
       <wizard:WizardPage NextText="Continue">
-        <DataTemplate>
-          <addWallet1:WelcomePage3View />
-        </DataTemplate>
+        <wizard:WizardPage.Template>
+          <DataTemplate>
+            <addWallet1:WelcomePage3View />
+          </DataTemplate>
+        </wizard:WizardPage.Template>
       </wizard:WizardPage>
       <wizard:WizardPage>
-        <DataTemplate>
-          <addWallet1:WelcomePage4View />
-        </DataTemplate>
+          <wizard:WizardPage.Template>
+            <DataTemplate>
+              <addWallet1:AddWalletView DataContext="{Binding #UserControl.((addWallet:WelcomePageViewModel)DataContext).AddWallet}" />
+            </DataTemplate>
+          </wizard:WizardPage.Template>
       </wizard:WizardPage>
     </collections:ArrayList>
   </UserControl.Resources>

@@ -5,12 +5,11 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:p="clr-namespace:WalletWasabi.Fluent.Views.AddWallet"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePage4View">
-  <Grid Width="530" Height="350"
-        DataContext="{Binding $parent[p:WelcomePageView].((addWallet:WelcomePageViewModel)DataContext)}"
-        ColumnDefinitions="*,*,*" RowDefinitions="*,Auto,*">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletView"
+             x:DataType="addWallet:AddWalletPageDialogViewModel"
+             x:CompileBindings="True">
+  <Grid Width="530" Height="350" ColumnDefinitions="*,*,*" RowDefinitions="*,Auto,*">
     <Grid.Styles>
       <Style Selector="c|TileButton">
         <Setter Property="Cursor" Value="Hand" />

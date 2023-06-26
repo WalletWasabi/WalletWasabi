@@ -33,7 +33,7 @@ public partial class MainViewModel : ViewModelBase
 {
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
-	private readonly AddWalletPageViewModel _addWalletPage;
+	private readonly AddWalletPageDialogViewModel _addWalletPageDialog;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
@@ -59,7 +59,7 @@ public partial class MainViewModel : ViewModelBase
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
-		_addWalletPage = new AddWalletPageViewModel(UiContext);
+		_addWalletPageDialog = new AddWalletPageDialogViewModel(UiContext);
 		_settingsPage = new SettingsPageViewModel(UiContext);
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(UiContext);
@@ -198,7 +198,7 @@ public partial class MainViewModel : ViewModelBase
 	private void RegisterViewModels()
 	{
 		PrivacyModeViewModel.Register(_privacyMode);
-		AddWalletPageViewModel.Register(_addWalletPage);
+		AddWalletPageDialogViewModel.Register(_addWalletPageDialog);
 		SettingsPageViewModel.Register(_settingsPage);
 
 		GeneralSettingsTabViewModel.RegisterLazy(() =>

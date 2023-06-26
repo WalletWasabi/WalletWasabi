@@ -26,9 +26,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	NavigationTarget = NavigationTarget.DialogScreen,
 	NavBarPosition = NavBarPosition.Bottom,
 	NavBarSelectionMode = NavBarSelectionMode.Button)]
-public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
+public partial class AddWalletPageDialogViewModel : DialogViewModelBase<Unit>
 {
-	private AddWalletPageViewModel()
+	private AddWalletPageDialogViewModel()
 	{
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
