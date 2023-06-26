@@ -45,26 +45,28 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		IsBusy = false;
 
-		switch (_options)
+		var options = _options with { WalletName = WalletName };
+
+		switch (options)
 		{
 			case WalletCreationOptions.AddNewWallet add:
-				Navigate().To().RecoveryWords(add with { WalletName = WalletName });
+				Navigate().To().RecoveryWords(add);
 				break;
 
 			case WalletCreationOptions.ConnectToHardwareWallet chw:
-				Navigate().To().ConnectHardwareWallet(chw with { WalletName = WalletName });
+				Navigate().To().ConnectHardwareWallet(chw);
 				break;
 
 			case WalletCreationOptions.RecoverWallet rec:
-				Navigate().To().RecoverWallet(rec with { WalletName = WalletName });
+				Navigate().To().RecoverWallet(rec);
 				break;
 
 			case WalletCreationOptions.ImportWallet imp:
-				await ImportWalletAsync(imp with { WalletName = WalletName });
+				await ImportWalletAsync(imp);
 				break;
 
 			default:
-				throw new InvalidOperationException($"{nameof(WalletCreationOptions)} not supported: {_options?.GetType().Name}");
+				throw new InvalidOperationException($"{nameof(WalletCreationOptions)} not supported: {options?.GetType().Name}");
 		}
 	}
 
