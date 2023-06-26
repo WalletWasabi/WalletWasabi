@@ -91,7 +91,7 @@
             Command="{Binding BackCommand}">
       <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
     </Button>
-    <Panel DockPanel.Dock="Bottom">
+    <Panel DockPanel.Dock="Bottom" Margin="31 10">
       <ListBox IsHitTestVisible="False" Background="Transparent" HorizontalAlignment="Center"
                SelectedIndex="{Binding #Carousel.SelectedIndex, Mode=OneWay}"
                Items="{Binding Source={StaticResource Pages}}">
