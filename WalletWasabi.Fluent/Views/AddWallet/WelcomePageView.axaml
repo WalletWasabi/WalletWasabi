@@ -2,17 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:addWallet1="clr-namespace:WalletWasabi.Fluent.Views.AddWallet"
-             xmlns:wizard="clr-namespace:WalletWasabi.Fluent.Controls.Wizard"
+             xmlns:advms="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:cols="clr-namespace:System.Collections;assembly=System.Runtime"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:aw="clr-namespace:WalletWasabi.Fluent.Views.AddWallet"
+             xmlns:w="clr-namespace:WalletWasabi.Fluent.Controls.Wizard"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:bs="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
-             x:DataType="addWallet:WelcomePageViewModel"
+             x:DataType="advms:WelcomePageViewModel"
              x:CompileBindings="True"
              x:Name="UserControl">
-
   <UserControl.Styles>
 
     <Style Selector="TextBlock">
@@ -41,42 +42,42 @@
   </UserControl.Styles>
 
   <UserControl.DataTemplates>
-    <DataTemplate DataType="wizard:WizardPage">
+    <DataTemplate DataType="w:WizardPage">
       <ContentControl ContentTemplate="{Binding Template}" />
     </DataTemplate>
   </UserControl.DataTemplates>
 
   <UserControl.Resources>
-    <collections:ArrayList x:Key="Pages" x:CompileBindings="False">
-      <wizard:WizardPage NextText="Get started">
-        <wizard:WizardPage.Template>
+    <cols:ArrayList x:Key="Pages" x:CompileBindings="False">
+      <w:WizardPage NextText="Get started">
+        <w:WizardPage.Template>
           <DataTemplate>
-            <addWallet1:WelcomePage1View />
+            <aw:WelcomePage1View />
           </DataTemplate>
-        </wizard:WizardPage.Template>
-      </wizard:WizardPage>
-      <wizard:WizardPage NextText="Fees">
-        <wizard:WizardPage.Template>
+        </w:WizardPage.Template>
+      </w:WizardPage>
+      <w:WizardPage NextText="Fees">
+        <w:WizardPage.Template>
           <DataTemplate>
-            <addWallet1:WelcomePage2View />
+            <aw:WelcomePage2View />
           </DataTemplate>
-        </wizard:WizardPage.Template>
-      </wizard:WizardPage>
-      <wizard:WizardPage NextText="Continue">
-        <wizard:WizardPage.Template>
+        </w:WizardPage.Template>
+      </w:WizardPage>
+      <w:WizardPage NextText="Continue">
+        <w:WizardPage.Template>
           <DataTemplate>
-            <addWallet1:WelcomePage3View />
+            <aw:WelcomePage3View />
           </DataTemplate>
-        </wizard:WizardPage.Template>
-      </wizard:WizardPage>
-      <wizard:WizardPage>
-          <wizard:WizardPage.Template>
+        </w:WizardPage.Template>
+      </w:WizardPage>
+      <w:WizardPage>
+          <w:WizardPage.Template>
             <DataTemplate>
-              <addWallet1:AddWalletView DataContext="{Binding #UserControl.((addWallet:WelcomePageViewModel)DataContext).AddWallet}" />
+              <aw:AddWalletView DataContext="{Binding #UserControl.((advms:WelcomePageViewModel)DataContext).AddWallet}" />
             </DataTemplate>
-          </wizard:WizardPage.Template>
-      </wizard:WizardPage>
-    </collections:ArrayList>
+          </w:WizardPage.Template>
+      </w:WizardPage>
+    </cols:ArrayList>
   </UserControl.Resources>
 
   <DockPanel>
@@ -85,7 +86,7 @@
             Margin="8 6"
             Classes="plain"
             HorizontalAlignment="Left"
-            Opacity="{Binding CanGoBack^, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+            Opacity="{Binding CanGoBack^, Converter={x:Static c:BoolOpacityConverters.BoolToOpacity}}"
             Command="{Binding BackCommand}">
       <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
     </Button>
@@ -114,18 +115,34 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <Ellipse Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
+            <Ellipse IsTabStop="False" IsHitTestVisible="False" Fill="{DynamicResource SystemChromeAltLowColor}" Width="9" Height="9" />
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
       <Button Command="{Binding NextCommand}" Width="130" Height="40"
               HorizontalContentAlignment="Center"
-              Opacity="{Binding #Carousel.((wizard:WizardPage)SelectedItem).IsNextVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
-              Content="{Binding #Carousel.((wizard:WizardPage)SelectedItem).NextText, FallbackValue=''}"
+              Opacity="{Binding #Carousel.((w:WizardPage)SelectedItem).IsNextVisible, Converter={x:Static c:BoolOpacityConverters.BoolToOpacity}}"
+              Content="{Binding #Carousel.((w:WizardPage)SelectedItem).NextText, FallbackValue=''}"
               Classes="action" HorizontalAlignment="Right" />
     </Panel>
     <Carousel x:Name="Carousel" SelectedIndex="{Binding SelectedIndex}"
               Items="{Binding Source={StaticResource Pages}}" ItemCount="{Binding ItemCount, Mode=OneWayToSource}" />
   </DockPanel>
+
+  <i:Interaction.Behaviors>
+    <bs:FocusOnAttachedBehavior  IsEnabled="True" />
+    <bs:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel">
+      <InvokeCommandAction Command="{Binding NextCommand}" />
+    </bs:KeyDownTrigger>
+    <bs:KeyDownTrigger Key="Right" EventRoutingStrategy="Tunnel">
+      <InvokeCommandAction Command="{Binding NextCommand}" />
+    </bs:KeyDownTrigger>
+    <bs:KeyDownTrigger Key="Left" EventRoutingStrategy="Tunnel">
+      <InvokeCommandAction Command="{Binding BackCommand}" />
+    </bs:KeyDownTrigger>
+    <bs:KeyDownTrigger Key="Back" EventRoutingStrategy="Tunnel">
+      <InvokeCommandAction Command="{Binding BackCommand}" />
+    </bs:KeyDownTrigger>
+  </i:Interaction.Behaviors>
 
 </UserControl>
