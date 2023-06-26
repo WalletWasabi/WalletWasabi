@@ -57,8 +57,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-		//TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
-		var walletModel = new WalletModel(Wallet);
+		//TODO: remove this after WalletViewModel is decoupled
+		var walletModel = WalletRepository.CreateWalletModel(Wallet);
 
 		Settings = new WalletSettingsViewModel(UiContext, walletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, walletModel);
@@ -105,13 +105,15 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(new WalletModel(Wallet)));
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(WalletRepository.CreateWalletModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!string.IsNullOrEmpty(Wallet.Kitchen.SaltSoup()))
 			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(Wallet);
+				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+				var pwAuthDialog = new PasswordAuthDialogViewModel(WalletRepository.CreateWalletModel(Wallet));
 				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 				if (!dialogResult.Result)
@@ -236,7 +238,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		var walletModel = new WalletModel(Wallet);
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		var walletModel = WalletRepository.CreateWalletModel(Wallet);
 		var balances = walletModel.Balances;
 
 		yield return new WalletBalanceTileViewModel(balances);
