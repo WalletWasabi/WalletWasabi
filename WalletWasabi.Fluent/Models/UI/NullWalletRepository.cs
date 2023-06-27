@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using NBitcoin;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.Models.UI;
 
 #nullable disable
 
-public class NullWalletList : IWalletListModel
+public class NullWalletRepository : IWalletRepository
 {
-	public NullWalletList()
+	public NullWalletRepository()
 	{
 		Wallets = Array.Empty<IWalletModel>()
 					   .AsObservableChangeSet(x => x.Name);

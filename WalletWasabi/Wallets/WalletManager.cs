@@ -24,7 +24,13 @@ public class WalletManager : IWalletProvider
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
-	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
+	public WalletManager(
+		Network network,
+		string workDir,
+		WalletDirectories walletDirectories,
+		BitcoinStore bitcoinStore,
+		WasabiSynchronizer synchronizer,
+		ServiceConfiguration serviceConfiguration)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
@@ -32,6 +38,9 @@ public class WalletManager : IWalletProvider
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);
 		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		BitcoinStore = bitcoinStore;
+		Synchronizer = synchronizer;
+		ServiceConfiguration = serviceConfiguration;
 
 		RefreshWalletList();
 	}
@@ -59,9 +68,9 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; set; }
-	private WasabiSynchronizer? Synchronizer { get; set; }
-	private ServiceConfiguration ServiceConfiguration { get; set; }
+	private BitcoinStore BitcoinStore { get; }
+	private WasabiSynchronizer Synchronizer { get; }
+	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
 	private HybridFeeProvider FeeProvider { get; set; }
@@ -373,11 +382,8 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices(HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
-		BitcoinStore = bitcoinStore;
-		Synchronizer = synchronizer;
-		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
 

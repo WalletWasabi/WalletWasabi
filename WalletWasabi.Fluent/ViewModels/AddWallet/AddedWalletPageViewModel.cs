@@ -44,6 +44,6 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		UiContext.WalletList.SaveWallet(_walletSettings);
+		UiContext.WalletRepository.SaveWallet(_walletSettings);
 	}
 }
