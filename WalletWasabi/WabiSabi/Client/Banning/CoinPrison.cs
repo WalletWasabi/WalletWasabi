@@ -1,11 +1,8 @@
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -39,9 +36,12 @@ public class CoinPrison
 
 	public void Add(SmartCoin coin, DateTimeOffset until)
 	{
-		if (BannedCoins.Any(record => record.Outpoint == coin.Outpoint))
+		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
 		{
-			return;
+			if (record.BannedUntil >= until)
+			{
+				return;
+			}
 		}
 		BannedCoins.Add(new(coin.Outpoint, until));
 		ToFile();
@@ -68,7 +68,7 @@ public class CoinPrison
 		}
 
 		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(BannedCoins);
+		string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
 		File.WriteAllText(FilePath, json);
 	}
 
