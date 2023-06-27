@@ -15,8 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _walletName;
 	private readonly WalletCreationOptions _options;
+	[AutoNotify] private string _walletName;
 
 	public WalletNamePageViewModel(UiContext uiContext, WalletCreationOptions options)
 	{
