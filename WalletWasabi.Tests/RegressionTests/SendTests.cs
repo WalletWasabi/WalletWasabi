@@ -46,6 +46,7 @@ public class SendTests
 		string password = setup.Password;
 
 		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+
 		// Create the services.
 		// 1. Create connection service.
 		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
