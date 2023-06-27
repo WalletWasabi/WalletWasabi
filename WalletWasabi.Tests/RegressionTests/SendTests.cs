@@ -357,7 +357,8 @@ public class SendTests
 			Assert.Single(res.Transaction.Transaction.Outputs);
 
 			res = wallet.BuildTransaction(
-				password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"),
+				password,
+				new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"),
 				FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
 				allowedInputs: new[] { res.SpentCoins.Select(x => x.Outpoint).First() });
