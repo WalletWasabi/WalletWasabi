@@ -35,9 +35,6 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
 					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
-
-					  // Refresh the collection when logged in.
-					  .AutoRefresh(x => x.Auth.IsLoggedIn)
 					  .Transform(x => x as IWalletModel);
 
 		// Materialize the Wallet list to determine the default wallet.
