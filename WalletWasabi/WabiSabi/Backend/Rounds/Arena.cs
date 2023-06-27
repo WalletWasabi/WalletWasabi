@@ -210,13 +210,25 @@ public partial class Arena : PeriodicRunner
 						var offendingAliceCounter = 0;
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
-							offendingAliceCounter += offendingAlices.Length;
+							foreach (var offender in offendingAlices)
+							{
+								Prison.Ban(offender, round.Id);
+								offendingAliceCounter++;
+							}
 						}
 
 						if (offendingAliceCounter > 0)
 						{
 							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
-							EndRound(round, EndRoundState.AbortedWithError);
+							if (round.InputCount - offendingAliceCounter >= round.Parameters.MinInputCountByRound)
+							{
+								EndRound(round, EndRoundState.NotAllAlicesSign);
+								await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
+							}
+							else
+							{
+								EndRound(round, EndRoundState.AbortedWithError);
+							}
 							return;
 						}
 					}
