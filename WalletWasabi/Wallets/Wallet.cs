@@ -279,6 +279,8 @@ public class Wallet : BackgroundService, IWallet
 					{
 						SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
 					}
+
+					Logger.LogInfo("Wallet is fully synchronized.");
 					break;
 				}
 			}
@@ -286,13 +288,12 @@ public class Wallet : BackgroundService, IWallet
 		catch (OperationCanceledException)
 		{
 			// The procedure was intentionally cancelled - not logging anything.
+			Logger.LogDebug($"Operation cancelled during the final synchronization of the wallet.");
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
 		}
-
-		Logger.LogInfo("Wallet is fully synchronized.");
 	}
 
 	private void LoadExcludedCoins()
