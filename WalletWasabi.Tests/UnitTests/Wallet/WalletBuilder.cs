@@ -25,14 +25,6 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class WalletBuilder : IAsyncDisposable
 {
-	private IndexStore IndexStore { get; }
-	private AllTransactionStore TransactionStore { get; }
-	private BitcoinStore BitcoinStore { get; }
-	private MemoryCache Cache { get; }
-	private HttpClientFactory HttpClientFactory { get; }
-	public IEnumerable<FilterModel> Filters { get; }
-	public string DataDir { get; }
-
 	public WalletBuilder(MockNode node, [CallerMemberName] string callerName = "NN")
 	{
 		DataDir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
@@ -55,6 +47,14 @@ public class WalletBuilder : IAsyncDisposable
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
 	}
+
+	private IndexStore IndexStore { get; }
+	private AllTransactionStore TransactionStore { get; }
+	private BitcoinStore BitcoinStore { get; }
+	private MemoryCache Cache { get; }
+	private HttpClientFactory HttpClientFactory { get; }
+	public IEnumerable<FilterModel> Filters { get; }
+	public string DataDir { get; }
 
 	public async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestWallet wallet)
 	{
