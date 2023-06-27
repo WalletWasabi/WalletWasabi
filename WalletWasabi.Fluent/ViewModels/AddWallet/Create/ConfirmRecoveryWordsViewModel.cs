@@ -7,10 +7,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -162,7 +158,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private void SetSkip()
 	{
 #if RELEASE
-		IsSkipEnabled = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
+		IsSkipEnabled = Services.WalletManager.Network != NBitcoin.Network.Main || System.Diagnostics.Debugger.IsAttached;
 #else
 		IsSkipEnabled = true;
 #endif
