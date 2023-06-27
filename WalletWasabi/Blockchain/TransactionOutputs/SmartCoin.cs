@@ -119,15 +119,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		private set => RaiseAndSetIfChanged(ref _confirmed, value);
 	}
 
-	/// <summary>
-	/// If you want to have a notification about a coin is released, then you have to periodically read IsBanned.
-	/// </summary>
-	public bool IsBanned
-	{
-		get => RefreshAndGetIsBanned();
-		private set => RaiseAndSetIfChanged(ref _isBanned, value);
-	}
-
 	public bool IsExcludedFromCoinJoin
 	{
 		get => _isExcludedFromCoinJoin;
@@ -143,20 +134,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsImmature(int bestHeight)
 	{
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
-	}
-
-	public bool RefreshAndGetIsBanned()
-	{
-		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
-		{
-			IsBanned = true;
-			return true;
-		}
-
-		IsBanned = false;
-		BannedUntilUtc = null;
-
-		return false;
 	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]
