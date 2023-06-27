@@ -90,14 +90,16 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public DateTimeOffset? BannedUntilUtc
 	{
-		get => _bannedUntilUtc;
-		set
+		get
 		{
-			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
+			if (_bannedUntilUtc < DateTimeOffset.UtcNow)
 			{
-				RefreshAndGetIsBanned();
+				_bannedUntilUtc = null;
+				return null;
 			}
+			return _bannedUntilUtc;
 		}
+		set => RaiseAndSetIfChanged(ref _bannedUntilUtc, value);
 	}
 
 	/// <summary>
