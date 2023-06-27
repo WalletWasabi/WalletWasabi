@@ -22,7 +22,7 @@ public class CoinPrison
 	public List<PrisonedCoinRecord> BannedCoins { get; set; } = new();
 	public string FilePath { get; set; }
 
-	public bool TryGetBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
+	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
 		bannedUntil = null;
 		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
@@ -32,6 +32,7 @@ public class CoinPrison
 				bannedUntil = record.BannedUntil;
 				return true;
 			}
+			RemoveBannedCoin(coin);
 		}
 		return false;
 	}
@@ -43,6 +44,19 @@ public class CoinPrison
 			return;
 		}
 		BannedCoins.Add(new(coin.Outpoint, until));
+		ToFile();
+	}
+
+	public void RemoveBannedCoin(SmartCoin coin)
+	{
+		var recordToRemove = BannedCoins.SingleOrDefault(record => coin.Outpoint == record.Outpoint);
+		if (recordToRemove == null)
+		{
+			Logger.LogError($"Tried to remove {nameof(coin)} from {nameof(BannedCoins)}, but {nameof(coin)} was null.");
+			return;
+		}
+		BannedCoins.Remove(recordToRemove);
+		coin.BannedUntilUtc = null;
 		ToFile();
 	}
 

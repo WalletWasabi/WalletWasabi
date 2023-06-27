@@ -209,7 +209,7 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryGetBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
-		return CoinPrison.TryGetBannedCoin(coin, when, out bannedUntil);
+		return CoinPrison.TryGetOrRemoveBannedCoin(coin, when, out bannedUntil);
 	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
@@ -260,7 +260,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		var availableCoins = Confirmed()
 			.Available()
-			.Where(coin => !CoinPrison.TryGetBannedCoin(coin, DateTimeOffset.Now, out _))
+			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, DateTimeOffset.Now, out _))
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
 			.Where(coin => !coinRefrigerator.IsFrozen(coin))
