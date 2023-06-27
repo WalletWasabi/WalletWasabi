@@ -59,28 +59,28 @@ public class RegTestSetup : IAsyncDisposable
 	{
 		string dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
 		RegTestSetup setup = new(regTestFixture, dir);
-		await setup.AssertFiltersInitializedAsync(); // Make sure filters are created on the server side.
+		await setup.AssertFiltersInitializedAsync().ConfigureAwait(false); // Make sure filters are created on the server side.
 
 		if (numberOfBlocksToGenerate != 0)
 		{
-			await setup.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
+			await setup.RpcClient.GenerateAsync(numberOfBlocksToGenerate).ConfigureAwait(false); // Make sure everything is confirmed.
 		}
 
 		setup.Coordinator.UtxoReferee.Clear();
 
-		await setup.BitcoinStore.InitializeAsync();
+		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
 
 		return setup;
 	}
 
 	public async Task AssertFiltersInitializedAsync()
 	{
-		uint256 firstHash = await Global.RpcClient.GetBlockHashAsync(0);
+		uint256 firstHash = await Global.RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
 
 		while (true)
 		{
 			var client = new WasabiClient(RegTestFixture.BackendHttpClient);
-			FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
+			FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
 			Assert.NotNull(filtersResponse);
 
 			var filterCount = filtersResponse!.Filters.Count();
@@ -90,7 +90,7 @@ public class RegTestSetup : IAsyncDisposable
 			}
 			else
 			{
-				await Task.Delay(100);
+				await Task.Delay(100).ConfigureAwait(false);
 			}
 		}
 	}
@@ -104,7 +104,7 @@ public class RegTestSetup : IAsyncDisposable
 			{
 				throw new TimeoutException($"{nameof(Wallet)} test timed out. Filter was not processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref FiltersProcessedByWalletCount)}.");
 			}
-			await Task.Delay(TimeSpan.FromSeconds(1));
+			await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			times++;
 		}
 	}

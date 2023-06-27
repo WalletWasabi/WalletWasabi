@@ -39,7 +39,7 @@ public class BuildTests
 	[Fact]
 	public async Task BuildTransactionValidationsTestAsync()
 	{
-		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(3));
 
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
@@ -141,16 +141,13 @@ public class BuildTests
 			node.VersionHandshake(); // Start mempool service.
 			synchronizer.Start(); // Start wasabi synchronizer service.
 
-			await feeProvider.StartAsync(CancellationToken.None);
+			await feeProvider.StartAsync(testDeadlineCts.Token);
 
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-			{
-				await wallet.StartAsync(cts.Token); // Initialize wallet service.
-			}
+			await wallet.StartAsync(testDeadlineCts.Token); // Initialize wallet service.
 
 			// subtract Fee from amount index with no enough money
 			PaymentIntent operations = new(new DestinationRequest(scp, Money.Coins(1m), subtractFee: true), new DestinationRequest(scp, Money.Coins(0.5m)));
@@ -209,6 +206,8 @@ public class BuildTests
 	[Fact]
 	public async Task BuildTransactionReorgsTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
@@ -438,9 +437,9 @@ public class BuildTests
 		finally
 		{
 			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
-			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
+			await walletManager.RemoveAndStopAllAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
-			await feeProvider.StopAsync(CancellationToken.None);
+			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
