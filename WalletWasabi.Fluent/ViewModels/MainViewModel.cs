@@ -52,8 +52,11 @@ public partial class MainViewModel : ViewModelBase
 		_dialogScreen = new DialogScreenViewModel();
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		_navBar = new NavBarViewModel(UiContext);
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
+		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen, _navBar));
+
+		_navBar.Activate();
 
 		UiServices.Initialize(UiContext);
 
@@ -62,7 +65,6 @@ public partial class MainViewModel : ViewModelBase
 		_addWalletPage = new AddWalletPageViewModel(UiContext);
 		_settingsPage = new SettingsPageViewModel(UiContext);
 		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel(UiContext);
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();

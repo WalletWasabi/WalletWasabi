@@ -14,11 +14,8 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -27,7 +24,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletViewModel : RoutableViewModel, IComparable<WalletViewModel>
+public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	private readonly WalletPageViewModel _parent;
 	[AutoNotify] private double _widthSource;
@@ -195,11 +192,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	{
 		Navigate().To(this, NavigationMode.Clear);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await Task.Delay(500);
-			History.SelectTransaction(txid);
-		});
+		SelectTransaction(txid);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -230,6 +223,15 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	{
 		get => _title;
 		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+	}
+
+	public void SelectTransaction(uint256 txid)
+	{
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await Task.Delay(500);
+			History.SelectTransaction(txid);
+		});
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
