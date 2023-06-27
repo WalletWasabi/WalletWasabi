@@ -99,7 +99,7 @@ public class Wallet : BackgroundService, IWallet
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
-	
+
 	private Task? FinalSynchronizationTask { get; set; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
@@ -267,26 +267,44 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task PerformFinalSynchronizationAsync(CancellationToken cancel)
 	{
-		using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
+		int tries = 10;
+		try
 		{
-			while (!cancel.IsCancellationRequested)
+			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				try
+				while (!cancel.IsCancellationRequested)
 				{
-					await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
-					if (LastProcessedFilter is { } lastProcessedFilter)
+					try
 					{
-						SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
-					}
+						await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+						if (LastProcessedFilter is { } lastProcessedFilter)
+						{
+							SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
+						}
 
-					break;
-				}
-				catch (InvalidOperationException ex)
-				{
-					// Retry until cancellation is requested
-					Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying: '{ex}'.");
+						break;
+					}
+					catch (InvalidOperationException ex)
+					{
+						if (tries == 0)
+						{
+							throw;
+						}
+						tries--;
+
+						// Retry until cancellation is requested.
+						Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying: '{ex}'.");
+					}
 				}
 			}
+		}
+		catch (OperationCanceledException)
+		{
+			// The procedure was intentionally cancelled - not logging anything.
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
 		}
 
 		if (!cancel.IsCancellationRequested)
@@ -294,7 +312,7 @@ public class Wallet : BackgroundService, IWallet
 			Logger.LogInfo("Wallet is fully synchronized.");
 		}
 	}
-	
+
 	private void LoadExcludedCoins()
 	{
 		bool isUpdateRequired = false;
@@ -450,7 +468,7 @@ public class Wallet : BackgroundService, IWallet
 					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
 					SetFinalBestTurboSyncHeight(new Height(filterModel.Header.Height));
 				}
-				
+
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
 					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
@@ -571,8 +589,8 @@ public class Wallet : BackgroundService, IWallet
 	/// </summary>
 	public async Task PerformWalletSynchronizationAsync(SyncType syncType, CancellationToken cancel)
 	{
-		var startingHeight = syncType == SyncType.Turbo ? 
-			new Height(KeyManager.GetBestTurboSyncHeight() + 1) : 
+		var startingHeight = syncType == SyncType.Turbo ?
+			new Height(KeyManager.GetBestTurboSyncHeight() + 1) :
 			new Height(KeyManager.GetBestHeight() + 1);
 
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
@@ -598,25 +616,25 @@ public class Wallet : BackgroundService, IWallet
 		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
 			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
 			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
-		
+
 		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetSynchronizationInfos()
 			.Where(x => stepPredicate(x.ScriptBytesHdPubKeyPair.HdPubKey))
 			.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
 
 		return keysToTest.ToList();
 	}
-	
+
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filterModel.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
-		
+
 		if (toTestKeys.Count == 0)
 		{
 			// No keys to test.
 			return;
 		}
-		
+
 		var matchFound = filterModel.Filter.MatchAny(toTestKeys, filterModel.FilterKey);
 		if (matchFound)
 		{
@@ -692,12 +710,12 @@ public class Wallet : BackgroundService, IWallet
 			KeyManager.SetBestTurboSyncHeight(filterHeight);
 		}
 	}
-    
-    private void SetFinalBestHeight(Height filterHeight)
-    {
-	    if (KeyManager.GetBestHeight() < filterHeight)
-	    {
-		    KeyManager.SetBestHeight(filterHeight);
-	    }
-    }
+
+	private void SetFinalBestHeight(Height filterHeight)
+	{
+		if (KeyManager.GetBestHeight() < filterHeight)
+		{
+			KeyManager.SetBestHeight(filterHeight);
+		}
+	}
 }
