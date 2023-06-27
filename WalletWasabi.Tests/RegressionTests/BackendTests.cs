@@ -196,6 +196,7 @@ public class BackendTests
 		{
 			segwitTaprootIndexBuilderService.Synchronize();
 			taprootIndexBuilderService.Synchronize();
+
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
@@ -230,6 +231,7 @@ public class BackendTests
 				// Simulate an unintended stop
 				await segwitTaprootIndexBuilderService.StopAsync();
 				segwitTaprootIndexBuilderService = null;
+
 				// Simulate an unintended stop
 				await taprootIndexBuilderService.StopAsync();
 				taprootIndexBuilderService = null;
@@ -256,6 +258,7 @@ public class BackendTests
 				{
 					throw new InvalidOperationException("Index builders can't be null.");
 				}
+
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
 				segwitTaprootIndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 				taprootIndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
