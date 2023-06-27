@@ -504,6 +504,10 @@ public class Wallet : BackgroundService, IWallet
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
 		KeyManager.AssertNetworkOrClearBlockState(Network);
+
+		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
+		KeyManager.GetKeys();
+
 		Height bestKeyManagerHeight = KeyManager.GetBestTurboSyncHeight();
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
