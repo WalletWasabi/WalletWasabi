@@ -47,16 +47,20 @@
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
       </MenuItem>
-      <Separator />
-      <!-- TODO: Show speed up transaction dialog.
-      <MenuItem Header="Speed-up transaction"
-                IsVisible="{Binding !IsConfirmed}"
-                Command="{Binding SpeedUpTransactionCommand}">
+      <MenuItem Header="Boost transaction"
+                Command="{Binding BoostTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      -->
+      <Separator />
+      <MenuItem Header="Cancel transaction"
+                Command="{Binding CancelTransactionCommand}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource dismiss_light}" />
+        </MenuItem.Icon>
+      </MenuItem>
+      <Separator />
       <MenuItem Header="Show details"
                 Command="{Binding ShowDetailsCommand}">
         <MenuItem.Icon>

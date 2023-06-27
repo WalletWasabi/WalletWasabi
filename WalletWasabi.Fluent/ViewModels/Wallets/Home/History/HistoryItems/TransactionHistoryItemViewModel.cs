@@ -28,16 +28,27 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
 
-		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
+		var canBoostTransaction = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		SpeedUpTransactionCommand = ReactiveCommand.Create(
+		var canCancelTransaction = this.WhenAnyValue(x => x.IsConfirmed)
+			.Select(x => !x)
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+		BoostTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
-				// TODO: Show speed up transaction dialog.
+				// TODO: Do whatever to boost the transaction.
 			},
-			speedUpTransactionCommandCanExecute);
+			canBoostTransaction);
+
+		CancelTransactionCommand = ReactiveCommand.Create(
+			() =>
+			{
+				// TODO: Do whatever to cancel transaction.
+			},
+			canCancelTransaction);
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
