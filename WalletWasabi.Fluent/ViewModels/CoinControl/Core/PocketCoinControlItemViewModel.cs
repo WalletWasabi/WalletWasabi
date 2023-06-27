@@ -18,7 +18,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		var unconfirmedCount = pocketCoins.Count(x => !x.Confirmed);
 		IsConfirmed = unconfirmedCount == 0;
 		ConfirmationStatus = IsConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
-		IsBanned = pocketCoins.Any(x => x.IsBanned);
+		IsBanned = pocketCoins.Any(x => x.BannedUntilUtc is { });
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);

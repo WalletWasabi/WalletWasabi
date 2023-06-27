@@ -22,7 +22,7 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		SmartCoin = smartCoin;
 		Amount = smartCoin.Amount;
 		IsConfirmed = smartCoin.Confirmed;
-		IsBanned = smartCoin.IsBanned;
+		IsBanned = smartCoin.BannedUntilUtc is { };
 		IsCoinjoining = smartCoin.CoinJoinInProgress;
 		var confirmationCount = smartCoin.GetConfirmations();
 		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
