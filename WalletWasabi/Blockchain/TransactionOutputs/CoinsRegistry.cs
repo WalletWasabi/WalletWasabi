@@ -269,7 +269,7 @@ public class CoinsRegistry : ICoinsView
 		return new CoinsRegistry(CoinPrison)
 		{
 			Coins = availableCoins,
-			LatestCoinsSnapshot = LatestCoinsSnapshot,
+			LatestCoinsSnapshot = availableCoins,
 			LatestSpentCoinsSnapshot = LatestSpentCoinsSnapshot
 		};
 	}
