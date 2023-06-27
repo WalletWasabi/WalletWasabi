@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,9 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
+				var outputs = GetOutputs(containingTransaction, wallet.Network).ToList();
+				var destinationAddresses = GetDestinationAddresses(outputs);
+
 				txRecordList.Add(new TransactionSummary
 				{
 					DateTime = dateTime,
@@ -54,7 +58,8 @@ public class TransactionHistoryBuilder
 					BlockHash = containingTransaction.BlockHash,
 					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
 					Inputs = GetInputs(containingTransaction),
-					Outputs = GetOutputs(containingTransaction),
+					Outputs = outputs,
+					DestinationAddresses = destinationAddresses,
 				});
 			}
 
@@ -71,6 +76,9 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
+					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
+					var destinationAddresses = GetDestinationAddresses(outputs);
+
 					txRecordList.Add(new TransactionSummary
 					{
 						DateTime = dateTime,
@@ -82,7 +90,8 @@ public class TransactionHistoryBuilder
 						BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
 						Inputs = GetInputs(spenderTransaction),
-						Outputs = GetOutputs(spenderTransaction),
+						Outputs = outputs,
+						DestinationAddresses = destinationAddresses,
 					});
 				}
 			}
@@ -91,14 +100,29 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction)
+	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<Output> outputs)
 	{
-		return smartTransaction.Transaction.Outputs.Select(GetOutput);
+		var myOwnNonInternalOutputs = outputs.OfType<OwnOutput>().Where(x => !x.IsInternal).Cast<Output>();
+		var foreignOutputs = outputs.OfType<ForeignOutput>().Cast<Output>();
+
+		return myOwnNonInternalOutputs.Concat(foreignOutputs).Select(x => x.DestinationAddress);
 	}
 
-	private Output GetOutput(TxOut txOut)
+	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
 	{
-		return new Output(txOut.Value);
+		var known = smartTransaction.WalletOutputs.Select(coin =>
+		{
+			var address = coin.TxOut.ScriptPubKey.GetDestinationAddress(network)!;
+			return new OwnOutput(coin.TxOut.Value, address, coin.HdPubKey.IsInternal);
+		}).Cast<Output>();
+
+		var unknown = smartTransaction.ForeignOutputs.Select(coin =>
+		{
+			var address = coin.TxOut.ScriptPubKey.GetDestinationAddress(network)!;
+			return new ForeignOutput(coin.TxOut.Value, address);
+		}).Cast<Output>();
+
+		return known.Concat(unknown);
 	}
 
 	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)

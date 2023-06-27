@@ -149,6 +149,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public object GetStatus()
 	{
 		var sync = Global.Synchronizer;
+		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new
 		{
@@ -159,10 +160,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 				_ => "Turned off"
 			},
 			backendStatus = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
-			bestBlockchainHeight = sync.BitcoinStore.SmartHeaderChain.TipHeight.ToString(),
-			bestBlockchainHash = sync.BitcoinStore.SmartHeaderChain.TipHash?.ToString() ?? "",
-			filtersCount = sync.BitcoinStore.SmartHeaderChain.HashCount,
-			filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
+			bestBlockchainHeight = smartHeaderChain.TipHeight.ToString(),
+			bestBlockchainHash = smartHeaderChain.TipHash?.ToString() ?? "",
+			filtersCount = smartHeaderChain.HashCount,
+			filtersLeft = smartHeaderChain.HashesLeft,
 			network = Global.Network.Name,
 			exchangeRate = sync.UsdExchangeRate,
 			peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(

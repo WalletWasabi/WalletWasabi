@@ -2,20 +2,22 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Reactive.Subjects;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletListModel : ReactiveObject, IWalletListModel
+public partial class WalletRepository : ReactiveObject, IWalletRepository
 {
-	public WalletListModel()
+	private ReadOnlyObservableCollection<IWalletModel> _wallets;
+
+	public WalletRepository()
 	{
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
@@ -32,18 +34,17 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 
 		// Materialize the Wallet list to determine the default wallet.
 		Wallets
-			.Bind(out var wallets)
+			.Bind(out _wallets)
 			.Subscribe();
 
 		DefaultWallet =
-			wallets.FirstOrDefault(item => item.Name == Services.UiConfig.LastSelectedWallet)
-			?? wallets.FirstOrDefault();
+			_wallets.FirstOrDefault(item => item.Name == Services.UiConfig.LastSelectedWallet)
+			?? _wallets.FirstOrDefault();
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
 	public IWalletModel? DefaultWallet { get; }
-
 	public bool HasWallet => Services.WalletManager.HasWallet();
 
 	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
@@ -53,7 +54,7 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 		Services.UiConfig.LastSelectedWallet = wallet.Name;
 	}
 
-	public async Task<IWalletModel> RecoverWallet(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
+	public async Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit)
 	{
 		var keyManager = await Task.Run(() =>
 		{
@@ -76,13 +77,30 @@ public partial class WalletListModel : ReactiveObject, IWalletListModel
 			return result;
 		});
 
-		var walletModel =
-			new WalletModel(
-				new Wallet(
-					Services.WalletManager.WalletDirectories.WalletsDir,
-					Services.WalletManager.Network,
-					keyManager));
+		return new WalletSettingsModel(keyManager, true);
+	}
 
-		return walletModel;
+	public async Task<IWalletSettingsModel> CreateNewWalletAsync(string walletName, string password, Mnemonic mnemonic)
+	{
+		var (keyManager, _) = await Task.Run(
+				() =>
+				{
+					var walletGenerator = new WalletGenerator(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network)
+					{
+						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
+					};
+					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
+				});
+
+		return new WalletSettingsModel(keyManager, true);
+	}
+
+	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
+	{
+		walletSettings.Save();
+
+		return _wallets.First(x => x.Name == walletSettings.WalletName);
 	}
 }

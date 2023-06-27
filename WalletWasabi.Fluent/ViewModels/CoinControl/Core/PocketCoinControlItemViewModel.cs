@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -22,7 +24,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
-		AnonymityScore = (int)pocketCoins.Min(coin => coin.AnonymitySet);
+		AnonymityScore = GetAnonScore(pocketCoins);
 		Labels = pocket.Labels;
 		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
@@ -69,5 +71,32 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 	public void Dispose()
 	{
 		_disposables.Dispose();
+	}
+
+	private static int? GetAnonScore(IEnumerable<SmartCoin> pocketCoins)
+	{
+		var allScores = pocketCoins.Select(x => (int?)x.AnonymitySet);
+		return CommonOrDefault(allScores.ToList());
+	}
+
+	/// <summary>
+	/// Returns the common item in the list, if any.
+	/// </summary>
+	/// <typeparam name="T">Type of the item</typeparam>
+	/// <param name="list">List of items to determine the common item.</param>
+	/// <returns>The common item or <c>default</c> if there is no common item.</returns>
+	private static T? CommonOrDefault<T>(IList<T> list)
+	{
+		var commonItem = list[0];
+
+		for (var i = 1; i < list.Count; i++)
+		{
+			if (!Equals(list[i], commonItem))
+			{
+				return default;
+			}
+		}
+
+		return commonItem;
 	}
 }

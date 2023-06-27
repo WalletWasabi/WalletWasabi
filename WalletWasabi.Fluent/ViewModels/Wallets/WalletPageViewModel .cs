@@ -82,7 +82,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void SetIcon()
 	{
-		var walletType = WalletModel.WalletType;
+		var walletType = WalletModel.Settings.WalletType;
 
 		var baseResourceName = walletType switch
 		{

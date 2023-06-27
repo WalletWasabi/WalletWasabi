@@ -3,31 +3,23 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ShowFlyoutOnPointerOverBehavior : DisposingBehavior<Control>
+public class ShowFlyoutOnPointerOverBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is null)
+		if (AssociatedObject is { } target && FlyoutBase.GetAttachedFlyout(target) is { } flyout)
 		{
-			return;
-		}
+			var showFlyout = Observable
+				.FromEventPattern(target, nameof(AssociatedObject.PointerMoved))
+				.Throttle(TimeSpan.FromMicroseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(_ => target.IsPointerOver);
 
-		Observable
-			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerMoved))
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => OnPointerMove())
-			.DisposeWith(disposables);
-	}
-
-	private void OnPointerMove()
-	{
-		if (AssociatedObject is { } obj && obj.IsPointerOver)
-		{
-			FlyoutBase.ShowAttachedFlyout(AssociatedObject);
+			FlyoutHelpers.ShowFlyout(target, flyout, showFlyout, disposable, windowActivityRequired: false);
 		}
 	}
 }
