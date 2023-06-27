@@ -164,7 +164,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			async Task<ICoinsView> SanityChecksAndGetCoinCandidatesFunc()
+			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
 				if (WalletsBlockedByUi.ContainsKey(walletToStart.WalletName))
 				{
@@ -577,7 +577,7 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private async Task<ICoinsView> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
 	{
 		var coinsRegistry = await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false);
 		var coinCandidates = coinsRegistry.AvailableForCoinJoin(CoinRefrigerator, bestHeight);

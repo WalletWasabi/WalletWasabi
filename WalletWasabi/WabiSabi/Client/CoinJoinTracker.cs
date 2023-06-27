@@ -14,7 +14,7 @@ public class CoinJoinTracker : IDisposable
 	public CoinJoinTracker(
 		IWallet wallet,
 		CoinJoinClient coinJoinClient,
-		Func<Task<ICoinsView>> coinCandidatesFunc,
+		Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc,
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
 		CancellationToken cancellationToken)

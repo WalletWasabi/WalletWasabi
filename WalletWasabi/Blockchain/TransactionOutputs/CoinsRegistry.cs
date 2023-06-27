@@ -266,12 +266,7 @@ public class CoinsRegistry : ICoinsView
 			.Where(coin => !coinRefrigerator.IsFrozen(coin))
 			.ToHashSet();
 
-		return new CoinsRegistry(CoinPrison)
-		{
-			Coins = availableCoins,
-			LatestCoinsSnapshot = availableCoins,
-			LatestSpentCoinsSnapshot = LatestSpentCoinsSnapshot
-		};
+		return new CoinsView(availableCoins);
 	}
 
 	public void BanCoins(List<(SmartCoin Coin, DateTimeOffset BannedUntilUtc)> bannedCoins)
