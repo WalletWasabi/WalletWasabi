@@ -372,8 +372,12 @@ public class BuildTests
 					onAddress = true;
 				}
 			}
-			var srtxwwreq = new SignRawTransactionRequest();
-			srtxwwreq.Transaction = overwriteTx;
+
+			var srtxwwreq = new SignRawTransactionRequest()
+			{
+				Transaction = overwriteTx
+			};
+
 			var srtxwwres = await rpc.SignRawTransactionWithWalletAsync(srtxwwreq);
 
 			var eventAwaiter = new EventAwaiter<ProcessedResult>(
