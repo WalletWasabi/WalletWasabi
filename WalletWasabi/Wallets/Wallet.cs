@@ -267,34 +267,19 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task PerformFinalSynchronizationAsync(CancellationToken cancel)
 	{
-		int tries = 10;
 		try
 		{
 			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				while (!cancel.IsCancellationRequested)
+				while (true)
 				{
-					try
+					cancel.ThrowIfCancellationRequested();
+					await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+					if (LastProcessedFilter is { } lastProcessedFilter)
 					{
-						await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
-						if (LastProcessedFilter is { } lastProcessedFilter)
-						{
-							SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
-						}
-
-						break;
+						SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
 					}
-					catch (InvalidOperationException ex)
-					{
-						if (tries == 0)
-						{
-							throw;
-						}
-						tries--;
-
-						// Retry until cancellation is requested.
-						Logger.LogWarning($"Final synchronization encountered an error while processing filter {LastProcessedFilter?.Header.Height}, retrying: '{ex}'.");
-					}
+					break;
 				}
 			}
 		}
@@ -307,10 +292,7 @@ public class Wallet : BackgroundService, IWallet
 			Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
 		}
 
-		if (!cancel.IsCancellationRequested)
-		{
-			Logger.LogInfo("Wallet is fully synchronized.");
-		}
+		Logger.LogInfo("Wallet is fully synchronized.");
 	}
 
 	private void LoadExcludedCoins()
