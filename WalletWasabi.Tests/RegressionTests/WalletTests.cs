@@ -22,8 +22,9 @@ using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
+/// <seealso cref="RegTestCollectionDefinition"/>
 [Collection("RegTest collection")]
-public class WalletTests
+public class WalletTests : IClassFixture<RegTestFixture>
 {
 	public WalletTests(RegTestFixture regTestFixture)
 	{
