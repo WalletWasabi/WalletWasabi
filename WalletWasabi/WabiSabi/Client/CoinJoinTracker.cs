@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -31,6 +32,7 @@ public class CoinJoinTracker : IDisposable
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
 
+	public ImmutableList<SmartCoin> GetCoinsInCriticalPhase => CoinJoinClient.CoinsInCriticalPhase;
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
 
