@@ -96,8 +96,8 @@ public class RegTestFixture : IDisposable
 	/// <summary>URI in form: <c>http://localhost:RANDOM_PORT/api/vAPI_VERSION</c>.</summary>
 	public Uri BackendEndPointApiUri { get; }
 
-	public IHost BackendHost { get; internal set; }
-	public CoreNode BackendRegTestNode { get; internal set; }
+	public IHost BackendHost { get; }
+	public CoreNode BackendRegTestNode { get; }
 	public Global Global { get; }
 
 	/// <summary>Underlying HTTP client to be used by <see cref="ClearnetHttpClient"/>.</summary>
@@ -139,17 +139,15 @@ public class RegTestFixture : IDisposable
 		};
 	}
 
-	#region IDisposable Support
-
 	protected virtual void Dispose(bool disposing)
 	{
 		if (!_disposedValue)
 		{
 			if (disposing)
 			{
-				BackendHost?.StopAsync().GetAwaiter().GetResult();
-				BackendHost?.Dispose();
-				BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
+				BackendHost.StopAsync().GetAwaiter().GetResult();
+				BackendHost.Dispose();
+				BackendRegTestNode.TryStopAsync().GetAwaiter().GetResult();
 				HttpClient.Dispose();
 			}
 
@@ -163,6 +161,4 @@ public class RegTestFixture : IDisposable
 		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 		Dispose(true);
 	}
-
-	#endregion IDisposable Support
 }

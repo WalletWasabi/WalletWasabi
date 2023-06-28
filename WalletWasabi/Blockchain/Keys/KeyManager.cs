@@ -159,6 +159,9 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
+	
+	[JsonProperty(PropertyName = "UseTurboSync")]
+	public bool UseTurboSync { get; private set; } = true;
 
 	[JsonProperty(PropertyName = "MinGapLimit")]
 	public int MinGapLimit { get; private set; }
@@ -393,12 +396,16 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public IEnumerable<byte[]> GetPubKeyScriptBytes()
+	/// <summary>
+	/// This function can only be called for wallet synchronization.
+	/// It's unsafe because it doesn't assert that the GapLimit is respected.
+	/// GapLimit should be enforced whenever a transaction is discovered.
+	/// </summary>
+	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			AssertCleanKeysIndexed();
-			return HdPubKeyCache.GetScriptPubKeysBytes();
+			return HdPubKeyCache.GetSynchronizationInfos();
 		}
 	}
 
