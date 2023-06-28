@@ -1,13 +1,13 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Tests.UnitTests;
-using System.Linq;
-using WalletWasabi.Tests.UnitTests.Wallet;
+
+namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class MockNode
 {
