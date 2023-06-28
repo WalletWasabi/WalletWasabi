@@ -444,14 +444,18 @@ public class Wallet : BackgroundService, IWallet
 	{
 		try
 		{
+			// NonTurbo synchronization (keys skipped by TurboSync) is still ongoing.
 			if (FinalSynchronizationTask is not null && !FinalSynchronizationTask.IsCompleted)
 			{
+				// New filters can be processed against Turbo keys as they were already tested against all stored filters, so HandleFiltersLock is not used.
+				// This allow the wallet to process new transactions while the NonTurbo synchronization is running in the background.
 				if (KeyManager.GetBestTurboSyncHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
 					SetFinalBestTurboSyncHeight(new Height(filterModel.Header.Height));
 				}
-
+				
+				// Then filters are buffered and are tested against the NonTurbo keys only when the NonTurbo sync is finished (i.e. lock released).
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
 					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
@@ -461,6 +465,7 @@ public class Wallet : BackgroundService, IWallet
 					}
 				}
 			}
+			// NonTurbo synchronization is finished, new filters can be processed normally.
 			else
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
