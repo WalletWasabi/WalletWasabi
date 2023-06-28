@@ -448,7 +448,7 @@ public class Wallet : BackgroundService, IWallet
 			if (FinalSynchronizationTask is not null && !FinalSynchronizationTask.IsCompleted)
 			{
 				// New filters can be processed against Turbo keys as they were already tested against all stored filters, so HandleFiltersLock is not used.
-				// This allow the wallet to process new transactions while the NonTurbo synchronization is running in the background.
+				// This allows the wallet to process new transactions while the NonTurbo synchronization is running in the background.
 				if (KeyManager.GetBestTurboSyncHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
