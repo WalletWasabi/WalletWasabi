@@ -465,8 +465,7 @@ public class Wallet : BackgroundService, IWallet
 					}
 				}
 			}
-			// NonTurbo synchronization is finished, new filters can be processed normally.
-			else
+			else // NonTurbo synchronization is finished, new filters can be processed normally.
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
