@@ -58,9 +58,9 @@ public class WalletBuilder : IAsyncDisposable
 
 	public async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestWallet wallet)
 	{
-		await BitcoinStore.InitializeAsync(); // StartingFilter already added to IndexStore after this line.
+		await BitcoinStore.InitializeAsync().ConfigureAwait(false); // StartingFilter already added to IndexStore after this line.
 
-		await BitcoinStore.IndexStore.AddNewFiltersAsync(Filters.Skip(1));
+		await BitcoinStore.IndexStore.AddNewFiltersAsync(Filters.Skip(1)).ConfigureAwait(false);
 		var keyManager = KeyManager.CreateNewWatchOnly(wallet.GetSegwitAccountExtPubKey(), null!);
 		keyManager.GetKeys(_ => true); // Make sure keys are asserted.
 
@@ -74,9 +74,9 @@ public class WalletBuilder : IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
-		await IndexStore.DisposeAsync();
-		await TransactionStore.DisposeAsync();
-		await HttpClientFactory.DisposeAsync();
+		await IndexStore.DisposeAsync().ConfigureAwait(false);
+		await TransactionStore.DisposeAsync().ConfigureAwait(false);
+		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();
 	}
 }
