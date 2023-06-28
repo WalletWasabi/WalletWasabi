@@ -23,10 +23,9 @@ public static class PasswordFinderHelper
 		foundPassword = null;
 		BitcoinEncryptedSecretNoEC? encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
 
-		// No secret in the watch-only mode.
 		if (encryptedSecret is null)
 		{
-			return false;
+			throw new InvalidOperationException("No secret in the watch-only mode.");
 		}
 
 		var charset = Charsets[passwordFinderOptions.Charset] + (passwordFinderOptions.UseNumbers ? "0123456789" : "") + (passwordFinderOptions.UseSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
