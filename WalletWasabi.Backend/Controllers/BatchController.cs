@@ -98,7 +98,7 @@ public class BatchController : ControllerBase
 
 		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
 
-		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
+		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection().Concat(Global.CoinJoinMempoolManager.CoinJoinIds).Distinct();
 
 		return Ok(response);
 	}

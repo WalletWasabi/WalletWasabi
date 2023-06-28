@@ -51,6 +51,8 @@ public class Global : IDisposable
 
 		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), segwitTaprootIndexFilePath);
 		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, HostedServices.Get<BlockNotifier>(), taprootIndexFilePath);
+
+		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, RpcClient);
 	}
 
 	public string DataDir { get; }
@@ -80,6 +82,7 @@ public class Global : IDisposable
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 	private Whitelist? WhiteList { get; set; }
+	public CoinJoinMempoolManager CoinJoinMempoolManager { get; }
 
 	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
 	{
@@ -169,11 +172,15 @@ public class Global : IDisposable
 		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is successfully initialized and started synchronization.");
 		TaprootIndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is successfully initialized and started synchronization.");
+
+		await CoinJoinMempoolManager.StartAsync(cancel);
+		Logger.LogInfo($"{nameof(CoinJoinMempoolManager)} is successfully initialized and started synchronization.");
 	}
 
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
 	{
 		CoinJoinIdStore!.TryAdd(transaction.GetHash());
+		CoinJoinMempoolManager.TriggerRound();
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
