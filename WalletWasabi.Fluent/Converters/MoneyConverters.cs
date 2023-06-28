@@ -17,7 +17,7 @@ public static class MoneyConverters
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
 
 	public static readonly IValueConverter ToBtc =
-		new FuncValueConverter<Money, string>(n => n?.ToFormattedString() + " BTC");
+		new FuncValueConverter<Money, string?>(n => n?.ToBtcWithUnit());
 
 	public static readonly IValueConverter ToFeeWithUnit =
 		new FuncValueConverter<Money, string?>(n => n?.ToFeeDisplayUnitFormattedString());

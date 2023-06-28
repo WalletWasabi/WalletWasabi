@@ -1,3 +1,4 @@
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Services;
 
@@ -15,4 +16,10 @@ public class ExchangeRateProvider : IExchangeRateProvider
 	private WasabiSynchronizer Synchronizer { get; }
 
 	public IObservable<decimal> BtcToUsdRate { get; }
+
+
+	public DualAmount Create(Money money)
+	{
+		return new DualAmount(money, this);
+	}
 }

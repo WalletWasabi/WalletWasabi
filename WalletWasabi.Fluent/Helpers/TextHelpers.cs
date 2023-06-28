@@ -52,6 +52,11 @@ public static partial class TextHelpers
 		return result;
 	}
 
+	public static string ToBtcWithUnit(this Money money)
+	{
+		return money.ToFormattedString() + " BTC";
+	}
+
 	public static string ToFormattedString(this Money money)
 	{
 		const int WholeGroupSize = 3;

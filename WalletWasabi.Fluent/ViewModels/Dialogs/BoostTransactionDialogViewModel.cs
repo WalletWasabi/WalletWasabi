@@ -1,6 +1,7 @@
 using System.Reactive;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -26,8 +27,8 @@ public partial class BoostTransactionDialogViewModel : DialogViewModelBase<Unit>
 public class BoostedTransactionPreview
 {
 	public string Destination { get; init; }
-	public Money Amount { get; init; }
+	public DualAmount Amount { get; init; }
 	public LabelsArray Labels { get; init; }
-	public Money Fee { get; init; }
+	public DualAmount Fee { get; init; }
 	public TimeSpan ConfirmationTime { get; init; }
 }

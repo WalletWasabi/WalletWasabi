@@ -5,6 +5,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
@@ -40,15 +41,17 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			.Select(x => !x)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
+		var exchangeRateProvider = new ExchangeRateProvider(walletVm.Wallet.Synchronizer);
+		
 		BoostTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
 				uiContext.Navigate().To().BoostTransactionDialog(new BoostedTransactionPreview()
 				{
 					Destination = "some destination",
-					Amount = Money.Zero,
+					Amount = exchangeRateProvider.Create(Money.FromUnit(1234, MoneyUnit.Satoshi)),
 					Labels = new LabelsArray("label1", "label2", "label3"),
-					Fee = Money.Zero,
+					Fee = exchangeRateProvider.Create(Money.FromUnit(25, MoneyUnit.Satoshi)),
 					ConfirmationTime = TimeSpan.FromMinutes(20),
 				});
 			});
