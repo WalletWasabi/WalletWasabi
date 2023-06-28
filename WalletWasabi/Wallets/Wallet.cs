@@ -271,7 +271,6 @@ public class Wallet : BackgroundService, IWallet
 		{
 			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				cancel.ThrowIfCancellationRequested();
 				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
 
 				if (LastProcessedFilter is { } lastProcessedFilter)
