@@ -227,7 +227,7 @@ public partial class Arena : PeriodicRunner
 							}
 							else
 							{
-								EndRound(round, EndRoundState.AbortedWithError);
+								EndRound(round, EndRoundState.AbortedNotEnoughAlices);
 							}
 							return;
 						}
