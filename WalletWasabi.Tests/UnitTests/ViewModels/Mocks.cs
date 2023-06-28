@@ -4,8 +4,10 @@ using Avalonia.Input.Platform;
 using Moq;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
@@ -51,6 +53,11 @@ public static class Mocks
 		public Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal)
 		{
 			return _ns.NavigateDialogAsync(dialog, navigationMode);
+		}
+
+		public IWalletViewModel? To(IWalletModel wallet)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
