@@ -238,7 +238,7 @@
 
           <StackPanel Grid.Column="0" Grid.Row="2">
             <TextBlock Name="PlebsTextBlock" Text="Plebs don't pay" Classes="title2" />
-            <TextBlock Text="You won't pay coinjoin fees for coins that are less than or equal to 0.001 BTC." Classes="text" />
+            <TextBlock Text="You won't pay coinjoin fees for coins that are less than or equal to 0.01 BTC." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="2">
