@@ -1,10 +1,12 @@
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -41,7 +43,14 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		BoostTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
-				uiContext.Navigate().To().BoostTransactionDialog();
+				uiContext.Navigate().To().BoostTransactionDialog(new BoostedTransactionPreview()
+				{
+					Destination = "some destination",
+					Amount = Money.Zero,
+					Labels = new LabelsArray("label1", "label2", "label3"),
+					Fee = Money.Zero,
+					ConfirmationTime = TimeSpan.FromMinutes(20),
+				});
 			});
 
 		CancelTransactionCommand = ReactiveCommand.Create(

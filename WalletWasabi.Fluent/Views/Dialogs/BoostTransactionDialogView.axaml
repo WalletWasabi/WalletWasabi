@@ -2,18 +2,58 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="using:WalletWasabi.Fluent.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="dialogs:BoostTransactionDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.BoostTransactionDialogView">
 
-  <controls:ContentArea Title="Boost transaction"
+  <c:ContentArea Title="Boost transaction"
                         EnableCancel="{Binding EnableCancel}"
                         EnableBack="{Binding EnableBack}"
                         EnableNext="True" NextContent="OK">
-    <TextBlock>Hello</TextBlock>
-  </controls:ContentArea>
+    <StackPanel Spacing="15" DataContext="{Binding TransactionPreview}">
+
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="amount" HorizontalContentAlignment="Stretch"
+                     CopyableContent="{Binding Amount}">
+        <TextBlock Classes="monoSpaced" Text="{Binding Amount}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <c:PreviewItem Icon="{StaticResource person_regular}"
+                     Label="recipient"
+                     CopyableContent="{Binding Labels}">
+        <c:LabelsItemsPresenter Items="{Binding Labels}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                     Label="address"
+                     CopyableContent="{Binding Destination}">
+        <TextBlock Classes="monoSpaced" Text="{Binding Destination}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <c:PreviewItem Icon="{StaticResource timer_regular}"
+                     Label="confirming within">
+        <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static converters:TimespanConverters.ToFriendlyString}, StringFormat='≈ {0}'}" />
+      </c:PreviewItem>
+      <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                     Label="fee"
+                     CopyableContent="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+        <TextBlock Classes="monoSpaced" Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}}" />
+      </c:PreviewItem>
+
+    </StackPanel>
+
+  </c:ContentArea>
 
 </UserControl>
