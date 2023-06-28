@@ -139,7 +139,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			Assert.Contains(res2.InnerWalletOutputs.Single(), wallet.Coins);
 
-			// Test: Basic
+			#region Basic
+
 			Script receive = keyManager.GetNextReceiveKey("Basic").P2wpkhScript;
 			Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 			var res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
@@ -184,7 +185,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
-			// Test: SubtractFeeFromAmount
+			#endregion Basic
+
+			#region SubtractFeeFromAmount
+
 			receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, subtractFee: true, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
@@ -216,7 +220,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 			}
 			Assert.True(foundReceive);
 
-			// Test: Low fee
+			#endregion SubtractFeeFromAmount
+
+			#region LowFee
+
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -246,7 +253,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 			}
 			Assert.True(foundReceive);
 
-			// Test: Medium fee
+			#endregion LowFee
+
+			#region MediumFee
+
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.OneDayConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -276,7 +286,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 			}
 			Assert.True(foundReceive);
 
-			// Test: High fee
+			#endregion MediumFee
+
+			#region HighFee
+
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -311,7 +324,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
-			// Test: Max amount
+			#endregion HighFee
+
+			#region MaxAmount
+
 			receive = keyManager.GetNextReceiveKey("MaxAmount").P2wpkhScript;
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
@@ -329,7 +345,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
-			// Test: InputSelection
+			#endregion MaxAmount
+
+			#region InputSelection
+
 			receive = keyManager.GetNextReceiveKey("InputSelection").P2wpkhScript;
 
 			var inputCountBefore = res.SpentCoins.Count();
@@ -372,7 +391,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Single(res.Transaction.Transaction.Outputs);
 			Assert.Single(res.SpentCoins);
 
-			// Test: Labeling
+			#endregion InputSelection
+
+			#region Labeling
+
 			Script receive2 = keyManager.GetNextReceiveKey("foo").P2wpkhScript;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -423,7 +445,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Contains("outgoing", allKeyLabels);
 			Assert.Contains("outgoing2", allKeyLabels);
 
-			// Test: AllowedInputsDisallowUnconfirmed
+			#endregion Labeling
+
+			#region AllowedInputsDisallowUnconfirmed
+
 			inputCountBefore = res.SpentCoins.Count();
 
 			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed").P2wpkhScript;
@@ -456,7 +481,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.True(inputCountBefore >= res.SpentCoins.Count());
 			Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
 
-			// Test: CustomChange
+			#endregion AllowedInputsDisallowUnconfirmed
+
+			#region CustomChange
 
 			// covers:
 			// customchange
@@ -473,7 +500,10 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Contains(scp1, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 			Assert.Contains(scp2, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 
-			// Test: FeePcHigh
+			#endregion CustomChange
+
+			#region FeePcHigh
+
 			using Key keyFeePcHigh1 = new();
 			res = wallet.BuildTransaction(
 				password,
@@ -498,6 +528,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Equal(newChangeK.P2wpkhScript, changeRes.ScriptPubKey);
 			Assert.Equal(newChangeK.Labels, changeRes.HdPubKey.Labels);
 			Assert.Equal(KeyState.Clean, newChangeK.KeyState); // Still clean, because the tx wasn't yet propagated.
+
+			#endregion FeePcHigh
 		}
 		finally
 		{
