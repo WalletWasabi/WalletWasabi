@@ -70,11 +70,26 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
 
-		var bannedOutPoint = BitcoinFactory.CreateOutPoint();
+		using var signingKey = new Key();
+		var coin = WabiSabiFactory .CreateCoin(signingKey);
+		var bannedOutPoint = coin.Outpoint;
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.ConfigureServices(services =>
 			{
+				var rpc = BitcoinFactory.GetMockMinimalRpc();
+
+				// Make the coordinator believe that the coins are real and
+				// that they exist in the blockchain with many confirmations.
+				rpc.OnGetTxOutAsync = (_, _, _) => new()
+				{
+					Confirmations = 101,
+					IsCoinBase = false,
+					ScriptPubKeyType = "witness_v0_keyhash",
+					TxOut = coin.TxOut
+				};
+				services.AddScoped<IRPCClient>(s => rpc);
+
 				var inmate = new Inmate(bannedOutPoint, Punishment.LongBanned, DateTimeOffset.UtcNow, uint256.One);
 				services.AddScoped(_ => new Prison(new[] { inmate }));
 			})).CreateClient();
@@ -85,7 +100,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// If an output is not in the utxo dataset then it is not unspent, this
 		// means that the output is spent or simply doesn't even exist.
-		using var signingKey = new Key();
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
