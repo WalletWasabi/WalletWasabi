@@ -13,7 +13,7 @@
   <c:ContentArea Title="Boost transaction"
                         EnableCancel="{Binding EnableCancel}"
                         EnableBack="{Binding EnableBack}"
-                        EnableNext="True" NextContent="OK">
+                        EnableNext="True" NextContent="Boost">
     <StackPanel Spacing="15" DataContext="{Binding TransactionPreview}">
 
       <c:PreviewItem Icon="{StaticResource btc_logo}"

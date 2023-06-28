@@ -1,5 +1,5 @@
 using System.Reactive;
-using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -17,6 +17,11 @@ public partial class BoostTransactionDialogViewModel : DialogViewModelBase<Unit>
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
+		NextCommand = ReactiveCommand.Create(
+			() =>
+			{
+				// TODO: Boost transaction
+			});
 	}
 
 	protected override void OnDialogClosed()
