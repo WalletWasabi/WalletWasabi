@@ -271,18 +271,14 @@ public class Wallet : BackgroundService, IWallet
 		{
 			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				while (true)
-				{
-					cancel.ThrowIfCancellationRequested();
-					await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
-					if (LastProcessedFilter is { } lastProcessedFilter)
-					{
-						SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
-					}
+				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
 
-					Logger.LogInfo("Wallet is fully synchronized.");
-					break;
+				if (LastProcessedFilter is { } lastProcessedFilter)
+				{
+					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
 				}
+
+				Logger.LogInfo("Wallet is fully synchronized.");
 			}
 		}
 		catch (OperationCanceledException)
