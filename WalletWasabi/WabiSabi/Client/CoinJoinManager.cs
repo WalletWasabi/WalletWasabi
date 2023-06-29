@@ -18,7 +18,6 @@ using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -424,7 +423,6 @@ public class CoinJoinManager : BackgroundService
 			// Assuming that the round might be broadcast but our client was not able to get the ending status.
 			CoinRefrigerator.Freeze(ex.Coins);
 			await MarkDestinationsUsedAsync(ex.OutputScripts).ConfigureAwait(false);
-
 			Logger.LogDebug(ex);
 		}
 		catch (CoinJoinClientException clientException)
