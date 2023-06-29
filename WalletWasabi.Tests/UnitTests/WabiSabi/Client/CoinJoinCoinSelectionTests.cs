@@ -51,7 +51,9 @@ public class CoinJoinCoinSelectionTests
 		// We gotta make sure the distance from external keys is sufficient.
 		foreach (var sc in coinsToSelectFrom)
 		{
-			sc.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+			var sci = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
+			sci.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+			sc.Transaction.TryAddWalletInput(sci);
 		}
 		foreach (var sc in coinsToSelectFrom)
 		{
