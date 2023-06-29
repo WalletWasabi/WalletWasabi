@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -60,4 +61,8 @@ public static class CurrencyExtensions
 			_ => n.ToString("N2", FormatInfo)
 		};
 	}
+
+	public static string ToBtcWithUnitAndConversion(this Money money, decimal exchangeRate) => money.ToBtcWithUnit() + " " + (money.ToDecimal(MoneyUnit.BTC) * exchangeRate).ToUsdAproxBetweenParens();
+
+	public static string ToFeeWithConversion(this Money money, decimal exchangeRate) => money.ToFeeDisplayUnitFormattedString() + " " + (money.ToDecimal(MoneyUnit.BTC) * exchangeRate).ToUsdAproxBetweenParens();
 }

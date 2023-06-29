@@ -1,6 +1,9 @@
 using System.Reactive;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -31,9 +34,19 @@ public partial class BoostTransactionDialogViewModel : DialogViewModelBase<Unit>
 
 public class BoostedTransactionPreview
 {
+	private readonly decimal _exchangeRate;
+
+	public BoostedTransactionPreview(decimal exchangeRate)
+	{
+		_exchangeRate = exchangeRate;
+	}
+
 	public string Destination { get; init; }
-	public DualAmount Amount { get; init; }
+	public Money Amount { get; init; }
 	public LabelsArray Labels { get; init; }
-	public DualAmount Fee { get; init; }
+	public Money Fee { get; init; }
 	public TimeSpan ConfirmationTime { get; init; }
+	public string AmountText => Amount.ToBtcWithUnitAndConversion(_exchangeRate);
+	public string FeeRaw => Amount.ToFeeDisplayUnitRawString();
+	public string FeeText => Fee.ToFeeWithConversion(_exchangeRate);
 }

@@ -41,17 +41,15 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			.Select(x => !x)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		var exchangeRateProvider = new ExchangeRateProvider(walletVm.Wallet.Synchronizer);
-		
 		BoostTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
-				uiContext.Navigate().To().BoostTransactionDialog(new BoostedTransactionPreview()
+				uiContext.Navigate().To().BoostTransactionDialog(new BoostedTransactionPreview(walletVm.Wallet.Synchronizer.UsdExchangeRate)
 				{
 					Destination = "some destination",
-					Amount = exchangeRateProvider.Create(Money.FromUnit(1234, MoneyUnit.Satoshi)),
+					Amount = Money.FromUnit(1234, MoneyUnit.Satoshi),
 					Labels = new LabelsArray("label1", "label2", "label3"),
-					Fee = exchangeRateProvider.Create(Money.FromUnit(25, MoneyUnit.Satoshi)),
+					Fee = Money.FromUnit(25, MoneyUnit.Satoshi),
 					ConfirmationTime = TimeSpan.FromMinutes(20),
 				});
 			});

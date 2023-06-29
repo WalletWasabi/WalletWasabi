@@ -18,8 +18,8 @@
 
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="amount" HorizontalContentAlignment="Stretch"
-                     CopyableContent="{Binding Amount.Btc}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Amount.AmountWithConversion}" />
+                     CopyableContent="{Binding Amount}">
+        <TextBlock Classes="monoSpaced" Text="{Binding AmountText}" />
       </c:PreviewItem>
 
       <Separator />
@@ -48,8 +48,8 @@
       </c:PreviewItem>
       <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                      Label="fee"
-                     CopyableContent="{Binding Fee.FeeWithoutUnit}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Fee.FeeWithConversion}" />
+                     CopyableContent="{Binding FeeRaw}">
+        <TextBlock Classes="monoSpaced" Text="{Binding FeeText}" />
       </c:PreviewItem>
 
     </StackPanel>
