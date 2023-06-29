@@ -24,5 +24,5 @@ public interface ISmartCoin
 	/// Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567
 	/// If you're a lazy dev implementing this interface, you may just return constant true, because it does not make too much of a difference.
 	/// </remarks>
-	bool IsSufficientlyDistancedFromExternalKeys();
+	bool IsSufficientlyDistancedFromExternalKeys { get; }
 }

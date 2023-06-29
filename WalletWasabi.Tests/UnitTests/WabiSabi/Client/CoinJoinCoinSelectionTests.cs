@@ -2,6 +2,7 @@ using System.Linq;
 using Moq;
 using NBitcoin;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
@@ -52,9 +53,12 @@ public class CoinJoinCoinSelectionTests
 		{
 			sc.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
 		}
+		foreach (var sc in coinsToSelectFrom)
+		{
+			BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
+		}
 
 		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
-
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
@@ -126,6 +130,10 @@ public class CoinJoinCoinSelectionTests
 		foreach (var sc in coinsToSelectFrom)
 		{
 			sc.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: false), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+		}
+		foreach (var sc in coinsToSelectFrom)
+		{
+			BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
 		}
 
 		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);

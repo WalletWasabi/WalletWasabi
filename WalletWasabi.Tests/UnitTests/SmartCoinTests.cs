@@ -49,14 +49,14 @@ public class SmartCoinTests
 		var height = Height.Mempool;
 		var stx = new SmartTransaction(tx, height);
 		var coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 2. Internal, no inputs ours. This is a strange case, it shouldn't happen normally. Maybe expecting false could help us with dust attacks?
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
 		tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
 		stx = new SmartTransaction(tx, height);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 3. External, some inputs external ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
@@ -67,7 +67,7 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 4. Internal, some inputs external ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
@@ -75,7 +75,7 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 5. External, some inputs internal ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
@@ -86,7 +86,7 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 6. Internal, some inputs internal ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
@@ -94,7 +94,7 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 7. External, some inputs internal ours, some inputs external ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
@@ -106,7 +106,7 @@ public class SmartCoinTests
 		stx.TryAddWalletInput(inCoin);
 		stx.TryAddWalletInput(inCoin2);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 8. Internal, some inputs internal ours, some inputs external ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
@@ -115,6 +115,6 @@ public class SmartCoinTests
 		stx.TryAddWalletInput(inCoin);
 		stx.TryAddWalletInput(inCoin2);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys());
+		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 	}
 }

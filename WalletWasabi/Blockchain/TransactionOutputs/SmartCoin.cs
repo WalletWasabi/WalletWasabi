@@ -170,20 +170,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	/// <returns>False if external, or the tx inputs are all external.</returns>
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
-	public bool IsSufficientlyDistancedFromExternalKeys()
-	{
-		if (!HdPubKey.IsInternal)
-		{
-			return false;
-		}
-
-		if (Transaction.WalletInputs.All(x => !x.HdPubKey.IsInternal))
-		{
-			return false;
-		}
-
-		return true;
-	}
+	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 

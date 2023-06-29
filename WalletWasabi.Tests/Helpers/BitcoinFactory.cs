@@ -3,14 +3,13 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.UnitTests;
+using WalletWasabi.Blockchain.Analysis;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -106,6 +105,8 @@ public static class BitcoinFactory
 		{
 			stx.TryAddWalletOutput(sc);
 		}
+
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		return stx;
 	}
 
@@ -136,7 +137,9 @@ public static class BitcoinFactory
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
-		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
+		var sc = new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
+		return sc;
 	}
 
 	public static OutPoint CreateOutPoint()
