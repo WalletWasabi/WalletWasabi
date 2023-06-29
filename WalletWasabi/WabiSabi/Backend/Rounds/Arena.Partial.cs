@@ -39,13 +39,13 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 
-			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.ScriptPubKey, round.CoinJoinInputCommitmentData))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-			}
+			// Compute but don't commit updated coinjoin to round state, it will
+			// be re-calculated on input confirmation. This is computed in here
+			// for validation purposes.
+			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
 
 			CheckCoinIsNotBanned(coin.Outpoint);
-			
+
 			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
 
@@ -63,11 +63,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
-
-			// Compute but don't commit updated coinjoin to round state, it will
-			// be re-calculated on input confirmation. This is computed in here
-			// for validation purposes.
-			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
 
 			// Generate a new GUID with the secure random source, to be sure
 			// that it is not guessable (Guid.NewGuid() documentation does
@@ -374,7 +369,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task<(Coin coin, int Confirmations)> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
-		
+
 		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false)
 			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		if (txOutResponse.Confirmations == 0)
@@ -423,7 +418,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			}
 		}
 	}
-	
+
 	private Round GetRound(uint256 roundId) =>
 		Rounds.FirstOrDefault(x => x.Id == roundId)
 		?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({roundId}) not found.");
