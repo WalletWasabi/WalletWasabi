@@ -16,11 +16,14 @@ public record SigningState : MultipartyTransactionState
 		: base(parameters)
 	{
 		Events = events.ToImmutableList();
+		SigningDelay = TimeSpanHelpers.Min(parameters.MaximumSigningDelay, SigningTimeProvider.Trezor.GetSigningTime(Inputs.Count(), Outputs.Count()));
 	}
 
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
 	public bool IsFullySigned => Witnesses.Count == SortedInputs.Count;
+
+	public TimeSpan SigningDelay { get; init; }
 
 	[JsonIgnore]
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));

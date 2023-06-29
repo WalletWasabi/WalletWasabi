@@ -66,6 +66,7 @@ public class Round
 	public TimeFrame ConnectionConfirmationTimeFrame { get; private set; }
 	public TimeFrame OutputRegistrationTimeFrame { get; set; }
 	public TimeFrame TransactionSigningTimeFrame { get; set; }
+	public TimeFrame TransactionSigningDelayTimeFrame { get; private set; }
 	public DateTimeOffset End { get; private set; }
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
@@ -103,6 +104,7 @@ public class Round
 		else if (phase == Phase.TransactionSigning)
 		{
 			TransactionSigningTimeFrame = TransactionSigningTimeFrame.StartNow();
+			TransactionSigningDelayTimeFrame = TimeFrame.Create(Assert<SigningState>().SigningDelay).StartNow();
 		}
 		else if (phase == Phase.Ended)
 		{
