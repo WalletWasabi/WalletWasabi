@@ -250,7 +250,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		walletManager.RegisterServices(feeProvider, blockProvider, new(""));
 
 		var baseTip = await rpc.GetBestBlockHashAsync();
 
@@ -354,7 +354,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 			// Spend the inputs of the tx so we know
 			var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
 			Assert.True(success);
-			var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction!.GetHash()));
+			var invalidCoin = Assert.Single(wallet.Coins.AsAllCoinsView().CreatedBy(invalidSmartTransaction!.GetHash()));
 			Assert.NotNull(invalidCoin.SpenderTransaction);
 			Assert.True(invalidCoin.Confirmed);
 

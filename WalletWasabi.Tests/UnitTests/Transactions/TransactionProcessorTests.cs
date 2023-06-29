@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Client.Banning;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -1429,6 +1430,7 @@ public class TransactionProcessorTests
 		return new TransactionProcessor(
 			transactionStore,
 			keyManager,
-			Money.Coins(0.0001m));
+			Money.Coins(0.0001m),
+			new CoinsRegistry(new CoinPrison("")));
 	}
 }

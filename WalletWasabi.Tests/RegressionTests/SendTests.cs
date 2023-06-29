@@ -80,7 +80,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		walletManager.RegisterServices(feeProvider, blockProvider, new(""));
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");
@@ -587,7 +587,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		walletManager.RegisterServices(feeProvider, blockProvider, new(""));
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");
