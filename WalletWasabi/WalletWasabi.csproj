@@ -28,11 +28,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.3" />
-		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
-		<PackageReference Include="NBitcoin" Version="7.0.24" />
-		<PackageReference Include="WabiSabi" Version="1.0.1.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+		<PackageReference Include="Microsoft.Data.Sqlite" />
+		<PackageReference Include="Microsoft.Win32.SystemEvents" />
+		<PackageReference Include="NBitcoin" />
+		<PackageReference Include="WabiSabi" />
 	</ItemGroup>
 
 	<ItemGroup>

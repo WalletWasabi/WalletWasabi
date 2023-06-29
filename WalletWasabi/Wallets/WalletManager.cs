@@ -24,7 +24,13 @@ public class WalletManager : IWalletProvider
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
-	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
+	public WalletManager(
+		Network network,
+		string workDir,
+		WalletDirectories walletDirectories,
+		BitcoinStore bitcoinStore,
+		WasabiSynchronizer synchronizer,
+		ServiceConfiguration serviceConfiguration)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
@@ -32,6 +38,9 @@ public class WalletManager : IWalletProvider
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);
 		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		BitcoinStore = bitcoinStore;
+		Synchronizer = synchronizer;
+		ServiceConfiguration = serviceConfiguration;
 
 		RefreshWalletList();
 	}
@@ -51,7 +60,7 @@ public class WalletManager : IWalletProvider
 	/// </summary>
 	public event EventHandler<Wallet>? WalletAdded;
 
-	private CancellationTokenSource CancelAllInitialization { get; } = new();
+	private CancellationTokenSource CancelAllTasks { get; } = new();
 
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private HashSet<Wallet> Wallets { get; } = new();
@@ -59,9 +68,9 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; set; }
-	private WasabiSynchronizer? Synchronizer { get; set; }
-	private ServiceConfiguration ServiceConfiguration { get; set; }
+	private BitcoinStore BitcoinStore { get; }
+	private WasabiSynchronizer Synchronizer { get; }
+	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
 	private HybridFeeProvider FeeProvider { get; set; }
@@ -128,7 +137,7 @@ public class WalletManager : IWalletProvider
 				throw new OperationCanceledException("Object was already disposed.");
 			}
 
-			if (CancelAllInitialization.IsCancellationRequested)
+			if (CancelAllTasks.IsCancellationRequested)
 			{
 				throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 			}
@@ -142,7 +151,7 @@ public class WalletManager : IWalletProvider
 		// Wait for the WalletManager to be initialized.
 		while (!IsInitialized)
 		{
-			await Task.Delay(100, CancelAllInitialization.Token).ConfigureAwait(false);
+			await Task.Delay(100, CancelAllTasks.Token).ConfigureAwait(false);
 		}
 
 		if (wallet.State == WalletState.WaitingForInit)
@@ -150,16 +159,15 @@ public class WalletManager : IWalletProvider
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 
-		using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
 			{
-				var cancel = CancelAllInitialization.Token;
+				var cancel = CancelAllTasks.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				cancel.ThrowIfCancellationRequested();
-
 				return wallet;
 			}
 			catch
@@ -271,12 +279,12 @@ public class WalletManager : IWalletProvider
 
 		try
 		{
-			CancelAllInitialization?.Cancel();
-			CancelAllInitialization?.Dispose();
+			CancelAllTasks?.Cancel();
+			CancelAllTasks?.Dispose();
 		}
 		catch (ObjectDisposedException)
 		{
-			Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
+			Logger.LogWarning($"{nameof(CancelAllTasks)} is disposed. This can occur due to an error while processing the wallet.");
 		}
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
@@ -373,11 +381,8 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices(HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
-		BitcoinStore = bitcoinStore;
-		Synchronizer = synchronizer;
-		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
 

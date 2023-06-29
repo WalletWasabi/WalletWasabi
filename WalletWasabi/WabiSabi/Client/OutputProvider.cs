@@ -2,17 +2,20 @@ using NBitcoin;
 using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class OutputProvider
 {
-	public OutputProvider(IDestinationProvider destinationProvider)
+	public OutputProvider(IDestinationProvider destinationProvider, WasabiRandom? random = null)
 	{
 		DestinationProvider = destinationProvider;
+		Random = random ?? SecureRandom.Instance;
 	}
 
 	private IDestinationProvider DestinationProvider { get; }
+	private WasabiRandom Random { get; }
 
 	public virtual IEnumerable<TxOut> GetOutputs(
 		RoundParameters roundParameters,
@@ -20,7 +23,7 @@ public class OutputProvider
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize)
 	{
-		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.CalculateMinReasonableOutputAmount(), roundParameters.AllowedOutputAmounts.Max, availableVsize, roundParameters.AllowedOutputTypes);
+		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.CalculateMinReasonableOutputAmount(), roundParameters.AllowedOutputAmounts.Max, availableVsize, roundParameters.AllowedOutputTypes, Random);
 
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 		return GetTxOuts(outputValues, DestinationProvider);
