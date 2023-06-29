@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Wallets;
 
@@ -77,6 +78,7 @@ public class WalletManager : IWalletProvider
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private IBlockProvider BlockProvider { get; set; }
+	public CoinPrison CoinPrison { get; private set; }
 	private string WorkDir { get; }
 
 	private void RefreshWalletList()
@@ -156,7 +158,7 @@ public class WalletManager : IWalletProvider
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, CoinPrison);
 		}
 
 		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
@@ -381,14 +383,15 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices(HybridFeeProvider feeProvider, IBlockProvider blockProvider, CoinPrison coinPrison)
 	{
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
+		CoinPrison = coinPrison;
 
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, CoinPrison);
 		}
 
 		IsInitialized = true;

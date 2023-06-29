@@ -21,6 +21,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
@@ -80,7 +81,7 @@ public class Wallet : BackgroundService, IWallet
 	public string WalletName => KeyManager.WalletName;
 
 	/// <summary>Unspent Transaction Outputs</summary>
-	public ICoinsView Coins { get; private set; }
+	public CoinsRegistry Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
@@ -127,7 +128,7 @@ public class Wallet : BackgroundService, IWallet
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
-		var allCoins = ((CoinsRegistry)Coins).AsAllCoinsView();
+		var allCoins = Coins.AsAllCoinsView();
 		foreach (SmartCoin coin in allCoins)
 		{
 			walletTransactions.Add(coin.Transaction);
@@ -186,7 +187,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		IBlockProvider blockProvider,
+		CoinPrison coinPrison)
 	{
 		if (State > WalletState.WaitingForInit)
 		{
@@ -200,8 +202,10 @@ public class Wallet : BackgroundService, IWallet
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
-			Coins = TransactionProcessor.Coins;
+			CoinsRegistry coinRegistry = new(coinPrison);
+
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, coinRegistry);
+			Coins = coinRegistry;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
@@ -245,6 +249,7 @@ public class Wallet : BackgroundService, IWallet
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
+					LoadBannedCoins();
 
 					if (KeyManager.UseTurboSync)
 					{
@@ -289,6 +294,17 @@ public class Wallet : BackgroundService, IWallet
 		catch (Exception ex)
 		{
 			Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
+		}
+	}
+
+	private void LoadBannedCoins()
+	{
+		foreach (var coin in Coins)
+		{
+			if (Coins.TryGetBannedCoin(coin, DateTimeOffset.UtcNow, out var bannedUntil))
+			{
+				coin.BannedUntilUtc = bannedUntil;
+			}
 		}
 	}
 
@@ -661,7 +677,7 @@ public class Wallet : BackgroundService, IWallet
 	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
-		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, new CoinPrison(""));
 		return wallet;
 	}
 

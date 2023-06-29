@@ -18,12 +18,13 @@ public class TransactionProcessor
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
 		KeyManager keyManager,
-		Money dustThreshold)
+		Money dustThreshold,
+		CoinsRegistry coinRegistry)
 	{
 		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-		Coins = new();
+		Coins = coinRegistry;
 		BlockchainAnalyzer = new();
 	}
 

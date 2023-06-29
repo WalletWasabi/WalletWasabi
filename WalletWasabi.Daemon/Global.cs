@@ -32,6 +32,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Daemon;
 
@@ -220,7 +221,7 @@ public class Global
 					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 					Cache);
 
-				WalletManager.RegisterServices(HostedServices.Get<HybridFeeProvider>(), blockProvider);
+				WalletManager.RegisterServices(HostedServices.Get<HybridFeeProvider>(), blockProvider, CoinPrison.CreateOrLoadFromFile(Config.DataDir));
 			}
 			finally
 			{
