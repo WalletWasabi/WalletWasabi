@@ -1,7 +1,5 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Models;
 
@@ -24,42 +22,4 @@ public static class TransactionSummaryExtensions
 			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
 			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
 		};
-
-	public static string ToFeeDisplayUnitRawString(this Money? fee)
-	{
-		if (fee is null)
-		{
-			return "Unknown";
-		}
-
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
-
-		return displayUnit switch
-		{
-			FeeDisplayUnit.Satoshis => fee.Satoshi.ToString(),
-			_ => fee.ToString()
-		};
-	}
-
-	public static string ToFeeDisplayUnitFormattedString(this Money? fee)
-	{
-		if (fee is null)
-		{
-			return "Unknown";
-		}
-
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
-		var moneyUnit = displayUnit.ToMoneyUnit();
-
-		var feePartText = moneyUnit switch
-		{
-			MoneyUnit.BTC => fee.ToFormattedString(),
-			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
-			_ => fee.ToString()
-		};
-
-		var feeText = $"{feePartText} {displayUnit.FriendlyName()}";
-
-		return feeText;
-	}
 }
