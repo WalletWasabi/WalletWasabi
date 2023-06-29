@@ -167,9 +167,25 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			.Union(_hiddenIncludedPockets)
 			.ToArray();
 
-	public async Task ResetAsync(Pocket[] pockets)
+	public async Task ResetAsync(Pocket[] pockets, List<SmartCoin>? coinsToExclude = null)
 	{
 		_allPockets = pockets;
+
+		if (coinsToExclude != null)
+		{
+			var pocketsWithoutBusyCoins = new List<Pocket>();
+			var coinjoiningPockets = pockets.Where(pocket => pocket.Coins.Any(coinsToExclude.Contains)).ToArray();
+
+			foreach (var pocket in coinjoiningPockets)
+			{
+				pocketsWithoutBusyCoins.Add(new Pocket((pocket.Labels, new CoinsView(pocket.Coins.Except(coinsToExclude)))));
+			}
+
+			if (await IsPocketEnoughAsync(pocketsWithoutBusyCoins.ToArray()))
+			{
+				_allPockets = pocketsWithoutBusyCoins.ToArray();
+			}
+		}
 
 		if (pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket)
 		{
