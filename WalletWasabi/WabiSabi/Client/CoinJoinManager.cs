@@ -455,6 +455,13 @@ public class CoinJoinManager : BackgroundService
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 
+		if (finishedCoinJoin.PrisonedCoins.Any())
+		{
+			Wallet currentWallet = (Wallet)wallet;
+			var coinsRegistry = currentWallet.Coins;
+			coinsRegistry.BanCoins(finishedCoinJoin.PrisonedCoins);
+		}
+
 		NotifyCoinJoinCompletion(finishedCoinJoin);
 
 		// When to stop mixing:
