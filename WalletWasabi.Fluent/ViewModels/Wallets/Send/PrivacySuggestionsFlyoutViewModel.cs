@@ -12,6 +12,8 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -82,10 +84,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					// Only allow to create 1 more input with BnB. This accounts for the change created.
 					int maxInputCount = transaction.SpentCoins.Count() + 1;
 
+					var cjManager = Services.HostedServices.Get<CoinJoinManager>();
+					ImmutableList<SmartCoin> coinsToExclude = cjManager.CoinsInCriticalPhase[wallet.WalletName];
+
 					var pockets = wallet.GetPockets();
 					var spentCoins = transaction.SpentCoins;
 					var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
-					var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
+					var coinsToUse = usedPockets.SelectMany(x => x.Coins).Except(coinsToExclude).ToImmutableArray();
 
 					IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
 						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
