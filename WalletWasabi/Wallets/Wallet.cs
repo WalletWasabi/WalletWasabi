@@ -267,28 +267,32 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task PerformFinalSynchronizationAsync(CancellationToken cancel)
 	{
-		try
+		using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
+			while (!cancel.IsCancellationRequested)
 			{
-				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
-
-				if (LastProcessedFilter is { } lastProcessedFilter)
+				try
 				{
-					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
-				}
+					await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
 
-				Logger.LogInfo("Wallet is fully synchronized.");
+					if (LastProcessedFilter is { } lastProcessedFilter)
+					{
+						SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
+					}
+
+					Logger.LogInfo("Wallet is fully synchronized.");
+					break;
+				}
+				catch (OperationCanceledException)
+				{
+					// The procedure was intentionally cancelled - only logging in debug.
+					Logger.LogDebug($"Operation cancelled during the final synchronization of the wallet.");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
+				}
 			}
-		}
-		catch (OperationCanceledException)
-		{
-			// The procedure was intentionally cancelled - not logging anything.
-			Logger.LogDebug($"Operation cancelled during the final synchronization of the wallet.");
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
 		}
 	}
 
