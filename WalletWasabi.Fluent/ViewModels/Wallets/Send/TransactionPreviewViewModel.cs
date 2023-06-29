@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -524,10 +525,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return;
 		}
 
+		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
+
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets);
+		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
