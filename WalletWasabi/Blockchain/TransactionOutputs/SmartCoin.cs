@@ -133,6 +133,10 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
 
+	/// <returns>False if external, or the tx inputs are all external.</returns>
+	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
+
 	public bool RegisterToHdPubKey()
 		=> HdPubKey.Coins.Add(this);
 
@@ -167,10 +171,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 	public bool IsReplaceable() => Transaction.IsRBF;
-
-	/// <returns>False if external, or the tx inputs are all external.</returns>
-	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
-	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 

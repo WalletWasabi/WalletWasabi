@@ -361,14 +361,14 @@ public class BlockchainAnalyzer
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartCoin output)
 	{
-		// If there's no wallet input, then money is coming from external sources.
 		if (!output.Transaction.WalletInputs.Any())
 		{
+			// If there's no wallet input, then money is coming from external sources.
 			output.IsSufficientlyDistancedFromExternalKeys = false;
 		}
-		// If there are wallet inputs, and each and every one of them are coming from external sources, then we consider this as not sufficiently distanced as well.
 		else if (output.Transaction.WalletInputs.All(x => !x.Transaction.WalletInputs.Any()))
 		{
+			// If there are wallet inputs, and each and every one of them are coming from external sources, then we consider this as not sufficiently distanced as well.
 			output.IsSufficientlyDistancedFromExternalKeys = false;
 		}
 		else
