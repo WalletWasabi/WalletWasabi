@@ -256,7 +256,7 @@ public class CoinJoinClient
 			catch (Exception ex)
 			{
 				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
-				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), unsignedCoinJoin, ex);
+				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), ex);
 			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
