@@ -787,6 +787,8 @@ public class CoinJoinClient
 	{
 		// Signing.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+		var signingState = roundState.Assert<SigningState>();
+		var signingStateStartTime = DateTimeOffset.UtcNow + signingState.SigningDelay;
 		var remainingTime = roundState.CoinjoinState.Parameters.TransactionSigningTimeout - RoundStatusUpdater.Period;
 		var signingStateEndTime = DateTimeOffset.UtcNow + remainingTime;
 
@@ -797,7 +799,6 @@ public class CoinJoinClient
 
 		roundState.LogDebug($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
 		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
@@ -816,6 +817,8 @@ public class CoinJoinClient
 		var alicesToSign = mustSignAllInputs
 			? registeredAliceClients
 			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
+
+		await Task.Delay(signingStateStartTime - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
 
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
