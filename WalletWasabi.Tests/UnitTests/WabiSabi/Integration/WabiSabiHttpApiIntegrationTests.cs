@@ -71,7 +71,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
 
 		using var signingKey = new Key();
-		var coin = WabiSabiFactory .CreateCoin(signingKey);
+		var coin = WabiSabiFactory.CreateCoin(signingKey);
 		var bannedOutPoint = coin.Outpoint;
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>

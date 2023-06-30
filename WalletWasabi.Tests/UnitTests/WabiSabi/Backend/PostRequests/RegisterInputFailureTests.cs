@@ -189,8 +189,8 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-		await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		// Noted inputs are allowed and should not throw any exception.
+		await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 
 		await arena.StopAsync(CancellationToken.None);
 	}
