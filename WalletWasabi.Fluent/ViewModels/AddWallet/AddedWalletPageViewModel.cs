@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
 	private readonly IWalletSettingsModel _walletSettings;
+	private IWalletModel _wallet;
 
 	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings)
 	{
@@ -34,16 +35,13 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	private void OnNext()
 	{
 		Navigate().Clear();
-
-		// Temporary workaround until refactoring is completed.
-		MainViewModel.Instance.NavBar.SelectedWallet =
-			MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _walletSettings.WalletName);
+		UiContext.Navigate().To(_wallet);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		UiContext.WalletList.SaveWallet(_walletSettings);
+		_wallet = UiContext.WalletRepository.SaveWallet(_walletSettings);
 	}
 }

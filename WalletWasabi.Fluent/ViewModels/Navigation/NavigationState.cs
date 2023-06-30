@@ -2,25 +2,30 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public class NavigationState : ReactiveObject, INavigate
 {
+	private readonly IWalletNavigation _walletNavigation;
+
 	public NavigationState(
 		UiContext uiContext,
 		INavigationStack<RoutableViewModel> homeScreenNavigation,
 		INavigationStack<RoutableViewModel> dialogScreenNavigation,
 		INavigationStack<RoutableViewModel> fullScreenNavigation,
-		INavigationStack<RoutableViewModel> compactDialogScreenNavigation)
+		INavigationStack<RoutableViewModel> compactDialogScreenNavigation,
+		IWalletNavigation walletNavigation)
 	{
 		UiContext = uiContext;
 		HomeScreen = homeScreenNavigation;
 		DialogScreen = dialogScreenNavigation;
 		FullScreen = fullScreenNavigation;
 		CompactDialogScreen = compactDialogScreenNavigation;
-
+		_walletNavigation = walletNavigation;
 		this.WhenAnyValue(
 				x => x.DialogScreen.CurrentPage,
 				x => x.CompactDialogScreen.CurrentPage,
@@ -69,6 +74,17 @@ public class NavigationState : ReactiveObject, INavigate
 		return new FluentNavigate(UiContext);
 	}
 
+	public IWalletViewModel? To(IWalletModel wallet)
+	{
+		return _walletNavigation.To(wallet);
+	}
+
+	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		target = NavigationExtensions.GetTarget(dialog, target);
+		return await Navigate(target).NavigateDialogAsync(dialog, navigationMode);
+	}
+
 	private void OnCurrentPageChanged(RoutableViewModel page)
 	{
 		if (HomeScreen.CurrentPage is { } homeScreen)
@@ -92,11 +108,5 @@ public class NavigationState : ReactiveObject, INavigate
 		}
 
 		page.IsActive = true;
-	}
-
-	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target = NavigationTarget.Default, NavigationMode navigationMode = NavigationMode.Normal)
-	{
-		target = NavigationExtensions.GetTarget(dialog, target);
-		return await Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
 }

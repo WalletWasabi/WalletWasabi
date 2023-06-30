@@ -82,7 +82,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		}
 		else
 		{
-			walletSettings.Save();
+			UiContext.WalletRepository.SaveWallet(walletSettings);
 			Close(DialogResultKind.Normal, true);
 		}
 	}
@@ -91,7 +91,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = UiContext.WalletList.HasWallet;
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false, escapeGoesBack: true);
 	}
 }

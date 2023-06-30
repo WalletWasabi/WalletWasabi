@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Extensions;
 
@@ -39,14 +39,15 @@ public static class LinqExtensions
 		}
 	}
 
-	public static T? RandomElement<T>(this IEnumerable<T> source)
+	public static T? RandomElement<T>(this IEnumerable<T> source, WasabiRandom random)
 	{
 		T? current = default;
 		int count = 0;
 		foreach (T element in source)
 		{
 			count++;
-			if (Random.Shared.Next(count) == 0)
+
+			if (random.GetInt(0, count) == 0)
 			{
 				current = element;
 			}
@@ -58,11 +59,11 @@ public static class LinqExtensions
 	/// Selects a random element based on order bias.
 	/// </summary>
 	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
-	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent)
+	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent, WasabiRandom random)
 	{
 		foreach (T element in source)
 		{
-			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
+			if (random.GetInt(1, 101) <= biasPercent)
 			{
 				return element;
 			}
@@ -71,13 +72,13 @@ public static class LinqExtensions
 		return source.Any() ? source.First() : default;
 	}
 
-	public static IList<T> Shuffle<T>(this IList<T> list)
+	public static IList<T> Shuffle<T>(this IList<T> list, WasabiRandom random)
 	{
 		int n = list.Count;
 		while (n > 1)
 		{
 			n--;
-			int k = Random.Shared.Next(n + 1);
+			int k = random.GetInt(0, n + 1);
 			T value = list[k];
 			list[k] = list[n];
 			list[n] = value;
@@ -85,9 +86,9 @@ public static class LinqExtensions
 		return list;
 	}
 
-	public static IList<T> ToShuffled<T>(this IEnumerable<T> list)
+	public static IList<T> ToShuffled<T>(this IEnumerable<T> list, WasabiRandom random)
 	{
-		return list.ToList().Shuffle();
+		return list.ToList().Shuffle(random);
 	}
 
 	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
