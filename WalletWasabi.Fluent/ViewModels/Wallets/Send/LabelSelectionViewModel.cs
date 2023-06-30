@@ -171,19 +171,19 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		_allPockets = pockets;
 
-		if (coinsToExclude != null)
+		if (coinsToExclude is not null)
 		{
-			var pocketsWithoutBusyCoins = new List<Pocket>();
+			var pocketsWithoutExcludedCoins = new List<Pocket>();
 			var coinjoiningPockets = pockets.Where(pocket => pocket.Coins.Any(coinsToExclude.Contains)).ToArray();
 
 			foreach (var pocket in coinjoiningPockets)
 			{
-				pocketsWithoutBusyCoins.Add(new Pocket((pocket.Labels, new CoinsView(pocket.Coins.Except(coinsToExclude)))));
+				pocketsWithoutExcludedCoins.Add(new Pocket((pocket.Labels, new CoinsView(pocket.Coins.Except(coinsToExclude)))));
 			}
 
-			if (await IsPocketEnoughAsync(pocketsWithoutBusyCoins.ToArray()))
+			if (await IsPocketEnoughAsync(pocketsWithoutExcludedCoins.ToArray()))
 			{
-				_allPockets = pocketsWithoutBusyCoins.ToArray();
+				_allPockets = pocketsWithoutExcludedCoins.ToArray();
 			}
 		}
 

@@ -383,7 +383,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (trackedCoinJoins.TryGetValue(wallet.WalletName, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
 			{
-				coinsInCoinjoin = coinJoinTracker.GetCoinsInCriticalPhase;
+				coinsInCoinjoin = coinJoinTracker.CoinsInCriticalPhase;
 			}
 
 			coinsUsedInCoinjoins.Add(wallet.WalletName, coinsInCoinjoin);

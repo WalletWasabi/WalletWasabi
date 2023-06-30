@@ -32,7 +32,7 @@ public class CoinJoinTracker : IDisposable
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
 
-	public ImmutableList<SmartCoin> GetCoinsInCriticalPhase => CoinJoinClient.CoinsInCriticalPhase;
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase => CoinJoinClient.CoinsInCriticalPhase;
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
 
