@@ -318,6 +318,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
+			if (round.Parameters.ForceSigningDelay)
+			{
+				if (!round.TransactionSigningDelayTimeFrame.HasExpired)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SignatureTooSoon, $"Round ({round.Id}): Received signature before transaction signing delay has expired.");
+				}
+			}
+
 			var state = round.Assert<SigningState>().AddWitness((int)request.InputIndex, request.Witness);
 
 			// at this point all of the witnesses have been verified and the state can be updated
