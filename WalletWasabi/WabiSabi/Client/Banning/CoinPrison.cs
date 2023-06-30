@@ -20,12 +20,12 @@ public class CoinPrison
 	public string FilePath { get; set; }
 	private object Lock { get; set; } = new();
 
-	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
+	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, DateTimeOffset banDeadlineTime, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
 		bannedUntil = null;
 		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
 		{
-			if (when < record.BannedUntil)
+			if (banDeadlineTime < record.BannedUntil)
 			{
 				bannedUntil = record.BannedUntil;
 				return true;
@@ -48,7 +48,7 @@ public class CoinPrison
 		ToFile();
 	}
 
-	public void RemoveBannedCoin(SmartCoin coin)
+	private void RemoveBannedCoin(SmartCoin coin)
 	{
 		var recordToRemove = BannedCoins.SingleOrDefault(record => coin.Outpoint == record.Outpoint);
 		if (recordToRemove == null)
@@ -65,15 +65,15 @@ public class CoinPrison
 	{
 		lock (Lock)
 		{
-		if (string.IsNullOrWhiteSpace(FilePath))
-		{
-			return;
-		}
+			if (string.IsNullOrWhiteSpace(FilePath))
+			{
+				return;
+			}
 
-		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
-		File.WriteAllText(FilePath, json);
-	}
+			IoHelpers.EnsureFileExists(FilePath);
+			string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
+			File.WriteAllText(FilePath, json);
+		}
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
