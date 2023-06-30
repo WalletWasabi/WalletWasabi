@@ -18,6 +18,7 @@ public class CoinPrison
 
 	public List<PrisonedCoinRecord> BannedCoins { get; set; } = new();
 	public string FilePath { get; set; }
+	private object Lock { get; set; } = new();
 
 	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, DateTimeOffset when, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
@@ -62,6 +63,8 @@ public class CoinPrison
 
 	private void ToFile()
 	{
+		lock (Lock)
+		{
 		if (string.IsNullOrWhiteSpace(FilePath))
 		{
 			return;
@@ -70,6 +73,7 @@ public class CoinPrison
 		IoHelpers.EnsureFileExists(FilePath);
 		string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
 		File.WriteAllText(FilePath, json);
+	}
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
