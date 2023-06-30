@@ -34,10 +34,10 @@ public class WalletManager : IWalletProvider
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		Network = Guard.NotNull(nameof(network), network);
+		Network = network;
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);
-		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		WalletDirectories = walletDirectories;
 		BitcoinStore = bitcoinStore;
 		Synchronizer = synchronizer;
 		ServiceConfiguration = serviceConfiguration;
@@ -133,8 +133,6 @@ public class WalletManager : IWalletProvider
 
 	public async Task<Wallet> StartWalletAsync(Wallet wallet)
 	{
-		Guard.NotNull(nameof(wallet), wallet);
-
 		lock (Lock)
 		{
 			if (_disposedValue)
