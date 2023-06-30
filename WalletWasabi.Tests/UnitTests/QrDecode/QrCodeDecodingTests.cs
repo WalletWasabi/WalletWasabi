@@ -90,7 +90,7 @@ public class QrCodeDecodingTests
 	{
 		using var bitmap = SKBitmap.Decode(path);
 		var source = new SKBitmapLuminanceSource(bitmap);
-    	var binary = new BinaryBitmap(new HybridBinarizer(source));
+		var binary = new BinaryBitmap(new HybridBinarizer(source));
 		return reader.decode(binary).Text;
 	}
 }

@@ -61,7 +61,7 @@ public class QrCodeReader : IQrCodeReader
 	{
 		using var bitmap = SKBitmap.Decode(scope.Buffer.ReferImage());
 		var source = new SKBitmapLuminanceSource(bitmap);
-    	var binary = new BinaryBitmap(new HybridBinarizer(source));
+		var binary = new BinaryBitmap(new HybridBinarizer(source));
 		return _decoder.decode(binary)?.Text ?? "";
 	}
 }
