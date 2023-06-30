@@ -42,7 +42,7 @@ public class CoinJoinTracker : IDisposable
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }
 	public bool IsStopped { get; set; }
-	public List<(SmartCoin Coin, DateTimeOffset BannedUntilUtc)> PrisonedCoins { get; private set; } = new();
+	public List<CoinBanned> PrisonedCoins { get; private set; } = new();
 
 	public void Stop()
 	{
@@ -70,7 +70,7 @@ public class CoinJoinTracker : IDisposable
 				break;
 
 			case CoinBanned coinBanned:
-				PrisonedCoins.Add((coinBanned.Coin, coinBanned.BanUntilUtc));
+				PrisonedCoins.Add(coinBanned);
 				break;
 		}
 

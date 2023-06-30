@@ -6,6 +6,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -289,11 +290,11 @@ public class CoinsRegistry : ICoinsView
 		return CoinPrison.TryGetOrRemoveBannedCoin(coin, when, out bannedUntil);
 	}
 
-	public void BanCoins(List<(SmartCoin Coin, DateTimeOffset BannedUntilUtc)> bannedCoins)
+	public void BanCoins(List<CoinBanned> bannedCoins)
 	{
 		foreach (var banInfo in bannedCoins)
 		{
-			CoinPrison.Add(banInfo.Coin, banInfo.BannedUntilUtc);
+			CoinPrison.Add(banInfo.Coin, banInfo.BanUntilUtc);
 		}
 	}
 }
