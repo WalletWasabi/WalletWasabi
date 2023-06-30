@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -49,6 +50,7 @@ public class SmartCoinTests
 		var height = Height.Mempool;
 		var stx = new SmartTransaction(tx, height);
 		var coin = new SmartCoin(stx, index, hdpk);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 2. Internal, no inputs ours. This is a strange case, it shouldn't happen normally. Maybe expecting false could help us with dust attacks?
@@ -56,6 +58,7 @@ public class SmartCoinTests
 		tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
 		stx = new SmartTransaction(tx, height);
 		coin = new SmartCoin(stx, index, hdpk);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 3. External, some inputs external ours:
@@ -67,6 +70,7 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 4. Internal, some inputs external ours:
@@ -75,18 +79,21 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
 
-		// 5. External, some inputs internal ours:
+		// 5. External, some inputs internal ours. This is also a strange case. Usually it goes from external to internal, not the other way around.
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
 		inHdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
 		inCoin = BitcoinFactory.CreateSmartCoin(inHdpk, 1m);
+		inCoin.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false), 1m));
 		tx.Inputs[1] = new TxIn(inCoin.Outpoint);
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
+		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 6. Internal, some inputs internal ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
@@ -94,6 +101,7 @@ public class SmartCoinTests
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
 		coin = new SmartCoin(stx, index, hdpk);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 7. External, some inputs internal ours, some inputs external ours:
@@ -106,7 +114,8 @@ public class SmartCoinTests
 		stx.TryAddWalletInput(inCoin);
 		stx.TryAddWalletInput(inCoin2);
 		coin = new SmartCoin(stx, index, hdpk);
-		Assert.False(coin.IsSufficientlyDistancedFromExternalKeys);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
+		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 
 		// 8. Internal, some inputs internal ours, some inputs external ours:
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
@@ -115,6 +124,7 @@ public class SmartCoinTests
 		stx.TryAddWalletInput(inCoin);
 		stx.TryAddWalletInput(inCoin2);
 		coin = new SmartCoin(stx, index, hdpk);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 	}
 }
