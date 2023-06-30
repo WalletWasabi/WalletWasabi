@@ -41,6 +41,7 @@ public class WalletManager : IWalletProvider
 		BitcoinStore = bitcoinStore;
 		Synchronizer = synchronizer;
 		ServiceConfiguration = serviceConfiguration;
+		CancelAllTasksToken = CancelAllTasks.Token;
 
 		RefreshWalletList();
 	}
@@ -60,7 +61,12 @@ public class WalletManager : IWalletProvider
 	/// </summary>
 	public event EventHandler<Wallet>? WalletAdded;
 
+	/// <summary>Cancels initialization of wallets.</summary>
 	private CancellationTokenSource CancelAllTasks { get; } = new();
+
+	/// <summary>Token from <see cref="CancelAllTasks"/>.</summary>
+	/// <remarks>Accessing the token of <see cref="CancelAllTasks"/> can lead to <see cref="ObjectDisposedException"/>. So we copy the token and no exception can be thrown.</remarks>
+	private CancellationToken CancelAllTasksToken { get; }
 
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private HashSet<Wallet> Wallets { get; } = new();
@@ -163,11 +169,10 @@ public class WalletManager : IWalletProvider
 		{
 			try
 			{
-				var cancel = CancelAllTasks.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
-				await wallet.StartAsync(cancel).ConfigureAwait(false);
+				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
-				cancel.ThrowIfCancellationRequested();
+				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
 			catch
@@ -277,15 +282,7 @@ public class WalletManager : IWalletProvider
 			_disposedValue = true;
 		}
 
-		try
-		{
-			CancelAllTasks?.Cancel();
-			CancelAllTasks?.Dispose();
-		}
-		catch (ObjectDisposedException)
-		{
-			Logger.LogWarning($"{nameof(CancelAllTasks)} is disposed. This can occur due to an error while processing the wallet.");
-		}
+		CancelAllTasks.Cancel();
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
@@ -315,7 +312,8 @@ public class WalletManager : IWalletProvider
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
-					wallet?.Dispose();
+
+					wallet.Dispose();
 				}
 				catch (Exception ex)
 				{
@@ -323,6 +321,8 @@ public class WalletManager : IWalletProvider
 				}
 			}
 		}
+
+		CancelAllTasks.Dispose();
 	}
 
 	public void ProcessCoinJoin(SmartTransaction tx)
