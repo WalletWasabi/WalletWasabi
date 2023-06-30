@@ -455,6 +455,7 @@ public class CoinJoinManager : BackgroundService
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 
+		// If any coins were marked for banning, store them to file
 		if (finishedCoinJoin.PrisonedCoins.Any())
 		{
 			Wallet currentWallet = (Wallet)wallet;
