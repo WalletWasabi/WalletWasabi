@@ -75,6 +75,14 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
+	[DefaultValueTimeSpan("0d 0h 1m 0s")]
+	[JsonProperty(PropertyName = "MaximumSigningDelay", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan MaximumSigningDelay { get; set; } = TimeSpan.FromMinutes(1);
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "ForceSigningDelay", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool ForceSigningDelay { get; set; } = false;
+
 	[DefaultValueTimeSpan("0d 0h 3m 0s")]
 	[JsonProperty(PropertyName = "FailFastOutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan FailFastOutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);

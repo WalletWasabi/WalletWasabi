@@ -31,6 +31,8 @@ public record RoundParameters
 		TimeSpan outputRegistrationTimeout,
 		TimeSpan transactionSigningTimeout,
 		TimeSpan blameInputRegistrationTimeout,
+		TimeSpan maximumSigningDelay,
+		bool forceSigningDelay,
 		string coordinationIdentifier)
 	{
 		Network = network;
@@ -48,6 +50,8 @@ public record RoundParameters
 		OutputRegistrationTimeout = outputRegistrationTimeout;
 		TransactionSigningTimeout = transactionSigningTimeout;
 		BlameInputRegistrationTimeout = blameInputRegistrationTimeout;
+		MaximumSigningDelay = maximumSigningDelay;
+		ForceSigningDelay = forceSigningDelay;
 
 		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
 		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
@@ -70,6 +74,9 @@ public record RoundParameters
 	public TimeSpan OutputRegistrationTimeout { get; init; }
 	public TimeSpan TransactionSigningTimeout { get; init; }
 	public TimeSpan BlameInputRegistrationTimeout { get; init; }
+	public TimeSpan MaximumSigningDelay { get; init; }
+
+	public bool ForceSigningDelay { get; init; }
 
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
 	public Money MaxAmountCredentialValue => AllowedInputAmounts.Max;
@@ -116,6 +123,8 @@ public record RoundParameters
 			wabiSabiConfig.OutputRegistrationTimeout,
 			wabiSabiConfig.TransactionSigningTimeout,
 			wabiSabiConfig.BlameInputRegistrationTimeout,
+			wabiSabiConfig.MaximumSigningDelay,
+			wabiSabiConfig.ForceSigningDelay,
 			wabiSabiConfig.CoordinatorIdentifier);
 	}
 
