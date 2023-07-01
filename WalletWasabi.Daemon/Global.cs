@@ -32,6 +32,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Daemon;
 
@@ -67,7 +68,6 @@ public class Global
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, Synchronizer, config.ServiceConfiguration);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
-
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
 		Cache = new MemoryCache(new MemoryCacheOptions
@@ -75,6 +75,18 @@ public class Global
 			SizeLimit = 1_000,
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
+
+		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
+		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
+	}
+
+	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
+	{
+		var wallet = sender as Wallet ?? throw new InvalidOperationException("");
+		if (e is WalletState.Started)
+		{
+			CoinPrison.UpdateWallet(wallet);
+		}
 	}
 
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
@@ -111,7 +123,7 @@ public class Global
 	public Network Network => Config.Network;
 
 	public MemoryCache Cache { get; private set; }
-
+	public CoinPrison CoinPrison { get; }
 	public JsonRpcServer? RpcServer { get; private set; }
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
@@ -322,7 +334,7 @@ public class Global
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier, CoinPrison.CreateOrLoadFromFile(DataDir)), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
@@ -348,6 +360,7 @@ public class Global
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
 					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+					WalletManager.WalletStateChanged -= WalletManager_WalletStateChanged;
 					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
 				}
 				catch (Exception ex)
