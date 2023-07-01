@@ -42,6 +42,7 @@ public class CoinJoinTracker : IDisposable
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }
 	public bool IsStopped { get; set; }
+	public List<CoinBanned> PrisonedCoins { get; private set; } = new();
 
 	public void Stop()
 	{
@@ -66,6 +67,10 @@ public class CoinJoinTracker : IDisposable
 
 			case RoundEnded roundEnded:
 				roundEnded.IsStopped = IsStopped;
+				break;
+
+			case CoinBanned coinBanned:
+				PrisonedCoins.Add(coinBanned);
 				break;
 		}
 
