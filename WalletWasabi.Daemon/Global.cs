@@ -82,6 +82,8 @@ public class Global
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
 	{
+		// Load banned coins in wallet.
+		// This event function can be deleted later when SmartCoin.IsBanned is removed.
 		var wallet = sender as Wallet ?? throw new InvalidOperationException("");
 		if (e is WalletState.Started)
 		{
