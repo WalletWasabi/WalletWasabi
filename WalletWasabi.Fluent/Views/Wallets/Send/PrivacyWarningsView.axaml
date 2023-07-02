@@ -1,0 +1,246 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView">
+  <UserControl.Styles>
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style
+      Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+      <Setter Property="Padding" Value="15" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="MaxHeight" Value="150" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
+      <Setter Property="Padding" Value="15 25 15 25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="5" />
+
+      <Setter Property="BorderBrush" Value="#14FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+      <Setter Property="Padding" Value="15 25 15 25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="5" />
+
+      <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="c|SuggestionItem > DockPanel > PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Margin" Value="5 5 10 5" />
+      <Setter Property="DockPanel.Dock" Value="Left" />
+      <Setter Property="Height" Value="25" />
+      <Setter Property="Width" Value="25" />
+    </Style>
+
+    <Style Selector="Border.warning">
+      <Setter Property="Height" Value="38" />
+      <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
+      <Setter Property="Padding" Value="5" />
+      <Setter Property="Margin" Value="5 0 5 5" />
+    </Style>
+
+    <Style Selector="Border.warning PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Margin" Value="5 5 10 5" />
+      <Setter Property="Data" Value="{StaticResource warning_regular}" />
+      <Setter Property="DockPanel.Dock" Value="Left" />
+    </Style>
+
+    <Style Selector="Border.warning TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="StackPanel.suggestion">
+      <Setter Property="Spacing" Value="2" />
+    </Style>
+    <Style Selector="TextBlock.title">
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+    </Style>
+    <Style Selector="StackPanel.description">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="3" />
+    </Style>
+    <Style Selector="StackPanel.description TextBlock">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
+    </Style>
+  </UserControl.Styles>
+  <StackPanel>
+    <ItemsControl Items="{Binding Warnings}">
+      <ItemsControl.DataTemplates>
+        <!-- Interlinks Labels Warning -->
+        <DataTemplate DataType="{x:Type model:InterlinksLabelsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0" />
+              <c:LabelsItemsPresenter Items="{Binding Labels}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Non-private funds Warning -->
+        <DataTemplate DataType="{x:Type model:NonPrivateFundsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses non-private funds." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Semi-private funds Warning -->
+        <DataTemplate DataType="{x:Type model:SemiPrivateFundsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses semi-private funds." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Creates change warning -->
+        <DataTemplate DataType="{x:Type model:CreatesChangeWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction creates change." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Consolidation warning -->
+        <DataTemplate DataType="{x:Type model:ConsolidationWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses unconfirmed funds." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.DataTemplates>
+    </ItemsControl>
+    <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
+               Margin="0 10 0 5"
+               IsVisible="{Binding !!Suggestions.Count}}" />
+    <ListBox Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+      <i:Interaction.Behaviors>
+        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
+      </i:Interaction.Behaviors>
+      <ListBox.DataTemplates>
+
+        <!-- Label Management Suggestion -->
+        <DataTemplate DataType="{x:Type model:LabelManagementSuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <PathIcon Data="{StaticResource entities_regular}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Label Management" Classes="title" />
+                <TextBlock Text="Choose labels to link with this transaction." Classes="h8" />
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+
+        <!-- Full Privacy Suggestion-->
+        <DataTemplate DataType="{x:Type model:FullPrivacySuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <Image Source="{StaticResource privacy_indicator_good}"
+                     DockPanel.Dock="Left" Height="30" Width="30" Margin="4 3 6 3" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Full Privacy" Classes="title" />
+                <StackPanel Orientation="Horizontal" Classes="description">
+                  <TextBlock Text="Send" />
+                  <TextBlock Text="{Binding DifferenceFiatText}" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="to use only private funds." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+
+        <!-- Better Privacy Suggestion-->
+        <DataTemplate DataType="{x:Type model:BetterPrivacySuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <PathIcon Data="{StaticResource shield_regular}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Better Privacy" Classes="title" />
+                <StackPanel Orientation="Horizontal" Classes="description">
+                  <TextBlock Text="Send" />
+                  <TextBlock Text="{Binding DifferenceFiatText}" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="to avoid non-private funds." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+
+        <!-- Change Avoidance Suggestion -->
+        <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <PathIcon Data="{StaticResource money_24_regular}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Change Avoidance" Classes="title" />
+                <StackPanel Orientation="Horizontal" Classes="description">
+                  <TextBlock Text="Send" />
+                  <TextBlock Text="{Binding DifferenceFiatText}" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="to remove change." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
+
+    <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
+      <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
+    </Viewbox>
+  </StackPanel>
+</UserControl>

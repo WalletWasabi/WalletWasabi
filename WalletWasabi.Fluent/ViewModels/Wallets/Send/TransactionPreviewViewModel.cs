@@ -18,6 +18,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -33,6 +34,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
 	private readonly WalletViewModel _walletViewModel;
+	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
@@ -47,12 +49,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		_undoHistory = new();
 		_wallet = walletViewModel.Wallet;
+		_privacySuggestionsModel = new(_wallet);
 		_walletViewModel = walletViewModel;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(_wallet);
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
 
@@ -67,9 +70,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
 			.SubscribeAsync(async x =>
 			{
-				if (x is ChangeAvoidanceSuggestionViewModel ca)
+				if (x?.Transaction is { } transaction)
 				{
-					await UpdateTransactionAsync(PreviewTransactionSummary, ca.TransactionResult);
+					await UpdateTransactionAsync(PreviewTransactionSummary, transaction);
 				}
 				else
 				{
@@ -78,15 +81,14 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.SubscribeAsync(async x =>
+			.SubscribeAsync(async suggestion =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
 
-				if (x is ChangeAvoidanceSuggestionViewModel ca)
+				if (suggestion is { })
 				{
-					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-					await UpdateTransactionAsync(CurrentTransactionSummary, ca.TransactionResult);
+					await ApplyPrivacySuggestionAsync(suggestion);
 				}
 			});
 
@@ -103,7 +105,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _cancellationTokenSource.Token))
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token))
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -530,5 +532,27 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		await labelSelection.ResetAsync(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
+	}
+
+	private async Task ApplyPrivacySuggestionAsync(PrivacySuggestion suggestion)
+	{
+		if (suggestion is LabelManagementSuggestion labelManagement)
+		{
+			var labels = await Navigate().To().LabelEntryDialog(_wallet, _currentTransactionInfo.Recipient).GetResultAsync();
+			if (labels is { } lbl)
+			{
+				suggestion = labelManagement with { NewLabels = lbl };
+			}
+			else
+			{
+				// Do nothing if user cancels label dialog
+				return;
+			}
+		}
+
+		if (suggestion.Transaction is { } transaction)
+		{
+			await UpdateTransactionAsync(CurrentTransactionSummary, transaction);
+		}
 	}
 }
