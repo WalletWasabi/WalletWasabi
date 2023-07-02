@@ -30,7 +30,6 @@
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
     <behaviors:ContextFlyoutWorkaroundBehavior />
-    <behaviors:RestartRendererBehavior />
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

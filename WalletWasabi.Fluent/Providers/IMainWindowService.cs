@@ -7,4 +7,6 @@ public interface IMainWindowService
 	void Hide();
 
 	void Shutdown(bool restart);
+
+	void BringToFront();
 }
