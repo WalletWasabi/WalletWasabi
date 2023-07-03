@@ -332,6 +332,15 @@ public partial class Arena : PeriodicRunner
 						await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
 					}
 
+					// Prefer to not replace user transaction.
+					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancellationToken).ConfigureAwait(false))
+					{
+						if (offendingAlices.Any())
+						{
+							await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+						}
+					}
+
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
 
