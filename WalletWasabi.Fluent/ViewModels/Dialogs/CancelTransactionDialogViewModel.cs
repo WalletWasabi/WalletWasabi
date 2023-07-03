@@ -14,9 +14,9 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 	{
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var originalFee = original.Transaction.GetFee(original.WalletInputs.Select(x => x.Coin).Cast<ICoin>().ToArray());
-		var cancelFeel = cancelTransaction.Transaction.GetFee(cancelTransaction.WalletInputs.Select(x => x.Coin).Cast<ICoin>().ToArray());
-		FeeDifference = originalFee - cancelFeel;
+		var originalFee = original.WalletInputs.Sum(x => x.Amount) - original.OutputValues.Sum(x => x);
+		var cancelFeel = cancelTransaction.WalletInputs.Sum(x => x.Amount) - cancelTransaction.OutputValues.Sum(x => x);
+		FeeDifference = cancelFeel - originalFee;
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.Create(

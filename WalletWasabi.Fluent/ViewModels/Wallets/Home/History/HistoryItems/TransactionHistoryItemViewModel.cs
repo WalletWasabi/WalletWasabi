@@ -42,10 +42,6 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		CanCancelTransaction = transactionSummary.Transaction.IsCancelable(keyManager);
 
-		var canCancelTransaction = this.WhenAnyValue(x => x.IsConfirmed)
-			.Select(x => !x)
-			.ObserveOn(RxApp.MainThreadScheduler);
-
 		SpeedUpTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
@@ -95,9 +91,14 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 					Height.Mempool,
 					isReplacement: true);
 
+				foreach (var input in tx.WalletInputs)
+				{
+					cancelSmartTransaction.TryAddWalletInput(input);
+				}
+
 				uiContext.Navigate().To().CancelTransactionDialog(transactionSummary.Transaction, cancelSmartTransaction);
 			},
-			canCancelTransaction);
+			Observable.Return(CanCancelTransaction));
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
