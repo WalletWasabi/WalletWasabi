@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}', FallbackValue=' '}"
+                 Caption="{Binding CurrentWord.Index, StringFormat='Click the correct word into the right order to complete and verify the seed phrase #{0}', FallbackValue=' '}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
@@ -26,7 +26,7 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <ItemsControl Items="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
+      <ItemsControl Items="{Binding RemainingWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -60,9 +60,11 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+      
 
       <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
         <ItemsControl Items="{Binding ConfirmationWords}">
+          
           <ItemsControl.Styles>
             <Style Selector="TextBlock.error">
               <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
@@ -89,6 +91,8 @@
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
       </Panel>
+
+      
     </Grid>
   </c:ContentArea>
 </UserControl>

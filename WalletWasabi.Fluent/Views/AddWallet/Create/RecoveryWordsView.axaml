@@ -8,8 +8,28 @@
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
+  <UserControl.Styles>
+    <Style Selector="TextBox.revealPasswordButton[AcceptsReturn=False]:not(TextBox:empty)">
+      <Setter Property="InnerRightContent">
+        <Template>
+          <Panel Margin="4 0 0 0">
+            <Panel.Styles>
+              <Style Selector="ToggleButton[IsChecked=True]">
+                <Setter Property="(ToolTip.Tip)" Value="Hide Password" />
+              </Style>
+              <Style Selector="ToggleButton[IsChecked=False]">
+                <Setter Property="(ToolTip.Tip)" Value="Show Password" />
+              </Style>
+            </Panel.Styles>
+            <ToggleButton Classes="passwordBoxRevealButton" Background="Transparent" Cursor="Arrow"
+                          IsChecked="{Binding $parent[TextBox].RevealPassword, Mode=TwoWay}" />
+          </Panel>
+        </Template>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
+                 Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet. Print a template if needed"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -17,14 +37,17 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <Grid>
       <Grid.RowDefinitions>
-        <RowDefinition MinHeight="70" Height="*" />
-        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="20" />
+        <RowDefinition Height="30" />
+        <RowDefinition Height="*" />
       </Grid.RowDefinitions>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
+      <StackPanel Grid.Row="0" VerticalAlignment="Center">
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#34D286" Text="You will not be able to see these words again once the wallet is created!"></TextBlock>
+      </StackPanel>
+      <Panel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
         <Panel.ContextMenu>
           <ContextMenu>
             <MenuItem Header="Copy recovery words"
@@ -63,11 +86,15 @@
         </Grid>
       </Panel>
 
-      <c:InfoMessage Opacity="0.5"
-                     HorizontalAlignment="Center"
-                     Grid.Row="4">
-        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
-      </c:InfoMessage>
+      <StackPanel Grid.Row="2">
+        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="We recommend to secure the wallet with a 13th word, it will be your daily password to unlock this wallet and needs also to be written down!" />
+      </StackPanel>
+
+      <StackPanel Grid.Row="4" Orientation="Vertical">
+        <TextBlock Text="Define Password (Optional)" HorizontalAlignment="Center" Margin="0,0,0,5" />
+        <TextBox CaretBrush="Transparent" Width="300" HorizontalAlignment="Center" PasswordChar="•" Classes="revealPasswordButton" />
+      </StackPanel>
+
     </Grid>
   </c:ContentArea>
 </UserControl>

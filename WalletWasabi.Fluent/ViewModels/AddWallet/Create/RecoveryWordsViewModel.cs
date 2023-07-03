@@ -11,7 +11,7 @@ using Dispatcher = Avalonia.Threading.Dispatcher;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Recovery Words")]
+[NavigationMetaData(Title = "Backup Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
 	private RecoveryWordsViewModel(Mnemonic mnemonic, string walletName)

@@ -7,10 +7,6 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -18,13 +14,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Confirm Recovery Words")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
-	private readonly List<RecoveryWordViewModel> _words;
+	private readonly List<RecoveryWordViewModel> _words; 
 	private readonly Mnemonic _mnemonic;
 	private readonly string _walletName;
 
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
+	[AutoNotify] private List<RecoveryWordViewModel> _remainingWords;
 
 	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
@@ -33,6 +30,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		_currentWord = words.First();
 		_mnemonic = mnemonic;
 		_walletName = walletName;
+		_remainingWords = GetRemainingWords();
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -100,6 +98,11 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		}
 
 		EnableAvailableWords(true);
+	}
+
+	private List<RecoveryWordViewModel> GetRemainingWords()
+	{
+		 return _words.Where(obj => new[] { 2, 5, 8, 11 }.Contains(obj.Index)).ToList();
 	}
 
 	private void OnWordSelectionChanged(RecoveryWordViewModel selectedWord)
