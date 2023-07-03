@@ -37,7 +37,10 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
 
 		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable;
-		CanCancelTransaction = transactionSummary.Transaction.IsCancelable;
+
+		var keyManager = walletVm.Wallet.KeyManager;
+
+		CanCancelTransaction = transactionSummary.Transaction.IsCancelable(keyManager);
 
 		var canCancelTransaction = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)
@@ -60,8 +63,8 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			() =>
 			{
 				var tx = transactionSummary.Transaction;
-				var change = tx.WalletOutputs.FirstOrDefault();
-				var originalFeeRate = tx.Transaction.GetFeeRate(tx.WalletInputs.Select(x => x.Coin).ToArray());
+				var change = tx.GetWalletOutputs(keyManager).FirstOrDefault();
+				var originalFeeRate = tx.Transaction.GetFeeRate(tx.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 				var cancelFeeRate = new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(2).Satoshi);
 				var originalTransaction = transactionSummary.Transaction.Transaction;
 				var cancelTransaction = originalTransaction.Clone();
@@ -74,23 +77,25 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 					cancelTransaction.Outputs.Add(Money.Zero, change.TxOut.ScriptPubKey);
 					var cancelFee = (long)(cancelTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
 					cancelTransaction.Outputs.Clear();
-					cancelTransaction.Outputs.Add(tx.WalletInputs.Sum(x => x.Amount.Satoshi) - cancelFee, change.TxOut.ScriptPubKey);
+					cancelTransaction.Outputs.Add(tx.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, change.TxOut.ScriptPubKey);
 				}
 				else
 				{
 					// ELSE THEN replace the output with a new output that's ours
 					// Add a dummy output to make the transaction size proper.
-					var newOwnOutput = walletVm.Wallet.KeyManager.GetNextChangeKey();
+					var newOwnOutput = keyManager.GetNextChangeKey();
 					cancelTransaction.Outputs.Add(Money.Zero, newOwnOutput.GetAssumedScriptPubKey());
 					var cancelFee = (long)(cancelTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
 					cancelTransaction.Outputs.Clear();
-					cancelTransaction.Outputs.Add(tx.WalletInputs.Sum(x => x.Amount.Satoshi) - cancelFee, newOwnOutput.GetAssumedScriptPubKey());
+					cancelTransaction.Outputs.Add(tx.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, newOwnOutput.GetAssumedScriptPubKey());
 				}
 
 				var cancelSmartTransaction = new SmartTransaction(
 					cancelTransaction,
 					Height.Mempool,
 					isReplacement: true);
+
+				uiContext.Navigate().To().CancelTransactionDialog(transactionSummary.Transaction, cancelSmartTransaction);
 			},
 			canCancelTransaction);
 

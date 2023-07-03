@@ -47,7 +47,7 @@
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Boost transaction" IsVisible="{Binding CanSpeedUpTransaction^}"
+      <MenuItem Header="Boost transaction" IsVisible="{Binding CanSpeedUpTransaction}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
