@@ -227,10 +227,4 @@ public class ApplicationStateManager : IMainWindowService
 		_restartRequest = restart;
 		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
-
-	void IMainWindowService.BringToFront()
-	{
-		_lifetime.MainWindow.Renderer.Start(); // Ensure renderer start (it stops rendering when the window is restored after minimized)
-		_lifetime.MainWindow.Activate();
-	}
 }

@@ -72,8 +72,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented(bool restartRequest)
 	{
-		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized (EXCEPT FOR LINUX! Read next comment below)
-		_mainWindowService.BringToFront();	// HACK: We need to call this manually because Avalonia won't bring the MainWindow to front under some conditions (Eg. Maximized/Minimized/Maximized)
+		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
 
 		if (!MainViewCanShutdown() && !restartRequest)
 		{
