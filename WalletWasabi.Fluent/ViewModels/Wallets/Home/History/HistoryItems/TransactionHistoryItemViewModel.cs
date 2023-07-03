@@ -3,12 +3,14 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -57,18 +59,38 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		CancelTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
-				if (transactionSummary.Transaction.WalletOutputs.Any())
+				var tx = transactionSummary.Transaction;
+				var change = tx.WalletOutputs.FirstOrDefault();
+				var originalFeeRate = tx.Transaction.GetFeeRate(tx.WalletInputs.Select(x => x.Coin).ToArray());
+				var cancelFeeRate = new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(2).Satoshi);
+				var originalTransaction = transactionSummary.Transaction.Transaction;
+				var cancelTransaction = originalTransaction.Clone();
+				cancelTransaction.Outputs.Clear();
+
+				if (change is not null)
 				{
-					//IF change present THEN make the change the only output
-					var change = transactionSummary.Transaction.WalletOutputs.First();
-					var originalTransaction = transactionSummary.Transaction.Transaction;
-					var cancelTransaction = originalTransaction.Clone();
-					//cancelTransaction.Outputs.Clear();
+					// IF change present THEN make the change the only output
+					// Add a dummy output to make the transaction size proper.
+					cancelTransaction.Outputs.Add(Money.Zero, change.TxOut.ScriptPubKey);
+					var cancelFee = (long)(cancelTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
+					cancelTransaction.Outputs.Clear();
+					cancelTransaction.Outputs.Add(tx.WalletInputs.Sum(x => x.Amount.Satoshi) - cancelFee, change.TxOut.ScriptPubKey);
 				}
 				else
 				{
-					//ELSE THEN replace the output with a new output that's ours
+					// ELSE THEN replace the output with a new output that's ours
+					// Add a dummy output to make the transaction size proper.
+					var newOwnOutput = walletVm.Wallet.KeyManager.GetNextChangeKey();
+					cancelTransaction.Outputs.Add(Money.Zero, newOwnOutput.GetAssumedScriptPubKey());
+					var cancelFee = (long)(cancelTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
+					cancelTransaction.Outputs.Clear();
+					cancelTransaction.Outputs.Add(tx.WalletInputs.Sum(x => x.Amount.Satoshi) - cancelFee, newOwnOutput.GetAssumedScriptPubKey());
 				}
+
+				var cancelSmartTransaction = new SmartTransaction(
+					cancelTransaction,
+					Height.Mempool,
+					isReplacement: true);
 			},
 			canCancelTransaction);
 
