@@ -251,7 +251,7 @@ public class Global : IDisposable
 					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
 				}
 
-				CoinJoinMempoolManager?.Dispose();
+				CoinJoinMempoolManager.Dispose();
 
 				var stoppingTask = Task.Run(DisposeAsync);
 
