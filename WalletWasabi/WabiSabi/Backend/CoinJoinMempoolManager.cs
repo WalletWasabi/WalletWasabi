@@ -3,28 +3,51 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using System.Collections.Immutable;
+using WalletWasabi.BitcoinCore.Mempool;
 
 namespace WalletWasabi.WabiSabi.Backend;
 
-public class CoinJoinMempoolManager : PeriodicRunner
+public class CoinJoinMempoolManager : IDisposable
 {
-	public CoinJoinMempoolManager(ICoinJoinIdStore coinJoinIdStore, IRPCClient rpc) : base(TimeSpan.FromMinutes(1))
+	private bool _disposedValue;
+
+	public CoinJoinMempoolManager(ICoinJoinIdStore coinJoinIdStore, MempoolMirror mempool)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
-		RpcClient = rpc;
+		Mempool = mempool;
+		Mempool.Tick += Mempool_Tick;
 	}
 
 	private ICoinJoinIdStore CoinJoinIdStore { get; }
-	private IRPCClient RpcClient { get; }
+	public MempoolMirror Mempool { get; }
 	public ImmutableArray<uint256> CoinJoinIds { get; private set; } = ImmutableArray.Create<uint256>();
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	private void Mempool_Tick(object? sender, TimeSpan e)
 	{
-		uint256[] mempoolHashes = await RpcClient.GetRawMempoolAsync(cancel).ConfigureAwait(false);
+		var mempoolHashes = Mempool.GetMempoolHashes();
 		var coinJoinsInMempool = mempoolHashes.Where(CoinJoinIdStore.Contains);
 		CoinJoinIds = coinJoinsInMempool.ToImmutableArray();
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			if (disposing)
+			{
+				Mempool.Tick -= Mempool_Tick;
+			}
+
+			_disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }
