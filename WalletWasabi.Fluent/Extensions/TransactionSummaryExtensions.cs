@@ -1,3 +1,4 @@
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models;

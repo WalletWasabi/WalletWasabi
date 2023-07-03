@@ -60,7 +60,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
-	public ICommand? BoostTransactionCommand { get; protected set; }
+	public ICommand? SpeedUpTransactionCommand { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 

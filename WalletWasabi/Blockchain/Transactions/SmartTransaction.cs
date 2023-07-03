@@ -171,6 +171,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
+	public bool IsSpeedupable => !Confirmed;
+
+	public bool IsCancelable => !Confirmed && !ForeignInputs.Any() && ForeignOutputs.Any() && IsRBF;
+
 	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
 	[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 	[Obsolete("This property exists only for json backwards compatibility. If someone tries to set it, it'll set the FirstSeen. https://stackoverflow.com/a/43715009/2061103", error: true)]

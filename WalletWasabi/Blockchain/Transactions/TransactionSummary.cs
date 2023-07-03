@@ -23,4 +23,5 @@ public class TransactionSummary
 	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; set; }
+	public SmartTransaction Transaction { get; set; }
 }

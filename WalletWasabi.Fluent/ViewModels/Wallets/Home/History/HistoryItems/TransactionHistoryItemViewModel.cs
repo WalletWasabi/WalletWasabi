@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -33,15 +34,14 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
 
-		var canBoostTransaction = this.WhenAnyValue(x => x.IsConfirmed)
-			.Select(x => !x)
-			.ObserveOn(RxApp.MainThreadScheduler);
+		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable;
+		CanCancelTransaction = transactionSummary.Transaction.IsCancelable;
 
 		var canCancelTransaction = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		BoostTransactionCommand = ReactiveCommand.Create(
+		SpeedUpTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
 				uiContext.Navigate().To().BoostTransactionDialog(new BoostedTransactionPreview(walletVm.Wallet.Synchronizer.UsdExchangeRate)
@@ -57,10 +57,25 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		CancelTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
-				// TODO: Do whatever to cancel transaction.
+				if (transactionSummary.Transaction.WalletOutputs.Any())
+				{
+					//IF change present THEN make the change the only output
+					var change = transactionSummary.Transaction.WalletOutputs.First();
+					var originalTransaction = transactionSummary.Transaction.Transaction;
+					var cancelTransaction = originalTransaction.Clone();
+					//cancelTransaction.Outputs.Clear();
+				}
+				else
+				{
+					//ELSE THEN replace the output with a new output that's ours
+				}
 			},
 			canCancelTransaction);
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
+
+	public bool CanCancelTransaction { get; }
+
+	public bool CanSpeedUpTransaction { get; }
 }
