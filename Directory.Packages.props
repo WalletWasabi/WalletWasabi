@@ -27,7 +27,7 @@
 		<PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 		<PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
 		<PackageVersion Include="System.Runtime" Version="4.3.1" />
-		<PackageVersion Include="QRackers" Version="0.1.0" />
+		<PackageVersion Include="QRackers" Version="1.1.0" />
 		<!-- Testing. -->
 		<PackageVersion Include="coverlet.collector" Version="3.2.0" />
 		<PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.0" />
