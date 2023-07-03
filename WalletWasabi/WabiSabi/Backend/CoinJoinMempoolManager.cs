@@ -19,7 +19,7 @@ public class CoinJoinMempoolManager : IDisposable
 	}
 
 	private ICoinJoinIdStore CoinJoinIdStore { get; }
-	private MempoolMirror Mempool { get; set; }
+	private MempoolMirror? Mempool { get; set; }
 	public ImmutableArray<uint256> CoinJoinIds { get; private set; } = ImmutableArray.Create<uint256>();
 
 	public void RegisterMempoolProvider(MempoolMirror mempool)
@@ -30,7 +30,7 @@ public class CoinJoinMempoolManager : IDisposable
 
 	private void Mempool_Tick(object? sender, TimeSpan e)
 	{
-		var mempoolHashes = Mempool.GetMempoolHashes();
+		var mempoolHashes = Mempool?.GetMempoolHashes() ?? throw new InvalidOperationException("Mempool provider missing.");
 		var coinJoinsInMempool = mempoolHashes.Where(CoinJoinIdStore.Contains);
 		CoinJoinIds = coinJoinsInMempool.ToImmutableArray();
 	}
@@ -41,7 +41,10 @@ public class CoinJoinMempoolManager : IDisposable
 		{
 			if (disposing)
 			{
-				Mempool.Tick -= Mempool_Tick;
+				if (Mempool is { })
+				{
+					Mempool.Tick -= Mempool_Tick;
+				}
 			}
 
 			_disposedValue = true;
