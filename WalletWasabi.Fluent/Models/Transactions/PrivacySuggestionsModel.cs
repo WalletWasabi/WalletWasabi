@@ -59,7 +59,7 @@ public class PrivacySuggestionsModel
 			{
 				result = result.Combine(VerifyLabels(transactionResult))
 							   .Combine(VerifyPrivacyLevel(transaction, transactionResult))
-							   .Combine(VerifyConsolidation(transaction, transactionResult))
+							   .Combine(VerifyConsolidation(transactionResult))
 							   .Combine(VerifyUnconfirmedInputs(transactionResult))
 							   .Combine(await VerifyChangeAsync(transaction, transactionResult, linkedCts));
 			}
@@ -163,14 +163,11 @@ public class PrivacySuggestionsModel
 		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyConsolidation(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
+	private PrivacySuggestionsResult VerifyConsolidation(BuildTransactionResult originalTransaction)
 	{
 		var result = new PrivacySuggestionsResult();
 
-		var consolidatedCoins =
-			transactionInfo.Coins
-						   .Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private)
-						   .Count();
+		var consolidatedCoins = originalTransaction.SpentCoins.Count();
 
 		if (consolidatedCoins >= ConsolidationTolerance)
 		{
