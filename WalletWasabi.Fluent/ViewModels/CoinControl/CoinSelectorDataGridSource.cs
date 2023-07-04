@@ -85,6 +85,7 @@ public static class CoinSelectorDataGridSource
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new IndicatorsCellView(), true),
+			null,
 			GridLength.Auto,
 			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
@@ -111,6 +112,7 @@ public static class CoinSelectorDataGridSource
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"Pocket",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new LabelsCellView(), true),
+			null,
 			GridLength.Star,
 			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{

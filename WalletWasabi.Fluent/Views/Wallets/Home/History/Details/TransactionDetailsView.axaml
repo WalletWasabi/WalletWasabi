@@ -39,7 +39,7 @@
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Label="Destination addresses" IsVisible="{Binding !!DestinationAddresses.Count}">
         <c:PrivacyContentControl>
-          <ItemsControl Items="{Binding DestinationAddresses}">
+          <ItemsControl ItemsSource="{Binding DestinationAddresses}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
