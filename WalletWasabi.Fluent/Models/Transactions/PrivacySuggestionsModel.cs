@@ -180,7 +180,7 @@ public class PrivacySuggestionsModel
 
 		if (consolidatedCoins >= ConsolidationTolerance)
 		{
-			result.Warnings.Add(new ConsolidationWarning(consolidatedCoins));
+			result.Warnings.Add(new ConsolidationWarning(ConsolidationTolerance));
 		}
 
 		return result;
