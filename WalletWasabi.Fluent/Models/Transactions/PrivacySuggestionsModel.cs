@@ -112,52 +112,61 @@ public class PrivacySuggestionsModel
 	{
 		var result = new PrivacySuggestionsResult();
 
-		var nonPrivateCoins =
-			originalTransaction.SpentCoins
-							   .Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate)
-							   .ToList();
+		var transactionLabels = originalTransaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
+		var onlyKnownByRecipient =
+			transactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
 
-		var semiPrivateCoins =
-			originalTransaction.SpentCoins
-							   .Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
-							   .ToList();
+		var foundNonPrivate =
+			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
 
-		if (!nonPrivateCoins.Any() && !semiPrivateCoins.Any())
+		var foundSemiPrivate =
+			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
+
+		if (!foundNonPrivate && !foundSemiPrivate && !onlyKnownByRecipient)
 		{
 			return result;
 		}
 
-		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-
-		if (nonPrivateCoins.Any())
+		if (foundNonPrivate)
 		{
 			result.Warnings.Add(new NonPrivateFundsWarning());
 		}
-		if (semiPrivateCoins.Any())
+
+		if (foundSemiPrivate)
 		{
 			result.Warnings.Add(new SemiPrivateFundsWarning());
 		}
 
+		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
+		var allSemiPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate).ToArray();
+		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
-		var fullPrivacyCoinsToRemove = nonPrivateCoins.Concat(semiPrivateCoins).ToList();
-		var fullPrivacyAmount = fullPrivacyCoinsToRemove.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
-
-		if (fullPrivacyAmount <= (totalAmount * MaximumDifferenceTolerance))
+		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
 		{
-			var newTransaction = CreateTransaction(transactionInfo, new Money(fullPrivacyAmount, MoneyUnit.BTC), fullPrivacyCoinsToRemove);
-			var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-			result.Suggestions.Add(new FullPrivacySuggestion(newTransaction, differenceFiatText));
+			var newTransaction = CreateTransaction(transactionInfo, allPrivateCoin);
+			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var amountDifferencePercentage = amountDifference / totalAmount;
+
+			if (amountDifferencePercentage <= MaximumDifferenceTolerance)
+			{
+				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
+				result.Suggestions.Add(new FullPrivacySuggestion(newTransaction, differenceFiatText));
+			}
 		}
 
-		var betterPrivacyAmount =
-			nonPrivateCoins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
-
-		if (betterPrivacyAmount <= (totalAmount * MaximumDifferenceTolerance))
+		if (foundNonPrivate && allSemiPrivateCoin.Any())
 		{
-			var newTransaction = CreateTransaction(transactionInfo, new Money(betterPrivacyAmount, MoneyUnit.BTC), nonPrivateCoins);
-			var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-			result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText));
+			var coins = allPrivateCoin.Union(allSemiPrivateCoin);
+			var newTransaction = CreateTransaction(transactionInfo, coins);
+			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var amountDifferencePercentage = amountDifference / totalAmount;
+
+			if (amountDifferencePercentage <= MaximumDifferenceTolerance)
+			{
+				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
+				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText));
+			}
 		}
 
 		return result;
@@ -288,22 +297,15 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private BuildTransactionResult CreateTransaction(TransactionInfo transactionInfo, Money? difference = null, IEnumerable<SmartCoin>? coinsToRemove = null, LabelsArray? labels = null)
+	private BuildTransactionResult CreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
 	{
-		var newAmount = transactionInfo.Amount - (difference ?? Money.Zero);
-		var newCoins = transactionInfo.Coins.Except(coinsToRemove ?? Array.Empty<SmartCoin>()).ToList();
-		var newLabels = labels ?? transactionInfo.Recipient;
-
-		var transaction = TransactionHelpers.BuildTransaction(
+		return TransactionHelpers.BuildChangelessTransaction(
 			_wallet,
 			transactionInfo.Destination,
-			newAmount,
-			newLabels,
+			transactionInfo.Recipient,
 			transactionInfo.FeeRate,
-			newCoins,
-			transactionInfo.SubtractFee,
-			transactionInfo.PayJoinClient);
-		return transaction;
+			coins,
+			tryToSign: false);
 	}
 
 	private string GetDifferenceFiatText(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
