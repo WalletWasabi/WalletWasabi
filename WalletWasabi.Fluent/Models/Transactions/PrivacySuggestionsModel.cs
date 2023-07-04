@@ -38,7 +38,7 @@ public class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo transaction, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
+	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
 	{
 		var result = new PrivacySuggestionsResult();
 
@@ -57,11 +57,11 @@ public class PrivacySuggestionsModel
 		{
 			try
 			{
-				result = result.Combine(VerifyLabels(transactionResult))
-							   .Combine(VerifyPrivacyLevel(transaction, transactionResult))
+				result = result.Combine(VerifyLabels(info, transactionResult))
+					.Combine(VerifyPrivacyLevel(info, transactionResult))
 							   .Combine(VerifyConsolidation(transactionResult))
 							   .Combine(VerifyUnconfirmedInputs(transactionResult))
-							   .Combine(await VerifyChangeAsync(transaction, transactionResult, linkedCts));
+					.Combine(await VerifyChangeAsync(info, transactionResult, linkedCts));
 			}
 			catch (OperationCanceledException)
 			{
@@ -79,29 +79,16 @@ public class PrivacySuggestionsModel
 		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyLabels(BuildTransactionResult transactionResult)
+	private PrivacySuggestionsResult VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
 		var result = new PrivacySuggestionsResult();
 
-		var coinLabels =
-			transactionResult.SpentCoins
-							 .SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget))
-							 .Distinct()
-							 .ToList();
+		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
+		var labelsArray = new LabelsArray(labels);
 
-		var interlinkedLabels =
-			transactionResult.InnerWalletOutputs
-							 .Where(x => x.GetPrivacyLevel(_wallet) != PrivacyLevel.Private)
-							 .Select(x => x.GetLabels(_wallet.AnonScoreTarget))
-							 .Where(x => x.Any(l => coinLabels.Contains(l)))
-							 .SelectMany(x => x)
-							 .Distinct()
-							 .Order()
-							 .ToList();
-
-		if (interlinkedLabels.Any())
+		if (labelsArray.Any())
 		{
-			result.Warnings.Add(new InterlinksLabelsWarning(new LabelsArray(interlinkedLabels)));
+			result.Warnings.Add(new InterlinksLabelsWarning(labelsArray));
 			result.Suggestions.Add(new LabelManagementSuggestion());
 		}
 
