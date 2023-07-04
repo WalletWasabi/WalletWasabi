@@ -159,6 +159,9 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
+	
+	[JsonProperty(PropertyName = "UseTurboSync")]
+	public bool UseTurboSync { get; private set; } = true;
 
 	[JsonProperty(PropertyName = "MinGapLimit")]
 	public int MinGapLimit { get; private set; }
@@ -189,7 +192,7 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
-	public int AnonScoreTarget { get; private set; } = DefaultAnonScoreTarget;
+	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTarget;
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
@@ -393,12 +396,16 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public IEnumerable<byte[]> GetPubKeyScriptBytes()
+	/// <summary>
+	/// This function can only be called for wallet synchronization.
+	/// It's unsafe because it doesn't assert that the GapLimit is respected.
+	/// GapLimit should be enforced whenever a transaction is discovered.
+	/// </summary>
+	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			AssertCleanKeysIndexed();
-			return HdPubKeyCache.GetScriptPubKeysBytes();
+			return HdPubKeyCache.GetSynchronizationInfos();
 		}
 	}
 
@@ -707,16 +714,7 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetAnonScoreTarget(int anonScoreTarget, bool toFile = true)
-	{
-		AnonScoreTarget = anonScoreTarget;
-		if (toFile)
-		{
-			ToFile();
-		}
-	}
-
-	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
+	public void SetFeeRateMedianTimeFrame(int hours)
 	{
 		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
 		{
@@ -724,10 +722,6 @@ public class KeyManager
 		}
 
 		FeeRateMedianTimeFrameHours = hours;
-		if (toFile)
-		{
-			ToFile();
-		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)

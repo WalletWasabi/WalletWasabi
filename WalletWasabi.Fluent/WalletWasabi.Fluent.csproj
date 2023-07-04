@@ -13,7 +13,6 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent</PathMap>
-		<AvaloniaVersion>11.0.0-rc1.1</AvaloniaVersion>
 		<AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
@@ -21,16 +20,16 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.999-build20230602.5" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" Condition="'$(Configuration)' == 'Debug'" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-rc1.1" />
-		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="System.Runtime" Version="4.3.1" />
-		<PackageReference Include="QRackers" Version="0.1.0" />
+		<PackageReference Include="Avalonia" />
+		<PackageReference Include="Avalonia.Controls.TreeDataGrid" />
+		<PackageReference Include="Avalonia.ReactiveUI" />
+		<PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" />
+		<PackageReference Include="Avalonia.Skia" />
+		<PackageReference Include="Avalonia.Themes.Fluent" />
+		<PackageReference Include="Avalonia.Fonts.Inter" />
+		<PackageReference Include="System.Runtime" />
+		<PackageReference Include="QRackers" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />

@@ -15,16 +15,19 @@ namespace WalletWasabi.Extensions;
 
 public static class RPCClientExtensions
 {
-	public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, CancellationToken cancellationToken = default)
+	private const EstimateSmartFeeMode EstimateMode = EstimateSmartFeeMode.Conservative;
+
+	public static async Task<EstimateSmartFeeResponse> EstimateConservativeSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, CancellationToken cancellationToken = default)
 	{
 		EstimateSmartFeeResponse result;
-		if (simulateIfRegTest && rpc.Network == Network.RegTest)
+
+		if (rpc.Network == Network.RegTest)
 		{
-			result = SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
+			result = SimulateRegTestFeeEstimation(confirmationTarget);
 		}
 		else
 		{
-			result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken).ConfigureAwait(false);
+			result = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateMode, cancellationToken).ConfigureAwait(false);
 
 			var mempoolInfo = await rpc.GetMempoolInfoAsync(cancellationToken).ConfigureAwait(false);
 			result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
@@ -33,21 +36,18 @@ public static class RPCClientExtensions
 		return result;
 	}
 
-	private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
+	private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget)
 	{
-		int satoshiPerByte = estimateMode == EstimateSmartFeeMode.Conservative
-			? (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7
-			: (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7; // Economical
-
+		int satoshiPerByte = (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7;
 		Money feePerK = Money.Satoshis(satoshiPerByte * 1000);
 		FeeRate feeRate = new(feePerK);
 		var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 		return resp;
 	}
 
-	private static Dictionary<int, int> SimulateRegTestFeeEstimation(EstimateSmartFeeMode estimateMode) =>
+	private static FeeRateByConfirmationTarget SimulateRegTestFeeEstimation() =>
 		Constants.ConfirmationTargets
-		.Select(target => SimulateRegTestFeeEstimation(target, estimateMode))
+		.Select(target => SimulateRegTestFeeEstimation(target))
 		.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
 
 	/// <summary>
@@ -70,23 +70,36 @@ public static class RPCClientExtensions
 	/// <summary>
 	/// Estimates fees for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
 	/// </summary>
-	public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, CancellationToken cancel = default)
+	public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, CancellationToken cancel = default)
 	{
-		var smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
-			? SimulateRegTestFeeEstimation(estimateMode)
-			: await GetFeeEstimationsAsync(rpc, estimateMode, cancel).ConfigureAwait(false);
+		var smartEstimations = rpc.Network == Network.RegTest
+			? SimulateRegTestFeeEstimation()
+			: await GetFeeEstimationsAsync(rpc, cancel).ConfigureAwait(false);
 
 		var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
+		var uptime = await rpc.UptimeAsync(cancel).ConfigureAwait(false);
+
+		var finalExtimations = uptime < TimeSpan.FromHours(2)
+			? smartEstimations
+			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
 		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
+		return new AllFeeEstimate(
+			EstimateMode,
+			finalExtimations,
+			rpcStatus.Synchronized);
+	}
+
+	private static FeeRateByConfirmationTarget SmartEstimationsWithMempoolInfo(FeeRateByConfirmationTarget smartEstimations, MemPoolInfo mempoolInfo)
+	{
 		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 		var minEstimationFor260Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(260 / 4));
 		var minSanityFeeRate = FeeRate.Max(minEstimationFor260Mb, mempoolInfo.GetSanityFeeRate());
 		var estimationForTarget2 = minEstimations.GetValueOrDefault(2);
 		var maxEstimationFor3Mb = new FeeRate(estimationForTarget2 > 0 ? (decimal)estimationForTarget2 : 5_000m);
 		var maxSanityFeeRate = maxEstimationFor3Mb;
-			
+
 		var fixedEstimations = smartEstimations
 			.GroupJoin(
 				minEstimations,
@@ -106,18 +119,15 @@ public static class RPCClientExtensions
 				})
 			.ToDictionary(x => x.Target, x => x.FeeRate);
 
-		return new AllFeeEstimate(
-			estimateMode,
-			fixedEstimations,
-			rpcStatus.Synchronized);
+		return fixedEstimations;
 	}
 
-	private static async Task<FeeRateByConfirmationTarget> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode, CancellationToken cancel = default)
+	private static async Task<FeeRateByConfirmationTarget> GetFeeEstimationsAsync(IRPCClient rpc, CancellationToken cancel = default)
 	{
 		var batchClient = rpc.PrepareBatch();
 
 		var rpcFeeEstimationTasks = Constants.ConfirmationTargets
-			.Select(target => batchClient.EstimateSmartFeeAsync(target, estimateMode))
+			.Select(target => batchClient.EstimateSmartFeeAsync(target, EstimateMode))
 			.ToList();
 
 		await batchClient.SendBatchAsync(cancel).ConfigureAwait(false);
@@ -206,7 +216,7 @@ public static class RPCClientExtensions
 
 		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
 			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
-		
+
 		return feeRateByConfirmationTarget;
 	}
 

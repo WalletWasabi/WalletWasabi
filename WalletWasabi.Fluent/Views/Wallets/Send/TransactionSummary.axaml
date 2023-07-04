@@ -26,7 +26,7 @@
         </Button.IsVisible>
       </Button>
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="a total of" HorizontalContentAlignment="Stretch"
+                     Label="amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount}">
         <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
       </c:PreviewItem>
@@ -35,7 +35,7 @@
 
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
-                   Label="will be sent to"
+                   Label="recipient"
                    CopyableContent="{Binding Recipient}">
       <c:LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                               HorizontalAlignment="Left"
@@ -45,12 +45,11 @@
 
     <!-- Address -->
     <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                   Label="to the Bitcoin address"
+                   Label="address"
                    CopyableContent="{Binding AddressText}">
       <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </c:PreviewItem>
     <Separator />
-
 
     <!-- Selected coin labels -->
     <DockPanel IsVisible="{Binding TransactionHasPockets}">
@@ -70,7 +69,7 @@
         </Viewbox>
       </Button>
       <c:PreviewItem Icon="{StaticResource nav_incognito_24_regular}"
-                     Label="other people or companies could know about this"
+                     Label="transaction known as yours by"
                      CopyableContent="{Binding Labels}">
         <c:LabelsItemsPresenter ItemsSource="{Binding Labels}"
                                 HorizontalAlignment="Left"
@@ -102,17 +101,16 @@
 
       <StackPanel Spacing="10">
         <c:PreviewItem Icon="{StaticResource timer_regular}"
-                       Label="your transaction should be confirmed within"
+                       Label="confirming within"
                        IsVisible="{Binding !IsCustomFeeUsed}">
           <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Label="there will be an additional transaction fee of"
+                       Label="fee"
                        CopyableContent="{Binding Fee}">
           <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>
-
   </StackPanel>
 </UserControl>

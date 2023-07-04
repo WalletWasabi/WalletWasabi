@@ -20,10 +20,9 @@ public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(IWalletModel wallet)
 	{
-		var dialogResult =
-			await NavigateDialogAsync(
-				new CreatePasswordDialogViewModel("Password", "Type in your most likely password", enableEmpty: false),
-				NavigationTarget.CompactDialogScreen);
+		var dialogResult = await NavigateDialogAsync(
+			new CreatePasswordDialogViewModel("Password", "Type in your most likely password", enableEmpty: false),
+			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
 		{

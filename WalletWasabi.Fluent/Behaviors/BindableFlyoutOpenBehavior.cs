@@ -4,10 +4,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class BindableFlyoutOpenBehavior : DisposingBehavior<Control>
+public class BindableFlyoutOpenBehavior : AttachedToVisualTreeBehavior<Control>
 {
 	public static readonly StyledProperty<bool> IsOpenProperty =
 		AvaloniaProperty.Register<BindableFlyoutOpenBehavior, bool>(nameof(IsOpen));
@@ -18,30 +19,17 @@ public class BindableFlyoutOpenBehavior : DisposingBehavior<Control>
 		set => SetValue(IsOpenProperty, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposable)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is null)
+		if (AssociatedObject is { } target &&
+			FlyoutBase.GetAttachedFlyout(target) is { } flyout)
 		{
-			return;
+			Observable
+				.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerEntered))
+				.Subscribe(_ => IsOpen = true)
+				.DisposeWith(disposable);
+
+			FlyoutHelpers.ShowFlyout(target, flyout, this.WhenAnyValue(x => x.IsOpen), disposable);
 		}
-
-		Observable
-			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerEntered))
-			.Subscribe(_ => IsOpen = true)
-			.DisposeWith(disposable);
-
-		this.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(isOpen =>
-			{
-				if (isOpen)
-				{
-					FlyoutBase.ShowAttachedFlyout(AssociatedObject);
-				}
-				else
-				{
-					FlyoutBase.GetAttachedFlyout(AssociatedObject)?.Hide();
-				}
-			})
-			.DisposeWith(disposable);
 	}
 }

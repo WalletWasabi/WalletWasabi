@@ -97,7 +97,7 @@ public static class CoinSelectorDataGridSource
 	{
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
-			node => node is PocketCoinControlItemViewModel ? "" : node.AnonymityScore.ToString(),
+			node => node.AnonymityScore?.ToString() ?? "",
 			new GridLength(55, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{

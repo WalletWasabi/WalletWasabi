@@ -29,7 +29,7 @@ public class CoinJoinClient
 	private static readonly TimeSpan ExtraRoundTimeoutMargin = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
-	// timings only depends on the input-reg timeout.
+	// timings only depends on the input-reg timeout and signing requests which timings must be larger.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
@@ -276,6 +276,12 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
+
+			// Coinjoin succeeded but wallet had no input in it.
+			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
+			{
+				throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "No inputs participated in this round.");
+			}
 
 			return roundState.EndRoundState switch
 			{
@@ -583,7 +589,10 @@ public class CoinJoinClient
 		DateTimeOffset signingEndTime,
 		CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
+		// Maximum signing request delay is 50 seconds, because
+		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
+		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,

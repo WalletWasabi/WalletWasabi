@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 
@@ -40,6 +42,11 @@ public class NavigationMock : INavigate
 		var tuple = _dialogResults[_step];
 		var result = new DialogResult<TResult>((TResult)tuple.Item1, tuple.Item2);
 		return Task.FromResult(result);
+	}
+
+	public IWalletViewModel? To(IWalletModel wallet)
+	{
+		throw new NotImplementedException();
 	}
 
 	private class NavigationStackMock : INavigationStack<RoutableViewModel>

@@ -11,22 +11,22 @@ public class UiContext
 	private INavigate? _navigate;
 	private static UiContext? DefaultInstance;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IClipboard clipboard, IWalletListModel walletList)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IClipboard clipboard, IWalletRepository walletRepository)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
-		WalletList = walletList ?? throw new ArgumentNullException(nameof(walletList));
+		WalletRepository = walletRepository ?? throw new ArgumentNullException(nameof(walletRepository));
 	}
 
 	public IClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
-	public IWalletListModel WalletList { get; }
+	public IWalletRepository WalletRepository { get; }
 	public IQrCodeReader QrCodeReader { get; }
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
 	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), ApplicationHelper.Clipboard ?? new NullClipboard(), CreateWalletListModel());
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), ApplicationHelper.Clipboard ?? new NullClipboard(), CreateWalletRepository());
 
 	public void RegisterNavigation(INavigate navigate)
 	{
@@ -45,15 +45,15 @@ public class UiContext
 			?? throw new InvalidOperationException($"{GetType().Name} {nameof(_navigate)} hasn't been initialized.");
 	}
 
-	private static IWalletListModel CreateWalletListModel()
+	private static IWalletRepository CreateWalletRepository()
 	{
 		if (Services.WalletManager is { })
 		{
-			return new WalletListModel();
+			return new WalletRepository();
 		}
 		else
 		{
-			return new NullWalletList();
+			return new NullWalletRepository();
 		}
 	}
 }
