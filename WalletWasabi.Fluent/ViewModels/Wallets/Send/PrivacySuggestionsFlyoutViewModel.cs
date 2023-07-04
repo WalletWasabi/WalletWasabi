@@ -92,7 +92,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
 
 					// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-					ImmutableArray<SmartCoin> coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? usedPockets.SelectMany(x => x.Coins).ToImmutableArray() : usedPockets.SelectMany(x => x.Coins).Except(coinsToExclude).ToImmutableArray();
+					ImmutableArray<SmartCoin> coinsToUse = spentCoins.Any(coinsToExclude.Contains) ?
+						usedPockets.SelectMany(x => x.Coins).ToImmutableArray() :
+						usedPockets.SelectMany(x => x.Coins).Except(coinsToExclude).ToImmutableArray();
 
 					IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
 						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
