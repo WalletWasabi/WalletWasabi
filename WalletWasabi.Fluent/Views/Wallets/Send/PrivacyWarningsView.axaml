@@ -165,7 +165,7 @@
     </ItemsControl>
     <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
                Margin="0 10 0 5"
-               IsVisible="{Binding !!Suggestions.Count}}" />
+               IsVisible="{Binding !!Suggestions.Count}" />
     <ListBox Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
       <i:Interaction.Behaviors>
         <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
