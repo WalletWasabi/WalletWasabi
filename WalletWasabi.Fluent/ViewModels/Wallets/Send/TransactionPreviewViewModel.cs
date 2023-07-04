@@ -68,11 +68,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.SubscribeAsync(async x =>
+			.Subscribe(x =>
 			{
 				if (x?.Transaction is { } transaction)
 				{
-					await UpdateTransactionAsync(PreviewTransactionSummary, transaction);
+					UpdateTransaction(PreviewTransactionSummary, transaction);
 				}
 				else
 				{
@@ -105,7 +105,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token))
+			.DoAsync(async transaction =>
+			{
+				await CheckChangePocketAvailableAsync(transaction);
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
+			})
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -130,17 +134,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
+		UndoCommand = ReactiveCommand.Create(() =>
 		{
 			if (_undoHistory.TryPop(out var previous))
 			{
 				_info = previous.Item2;
-				await UpdateTransactionAsync(CurrentTransactionSummary, previous.Item1, false);
+				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
 				CanUndo = _undoHistory.Any();
 			}
 		});
 
-		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
 	}
 
@@ -155,8 +158,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 	public ICommand AdjustFeeCommand { get; }
-
-	public ICommand ChangePocketCommand { get; }
 
 	public ICommand ChangeCoinsCommand { get; }
 
@@ -184,7 +185,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task UpdateTransactionAsync(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
+	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
 	{
 		if (!summary.IsPreview)
 		{
@@ -194,7 +195,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			Transaction = transaction;
-			await CheckChangePocketAvailableAsync(Transaction);
 			_currentTransactionInfo = _info.Clone();
 		}
 
@@ -226,20 +226,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (newTransaction is { })
 		{
-			await UpdateTransactionAsync(CurrentTransactionSummary, newTransaction);
-		}
-	}
-
-	private async Task OnChangePocketsAsync()
-	{
-		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
-
-		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
-		{
-			_info.Coins = selectPocketsDialog.Result;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
-			await BuildAndUpdateAsync();
+			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 		}
 	}
 
@@ -402,7 +389,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
-			await UpdateTransactionAsync(CurrentTransactionSummary, initialTransaction);
+			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 		}
 		else
 		{
@@ -536,23 +523,22 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task ApplyPrivacySuggestionAsync(PrivacySuggestion suggestion)
 	{
-		if (suggestion is LabelManagementSuggestion labelManagement)
+		if (suggestion is LabelManagementSuggestion)
 		{
-			var labels = await Navigate().To().LabelEntryDialog(_wallet, _currentTransactionInfo.Recipient).GetResultAsync();
-			if (labels is { } lbl)
+			var selectPocketsDialog =
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+
+			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 			{
-				suggestion = labelManagement with { NewLabels = lbl };
-			}
-			else
-			{
-				// Do nothing if user cancels label dialog
-				return;
+				_info.Coins = selectPocketsDialog.Result;
+				_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
+				await BuildAndUpdateAsync();
 			}
 		}
 
 		if (suggestion.Transaction is { } transaction)
 		{
-			await UpdateTransactionAsync(CurrentTransactionSummary, transaction);
+			UpdateTransaction(CurrentTransactionSummary, transaction);
 		}
 	}
 }

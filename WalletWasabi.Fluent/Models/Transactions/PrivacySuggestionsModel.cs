@@ -57,10 +57,11 @@ public class PrivacySuggestionsModel
 		{
 			try
 			{
-				result = result.Combine(VerifyLabels(info, transactionResult))
+				result = result
+					.Combine(VerifyLabels(info, transactionResult))
 					.Combine(VerifyPrivacyLevel(info, transactionResult))
-							   .Combine(VerifyConsolidation(transactionResult))
-							   .Combine(VerifyUnconfirmedInputs(transactionResult))
+					.Combine(VerifyConsolidation(transactionResult))
+					.Combine(VerifyUnconfirmedInputs(transactionResult))
 					.Combine(await VerifyChangeAsync(info, transactionResult, linkedCts));
 			}
 			catch (OperationCanceledException)
@@ -89,7 +90,11 @@ public class PrivacySuggestionsModel
 		if (labelsArray.Any())
 		{
 			result.Warnings.Add(new InterlinksLabelsWarning(labelsArray));
-			result.Suggestions.Add(new LabelManagementSuggestion());
+
+			if (info.IsOtherPocketSelectionPossible)
+			{
+				result.Suggestions.Add(new LabelManagementSuggestion());
+			}
 		}
 
 		return result;

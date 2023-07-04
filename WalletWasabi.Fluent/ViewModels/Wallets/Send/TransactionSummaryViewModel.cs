@@ -14,7 +14,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
-	[AutoNotify] private bool _transactionHasPockets;
 	[AutoNotify] private string _confirmationTimeText = "";
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _maxPrivacy;
@@ -31,8 +30,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		_wallet = wallet;
 		IsPreview = isPreview;
 
-		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
+		this.WhenAnyValue(x => x.TransactionHasChange)
+			.Subscribe(_ => MaxPrivacy = !TransactionHasChange);
 
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
@@ -75,9 +74,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
-
-		Labels = new LabelsArray(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient));
-		TransactionHasPockets = Labels.Any();
 
 		Recipient = info.Recipient;
 
