@@ -67,6 +67,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 			services.AddHttpClient();
 			services.AddSingleton<AffiliationManager>();
+			services.AddSingleton<CoinJoinMempoolManager>();
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
