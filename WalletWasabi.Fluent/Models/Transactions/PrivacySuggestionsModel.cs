@@ -207,7 +207,11 @@ public class PrivacySuggestionsModel
 		if (hasChange && !info.IsFixedAmount && !info.IsPayJoin)
 		{
 			result.Warnings.Add(new CreatesChangeWarning());
-			result.Suggestions.AddRange(await CreateChangeAvoidanceSuggestionsAsync(info, transaction, linkedCts));
+
+			if (!info.IsFixedAmount && !info.IsPayJoin)
+			{
+				result.Suggestions.AddRange(await CreateChangeAvoidanceSuggestionsAsync(info, transaction, linkedCts));
+			}
 		}
 
 		return result;
