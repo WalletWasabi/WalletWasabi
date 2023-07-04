@@ -61,7 +61,6 @@
         </ItemsControl.ItemsPanel>
         <Ellipse />
         <Ellipse />
-        <Ellipse />
       </ListBox>
 
       <!-- Pages -->
@@ -122,12 +121,8 @@
           <StackPanel DockPanel.Dock="Bottom" Spacing="10">
             <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" />
 
-            <TextBlock TextAlignment="Center" Text="The 1st Rule of Wasabi" FontWeight="Light" />
+            <TextBlock TextAlignment="Center" Text="Rule #1: Wasabi is for defense only" FontWeight="Light" />
 
-            <TextBlock TextAlignment="Center"
-                       Text='"Wasabi is for self defense and self defense only"'
-                       Opacity="0.6"
-                       FontWeight="Light" />
           </StackPanel>
           <Panel Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
             <ExperimentalAcrylicBorder Margin="2">
@@ -154,35 +149,42 @@
 
         <!-- Get started -->
         <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" MaxHeight="350">
-
-          <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" Text="Start using Wasabi Wallet" Classes="title1" HorizontalAlignment="Center" VerticalAlignment="Center" />
-
-          <StackPanel Grid.Column="0" Grid.Row="1">
-            <TextBlock Text="Bitcoin Wallet" Classes="title2" />
-            <TextBlock Text="Receive and send money, securely and privately." Classes="text" />
-          </StackPanel>
-
-          <StackPanel Grid.Column="1" Grid.Row="1">
-            <TextBlock Text="Private by default" Classes="title2" />
-            <TextBlock Text="Because your transactions are nobody else's business." Classes="text" />
-          </StackPanel>
-
-          <StackPanel Grid.Column="0" Grid.Row="2">
-            <TextBlock Text="Non-custodial" Classes="title2" />
-            <TextBlock Text="You are in full control. Nobody can steal from you." Classes="text" />
-          </StackPanel>
-
-          <StackPanel Grid.Column="1" Grid.Row="2">
-            <TextBlock Text="Open Source" Classes="title2" />
-            <TextBlock Text="Verify what's going on and help us improve." Classes="text" />
-          </StackPanel>
-
-        </Grid>
-
-        <!-- Get started -->
-        <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" MaxHeight="350">
           <Grid.Styles>
-            <Style Selector="TextBlock.Animated">
+            <Style Selector="TextBlock.AnimatedOrange">
+              <Setter Property="Background">
+                <Setter.Value>
+                  <LinearGradientBrush>
+                    <GradientStop Offset="0" Color="#6E4035" />
+                    <GradientStop Offset="1" Color="#8A4F42" />
+                  </LinearGradientBrush>
+                </Setter.Value>
+              </Setter>
+              <Style.Animations>
+                <Animation Duration="0:0:1.5" Delay="0:0:1" Easing="{StaticResource FluentEasing}">
+                  <KeyFrame Cue="0%">
+                    <Setter Property="Background">
+                      <Setter.Value>
+                        <LinearGradientBrush>
+                          <GradientStop Offset="0" Color="Transparent" />
+                          <GradientStop Offset="0" Color="Transparent" />
+                        </LinearGradientBrush>
+                      </Setter.Value>
+                    </Setter>
+                  </KeyFrame>
+                  <KeyFrame Cue="5%">
+                    <Setter Property="Background">
+                      <Setter.Value>
+                        <LinearGradientBrush>
+                          <GradientStop Offset="0" Color="#6E4035" />
+                          <GradientStop Offset="1" Color="#8A4F42" />
+                        </LinearGradientBrush>
+                      </Setter.Value>
+                    </Setter>
+                  </KeyFrame>
+                </Animation>
+              </Style.Animations>
+            </Style>
+            <Style Selector="TextBlock.AnimatedGreen">
               <Setter Property="Background">
                 <Setter.Value>
                   <LinearGradientBrush>
@@ -192,7 +194,7 @@
                 </Setter.Value>
               </Setter>
               <Style.Animations>
-                <Animation Duration="0:0:1" Delay="0:0:1" Easing="{StaticResource FluentEasing}">
+                <Animation Duration="0:0:1.5" Delay="0:0:1" Easing="{StaticResource FluentEasing}">
                   <KeyFrame Cue="0%">
                     <Setter Property="Background">
                       <Setter.Value>
@@ -218,31 +220,33 @@
             </Style>
           </Grid.Styles>
           <Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{Binding SelectedIndex}" Value="2">
-              <AddClassAction ClassName="Animated" StyledElement="PlebsTextBlock" />
-              <AddClassAction ClassName="Animated" StyledElement="FriendsTextBlock" />
+            <DataTriggerBehavior Binding="{Binding SelectedIndex}" Value="1">
+              <AddClassAction ClassName="AnimatedGreen" StyledElement="PlebsTextBlock" />
+              <AddClassAction ClassName="AnimatedGreen" StyledElement="FriendsTextBlock" />
+              <AddClassAction ClassName="AnimatedOrange" StyledElement="CoinjoinFeeTextBlock" />
+              <AddClassAction ClassName="AnimatedOrange" StyledElement="MiningFeeTextBlock" />
             </DataTriggerBehavior>
           </Interaction.Behaviors>
 
-          <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" Text="Full Fee Transparency" Classes="title1" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" Text="Coinjoin Fees" Classes="title1" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
           <StackPanel Grid.Column="0" Grid.Row="1">
-            <TextBlock Text="Coinjoin Fee" Classes="title2" />
+            <TextBlock Name="CoinjoinFeeTextBlock" Text="Service Fee" Classes="title2" />
             <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="1">
-            <TextBlock Text="Mining Fee" Classes="title2" />
+            <TextBlock Name="MiningFeeTextBlock" Text="Network Fee" Classes="title2" />
             <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="0" Grid.Row="2">
-            <TextBlock Name="PlebsTextBlock" Text="Plebs don't pay" Classes="title2" />
+            <TextBlock Name="PlebsTextBlock" Text="Plebs Don't Pay" Classes="title2" />
             <TextBlock Text="You won't pay coinjoin fees for coins that are less than or equal to 0.01 BTC." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="2">
-            <TextBlock Name="FriendsTextBlock" Text="Friends don't pay" Classes="title2" />
+            <TextBlock Name="FriendsTextBlock" Text="Friends Don't Pay" Classes="title2" />
             <TextBlock Text="You won't pay coinjoin fees for coins received from other Wasabi users." Classes="text" />
           </StackPanel>
 
