@@ -14,17 +14,17 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 {
 	private readonly Wallet _wallet;
 
-	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction original, SmartTransaction cancelTransaction)
+	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction original, SmartTransaction cancellingTransaction)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var originalFee = original.WalletInputs.Sum(x => x.Amount) - original.OutputValues.Sum(x => x);
-		var cancelFeel = cancelTransaction.WalletInputs.Sum(x => x.Amount) - cancelTransaction.OutputValues.Sum(x => x);
+		var cancelFeel = cancellingTransaction.WalletInputs.Sum(x => x.Amount) - cancellingTransaction.OutputValues.Sum(x => x);
 		FeeDifference = cancelFeel - originalFee;
 
 		EnableBack = false;
-		NextCommand = ReactiveCommand.CreateFromTask(() => CancelTransaction(cancelTransaction));
+		NextCommand = ReactiveCommand.CreateFromTask(() => CancelTransaction(cancellingTransaction));
 	}
 
 	private async Task CancelTransaction(SmartTransaction cancelTransaction)
