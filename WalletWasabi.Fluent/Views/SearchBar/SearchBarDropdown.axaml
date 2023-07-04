@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              x:CompileBindings="True"
@@ -103,7 +104,7 @@
 
         <i:Interaction.Behaviors>
           <EventTriggerBehavior EventName="Click">
-            <CallMethodAction MethodName="Focus" TargetObject="{x:Static helpers:ApplicationHelper.MainWindow}" />
+            <behaviors:FocusControlAction TargetControl="{x:Static helpers:ApplicationHelper.MainWindow}" />
             <InvokeCommandAction Command="{Binding $parent[searchBar:SearchBar].((sb:SearchBarViewModel)DataContext).ResetCommand}" />
           </EventTriggerBehavior>
         </i:Interaction.Behaviors>
