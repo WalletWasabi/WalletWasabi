@@ -163,21 +163,24 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 				}
 
 				// Signing
+				var hdkeys = keyManager.GetSecrets(walletVm.Wallet.Kitchen.SaltSoup(), tx.WalletInputs.Select(x => x.ScriptPubKey).ToArray()).ToArray();
+				var secrets = new List<BitcoinSecret>();
+				for (int i = 0; i < tx.WalletInputs.Count; i++)
+				{
+					var walletInput = tx.WalletInputs.ToArray()[i];
+					var k = hdkeys[i];
+					BitcoinSecret secret = k.GetBitcoinSecret(keyManager.GetNetwork(), walletInput.ScriptPubKey);
+
+					secrets.Add(secret);
+				}
+
 				TransactionBuilder builder = walletVm.Wallet.Network.CreateTransactionBuilder();
-
-				var secrets = tx.WalletInputs
-					.SelectMany(coin => walletVm.Wallet.KeyManager.GetSecrets(walletVm.Wallet.Kitchen.SaltSoup(), coin.ScriptPubKey))
-					.ToArray();
-
-				builder.AddKeys(secrets);
+				builder.AddKeys(secrets.ToArray());
 				builder.AddCoins(tx.WalletInputs.Select(x => x.Coin));
-
-				var coins = tx.WalletInputs.Select(x => (ICoin)x.Coin);
-				var keys = secrets.Select(key => key.GetBitcoinSecret(walletVm.Wallet.Network, 000));
-				cancelTransaction.Sign(keys, coins);
+				var signedCancelTransaction = builder.SignTransaction(cancelTransaction);
 
 				var signedCancelSmartTransaction = new SmartTransaction(
-					cancelTransaction,
+					signedCancelTransaction,
 					Height.Mempool,
 					isReplacement: true);
 
