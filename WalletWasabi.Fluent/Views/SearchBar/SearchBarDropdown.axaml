@@ -103,10 +103,10 @@
         </Grid>
 
         <i:Interaction.Behaviors>
-          <EventTriggerBehavior EventName="Click">
+          <ButtonClickEventTriggerBehavior>
             <behaviors:FocusControlAction TargetControl="{x:Static helpers:ApplicationHelper.MainWindow}" />
             <InvokeCommandAction Command="{Binding $parent[searchBar:SearchBar].((sb:SearchBarViewModel)DataContext).ResetCommand}" />
-          </EventTriggerBehavior>
+          </ButtonClickEventTriggerBehavior>
         </i:Interaction.Behaviors>
 
       </Button>
