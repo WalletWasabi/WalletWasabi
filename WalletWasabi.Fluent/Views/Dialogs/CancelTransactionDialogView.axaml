@@ -10,12 +10,14 @@
              x:DataType="dialogs:CancelTransactionDialogViewModel"
              x:CompileBindings="True">
 
-  <controls:ContentArea Title="Boost transaction"
-                        EnableCancel="{Binding EnableCancel}"
+  <controls:ContentArea Title="Speed Up Transaction"
+                        EnableCancel="False"
                         EnableBack="{Binding EnableBack}"
-                        EnableNext="True" NextContent="Cancel">
+                        IsBusy="{Binding IsBusy}"
+                        EnableNext="False" NextContent="Cancel">
 
-    <controls:QuestionControl Content="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+    <controls:QuestionControl YesCommand="{Binding NextCommand}" NoCommand="{Binding CancelCommand}"
+                              Content="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
 
   </controls:ContentArea>
 </UserControl>

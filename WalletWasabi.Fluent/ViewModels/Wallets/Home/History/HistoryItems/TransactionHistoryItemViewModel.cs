@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
@@ -5,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -71,7 +73,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 					// IF change present THEN make the change the only output
 					// Add a dummy output to make the transaction size proper.
 					cancelTransaction.Outputs.Add(Money.Zero, change.TxOut.ScriptPubKey);
-					var cancelFee = (long)(cancelTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
+					var cancelFee = (long)(originalTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
 					cancelTransaction.Outputs.Clear();
 					cancelTransaction.Outputs.Add(tx.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, change.TxOut.ScriptPubKey);
 				}
@@ -81,22 +83,36 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 					// Add a dummy output to make the transaction size proper.
 					var newOwnOutput = keyManager.GetNextChangeKey();
 					cancelTransaction.Outputs.Add(Money.Zero, newOwnOutput.GetAssumedScriptPubKey());
-					var cancelFee = (long)(cancelTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
+					var cancelFee = (long)(originalTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
 					cancelTransaction.Outputs.Clear();
 					cancelTransaction.Outputs.Add(tx.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, newOwnOutput.GetAssumedScriptPubKey());
 				}
+				
+				// Signing
+				TransactionBuilder builder = walletVm.Wallet.Network.CreateTransactionBuilder();
+				
+				var secrets = tx.WalletInputs
+					.SelectMany(coin => walletVm.Wallet.KeyManager.GetSecrets(walletVm.Wallet.Kitchen.SaltSoup(), coin.ScriptPubKey))
+					.ToArray();
 
-				var cancelSmartTransaction = new SmartTransaction(
+				builder.AddKeys(secrets);
+				builder.AddCoins(tx.WalletInputs.Select(x => x.Coin));
+
+				var coins = tx.WalletInputs.Select(x => (ICoin)x.Coin);
+				var keys = secrets.Select(key => key.GetBitcoinSecret(walletVm.Wallet.Network, 000));
+				cancelTransaction.Sign(keys, coins);
+
+				var signedCancelSmartTransaction = new SmartTransaction(
 					cancelTransaction,
 					Height.Mempool,
 					isReplacement: true);
 
 				foreach (var input in tx.WalletInputs)
 				{
-					cancelSmartTransaction.TryAddWalletInput(input);
+					signedCancelSmartTransaction.TryAddWalletInput(input);
 				}
-
-				uiContext.Navigate().To().CancelTransactionDialog(transactionSummary.Transaction, cancelSmartTransaction);
+				
+				uiContext.Navigate().To().CancelTransactionDialog(walletVm.Wallet, transactionSummary.Transaction, signedCancelSmartTransaction);
 			},
 			Observable.Return(CanCancelTransaction));
 
