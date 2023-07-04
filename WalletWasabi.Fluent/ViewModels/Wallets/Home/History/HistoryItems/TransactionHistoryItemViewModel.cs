@@ -47,6 +47,80 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		SpeedUpTransactionCommand = ReactiveCommand.Create(
 			() =>
 			{
+				var tx = transactionSummary.Transaction;
+				var change = tx.GetWalletOutputs(keyManager).FirstOrDefault();
+				var isDestinationAmountModified = false;
+				var txSizeBytes = tx.Transaction.GetVirtualSize();
+				var bestFeeRate = walletVm.Wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+				if (bestFeeRate is null)
+				{
+					throw new NullReferenceException("bestFeeRate is null. This should never happen.");
+				}
+
+				if (tx.GetForeignInputs(keyManager).Any() || !tx.IsRBF)
+				{
+					// IF there are any foreign input or doesn't signal RBF, then we can only CPFP.
+					if (change is null)
+					{
+						// IF change is not present, we cannot do anything with it.
+						throw new InvalidOperationException("Transaction doesn't signal RBF, nor we have change to CPFP it.");
+					}
+
+					// Let's build a CPFP with best fee rate temporarily.
+					var tempTx = TransactionHelpers.BuildChangelessTransaction(
+						walletVm.Wallet,
+						keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(walletVm.Wallet.Network) ?? throw new NullReferenceException($"GetDestinationAddress returned null. This should never happen."),
+						LabelsArray.Empty,
+						bestFeeRate,
+						tx.GetWalletInputs(keyManager),
+						tryToSign: true);
+					var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
+
+					// Let's increase the fee rate of CPFP transaction.
+					var cpfpFee = (long)((txSizeBytes + tempTxSizeBytes) * bestFeeRate.SatoshiPerByte) + 1;
+					var cpfpFeeRate = new FeeRate((decimal)(cpfpFee / tempTxSizeBytes));
+
+					var cpfp = TransactionHelpers.BuildChangelessTransaction(
+						walletVm.Wallet,
+						keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(walletVm.Wallet.Network) ?? throw new NullReferenceException($"GetDestinationAddress returned null. This should never happen."),
+						LabelsArray.Empty,
+						cpfpFeeRate,
+						tx.GetWalletInputs(keyManager),
+						tryToSign: true);
+				}
+				else
+				{
+					// Else it's RBF.
+					var originalFeeRate = tx.Transaction.GetFeeRate(tx.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
+
+					// If the highest fee rate is smaller or equal than the original fee rate, then increase fee rate minimally, otherwise built tx with best fee rate.
+					FeeRate rbfFeeRate = bestFeeRate is null || bestFeeRate <= originalFeeRate
+						? new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(Math.Max(2, originalFeeRate.SatoshiPerByte * 0.05m)).Satoshi)
+						: bestFeeRate;
+
+					var originalTransaction = transactionSummary.Transaction.Transaction;
+					var rbfTransaction = originalTransaction.Clone();
+					rbfTransaction.Outputs.Clear();
+
+					if (!tx.GetForeignOutputs(keyManager).Any())
+					{
+						// IF self spend.
+					}
+					else
+					{
+						// IF send.
+						if (change is not null)
+						{
+							// IF change present, then we modify the change's amount.
+						}
+						else
+						{
+							// IF change not present, then we modify the destination's amount.
+							isDestinationAmountModified = true;
+						}
+					}
+				}
+
 				uiContext.Navigate().To().BoostTransactionDialog(new BoostedTransactionPreview(walletVm.Wallet.Synchronizer.UsdExchangeRate)
 				{
 					Destination = "some destination",
@@ -87,10 +161,10 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 					cancelTransaction.Outputs.Clear();
 					cancelTransaction.Outputs.Add(tx.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, newOwnOutput.GetAssumedScriptPubKey());
 				}
-				
+
 				// Signing
 				TransactionBuilder builder = walletVm.Wallet.Network.CreateTransactionBuilder();
-				
+
 				var secrets = tx.WalletInputs
 					.SelectMany(coin => walletVm.Wallet.KeyManager.GetSecrets(walletVm.Wallet.Kitchen.SaltSoup(), coin.ScriptPubKey))
 					.ToArray();
@@ -111,7 +185,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 				{
 					signedCancelSmartTransaction.TryAddWalletInput(input);
 				}
-				
+
 				uiContext.Navigate().To().CancelTransactionDialog(walletVm.Wallet, transactionSummary.Transaction, signedCancelSmartTransaction);
 			},
 			Observable.Return(CanCancelTransaction));
