@@ -1,6 +1,7 @@
 using DynamicData;
 using NBitcoin;
 using System.Threading.Tasks;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -12,11 +13,13 @@ public interface IWalletRepository
 
 	bool HasWallet { get; }
 
-	Task<IWalletSettingsModel> RecoverWalletAsync(string walletName, string password, Mnemonic mnemonic, int minGapLimit);
+	string GetNextWalletName();
 
-	Task<IWalletSettingsModel> CreateNewWalletAsync(string walletName, string password, Mnemonic mnemonic);
+	Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options);
 
 	IWalletModel SaveWallet(IWalletSettingsModel walletSettings);
+
+	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
 
 	void StoreLastSelectedWallet(IWalletModel wallet);
 }

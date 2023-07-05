@@ -6,7 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Helpers;
@@ -25,10 +26,11 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	[AutoNotify] private bool _existingWalletFound;
 	[AutoNotify] private bool _confirmationRequired;
 
-	private ConnectHardwareWalletViewModel(string walletName)
+	private ConnectHardwareWalletViewModel(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
+		ArgumentException.ThrowIfNullOrEmpty(options.WalletName);
 		_message = "";
-		WalletName = walletName;
+		WalletName = options.WalletName;
 		AbandonedTasks = new AbandonedTasks();
 		CancelCts = new CancellationTokenSource();
 
@@ -36,7 +38,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
+		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(OnNavigateToExistingWalletLogin);
 
 		this.WhenAnyValue(x => x.Message)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -81,10 +83,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		if (ExistingWallet is { })
 		{
 			Navigate().Clear();
-
-			// Temporary workaround
-			MainViewModel.Instance.NavBar.SelectedWallet =
-				MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == ExistingWallet.Wallet.WalletName);
+			UiContext.Navigate().To(ExistingWallet);
 		}
 	}
 
