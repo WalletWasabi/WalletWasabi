@@ -52,7 +52,8 @@ public class Global : IDisposable
 		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), segwitTaprootIndexFilePath);
 		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, HostedServices.Get<BlockNotifier>(), taprootIndexFilePath);
 
-		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore);
+		MempoolMirror = new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode);
+		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, MempoolMirror);
 	}
 
 	public string DataDir { get; }
@@ -82,6 +83,7 @@ public class Global : IDisposable
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 	private Whitelist? WhiteList { get; set; }
+	private MempoolMirror MempoolMirror { get; }
 	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
 	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
@@ -94,10 +96,7 @@ public class Global : IDisposable
 		// Make sure P2P works.
 		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
-
-		CoinJoinMempoolManager.RegisterMempoolProvider(HostedServices.Get<MempoolMirror>());
-		Logger.LogInfo($"{nameof(CoinJoinMempoolManager)} is successfully initialized.");
+		HostedServices.Register<MempoolMirror>(() => MempoolMirror, "Full Node Mempool Mirror");
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 

@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -15,12 +16,12 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
-public class CoinJoinMempoolManagerTasks
+public class CoinJoinMempoolManagerTests
 {
 	[Fact]
 	public async Task CoinJoinVisibleTestAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CoinJoinMempoolManagerTasks), nameof(CoinJoinVisibleTestAsync));
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CoinJoinMempoolManagerTests), nameof(CoinJoinVisibleTestAsync));
 		using HostedServices services = new();
 		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 		try
@@ -53,8 +54,7 @@ public class CoinJoinMempoolManagerTasks
 			CoinJoinIdStore coinjoinIdStore = new();
 			coinjoinIdStore.TryAdd(coinjoinTx);
 
-			using CoinJoinMempoolManager coinJoinMempoolManager = new(coinjoinIdStore);
-			coinJoinMempoolManager.RegisterMempoolProvider(mempoolInstance);
+			using CoinJoinMempoolManager coinJoinMempoolManager = new(coinjoinIdStore, mempoolInstance);
 			await mempoolInstance.TriggerAndWaitRoundAsync(CancellationToken.None);
 
 			Assert.Equal(coinjoinTx, coinJoinMempoolManager.CoinJoinIds.Single());
