@@ -328,9 +328,10 @@ public class Wallet : BackgroundService, IWallet
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
+		bool allowDoubleSpend = false,
 		bool tryToSign = true)
 	{
-		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed: allowUnconfirmed, allowDoubleSpend: allowDoubleSpend);
 		return builder.BuildTransaction(
 			payments,
 			feeRateFetcher: () =>
@@ -450,7 +451,7 @@ public class Wallet : BackgroundService, IWallet
 					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
 					SetFinalBestTurboSyncHeight(new Height(filterModel.Header.Height));
 				}
-				
+
 				// Then filters are buffered and are tested against the NonTurbo keys only when the NonTurbo sync is finished (i.e. lock released).
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{

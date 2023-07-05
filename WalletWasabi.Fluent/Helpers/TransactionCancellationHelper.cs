@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -14,67 +15,38 @@ public static class TransactionCancellationHelper
 	public static SmartTransaction CreateCancellation(SmartTransaction transactionToCancel, Wallet wallet)
 	{
 		var keyManager = wallet.KeyManager;
-		var change = transactionToCancel.GetWalletOutputs(keyManager).FirstOrDefault();
+		var network = wallet.Network;
+
+		if (transactionToCancel.GetWalletInputs(keyManager).Count() != transactionToCancel.Transaction.Inputs.Count)
+		{
+			throw new InvalidOperationException("Transaction has foreign inputs. Cannot cancel.");
+		}
+
+		// Take the first own output and if we have it that's where we send all our money to.
+		var ownOutput = transactionToCancel.GetWalletOutputs(keyManager).FirstOrDefault();
+
+		// Calculate the original fee rate and fee.
 		var originalFeeRate = transactionToCancel.Transaction.GetFeeRate(transactionToCancel.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
-		var cancelFeeRate = new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(2).Satoshi);
-		var originalTransaction = transactionToCancel.Transaction;
-		var cancelTransaction = originalTransaction.Clone();
-		cancelTransaction.Outputs.Clear();
+		var originalFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 
-		if (change is not null)
+		SmartTransaction cancelTransaction;
+		int i = 1;
+		do
 		{
-			// IF change present THEN make the change the only output
-			// Add a dummy output to make the transaction size proper.
-			cancelTransaction.Outputs.Add(Money.Zero, change.TxOut.ScriptPubKey);
-			var cancelFee = (long)(originalTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
-			cancelTransaction.Outputs.Clear();
-			cancelTransaction.Outputs.Add(transactionToCancel.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, change.TxOut.ScriptPubKey);
-		}
-		else
-		{
-			// ELSE THEN replace the output with a new output that's ours
-			// Add a dummy output to make the transaction size proper.
-			var newOwnOutput = keyManager.GetNextChangeKey();
-			cancelTransaction.Outputs.Add(Money.Zero, newOwnOutput.GetAssumedScriptPubKey());
-			var cancelFee = (long)(originalTransaction.GetVirtualSize() * cancelFeeRate.SatoshiPerByte) + 1;
-			cancelTransaction.Outputs.Clear();
-			cancelTransaction.Outputs.Add(transactionToCancel.GetWalletInputs(keyManager).Sum(x => x.Amount.Satoshi) - cancelFee, newOwnOutput.GetAssumedScriptPubKey());
-		}
+			cancelTransaction = TransactionHelpers.BuildChangelessTransaction(
+				wallet,
+				ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
+				LabelsArray.Empty,
+				new FeeRate(originalFeeRate.SatoshiPerByte + i),
+				transactionToCancel.WalletInputs,
+				allowDoubleSpend: true,
+				tryToSign: true)
+			.Transaction;
 
-		// Signing
-		var signedCancelTransaction = SignTransaction(cancelTransaction, wallet, transactionToCancel);
+			// Double i, so we should be able to find a suitable cancel tx in a few iterations.
+			i *= 2;
+		} while (originalFee >= cancelTransaction.Transaction.GetFee(cancelTransaction.WalletInputs.Select(x => x.Coin).ToArray()));
 
-		var signedCancelSmartTransaction = new SmartTransaction(
-			signedCancelTransaction,
-			Height.Mempool,
-			isReplacement: true);
-
-		foreach (var input in transactionToCancel.WalletInputs)
-		{
-			signedCancelSmartTransaction.TryAddWalletInput(input);
-		}
-
-		return signedCancelSmartTransaction;
-	}
-
-	private static Transaction SignTransaction(Transaction transactionToSign, Wallet wallet, SmartTransaction originalTransaction)
-	{
-		var keyManager = wallet.KeyManager;
-		var hdkeys = keyManager.GetSecrets(wallet.Kitchen.SaltSoup(), originalTransaction.WalletInputs.Select(x => x.ScriptPubKey).ToArray()).ToArray();
-		var secrets = new List<ISecret>();
-		for (var i = 0; i < originalTransaction.WalletInputs.Count; i++)
-		{
-			var walletInput = originalTransaction.WalletInputs.ToArray()[i];
-			var k = hdkeys[i];
-			var secret = k.GetBitcoinSecret(keyManager.GetNetwork(), walletInput.ScriptPubKey);
-
-			secrets.Add(secret);
-		}
-
-		var builder = wallet.Network.CreateTransactionBuilder();
-		builder.AddKeys(secrets.ToArray());
-		builder.AddCoins(originalTransaction.WalletInputs.Select(x => x.Coin));
-		var signedCancelTransaction = builder.SignTransaction(transactionToSign);
-		return signedCancelTransaction;
+		return cancelTransaction;
 	}
 }
