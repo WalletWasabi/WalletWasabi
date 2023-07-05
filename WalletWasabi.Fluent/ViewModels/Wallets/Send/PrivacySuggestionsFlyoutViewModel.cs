@@ -43,12 +43,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
-		NoPrivacy = true;
+		NoPrivacy = false;
 		MaxPrivacy = false;
 		GoodPrivacy = false;
 		Warnings.Clear();
 		Suggestions.Clear();
-
 		SelectedSuggestion = null;
 
 		IsBusy = true;
@@ -58,9 +57,18 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		Warnings.AddRange(result.Warnings);
 		Suggestions.AddRange(result.Suggestions);
 
-		// TEMP SOLUTION
-		MaxPrivacy = !Warnings.Any();
-		NoPrivacy = !MaxPrivacy;
+		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		{
+			NoPrivacy = true;
+		}
+		else if (Warnings.Any(x => x.Severity == WarningSeverity.Info))
+		{
+			GoodPrivacy = true;
+		}
+		else
+		{
+			MaxPrivacy = true;
+		}
 
 		IsBusy = false;
 	}
