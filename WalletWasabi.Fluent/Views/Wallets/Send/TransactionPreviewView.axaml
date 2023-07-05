@@ -39,52 +39,56 @@
             </Viewbox>
           </Button>
 
-          <Border Padding="10 0 10 10" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
-            <Interaction.Behaviors>
-              <behaviors:ShowFlyoutOnPointerOverBehavior />
-            </Interaction.Behaviors>
-            <FlyoutBase.AttachedFlyout>
-              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
-                <DockPanel>
-                  <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" />
-                  <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
-                </DockPanel>
-              </Flyout>
-            </FlyoutBase.AttachedFlyout>
-            <Viewbox Height="20">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
-            </Viewbox>
-          </Border>
-
-          <Border Cursor="Hand" Padding="10 0 10 10">
-            <Border.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PrivacySuggestions.IsVisible" />
-                <Binding Path="CurrentTransactionSummary.MaxPrivacy" Converter="{x:Static BoolConverters.Not}" />
-              </MultiBinding>
-            </Border.IsVisible>
+          <Border Padding="10 0 10 10">
             <Border.Styles>
               <Style Selector="FlyoutPresenter">
-                <Setter Property="MinWidth" Value="500" />
                 <Setter Property="MaxHeight" Value="1200" />
+                <Setter Property="MinWidth" Value="400" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
               </Style>
               <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
                 <Setter Property="MaxHeight" Value="1200" />
               </Style>
+
+              <Style Selector="PathIcon.noPrivacy">
+                <Setter Property="Data" Value="{StaticResource warning_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+              </Style>
+              <Style Selector="PathIcon.goodPrivacy">
+                <Setter Property="Data" Value="{StaticResource shield_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+              </Style>
+              <Style Selector="PathIcon.maxPrivacy">
+                <Setter Property="Data" Value="{StaticResource shield_tick_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+              </Style>
             </Border.Styles>
             <Interaction.Behaviors>
+              <behaviors:ShowFlyoutOnPointerOverBehavior />
               <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway"
                       IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
-                <Panel DataContext="{Binding PrivacySuggestions}" Width="450">
-                  <send:PrivacyWarningsView />
+                <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
+
+                  <!-- Warnings -->
+                  <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
+
+                  <!-- Full privacy message -->
+                  <DockPanel IsVisible="{Binding MaxPrivacy}">
+                    <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+                    <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
+                  </DockPanel>
                 </Panel>
               </Flyout>
             </FlyoutBase.AttachedFlyout>
             <Viewbox Height="20">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
+              <Panel>
+                <PathIcon Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
+                          Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
+                          Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
+              </Panel>
             </Viewbox>
           </Border>
         </StackPanel>
