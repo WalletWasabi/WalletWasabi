@@ -42,7 +42,7 @@
           <Border Padding="10 0 10 10">
             <Border.Styles>
               <Style Selector="FlyoutPresenter">
-                <Setter Property="MinWidth" Value="500" />
+                <Setter Property="Width" Value="450" />
                 <Setter Property="MaxHeight" Value="1200" />
               </Style>
               <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
@@ -69,9 +69,12 @@
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway"
                       IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
-                <Panel DataContext="{Binding PrivacySuggestions}" Width="450">
+                <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
+
+                  <!-- Warnings -->
                   <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
 
+                  <!-- Full privacy message -->
                   <DockPanel IsVisible="{Binding MaxPrivacy}">
                     <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" HorizontalAlignment="Center" />
                     <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
