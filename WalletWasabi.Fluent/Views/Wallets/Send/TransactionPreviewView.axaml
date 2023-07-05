@@ -42,8 +42,8 @@
           <Border Padding="10 0 10 10">
             <Border.Styles>
               <Style Selector="FlyoutPresenter">
-                <Setter Property="Width" Value="450" />
                 <Setter Property="MaxHeight" Value="1200" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
               </Style>
               <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
                 <Setter Property="MaxHeight" Value="1200" />
