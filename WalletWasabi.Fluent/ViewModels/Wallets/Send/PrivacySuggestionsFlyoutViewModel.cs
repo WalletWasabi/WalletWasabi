@@ -17,8 +17,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private PrivacySuggestion? _previewSuggestion;
 	[AutoNotify] private PrivacySuggestion? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private bool _isVisible;
 	[AutoNotify] private bool _isBusy;
+
+	[AutoNotify] private bool _noPrivacy;
+	[AutoNotify] private bool _goodPrivacy;
+	[AutoNotify] private bool _maxPrivacy;
 
 	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
 	{
@@ -40,12 +43,14 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
+		NoPrivacy = true;
+		MaxPrivacy = false;
+		GoodPrivacy = false;
 		Warnings.Clear();
 		Suggestions.Clear();
 
 		SelectedSuggestion = null;
 
-		IsVisible = true;
 		IsBusy = true;
 
 		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
@@ -53,12 +58,10 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		Warnings.AddRange(result.Warnings);
 		Suggestions.AddRange(result.Suggestions);
 
-		IsBusy = false;
-		IsVisible = Warnings.Any() || Suggestions.Any();
+		// TEMP SOLUTION
+		MaxPrivacy = !Warnings.Any();
+		NoPrivacy = !MaxPrivacy;
 
-		if (!IsVisible)
-		{
-			IsOpen = false;
-		}
+		IsBusy = false;
 	}
 }

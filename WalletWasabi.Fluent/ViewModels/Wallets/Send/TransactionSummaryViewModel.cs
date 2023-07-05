@@ -16,7 +16,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _transactionHasChange;
 	[AutoNotify] private string _confirmationTimeText = "";
 	[AutoNotify] private string _feeText = "";
-	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
@@ -29,10 +28,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Parent = parent;
 		_wallet = wallet;
 		IsPreview = isPreview;
-
-		this.WhenAnyValue(x => x.TransactionHasChange)
-			.Subscribe(_ => MaxPrivacy = !TransactionHasChange);
-
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
@@ -72,11 +67,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			FeeText += $" {fiatFeeText}";
 		}
 
-		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
-
 		Recipient = info.Recipient;
-
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 	}
