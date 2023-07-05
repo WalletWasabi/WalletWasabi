@@ -597,18 +597,41 @@ public class Wallet : BackgroundService, IWallet
 	{
 		if (syncType == SyncType.Complete)
 		{
-			return KeyManager.UnsafeGetSynchronizationInfos().Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes).ToList();
+			return KeyManager.UnsafeGetSynchronizationInfosGrouped()
+				.SelectMany(x => x.Value)
+				.SelectMany(x => x.Value)
+				.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes).ToList();
 		}
 
 		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
 			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
 			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
 
-		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetSynchronizationInfos()
-			.Where(x => stepPredicate(x.ScriptBytesHdPubKeyPair.HdPubKey))
-			.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
+		var synchronizationInfosGroups = KeyManager.UnsafeGetSynchronizationInfosGrouped();
+		
+		List<byte[]> keysToTest = new();
+		foreach (var scriptPubKeyTypeGroup in synchronizationInfosGroups)
+		{
+			foreach (var internalGroup in scriptPubKeyTypeGroup.Value)
+			{
+				var keysPassingPredicate = internalGroup.Value
+					.Where(x => stepPredicate(x.ScriptBytesHdPubKeyPair.HdPubKey))
+					.ToList();
 
-		return keysToTest.ToList();
+				var cleanKeys = keysPassingPredicate
+					.Where(x => x.ScriptBytesHdPubKeyPair.HdPubKey.KeyState == KeyState.Clean)
+					.Take(KeyManager.MinGapLimit)
+					.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
+
+				var nonCleanKeys = keysPassingPredicate
+					.Where(x => x.ScriptBytesHdPubKeyPair.HdPubKey.KeyState != KeyState.Clean)
+					.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
+
+				keysToTest.AddRange(cleanKeys.Concat(nonCleanKeys));
+			}
+		}
+
+		return keysToTest;
 	}
 
 	private async Task ProcessFilterModelAsync(FilterModel filterModel, SyncType syncType, CancellationToken cancel)

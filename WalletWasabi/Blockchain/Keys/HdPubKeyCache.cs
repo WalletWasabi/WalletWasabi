@@ -11,14 +11,14 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 {
 	private Dictionary<Script, HdPubKey> HdPubKeysByScript { get; } = new();
 	private HashSet<HdPubKey> HdPubKeys { get; } = new();
-	private Dictionary<KeyPath, ScriptBytesHdPubKeyPair> ScriptBytesHdPubKeyPairByKeyPath { get; } = new();
+	private Dictionary<ScriptPubKeyType, Dictionary<bool, List<SynchronizationInfos>>> SynchronizationInfosGrouped { get; } = new();
 
 	private HdPubKeyGlobalView Snapshot =>
 		new(this.ToImmutableList());
 
-	public IEnumerable<SynchronizationInfos> GetSynchronizationInfos()
+	public Dictionary<ScriptPubKeyType, Dictionary<bool, List<SynchronizationInfos>>> GetSynchronizationInfosGrouped()
 	{
-		return ScriptBytesHdPubKeyPairByKeyPath.Select(x => new SynchronizationInfos(x.Key, x.Value));
+		return SynchronizationInfosGrouped;
 	}
 	
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
@@ -40,9 +40,31 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
 	{
 		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
+		AddToSynchronizationInfosGrouped(scriptPubKey, hdPubKey);
 		HdPubKeysByScript.AddOrReplace(scriptPubKey, hdPubKey);
-		ScriptBytesHdPubKeyPairByKeyPath.AddOrReplace(hdPubKey.FullKeyPath, new ScriptBytesHdPubKeyPair(scriptPubKey.ToCompressedBytes(), hdPubKey));
 		HdPubKeys.Add(hdPubKey);
+	}
+
+	private void AddToSynchronizationInfosGrouped(Script scriptPubKey, HdPubKey hdPubKey)
+	{
+		var toAddItem = new SynchronizationInfos(hdPubKey.FullKeyPath, new ScriptBytesHdPubKeyPair(scriptPubKey.ToCompressedBytes(), hdPubKey));
+		var scriptType = hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath();
+		if (SynchronizationInfosGrouped.TryGetValue(scriptType, out var scriptTypeGroup))
+		{
+			if (scriptTypeGroup.TryGetValue(hdPubKey.IsInternal, out var isInternalGroup))
+			{
+				isInternalGroup.Add(toAddItem);
+			}
+			else
+			{
+				scriptTypeGroup.Add(hdPubKey.IsInternal, new List<SynchronizationInfos>() { toAddItem });
+			}
+		}
+		else
+		{
+			var toAddDictionary = new Dictionary<bool, List<SynchronizationInfos>> { { hdPubKey.IsInternal, new List<SynchronizationInfos> () { toAddItem } } };
+			SynchronizationInfosGrouped.Add(scriptType, toAddDictionary);
+		}
 	}
 
 	public IEnumerator<HdPubKey> GetEnumerator() =>
