@@ -137,13 +137,13 @@ public class PrivacySuggestionsModel
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
-		if (canModifyTransactionAmount && (foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
+		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
 		{
 			var newTransaction = CreateTransaction(transactionInfo, allPrivateCoin);
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
-			if (amountDifferencePercentage <= MaximumDifferenceTolerance)
+			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
 				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText);
@@ -158,14 +158,14 @@ public class PrivacySuggestionsModel
 			return result;
 		}
 
-		if (canModifyTransactionAmount && foundNonPrivate && allSemiPrivateCoin.Any())
+		if (foundNonPrivate && allSemiPrivateCoin.Any())
 		{
 			var coins = allPrivateCoin.Union(allSemiPrivateCoin);
 			var newTransaction = CreateTransaction(transactionInfo, coins);
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
-			if (amountDifferencePercentage <= MaximumDifferenceTolerance)
+			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
 				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText));
