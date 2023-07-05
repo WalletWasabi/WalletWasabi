@@ -32,17 +32,19 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 	private async Task OnCancelTransaction(SmartTransaction cancelTransaction)
 	{
 		IsBusy = true;
+
 		try
 		{
 			await Services.TransactionBroadcaster.SendTransactionAsync(cancelTransaction);
+			UiContext.Navigate().To().SendSuccess(_wallet, cancelTransaction);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
 			await ShowErrorAsync("Cancellation", ex.ToUserFriendlyString(), "Wasabi was unable to cancel your transaction.");
 		}
+
 		IsBusy = false;
-		UiContext.Navigate().To().SendSuccess(_wallet, cancelTransaction);
 	}
 
 	public Money FeeDifference { get; }
