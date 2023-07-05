@@ -28,6 +28,7 @@ public static class TransactionCancellationHelper
 		// Calculate the original fee rate and fee.
 		var originalFeeRate = transactionToCancel.Transaction.GetFeeRate(transactionToCancel.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 		var originalFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
+		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 
 		SmartTransaction cancelTransaction;
 		int i = 1;
@@ -45,7 +46,10 @@ public static class TransactionCancellationHelper
 
 			// Double i, so we should be able to find a suitable cancel tx in a few iterations.
 			i *= 2;
-		} while (originalFee >= cancelTransaction.Transaction.GetFee(cancelTransaction.WalletInputs.Select(x => x.Coin).ToArray()));
+
+			// https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+			// The replacement transaction must also pay for its own bandwidth at or above the rate set by the node's minimum relay fee setting. For example, if the minimum relay fee is 1 satoshi/byte and the replacement transaction is 500 bytes total, then the replacement must pay a fee at least 500 satoshis higher than the sum of the originals.
+		} while (originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * cancelTransaction.Transaction.GetVirtualSize()) >= cancelTransaction.Transaction.GetFee(cancelTransaction.WalletInputs.Select(x => x.Coin).ToArray()));
 
 		return cancelTransaction;
 	}
