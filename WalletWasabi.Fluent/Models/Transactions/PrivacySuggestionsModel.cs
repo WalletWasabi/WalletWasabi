@@ -133,7 +133,7 @@ public class PrivacySuggestionsModel
 		var allSemiPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate).ToArray();
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-
+		FullPrivacySuggestion? fullPrivacySuggestion = null;
 		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
 		{
 			var newTransaction = CreateTransaction(transactionInfo, allPrivateCoin);
@@ -143,8 +143,16 @@ public class PrivacySuggestionsModel
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance)
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-				result.Suggestions.Add(new FullPrivacySuggestion(newTransaction, differenceFiatText));
+				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, differenceFiatText);
+				result.Suggestions.Add(fullPrivacySuggestion);
 			}
+		}
+
+		// Do not calculate the better privacy option when the full privacy option has the same amount.
+		// This is only possible if the user makes a silly selection with coin control.
+		if (fullPrivacySuggestion is { } sug && sug.DifferenceFiatText.Contains("Same"))
+		{
+			return result;
 		}
 
 		if (foundNonPrivate && allSemiPrivateCoin.Any())
@@ -295,13 +303,28 @@ public class PrivacySuggestionsModel
 
 	private BuildTransactionResult CreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
 	{
-		return TransactionHelpers.BuildChangelessTransaction(
-			_wallet,
-			transactionInfo.Destination,
-			transactionInfo.Recipient,
-			transactionInfo.FeeRate,
-			coins,
-			tryToSign: false);
+		try
+		{
+			return TransactionHelpers.BuildTransaction(
+				_wallet,
+				transactionInfo.Destination,
+				transactionInfo.Amount,
+				transactionInfo.Recipient,
+				transactionInfo.FeeRate,
+				coins,
+				false,
+				transactionInfo.PayJoinClient);
+		}
+		catch (Exception)
+		{
+			return TransactionHelpers.BuildChangelessTransaction(
+				_wallet,
+				transactionInfo.Destination,
+				transactionInfo.Recipient,
+				transactionInfo.FeeRate,
+				coins,
+				tryToSign: false);
+		}
 	}
 
 	private string GetDifferenceFiatText(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
@@ -315,9 +338,9 @@ public class PrivacySuggestionsModel
 
 		var differenceFiatText = fiatDifference switch
 		{
-			> 0 => $"{fiatDifference.ToUsd()} More",
-			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} Less",
-			_ => "Same Amount"
+			> 0 => $"{fiatDifference.ToUsd()} more",
+			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} less",
+			_ => "the same amount"
 		};
 
 		return differenceFiatText;
