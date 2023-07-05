@@ -170,7 +170,7 @@ public class PrivacySuggestionsModel
 
 		var consolidatedCoins = originalTransaction.SpentCoins.Count();
 
-		if (consolidatedCoins >= ConsolidationTolerance)
+		if (consolidatedCoins > ConsolidationTolerance)
 		{
 			result.Warnings.Add(new ConsolidationWarning(ConsolidationTolerance));
 		}
