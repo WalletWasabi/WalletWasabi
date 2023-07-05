@@ -14,14 +14,14 @@ public enum WarningSeverity
 // Revisit this after Avalonia V11 upgrade
 public abstract record PrivacyWarning(WarningSeverity Severity);
 
-public record InterlinksLabelsWarning(LabelsArray Labels, WarningSeverity Severity = WarningSeverity.Warning) : PrivacyWarning(Severity);
+public record InterlinksLabelsWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Warning);
 
-public record NonPrivateFundsWarning(WarningSeverity Severity = WarningSeverity.Warning) : PrivacyWarning(Severity);
+public record NonPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 
-public record SemiPrivateFundsWarning(WarningSeverity Severity = WarningSeverity.Warning) : PrivacyWarning(Severity);
+public record SemiPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 
-public record ConsolidationWarning(int CoinCount, WarningSeverity Severity = WarningSeverity.Warning) : PrivacyWarning(Severity);
+public record ConsolidationWarning(int CoinCount) : PrivacyWarning(WarningSeverity.Warning);
 
-public record CreatesChangeWarning(WarningSeverity Severity = WarningSeverity.Info) : PrivacyWarning(Severity);
+public record CreatesChangeWarning() : PrivacyWarning(WarningSeverity.Info);
 
-public record UnconfirmedFundsWarning(WarningSeverity Severity = WarningSeverity.Warning) : PrivacyWarning(Severity);
+public record UnconfirmedFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
