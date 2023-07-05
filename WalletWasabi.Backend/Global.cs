@@ -181,7 +181,7 @@ public class Global : IDisposable
 		CoinJoinIdStore!.TryAdd(transaction.GetHash());
 
 		// Trigger mempool refresh.
-		HostedServices.Get<MempoolMirror>().TriggerRound();
+		MempoolMirror.TriggerRound();
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
