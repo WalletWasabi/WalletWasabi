@@ -204,18 +204,32 @@ public partial class Arena : PeriodicRunner
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
-					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
-					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
-					// remove any spent inputs.
+					// Once an input is confirmed and non-zero credentials are issued, it is too late to do any
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
+						var offendingAliceCounter = 0;
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
-							if (offendingAlices.Any())
+							foreach (var offender in offendingAlices)
 							{
-								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
-								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
+								Prison.Ban(offender, round.Id);
+								offendingAliceCounter++;
 							}
+						}
+
+						if (offendingAliceCounter > 0)
+						{
+							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
+							if (round.InputCount - offendingAliceCounter >= round.Parameters.MinInputCountByRound)
+							{
+								EndRound(round, EndRoundState.NotAllAlicesSign);
+								await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
+							}
+							else
+							{
+								EndRound(round, EndRoundState.AbortedNotEnoughAlices);
+							}
+							return;
 						}
 					}
 
@@ -294,7 +308,7 @@ public partial class Arena : PeriodicRunner
 
 					// Logging.
 					round.LogInfo("Trying to broadcast coinjoin.");
-					Coin[]? spentCoins = round.Alices.Select(x => x.Coin).ToArray();
+					Coin[] spentCoins = round.CoinjoinState.Inputs.ToArray();
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 					uint256 roundId = round.Id;
@@ -568,9 +582,10 @@ public partial class Arena : PeriodicRunner
 
 	private void TimeoutAlices()
 	{
+		var now = DateTimeOffset.UtcNow;
 		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)).ToArray())
 		{
-			var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
+			var alicesToRemove = round.Alices.Where(x => x.Deadline < now && !x.ConfirmedConnection).ToArray();
 			foreach (var alice in alicesToRemove)
 			{
 				round.Alices.Remove(alice);

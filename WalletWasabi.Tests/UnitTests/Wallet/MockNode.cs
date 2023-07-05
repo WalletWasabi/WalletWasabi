@@ -1,13 +1,13 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Tests.UnitTests;
-using System.Linq;
-using WalletWasabi.Tests.UnitTests.Wallet;
+
+namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class MockNode
 {
@@ -49,7 +49,7 @@ public class MockNode
 	public static async Task<MockNode> CreateNodeAsync()
 	{
 		var node = new MockNode();
-		await node.Wallet.GenerateAsync(101, CancellationToken.None);
+		await node.Wallet.GenerateAsync(101, CancellationToken.None).ConfigureAwait(false);
 		return node;
 	}
 
@@ -116,5 +116,5 @@ public class MockNode
 	}
 
 	public async Task GenerateBlockAsync(CancellationToken cancel) =>
-		await Rpc.GenerateToAddressAsync(1, Wallet.GetNextDestination().ScriptPubKey.GetDestinationAddress(Network)!, cancel);
+		await Rpc.GenerateToAddressAsync(1, Wallet.GetNextDestination().ScriptPubKey.GetDestinationAddress(Network)!, cancel).ConfigureAwait(false);
 }
