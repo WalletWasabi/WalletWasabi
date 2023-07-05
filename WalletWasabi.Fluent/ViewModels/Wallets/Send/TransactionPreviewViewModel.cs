@@ -83,7 +83,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
 			.SubscribeAsync(async suggestion =>
 			{
-				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
 
 				if (suggestion is { })
