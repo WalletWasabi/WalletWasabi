@@ -48,12 +48,6 @@ public class CoinJoinProcessor : IDisposable
 				}
 
 				var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
-
-				if (!txsNotKnownByAWallet.Any())
-				{
-					return;
-				}
-
 				var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
 				var unconfirmedCoinJoins = await client.GetTransactionsAsync(Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 
