@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -24,13 +26,21 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 		FeeDifference = cancelFeel - originalFee;
 
 		EnableBack = false;
-		NextCommand = ReactiveCommand.CreateFromTask(() => CancelTransaction(cancellingTransaction));
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransaction(cancellingTransaction));
 	}
 
-	private async Task CancelTransaction(SmartTransaction cancelTransaction)
+	private async Task OnCancelTransaction(SmartTransaction cancelTransaction)
 	{
 		IsBusy = true;
-		await Services.TransactionBroadcaster.SendTransactionAsync(cancelTransaction);
+		try
+		{
+			await Services.TransactionBroadcaster.SendTransactionAsync(cancelTransaction);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync("Cancellation", ex.ToUserFriendlyString(), "Wasabi was unable to cancel your transaction.");
+		}
 		IsBusy = false;
 		UiContext.Navigate().To().SendSuccess(_wallet, cancelTransaction);
 	}
