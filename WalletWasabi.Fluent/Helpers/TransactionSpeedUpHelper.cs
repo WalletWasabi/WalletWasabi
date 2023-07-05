@@ -13,9 +13,13 @@ internal static class TransactionSpeedUpHelper
 	{
 		var keyManager = wallet.KeyManager;
 		var change = transactionToSpeedUp.GetWalletOutputs(keyManager).FirstOrDefault();
-		var isDestinationAmountModified = false;
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
 		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+
+		bool isDestinationAmountModified = false;
+		bool isRBF = false;
+		SmartTransaction newTransaction;
+
 		if (bestFeeRate is null)
 		{
 			throw new NullReferenceException("bestFeeRate is null. This should never happen.");
@@ -24,6 +28,8 @@ internal static class TransactionSpeedUpHelper
 		if (transactionToSpeedUp.GetForeignInputs(keyManager).Any() || !transactionToSpeedUp.IsRBF)
 		{
 			// IF there are any foreign input or doesn't signal RBF, then we can only CPFP.
+			isRBF = false;
+
 			if (change is null)
 			{
 				// IF change is not present, we cannot do anything with it.
@@ -44,17 +50,20 @@ internal static class TransactionSpeedUpHelper
 			var cpfpFee = (long)((txSizeBytes + tempTxSizeBytes) * bestFeeRate.SatoshiPerByte) + 1;
 			var cpfpFeeRate = new FeeRate((decimal)(cpfpFee / tempTxSizeBytes));
 
-			var cpfp = TransactionHelpers.BuildChangelessTransaction(
+			newTransaction = TransactionHelpers.BuildChangelessTransaction(
 				wallet,
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(wallet.Network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				cpfpFeeRate,
 				transactionToSpeedUp.GetWalletInputs(keyManager),
-				tryToSign: true);
+				tryToSign: true)
+				.Transaction;
 		}
 		else
 		{
 			// Else it's RBF.
+			isRBF = true;
+
 			var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 
 			// If the highest fee rate is smaller or equal than the original fee rate, then increase fee rate minimally, otherwise built tx with best fee rate.
@@ -63,8 +72,6 @@ internal static class TransactionSpeedUpHelper
 				: bestFeeRate;
 
 			var originalTransaction = transactionToSpeedUp.Transaction;
-			var rbfTransaction = originalTransaction.Clone();
-			rbfTransaction.Outputs.Clear();
 
 			if (!transactionToSpeedUp.GetForeignOutputs(keyManager).Any())
 			{
