@@ -104,6 +104,8 @@ public class PrivacySuggestionsModel
 	{
 		var result = new PrivacySuggestionsResult();
 
+		var canModifyTransactionAmount = !transactionInfo.IsPayJoin && !transactionInfo.IsFixedAmount;
+
 		var transactionLabels = originalTransaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
 		var onlyKnownByRecipient =
 			transactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
@@ -134,7 +136,8 @@ public class PrivacySuggestionsModel
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
-		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
+
+		if (canModifyTransactionAmount && (foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
 		{
 			var newTransaction = CreateTransaction(transactionInfo, allPrivateCoin);
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
@@ -143,19 +146,19 @@ public class PrivacySuggestionsModel
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance)
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, differenceFiatText);
+				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText);
 				result.Suggestions.Add(fullPrivacySuggestion);
 			}
 		}
 
 		// Do not calculate the better privacy option when the full privacy option has the same amount.
 		// This is only possible if the user makes a silly selection with coin control.
-		if (fullPrivacySuggestion is { } sug && sug.DifferenceFiatText.Contains("same", StringComparison.OrdinalIgnoreCase))
+		if (fullPrivacySuggestion is { } sug && sug.Difference == 0m)
 		{
 			return result;
 		}
 
-		if (foundNonPrivate && allSemiPrivateCoin.Any())
+		if (canModifyTransactionAmount && foundNonPrivate && allSemiPrivateCoin.Any())
 		{
 			var coins = allPrivateCoin.Union(allSemiPrivateCoin);
 			var newTransaction = CreateTransaction(transactionInfo, coins);

@@ -14,9 +14,9 @@ public abstract record PrivacySuggestion(BuildTransactionResult? Transaction);
 
 public record LabelManagementSuggestion(BuildTransactionResult? Transaction = null, LabelsArray? NewLabels = null) : PrivacySuggestion(Transaction);
 
-public record FullPrivacySuggestion(BuildTransactionResult Transaction, /*Money Difference, IEnumerable<SmartCoin> CoinsToRemove,*/ string DifferenceFiatText) : PrivacySuggestion(Transaction);
+public record FullPrivacySuggestion(BuildTransactionResult Transaction, decimal Difference, string DifferenceFiatText) : PrivacySuggestion(Transaction);
 
-public record BetterPrivacySuggestion(BuildTransactionResult Transaction, /*Money Difference, IEnumerable<SmartCoin> CoinsToRemove,*/ string DifferenceFiatText) : PrivacySuggestion(Transaction);
+public record BetterPrivacySuggestion(BuildTransactionResult Transaction, string DifferenceFiatText) : PrivacySuggestion(Transaction);
 
 public record ChangeAvoidanceSuggestion(BuildTransactionResult Transaction, string DifferenceFiatText) : PrivacySuggestion(Transaction)
 {
