@@ -150,7 +150,7 @@ public class PrivacySuggestionsModel
 
 		// Do not calculate the better privacy option when the full privacy option has the same amount.
 		// This is only possible if the user makes a silly selection with coin control.
-		if (fullPrivacySuggestion is { } sug && sug.DifferenceFiatText.Contains("Same"))
+		if (fullPrivacySuggestion is { } sug && sug.DifferenceFiatText.Contains("same"))
 		{
 			return result;
 		}
