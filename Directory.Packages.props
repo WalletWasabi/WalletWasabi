@@ -20,7 +20,7 @@
 		<PackageVersion Include="Swashbuckle.AspNetCore" Version="6.4.0" />
 		<!-- UI. -->
 		<PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-		<PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0-rc2.2" />
+		<PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0" />
 		<PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
 		<PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.0.0" />
 		<PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
