@@ -85,15 +85,6 @@
               ToolTip.Tip="Change transaction fee or confirmation time"
               DockPanel.Dock="Right"
               Margin="10 0">
-        <Button.IsVisible>
-          <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <MultiBinding Converter="{x:Static BoolConverters.Or}">
-              <Binding Path="Parent.AdjustFeeAvailable" />
-              <Binding Path="IsCustomFeeUsed" />
-            </MultiBinding>
-            <Binding Path="!IsPreview" />
-          </MultiBinding>
-        </Button.IsVisible>
         <Viewbox Height="20">
           <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
         </Viewbox>
