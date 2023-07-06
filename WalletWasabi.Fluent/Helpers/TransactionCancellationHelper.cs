@@ -22,6 +22,11 @@ public static class TransactionCancellationHelper
 			throw new InvalidOperationException("Transaction has foreign inputs. Cannot cancel.");
 		}
 
+		if (transactionToCancel.GetWalletOutputs(keyManager).Count() == transactionToCancel.Transaction.Outputs.Count)
+		{
+			throw new InvalidOperationException("Transaction has no foreign outputs. Cannot cancel.");
+		}
+
 		// Take the first own output and if we have it that's where we send all our money to.
 		var ownOutput = transactionToCancel.GetWalletOutputs(keyManager).FirstOrDefault();
 

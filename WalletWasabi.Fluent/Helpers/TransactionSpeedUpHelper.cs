@@ -12,6 +12,13 @@ internal static class TransactionSpeedUpHelper
 	public static SmartTransaction CreateSpeedUpTransaction(SmartTransaction transactionToSpeedUp, Wallet wallet)
 	{
 		var keyManager = wallet.KeyManager;
+		var network = wallet.Network;
+
+		if (transactionToSpeedUp.GetWalletOutputs(keyManager).Count() == transactionToSpeedUp.Transaction.Outputs.Count)
+		{
+			throw new InvalidOperationException("Transaction has no foreign outputs. Cannot speed up.");
+		}
+
 		var change = transactionToSpeedUp.GetWalletOutputs(keyManager).FirstOrDefault();
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
 		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
@@ -39,7 +46,7 @@ internal static class TransactionSpeedUpHelper
 			// Let's build a CPFP with best fee rate temporarily.
 			var tempTx = TransactionHelpers.BuildChangelessTransaction(
 				wallet,
-				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(wallet.Network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
+				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				bestFeeRate,
 				transactionToSpeedUp.GetWalletInputs(keyManager),
@@ -52,7 +59,7 @@ internal static class TransactionSpeedUpHelper
 
 			newTransaction = TransactionHelpers.BuildChangelessTransaction(
 				wallet,
-				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(wallet.Network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
+				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				cpfpFeeRate,
 				transactionToSpeedUp.GetWalletInputs(keyManager),
