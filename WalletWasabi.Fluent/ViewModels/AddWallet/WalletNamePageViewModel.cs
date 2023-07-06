@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
+using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
