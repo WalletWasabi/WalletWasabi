@@ -13,7 +13,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Cancel transaction")]
+[NavigationMetaData(Title = "Cancel Transaction")]
 public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit>
 {
 	private readonly Wallet _wallet;

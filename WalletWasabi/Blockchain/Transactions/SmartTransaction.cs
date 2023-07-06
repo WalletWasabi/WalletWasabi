@@ -224,15 +224,25 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	/// <summary>
 	/// Transaction can be sped up if it's unconfirmed.
-	/// It also only makes sense to speed up if it has foreign outputs. Self spend does not need to be sped up.
+	/// If all our inputs and outputs are ours, then speeding it up makes no sense.
 	/// </summary>
-	public bool IsSpeedupable(KeyManager keyManager) => !keyManager.IsWatchOnly && !keyManager.IsHardwareWallet && !Confirmed && GetForeignOutputs(keyManager).Any();
+	public bool IsSpeedupable(KeyManager keyManager) =>
+		!keyManager.IsWatchOnly
+		&& !keyManager.IsHardwareWallet
+		&& !Confirmed
+		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any());
 
 	/// <summary>
 	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
 	/// It also only makes sense to cancel if it has foreign outputs. Self spend does not make sense to cancel.
 	/// </summary>
-	public bool IsCancelable(KeyManager keyManager) => !keyManager.IsWatchOnly && !keyManager.IsHardwareWallet && !Confirmed && !GetForeignInputs(keyManager).Any() && GetForeignOutputs(keyManager).Any() && IsRBF;
+	public bool IsCancelable(KeyManager keyManager) =>
+		!keyManager.IsWatchOnly
+		&& !keyManager.IsHardwareWallet
+		&& !Confirmed
+		&& !GetForeignInputs(keyManager).Any()
+		&& GetForeignOutputs(keyManager).Any()
+		&& IsRBF;
 
 	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
 	[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]

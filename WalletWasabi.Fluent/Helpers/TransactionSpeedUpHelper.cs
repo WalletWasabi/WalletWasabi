@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -23,12 +25,12 @@ internal static class TransactionSpeedUpHelper
 		// Take the largest own output and if we have it that's what we will want to CPFP or deduct RBF fee from.
 		var ownOutput = transactionToSpeedUp.GetWalletOutputs(keyManager).OrderByDescending(x => x.Amount).FirstOrDefault();
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
-		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 
 		bool isDestinationAmountModified = false;
 		bool isRBF = false;
 		SmartTransaction newTransaction;
 
+		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 		if (bestFeeRate is null)
 		{
 			throw new NullReferenceException($"{nameof(bestFeeRate)} is null. This should never happen.");
@@ -51,7 +53,7 @@ internal static class TransactionSpeedUpHelper
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				bestFeeRate,
-				transactionToSpeedUp.GetWalletInputs(keyManager),
+				new[] { ownOutput },
 				tryToSign: true);
 			var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
@@ -65,7 +67,7 @@ internal static class TransactionSpeedUpHelper
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				cpfpFeeRate,
-				transactionToSpeedUp.GetWalletInputs(keyManager),
+				new[] { ownOutput },
 				tryToSign: true)
 				.Transaction;
 		}
@@ -83,26 +85,77 @@ internal static class TransactionSpeedUpHelper
 			var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 			var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 			var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
+			var minRelayFee = originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * txSizeBytes);
+			var minimumRbfFeeRate = new FeeRate(minRelayFee, txSizeBytes);
 
-			// If the highest fee rate is smaller or equal than the original fee rate, then increase fee rate minimally, otherwise built tx with best fee rate.
-			//var rbfFeeRate = bestFeeRate is null || bestFeeRate <= originalFeeRate
-			//	? new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(Math.Max(2, originalFeeRate.SatoshiPerByte * 0.05m)).Satoshi)
-			//	: bestFeeRate;
+			// If the best fee rate is smaller than the minimum bump or not available, then we go with the minimum bump.
+			var rbfFeeRate = (bestFeeRate is null || bestFeeRate <= minimumRbfFeeRate)
+				? minimumRbfFeeRate
+				: bestFeeRate;
 
-			var originalTransaction = transactionToSpeedUp.Transaction;
+			// IF change present, then we modify the change's amount.
+			var payments = new List<DestinationRequest>();
 
-			// IF send.
-			if (ownOutput is not null)
+			foreach (var coin in transactionToSpeedUp.GetWalletOutputs(keyManager))
 			{
-				newTransaction = new SmartTransaction(Transaction.Create(Network.Main), Height.Mempool);
-				// IF change present, then we modify the change's amount.
+				DestinationRequest destReq;
+				if (coin == ownOutput)
+				{
+					destReq = new DestinationRequest(
+						scriptPubKey: coin.ScriptPubKey,
+						amount: coin.Amount,
+						subtractFee: true,
+						labels: coin.HdPubKey.Labels);
+				}
+				else
+				{
+					destReq = new DestinationRequest(
+						scriptPubKey: coin.ScriptPubKey,
+						amount: coin.Amount,
+						subtractFee: false,
+						labels: coin.HdPubKey.Labels);
+				}
+
+				payments.Add(destReq);
 			}
-			else
+
+			var foreignOutputs = transactionToSpeedUp.GetForeignOutputs(keyManager).OrderByDescending(x => x.TxOut.Value).ToArray();
+
+			var haveOwnOutput = ownOutput is not null;
+			if (haveOwnOutput)
 			{
-				newTransaction = new SmartTransaction(Transaction.Create(Network.Main), Height.Mempool);
-				// IF change not present, then we modify the destination's amount.
 				isDestinationAmountModified = true;
 			}
+
+			// If we have no own output, then we substract the fee from the largest foreign output.
+			var largestForeignOuput = foreignOutputs.First();
+			var largestForeignOuputDestReq = new DestinationRequest(
+				scriptPubKey: largestForeignOuput.TxOut.ScriptPubKey,
+				amount: largestForeignOuput.TxOut.Value,
+				subtractFee: !haveOwnOutput,
+				labels: transactionToSpeedUp.Labels);
+			payments.Add(largestForeignOuputDestReq);
+
+			foreach (var output in foreignOutputs.Skip(1))
+			{
+				var destReq = new DestinationRequest(
+					scriptPubKey: output.TxOut.ScriptPubKey,
+					amount: output.TxOut.Value,
+					subtractFee: false,
+					labels: transactionToSpeedUp.Labels);
+
+				payments.Add(destReq);
+			}
+
+			newTransaction = wallet.BuildTransaction(
+				password: wallet.Kitchen.SaltSoup(),
+				payments: new PaymentIntent(payments),
+				feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
+				allowUnconfirmed: true,
+				allowedInputs: transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint),
+				allowDoubleSpend: true,
+				tryToSign: true)
+				.Transaction;
 		}
 
 		return newTransaction;
