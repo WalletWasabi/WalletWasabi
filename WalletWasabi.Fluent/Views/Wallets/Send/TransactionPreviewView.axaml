@@ -62,6 +62,20 @@
                 <Setter Property="Data" Value="{StaticResource shield_tick_regular}" />
                 <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
               </Style>
+              <Style Selector="PathIcon.isBusy">
+                <Setter Property="Data" Value="{StaticResource shield_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+                <Style.Animations>
+                  <Animation Duration="0:0:0.8" IterationCount="Infinite" PlaybackDirection="Alternate" Easing="{StaticResource FluentEasing}">
+                    <KeyFrame Cue="0%">
+                      <Setter Property="Opacity" Value="0.2" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                      <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                  </Animation>
+                </Style.Animations>
+              </Style>
             </Border.Styles>
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
@@ -85,7 +99,8 @@
             </FlyoutBase.AttachedFlyout>
             <Viewbox Height="20">
               <Panel>
-                <PathIcon Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
+                <PathIcon Classes.isBusy="{Binding PrivacySuggestions.IsBusy}"
+                          Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
                           Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
                           Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
               </Panel>
