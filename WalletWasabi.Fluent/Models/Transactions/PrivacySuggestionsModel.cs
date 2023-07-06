@@ -3,6 +3,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -137,16 +138,16 @@ public class PrivacySuggestionsModel
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
-		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any())
+		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any() &&
+		    TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
-			var newTransaction = CreateTransaction(transactionInfo, allPrivateCoin);
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText, allPrivateCoin);
+				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText, allPrivateCoin, isChangeless);
 				result.Suggestions.Add(fullPrivacySuggestion);
 			}
 		}
@@ -158,17 +159,17 @@ public class PrivacySuggestionsModel
 			return result;
 		}
 
-		if (foundNonPrivate && allSemiPrivateCoin.Any())
+		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
+		if (foundNonPrivate && allSemiPrivateCoin.Any() &&
+		    TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
 		{
-			var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
-			var newTransaction = CreateTransaction(transactionInfo, coins);
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins));
+				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins, isChangeless));
 			}
 		}
 
@@ -304,11 +305,18 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private BuildTransactionResult CreateTransaction(TransactionInfo transactionInfo, SmartCoin[] coins)
+	private bool TryCreateTransaction(
+		TransactionInfo transactionInfo,
+		SmartCoin[] coins,
+		[NotNullWhen(true)] out BuildTransactionResult? txn,
+		out bool isChangeless)
 	{
+		txn = null;
+		isChangeless = false;
+
 		try
 		{
-			return TransactionHelpers.BuildTransaction(
+			txn = TransactionHelpers.BuildTransaction(
 				_wallet,
 				transactionInfo.Destination,
 				transactionInfo.Amount,
@@ -321,14 +329,25 @@ public class PrivacySuggestionsModel
 		}
 		catch (Exception)
 		{
-			return TransactionHelpers.BuildChangelessTransaction(
-				_wallet,
-				transactionInfo.Destination,
-				transactionInfo.Recipient,
-				transactionInfo.FeeRate,
-				coins,
-				tryToSign: false);
+			try
+			{
+				txn = TransactionHelpers.BuildChangelessTransaction(
+					_wallet,
+					transactionInfo.Destination,
+					transactionInfo.Recipient,
+					transactionInfo.FeeRate,
+					coins,
+					tryToSign: false);
+
+				isChangeless = true;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
 		}
+
+		return true;
 	}
 
 	private string GetDifferenceFiatText(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)

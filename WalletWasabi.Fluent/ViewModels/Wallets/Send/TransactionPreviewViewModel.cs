@@ -8,13 +8,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -23,7 +20,6 @@ using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -541,12 +537,32 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				break;
 
 			case FullPrivacySuggestion fullPrivacySuggestion:
-				_info.Coins = fullPrivacySuggestion.Coins;
+			{
+				if (fullPrivacySuggestion.IsChangeless)
+				{
+					_info.ChangelessCoins = fullPrivacySuggestion.Coins;
+				}
+				else
+				{
+					_info.Coins = fullPrivacySuggestion.Coins;
+				}
+
 				break;
+			}
 
 			case BetterPrivacySuggestion betterPrivacySuggestion:
-				_info.Coins = betterPrivacySuggestion.Coins;
+			{
+				if (betterPrivacySuggestion.IsChangeless)
+				{
+					_info.ChangelessCoins = betterPrivacySuggestion.Coins;
+				}
+				else
+				{
+					_info.Coins = betterPrivacySuggestion.Coins;
+				}
+
 				break;
+			}
 		}
 
 		if (suggestion.Transaction is { } transaction)
