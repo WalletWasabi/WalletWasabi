@@ -208,7 +208,7 @@ public class PrivacySuggestionsModel
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
-		if (hasChange && !info.IsFixedAmount && !info.IsPayJoin)
+		if (hasChange)
 		{
 			result.Warnings.Add(new CreatesChangeWarning());
 
