@@ -5,6 +5,8 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -35,8 +37,12 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 
 		try
 		{
-			await Services.TransactionBroadcaster.SendTransactionAsync(cancelTransaction);
-			UiContext.Navigate().To().SendSuccess(_wallet, cancelTransaction);
+			var isAuthorized = await AuthorizeForPasswordAsync();
+			if (isAuthorized)
+			{
+				await Services.TransactionBroadcaster.SendTransactionAsync(cancelTransaction);
+				UiContext.Navigate().To().SendSuccess(_wallet, cancelTransaction);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -51,5 +57,17 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 
 	protected override void OnDialogClosed()
 	{
+	}
+
+	private async Task<bool> AuthorizeForPasswordAsync()
+	{
+		if (!string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup()))
+		{
+			var result = UiContext.Navigate().To().PasswordAuthDialog(_wallet);
+			var dialogResult = await result.GetResultAsync();
+			return dialogResult;
+		}
+
+		return true;
 	}
 }
