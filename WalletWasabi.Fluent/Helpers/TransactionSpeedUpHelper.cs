@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -93,8 +95,51 @@ internal static class TransactionSpeedUpHelper
 			// IF send.
 			if (ownOutput is not null)
 			{
-				newTransaction = new SmartTransaction(Transaction.Create(Network.Main), Height.Mempool);
 				// IF change present, then we modify the change's amount.
+				var payments = new List<DestinationRequest>();
+				foreach (var output in transactionToSpeedUp.GetForeignOutputs(keyManager))
+				{
+					var destReq = new DestinationRequest(
+						scriptPubKey: output.TxOut.ScriptPubKey,
+						amount: output.TxOut.Value,
+						subtractFee: false,
+						labels: transactionToSpeedUp.Labels);
+
+					payments.Add(destReq);
+				}
+
+				foreach (var coin in transactionToSpeedUp.GetWalletOutputs(keyManager))
+				{
+					DestinationRequest destReq;
+					if (coin == ownOutput)
+					{
+						destReq = new DestinationRequest(
+							scriptPubKey: coin.ScriptPubKey,
+							amount: coin.Amount,
+							subtractFee: true,
+							labels: coin.HdPubKey.Labels);
+					}
+					else
+					{
+						destReq = new DestinationRequest(
+							scriptPubKey: coin.ScriptPubKey,
+							amount: coin.Amount,
+							subtractFee: false,
+							labels: coin.HdPubKey.Labels);
+					}
+
+					payments.Add(destReq);
+				}
+
+				newTransaction = wallet.BuildTransaction(
+					password: wallet.Kitchen.SaltSoup(),
+					payments: new PaymentIntent(payments),
+					feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
+					allowUnconfirmed: true,
+					allowedInputs: transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint),
+					allowDoubleSpend: true,
+					tryToSign: true)
+					.Transaction;
 			}
 			else
 			{
