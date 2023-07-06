@@ -83,13 +83,12 @@ internal static class TransactionSpeedUpHelper
 			var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 			var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 			var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
+			var minimumRbfFeeRate = new FeeRate(originalFeeRate.SatoshiPerByte + minRelayFeeRate.SatoshiPerByte * txSizeBytes);
 
-			// If the highest fee rate is smaller or equal than the original fee rate, then increase fee rate minimally, otherwise built tx with best fee rate.
-			//var rbfFeeRate = bestFeeRate is null || bestFeeRate <= originalFeeRate
-			//	? new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(Math.Max(2, originalFeeRate.SatoshiPerByte * 0.05m)).Satoshi)
-			//	: bestFeeRate;
-
-			var originalTransaction = transactionToSpeedUp.Transaction;
+			// If the best fee rate is smaller than the minimum bump or not available, then we go with the minimum bump.
+			var rbfFeeRate = (bestFeeRate is null || bestFeeRate <= minimumRbfFeeRate)
+				? minimumRbfFeeRate
+				: bestFeeRate;
 
 			// IF send.
 			if (ownOutput is not null)
