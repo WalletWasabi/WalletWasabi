@@ -222,8 +222,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
-	public bool IsSpeedupable => !Confirmed;
+	/// <summary>
+	/// Transaction can be sped up if it's unconfirmed.
+	/// It also only makes sense to speed up if it has foreign outputs. Self spend does not need to be sped up.
+	/// </summary>
+	public bool IsSpeedupable(KeyManager keyManager) => !Confirmed && GetForeignOutputs(keyManager).Any();
 
+	/// <summary>
+	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
+	/// It also only makes sense to cancel if it has foreign outputs. Self spend does not make sense to cancel.
+	/// </summary>
 	public bool IsCancelable(KeyManager keyManager) => !Confirmed && !GetForeignInputs(keyManager).Any() && GetForeignOutputs(keyManager).Any() && IsRBF;
 
 	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]

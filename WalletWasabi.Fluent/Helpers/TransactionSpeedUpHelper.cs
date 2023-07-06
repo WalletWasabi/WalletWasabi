@@ -22,7 +22,7 @@ internal static class TransactionSpeedUpHelper
 
 		if (bestFeeRate is null)
 		{
-			throw new NullReferenceException("bestFeeRate is null. This should never happen.");
+			throw new NullReferenceException($"{nameof(bestFeeRate)} is null. This should never happen.");
 		}
 
 		if (transactionToSpeedUp.GetForeignInputs(keyManager).Any() || !transactionToSpeedUp.IsRBF)
