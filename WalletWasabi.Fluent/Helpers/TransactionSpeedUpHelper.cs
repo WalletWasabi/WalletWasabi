@@ -51,7 +51,7 @@ internal static class TransactionSpeedUpHelper
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				bestFeeRate,
-				transactionToSpeedUp.GetWalletInputs(keyManager),
+				new[] { ownOutput },
 				tryToSign: true);
 			var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
@@ -65,7 +65,7 @@ internal static class TransactionSpeedUpHelper
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				cpfpFeeRate,
-				transactionToSpeedUp.GetWalletInputs(keyManager),
+				new[] { ownOutput },
 				tryToSign: true)
 				.Transaction;
 		}
