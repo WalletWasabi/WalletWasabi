@@ -3,6 +3,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -19,7 +20,8 @@ internal static class TransactionSpeedUpHelper
 			throw new InvalidOperationException("Transaction has no foreign outputs. Cannot speed up.");
 		}
 
-		var change = transactionToSpeedUp.GetWalletOutputs(keyManager).FirstOrDefault();
+		// Take the largest own output and if we have it that's what we will want to CPFP or deduct RBF fee from.
+		var ownOutput = transactionToSpeedUp.GetWalletOutputs(keyManager).OrderByDescending(x => x.Amount).FirstOrDefault();
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
 		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 
@@ -37,7 +39,7 @@ internal static class TransactionSpeedUpHelper
 			// IF there are any foreign input or doesn't signal RBF, then we can only CPFP.
 			isRBF = false;
 
-			if (change is null)
+			if (ownOutput is null)
 			{
 				// IF change is not present, we cannot do anything with it.
 				throw new InvalidOperationException("Transaction doesn't signal RBF, nor we have change to CPFP it.");
@@ -54,6 +56,7 @@ internal static class TransactionSpeedUpHelper
 			var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
 			// Let's increase the fee rate of CPFP transaction.
+			// Let's assume the transaction we want to CPFP pays 0 fees.
 			var cpfpFee = (long)((txSizeBytes + tempTxSizeBytes) * bestFeeRate.SatoshiPerByte) + 1;
 			var cpfpFeeRate = new FeeRate((decimal)(cpfpFee / tempTxSizeBytes));
 
@@ -68,38 +71,40 @@ internal static class TransactionSpeedUpHelper
 		}
 		else
 		{
+			if (!transactionToSpeedUp.GetForeignOutputs(keyManager).Any())
+			{
+				// IF self spend.
+				throw new InvalidOperationException("Self spend cannot be sped up.");
+			}
+
 			// Else it's RBF.
 			isRBF = true;
 
 			var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
+			var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
+			var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 
 			// If the highest fee rate is smaller or equal than the original fee rate, then increase fee rate minimally, otherwise built tx with best fee rate.
-			var rbfFeeRate = bestFeeRate is null || bestFeeRate <= originalFeeRate
-				? new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(Math.Max(2, originalFeeRate.SatoshiPerByte * 0.05m)).Satoshi)
-				: bestFeeRate;
+			//var rbfFeeRate = bestFeeRate is null || bestFeeRate <= originalFeeRate
+			//	? new FeeRate(originalFeeRate.SatoshiPerByte + Money.Satoshis(Math.Max(2, originalFeeRate.SatoshiPerByte * 0.05m)).Satoshi)
+			//	: bestFeeRate;
 
 			var originalTransaction = transactionToSpeedUp.Transaction;
 
-			if (!transactionToSpeedUp.GetForeignOutputs(keyManager).Any())
+			// IF send.
+			if (ownOutput is not null)
 			{
-				// IF self spend.
+				newTransaction = new SmartTransaction(Transaction.Create(Network.Main), Height.Mempool);
+				// IF change present, then we modify the change's amount.
 			}
 			else
 			{
-				// IF send.
-				if (change is not null)
-				{
-					// IF change present, then we modify the change's amount.
-				}
-				else
-				{
-					// IF change not present, then we modify the destination's amount.
-					isDestinationAmountModified = true;
-				}
+				newTransaction = new SmartTransaction(Transaction.Create(Network.Main), Height.Mempool);
+				// IF change not present, then we modify the destination's amount.
+				isDestinationAmountModified = true;
 			}
 		}
 
-		// TODO: Implement the rest of the logic
-		throw new NotImplementedException();
+		return newTransaction;
 	}
 }
