@@ -100,6 +100,6 @@ internal static class TransactionSpeedUpHelper
 		}
 
 		// TODO: Implement the rest of the logic
-		throw new NotImplementedException();
+		return null;
 	}
 }

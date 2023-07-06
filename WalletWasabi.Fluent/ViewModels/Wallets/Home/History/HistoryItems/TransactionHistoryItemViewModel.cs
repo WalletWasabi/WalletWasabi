@@ -1,12 +1,10 @@
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -49,17 +47,9 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 	private void OnSpeedUpTransaction(SmartTransaction transactionToSpeedUp)
 	{
-		var speedUpTransaction = TransactionSpeedUpHelper.CreateSpeedUpTransaction(transactionToSpeedUp, Wallet);
+		var boostedTransaction = TransactionSpeedUpHelper.CreateSpeedUpTransaction(transactionToSpeedUp, Wallet);
 
-		UiContext.Navigate().To().BoostTransactionDialog(
-			new BoostedTransactionPreview(Wallet.Synchronizer.UsdExchangeRate)
-			{
-				Destination = "some destination",
-				Amount = Money.FromUnit(1234, MoneyUnit.Satoshi),
-				Labels = new LabelsArray("label1", "label2", "label3"),
-				Fee = Money.FromUnit(25, MoneyUnit.Satoshi),
-				ConfirmationTime = TimeSpan.FromMinutes(20)
-			});
+		UiContext.Navigate().To().SpeedUpTransactionDialog(boostedTransaction, transactionToSpeedUp);
 	}
 
 	private void OnCancelTransaction(TransactionSummary transactionSummary)

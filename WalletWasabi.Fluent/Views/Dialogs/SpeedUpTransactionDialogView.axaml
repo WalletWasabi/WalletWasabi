@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="571"
+             x:DataType="dialogs:SpeedUpTransactionDialogViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.SpeedUpTransactionDialogView">
+
+  <c:ContentArea Title="Speed Up Transaction"
+                 EnableCancel="False"
+                 EnableBack="{Binding EnableBack}"
+                 IsBusy="{Binding IsBusy}"
+                 EnableNext="False" NextContent="Cancel">
+
+    <c:QuestionControl YesCommand="{Binding NextCommand}" NoCommand="{Binding CancelCommand}">
+      <c:QuestionControl.IconContent>
+        <Viewbox MaxHeight="120" Margin="40">
+          <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+        </Viewbox>
+      </c:QuestionControl.IconContent>
+      <StackPanel Spacing="10">
+        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
+                   Text="Do you really want to speed up this transaction?" />
+        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
+                   Text="{Binding FeeDifference, StringFormat='You will pay an extra fee of {0} for the boost', Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}}" />
+      </StackPanel>
+    </c:QuestionControl>
+
+  </c:ContentArea>
+
+</UserControl>
