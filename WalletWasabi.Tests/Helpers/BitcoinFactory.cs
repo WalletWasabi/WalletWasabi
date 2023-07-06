@@ -3,8 +3,6 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;

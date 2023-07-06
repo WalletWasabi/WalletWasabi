@@ -78,9 +78,12 @@
       },
       "QRackers": {
         "type": "Direct",
-        "requested": "[0.1.0, )",
-        "resolved": "0.1.0",
-        "contentHash": "epJXKWWGaijgn6gMI4itu/M1j8U1hiNQs1M2BJ0JR3Ok+QOBQCYUQkxOlxOOqjqkMygv/lBuJT+zXsLlNZJnCA=="
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "a44f7v+IVAI+Rz2PM+EdzreEBbgT9ffOj2B8kiBAKAM4DcgHieaN/qN5RsZwUuFX3TF1HGblZ20aM1jbD+t/Kg==",
+        "dependencies": {
+          "SkiaSharp": "2.88.3"
+        }
       },
       "System.Runtime": {
         "type": "Direct",
@@ -276,11 +279,11 @@
       },
       "SkiaSharp": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "Zfs4qdQuvLsdSdBa42CnD8Dlcnkr46GaaFEwouzrjOLse8DmKkf/zBaCFCUkNIjGDZFkjFGe/ai5qHYkMcXIsg==",
+        "resolved": "2.88.3",
+        "contentHash": "GG8X3EdfwyBfwjl639UIiOVOKEdeoqDgYrz0P1MUCnefXt9cofN+AK8YB/v1+5cLMr03ieWCQdDmPqnFIzSxZw==",
         "dependencies": {
-          "SkiaSharp.NativeAssets.Win32": "2.88.1-preview.108",
-          "SkiaSharp.NativeAssets.macOS": "2.88.1-preview.108"
+          "SkiaSharp.NativeAssets.Win32": "2.88.3",
+          "SkiaSharp.NativeAssets.macOS": "2.88.3"
         }
       },
       "SkiaSharp.NativeAssets.Linux": {
@@ -293,8 +296,8 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "nz+Ege0i1aCicLnaHOBzuTBj5LnLxlZVxLv+wUEtOXaAHq6of7kxaE+/+4KC1OBnKs64L8WDGf88VC2fIC/zxw=="
+        "resolved": "2.88.3",
+        "contentHash": "CEbWAXMGFkPV3S1snBKK7jEG3+xud/9kmSAhu0BEUKKtlMdxx+Qal0U9bntQREM9QpqP5xLWZooodi8IlV8MEg=="
       },
       "SkiaSharp.NativeAssets.WebAssembly": {
         "type": "Transitive",
@@ -303,8 +306,8 @@
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "98r2fGVjPNjIhH0ooHtvAcqsHUjWZPEkqrfpynZNWdo8gkUPZhENvOodDtvBNUW6we24Bo4aWCnGbJuhyn//ug=="
+        "resolved": "2.88.3",
+        "contentHash": "MU4ASL8VAbTv5vSw1PoiWjjjpjtGhWtFYuJnrN4sNHFCePb2ohQij9JhSdqLLxk7RpRtWPdV93fbA53Pt+J0yw=="
       },
       "Splat": {
         "type": "Transitive",
@@ -877,13 +880,13 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "nz+Ege0i1aCicLnaHOBzuTBj5LnLxlZVxLv+wUEtOXaAHq6of7kxaE+/+4KC1OBnKs64L8WDGf88VC2fIC/zxw=="
+        "resolved": "2.88.3",
+        "contentHash": "CEbWAXMGFkPV3S1snBKK7jEG3+xud/9kmSAhu0BEUKKtlMdxx+Qal0U9bntQREM9QpqP5xLWZooodi8IlV8MEg=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "98r2fGVjPNjIhH0ooHtvAcqsHUjWZPEkqrfpynZNWdo8gkUPZhENvOodDtvBNUW6we24Bo4aWCnGbJuhyn//ug=="
+        "resolved": "2.88.3",
+        "contentHash": "MU4ASL8VAbTv5vSw1PoiWjjjpjtGhWtFYuJnrN4sNHFCePb2ohQij9JhSdqLLxk7RpRtWPdV93fbA53Pt+J0yw=="
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
@@ -1276,13 +1279,13 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "nz+Ege0i1aCicLnaHOBzuTBj5LnLxlZVxLv+wUEtOXaAHq6of7kxaE+/+4KC1OBnKs64L8WDGf88VC2fIC/zxw=="
+        "resolved": "2.88.3",
+        "contentHash": "CEbWAXMGFkPV3S1snBKK7jEG3+xud/9kmSAhu0BEUKKtlMdxx+Qal0U9bntQREM9QpqP5xLWZooodi8IlV8MEg=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "98r2fGVjPNjIhH0ooHtvAcqsHUjWZPEkqrfpynZNWdo8gkUPZhENvOodDtvBNUW6we24Bo4aWCnGbJuhyn//ug=="
+        "resolved": "2.88.3",
+        "contentHash": "MU4ASL8VAbTv5vSw1PoiWjjjpjtGhWtFYuJnrN4sNHFCePb2ohQij9JhSdqLLxk7RpRtWPdV93fbA53Pt+J0yw=="
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
@@ -1675,13 +1678,13 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "nz+Ege0i1aCicLnaHOBzuTBj5LnLxlZVxLv+wUEtOXaAHq6of7kxaE+/+4KC1OBnKs64L8WDGf88VC2fIC/zxw=="
+        "resolved": "2.88.3",
+        "contentHash": "CEbWAXMGFkPV3S1snBKK7jEG3+xud/9kmSAhu0BEUKKtlMdxx+Qal0U9bntQREM9QpqP5xLWZooodi8IlV8MEg=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "98r2fGVjPNjIhH0ooHtvAcqsHUjWZPEkqrfpynZNWdo8gkUPZhENvOodDtvBNUW6we24Bo4aWCnGbJuhyn//ug=="
+        "resolved": "2.88.3",
+        "contentHash": "MU4ASL8VAbTv5vSw1PoiWjjjpjtGhWtFYuJnrN4sNHFCePb2ohQij9JhSdqLLxk7RpRtWPdV93fbA53Pt+J0yw=="
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
@@ -2074,13 +2077,13 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "nz+Ege0i1aCicLnaHOBzuTBj5LnLxlZVxLv+wUEtOXaAHq6of7kxaE+/+4KC1OBnKs64L8WDGf88VC2fIC/zxw=="
+        "resolved": "2.88.3",
+        "contentHash": "CEbWAXMGFkPV3S1snBKK7jEG3+xud/9kmSAhu0BEUKKtlMdxx+Qal0U9bntQREM9QpqP5xLWZooodi8IlV8MEg=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "98r2fGVjPNjIhH0ooHtvAcqsHUjWZPEkqrfpynZNWdo8gkUPZhENvOodDtvBNUW6we24Bo4aWCnGbJuhyn//ug=="
+        "resolved": "2.88.3",
+        "contentHash": "MU4ASL8VAbTv5vSw1PoiWjjjpjtGhWtFYuJnrN4sNHFCePb2ohQij9JhSdqLLxk7RpRtWPdV93fbA53Pt+J0yw=="
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
@@ -2389,13 +2392,13 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "nz+Ege0i1aCicLnaHOBzuTBj5LnLxlZVxLv+wUEtOXaAHq6of7kxaE+/+4KC1OBnKs64L8WDGf88VC2fIC/zxw=="
+        "resolved": "2.88.3",
+        "contentHash": "CEbWAXMGFkPV3S1snBKK7jEG3+xud/9kmSAhu0BEUKKtlMdxx+Qal0U9bntQREM9QpqP5xLWZooodi8IlV8MEg=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "2.88.1-preview.108",
-        "contentHash": "98r2fGVjPNjIhH0ooHtvAcqsHUjWZPEkqrfpynZNWdo8gkUPZhENvOodDtvBNUW6we24Bo4aWCnGbJuhyn//ug=="
+        "resolved": "2.88.3",
+        "contentHash": "MU4ASL8VAbTv5vSw1PoiWjjjpjtGhWtFYuJnrN4sNHFCePb2ohQij9JhSdqLLxk7RpRtWPdV93fbA53Pt+J0yw=="
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
