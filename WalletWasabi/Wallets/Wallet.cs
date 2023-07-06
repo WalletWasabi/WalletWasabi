@@ -352,7 +352,7 @@ public class Wallet : BackgroundService, IWallet
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 	}
 
-	public string BatchPayment(IDestination destination, Money amount)
+	public string AddCoinJoinPayment(IDestination destination, Money amount)
 	{
 		var paymentId = BatchedPayments.AddPayment(destination, amount);
 		return paymentId.ToString();

@@ -8,7 +8,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
-// Represents a collection of payments. 
+// Represents a collection of payments.
 // It is possible to add new (pending) payments to be embedded in a coinjoin.
 //
 // This class is able to select the best set of pending payments that can be done in
@@ -23,7 +23,7 @@ public class PaymentBatch
 	private readonly object _syncObj = new();
 	private IEnumerable<PendingPayment> PendingPayments => GetPayments().OfType<PendingPayment>();
 	private IEnumerable<InProgressPayment> InProgressPayments => GetPayments().OfType<InProgressPayment>();
-	
+
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
 		var payment = new PendingPayment(destination, amount);
@@ -31,7 +31,7 @@ public class PaymentBatch
 		{
 			_payments.Add(payment);
 		}
-		Logger.LogInfo($"Payment for {payment.Amount} to {payment.Destination.ScriptPubKey}");
+		Logger.LogInfo($"Payment for {payment.Amount} to {payment.Destination.ScriptPubKey}.");
 		return payment.Id;
 	}
 
@@ -50,10 +50,10 @@ public class PaymentBatch
 		// we can do we that. Maximum 4 payments in a single coinjoin (arbitrary number)
 		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, 4);
 		var bestPaymentSet = allCombinationOfPendingPayments
-			.Select(pandingPaymentSet => new PaymentSet(pandingPaymentSet, roundParameters.MiningFeeRate))
+			.Select(pendingPaymentSet => new PaymentSet(pendingPaymentSet, roundParameters.MiningFeeRate))
 			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)
-			.Where(paymentSet => paymentSet.TotalAmount == availableAmount // edge case where payments match exactly the available amount 
-				? paymentSet.TotalVSize <= availableVsize 
+			.Where(paymentSet => paymentSet.TotalAmount == availableAmount // edge case where payments match exactly the available amount
+				? paymentSet.TotalVSize <= availableVsize
 				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize )
 			.DefaultIfEmpty(PaymentSet.Empty)
 			.MaxBy(x => x.PaymentCount)!;
@@ -64,7 +64,7 @@ public class PaymentBatch
 
 	public IEnumerable<InProgressPayment> MovePaymentsToInProgress(IEnumerable<PendingPayment> payments, uint256 roundId)
 	{
-		MovePaymentsTo(payments, p => p.ToInprogressPayment(roundId));
+		MovePaymentsTo(payments, p => p.ToInProgressPayment(roundId));
 		return InProgressPayments;
 	}
 
@@ -73,9 +73,9 @@ public class PaymentBatch
 
 	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, p => p.ToPending());
-	
+
 	private void MovePaymentsTo<TOldState, TNewState>(
-		IEnumerable<TOldState> payments, 
+		IEnumerable<TOldState> payments,
 		Func<TOldState, TNewState> move) where TOldState : Payment where TNewState : Payment
 	{
 		lock (_syncObj)
@@ -84,11 +84,11 @@ public class PaymentBatch
 			foreach (var payment in paymentsToMove)
 			{
 				_payments.Remove(payment);
-				_payments.Add(move (payment));
+				_payments.Add(move(payment));
 			}
 		}
 	}
-	
+
 	private List<Payment> GetPayments()
 	{
 		lock (_syncObj)
@@ -98,10 +98,10 @@ public class PaymentBatch
 	}
 	private static void LogPaymentSetDetails(PaymentSet paymentSet)
 	{
-		Logger.LogInfo($"Best payment set contains {paymentSet.PaymentCount} payments");
+		Logger.LogInfo($"Best payment set contains {paymentSet.PaymentCount} payments.");
 		foreach (var payment in paymentSet.Payments)
 		{
-			Logger.LogInfo($"Id {payment.Id} to {payment.Destination.ScriptPubKey}  {payment.Amount.ToDecimal(MoneyUnit.BTC)}btc");
+			Logger.LogInfo($"Id {payment.Id} to {payment.Destination.ScriptPubKey}  {payment.Amount.ToDecimal(MoneyUnit.BTC)} BTC.");
 		}
 	}
 }

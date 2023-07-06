@@ -264,7 +264,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
-		return activeWallet.BatchPayment(address, amount);
+		return activeWallet.AddCoinJoinPayment(address, amount);
 	}
 
 	[JsonRpcMethod("send")]
