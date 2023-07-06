@@ -26,7 +26,7 @@ public class CoinJoinMempoolManager : IDisposable
 
 	private void Mempool_Tick(object? sender, TimeSpan e)
 	{
-		var mempoolHashes = MempoolMirror?.GetMempoolHashes() ?? throw new InvalidOperationException("Mempool provider missing.");
+		var mempoolHashes = MempoolMirror.GetMempoolHashes();
 		var coinJoinsInMempool = mempoolHashes.Where(CoinJoinIdStore.Contains);
 		CoinJoinIds = coinJoinsInMempool.ToImmutableArray();
 	}
