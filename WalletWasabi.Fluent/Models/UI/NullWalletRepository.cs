@@ -1,4 +1,5 @@
-using DynamicData;
+﻿using DynamicData;
+using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;

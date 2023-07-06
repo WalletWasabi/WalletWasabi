@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(
 	Title = "Receive",
-	Caption = "Displays wallet receive dialog",
+	Caption = "Display wallet receive dialog",
 	IconName = "wallet_action_receive",
 	Order = 6,
 	Category = "Wallet",
