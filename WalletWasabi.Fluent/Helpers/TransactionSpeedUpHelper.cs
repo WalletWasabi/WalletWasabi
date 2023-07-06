@@ -85,68 +85,77 @@ internal static class TransactionSpeedUpHelper
 			var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 			var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 			var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
-			var minimumRbfFeeRate = new FeeRate(originalFeeRate.SatoshiPerByte + minRelayFeeRate.SatoshiPerByte * txSizeBytes);
+			var minRelayFee = originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * txSizeBytes);
+			var minimumRbfFeeRate = new FeeRate(minRelayFee, txSizeBytes);
 
 			// If the best fee rate is smaller than the minimum bump or not available, then we go with the minimum bump.
 			var rbfFeeRate = (bestFeeRate is null || bestFeeRate <= minimumRbfFeeRate)
 				? minimumRbfFeeRate
 				: bestFeeRate;
 
-			// IF send.
-			if (ownOutput is not null)
+			// IF change present, then we modify the change's amount.
+			var payments = new List<DestinationRequest>();
+
+			foreach (var coin in transactionToSpeedUp.GetWalletOutputs(keyManager))
 			{
-				// IF change present, then we modify the change's amount.
-				var payments = new List<DestinationRequest>();
-				foreach (var output in transactionToSpeedUp.GetForeignOutputs(keyManager))
+				DestinationRequest destReq;
+				if (coin == ownOutput)
 				{
-					var destReq = new DestinationRequest(
-						scriptPubKey: output.TxOut.ScriptPubKey,
-						amount: output.TxOut.Value,
+					destReq = new DestinationRequest(
+						scriptPubKey: coin.ScriptPubKey,
+						amount: coin.Amount,
+						subtractFee: true,
+						labels: coin.HdPubKey.Labels);
+				}
+				else
+				{
+					destReq = new DestinationRequest(
+						scriptPubKey: coin.ScriptPubKey,
+						amount: coin.Amount,
 						subtractFee: false,
-						labels: transactionToSpeedUp.Labels);
-
-					payments.Add(destReq);
+						labels: coin.HdPubKey.Labels);
 				}
 
-				foreach (var coin in transactionToSpeedUp.GetWalletOutputs(keyManager))
-				{
-					DestinationRequest destReq;
-					if (coin == ownOutput)
-					{
-						destReq = new DestinationRequest(
-							scriptPubKey: coin.ScriptPubKey,
-							amount: coin.Amount,
-							subtractFee: true,
-							labels: coin.HdPubKey.Labels);
-					}
-					else
-					{
-						destReq = new DestinationRequest(
-							scriptPubKey: coin.ScriptPubKey,
-							amount: coin.Amount,
-							subtractFee: false,
-							labels: coin.HdPubKey.Labels);
-					}
-
-					payments.Add(destReq);
-				}
-
-				newTransaction = wallet.BuildTransaction(
-					password: wallet.Kitchen.SaltSoup(),
-					payments: new PaymentIntent(payments),
-					feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
-					allowUnconfirmed: true,
-					allowedInputs: transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint),
-					allowDoubleSpend: true,
-					tryToSign: true)
-					.Transaction;
+				payments.Add(destReq);
 			}
-			else
+
+			var foreignOutputs = transactionToSpeedUp.GetForeignOutputs(keyManager).OrderByDescending(x => x.TxOut.Value).ToArray();
+
+			var haveOwnOutput = ownOutput is not null;
+			if (haveOwnOutput)
 			{
-				newTransaction = new SmartTransaction(Transaction.Create(Network.Main), Height.Mempool);
-				// IF change not present, then we modify the destination's amount.
 				isDestinationAmountModified = true;
 			}
+
+			// If we have no own output, then we substract the fee from the largest foreign output.
+			var largestForeignOuput = foreignOutputs.First();
+			var largestForeignOuputDestReq = new DestinationRequest(
+				scriptPubKey: largestForeignOuput.TxOut.ScriptPubKey,
+				amount: largestForeignOuput.TxOut.Value,
+				subtractFee: !haveOwnOutput,
+				labels: transactionToSpeedUp.Labels);
+			payments.Add(largestForeignOuputDestReq);
+
+			foreach (var output in foreignOutputs.Skip(1))
+			{
+				var destReq = new DestinationRequest(
+					scriptPubKey: output.TxOut.ScriptPubKey,
+					amount: output.TxOut.Value,
+					subtractFee: false,
+					labels: transactionToSpeedUp.Labels);
+
+				payments.Add(destReq);
+			}
+
+			newTransaction = wallet.BuildTransaction(
+				password: wallet.Kitchen.SaltSoup(),
+				payments: new PaymentIntent(payments),
+				feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
+				allowUnconfirmed: true,
+				allowedInputs: transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint),
+				allowDoubleSpend: true,
+				tryToSign: true)
+				.Transaction;
 		}
 
 		return newTransaction;
