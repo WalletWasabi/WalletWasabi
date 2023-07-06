@@ -244,7 +244,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			_info.Coins = selectCoinsDialog.Result;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new coins.
 			await BuildAndUpdateAsync();
 		}
 	}
@@ -418,7 +417,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_cancellationTokenSource?.Cancel();
 			_cancellationTokenSource?.Dispose();
 			_cancellationTokenSource = null;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
 		base.OnNavigatedFrom(isInHistory);
@@ -522,17 +520,33 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task ApplyPrivacySuggestionAsync(PrivacySuggestion suggestion)
 	{
-		if (suggestion is LabelManagementSuggestion)
+		switch (suggestion)
 		{
-			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
-
-			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+			case LabelManagementSuggestion:
 			{
-				_info.Coins = selectPocketsDialog.Result;
-				_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
-				await BuildAndUpdateAsync();
+				var selectPocketsDialog =
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+
+				if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+				{
+					_info.Coins = selectPocketsDialog.Result;
+					await BuildAndUpdateAsync();
+				}
+
+				break;
 			}
+
+			case ChangeAvoidanceSuggestion { Transaction: { } txn }:
+				_info.ChangelessCoins = txn.SpentCoins;
+				break;
+
+			case FullPrivacySuggestion fullPrivacySuggestion:
+				_info.Coins = fullPrivacySuggestion.Coins;
+				break;
+
+			case BetterPrivacySuggestion betterPrivacySuggestion:
+				_info.Coins = betterPrivacySuggestion.Coins;
+				break;
 		}
 
 		if (suggestion.Transaction is { } transaction)

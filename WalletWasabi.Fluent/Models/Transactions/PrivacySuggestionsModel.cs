@@ -146,7 +146,7 @@ public class PrivacySuggestionsModel
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText);
+				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText, allPrivateCoin);
 				result.Suggestions.Add(fullPrivacySuggestion);
 			}
 		}
@@ -160,7 +160,7 @@ public class PrivacySuggestionsModel
 
 		if (foundNonPrivate && allSemiPrivateCoin.Any())
 		{
-			var coins = allPrivateCoin.Union(allSemiPrivateCoin);
+			var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
 			var newTransaction = CreateTransaction(transactionInfo, coins);
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
@@ -168,7 +168,7 @@ public class PrivacySuggestionsModel
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
-				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText));
+				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins));
 			}
 		}
 
@@ -304,7 +304,7 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private BuildTransactionResult CreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
+	private BuildTransactionResult CreateTransaction(TransactionInfo transactionInfo, SmartCoin[] coins)
 	{
 		try
 		{
@@ -316,7 +316,8 @@ public class PrivacySuggestionsModel
 				transactionInfo.FeeRate,
 				coins,
 				false,
-				transactionInfo.PayJoinClient);
+				transactionInfo.PayJoinClient,
+				tryToSign: false);
 		}
 		catch (Exception)
 		{
