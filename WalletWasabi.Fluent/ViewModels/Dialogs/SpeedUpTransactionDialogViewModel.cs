@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -15,15 +16,41 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 {
 	private readonly Wallet _wallet;
 
-	private SpeedUpTransactionDialogViewModel(Wallet wallet, SmartTransaction spedUpTransaction, SmartTransaction original)
+	private SpeedUpTransactionDialogViewModel(Wallet wallet, SmartTransaction newTransaction, SmartTransaction originalTransaction)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(spedUpTransaction));
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(newTransaction));
 
-		FeeDifference = Money.Zero;
+		FeeDifference = GetFeeDifference(newTransaction, originalTransaction);
+		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
+		AreWePayingTheFee = newTransaction.GetWalletOutputs(_wallet.KeyManager).Any();
+	}
+
+	public decimal FeeDifferenceUsd { get; }
+
+	public bool AreWePayingTheFee { get; }
+
+	public Money FeeDifference { get; }
+
+	public Money GetFeeDifference(SmartTransaction newTransaction, SmartTransaction originalTransaction)
+	{
+		var isCpfp = newTransaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == originalTransaction.GetHash());
+		var newTransactionFee = newTransaction.WalletInputs.Sum(x => x.Amount) - newTransaction.OutputValues.Sum(x => x);
+
+		if (isCpfp)
+		{
+			return newTransactionFee;
+		}
+
+		var originalFee = originalTransaction.WalletInputs.Sum(x => x.Amount) - originalTransaction.OutputValues.Sum(x => x);
+		return newTransactionFee - originalFee;
+	}
+
+	protected override void OnDialogClosed()
+	{
 	}
 
 	private async Task OnSpeedUpTransactionAsync(SmartTransaction spedUpTransaction)
@@ -42,13 +69,11 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync("Cancellation", ex.ToUserFriendlyString(), "Wasabi was unable to cancel your transaction.");
+			await ShowErrorAsync("Speed Up Failed", ex.ToUserFriendlyString(), "Wasabi was unable to speed up your transaction.");
 		}
 
 		IsBusy = false;
 	}
-
-	public Money FeeDifference { get; }
 
 	private async Task<bool> AuthorizeForPasswordAsync()
 	{
@@ -60,9 +85,5 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 		}
 
 		return true;
-	}
-
-	protected override void OnDialogClosed()
-	{
 	}
 }

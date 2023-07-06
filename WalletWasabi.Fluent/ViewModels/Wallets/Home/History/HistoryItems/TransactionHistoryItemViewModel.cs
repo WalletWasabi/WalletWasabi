@@ -49,7 +49,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		var boostedTransaction = TransactionSpeedUpHelper.CreateSpeedUpTransaction(transactionToSpeedUp, Wallet);
 
-		UiContext.Navigate().To().SpeedUpTransactionDialog(boostedTransaction, transactionToSpeedUp);
+		UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.Wallet, boostedTransaction, transactionToSpeedUp);
 	}
 
 	private void OnCancelTransaction(TransactionSummary transactionSummary)

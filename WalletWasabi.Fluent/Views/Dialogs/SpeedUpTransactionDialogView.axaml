@@ -16,19 +16,60 @@
                  IsBusy="{Binding IsBusy}"
                  EnableNext="False" NextContent="Cancel">
 
-    <c:QuestionControl YesCommand="{Binding NextCommand}" NoCommand="{Binding CancelCommand}">
-      <c:QuestionControl.IconContent>
-        <Viewbox MaxHeight="120" Margin="40">
-          <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
-        </Viewbox>
-      </c:QuestionControl.IconContent>
-      <StackPanel Spacing="10">
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
-                   Text="Do you really want to speed up this transaction?" />
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
-                   Text="{Binding FeeDifference, StringFormat='You will pay an extra fee of {0} for the boost', Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}}" />
-      </StackPanel>
-    </c:QuestionControl>
+    <c:ContentArea.Styles>
+      <Style Selector="c|QuestionControl TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextAlignment" Value="Center" />
+      </Style>
+    </c:ContentArea.Styles>
+
+    <Panel>
+      <c:QuestionControl IsVisible="{Binding AreWePayingTheFee}" IsYesButton="True" YesCommand="{Binding NextCommand}"
+                         NoCommand="{Binding CancelCommand}">
+        <c:QuestionControl.IconContent>
+          <Viewbox MaxHeight="120" Margin="40">
+            <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+          </Viewbox>
+        </c:QuestionControl.IconContent>
+        <StackPanel Spacing="10">
+          <TextBlock Text="Speeding up this transaction will cost you an additional fee of" />
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <TextBlock TextAlignment="Center"
+                       Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='123 sats'}"
+                       Classes="h5 monoSpaced" VerticalAlignment="Bottom" />
+            <TextBlock
+              Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='(1.22 USD)'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Classes="h8 monoSpaced" />
+          </StackPanel>
+          <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
+                     Text="Are you sure?" />
+        </StackPanel>
+      </c:QuestionControl>
+
+      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
+                         NoCommand="{Binding CancelCommand}" IsYesButton="True">
+        <c:QuestionControl.IconContent>
+          <Panel>
+            <Viewbox MaxHeight="120" Margin="40">
+              <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+            </Viewbox>
+            <Viewbox MaxHeight="70" Margin="140, 120 0 0">
+              <PathIcon Data="{StaticResource warning_regular}" Opacity="0.8" />
+            </Viewbox>
+          </Panel>
+        </c:QuestionControl.IconContent>
+        <StackPanel Spacing="10">
+          <TextBlock Text="In order to speed up this transaction the amount needs to be decreased by" />
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='123 sats'}"
+                       Classes="h5 monoSpaced" VerticalAlignment="Bottom" />
+            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='(1.22 USD)'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Classes="h8 monoSpaced" />
+          </StackPanel>
+          <TextBlock Text="Are you sure?" />
+        </StackPanel>
+      </c:QuestionControl>
+    </Panel>
 
   </c:ContentArea>
 
