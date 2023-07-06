@@ -20,6 +20,7 @@ public class CoordinatorRoundTests
 			Blocks = 1,
 			FeeRate = new FeeRate(10m)
 		});
+		rpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 
 		var roundConfig = new CoordinatorRoundConfig();
 		var utxoReferee = new UtxoReferee(Network.Main, "./", rpc, roundConfig);
@@ -88,6 +89,7 @@ public class CoordinatorRoundTests
 			{
 				MemPoolMinFee = DefaultMinMempoolFee
 			});
+			rpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 
 			var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
