@@ -23,12 +23,12 @@ internal static class TransactionSpeedUpHelper
 		// Take the largest own output and if we have it that's what we will want to CPFP or deduct RBF fee from.
 		var ownOutput = transactionToSpeedUp.GetWalletOutputs(keyManager).OrderByDescending(x => x.Amount).FirstOrDefault();
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
-		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 
 		bool isDestinationAmountModified = false;
 		bool isRBF = false;
 		SmartTransaction newTransaction;
 
+		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 		if (bestFeeRate is null)
 		{
 			throw new NullReferenceException($"{nameof(bestFeeRate)} is null. This should never happen.");
