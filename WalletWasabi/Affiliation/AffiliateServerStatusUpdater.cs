@@ -46,7 +46,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		}
 		catch (Exception exception)
 		{
-			Logging.Logger.LogError(exception);
+			Logging.Logger.LogWarning(exception);
 			return false;
 		}
 	}

@@ -69,7 +69,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 			var walletName = Path.GetFileNameWithoutExtension(filePath);
 
-			var options = new WalletCreationOptions.ImportWallet(filePath, walletName);
+			var options = new WalletCreationOptions.ImportWallet(walletName, filePath);
 
 			var validationError = UiContext.WalletRepository.ValidateWalletName(walletName);
 			if (validationError is { })

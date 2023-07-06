@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
@@ -26,22 +27,24 @@ public class LiveServerTests : IAsyncLifetime
 		LiveServerTestsFixture = liveServerTestsFixture;
 
 		TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-		TorManager = new(Common.TorSettings);
+		TorProcessManager = new(Common.TorSettings);
 	}
 
-	private TorProcessManager TorManager { get; }
+	private TorProcessManager TorProcessManager { get; }
 	private TorHttpPool TorHttpPool { get; }
 	private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 	public async Task InitializeAsync()
 	{
-		await TorManager.StartAsync();
+		using CancellationTokenSource startTimeoutCts = new(TimeSpan.FromMinutes(2));
+
+		await TorProcessManager.StartAsync(startTimeoutCts.Token);
 	}
 
 	public async Task DisposeAsync()
 	{
 		await TorHttpPool.DisposeAsync();
-		await TorManager.DisposeAsync();
+		await TorProcessManager.DisposeAsync();
 	}
 
 	#region Blockchain
@@ -75,7 +78,7 @@ public class LiveServerTests : IAsyncLifetime
 		Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
 
 		var mempoolTxIds = await client.GetMempoolHashesAsync(CancellationToken.None);
-		randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()!).Distinct().ToArray();
+		randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement(InsecureRandom.Instance)!).Distinct().ToArray();
 		var txs = await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None);
 		var returnedTxIds = txs.Select(tx => tx.GetHash());
 		Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
