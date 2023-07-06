@@ -110,16 +110,16 @@ public class PrivacySuggestionsModel
 		var onlyKnownByRecipient =
 			transactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
 
+		if (onlyKnownByRecipient)
+		{
+			return result;
+		}
+
 		var foundNonPrivate =
 			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
 
 		var foundSemiPrivate =
 			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
-
-		if (!foundNonPrivate && !foundSemiPrivate && !onlyKnownByRecipient)
-		{
-			return result;
-		}
 
 		if (foundNonPrivate)
 		{
