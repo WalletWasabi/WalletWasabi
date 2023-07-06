@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Boost transaction")]
+[NavigationMetaData(Title = "Speed Up Transaction")]
 public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Unit>
 {
 	public SpeedUpTransactionDialogViewModel(SmartTransaction speedUpTransaction, SmartTransaction original)
