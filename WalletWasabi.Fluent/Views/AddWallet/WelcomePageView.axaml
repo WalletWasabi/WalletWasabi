@@ -231,23 +231,23 @@
           <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" Text="Coinjoin Fees" Classes="title1" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
           <StackPanel Grid.Column="0" Grid.Row="1">
-            <TextBlock Name="CoinjoinFeeTextBlock" Text="Service Fee" Classes="title2" />
-            <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
+            <TextBlock Name="CoinjoinFeeTextBlock" Text="Coordination Fee" Classes="title2" />
+            <TextBlock Text="You will pay a flat fee of 0.3% for every new coin you coinjoin." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="1">
-            <TextBlock Name="MiningFeeTextBlock" Text="Network Fee" Classes="title2" />
-            <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
+            <TextBlock Name="MiningFeeTextBlock" Text="Mining Fee" Classes="title2" />
+            <TextBlock Text="The market standard in mining fee always applies." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="0" Grid.Row="2">
             <TextBlock Name="PlebsTextBlock" Text="Plebs Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay coinjoin fees for coins that are less than or equal to 0.01 BTC." Classes="text" />
+            <TextBlock Text="You won't pay coordination fee for coins that are less than or equal to 0.01 BTC." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="2">
             <TextBlock Name="FriendsTextBlock" Text="Friends Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay coinjoin fees for coins received from other Wasabi users." Classes="text" />
+            <TextBlock Text="You won't pay coordination fees for coins received from other Wasabi coinjoins." Classes="text" />
           </StackPanel>
 
         </Grid>
