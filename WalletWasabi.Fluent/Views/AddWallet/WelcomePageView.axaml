@@ -109,7 +109,6 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Width" Value="230" />
           </Style>
-
         </Carousel.Styles>
         <Carousel.PageTransition>
           <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
@@ -122,7 +121,6 @@
             <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" />
 
             <TextBlock TextAlignment="Center" Text="Rule #1: Wasabi is for defense only" FontWeight="Light" />
-
           </StackPanel>
           <Panel Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
             <ExperimentalAcrylicBorder Margin="2">
@@ -237,21 +235,19 @@
 
           <StackPanel Grid.Column="1" Grid.Row="1">
             <TextBlock Name="MiningFeeTextBlock" Text="Network Fee" Classes="title2" />
-            <TextBlock Text="The market standard in mining fee will also be added." Classes="text" />
+            <TextBlock Text="The market standard in mining fee always applies." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="0" Grid.Row="2">
             <TextBlock Name="PlebsTextBlock" Text="Plebs Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay coinjoin fees for coins that are less than or equal to 0.01 BTC." Classes="text" />
+            <TextBlock Text="You won't pay service fee for coins that are less than or equal to 0.01 BTC." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="2">
             <TextBlock Name="FriendsTextBlock" Text="Friends Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay coinjoin fees for coins received from other Wasabi users." Classes="text" />
+            <TextBlock Text="You won't pay service fee for coins received from other Wasabi users." Classes="text" />
           </StackPanel>
-
         </Grid>
-
       </Carousel>
     </DockPanel>
   </controls:ContentArea>
