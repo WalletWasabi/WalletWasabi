@@ -245,7 +245,7 @@
 
           <StackPanel Grid.Column="1" Grid.Row="2">
             <TextBlock Name="FriendsTextBlock" Text="Friends Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay service fee for coins received from other Wasabi coinjoins." Classes="text" />
+            <TextBlock Text="You won't pay service fee for coins received from other Wasabi users." Classes="text" />
           </StackPanel>
         </Grid>
       </Carousel>
