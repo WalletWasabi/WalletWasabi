@@ -230,7 +230,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		!keyManager.IsWatchOnly
 		&& !keyManager.IsHardwareWallet
 		&& !Confirmed
-		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any());
+		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any())
+		&& WalletOutputs.Any(x => !x.IsSpent());
 
 	/// <summary>
 	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
@@ -242,7 +243,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		&& !Confirmed
 		&& !GetForeignInputs(keyManager).Any()
 		&& GetForeignOutputs(keyManager).Any()
-		&& IsRBF;
+		&& IsRBF
+		&& WalletOutputs.Any(x => !x.IsSpent());
 
 	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
 	[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
