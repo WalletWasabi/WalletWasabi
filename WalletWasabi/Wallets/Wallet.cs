@@ -250,6 +250,7 @@ public class Wallet : BackgroundService, IWallet
 					{
 						// Continue wallet synchronization in the background for all keys skipped by TurboSync.
 						FinalSynchronizationTask = Task.Run(() => PerformFinalSynchronizationAsync(cancel), cancel);
+						_ = FinalSynchronizationTask.ContinueWith(HandleExceptionForFinalSynchronization, TaskContinuationOptions.OnlyOnFaulted);
 					}
 				}
 			}
@@ -267,31 +268,38 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task PerformFinalSynchronizationAsync(CancellationToken cancel)
 	{
-		try
+		using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
+			await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+
+			if (LastProcessedFilter is { } lastProcessedFilter)
 			{
-				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
-
-				if (LastProcessedFilter is { } lastProcessedFilter)
-				{
-					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
-				}
-
-				Logger.LogInfo("Wallet is fully synchronized.");
+				SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
 			}
-		}
-		catch (OperationCanceledException)
-		{
-			// The procedure was intentionally cancelled - not logging anything.
-			Logger.LogDebug($"Operation cancelled during the final synchronization of the wallet.");
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex}'.");
+
+			Logger.LogInfo("Wallet is fully synchronized.");
 		}
 	}
 
+	private void HandleExceptionForFinalSynchronization(Task task)
+	{
+		if (task.Exception != null)
+		{
+			foreach (var ex in task.Exception.InnerExceptions)
+			{
+				if (ex is OperationCanceledException)
+				{
+					// The procedure was intentionally cancelled - logging only to debug.
+					Logger.LogDebug("Operation cancelled during the final synchronization of the wallet.");
+				}
+				else
+				{
+					Logger.LogError($"An exception happened during the final synchronization of the wallet. Reason:'{ex.Message}'.");
+				}
+			}
+		}
+	}
+	
 	private void LoadExcludedCoins()
 	{
 		bool isUpdateRequired = false;
@@ -441,7 +449,7 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			// NonTurbo synchronization (keys skipped by TurboSync) is still ongoing.
-			if (FinalSynchronizationTask is not null && !FinalSynchronizationTask.IsCompleted)
+			if (FinalSynchronizationTask is not null && !FinalSynchronizationTask.IsCompletedSuccessfully)
 			{
 				// New filters can be processed against Turbo keys as they were already tested against all stored filters, so HandleFiltersLock is not used.
 				// This allows the wallet to process new transactions while the NonTurbo synchronization is running in the background.
@@ -454,10 +462,14 @@ public class Wallet : BackgroundService, IWallet
 				// Then filters are buffered and are tested against the NonTurbo keys only when the NonTurbo sync is finished (i.e. lock released).
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
-					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+					// Don't test the filters against NonTurbo keys if FinalSynchronizationTask faulted to preserve wallet state.
+					if (FinalSynchronizationTask.IsCompletedSuccessfully)
 					{
-						await ProcessFilterModelAsync(filterModel, SyncType.NonTurbo, CancellationToken.None).ConfigureAwait(false);
-						SetFinalBestHeight(new Height(filterModel.Header.Height));
+						if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+						{
+							await ProcessFilterModelAsync(filterModel, SyncType.NonTurbo, CancellationToken.None).ConfigureAwait(false);
+							SetFinalBestHeight(new Height(filterModel.Header.Height));
+						}
 					}
 				}
 			}
