@@ -148,6 +148,8 @@ public partial class CurrencyEntryBox : TextBox
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
 
+		e.Text = input;
+
 		base.OnTextInput(e);
 	}
 
