@@ -249,8 +249,8 @@ public class Wallet : BackgroundService, IWallet
 					if (KeyManager.UseTurboSync)
 					{
 						// Continue wallet synchronization in the background for all keys skipped by TurboSync.
-						FinalSynchronizationTask = Task.Run(() => PerformFinalSynchronizationAsync(cancel), cancel);
-						_ = FinalSynchronizationTask.ContinueWith(HandleExceptionForFinalSynchronization, TaskContinuationOptions.OnlyOnFaulted);
+						FinalSynchronizationTask = Task.Run(() => PerformFinalSynchronizationAsync(cancel), cancel)
+						.ContinueWith(HandleExceptionForFinalSynchronization, TaskContinuationOptions.OnlyOnFaulted);
 					}
 				}
 			}
