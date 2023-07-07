@@ -30,5 +30,29 @@
         882657385
       ]
     }
+  },
+  {
+    "name": "Not enough money",
+    "request": {
+      "inputSize": 58,
+      "outputSize": 43,
+      "availableVsize": 394,
+      "miningFeeRate": 129000,
+      "allowedOutputAmounts": {
+        "min": 5000,
+        "max": 4300000000000
+      },
+      "internalAmounts": [
+        4000
+      ],
+      "externalAmounts": [
+        30000,
+        20000
+      ]
+    },
+    "expectedStatusCode": 500,
+    "expectedResponse": {
+      "description": "Not enough coins registered to participate in the coinjoin."
+    }
   }
 ]
