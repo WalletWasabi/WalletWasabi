@@ -283,6 +283,7 @@
       "wabisabi": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.0, )",
           "NBitcoin.Secp256k1": "[3.1.0, )"
         }
       },
