@@ -17,11 +17,6 @@ internal static class TransactionSpeedUpHelper
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		if (transactionToSpeedUp.GetWalletOutputs(keyManager).Count() == transactionToSpeedUp.Transaction.Outputs.Count)
-		{
-			throw new InvalidOperationException("Transaction has no foreign outputs. Cannot speed up.");
-		}
-
 		// Take the largest own output and if we have it that's what we will want to CPFP or deduct RBF fee from.
 		var ownOutput = transactionToSpeedUp.GetWalletOutputs(keyManager).OrderByDescending(x => x.Amount).FirstOrDefault();
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
