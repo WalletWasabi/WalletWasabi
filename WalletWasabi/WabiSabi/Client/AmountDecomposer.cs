@@ -102,13 +102,6 @@ public class AmountDecomposer
 			setCandidates.TryAdd(decomp.Key, decomp.Value);
 		}
 
-		// Create many decompositions for optimization.
-		var changelessDecomps = CreateChangelessDecompositions(denoms, myInputSum, maxNumberOfOutputsAllowed);
-		foreach (var decomp in changelessDecomps)
-		{
-			setCandidates.TryAdd(decomp.Key, decomp.Value);
-		}
-
 		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
 
