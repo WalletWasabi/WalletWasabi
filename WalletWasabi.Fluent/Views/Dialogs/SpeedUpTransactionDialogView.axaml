@@ -46,7 +46,7 @@
         </StackPanel>
       </c:QuestionControl>
 
-      <!--<c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
+      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
                          NoCommand="{Binding CancelCommand}" IsYesButton="True">
         <c:QuestionControl.IconContent>
           <Panel>
@@ -68,7 +68,7 @@
           </StackPanel>
           <TextBlock Text="Are you sure?" />
         </StackPanel>
-      </c:QuestionControl>-->
+      </c:QuestionControl>
     </Panel>
 
   </c:ContentArea>
