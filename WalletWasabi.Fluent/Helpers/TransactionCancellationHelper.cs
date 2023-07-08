@@ -54,7 +54,8 @@ public static class TransactionCancellationHelper
 
 			// https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
 			// The replacement transaction must also pay for its own bandwidth at or above the rate set by the node's minimum relay fee setting. For example, if the minimum relay fee is 1 satoshi/byte and the replacement transaction is 500 bytes total, then the replacement must pay a fee at least 500 satoshis higher than the sum of the originals.
-		} while (originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * cancelTransaction.Transaction.GetVirtualSize()) >= cancelTransaction.Transaction.GetFee(cancelTransaction.WalletInputs.Select(x => x.Coin).ToArray()));
+		}
+		while (originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * cancelTransaction.Transaction.GetVirtualSize()) >= cancelTransaction.Transaction.GetFee(cancelTransaction.WalletInputs.Select(x => x.Coin).ToArray()));
 
 		return cancelTransaction;
 	}
