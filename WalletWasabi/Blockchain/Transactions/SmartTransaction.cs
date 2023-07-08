@@ -125,7 +125,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		foreach (var txIn in Transaction.Inputs)
 		{
-			if (!walletInputs.Any(x => x.TransactionId == txIn.PrevOut.Hash && x.Index == txIn.PrevOut.N))
+			if (walletInputs.All(x => !(x.TransactionId == txIn.PrevOut.Hash && x.Index == txIn.PrevOut.N)))
 			{
 				yield return txIn;
 			}
