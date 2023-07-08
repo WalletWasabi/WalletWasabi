@@ -5,6 +5,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -48,14 +49,29 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 	private void OnSpeedUpTransaction(SmartTransaction transactionToSpeedUp)
 	{
-		var boostedTransaction = TransactionSpeedUpHelper.CreateSpeedUpTransaction(transactionToSpeedUp, Wallet);
-
-		UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.Wallet, boostedTransaction, transactionToSpeedUp);
+		try
+		{
+			var boostedTransaction = TransactionSpeedUpHelper.CreateSpeedUpTransaction(transactionToSpeedUp, Wallet);
+			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.Wallet, boostedTransaction, transactionToSpeedUp);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Speed Up failed", "Wasabi could not initiate the transaction speed up process.");
+		}
 	}
 
 	private void OnCancelTransaction(TransactionSummary transactionSummary)
 	{
-		var cancellingTransaction = TransactionCancellationHelper.CreateCancellation(transactionSummary.Transaction, Wallet);
-		UiContext.Navigate().To().CancelTransactionDialog(Wallet, transactionSummary.Transaction, cancellingTransaction);
+		try
+		{
+			var cancellingTransaction = TransactionCancellationHelper.CreateCancellation(transactionSummary.Transaction, Wallet);
+			UiContext.Navigate().To().CancelTransactionDialog(Wallet, transactionSummary.Transaction, cancellingTransaction);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Cancel failed", "Wasabi could not initiate the cancelling process.");
+		}
 	}
 }

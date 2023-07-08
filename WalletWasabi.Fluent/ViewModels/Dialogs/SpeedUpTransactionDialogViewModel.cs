@@ -69,7 +69,7 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync("Speed Up Failed", ex.ToUserFriendlyString(), "Wasabi was unable to speed up your transaction.");
+			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Speed Up Failed", "Wasabi was unable to speed up your transaction.");
 		}
 
 		IsBusy = false;

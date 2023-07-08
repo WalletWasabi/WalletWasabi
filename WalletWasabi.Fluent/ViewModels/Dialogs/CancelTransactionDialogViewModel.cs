@@ -49,7 +49,7 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync("Cancellation", ex.ToUserFriendlyString(), "Wasabi was unable to cancel your transaction.");
+			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Speed Up failed", "Wasabi was unable to cancel your transaction.");
 		}
 
 		IsBusy = false;
