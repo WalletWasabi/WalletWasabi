@@ -11,7 +11,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore.Mempool;
 
-public class MempoolMirror : PeriodicRunner
+public class MempoolMirror : PeriodicRunner, IMempoolMirror
 {
 	/// <param name="period">How often to mirror the mempool.</param>
 	public MempoolMirror(TimeSpan period, IRPCClient rpc, P2pNode node) : base(period)
@@ -110,7 +110,7 @@ public class MempoolMirror : PeriodicRunner
 		}
 	}
 
-	internal ISet<uint256> GetMempoolHashes()
+	public ISet<uint256> GetMempoolHashes()
 	{
 		lock (MempoolLock)
 		{
