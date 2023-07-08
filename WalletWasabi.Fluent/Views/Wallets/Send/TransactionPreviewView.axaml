@@ -26,7 +26,7 @@
 
     <c:ContentArea.Title>
       <DockPanel>
-        <TextBlock Text="Preview Transaction" />
+        <TextBlock Text="Transaction Summary" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  ToolTip.Tip="Your privacy is being protected with payjoin."
