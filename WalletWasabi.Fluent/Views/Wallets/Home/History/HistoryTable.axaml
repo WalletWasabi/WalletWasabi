@@ -53,14 +53,14 @@
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <Separator />
-      <MenuItem Header="Cancel Transaction"
+      <Separator IsVisible="{Binding CanCancelTransaction}" />
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanCancelTransaction}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
         </MenuItem.Icon>
       </MenuItem>
-      <Separator />
+      <Separator IsVisible="{Binding CanCancelTransaction}" />
       <MenuItem Header="Show Details"
                 Command="{Binding ShowDetailsCommand}">
         <MenuItem.Icon>
