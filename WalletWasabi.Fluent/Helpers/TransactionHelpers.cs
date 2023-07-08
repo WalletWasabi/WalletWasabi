@@ -19,31 +19,6 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionHelpers
 {
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
-	{
-		if (payJoinClient is { } && subtractFee)
-		{
-			throw new InvalidOperationException("Not possible to subtract the fee.");
-		}
-
-		var intent = new PaymentIntent(
-			destination: address,
-			amount: amount,
-			subtractFee: subtractFee,
-			label: labels);
-
-		var txRes = wallet.BuildTransaction(
-			password: wallet.Kitchen.SaltSoup(),
-			payments: intent,
-			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
-			allowUnconfirmed: true,
-			allowedInputs: coins.Select(coin => coin.Outpoint),
-			payjoinClient: payJoinClient,
-			tryToSign: tryToSign);
-
-		return txRes;
-	}
-
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
 		if (transactionInfo.IsOptimized)
@@ -61,8 +36,7 @@ public static class TransactionHelpers
 			throw new InvalidOperationException("Not possible to subtract the fee.");
 		}
 
-		return BuildTransaction(
-			wallet,
+		return wallet.BuildTransaction(
 			transactionInfo.Destination,
 			transactionInfo.Amount,
 			transactionInfo.Recipient,

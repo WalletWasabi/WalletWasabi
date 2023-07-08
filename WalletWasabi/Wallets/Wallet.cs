@@ -350,6 +350,39 @@ public class Wallet : BackgroundService, IWallet
 		return txRes;
 	}
 
+	public BuildTransactionResult BuildTransaction(
+		IDestination destination,
+		Money amount,
+		LabelsArray label,
+		FeeRate feeRate,
+		IEnumerable<SmartCoin> coins,
+		bool subtractFee,
+		IPayjoinClient? payJoinClient = null,
+		bool tryToSign = true)
+	{
+		if (payJoinClient is { } && subtractFee)
+		{
+			throw new InvalidOperationException("Not possible to subtract the fee.");
+		}
+
+		var intent = new PaymentIntent(
+			destination: destination,
+			amount: amount,
+			subtractFee: subtractFee,
+			label: label);
+
+		var txRes = BuildTransaction(
+			password: Kitchen.SaltSoup(),
+			payments: intent,
+			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
+			allowUnconfirmed: true,
+			allowedInputs: coins.Select(coin => coin.Outpoint),
+			payjoinClient: payJoinClient,
+			tryToSign: tryToSign);
+
+		return txRes;
+	}
+
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 	/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 	/// <exception cref="ArgumentException"></exception>
