@@ -5,7 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="571"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:DataType="dialogs:SpeedUpTransactionDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.SpeedUpTransactionDialogView">
@@ -35,40 +35,40 @@
           <TextBlock Text="Speeding up this transaction will cost you an additional fee of" />
           <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
             <TextBlock TextAlignment="Center"
-                       Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='123 sats'}"
+                       Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
                        Classes="h5 monoSpaced" VerticalAlignment="Bottom" />
             <TextBlock
-              Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='(1.22 USD)'}"
-              Opacity="0.6" VerticalAlignment="Bottom" Classes="h8 monoSpaced" />
+              Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='≈ 3.5 USD'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Classes="h8" />
           </StackPanel>
           <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
                      Text="Are you sure?" />
         </StackPanel>
       </c:QuestionControl>
 
-      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
+      <!--<c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
                          NoCommand="{Binding CancelCommand}" IsYesButton="True">
         <c:QuestionControl.IconContent>
           <Panel>
             <Viewbox MaxHeight="120" Margin="40">
               <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
             </Viewbox>
-            <Viewbox MaxHeight="70" Margin="140, 120 0 0">
-              <PathIcon Data="{StaticResource warning_regular}" Opacity="0.8" />
+            <Viewbox MaxHeight="40" Margin="120, 100 0 0">
+              <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6" />
             </Viewbox>
           </Panel>
         </c:QuestionControl.IconContent>
         <StackPanel Spacing="10">
-          <TextBlock Text="In order to speed up this transaction the amount needs to be decreased by" />
+          <TextBlock Text="To speed up this transaction a deduction will be made from the recipient's amount of" />
           <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='123 sats'}"
-                       Classes="h5 monoSpaced" VerticalAlignment="Bottom" />
-            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='(1.22 USD)'}"
-              Opacity="0.6" VerticalAlignment="Bottom" Classes="h8 monoSpaced" />
+            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                       Classes="h5" />
+            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='≈ 1.22 USD'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Classes="h8" />
           </StackPanel>
           <TextBlock Text="Are you sure?" />
         </StackPanel>
-      </c:QuestionControl>
+      </c:QuestionControl>-->
     </Panel>
 
   </c:ContentArea>

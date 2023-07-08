@@ -10,7 +10,7 @@
              x:DataType="dialogs:CancelTransactionDialogViewModel"
              x:CompileBindings="True">
 
-  <c:ContentArea Title="Speed Up Transaction"
+  <c:ContentArea Title="Cancel Transaction"
                  EnableCancel="False"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
@@ -35,11 +35,11 @@
         <TextBlock Text="The cancellation of this transaction will cost you a total of" />
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
           <TextBlock TextAlignment="Center"
-                     Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='123 sats'}"
-                     Classes="h5 monoSpaced" VerticalAlignment="Bottom" />
+                     Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                     Classes="h5" />
           <TextBlock
-            Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='(1.22 USD)'}"
-            Opacity="0.6" VerticalAlignment="Bottom" Classes="h8 monoSpaced" />
+            Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToUsd}, FallbackValue='≈ 3.5 USD'}"
+            Opacity="0.6" VerticalAlignment="Bottom" Classes="h8" />
         </StackPanel>
         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
                    Text="Are you sure?" />
