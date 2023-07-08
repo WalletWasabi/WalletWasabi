@@ -222,30 +222,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
-	/// <summary>
-	/// Transaction can be sped up if it's unconfirmed.
-	/// If all our inputs and outputs are ours, then speeding it up makes no sense.
-	/// </summary>
-	public bool IsSpeedupable(KeyManager keyManager) =>
-		!keyManager.IsWatchOnly
-		&& !keyManager.IsHardwareWallet
-		&& !Confirmed
-		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any())
-		&& WalletOutputs.Any(x => !x.IsSpent());
-
-	/// <summary>
-	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
-	/// It also only makes sense to cancel if it has foreign outputs. Self spend does not make sense to cancel.
-	/// </summary>
-	public bool IsCancelable(KeyManager keyManager) =>
-		!keyManager.IsWatchOnly
-		&& !keyManager.IsHardwareWallet
-		&& !Confirmed
-		&& !GetForeignInputs(keyManager).Any()
-		&& GetForeignOutputs(keyManager).Any()
-		&& IsRBF
-		&& WalletOutputs.Any(x => !x.IsSpent());
-
 	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
 	[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 	[Obsolete("This property exists only for json backwards compatibility. If someone tries to set it, it'll set the FirstSeen. https://stackoverflow.com/a/43715009/2061103", error: true)]
@@ -280,6 +256,30 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
 	#endregion Members
+
+	/// <summary>
+	/// Transaction can be sped up if it's unconfirmed.
+	/// If all our inputs and outputs are ours, then speeding it up makes no sense.
+	/// </summary>
+	public bool IsSpeedupable(KeyManager keyManager) =>
+		!keyManager.IsWatchOnly
+		&& !keyManager.IsHardwareWallet
+		&& !Confirmed
+		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any())
+		&& WalletOutputs.Any(x => !x.IsSpent());
+
+	/// <summary>
+	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
+	/// It also only makes sense to cancel if it has foreign outputs. Self spend does not make sense to cancel.
+	/// </summary>
+	public bool IsCancelable(KeyManager keyManager) =>
+		!keyManager.IsWatchOnly
+		&& !keyManager.IsHardwareWallet
+		&& !Confirmed
+		&& !GetForeignInputs(keyManager).Any()
+		&& GetForeignOutputs(keyManager).Any()
+		&& IsRBF
+		&& WalletOutputs.Any(x => !x.IsSpent());
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{

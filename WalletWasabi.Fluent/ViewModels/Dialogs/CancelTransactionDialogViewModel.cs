@@ -31,6 +31,8 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransaction(cancellingTransaction));
 	}
 
+	public Money FeeDifference { get; }
+
 	private async Task OnCancelTransaction(SmartTransaction cancelTransaction)
 	{
 		IsBusy = true;
@@ -52,8 +54,6 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 
 		IsBusy = false;
 	}
-
-	public Money FeeDifference { get; }
 
 	protected override void OnDialogClosed()
 	{
