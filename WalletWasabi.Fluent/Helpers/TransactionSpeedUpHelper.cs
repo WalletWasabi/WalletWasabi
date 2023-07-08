@@ -39,8 +39,7 @@ internal static class TransactionSpeedUpHelper
 			}
 
 			// Let's build a CPFP with best fee rate temporarily.
-			var tempTx = TransactionHelpers.BuildChangelessTransaction(
-				wallet,
+			var tempTx = wallet.BuildChangelessTransaction(
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				bestFeeRate,
@@ -53,8 +52,7 @@ internal static class TransactionSpeedUpHelper
 			var cpfpFee = (long)((txSizeBytes + tempTxSizeBytes) * bestFeeRate.SatoshiPerByte) + 1;
 			var cpfpFeeRate = new FeeRate((decimal)(cpfpFee / tempTxSizeBytes));
 
-			newTransaction = TransactionHelpers.BuildChangelessTransaction(
-				wallet,
+			newTransaction = wallet.BuildChangelessTransaction(
 				keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				cpfpFeeRate,

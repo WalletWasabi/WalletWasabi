@@ -316,6 +316,40 @@ public class Wallet : BackgroundService, IWallet
 	/// <inheritdoc />
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 
+	public BuildTransactionResult BuildChangelessTransaction(
+		IDestination destination,
+		LabelsArray label,
+		FeeRate feeRate,
+		IEnumerable<SmartCoin> allowedInputs,
+		bool allowDoubleSpend = false,
+		bool tryToSign = true)
+		=> BuildChangelessTransaction(destination, label, feeRate, allowedInputs.Select(coin => coin.Outpoint), allowDoubleSpend, tryToSign);
+
+	public BuildTransactionResult BuildChangelessTransaction(
+		IDestination destination,
+		LabelsArray label,
+		FeeRate feeRate,
+		IEnumerable<OutPoint> allowedInputs,
+		bool allowDoubleSpend = false,
+		bool tryToSign = true)
+	{
+		var intent = new PaymentIntent(
+			destination,
+			MoneyRequest.CreateAllRemaining(subtractFee: true),
+			label);
+
+		var txRes = BuildTransaction(
+			Kitchen.SaltSoup(),
+			intent,
+			FeeStrategy.CreateFromFeeRate(feeRate),
+			allowUnconfirmed: true,
+			allowedInputs: allowedInputs,
+			allowDoubleSpend: allowDoubleSpend,
+			tryToSign: tryToSign);
+
+		return txRes;
+	}
+
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 	/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 	/// <exception cref="ArgumentException"></exception>

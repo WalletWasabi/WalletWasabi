@@ -39,8 +39,7 @@ public static class TransactionCancellationHelper
 		int i = 1;
 		do
 		{
-			cancelTransaction = TransactionHelpers.BuildChangelessTransaction(
-				wallet,
+			cancelTransaction = wallet.BuildChangelessTransaction(
 				ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 				LabelsArray.Empty,
 				new FeeRate(originalFeeRate.SatoshiPerByte + i),

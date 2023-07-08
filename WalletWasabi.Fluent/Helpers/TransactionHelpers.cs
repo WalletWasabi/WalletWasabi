@@ -19,25 +19,6 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionHelpers
 {
-	public static BuildTransactionResult BuildChangelessTransaction(Wallet wallet, BitcoinAddress address, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool allowDoubleSpend = false, bool tryToSign = true)
-	{
-		var intent = new PaymentIntent(
-			address,
-			MoneyRequest.CreateAllRemaining(subtractFee: true),
-			labels);
-
-		var txRes = wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
-			intent,
-			FeeStrategy.CreateFromFeeRate(feeRate),
-			allowUnconfirmed: true,
-			allowedInputs: coins.Select(coin => coin.Outpoint),
-			allowDoubleSpend: allowDoubleSpend,
-			tryToSign: tryToSign);
-
-		return txRes;
-	}
-
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
 	{
 		if (payJoinClient is { } && subtractFee)
@@ -67,8 +48,7 @@ public static class TransactionHelpers
 	{
 		if (transactionInfo.IsOptimized)
 		{
-			return BuildChangelessTransaction(
-				wallet,
+			return wallet.BuildChangelessTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
