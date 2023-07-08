@@ -47,20 +47,20 @@
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
       </MenuItem>
+      <Separator IsVisible="{Binding TransactionOperationsVisible}" />
       <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanSpeedUpTransaction}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <Separator IsVisible="{Binding CanCancelTransaction}" />
       <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanCancelTransaction}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
         </MenuItem.Icon>
       </MenuItem>
-      <Separator IsVisible="{Binding CanCancelTransaction}" />
+      <Separator IsVisible="{Binding TransactionOperationsVisible}" />
       <MenuItem Header="Show Details"
                 Command="{Binding ShowDetailsCommand}">
         <MenuItem.Icon>

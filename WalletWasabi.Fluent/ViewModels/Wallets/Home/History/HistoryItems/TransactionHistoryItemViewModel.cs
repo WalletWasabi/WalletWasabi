@@ -39,8 +39,9 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	}
 
 	public bool CanCancelTransaction { get; }
-
 	public bool CanSpeedUpTransaction { get; }
+	public bool TransactionOperationsVisible => CanCancelTransaction || CanSpeedUpTransaction;
+
 	public WalletViewModel WalletVm { get; }
 	public Wallet Wallet => WalletVm.Wallet;
 	public KeyManager KeyManager => Wallet.KeyManager;
