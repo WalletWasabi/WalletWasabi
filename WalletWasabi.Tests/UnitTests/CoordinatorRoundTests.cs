@@ -78,6 +78,7 @@ public class CoordinatorRoundTests
 
 		var rpc = new MockRpcClient();
 		rpc.Network = Network.Main;
+		rpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 		rpc.OnEstimateSmartFeeAsync = (confTarget, estMode) => Task.FromResult(new EstimateSmartFeeResponse
 		{
 			Blocks = 1,
@@ -89,7 +90,6 @@ public class CoordinatorRoundTests
 			{
 				MemPoolMinFee = DefaultMinMempoolFee
 			});
-			rpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 
 			var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
