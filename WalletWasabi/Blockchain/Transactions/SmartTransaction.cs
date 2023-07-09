@@ -97,56 +97,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	public IEnumerable<SmartCoin> GetWalletInputs(KeyManager keyManager)
-	{
-		foreach (var coin in WalletInputs)
-		{
-			if (keyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out _))
-			{
-				yield return coin;
-			}
-		}
-	}
-
-	public IEnumerable<SmartCoin> GetWalletOutputs(KeyManager keyManager)
-	{
-		foreach (var coin in WalletOutputs)
-		{
-			if (keyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out _))
-			{
-				yield return coin;
-			}
-		}
-	}
-
-	public IEnumerable<TxIn> GetForeignInputs(KeyManager keyManager)
-	{
-		var walletInputs = GetWalletInputs(keyManager).ToList();
-
-		foreach (var txIn in Transaction.Inputs)
-		{
-			if (walletInputs.All(x => x.TransactionId != txIn.PrevOut.Hash || x.Index != txIn.PrevOut.N))
-			{
-				yield return txIn;
-			}
-		}
-	}
-
-	public IEnumerable<IndexedTxOut> GetForeignOutputs(KeyManager keyManager)
-	{
-		var walletOutputs = GetWalletOutputs(keyManager).ToList();
-
-		for (uint i = 0; i < Transaction.Outputs.Count; i++)
-		{
-			var txOut = Transaction.Outputs[i];
-
-			if (walletOutputs.All(x => x.Index != i))
-			{
-				yield return new IndexedTxOut { N = i, TxOut = txOut, Transaction = Transaction };
-			}
-		}
-	}
-
 	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
 	{
 		get
@@ -256,6 +206,56 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
 	#endregion Members
+
+	public IEnumerable<SmartCoin> GetWalletInputs(KeyManager keyManager)
+	{
+		foreach (var coin in WalletInputs)
+		{
+			if (keyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out _))
+			{
+				yield return coin;
+			}
+		}
+	}
+
+	public IEnumerable<SmartCoin> GetWalletOutputs(KeyManager keyManager)
+	{
+		foreach (var coin in WalletOutputs)
+		{
+			if (keyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out _))
+			{
+				yield return coin;
+			}
+		}
+	}
+
+	public IEnumerable<TxIn> GetForeignInputs(KeyManager keyManager)
+	{
+		var walletInputs = GetWalletInputs(keyManager).ToList();
+
+		foreach (var txIn in Transaction.Inputs)
+		{
+			if (walletInputs.All(x => x.TransactionId != txIn.PrevOut.Hash || x.Index != txIn.PrevOut.N))
+			{
+				yield return txIn;
+			}
+		}
+	}
+
+	public IEnumerable<IndexedTxOut> GetForeignOutputs(KeyManager keyManager)
+	{
+		var walletOutputs = GetWalletOutputs(keyManager).ToList();
+
+		for (uint i = 0; i < Transaction.Outputs.Count; i++)
+		{
+			var txOut = Transaction.Outputs[i];
+
+			if (walletOutputs.All(x => x.Index != i))
+			{
+				yield return new IndexedTxOut { N = i, TxOut = txOut, Transaction = Transaction };
+			}
+		}
+	}
 
 	public bool IsCpfpable(KeyManager keyManager) =>
 		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watchonly and hardware wallets are problematic. It remains a ToDo for the future.
