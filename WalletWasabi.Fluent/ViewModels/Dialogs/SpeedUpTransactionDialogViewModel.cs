@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -16,17 +17,17 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 {
 	private readonly Wallet _wallet;
 
-	private SpeedUpTransactionDialogViewModel(Wallet wallet, SmartTransaction newTransaction, SmartTransaction originalTransaction)
+	private SpeedUpTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(newTransaction));
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(boostingTransaction));
 
-		FeeDifference = GetFeeDifference(newTransaction, originalTransaction);
+		FeeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
 		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
-		AreWePayingTheFee = newTransaction.GetWalletOutputs(_wallet.KeyManager).Any();
+		AreWePayingTheFee = boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 	}
 
 	public decimal FeeDifferenceUsd { get; }
@@ -35,25 +36,25 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 
 	public Money FeeDifference { get; }
 
-	public Money GetFeeDifference(SmartTransaction newTransaction, SmartTransaction originalTransaction)
+	public Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
-		var isCpfp = newTransaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == originalTransaction.GetHash());
-		var newTransactionFee = newTransaction.WalletInputs.Sum(x => x.Amount) - newTransaction.OutputValues.Sum(x => x);
+		var isCpfp = boostingTransaction.Transaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == transactionToSpeedUp.GetHash());
+		var boostingTransactionFee = boostingTransaction.Fee;
 
 		if (isCpfp)
 		{
-			return newTransactionFee;
+			return boostingTransactionFee;
 		}
 
-		var originalFee = originalTransaction.WalletInputs.Sum(x => x.Amount) - originalTransaction.OutputValues.Sum(x => x);
-		return newTransactionFee - originalFee;
+		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
+		return boostingTransactionFee - originalFee;
 	}
 
 	protected override void OnDialogClosed()
 	{
 	}
 
-	private async Task OnSpeedUpTransactionAsync(SmartTransaction spedUpTransaction)
+	private async Task OnSpeedUpTransactionAsync(BuildTransactionResult boostingTransaction)
 	{
 		IsBusy = true;
 
@@ -62,8 +63,8 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 			var isAuthorized = await AuthorizeForPasswordAsync();
 			if (isAuthorized)
 			{
-				await Services.TransactionBroadcaster.SendTransactionAsync(spedUpTransaction);
-				UiContext.Navigate().To().SendSuccess(_wallet, spedUpTransaction);
+				await Services.TransactionBroadcaster.SendTransactionAsync(boostingTransaction.Transaction);
+				UiContext.Navigate().To().SendSuccess(_wallet, boostingTransaction.Transaction);
 			}
 		}
 		catch (Exception ex)

@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
@@ -18,22 +19,22 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 {
 	private readonly Wallet _wallet;
 
-	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction original, SmartTransaction cancellingTransaction)
+	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var originalFee = original.WalletInputs.Sum(x => x.Amount) - original.OutputValues.Sum(x => x);
-		var cancelFeel = cancellingTransaction.WalletInputs.Sum(x => x.Amount) - cancellingTransaction.OutputValues.Sum(x => x);
+		var originalFee = transactionToCancel.WalletInputs.Sum(x => x.Amount) - transactionToCancel.OutputValues.Sum(x => x);
+		var cancelFeel = cancellingTransaction.Fee;
 		FeeDifference = cancelFeel - originalFee;
 
 		EnableBack = false;
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransaction(cancellingTransaction));
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));
 	}
 
 	public Money FeeDifference { get; }
 
-	private async Task OnCancelTransaction(SmartTransaction cancelTransaction)
+	private async Task OnCancelTransactionAsync(BuildTransactionResult cancellingTransaction)
 	{
 		IsBusy = true;
 
@@ -42,8 +43,8 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 			var isAuthorized = await AuthorizeForPasswordAsync();
 			if (isAuthorized)
 			{
-				await Services.TransactionBroadcaster.SendTransactionAsync(cancelTransaction);
-				UiContext.Navigate().To().SendSuccess(_wallet, cancelTransaction);
+				await Services.TransactionBroadcaster.SendTransactionAsync(cancellingTransaction.Transaction);
+				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction);
 			}
 		}
 		catch (Exception ex)

@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -36,7 +37,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		CanCancelTransaction = transactionSummary.Transaction.IsCancelable(KeyManager);
 		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(KeyManager);
 		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transactionSummary.Transaction), Observable.Return(CanSpeedUpTransaction));
-		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transactionSummary), Observable.Return(CanCancelTransaction));
+		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transactionSummary.Transaction), Observable.Return(CanCancelTransaction));
 	}
 
 	public bool CanCancelTransaction { get; }
@@ -51,8 +52,8 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		try
 		{
-			var boostedTransaction = TransactionSpeedUpHelper.CreateSpeedUpTransaction(transactionToSpeedUp, Wallet);
-			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.Wallet, boostedTransaction, transactionToSpeedUp);
+			var boostingTransaction = Wallet.SpeedUpTransaction(transactionToSpeedUp);
+			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.Wallet, transactionToSpeedUp, boostingTransaction);
 		}
 		catch (Exception ex)
 		{
@@ -61,12 +62,12 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		}
 	}
 
-	private void OnCancelTransaction(TransactionSummary transactionSummary)
+	private void OnCancelTransaction(SmartTransaction transactionToCancel)
 	{
 		try
 		{
-			var cancellingTransaction = TransactionCancellationHelper.CreateCancellation(transactionSummary.Transaction, Wallet);
-			UiContext.Navigate().To().CancelTransactionDialog(Wallet, transactionSummary.Transaction, cancellingTransaction);
+			var cancellingTransaction = Wallet.CancelTransaction(transactionToCancel);
+			UiContext.Navigate().To().CancelTransactionDialog(Wallet, transactionToCancel, cancellingTransaction);
 		}
 		catch (Exception ex)
 		{

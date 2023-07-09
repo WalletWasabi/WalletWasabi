@@ -266,7 +266,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		&& !keyManager.IsHardwareWallet
 		&& !Confirmed
 		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any())
-		&& WalletOutputs.Any(x => !x.IsSpent());
+		&& WalletOutputs.All(x => !x.IsSpent());
 
 	/// <summary>
 	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
@@ -279,7 +279,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		&& !GetForeignInputs(keyManager).Any()
 		&& GetForeignOutputs(keyManager).Any()
 		&& IsRBF
-		&& WalletOutputs.Any(x => !x.IsSpent());
+		&& WalletOutputs.All(x => !x.IsSpent());
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
