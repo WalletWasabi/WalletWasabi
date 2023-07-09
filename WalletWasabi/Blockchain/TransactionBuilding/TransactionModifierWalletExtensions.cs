@@ -80,7 +80,12 @@ public static class TransactionModifierWalletExtensions
 			throw new NullReferenceException($"{nameof(bestFeeRate)} is null. This should never happen.");
 		}
 
-		if (transactionToSpeedUp.GetForeignInputs(keyManager).Any() || !transactionToSpeedUp.IsRBF)
+		// We cannot RBF if we
+		// - have foreign inputs,
+		// - the transaction doesn't signal RBF.
+		// We should not RBF if
+		// - any of the transaction's outputs are spent.
+		if (transactionToSpeedUp.GetForeignInputs(keyManager).Any() || !transactionToSpeedUp.IsRBF || transactionToSpeedUp.WalletOutputs.Any(x => x.IsSpent()))
 		{
 			// IF there are any foreign input or doesn't signal RBF, then we can only CPFP.
 			if (ownOutput is null)

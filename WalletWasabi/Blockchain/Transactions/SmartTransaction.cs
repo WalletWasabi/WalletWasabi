@@ -257,29 +257,23 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#endregion Members
 
-	/// <summary>
-	/// Transaction can be sped up if it's unconfirmed.
-	/// If all our inputs and outputs are ours, then speeding it up makes no sense.
-	/// </summary>
 	public bool IsSpeedupable(KeyManager keyManager) =>
-		!keyManager.IsWatchOnly
-		&& !keyManager.IsHardwareWallet
-		&& !Confirmed
-		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any())
-		&& WalletOutputs.All(x => !x.IsSpent());
+		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watchonly and hardware wallets are problematic. It remains a ToDo for the future.
+		&& !Confirmed // [Impossiblility] We can only speed up unconfirmed transactions.
+		&& (GetForeignInputs(keyManager).Any() || GetForeignOutputs(keyManager).Any()) // [Nonsense] There must be at least some foreign input or foreign output. Self spend does not make sense to be sped up, because there, no economic transaction is taking place.
+		&& (GetWalletOutputs(keyManager).Any(x => !x.IsSpent()) // [Impossiblility] If I have an unspent wallet output, then we can CPFP it.
+			|| (IsRBF // [Impossiblility] Otherwise it must signal RBF.
+				&& !GetForeignInputs(keyManager).Any() // [Impossiblility] And must not have foreign inputs, otherwise we couldn't do RBF.
+				&& WalletOutputs.All(x => !x.IsSpent()) // [Danger] And all the outputs we know of should not be spent, otherwise we shouldn't do RBF.
+				&& GetForeignOutputs(keyManager).Any())); // [Nonsense] And there should be at least one foreign output, otherwise we shouldn't do RBF.
 
-	/// <summary>
-	/// Transaction can be cancelled if it's RBF, unconfirmed and has no foreign inputs.
-	/// It also only makes sense to cancel if it has foreign outputs. Self spend does not make sense to cancel.
-	/// </summary>
 	public bool IsCancelable(KeyManager keyManager) =>
-		!keyManager.IsWatchOnly
-		&& !keyManager.IsHardwareWallet
-		&& !Confirmed
-		&& !GetForeignInputs(keyManager).Any()
-		&& GetForeignOutputs(keyManager).Any()
-		&& IsRBF
-		&& WalletOutputs.All(x => !x.IsSpent());
+		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watchonly and hardware wallets are problematic. It remains a ToDo for the future.
+		&& !Confirmed // [Impossiblility] We can only speed up unconfirmed transactions.
+		&& IsRBF // [Impossiblility] Only transactions those signal RBF can be cancelled.
+		&& !GetForeignInputs(keyManager).Any() // [Impossiblility] If any of the inputs aren't ours, then we can't RBF, so we can't cancel.
+		&& GetForeignOutputs(keyManager).Any() // [Nonsense] It only makes sense to cancel if it has foreign outputs. Self spend does not make sense to be cancelled, because there, no economic transaction is taking place.
+		&& WalletOutputs.All(x => !x.IsSpent()); // [Danger] If we find that an output is spent, we should not cancel it. It can be any output, not only ours, but we can only know about spends those are within one of our loaded wallets, so that's the check we do.
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
