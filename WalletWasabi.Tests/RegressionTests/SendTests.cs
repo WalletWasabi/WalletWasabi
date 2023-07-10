@@ -672,9 +672,61 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
-			await rpc.GenerateAsync(1);
 
 			#endregion NoChange
+
+			#region CantCancel
+
+			// Can't cancel cancelled transacion.
+			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(cancellingTx.Transaction));
+
+			// Can't cancel confirmed transaction.
+			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
+			externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
+			txToCancel = wallet.BuildTransaction(password, new PaymentIntent(externalAddr, amountToSend, label: "bar"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
+			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+			await rpc.GenerateAsync(1);
+
+			waitCount = 0;
+			while (!txToCancel.Transaction.Confirmed)
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					Logger.LogInfo($"Wallet didn't recognize transaction confirmation.");
+					return;
+				}
+			}
+
+			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
+
+			// Nonsense to cancel self spend.
+			txToCancel = wallet.BuildChangelessTransaction(wallet.GetNextReceiveAddress(new[] { "foo " }).GetAssumedScriptPubKey().GetDestination()!, "foo", new FeeRate(1m), wallet.Coins.Select(x => x.Outpoint));
+			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+
+			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
+			await rpc.GenerateAsync(1);
+
+			// Dangerous to cancel if an output is spent.
+			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
+			externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
+			txToCancel = wallet.BuildTransaction(password, new PaymentIntent(externalAddr, amountToSend, label: "bar"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
+			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+
+			var spendingTxToCancel = wallet.BuildChangelessTransaction(await rpc.GetNewAddressAsync(CancellationToken.None), "foo", new FeeRate(1m), txToCancel.InnerWalletOutputs);
+			await broadcaster.SendTransactionAsync(spendingTxToCancel.Transaction);
+
+			var c1 = txToCancel.InnerWalletOutputs.Single(); // doesn't recognize spend (SpenderTransaction = null)
+			var cSame1 = spendingTxToCancel.SpentCoins.Single(x => x == c1); // recognizes spend (SpenderTransaction not null)
+			var cSame2 = txToCancel.Transaction.WalletOutputs.Single(x => x == c1); // doesn't recognize spend (SpenderTransaction = null)
+			var cSame3 = wallet.AllCoins.Single(x => x == c1); // recognizes spend (SpenderTransaction not null)
+
+			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
+			cancellingTx = wallet.CancelTransaction(spendingTxToCancel.Transaction);
+			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
+
+			#endregion CantCancel
 		}
 		finally
 		{
