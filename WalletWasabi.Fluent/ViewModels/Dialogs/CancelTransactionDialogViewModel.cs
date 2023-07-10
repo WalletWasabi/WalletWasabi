@@ -6,8 +6,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -27,12 +25,19 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 		var originalFee = transactionToCancel.WalletInputs.Sum(x => x.Amount) - transactionToCancel.OutputValues.Sum(x => x);
 		var cancelFeel = cancellingTransaction.Fee;
 		FeeDifference = cancelFeel - originalFee;
+		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));
 	}
 
+	public decimal FeeDifferenceUsd { get; set; }
+
 	public Money FeeDifference { get; }
+
+	protected override void OnDialogClosed()
+	{
+	}
 
 	private async Task OnCancelTransactionAsync(BuildTransactionResult cancellingTransaction)
 	{
@@ -54,10 +59,6 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 		}
 
 		IsBusy = false;
-	}
-
-	protected override void OnDialogClosed()
-	{
 	}
 
 	private async Task<bool> AuthorizeForPasswordAsync()
