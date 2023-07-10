@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 namespace WalletWasabi.JsonConverters;
@@ -12,4 +13,12 @@ public static class ReflectionUtils
 			Type.DefaultBinder,
 			args,
 			CultureInfo.InvariantCulture);
+
+	public static string? GetAssemblyMetadata(string metadataKey) =>
+		Assembly
+			.GetExecutingAssembly()
+			.GetCustomAttributes<AssemblyMetadataAttribute>()
+			.Where(x => x.Key == metadataKey)
+			.DefaultIfEmpty(new AssemblyMetadataAttribute(metadataKey, string.Empty))
+			.First().Value;
 }
