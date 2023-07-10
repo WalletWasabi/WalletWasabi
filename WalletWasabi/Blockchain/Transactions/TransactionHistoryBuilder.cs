@@ -29,8 +29,7 @@ public class TransactionHistoryBuilder
 			return txRecordList;
 		}
 
-		var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
-		foreach (SmartCoin coin in allCoins)
+		foreach (SmartCoin coin in wallet.AllCoins)
 		{
 			var containingTransaction = coin.Transaction;
 
@@ -110,7 +109,7 @@ public class TransactionHistoryBuilder
 		var foreignInputs = inputs.OfType<ForeignInput>().ToList();
 		var myOwnOutputs = outputs.OfType<OwnOutput>().ToList();
 		var foreignOutputs = outputs.OfType<ForeignOutput>().ToList();
-		
+
 		// All inputs and outputs are my own, transaction is a self-spend.
 		if (!foreignInputs.Any() && !foreignOutputs.Any())
 		{
@@ -132,7 +131,7 @@ public class TransactionHistoryBuilder
 			// All outputs that are my own are the destinations.
 			return myOwnOutputs.Select(x => x.DestinationAddress);
 		}
-		
+
 		// I'm sending a transaction to someone else.
 		// All outputs that are not my own are the destinations.
 		return foreignOutputs.Select(x => x.DestinationAddress);
