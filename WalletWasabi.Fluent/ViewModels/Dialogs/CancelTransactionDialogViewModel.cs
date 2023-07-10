@@ -23,15 +23,21 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var originalFee = transactionToCancel.WalletInputs.Sum(x => x.Amount) - transactionToCancel.OutputValues.Sum(x => x);
-		var cancelFeel = cancellingTransaction.Fee;
-		FeeDifference = cancelFeel - originalFee;
+		var cancelFee = cancellingTransaction.Fee;
+		FeeDifference = cancelFee - originalFee;
+		TotalFee = cancelFee;
 		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
+		TotalFeeUsd = TotalFee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));
 	}
 
-	public decimal FeeDifferenceUsd { get; set; }
+	public decimal TotalFeeUsd { get; }
+
+	public Money TotalFee { get; set; }
+
+	public decimal FeeDifferenceUsd { get; }
 
 	public Money FeeDifference { get; }
 
