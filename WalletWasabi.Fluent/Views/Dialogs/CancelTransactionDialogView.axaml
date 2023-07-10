@@ -15,7 +15,6 @@
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
                  EnableNext="False" NextContent="Cancel">
-
     
     <c:ContentArea.Styles>
       <Style Selector="c|QuestionControl TextBlock">
@@ -35,10 +34,10 @@
         <TextBlock Text="The cancellation of this transaction will cost you a total of" />
         <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
           <TextBlock TextAlignment="Center"
-                     Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                     Text="{Binding TotalFee, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
                      Classes="h5" FontWeight="Bold" />
           <TextBlock
-            Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdAprox}, FallbackValue='≈ 3.5 USD'}"
+            Text="{Binding TotalFee, Converter={x:Static converters:MoneyConverters.ToUsdAprox}, FallbackValue='≈ 3.5 USD'}"
             Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
         </StackPanel>
         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"

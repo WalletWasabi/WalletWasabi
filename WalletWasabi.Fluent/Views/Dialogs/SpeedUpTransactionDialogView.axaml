@@ -35,10 +35,12 @@
           <TextBlock Text="Speeding up this transaction will cost you an additional fee of" />
           <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
             <TextBlock TextAlignment="Center"
+                       FontWeight="Bold"
                        Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
-                       Classes="h5 monoSpaced" VerticalAlignment="Bottom" />
+                       Classes="h5" VerticalAlignment="Bottom" />
             <TextBlock
-              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdAprox}, FallbackValue='≈ 3.5 USD'}"
+              FontWeight="Bold"
+              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdAprox}, FallbackValue='≈3.5 USD'}"
               Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
           </StackPanel>
           <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
@@ -64,7 +66,7 @@
             <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
                        Classes="h5" FontWeight="Bold" />
             <TextBlock
-              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdAprox}, FallbackValue='≈ 3.5 USD'}"
+              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdAprox}, FallbackValue='≈3.5 USD'}"
               Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
           </StackPanel>
           <TextBlock Text="Are you sure?" />
