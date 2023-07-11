@@ -24,8 +24,8 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Architectures
 
-- x64
-- arm64
+- x64 (Windows, Linux, macOS)
+- arm64 (macOS)
 
 # FAQ
 
