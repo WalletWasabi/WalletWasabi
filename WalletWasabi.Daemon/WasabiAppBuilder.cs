@@ -78,7 +78,7 @@ public class WasabiApplication
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-		Logger.LogSoftwareStarted($"{AppConfig.AppName}");
+		Logger.LogSoftwareStarted(AppConfig.AppName);
 
 		Global = CreateGlobal();
 	}
