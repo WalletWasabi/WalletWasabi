@@ -289,9 +289,9 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
-
 		var sign = !KeyManager.IsWatchOnly;
+
+		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 
