@@ -132,7 +132,7 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses semi-private funds." />
+              <TextBlock Text="Transaction uses semi-private coins." />
             </DockPanel>
           </Border>
         </DataTemplate>
