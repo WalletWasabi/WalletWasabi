@@ -21,6 +21,7 @@ using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -522,50 +523,50 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		switch (suggestion)
 		{
 			case LabelManagementSuggestion:
-			{
-				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
-
-				if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 				{
-					_info.Coins = selectPocketsDialog.Result;
-					await BuildAndUpdateAsync();
-				}
+					var selectPocketsDialog =
+						await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
 
-				break;
-			}
+					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+					{
+						_info.Coins = selectPocketsDialog.Result;
+						await BuildAndUpdateAsync();
+					}
+
+					break;
+				}
 
 			case ChangeAvoidanceSuggestion { Transaction: { } txn }:
 				_info.ChangelessCoins = txn.SpentCoins;
 				break;
 
 			case FullPrivacySuggestion fullPrivacySuggestion:
-			{
-				if (fullPrivacySuggestion.IsChangeless)
 				{
-					_info.ChangelessCoins = fullPrivacySuggestion.Coins;
-				}
-				else
-				{
-					_info.Coins = fullPrivacySuggestion.Coins;
-				}
+					if (fullPrivacySuggestion.IsChangeless)
+					{
+						_info.ChangelessCoins = fullPrivacySuggestion.Coins;
+					}
+					else
+					{
+						_info.Coins = fullPrivacySuggestion.Coins;
+					}
 
-				break;
-			}
+					break;
+				}
 
 			case BetterPrivacySuggestion betterPrivacySuggestion:
-			{
-				if (betterPrivacySuggestion.IsChangeless)
 				{
-					_info.ChangelessCoins = betterPrivacySuggestion.Coins;
-				}
-				else
-				{
-					_info.Coins = betterPrivacySuggestion.Coins;
-				}
+					if (betterPrivacySuggestion.IsChangeless)
+					{
+						_info.ChangelessCoins = betterPrivacySuggestion.Coins;
+					}
+					else
+					{
+						_info.Coins = betterPrivacySuggestion.Coins;
+					}
 
-				break;
-			}
+					break;
+				}
 		}
 
 		if (suggestion.Transaction is { } transaction)

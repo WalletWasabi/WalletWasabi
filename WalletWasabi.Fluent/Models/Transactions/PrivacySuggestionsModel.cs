@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
@@ -112,7 +113,7 @@ public class PrivacySuggestionsModel
 			transactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
 
 		var foundNonPrivate = !onlyKnownByRecipient &&
-		                      originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
+							  originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
 
 		var foundSemiPrivate =
 			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
@@ -138,7 +139,7 @@ public class PrivacySuggestionsModel
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
 		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any() &&
-		    TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
+			TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
@@ -160,7 +161,7 @@ public class PrivacySuggestionsModel
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
 		if (foundNonPrivate && allSemiPrivateCoin.Any() &&
-		    TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
+			TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
@@ -231,10 +232,17 @@ public class PrivacySuggestionsModel
 		// Only allow to create 1 more input with BnB. This accounts for the change created.
 		int maxInputCount = transaction.SpentCoins.Count() + 1;
 
+		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
+		ImmutableList<SmartCoin> coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName];
+
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transaction.SpentCoins;
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
-		var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
+
+		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
+		ImmutableArray<SmartCoin> coinsToUse = spentCoins.Any(coinsToExclude.Contains) ?
+			usedPockets.SelectMany(x => x.Coins).ToImmutableArray() :
+			usedPockets.SelectMany(x => x.Coins).Except(coinsToExclude).ToImmutableArray();
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
 
