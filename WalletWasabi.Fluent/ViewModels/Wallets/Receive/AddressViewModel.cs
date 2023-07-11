@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 public partial class AddressViewModel : ViewModelBase
 {
 	[AutoNotify] private string _addressText;
-	[AutoNotify] private IEnumerable<string> _labels = new LabelsArray();
+	[AutoNotify] private LabelsArray _labels;
 
 	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{
