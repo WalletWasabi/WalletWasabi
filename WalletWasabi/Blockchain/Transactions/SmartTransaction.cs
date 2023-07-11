@@ -23,7 +23,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
-	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, LabelsArray? labels = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
+	public SmartTransaction(
+		Transaction transaction,
+		Height height,
+		uint256? blockHash = null,
+		int blockIndex = 0,
+		LabelsArray? labels = null,
+		bool isReplacement = false,
+		bool isCancellation = false,
+		bool isCpfp = false,
+		DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
 
@@ -191,6 +200,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	[JsonProperty]
 	public bool IsReplacement { get; private set; }
+
+	[JsonProperty]
+	public bool IsCpfp { get; private set; }
+
+	[JsonProperty]
+	public bool IsCancellation { get; private set; }
 
 	public bool Confirmed => Height.Type == HeightType.Chain;
 
@@ -363,12 +378,26 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			updated = true;
 		}
 
+		IsReplacement = tx.IsReplacement;
+		IsCpfp = tx.IsCpfp;
+		IsCancellation = tx.IsCancellation;
+
 		return updated;
 	}
 
 	public void SetReplacement()
 	{
 		IsReplacement = true;
+	}
+
+	public void SetCancellation()
+	{
+		IsCancellation = true;
+	}
+
+	public void SetCpfp()
+	{
+		IsCpfp = true;
 	}
 
 	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
@@ -420,7 +449,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			BlockIndex,
 			Labels,
 			FirstSeen.ToUnixTimeSeconds(),
-			IsReplacement);
+			IsReplacement,
+			IsCpfp,
+			IsCancellation);
 	}
 
 	public static SmartTransaction FromLine(string line, Network expectedNetwork)
@@ -439,6 +470,17 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			var labelString = parts[5];
 			var firstSeenString = parts[6];
 			var isReplacementString = parts[7];
+
+			var isCpfpString = "false";
+			var isCancellationString = "false";
+			if (parts.Length > 8)
+			{
+				isCpfpString = parts[8];
+				if (parts.Length > 9)
+				{
+					isCancellationString = parts[9];
+				}
+			}
 
 			if (!Height.TryParse(heightString, out Height height))
 			{
@@ -462,8 +504,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				isReplacement = false;
 			}
+			if (!bool.TryParse(isCpfpString, out bool isCpfp))
+			{
+				isCpfp = false;
+			}
+			if (!bool.TryParse(isCancellationString, out bool isCancellation))
+			{
+				isCancellation = false;
+			}
 
-			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, firstSeen);
+			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isCancellation, isCpfp, firstSeen);
 		}
 		catch (Exception ex)
 		{

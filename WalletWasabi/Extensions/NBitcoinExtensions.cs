@@ -153,6 +153,8 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.BlockIndex,
 			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
+			unsignedSmartTransaction.IsCancellation,
+			unsignedSmartTransaction.IsCpfp,
 			unsignedSmartTransaction.FirstSeen);
 	}
 
@@ -490,7 +492,7 @@ public static class NBitcoinExtensions
 
 		return ownershipProof;
 	}
-	
+
 	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
 		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 }

@@ -50,6 +50,8 @@ public static class TransactionModifierWalletExtensions
 		}
 		while (originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * cancelTransaction.Transaction.Transaction.GetVirtualSize()) >= cancelTransaction.Fee);
 
+		cancelTransaction.Transaction.SetCancellation();
+
 		return cancelTransaction;
 	}
 
@@ -150,6 +152,7 @@ public static class TransactionModifierWalletExtensions
 			allowedInputs: transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint),
 			allowDoubleSpend: true,
 			tryToSign: true);
+
 		return rbf;
 	}
 
@@ -184,6 +187,9 @@ public static class TransactionModifierWalletExtensions
 			cpfpFeeRate,
 			new[] { ownOutput },
 			tryToSign: true);
+
+		cpfp.Transaction.SetCpfp();
+
 		return cpfp;
 	}
 }

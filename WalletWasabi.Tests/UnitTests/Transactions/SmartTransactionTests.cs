@@ -155,13 +155,18 @@ public class SmartTransactionTests
 		var label = "foo";
 		var unixSeconds = "1567084917";
 		var isReplacement = "False";
+		var isCancellation = "False";
+		var isCpfp = "False";
 		SmartTransaction stx;
 		foreach (var net in new[] { Network.Main, Network.TestNet, Network.RegTest })
 		{
 			foreach (var inp in new[]
 			{
-					// Normal input.
+					// Legacy input.
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
+
+					// Normal input.
+					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:{isCancellation}:{isCpfp}",
 
 					// Whitespaces.
 					$"     {txHash} :   {txHex}  :  {height}  :  {blockHash} :  {blockIndex}  : {label}    : {unixSeconds}     :    {isReplacement}  ",
@@ -189,6 +194,8 @@ public class SmartTransactionTests
 					Assert.True(stx.Labels.IsEmpty);
 					Assert.Equal(stx.FirstSeen.UtcDateTime, DateTime.UtcNow, TimeSpan.FromSeconds(1));
 					Assert.False(stx.IsReplacement);
+					Assert.False(stx.IsCancellation);
+					Assert.False(stx.IsCpfp);
 				}
 				else
 				{
@@ -200,6 +207,8 @@ public class SmartTransactionTests
 					Assert.Equal(label, stx.Labels);
 					Assert.Equal(unixSeconds, stx.FirstSeen.ToUnixTimeSeconds().ToString());
 					Assert.Equal(isReplacement, stx.IsReplacement.ToString());
+					Assert.Equal(isCancellation, stx.IsCancellation.ToString());
+					Assert.Equal(isCpfp, stx.IsCpfp.ToString());
 				}
 			}
 		}
