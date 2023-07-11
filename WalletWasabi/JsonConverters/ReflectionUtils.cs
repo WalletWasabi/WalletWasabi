@@ -19,6 +19,6 @@ public static class ReflectionUtils
 			.GetExecutingAssembly()
 			.GetCustomAttributes<AssemblyMetadataAttribute>()
 			.Where(x => x.Key == metadataKey)
-			.DefaultIfEmpty(new AssemblyMetadataAttribute(metadataKey, string.Empty))
+			.DefaultIfEmpty(new AssemblyMetadataAttribute(metadataKey, ""))
 			.First().Value;
 }
