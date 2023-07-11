@@ -24,4 +24,6 @@ public class TransactionSummary
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; set; }
 	public SmartTransaction Transaction { get; set; }
+	public bool IsCancellation { get; set; }
+	public bool IsSpeedUp { get; set; }
 }
