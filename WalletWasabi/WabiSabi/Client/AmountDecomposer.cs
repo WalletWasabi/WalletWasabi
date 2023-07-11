@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Models;
 
@@ -15,7 +16,8 @@ public class AmountDecomposer
 	/// <param name="minAllowedOutputAmount">Min output amount that's allowed to be registered.</param>
 	/// <param name="maxAllowedOutputAmount">Max output amount that's allowed to be registered.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, IEnumerable<ScriptType> allowedOutputTypes)
+	/// <param name="random">Allows testing by setting a seed value for the random number generator.</param>
+	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, Money maxAllowedOutputAmount, int availableVsize, IEnumerable<ScriptType> allowedOutputTypes, WasabiRandom random)
 	{
 		FeeRate = feeRate;
 
@@ -23,11 +25,12 @@ public class AmountDecomposer
 		AllowedOutputTypes = allowedOutputTypes;
 		MinAllowedOutputAmount = minAllowedOutputAmount;
 		MaxAllowedOutputAmount = maxAllowedOutputAmount;
+		Random = random;
 
 		// Create many standard denominations.
-		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes);
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes, random);
 
-		ChangeScriptType = AllowedOutputTypes.RandomElement();
+		ChangeScriptType = AllowedOutputTypes.RandomElement(random);
 	}
 
 	public FeeRate FeeRate { get; }
@@ -39,6 +42,7 @@ public class AmountDecomposer
 	public IOrderedEnumerable<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
+	private WasabiRandom Random { get; }
 
 	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
@@ -115,7 +119,7 @@ public class AmountDecomposer
 		{
 			preCandidates = changelessCandidates;
 		}
-		preCandidates.Shuffle();
+		preCandidates.Shuffle(Random);
 
 		var orderedCandidates = preCandidates
 			.OrderBy(x => x.Decomposition.Sum(y => denomHashSet.Contains(y) ? Money.Zero : y.Amount)) // Less change is better.
@@ -149,8 +153,8 @@ public class AmountDecomposer
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
-		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
-		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement(Random);
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement(Random).Decomp;
 
 		var totalOutputAmount = Money.Satoshis(finalCandidate.Sum(x => x.EffectiveCost));
 		if (totalOutputAmount > myInputSum)
@@ -228,7 +232,7 @@ public class AmountDecomposer
 			List<Output> currentSet = new();
 			while (true)
 			{
-				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement()
+				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement(Random)
 					?? denoms.FirstOrDefault(x => x.EffectiveCost <= remaining);
 
 				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).

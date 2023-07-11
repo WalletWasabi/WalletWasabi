@@ -9,21 +9,18 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -34,6 +31,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
 	private readonly WalletViewModel _walletViewModel;
+	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
@@ -48,12 +46,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		_undoHistory = new();
 		_wallet = walletViewModel.Wallet;
+		_privacySuggestionsModel = new(_wallet);
 		_walletViewModel = walletViewModel;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(_wallet);
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
 
@@ -66,11 +65,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.SubscribeAsync(async x =>
+			.Subscribe(x =>
 			{
-				if (x is ChangeAvoidanceSuggestionViewModel ca)
+				if (x?.Transaction is { } transaction)
 				{
-					await UpdateTransactionAsync(PreviewTransactionSummary, ca.TransactionResult);
+					UpdateTransaction(PreviewTransactionSummary, transaction);
 				}
 				else
 				{
@@ -79,15 +78,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.SubscribeAsync(async x =>
+			.SubscribeAsync(async suggestion =>
 			{
-				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
 
-				if (x is ChangeAvoidanceSuggestionViewModel ca)
+				if (suggestion is { })
 				{
-					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-					await UpdateTransactionAsync(CurrentTransactionSummary, ca.TransactionResult);
+					await ApplyPrivacySuggestionAsync(suggestion);
 				}
 			});
 
@@ -104,7 +101,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _cancellationTokenSource.Token))
+			.DoAsync(async transaction =>
+			{
+				await CheckChangePocketAvailableAsync(transaction);
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
+			})
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -129,17 +130,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
+		UndoCommand = ReactiveCommand.Create(() =>
 		{
 			if (_undoHistory.TryPop(out var previous))
 			{
 				_info = previous.Item2;
-				await UpdateTransactionAsync(CurrentTransactionSummary, previous.Item1, false);
+				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
 				CanUndo = _undoHistory.Any();
 			}
 		});
 
-		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
 	}
 
@@ -154,8 +154,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 	public ICommand AdjustFeeCommand { get; }
-
-	public ICommand ChangePocketCommand { get; }
 
 	public ICommand ChangeCoinsCommand { get; }
 
@@ -183,7 +181,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task UpdateTransactionAsync(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
+	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
 	{
 		if (!summary.IsPreview)
 		{
@@ -193,7 +191,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			Transaction = transaction;
-			await CheckChangePocketAvailableAsync(Transaction);
 			_currentTransactionInfo = _info.Clone();
 		}
 
@@ -225,20 +222,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (newTransaction is { })
 		{
-			await UpdateTransactionAsync(CurrentTransactionSummary, newTransaction);
-		}
-	}
-
-	private async Task OnChangePocketsAsync()
-	{
-		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
-
-		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
-		{
-			_info.Coins = selectPocketsDialog.Result;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
-			await BuildAndUpdateAsync();
+			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 		}
 	}
 
@@ -257,7 +241,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			_info.Coins = selectCoinsDialog.Result;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new coins.
 			await BuildAndUpdateAsync();
 		}
 	}
@@ -401,7 +384,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
-			await UpdateTransactionAsync(CurrentTransactionSummary, initialTransaction);
+			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 		}
 		else
 		{
@@ -431,7 +414,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_cancellationTokenSource?.Cancel();
 			_cancellationTokenSource?.Dispose();
 			_cancellationTokenSource = null;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
 		base.OnNavigatedFrom(isInHistory);
@@ -533,5 +515,62 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
+	}
+
+	private async Task ApplyPrivacySuggestionAsync(PrivacySuggestion suggestion)
+	{
+		switch (suggestion)
+		{
+			case LabelManagementSuggestion:
+			{
+				var selectPocketsDialog =
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+
+				if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+				{
+					_info.Coins = selectPocketsDialog.Result;
+					await BuildAndUpdateAsync();
+				}
+
+				break;
+			}
+
+			case ChangeAvoidanceSuggestion { Transaction: { } txn }:
+				_info.ChangelessCoins = txn.SpentCoins;
+				break;
+
+			case FullPrivacySuggestion fullPrivacySuggestion:
+			{
+				if (fullPrivacySuggestion.IsChangeless)
+				{
+					_info.ChangelessCoins = fullPrivacySuggestion.Coins;
+				}
+				else
+				{
+					_info.Coins = fullPrivacySuggestion.Coins;
+				}
+
+				break;
+			}
+
+			case BetterPrivacySuggestion betterPrivacySuggestion:
+			{
+				if (betterPrivacySuggestion.IsChangeless)
+				{
+					_info.ChangelessCoins = betterPrivacySuggestion.Coins;
+				}
+				else
+				{
+					_info.Coins = betterPrivacySuggestion.Coins;
+				}
+
+				break;
+			}
+		}
+
+		if (suggestion.Transaction is { } transaction)
+		{
+			UpdateTransaction(CurrentTransactionSummary, transaction);
+		}
 	}
 }

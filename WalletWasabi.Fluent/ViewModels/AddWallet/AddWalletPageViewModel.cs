@@ -7,9 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -49,12 +47,13 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnCreateWallet()
 	{
-		Navigate().To().WalletNamePage(WalletCreationOption.AddNewWallet);
+		var options = new WalletCreationOptions.AddNewWallet().WithNewMnemonic();
+		Navigate().To().WalletNamePage(options);
 	}
 
 	private void OnConnectHardwareWallet()
 	{
-		Navigate().To().WalletNamePage(WalletCreationOption.ConnectToHardwareWallet);
+		Navigate().To().WalletNamePage(new WalletCreationOptions.ConnectToHardwareWallet());
 	}
 
 	private async Task OnImportWalletAsync()
@@ -70,17 +69,16 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 			var walletName = Path.GetFileNameWithoutExtension(filePath);
 
-			var validationError = WalletHelpers.ValidateWalletName(walletName);
+			var options = new WalletCreationOptions.ImportWallet(walletName, filePath);
+
+			var validationError = UiContext.WalletRepository.ValidateWalletName(walletName);
 			if (validationError is { })
 			{
-				Navigate().To().WalletNamePage(WalletCreationOption.ImportWallet, filePath);
+				Navigate().To().WalletNamePage(options);
 				return;
 			}
 
-			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-
-			// TODO: Remove this after current ViewModel is decoupled
-			var walletSettings = new WalletSettingsModel(keyManager, true);
+			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 
 			Navigate().To().AddedWalletPage(walletSettings);
 		}
@@ -93,14 +91,14 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnRecoverWallet()
 	{
-		Navigate().To().WalletNamePage(WalletCreationOption.RecoverWallet);
+		Navigate().To().WalletNamePage(new WalletCreationOptions.RecoverWallet());
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 	}
 
