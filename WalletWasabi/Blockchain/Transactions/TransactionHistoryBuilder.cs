@@ -61,6 +61,8 @@ public class TransactionHistoryBuilder
 					Inputs = GetInputs(containingTransaction),
 					Outputs = outputs,
 					DestinationAddresses = destinationAddresses,
+					IsSpeedUp = GetIsSpeedUp(containingTransaction),
+					IsCancellation = GetIsCancellation(containingTransaction),
 				});
 			}
 
@@ -95,12 +97,27 @@ public class TransactionHistoryBuilder
 						Inputs = GetInputs(spenderTransaction),
 						Outputs = outputs,
 						DestinationAddresses = destinationAddresses,
+						IsSpeedUp = GetIsSpeedUp(spenderTransaction),
+						IsCancellation = GetIsCancellation(spenderTransaction),
 					});
 				}
 			}
 		}
 		txRecordList = txRecordList.OrderByBlockchain().ToList();
 		return txRecordList;
+	}
+
+	private bool GetIsCancellation(SmartTransaction transaction)
+	{
+		var isCancellation = transaction.IsCancellation && transaction.IsReplacement;
+		return isCancellation;
+	}
+
+	private bool GetIsSpeedUp(SmartTransaction transaction)
+	{
+		var isSpeedUp = transaction.IsCpfp && !transaction.IsReplacement && !transaction.IsCancellation
+		                               || transaction.IsReplacement && !transaction.IsCancellation && !transaction.IsCpfp;
+		return isSpeedUp;
 	}
 
 	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
