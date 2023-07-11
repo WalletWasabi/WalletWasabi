@@ -122,7 +122,7 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses non-private funds." />
+              <TextBlock Text="Transaction uses non-private coins." />
             </DockPanel>
           </Border>
         </DataTemplate>
