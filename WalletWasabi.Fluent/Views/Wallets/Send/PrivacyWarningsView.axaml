@@ -199,7 +199,7 @@
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to use only private funds." />
+                  <TextBlock Text="to use only private coins." />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
