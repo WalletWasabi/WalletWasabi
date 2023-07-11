@@ -378,10 +378,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			updated = true;
 		}
 
-		IsReplacement = tx.IsReplacement;
-		IsCpfp = tx.IsCpfp;
-		IsCancellation = tx.IsCancellation;
-
 		return updated;
 	}
 

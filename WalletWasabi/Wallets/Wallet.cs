@@ -201,7 +201,7 @@ public class Wallet : BackgroundService, IWallet
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;

@@ -5,6 +5,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -17,10 +18,12 @@ public class TransactionProcessor
 {
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
+		MempoolService? mempoolService,
 		KeyManager keyManager,
 		Money dustThreshold)
 	{
 		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+		MempoolService = mempoolService;
 		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 		Coins = new();
@@ -43,6 +46,7 @@ public class TransactionProcessor
 
 	public int QueuedTxCount { get; private set; }
 	public int QueuedProcessedTxCount { get; private set; }
+	public MempoolService? MempoolService { get; }
 
 	#endregion Progress
 
@@ -132,6 +136,13 @@ public class TransactionProcessor
 			tx = foundTx;
 			result = new ProcessedResult(tx);
 		}
+		else if (MempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
+		{
+			// If we already have the transaction in the broadcast store, then let's work on that.
+			foundEntry.Transaction.TryUpdate(tx);
+			tx = foundEntry.Transaction;
+			result = new ProcessedResult(tx);
+		}
 
 		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
 		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -147,6 +158,7 @@ public class TransactionProcessor
 
 			if (doubleSpends.Any())
 			{
+				tx.SetReplacement();
 				if (tx.Height == Height.Mempool)
 				{
 					// if the received transaction is spending at least one input already
@@ -168,8 +180,6 @@ public class TransactionProcessor
 						{
 							TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
 						}
-
-						tx.SetReplacement();
 					}
 					else
 					{
