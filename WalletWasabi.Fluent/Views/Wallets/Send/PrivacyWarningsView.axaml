@@ -161,7 +161,7 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses unconfirmed funds." />
+              <TextBlock Text="Transaction uses unconfirmed coins." />
             </DockPanel>
           </Border>
         </DataTemplate>
