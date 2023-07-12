@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
              x:CompileBindings="True"
@@ -42,14 +43,7 @@
           <Setter Property="Margin" Value="0" />
         </Style>
       </c:PrivacyContentControl.Styles>
-      <Panel>
-        <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6"
-                  IsVisible="{Binding !IsCoinJoin}" />
-        <Panel IsVisible="{Binding IsCoinJoin}">
-          <PathIcon IsVisible="{Binding !IsCoinJoinGroup}" ToolTip.Tip="Coinjoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6" />
-          <PathIcon IsVisible="{Binding IsCoinJoinGroup}" ToolTip.Tip="Coinjoins" Data="{StaticResource double_shield_regular}" Height="15" Opacity="0.6" />
-        </Panel>
-      </Panel>
+      <PathIcon DataContext="{Binding TransactionKind}" ToolTip.Tip="{Binding Name}" Opacity="0.6" Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}" />
     </c:PrivacyContentControl>
   </StackPanel>
 </UserControl>

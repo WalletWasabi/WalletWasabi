@@ -64,6 +64,24 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 
+	public TransactionKind TransactionKind
+	{
+		get
+		{
+			if (IsCoinJoin && IsCoinJoinGroup)
+			{
+				return new TransactionKind("Coinjoins", "double_shield_regular");
+			}
+
+			if (IsCoinJoin)
+			{
+				return new TransactionKind("Coinjoin", "shield_regular");
+			}
+
+			return new TransactionKind("Transaction", "normal_transaction");
+		}
+	}
+
 	private async Task CopyToClipboardAsync(string text)
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
