@@ -107,18 +107,12 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private bool GetIsCancellation(SmartTransaction transaction)
-	{
-		var isCancellation = transaction.IsCancellation && transaction.IsReplacement;
-		return isCancellation;
-	}
+	private bool GetIsCancellation(SmartTransaction transaction) => transaction.IsCancellation;
 
-	private bool GetIsSpeedUp(SmartTransaction transaction)
-	{
-		var isSpeedUp = transaction.IsCpfp && !transaction.IsReplacement && !transaction.IsCancellation
-		                               || transaction.IsReplacement && !transaction.IsCancellation && !transaction.IsCpfp;
-		return isSpeedUp;
-	}
+	/// <summary>
+	/// CPFP or RBF that is not cancellation.
+	/// </summary>
+	private bool GetIsSpeedUp(SmartTransaction transaction) => transaction.IsCpfp || (transaction.IsReplacement && !transaction.IsCancellation);
 
 	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
 	{
