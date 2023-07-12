@@ -40,6 +40,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 					IsFlashing = false;
 				});
 		IsCancellation = false;
+		IsSpeedUp = false;
 	}
 
 	public uint256 Id { get; }
@@ -91,10 +92,17 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCancellation { get; set; }
 
+	public bool IsSpeedUp { get; set; }
+
 	public DisplayIcon ConfirmationStatus
 	{
 		get
 		{
+			if (IsSpeedUp)
+			{
+				return new DisplayIcon("Speed-Up", "rocket_regular");
+			}
+
 			if (IsConfirmed)
 			{
 				return new DisplayIcon(ConfirmedToolTip, "checkmark_filled");
