@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Wallets;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
