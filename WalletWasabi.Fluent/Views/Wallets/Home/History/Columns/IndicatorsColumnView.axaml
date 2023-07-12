@@ -19,20 +19,12 @@
       </Button>
     </Panel>
 
-    <Panel>
-      <!-- Confirmed -->
-      <PathIcon IsVisible="{Binding IsConfirmed}"
-                Data="{StaticResource checkmark_filled}"
-                Height="11"
-                Opacity="0.6"
-                ToolTip.Tip="{Binding ConfirmedToolTip}" />
-      <!-- Pending -->
-      <PathIcon IsVisible="{Binding !IsConfirmed}"
-                Data="{StaticResource clock_regular}"
-                Height="14"
-                Opacity="0.6"
-                ToolTip.Tip="Pending" />
-    </Panel>
+    <!-- Confirmation -->
+    <PathIcon DataContext="{Binding ConfirmationStatus}"
+              Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}"
+              Height="11"
+              Opacity="0.6"
+              ToolTip.Tip="{Binding Name}" />
 
     <!-- Type -->
     <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="False">
