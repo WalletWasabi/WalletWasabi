@@ -266,6 +266,7 @@ public class TransactionProcessor
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
+			MempoolService?.TrySpend(coin, tx);
 
 			if (!alreadyKnown)
 			{
