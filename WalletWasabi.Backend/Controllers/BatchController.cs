@@ -21,12 +21,13 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global global)
+	public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, WabiSabiController wabiSabiController, Global global)
 	{
 		BlockchainController = blockchainController;
 		ChaumianCoinJoinController = chaumianCoinJoinController;
 		HomeController = homeController;
 		OffchainController = offchainController;
+		WabiSabiController = wabiSabiController;
 		Global = global;
 	}
 
@@ -35,6 +36,7 @@ public class BatchController : ControllerBase
 	public ChaumianCoinJoinController ChaumianCoinJoinController { get; }
 	public HomeController HomeController { get; }
 	public OffchainController OffchainController { get; }
+	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
 	public async Task<IActionResult> GetSynchronizeAsync(
@@ -98,7 +100,7 @@ public class BatchController : ControllerBase
 
 		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
 
-		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
+		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection().Concat(WabiSabiController.GetUnconfirmedCoinJoinCollection()).Distinct();
 
 		return Ok(response);
 	}

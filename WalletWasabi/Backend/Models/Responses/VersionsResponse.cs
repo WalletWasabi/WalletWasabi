@@ -14,4 +14,6 @@ public class VersionsResponse
 	public string Ww1LegalDocumentsVersion { get; set; }
 
 	public string Ww2LegalDocumentsVersion { get; set; }
+
+	public string CommitHash { get; set; }
 }
