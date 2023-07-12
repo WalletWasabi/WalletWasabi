@@ -37,6 +37,10 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 		Wallets = wallets;
 	}
 
+	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
+
+	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets { get; }
+
 	public void Activate()
 	{
 		this.WhenAnyValue(x => x.SelectedWallet)
@@ -60,10 +64,6 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 
 		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWallet?.Name);
 	}
-
-	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
-
-	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets { get; }
 
 	public async Task InitialiseAsync()
 	{

@@ -14,10 +14,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
-	[AutoNotify] private bool _transactionHasPockets;
 	[AutoNotify] private string _confirmationTimeText = "";
 	[AutoNotify] private string _feeText = "";
-	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
@@ -30,10 +28,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Parent = parent;
 		_wallet = wallet;
 		IsPreview = isPreview;
-
-		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
-
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
@@ -53,7 +47,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		_transaction = transactionResult;
 
-		ConfirmationTimeText = $"approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
+		ConfirmationTimeText = $"≈ {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
@@ -73,14 +67,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			FeeText += $" {fiatFeeText}";
 		}
 
-		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
-
-		Labels = new LabelsArray(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient));
-		TransactionHasPockets = Labels.Any();
-
 		Recipient = info.Recipient;
-
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 	}

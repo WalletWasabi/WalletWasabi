@@ -9,14 +9,17 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
+using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _walletName;
 	private readonly WalletCreationOptions _options;
+	private readonly string? _importFilePath;
+	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
+	[AutoNotify] private string _walletName;
 
 	public WalletNamePageViewModel(UiContext uiContext, WalletCreationOptions options)
 	{
