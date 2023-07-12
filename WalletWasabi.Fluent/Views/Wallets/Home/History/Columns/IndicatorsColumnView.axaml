@@ -22,7 +22,7 @@
     <!-- Confirmation -->
     <PathIcon DataContext="{Binding ConfirmationStatus}"
               Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}"
-              Height="11"
+              Height="14"
               Opacity="0.6"
               ToolTip.Tip="{Binding Name}" />
 
