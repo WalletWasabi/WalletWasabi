@@ -717,10 +717,15 @@ public class SendTests : IClassFixture<RegTestFixture>
 			var spendingTxToCancel = wallet.BuildChangelessTransaction(await rpc.GetNewAddressAsync(CancellationToken.None), "foo", new FeeRate(1m), txToCancel.InnerWalletOutputs);
 			await broadcaster.SendTransactionAsync(spendingTxToCancel.Transaction);
 
-			var c1 = txToCancel.InnerWalletOutputs.Single(); // doesn't recognize spend (SpenderTransaction = null)
-			var cSame1 = spendingTxToCancel.SpentCoins.Single(x => x == c1); // recognizes spend (SpenderTransaction not null)
-			var cSame2 = txToCancel.Transaction.WalletOutputs.Single(x => x == c1); // doesn't recognize spend (SpenderTransaction = null)
-			var cSame3 = wallet.AllCoins.Single(x => x == c1); // recognizes spend (SpenderTransaction not null)
+			// Ensure full data integrity regarding recognizing spends.
+			var sameCoin1 = txToCancel.InnerWalletOutputs.Single();
+			var sameCoin2 = spendingTxToCancel.SpentCoins.Single(x => x == sameCoin1);
+			var sameCoin3 = txToCancel.Transaction.WalletOutputs.Single(x => x == sameCoin1);
+			var sameCoin4 = wallet.AllCoins.Single(x => x == sameCoin1);
+			Assert.NotNull(sameCoin1.SpenderTransaction);
+			Assert.NotNull(sameCoin2.SpenderTransaction);
+			Assert.NotNull(sameCoin3.SpenderTransaction);
+			Assert.NotNull(sameCoin4.SpenderTransaction);
 
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
 			cancellingTx = wallet.CancelTransaction(spendingTxToCancel.Transaction);
