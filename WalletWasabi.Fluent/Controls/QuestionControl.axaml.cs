@@ -58,13 +58,13 @@ public class QuestionControl : ContentControl
 		set => SetValue(ImageIconProperty, value);
 	}
 
-	public bool IsYesButton
+	private bool IsYesButton
 	{
 		get => GetValue(IsYesButtonProperty);
 		set => SetValue(IsYesButtonProperty, value);
 	}
 
-	public bool IsNoButton
+	private bool IsNoButton
 	{
 		get => GetValue(IsNoButtonProperty);
 		set => SetValue(IsNoButtonProperty, value);
