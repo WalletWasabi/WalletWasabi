@@ -4,8 +4,6 @@ exclude_patterns = [
   "WalletWasabi.Fluent/ZXing/**"
 
 ]
-[[analyzers]]
-name = "csharp"
 
 [[analyzers]]
 name = "shell"
