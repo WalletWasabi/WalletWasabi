@@ -12,7 +12,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Recipient")]
+[NavigationMetaData(Title = "Recipient", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray?>
 {
 	private readonly Wallet _wallet;
