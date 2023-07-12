@@ -28,6 +28,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		var confirmations = transactionSummary.GetConfirmations();
 		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
+		IsCancellation = transactionSummary.IsCancellation;
 
 		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
 
