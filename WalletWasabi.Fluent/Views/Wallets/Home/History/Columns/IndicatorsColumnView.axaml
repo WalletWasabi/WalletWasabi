@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
              x:CompileBindings="True"
@@ -18,20 +19,12 @@
       </Button>
     </Panel>
 
-    <Panel>
-      <!-- Confirmed -->
-      <PathIcon IsVisible="{Binding IsConfirmed}"
-                Data="{StaticResource checkmark_filled}"
-                Height="11"
-                Opacity="0.6"
-                ToolTip.Tip="{Binding ConfirmedToolTip}" />
-      <!-- Pending -->
-      <PathIcon IsVisible="{Binding !IsConfirmed}"
-                Data="{StaticResource clock_regular}"
-                Height="14"
-                Opacity="0.6"
-                ToolTip.Tip="Pending" />
-    </Panel>
+    <!-- Confirmation -->
+    <PathIcon DataContext="{Binding ConfirmationStatus}"
+              Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}"
+              Height="11"
+              Opacity="0.6"
+              ToolTip.Tip="{Binding Name}" />
 
     <!-- Type -->
     <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="False">
@@ -42,14 +35,7 @@
           <Setter Property="Margin" Value="0" />
         </Style>
       </c:PrivacyContentControl.Styles>
-      <Panel>
-        <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6"
-                  IsVisible="{Binding !IsCoinJoin}" />
-        <Panel IsVisible="{Binding IsCoinJoin}">
-          <PathIcon IsVisible="{Binding !IsCoinJoinGroup}" ToolTip.Tip="Coinjoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6" />
-          <PathIcon IsVisible="{Binding IsCoinJoinGroup}" ToolTip.Tip="Coinjoins" Data="{StaticResource double_shield_regular}" Height="15" Opacity="0.6" />
-        </Panel>
-      </Panel>
+      <PathIcon DataContext="{Binding TransactionKind}" ToolTip.Tip="{Binding Name}" Opacity="0.6" Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}" />
     </c:PrivacyContentControl>
   </StackPanel>
 </UserControl>

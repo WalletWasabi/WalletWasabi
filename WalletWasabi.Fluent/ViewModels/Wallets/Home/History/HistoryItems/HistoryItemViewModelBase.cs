@@ -33,11 +33,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
-			.SubscribeAsync(async _ =>
-			{
-				await Task.Delay(1260);
-				IsFlashing = false;
-			});
+			.SubscribeAsync(
+				async _ =>
+				{
+					await Task.Delay(1260);
+					IsFlashing = false;
+				});
 	}
 
 	public uint256 Id { get; }
@@ -63,6 +64,37 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
+
+	public DisplayIcon TransactionKind
+	{
+		get
+		{
+			if (IsCoinJoin && IsCoinJoinGroup)
+			{
+				return new DisplayIcon("Coinjoins", "double_shield_regular");
+			}
+
+			if (IsCoinJoin)
+			{
+				return new DisplayIcon("Coinjoin", "shield_regular");
+			}
+
+			return new DisplayIcon("Transaction", "normal_transaction");
+		}
+	}
+
+	public DisplayIcon ConfirmationStatus
+	{
+		get
+		{
+			if (IsConfirmed)
+			{
+				return new DisplayIcon(ConfirmedToolTip, "checkmark_filled");
+			}
+
+			return new DisplayIcon("Pending", "clock_regular");
+		}
+	}
 
 	private async Task CopyToClipboardAsync(string text)
 	{
