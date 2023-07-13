@@ -84,11 +84,13 @@ public class Global
 	{
 		// Load banned coins in wallet.
 		// This event function can be deleted later when SmartCoin.IsBanned is removed.
-		var wallet = sender as Wallet ?? throw new InvalidOperationException("");
-		if (e is WalletState.Started)
+		if (e is not WalletState.Started)
 		{
-			CoinPrison.UpdateWallet(wallet);
+			return;
 		}
+
+		var wallet = sender as Wallet ?? throw new InvalidOperationException($"The sender for {nameof(WalletManager.WalletStateChanged)} was not a Wallet.");
+		CoinPrison.UpdateWallet(wallet);
 	}
 
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
@@ -336,7 +338,7 @@ public class Global
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier, CoinPrison.CreateOrLoadFromFile(DataDir)), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier, CoinPrison), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
