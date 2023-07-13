@@ -17,37 +17,40 @@ public class CoinPrison
 		FilePath = filePath;
 	}
 
-	public List<PrisonedCoinRecord> BannedCoins { get; set; } = new();
+	private HashSet<PrisonedCoinRecord> BannedCoins { get; set; } = new();
 	public string FilePath { get; set; }
 	private object Lock { get; set; } = new();
 
 	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, DateTimeOffset banDeadlineTime, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
-		bannedUntil = null;
-		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
+		lock (Lock)
 		{
-			if (banDeadlineTime < record.BannedUntil)
+			bannedUntil = null;
+			if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
 			{
-				bannedUntil = record.BannedUntil;
-				return true;
+				if (banDeadlineTime < record.BannedUntil)
+				{
+					bannedUntil = record.BannedUntil;
+					return true;
+				}
+				RemoveBannedCoin(coin);
 			}
-			RemoveBannedCoin(coin);
+			return false;
 		}
-		return false;
 	}
 
 	public void Ban(SmartCoin coin, DateTimeOffset until)
 	{
-		if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
+		lock (Lock)
 		{
-			if (record.BannedUntil >= until)
+			if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
 			{
 				return;
 			}
+			BannedCoins.Add(new(coin.Outpoint, until));
+			coin.BannedUntilUtc = until;
+			ToFile();
 		}
-		BannedCoins.Add(new(coin.Outpoint, until));
-		coin.BannedUntilUtc = until;
-		ToFile();
 	}
 
 	private void RemoveBannedCoin(SmartCoin coin)
@@ -65,23 +68,20 @@ public class CoinPrison
 
 	private void ToFile()
 	{
-		lock (Lock)
+		if (string.IsNullOrWhiteSpace(FilePath))
 		{
-			if (string.IsNullOrWhiteSpace(FilePath))
-			{
-				return;
-			}
-
-			IoHelpers.EnsureFileExists(FilePath);
-			string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
-			File.WriteAllText(FilePath, json);
+			return;
 		}
+
+		IoHelpers.EnsureFileExists(FilePath);
+		string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
+		File.WriteAllText(FilePath, json);
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
 	{
 		string prisonFilePath = Path.Combine(containingDirectory, "PrisonedCoins.json");
-		List<PrisonedCoinRecord> prisonedCoinsRecord = new();
+		HashSet<PrisonedCoinRecord> prisonedCoinsRecord = new();
 		try
 		{
 			IoHelpers.EnsureFileExists(prisonFilePath);
@@ -92,12 +92,12 @@ public class CoinPrison
 				Logger.LogDebug("Prisoned coins file is empty.");
 				return new(prisonFilePath);
 			}
-			prisonedCoinsRecord = JsonConvert.DeserializeObject<List<PrisonedCoinRecord>>(data)
+			prisonedCoinsRecord = JsonConvert.DeserializeObject<HashSet<PrisonedCoinRecord>>(data)
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
 		}
 		catch (Exception exc)
 		{
-			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Reseting file.", exc);
+			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Deleting corrupt file.", exc);
 			File.Delete(prisonFilePath);
 		}
 		return new(prisonFilePath) { BannedCoins = prisonedCoinsRecord };
