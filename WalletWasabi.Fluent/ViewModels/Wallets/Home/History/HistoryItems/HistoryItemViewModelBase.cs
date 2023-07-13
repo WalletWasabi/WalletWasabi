@@ -39,6 +39,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 					await Task.Delay(1260);
 					IsFlashing = false;
 				});
+		IsCancellation = false;
+		IsSpeedUp = false;
 	}
 
 	public uint256 Id { get; }
@@ -79,14 +81,28 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				return new DisplayIcon("Coinjoin", "shield_regular");
 			}
 
+			if (IsCancellation)
+			{
+				return new DisplayIcon("Cancellation", "cancel_regular");
+			}
+
 			return new DisplayIcon("Transaction", "normal_transaction");
 		}
 	}
+
+	public bool IsCancellation { get; set; }
+
+	public bool IsSpeedUp { get; set; }
 
 	public DisplayIcon ConfirmationStatus
 	{
 		get
 		{
+			if (IsSpeedUp)
+			{
+				return new DisplayIcon("Speed-Up", "rocket_regular");
+			}
+
 			if (IsConfirmed)
 			{
 				return new DisplayIcon(ConfirmedToolTip, "checkmark_filled");
