@@ -171,6 +171,11 @@ public static class TransactionModifierWalletExtensions
 			rbf.Transaction.SetCpfp();
 		}
 
+		if (transactionToSpeedUp.IsCancellation)
+		{
+			rbf.Transaction.SetCancellation();
+		}
+
 		return rbf;
 	}
 
