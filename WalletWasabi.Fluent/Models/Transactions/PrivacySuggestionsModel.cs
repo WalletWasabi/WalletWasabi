@@ -128,11 +128,15 @@ public class PrivacySuggestionsModel
 			result.Warnings.Add(new SemiPrivateFundsWarning());
 		}
 
-		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
+		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
+		ImmutableList<SmartCoin> coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName];
+
+		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).Except(coinsToExclude).ToArray();
 		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
 		var allSemiPrivateCoin = _wallet.Coins
 			.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
 			.Union(onlyKnownByTheRecipientCoins)
+			.Except(coinsToExclude)
 			.ToArray();
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
