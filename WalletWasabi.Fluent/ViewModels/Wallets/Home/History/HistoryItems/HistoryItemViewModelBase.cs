@@ -100,7 +100,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		{
 			if (IsSpeedUp)
 			{
-				return new DisplayIcon("Speed-Up", "rocket_regular");
+				return new DisplayIcon("Accelerated", "rocket_regular");
 			}
 
 			if (IsConfirmed)
