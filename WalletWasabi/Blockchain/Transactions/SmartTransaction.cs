@@ -284,9 +284,13 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		&& !GetForeignInputs(keyManager).Any() // [Impossiblility] Must not have foreign inputs, otherwise we couldn't do RBF.
 		&& WalletOutputs.All(x => !x.IsSpent()); // [Dangerous] All the outputs we know of should not be spent, otherwise we shouldn't do RBF.
 
-	public bool IsSpeedupable(KeyManager keyManager) => IsCpfpable(keyManager) || IsRbfable(keyManager);
+	public bool IsSpeedupable(KeyManager keyManager) =>
+		(IsCpfpable(keyManager) || IsRbfable(keyManager)) // [Impossiblility] We can only speed up if we can either CPFP or RBF.
+		&& !IsCancellation; // [Nonsensical] It is non-sensical to speed up a cancellation transaction.
 
-	public bool IsCancelable(KeyManager keyManager) => IsRbfable(keyManager);
+	public bool IsCancelable(KeyManager keyManager) =>
+		IsRbfable(keyManager) // [Impossiblility] We can only cancel with RBF.
+		&& !IsCancellation; // [Nonsensical] It is non-sensical to cancel a cancellation transaction.
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
