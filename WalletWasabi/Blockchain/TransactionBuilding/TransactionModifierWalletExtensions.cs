@@ -157,30 +157,14 @@ public static class TransactionModifierWalletExtensions
 
 		var allowedInputs = transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint);
 
-		BuildTransactionResult rbf;
-		if (payments.Count == 1)
-		{
-			var payment = payments.Single();
-			rbf = wallet.BuildChangelessTransaction(
-				destination: payment.Destination,
-				label: payment.Labels,
-				feeRate: rbfFeeRate,
-				allowedInputs: allowedInputs,
-				allowDoubleSpend: true,
-				tryToSign: true
-				);
-		}
-		else
-		{
-			rbf = wallet.BuildTransaction(
+		BuildTransactionResult rbf = wallet.BuildTransaction(
 			password: wallet.Kitchen.SaltSoup(),
-			payments: new PaymentIntent(payments),
+			payments: payments.Count == 1 ? new PaymentIntent(payments.Single().Destination, MoneyRequest.CreateAllRemaining(subtractFee: true), payments.Single().Labels) : new PaymentIntent(payments),
 			feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
 			allowUnconfirmed: true,
 			allowedInputs: allowedInputs,
 			allowDoubleSpend: true,
 			tryToSign: true);
-		}
 
 		if (transactionToSpeedUp.IsCpfp)
 		{

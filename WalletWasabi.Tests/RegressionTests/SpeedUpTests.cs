@@ -154,16 +154,16 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
 
 			var rbfInput = Assert.Single(rbf.Transaction.GetWalletInputs(keyManager));
-			Assert.Equal(cpfpInput, cpfpInput);
+			Assert.Equal(rbfInput, cpfpInput);
 
 			Assert.Single(rbf.Transaction.Transaction.Inputs);
 			Assert.Single(rbf.Transaction.Transaction.Outputs);
 			Assert.Single(rbf.Transaction.WalletInputs);
 			var rbfOutput = Assert.Single(rbf.Transaction.WalletOutputs);
-			Assert.NotEqual(cpfpOutput, rbfOutput);
+			Assert.NotEqual(rbfOutput, cpfpOutput);
 
 			// RBF fee rate should be higher than the previous CPFP fee rate.
-			var rbfFeeRate = rbf.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
+			var rbfFeeRate = rbf.Transaction.Transaction.GetFeeRate(rbf.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
 			Assert.True(cpfpFeeRate < rbfFeeRate);
 
 			Assert.True(rbf.Transaction.IsReplacement);
@@ -171,6 +171,30 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.False(rbf.Transaction.IsCancellation);
 
 			#endregion CanSpeedUpTwice
+
+			#region CanSpeedUpThrice
+
+			var rbf2 = wallet.SpeedUpTransaction(rbf.Transaction);
+			await broadcaster.SendTransactionAsync(rbf2.Transaction);
+
+			var rbf2Input = Assert.Single(rbf2.Transaction.GetWalletInputs(keyManager));
+			Assert.Equal(rbf2Input, rbfInput);
+
+			Assert.Single(rbf2.Transaction.Transaction.Inputs);
+			Assert.Single(rbf2.Transaction.Transaction.Outputs);
+			Assert.Single(rbf2.Transaction.WalletInputs);
+			var rbf2Output = Assert.Single(rbf2.Transaction.WalletOutputs);
+			Assert.NotEqual(rbfOutput, rbf2Output);
+
+			// RBF2 fee rate should be higher than the previous RBF fee rate.
+			var rbf2FeeRate = rbf2.Transaction.Transaction.GetFeeRate(rbf2.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
+			Assert.True(rbfFeeRate < rbf2FeeRate);
+
+			Assert.True(rbf2.Transaction.IsReplacement);
+			Assert.True(rbf2.Transaction.IsCpfp);
+			Assert.False(rbf2.Transaction.IsCancellation);
+
+			#endregion CanSpeedUpThrice
 		}
 		finally
 		{
