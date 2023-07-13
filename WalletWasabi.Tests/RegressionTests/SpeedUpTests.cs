@@ -117,7 +117,7 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 				}
 			}
 
-			#region CanSpeedsUp
+			#region CanSpeedUp
 
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txId, out var txToSpeedUp));
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp);
@@ -146,9 +146,9 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.True(cpfp.Transaction.IsCpfp);
 			Assert.False(cpfp.Transaction.IsCancellation);
 
-			#endregion CanSpeedsUp
+			#endregion CanSpeedUp
 
-			#region CanSpeedsUpTwice
+			#region CanSpeedUpTwice
 
 			var rbf = wallet.SpeedUpTransaction(cpfp.Transaction);
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
@@ -170,7 +170,7 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.True(rbf.Transaction.IsCpfp);
 			Assert.False(rbf.Transaction.IsCancellation);
 
-			#endregion CanSpeedsUpTwice
+			#endregion CanSpeedUpTwice
 		}
 		finally
 		{
