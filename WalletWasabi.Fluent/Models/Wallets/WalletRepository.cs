@@ -65,6 +65,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 	{
 		return Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
 	}
+
 	public async Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
 	{
 		return options switch
