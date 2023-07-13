@@ -4,11 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="50"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
              x:CompileBindings="True"
              x:DataType="historyItems:HistoryItemViewModelBase">
+
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
     <Panel Background="Transparent">
@@ -19,14 +19,31 @@
       </Button>
     </Panel>
 
-    <!-- Confirmation -->
-    <PathIcon DataContext="{Binding ConfirmationStatus}"
-              Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}"
-              Height="14"
-              Opacity="0.6"
-              ToolTip.Tip="{Binding Name}" />
+    <!--First icon (Confirmation Status) -->
+    <PathIcon Classes.Confirmed="{Binding IsConfirmedDisplayed}"
+              Classes.Pending="{Binding IsPendingDisplayed}"
+              Classes.SpeedUp="{Binding IsSpeedUpDisplayed}"
+              Opacity="0.6">
+      <PathIcon.Styles>
+        <Style Selector="PathIcon.Confirmed">
+          <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
+          <Setter Property="Height" Value="11" />
+          <Setter Property="ToolTip.Tip" Value="{Binding ConfirmedToolTip}" />
+        </Style>
+        <Style Selector="PathIcon.Pending">
+          <Setter Property="Data" Value="{StaticResource clock_regular}" />
+          <Setter Property="Height" Value="14" />
+          <Setter Property="ToolTip.Tip" Value="Pending" />
+        </Style>
+        <Style Selector="PathIcon.SpeedUp">
+          <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+          <Setter Property="Height" Value="14" />
+          <Setter Property="ToolTip.Tip" Value="Boost" />
+        </Style>
+      </PathIcon.Styles>
+    </PathIcon>
 
-    <!-- Type -->
+    <!-- Second icon (Transaction Type) -->
     <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="False">
       <c:PrivacyContentControl.Styles>
         <Style Selector="c|PrivacyContentControl /template/ Viewbox#PART_Icon">
@@ -35,7 +52,34 @@
           <Setter Property="Margin" Value="0" />
         </Style>
       </c:PrivacyContentControl.Styles>
-      <PathIcon DataContext="{Binding TransactionKind}" ToolTip.Tip="{Binding Name}" Opacity="0.6" Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}" />
+
+      <PathIcon Opacity="0.6"
+                Classes.NormalTransaction="{Binding IsNormalTransactionDisplayed}"
+                Classes.Coinjoin="{Binding IsCoinjoinDisplayed}"
+                Classes.Cancellation="{Binding IsCancellationDisplayed}"
+                Classes.CoinjoinGroup="{Binding IsCoinjoinGroupDisplayed}">
+        <PathIcon.Styles>
+          <Style Selector="PathIcon.NormalTransaction">
+            <Setter Property="Data" Value="{StaticResource normal_transaction}" />
+          </Style>
+          <Style Selector="PathIcon.Coinjoin">
+            <Setter Property="Data" Value="{StaticResource shield_regular}" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="ToolTip.Tip" Value="Coinjoin" />
+          </Style>
+          <Style Selector="PathIcon.CoinjoinGroup">
+            <Setter Property="Data" Value="{StaticResource double_shield_regular}" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="ToolTip.Tip" Value="Coinjoins" />
+          </Style>
+          <Style Selector="PathIcon.Cancellation">
+            <Setter Property="Data" Value="{StaticResource cancel_regular}" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="ToolTip.Tip" Value="Cancellation" />
+          </Style>
+        </PathIcon.Styles>
+      </PathIcon>
     </c:PrivacyContentControl>
+
   </StackPanel>
 </UserControl>

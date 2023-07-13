@@ -61,56 +61,27 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
+
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 
-	public DisplayIcon TransactionKind
-	{
-		get
-		{
-			if (IsCoinJoin && IsCoinJoinGroup)
-			{
-				return new DisplayIcon("Coinjoins", "double_shield_regular");
-			}
-
-			if (IsCoinJoin)
-			{
-				return new DisplayIcon("Coinjoin", "shield_regular");
-			}
-
-			if (IsCancellation)
-			{
-				return new DisplayIcon("Cancellation", "cancel_regular");
-			}
-
-			return new DisplayIcon("Transaction", "normal_transaction");
-		}
-	}
-
 	public bool IsCancellation { get; set; }
 
 	public bool IsSpeedUp { get; set; }
 
-	public DisplayIcon ConfirmationStatus
-	{
-		get
-		{
-			if (IsSpeedUp)
-			{
-				return new DisplayIcon("Speed-Up", "rocket_regular");
-			}
-
-			if (IsConfirmed)
-			{
-				return new DisplayIcon(ConfirmedToolTip, "checkmark_filled");
-			}
-
-			return new DisplayIcon("Pending", "clock_regular");
-		}
-	}
+	// TODO: Display icons. These toggles control the visibility of the icons in the view. Refactor when the logic is there.
+	// Please, notice that these properties are created to allow the required flexibility to adapt the icon visibility in a direct way.
+	// We can, however, do this directly in the XAML file by using Multibinding or Converters, if we are OK with the result.
+	public bool IsConfirmedDisplayed => IsConfirmed;
+	public bool IsPendingDisplayed => !IsConfirmed;
+	public bool IsNormalTransactionDisplayed => !IsCoinJoin;
+	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
+	public bool IsCoinjoinGroupDisplayed => IsCoinJoin && IsCoinJoinGroup;
+	public bool IsCancellationDisplayed => IsCancellation;
+	public bool IsSpeedUpDisplayed => false;	// TODO: Define this
 
 	private async Task CopyToClipboardAsync(string text)
 	{
