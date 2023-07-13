@@ -83,11 +83,6 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
 		walletManager.RegisterServices(feeProvider, blockProvider);
 
-		// Get some money.
-		var key = keyManager.GetNextReceiveKey("foo");
-		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
-		Assert.NotNull(txId);
-
 		try
 		{
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
@@ -105,6 +100,11 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 			broadcaster.Initialize(nodes, rpc);
 
+			// Get some money.
+			var key = keyManager.GetNextReceiveKey("foo");
+			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			Assert.NotNull(txId);
+
 			var waitCount = 0;
 			while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
 			{
@@ -120,7 +120,7 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			#region CanSpeedsUp
 
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txId, out var txToSpeedUp));
-			var cpfp = wallet.CancelTransaction(txToSpeedUp);
+			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp);
 			await broadcaster.SendTransactionAsync(cpfp.Transaction);
 
 			Assert.Equal(2, txToSpeedUp.Transaction.Outputs.Count);
@@ -133,10 +133,11 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			Assert.Equal(outputToSpend, spentOutput);
 
-			var feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(1);
+			// CPFP fee rate should be higher than the best fee rate.
+			var feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 			Assert.NotNull(feeRate);
-
-			Assert.True(feeRate > cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray()));
+			var cpfpFeeRate = cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
+			Assert.True(feeRate < cpfpFeeRate);
 
 			Assert.False(txToSpeedUp.IsReplacement);
 			Assert.False(txToSpeedUp.IsCpfp);
@@ -146,6 +147,30 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.False(cpfp.Transaction.IsCancellation);
 
 			#endregion CanSpeedsUp
+
+			#region CanSpeedsUpTwice
+
+			var cpfp2 = wallet.SpeedUpTransaction(cpfp.Transaction);
+			await broadcaster.SendTransactionAsync(cpfp.Transaction);
+
+			outputToSpend = Assert.Single(cpfp.Transaction.GetWalletOutputs(keyManager));
+
+			Assert.Single(cpfp2.Transaction.Transaction.Inputs);
+			Assert.Single(cpfp2.Transaction.Transaction.Outputs);
+			spentOutput = Assert.Single(cpfp2.Transaction.WalletInputs);
+			Assert.Single(cpfp.Transaction.WalletOutputs);
+
+			Assert.Equal(outputToSpend, spentOutput);
+
+			// CPFP fee rate should be higher than the previous CPFP fee rate.
+			var cpfp2FeeRate = cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
+			Assert.True(cpfpFeeRate < cpfp2FeeRate);
+
+			Assert.False(cpfp2.Transaction.IsReplacement);
+			Assert.True(cpfp2.Transaction.IsCpfp);
+			Assert.False(cpfp2.Transaction.IsCancellation);
+
+			#endregion CanSpeedsUpTwice
 		}
 		finally
 		{
