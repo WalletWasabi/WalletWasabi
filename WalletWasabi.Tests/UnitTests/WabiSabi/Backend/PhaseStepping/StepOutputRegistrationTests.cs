@@ -99,6 +99,8 @@ public class StepOutputRegistrationTests
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			token);
+		await alices[0].ReadyToSignAsync(token);
+		await alices[1].ReadyToSignAsync(token);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -146,12 +148,15 @@ public class StepOutputRegistrationTests
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			token);
+		await alices[0].ReadyToSignAsync(token);
+		await alices[1].ReadyToSignAsync(token);
 
 		// Add another input. The input must be able to pay for itself, but
 		// the remaining amount after deducting the fees needs to be less
 		// than the minimum.
 		var txParameters = round.Parameters;
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParameters.AllowedOutputAmounts.Min - new Money(1L), round);
+		extraAlice.ReadyToSign = true;
 		round.Alices.Add(extraAlice);
 		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
