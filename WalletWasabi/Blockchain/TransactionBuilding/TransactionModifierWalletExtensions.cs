@@ -57,7 +57,7 @@ public static class TransactionModifierWalletExtensions
 		var transactionToCancelCost = transactionToCancelSentAmount + transactionToCancelFee;
 		if (transactionToCancelCost < cancelTransaction.Fee)
 		{
-			throw new InvalidOperationException($"It'd cost more to cancel this transaction ({cancelTransaction.Fee}), than it costs to let it transaction happen ({transactionToCancelCost}).");
+			throw new InvalidOperationException($"It'd cost more to cancel this transaction ({cancelTransaction.Fee}), than it costs to let this transaction happen ({transactionToCancelCost}).");
 		}
 
 		return cancelTransaction;
