@@ -29,6 +29,9 @@ public class CoinsRegistry : ICoinsView
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+	
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, HashSet<SmartCoin>> SpentCoinsByOutPoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -166,6 +169,26 @@ public class CoinsRegistry : ICoinsView
 			{
 				InvalidateSnapshot = true;
 				SpentCoins.Add(spentCoin);
+				
+				var newCoinSet = new HashSet<SmartCoin> { spentCoin };
+
+				// If we don't succeed to add a new entry to the dictionary.
+				if (!SpentCoinsByOutPoint.TryAdd(spentCoin.Outpoint, newCoinSet))
+				{
+					var previousCoinTxId = SpentCoinsByOutPoint[spentCoin.Outpoint].First().TransactionId;
+
+					// Then check if we're in the same transaction as the previous coins in the dictionary are.
+					if (spentCoin.TransactionId == previousCoinTxId)
+					{
+						// If we are in the same transaction, then just add it to value set.
+						SpentCoinsByOutPoint[spentCoin.Outpoint].Add(spentCoin);
+					}
+					else
+					{
+						// If we aren't in the same transaction, then it's a conflict, so replace the old set with the new one.
+						SpentCoinsByOutPoint[spentCoin.Outpoint] = newCoinSet;
+					}
+				}
 			}
 		}
 	}
@@ -196,6 +219,33 @@ public class CoinsRegistry : ICoinsView
 	private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
+	}
+	
+	public bool TryGetSpenderSpentSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	{
+		lock (Lock)
+		{
+			return TryGetSpenderSpentSmartCoinsByOutPointNoLock(outPoint, out coins);
+		}
+	}
+
+	private bool TryGetSpenderSpentSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	{
+		if (SpentCoinsByOutPoint.TryGetValue(outPoint, out coins))
+		{
+			foreach (var coin in coins)
+			{
+				if (coin.Confirmed)
+				{
+					// At list one coin is confirmed
+					return false;
+				}
+			}
+			// Coins are non confirmed
+			return true;
+		}
+
+		return false;
 	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
