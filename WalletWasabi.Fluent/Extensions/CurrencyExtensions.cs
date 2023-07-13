@@ -25,10 +25,22 @@ public static class CurrencyExtensions
 		}
 		else
 		{
-			return result.InnerWalletOutputs
+			Money destinationAmount = result.InnerWalletOutputs
 				.Where(x => !x.HdPubKey.IsInternal)
 				.Select(x => x.Amount)
 				.Sum();
+
+			// There was no external address in the TX. Internal address re-use case.
+			if (destinationAmount == Money.Zero)
+			{
+				// We sum the Used key's amount, because the clean internal key in the TX is the change.
+				destinationAmount = result.InnerWalletOutputs
+				.Where(x => x.HdPubKey.KeyState is Blockchain.Keys.KeyState.Used)
+				.Select(x => x.Amount)
+				.Sum();
+			}
+
+			return destinationAmount;
 		}
 	}
 
