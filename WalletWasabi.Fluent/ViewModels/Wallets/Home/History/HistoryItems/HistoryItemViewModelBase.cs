@@ -98,14 +98,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		get
 		{
-			if (IsSpeedUp)
-			{
-				return new DisplayIcon("Accelerated", "rocket_regular");
-			}
-
 			if (IsConfirmed)
 			{
 				return new DisplayIcon(ConfirmedToolTip, "checkmark_filled");
+			}
+
+			if (IsSpeedUp)
+			{
+				return new DisplayIcon("Accelerated", "rocket_regular");
 			}
 
 			return new DisplayIcon("Pending", "clock_regular");
