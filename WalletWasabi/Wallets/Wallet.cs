@@ -82,8 +82,6 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>Unspent Transaction Outputs</summary>
 	public ICoinsView Coins { get; private set; }
 
-	public ICoinsView AllCoins => ((CoinsRegistry)Coins).AsAllCoinsView();
-
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
 	public Network Network { get; }
@@ -116,6 +114,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
+	public ICoinsView GetAllCoins() => ((CoinsRegistry)Coins).AsAllCoinsView();
+
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
@@ -129,7 +129,7 @@ public class Wallet : BackgroundService, IWallet
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
-		foreach (SmartCoin coin in AllCoins)
+		foreach (SmartCoin coin in GetAllCoins())
 		{
 			walletTransactions.Add(coin.Transaction);
 			if (coin.SpenderTransaction is not null)

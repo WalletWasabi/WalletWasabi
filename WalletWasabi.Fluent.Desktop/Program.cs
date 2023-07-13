@@ -105,6 +105,7 @@ public class Program
 				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
 				Logger.LogTrace(e);
 				break;
+
 			default:
 				Logger.LogDebug(e);
 				break;
@@ -166,7 +167,7 @@ public static class WasabiAppExtensions
 					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
 				});
 
-				Logger.LogSoftwareStarted("Wasabi GUI");
+				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);

@@ -354,7 +354,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 			// Spend the inputs of the tx so we know
 			var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
 			Assert.True(success);
-			var invalidCoin = Assert.Single(wallet.AllCoins.CreatedBy(invalidSmartTransaction!.GetHash()));
+			var invalidCoin = Assert.Single(wallet.GetAllCoins().CreatedBy(invalidSmartTransaction!.GetHash()));
 			Assert.NotNull(invalidCoin.SpenderTransaction);
 			Assert.True(invalidCoin.Confirmed);
 
