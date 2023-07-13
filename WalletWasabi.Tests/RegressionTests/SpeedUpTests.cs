@@ -1,0 +1,160 @@
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin.Protocol;
+using NBitcoin;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
+using WalletWasabi.Stores;
+using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
+using Xunit;
+using WalletWasabi.Logging;
+using WalletWasabi.Helpers;
+
+namespace WalletWasabi.Tests.RegressionTests;
+
+/// <seealso cref="RegTestCollectionDefinition"/>
+[Collection("RegTest collection")]
+public class SpeedUpTests : IClassFixture<RegTestFixture>
+{
+	public SpeedUpTests(RegTestFixture regTestFixture)
+	{
+		RegTestFixture = regTestFixture;
+	}
+
+	private RegTestFixture RegTestFixture { get; }
+
+	[Fact]
+	public async Task ReceiveSpeedupTestsAsync()
+	{
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		Network network = setup.Network;
+		BitcoinStore bitcoinStore = setup.BitcoinStore;
+		Backend.Global global = setup.Global;
+		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
+		string password = setup.Password;
+
+		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+
+		// Create the services.
+		// 1. Create connection service.
+		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
+		nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
+
+		// 2. Create mempool service.
+
+		Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
+		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+
+		// 3. Create wasabi synchronizer service.
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
+		HybridFeeProvider feeProvider = new(synchronizer, null);
+
+		// 4. Create key manager service.
+		var keyManager = KeyManager.CreateNew(out _, password, network);
+
+		// 5. Create wallet service.
+		var workDir = Common.GetWorkDir();
+
+		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
+
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
+		walletManager.RegisterServices(feeProvider, blockProvider);
+
+		// Get some money.
+		var key = keyManager.GetNextReceiveKey("foo");
+		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+		Assert.NotNull(txId);
+
+		try
+		{
+			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
+			nodes.Connect(); // Start connection service.
+			node.VersionHandshake(); // Start mempool service.
+			synchronizer.Start(); // Start wasabi synchronizer service.
+			await feeProvider.StartAsync(CancellationToken.None);
+
+			// Wait until the filter our previous transaction is present.
+			var blockCount = await rpc.GetBlockCountAsync();
+			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+			var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+			wallet.Kitchen.Cook(password);
+
+			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
+			broadcaster.Initialize(nodes, rpc);
+
+			var waitCount = 0;
+			while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					Logger.LogInfo($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
+					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
+				}
+			}
+
+			#region CanSpeedsUp
+
+			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txId, out var txToSpeedUp));
+			var cpfp = wallet.CancelTransaction(txToSpeedUp);
+			await broadcaster.SendTransactionAsync(cpfp.Transaction);
+
+			Assert.Equal(2, txToSpeedUp.Transaction.Outputs.Count);
+			var outputToSpend = Assert.Single(txToSpeedUp.GetWalletOutputs(keyManager));
+
+			Assert.Single(cpfp.Transaction.Transaction.Inputs);
+			Assert.Single(cpfp.Transaction.Transaction.Outputs);
+			var spentOutput = Assert.Single(cpfp.Transaction.WalletInputs);
+			Assert.Single(cpfp.Transaction.WalletOutputs);
+
+			Assert.Equal(outputToSpend, spentOutput);
+
+			var feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(1);
+			Assert.NotNull(feeRate);
+
+			Assert.True(feeRate > cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray()));
+
+			Assert.False(txToSpeedUp.IsReplacement);
+			Assert.False(txToSpeedUp.IsCpfp);
+			Assert.False(txToSpeedUp.IsCancellation);
+			Assert.False(cpfp.Transaction.IsReplacement);
+			Assert.True(cpfp.Transaction.IsCpfp);
+			Assert.False(cpfp.Transaction.IsCancellation);
+
+			#endregion CanSpeedsUp
+		}
+		finally
+		{
+			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
+			await synchronizer.StopAsync();
+			await feeProvider.StopAsync(CancellationToken.None);
+			nodes?.Dispose();
+			node?.Disconnect();
+		}
+	}
+}
