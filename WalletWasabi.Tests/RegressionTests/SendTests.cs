@@ -721,7 +721,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			var sameCoin1 = txToCancel.InnerWalletOutputs.Single();
 			var sameCoin2 = spendingTxToCancel.SpentCoins.Single(x => x == sameCoin1);
 			var sameCoin3 = txToCancel.Transaction.WalletOutputs.Single(x => x == sameCoin1);
-			var sameCoin4 = wallet.AllCoins.Single(x => x == sameCoin1);
+			var sameCoin4 = wallet.GetAllCoins().Single(x => x == sameCoin1);
 			Assert.NotNull(sameCoin1.SpenderTransaction);
 			Assert.NotNull(sameCoin2.SpenderTransaction);
 			Assert.NotNull(sameCoin3.SpenderTransaction);

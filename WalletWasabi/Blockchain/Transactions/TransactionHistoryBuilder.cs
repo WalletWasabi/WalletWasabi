@@ -29,7 +29,7 @@ public class TransactionHistoryBuilder
 			return txRecordList;
 		}
 
-		foreach (SmartCoin coin in wallet.AllCoins)
+		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
 			var containingTransaction = coin.Transaction;
 
