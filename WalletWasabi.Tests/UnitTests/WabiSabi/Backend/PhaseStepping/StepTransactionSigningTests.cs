@@ -41,9 +41,6 @@ public class StepTransactionSigningTests
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
-
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -79,9 +76,6 @@ public class StepTransactionSigningTests
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
-
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -122,9 +116,6 @@ public class StepTransactionSigningTests
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
-
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -169,9 +160,6 @@ public class StepTransactionSigningTests
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
-
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -199,7 +187,6 @@ public class StepTransactionSigningTests
 			MinInputCountByRoundMultiplier = 1,
 			TransactionSigningTimeout = TimeSpan.Zero,
 			OutputRegistrationTimeout = TimeSpan.Zero,
-			FailFastTransactionSigningTimeout = TimeSpan.Zero,
 			FailFastOutputRegistrationTimeout = TimeSpan.Zero,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
@@ -216,6 +203,7 @@ public class StepTransactionSigningTests
 		// Make sure not all alices signed.
 		var alice3 = WabiSabiFactory.CreateAlice(round);
 		alice3.ConfirmedConnection = true;
+		alice3.ReadyToSign = true;
 		round.Alices.Add(alice3);
 		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin, alice3.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -287,6 +275,9 @@ public class StepTransactionSigningTests
 			aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			token).ConfigureAwait(false);
+
+		await aliceClient1.ReadyToSignAsync(token);
+		await aliceClient2.ReadyToSignAsync(token);
 
 		await roundStateUpdater.StopAsync(token);
 		return (round, aliceClient1, aliceClient2);

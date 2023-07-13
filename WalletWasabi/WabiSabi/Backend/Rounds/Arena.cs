@@ -280,10 +280,13 @@ public partial class Arena : PeriodicRunner
 
 					if (!allReady && phaseExpired)
 					{
-						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
+						round.LogWarning($"Output registration phase failed with timed out after {round.OutputRegistrationTimeFrame.Duration.TotalSeconds} seconds.");
+						await FailOutputRegistrationPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 					}
-
-					SetRoundPhase(round, Phase.TransactionSigning);
+					else
+					{
+						SetRoundPhase(round, Phase.TransactionSigning);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -434,6 +437,31 @@ public partial class Arena : PeriodicRunner
 
 		if (round.InputCount >= round.Parameters.MinInputCountByRound)
 		{
+			EndRound(round, EndRoundState.NotAllAlicesSign);
+			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+		}
+		else
+		{
+			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
+		}
+	}
+
+	private async Task FailOutputRegistrationPhaseAsync(Round round, CancellationToken cancellationToken)
+	{
+		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
+
+		foreach (var alice in alicesToRemove)
+		{
+			Prison.Note(alice, round.Id);
+		}
+
+		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
+
+		round.LogInfo($"Removed {removedAlices} alices, because they didn't sign. Remaining: {round.InputCount}");
+
+		if (round.InputCount >= round.Parameters.MinInputCountByRound)
+		{
+			// It would be better to use a different error code but older clients wouldn't seek the blame round
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 		}
