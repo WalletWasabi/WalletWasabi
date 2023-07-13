@@ -278,7 +278,7 @@ public class Wallet : BackgroundService, IWallet
 					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
 				}
 
-				Logger.LogInfo("Wallet is fully synchronized.");
+				Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 			}
 		}
 		catch (OperationCanceledException)
