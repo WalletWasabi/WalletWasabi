@@ -132,34 +132,60 @@ public static class TransactionModifierWalletExtensions
 
 		var foreignOutputs = transactionToSpeedUp.GetForeignOutputs(keyManager).OrderByDescending(x => x.TxOut.Value).ToArray();
 
-		// If we have no own output, then we substract the fee from the largest foreign output.
-		var largestForeignOuput = foreignOutputs.First();
-		var largestForeignOuputDestReq = new DestinationRequest(
-			scriptPubKey: largestForeignOuput.TxOut.ScriptPubKey,
-			amount: largestForeignOuput.TxOut.Value,
-			subtractFee: ownOutput is null,
-			labels: transactionToSpeedUp.Labels);
-		payments.Add(largestForeignOuputDestReq);
-
-		foreach (var output in foreignOutputs.Skip(1))
+		if (foreignOutputs.Any())
 		{
-			var destReq = new DestinationRequest(
-				scriptPubKey: output.TxOut.ScriptPubKey,
-				amount: output.TxOut.Value,
-				subtractFee: false,
+			// If we have no own output, then we substract the fee from the largest foreign output.
+			var largestForeignOuput = foreignOutputs.First();
+			var largestForeignOuputDestReq = new DestinationRequest(
+				scriptPubKey: largestForeignOuput.TxOut.ScriptPubKey,
+				amount: largestForeignOuput.TxOut.Value,
+				subtractFee: ownOutput is null,
 				labels: transactionToSpeedUp.Labels);
+			payments.Add(largestForeignOuputDestReq);
 
-			payments.Add(destReq);
+			foreach (var output in foreignOutputs.Skip(1))
+			{
+				var destReq = new DestinationRequest(
+					scriptPubKey: output.TxOut.ScriptPubKey,
+					amount: output.TxOut.Value,
+					subtractFee: false,
+					labels: transactionToSpeedUp.Labels);
+
+				payments.Add(destReq);
+			}
 		}
 
-		var rbf = wallet.BuildTransaction(
+		var allowedInputs = transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint);
+
+		BuildTransactionResult rbf;
+		if (payments.Count == 1)
+		{
+			var payment = payments.Single();
+			rbf = wallet.BuildChangelessTransaction(
+				destination: payment.Destination,
+				label: payment.Labels,
+				feeRate: rbfFeeRate,
+				allowedInputs: allowedInputs,
+				allowDoubleSpend: true,
+				tryToSign: true
+				);
+		}
+		else
+		{
+			rbf = wallet.BuildTransaction(
 			password: wallet.Kitchen.SaltSoup(),
 			payments: new PaymentIntent(payments),
 			feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
 			allowUnconfirmed: true,
-			allowedInputs: transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint),
+			allowedInputs: allowedInputs,
 			allowDoubleSpend: true,
 			tryToSign: true);
+		}
+
+		if (transactionToSpeedUp.IsCpfp)
+		{
+			rbf.Transaction.SetCpfp();
+		}
 
 		return rbf;
 	}

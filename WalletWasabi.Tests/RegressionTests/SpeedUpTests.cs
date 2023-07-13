@@ -128,10 +128,10 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			Assert.Single(cpfp.Transaction.Transaction.Inputs);
 			Assert.Single(cpfp.Transaction.Transaction.Outputs);
-			var spentOutput = Assert.Single(cpfp.Transaction.WalletInputs);
-			Assert.Single(cpfp.Transaction.WalletOutputs);
+			var cpfpInput = Assert.Single(cpfp.Transaction.WalletInputs);
+			var cpfpOutput = Assert.Single(cpfp.Transaction.WalletOutputs);
 
-			Assert.Equal(outputToSpend, spentOutput);
+			Assert.Equal(outputToSpend, cpfpInput);
 
 			// CPFP fee rate should be higher than the best fee rate.
 			var feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
@@ -150,25 +150,25 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			#region CanSpeedsUpTwice
 
-			var cpfp2 = wallet.SpeedUpTransaction(cpfp.Transaction);
-			await broadcaster.SendTransactionAsync(cpfp.Transaction);
+			var rbf = wallet.SpeedUpTransaction(cpfp.Transaction);
+			await broadcaster.SendTransactionAsync(rbf.Transaction);
 
-			outputToSpend = Assert.Single(cpfp.Transaction.GetWalletOutputs(keyManager));
+			var rbfInput = Assert.Single(rbf.Transaction.GetWalletInputs(keyManager));
+			Assert.Equal(cpfpInput, cpfpInput);
 
-			Assert.Single(cpfp2.Transaction.Transaction.Inputs);
-			Assert.Single(cpfp2.Transaction.Transaction.Outputs);
-			spentOutput = Assert.Single(cpfp2.Transaction.WalletInputs);
-			Assert.Single(cpfp.Transaction.WalletOutputs);
+			Assert.Single(rbf.Transaction.Transaction.Inputs);
+			Assert.Single(rbf.Transaction.Transaction.Outputs);
+			Assert.Single(rbf.Transaction.WalletInputs);
+			var rbfOutput = Assert.Single(rbf.Transaction.WalletOutputs);
+			Assert.NotEqual(cpfpOutput, rbfOutput);
 
-			Assert.Equal(outputToSpend, spentOutput);
+			// RBF fee rate should be higher than the previous CPFP fee rate.
+			var rbfFeeRate = rbf.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
+			Assert.True(cpfpFeeRate < rbfFeeRate);
 
-			// CPFP fee rate should be higher than the previous CPFP fee rate.
-			var cpfp2FeeRate = cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
-			Assert.True(cpfpFeeRate < cpfp2FeeRate);
-
-			Assert.False(cpfp2.Transaction.IsReplacement);
-			Assert.True(cpfp2.Transaction.IsCpfp);
-			Assert.False(cpfp2.Transaction.IsCancellation);
+			Assert.True(rbf.Transaction.IsReplacement);
+			Assert.True(rbf.Transaction.IsCpfp);
+			Assert.False(rbf.Transaction.IsCancellation);
 
 			#endregion CanSpeedsUpTwice
 		}
