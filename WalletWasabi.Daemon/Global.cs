@@ -65,22 +65,50 @@ public class Global
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 
-		// Register fee providers.
-		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
-		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
-
-		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, Synchronizer, HostedServices.Get<HybridFeeProvider>(), config.ServiceConfiguration);
-		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
-
-		RoundStateUpdaterCircuit = new PersonCircuit();
-
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
+
+		// Register P2P network.
+		HostedServices.Register<P2pNetwork>(
+			() =>
+			{
+				var p2p = new P2pNetwork(
+						Network,
+						Config.GetBitcoinP2pEndPoint(),
+						Config.UseTor ? TorSettings.SocksEndpoint : null,
+						Path.Combine(DataDir, "BitcoinP2pNetwork"),
+						BitcoinStore);
+				if (!Config.BlockOnlyMode)
+				{
+					p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+				}
+
+				return p2p;
+			},
+			friendlyName: "Bitcoin P2P Network");
+
+		// Register fee providers.
+		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
+		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
+		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+
+		// Block providers.
+		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
+		var blockProvider = new SmartBlockProvider(
+			BitcoinStore.BlockRepository,
+			BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
+			SpecificNodeBlockProvider,
+			new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
+			Cache);
+
+		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, Synchronizer, HostedServices.Get<HybridFeeProvider>(), blockProvider, config.ServiceConfiguration);
+		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
+
+		RoundStateUpdaterCircuit = new PersonCircuit();
 	}
 
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
@@ -107,7 +135,7 @@ public class Global
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
-	private SpecificNodeBlockProvider? SpecificNodeBlockProvider { get; set; }
+	private SpecificNodeBlockProvider SpecificNodeBlockProvider { get; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
@@ -173,24 +201,6 @@ public class Global
 					throw;
 				}
 
-				HostedServices.Register<P2pNetwork>(
-					() =>
-					{
-						var p2p = new P2pNetwork(
-								Network,
-								Config.GetBitcoinP2pEndPoint(),
-								Config.UseTor ? TorSettings.SocksEndpoint : null,
-								Path.Combine(DataDir, "BitcoinP2pNetwork"),
-								BitcoinStore);
-						if (!Config.BlockOnlyMode)
-						{
-							p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-						}
-
-						return p2p;
-					},
-					"Bitcoin P2P Network");
-
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
@@ -213,19 +223,9 @@ public class Global
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
-				// TODO: Should this be null for RegTest?
-				SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
-
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
-				var blockProvider = new SmartBlockProvider(
-					BitcoinStore.BlockRepository,
-					BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
-					SpecificNodeBlockProvider,
-					new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
-					Cache);
-
-				WalletManager.RegisterServices(blockProvider);
+				WalletManager.RegisterServices();
 			}
 			finally
 			{
