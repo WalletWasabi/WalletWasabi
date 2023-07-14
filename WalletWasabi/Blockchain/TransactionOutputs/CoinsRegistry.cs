@@ -233,16 +233,8 @@ public class CoinsRegistry : ICoinsView
 	{
 		if (SpentCoinsByOutPoint.TryGetValue(outPoint, out coins))
 		{
-			foreach (var coin in coins)
-			{
-				if (coin.Confirmed)
-				{
-					// At least one coin is confirmed.
-					return false;
-				}
-			}
-			// Coins are non confirmed.
-			return true;
+			// If any coin is confirmed, return false. Otherwise, return true.
+			return !coins.Any(coin => coin.Confirmed);
 		}
 
 		return false;
