@@ -30,6 +30,7 @@ public class WalletManager : IWalletProvider
 		WalletDirectories walletDirectories,
 		BitcoinStore bitcoinStore,
 		WasabiSynchronizer synchronizer,
+		HybridFeeProvider feeProvider,
 		ServiceConfiguration serviceConfiguration)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
@@ -40,6 +41,7 @@ public class WalletManager : IWalletProvider
 		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
 		BitcoinStore = bitcoinStore;
 		Synchronizer = synchronizer;
+		FeeProvider = feeProvider;
 		ServiceConfiguration = serviceConfiguration;
 
 		RefreshWalletList();
@@ -73,7 +75,7 @@ public class WalletManager : IWalletProvider
 	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
-	private HybridFeeProvider FeeProvider { get; set; }
+	private HybridFeeProvider FeeProvider { get; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private IBlockProvider BlockProvider { get; set; }
@@ -381,9 +383,8 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices(IBlockProvider blockProvider)
 	{
-		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
 
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
