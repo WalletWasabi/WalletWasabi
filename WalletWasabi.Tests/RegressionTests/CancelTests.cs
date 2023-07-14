@@ -187,7 +187,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			// Can't cancel cancelled transacion.
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(cancellingTx.Transaction));
 
-			// Can't cancel confirmed transaction.
+			// Can't cancel cancellation transaction.
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 			externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
 			txToCancel = wallet.BuildTransaction(password, new PaymentIntent(externalAddr, amountToSend, label: "bar"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
