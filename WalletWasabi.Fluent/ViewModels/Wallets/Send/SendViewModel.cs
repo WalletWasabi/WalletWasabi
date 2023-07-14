@@ -57,7 +57,6 @@ public partial class SendViewModel : RoutableViewModel
 
 	private SendViewModel(WalletViewModel walletVm)
 	{
-		WalletVm = walletVm;
 		_to = "";
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
@@ -67,6 +66,7 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		Balances = new WalletModel(_wallet).Balances;
+		Balance = new WalletModel(_wallet).Balance;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -141,6 +141,8 @@ public partial class SendViewModel : RoutableViewModel
 		_clipboardObserver = new ClipboardObserver(Balances);
 	}
 
+	public IObservable<BtcAmount> Balance { get; set; }
+
 	public IWalletBalancesModel Balances { get; set; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
@@ -156,10 +158,6 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand InsertMaxCommand { get; }
-
-	public WalletBalanceTileViewModel Balance { get; }
-
-	public WalletViewModel WalletVm { get; }
 
 	private async Task OnAutoPasteAsync()
 	{

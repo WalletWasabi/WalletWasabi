@@ -1,0 +1,17 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls"
+        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
+  <Style Selector="controls|AmountControl">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Orientation="Horizontal" Spacing="4">
+          <TextBlock Classes="monoSpaced"
+                     Text="{Binding Value, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+          <TextBlock Classes="monoSpaced"
+                     Text="{Binding UsdValue^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

@@ -4,6 +4,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -24,6 +25,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private string _fee = "";
 	[AutoNotify] private string _amount = "";
+	[AutoNotify] public BtcAmount _newAmount;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
@@ -58,6 +60,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 		Amount = destinationAmount.ToString();
+
+		NewAmount = new BtcAmount(destinationAmount, new ExchangeRateProvider(_wallet.Synchronizer));
 
 		var fee = _transaction.Fee;
 		FeeText = fee.ToFeeDisplayUnitFormattedString();

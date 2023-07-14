@@ -49,12 +49,12 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		var exchangeRateProvider = new ExchangeRateProvider(wallet.Synchronizer);
 
-		var balance = Observable
+		Balance = Observable
 			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
 			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()))
 			.Select(money => new BtcAmount(money, exchangeRateProvider));
 		
-		Balances = new WalletBalancesModel(balance);
+		Balances = new WalletBalancesModel(Balance);
 
 		Auth = new WalletAuthModel(this, _wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
@@ -72,6 +72,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
 	}
+
+	public IObservable<BtcAmount> Balance { get; }
 
 	// TODO: Remove this
 	public Wallet Wallet => _wallet;
