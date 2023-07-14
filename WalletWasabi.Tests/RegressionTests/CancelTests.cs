@@ -176,7 +176,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCpfp);
 			Assert.False(txToCancel.Transaction.IsCancellation);
-			//Assert.True(cancellingTx.Transaction.IsReplacement);
+			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCpfp);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
@@ -240,7 +240,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.False(spendingTxToCancel.Transaction.IsReplacement);
 			Assert.False(spendingTxToCancel.Transaction.IsCpfp);
 			Assert.False(spendingTxToCancel.Transaction.IsCancellation);
-			//Assert.True(cancellingTx.Transaction.IsReplacement);
+			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCpfp);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 

@@ -29,7 +29,7 @@ public class CoinsRegistry : ICoinsView
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
-	
+
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> SpentCoinsByOutPoint { get; } = new();
 
@@ -169,7 +169,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				InvalidateSnapshot = true;
 				SpentCoins.Add(spentCoin);
-				
+
 				var newCoinSet = new HashSet<SmartCoin> { spentCoin };
 
 				// If we don't succeed to add a new entry to the dictionary.
@@ -220,7 +220,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 	}
-	
+
 	public bool TryGetSpenderSpentSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		lock (Lock)
@@ -237,11 +237,11 @@ public class CoinsRegistry : ICoinsView
 			{
 				if (coin.Confirmed)
 				{
-					// At list one coin is confirmed
+					// At least one coin is confirmed.
 					return false;
 				}
 			}
-			// Coins are non confirmed
+			// Coins are non confirmed.
 			return true;
 		}
 
