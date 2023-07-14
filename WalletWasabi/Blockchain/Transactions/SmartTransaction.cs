@@ -290,6 +290,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool IsCancelable(KeyManager keyManager) =>
 		IsRbfable(keyManager) // [Impossiblility] We can only cancel with RBF.
+		&& !GetForeignOutputs(keyManager).Any() // [Nonsensical] Cancellation of a transaction in which only we have outputs is non-sensical.
 		&& !IsCancellation; // [Nonsensical] It is non-sensical to cancel a cancellation transaction.
 
 	public bool TryAddWalletInput(SmartCoin input)
