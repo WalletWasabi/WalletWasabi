@@ -47,10 +47,14 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 						  .ObserveOn(RxApp.MainThreadScheduler)
 						  .Select(_ => _wallet.State);
 
+		var exchangeRateProvider = new ExchangeRateProvider(wallet.Synchronizer);
+
 		var balance = Observable
 			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
-			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
-		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
+			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()))
+			.Select(money => new BtcAmount(money, exchangeRateProvider));
+		
+		Balances = new WalletBalancesModel(balance);
 
 		Auth = new WalletAuthModel(this, _wallet);
 		Loader = new WalletLoadWorkflow(_wallet);
