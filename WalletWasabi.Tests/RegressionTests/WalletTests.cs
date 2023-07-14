@@ -132,7 +132,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
 
@@ -252,7 +252,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 
 		// Create the services.
 		// 1. Create connection service.
