@@ -285,8 +285,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		&& WalletOutputs.All(x => !x.IsSpent()); // [Dangerous] All the outputs we know of should not be spent, otherwise we shouldn't do RBF.
 
 	public bool IsSpeedupable(KeyManager keyManager) =>
-		(IsCpfpable(keyManager) || IsRbfable(keyManager)) // [Impossiblility] We can only speed up if we can either CPFP or RBF.
-		&& !IsCancellation; // [Nonsensical] It is non-sensical to speed up a cancellation transaction.
+		(IsCpfpable(keyManager) || IsRbfable(keyManager)); // [Impossiblility] We can only speed up if we can either CPFP or RBF.
 
 	public bool IsCancelable(KeyManager keyManager) =>
 		IsRbfable(keyManager) // [Impossiblility] We can only cancel with RBF.
