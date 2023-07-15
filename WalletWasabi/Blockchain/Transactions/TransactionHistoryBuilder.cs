@@ -112,7 +112,7 @@ public class TransactionHistoryBuilder
 	/// <summary>
 	/// CPFP or RBF that is not cancellation.
 	/// </summary>
-	private bool GetIsSpeedUp(SmartTransaction transaction) => transaction.IsCpfp || (transaction.IsReplacement && !transaction.IsCancellation);
+	private bool GetIsSpeedUp(SmartTransaction transaction) => transaction.IsCpfp || transaction.IsReplacement;
 
 	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
 	{
