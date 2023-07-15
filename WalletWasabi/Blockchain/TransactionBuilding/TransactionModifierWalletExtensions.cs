@@ -4,6 +4,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
@@ -71,7 +72,15 @@ public static class TransactionModifierWalletExtensions
 
 		if (transactionToSpeedUp.IsRbfable(keyManager))
 		{
-			return wallet.RbfTransaction(transactionToSpeedUp);
+			try
+			{
+				return wallet.RbfTransaction(transactionToSpeedUp);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+				return wallet.CpfpTransaction(transactionToSpeedUp);
+			}
 		}
 		else if (transactionToSpeedUp.IsCpfpable(keyManager))
 		{
@@ -166,14 +175,28 @@ public static class TransactionModifierWalletExtensions
 			allowDoubleSpend: true,
 			tryToSign: true);
 
-		if (transactionToSpeedUp.IsCpfp)
-		{
-			rbf.Transaction.SetCpfp();
-		}
-
 		if (transactionToSpeedUp.IsCancellation)
 		{
 			rbf.Transaction.SetCancellation();
+		}
+
+		if (transactionToSpeedUp.IsCpfp)
+		{
+			rbf.Transaction.SetCpfp();
+
+			// If we're RBF-ing a CPFP which has a parent with multiple own outputs and only spends one of them, then the maxFee could be higher.
+			AssertMaxCpfpFee(rbf, keyManager);
+		}
+		else
+		{
+			// We want to ensure that the RBF's fee is not too high.
+			var rbfFee = rbf.Fee.Satoshi;
+			var maxFee = rbf.Transaction.Transaction.Outputs.Sum(x => x.Value);
+
+			if (rbfFee > maxFee)
+			{
+				throw new InvalidOperationException($"RBF fee ({rbfFee}) is higher than the total output amount in this transaction ({maxFee}).");
+			}
 		}
 
 		return rbf;
@@ -213,6 +236,39 @@ public static class TransactionModifierWalletExtensions
 
 		cpfp.Transaction.SetCpfp();
 
+		AssertMaxCpfpFee(cpfp, keyManager);
+
 		return cpfp;
+	}
+
+	private static void AssertMaxCpfpFee(BuildTransactionResult cpfp, KeyManager keyManager)
+	{
+		// We want to ensure that the CPFP's fee is not too high.
+		var transactionsToCpfp = cpfp.Transaction.GetWalletInputs(keyManager).Select(x => x.Transaction).Where(x => !x.Confirmed);
+
+		var cpfpFee = cpfp.Fee.Satoshi;
+		var cpfpOutputSum = cpfp.Transaction.GetWalletOutputs(keyManager).Sum(x => x.Amount);
+		var spentOutputSum = transactionsToCpfp
+			.Select(tx => tx.GetWalletOutputs(keyManager).Where(x => cpfp.Transaction.GetWalletInputs(keyManager).Contains(x)).Sum(x => x.Amount))
+			.Sum();
+		var totalReceivedOutputSum = transactionsToCpfp
+			.Select(tx => tx.GetWalletOutputs(keyManager).Sum(x => x.Amount))
+			.Sum();
+		var totalSentOutputSum = transactionsToCpfp
+			.Select(tx => tx.GetForeignOutputs(keyManager).Sum(x => x.TxOut.Value))
+			.Sum();
+
+		var maxFee = totalReceivedOutputSum - spentOutputSum + cpfpOutputSum;
+		foreach (var transactionToCpfp in transactionsToCpfp.Where(tx => tx.GetWalletInputs(keyManager).Any()))
+		{
+			// If we have inputs in the transaction, then we might be sending money to others.
+			// If we don't have inputs in the transaction, then we are receiving money from others.
+			maxFee += totalSentOutputSum;
+		}
+
+		if (cpfpFee > maxFee)
+		{
+			throw new InvalidOperationException($"CPFP fee ({cpfpFee}) is higher than what it it's worth to speed up this transaction ({maxFee}).");
+		}
 	}
 }

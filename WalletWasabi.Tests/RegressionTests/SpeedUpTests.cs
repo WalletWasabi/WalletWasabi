@@ -195,6 +195,38 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.False(rbf2.Transaction.IsCancellation);
 
 			#endregion CanSpeedUpThrice
+
+			#region CantSpeedUpTooSmall
+
+			// Get some money.
+			var txIdJustEnoughToSpeedUp = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), Money.Coins(0.000991m));
+			var txIdTooSmallToSpeedUp = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), Money.Coins(0.0008m));
+			Assert.NotNull(txIdJustEnoughToSpeedUp);
+			Assert.NotNull(txIdTooSmallToSpeedUp);
+
+			waitCount = 0;
+			while (!bitcoinStore.TransactionStore.TryGetTransaction(txIdJustEnoughToSpeedUp, out _) || !bitcoinStore.TransactionStore.TryGetTransaction(txIdTooSmallToSpeedUp, out _))
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					throw new InvalidOperationException($"Transaction(s) didn't arrive.");
+				}
+			}
+
+			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txIdJustEnoughToSpeedUp, out var txJustEnoughToSpeedUp));
+			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txIdTooSmallToSpeedUp, out var txTooSmallToSpeedUp));
+
+			// Can't speed too small transaction.
+			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txTooSmallToSpeedUp));
+
+			// Can only speed up not too small, but not too large transaction once.
+			cpfp = wallet.SpeedUpTransaction(txJustEnoughToSpeedUp);
+			await broadcaster.SendTransactionAsync(cpfp.Transaction);
+			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(cpfp.Transaction));
+
+			#endregion CantSpeedUpTooSmall
 		}
 		finally
 		{
