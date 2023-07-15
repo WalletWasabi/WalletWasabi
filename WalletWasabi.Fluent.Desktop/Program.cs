@@ -198,7 +198,6 @@ public static class WasabiAppExtensions
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
-					Logger.LogError("XXX: Stopped before the UI was started.");
 					stopLoadingCts.Cancel();
 				}
 				else
