@@ -122,10 +122,13 @@ public class Global
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
-	public async Task InitializeNoWalletAsync(TerminateService terminateService)
+	public async Task InitializeNoWalletAsync(TerminateService terminateService, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
+		CancellationToken cancel = linkedCts.Token;
+
 		// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
-		using (await InitializationAsyncLock.LockAsync())
+		using (await InitializationAsyncLock.LockAsync(cancellationToken))
 		{
 			Logger.LogTrace("Initialization started.");
 
@@ -133,8 +136,6 @@ public class Global
 			{
 				return;
 			}
-
-			CancellationToken cancel = StoppingCts.Token;
 
 			try
 			{

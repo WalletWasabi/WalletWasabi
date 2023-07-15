@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -198,11 +199,11 @@ public static class WasabiAppExtensions
 		return await app.RunAsync(
 			async () =>
 			{
-				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
+				await app.Global!.InitializeNoWalletAsync(app.TerminateService, CancellationToken.None).ConfigureAwait(false);
 
 				ProcessCommands();
 
-				await app.TerminateService.TerminationRequested.Task.ConfigureAwait(false);
+				await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
 			}).ConfigureAwait(false);
 	}
 }
