@@ -48,7 +48,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-
+		IsCancellation = isCancellation;
+		IsCpfp = isCpfp;
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
