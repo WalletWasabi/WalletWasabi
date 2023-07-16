@@ -123,8 +123,7 @@ public static class TransactionModifierWalletExtensions
 			{
 				destReq = new DestinationRequest(
 					scriptPubKey: coin.ScriptPubKey,
-					amount: coin.Amount,
-					subtractFee: true,
+					MoneyRequest.CreateAllRemaining(subtractFee: true),
 					labels: coin.HdPubKey.Labels);
 			}
 			else
@@ -147,8 +146,9 @@ public static class TransactionModifierWalletExtensions
 			var largestForeignOuput = foreignOutputs.First();
 			var largestForeignOuputDestReq = new DestinationRequest(
 				scriptPubKey: largestForeignOuput.TxOut.ScriptPubKey,
-				amount: largestForeignOuput.TxOut.Value,
-				subtractFee: ownOutput is null,
+				ownOutput is null
+					? MoneyRequest.CreateAllRemaining(subtractFee: true)
+					: MoneyRequest.Create(largestForeignOuput.TxOut.Value),
 				labels: transactionToSpeedUp.Labels);
 			payments.Add(largestForeignOuputDestReq);
 
@@ -168,7 +168,7 @@ public static class TransactionModifierWalletExtensions
 
 		BuildTransactionResult rbf = wallet.BuildTransaction(
 			password: wallet.Kitchen.SaltSoup(),
-			payments: payments.Count == 1 ? new PaymentIntent(payments.Single().Destination, MoneyRequest.CreateAllRemaining(subtractFee: true), payments.Single().Labels) : new PaymentIntent(payments),
+			payments: new PaymentIntent(payments),
 			feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
 			allowUnconfirmed: true,
 			allowedInputs: allowedInputs,
