@@ -230,15 +230,7 @@ public class CoinsRegistry : ICoinsView
 	}
 
 	private bool TryGetSpenderSpentSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
-	{
-		if (SpentCoinsByOutPoint.TryGetValue(outPoint, out coins))
-		{
-			// If any coin is confirmed, return false. Otherwise, return true.
-			return !coins.Any(coin => coin.Confirmed);
-		}
-
-		return false;
-	}
+		=> SpentCoinsByOutPoint.TryGetValue(outPoint, out coins);
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 	{

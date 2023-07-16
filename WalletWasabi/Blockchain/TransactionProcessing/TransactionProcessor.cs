@@ -147,34 +147,39 @@ public class TransactionProcessor
 		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
 		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
-			var doubleSpends = new List<SmartCoin>();
+			var doubleSpentSpenders = new List<SmartCoin>();
+			var doubleSpentCoins = new List<SmartCoin>();
 			foreach (var txIn in tx.Transaction.Inputs)
 			{
 				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txIn.PrevOut, out var coins))
 				{
-					doubleSpends.AddRange(coins);
+					doubleSpentSpenders.AddRange(coins);
 				}
 				if (Coins.TryGetSpenderSpentSmartCoinsByOutPoint(txIn.PrevOut, out var spentCoins))
 				{
-					doubleSpends.AddRange(spentCoins);
+					doubleSpentCoins.AddRange(spentCoins);
 				}
 			}
 
-			if (doubleSpends.Any())
+			if (doubleSpentSpenders.Any() || doubleSpentCoins.Any())
 			{
 				tx.SetReplacement();
+			}
+
+			if (doubleSpentSpenders.Any())
+			{
 				if (tx.Height == Height.Mempool)
 				{
 					// if the received transaction is spending at least one input already
 					// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 					// spending transaction but a replacement transaction.
-					var isReplacementTx = doubleSpends.Any(x => x.IsReplaceable());
+					var isReplacementTx = doubleSpentSpenders.Any(x => x.IsReplaceable());
 					if (isReplacementTx)
 					{
 						// Undo the replaced transaction by removing the coins it created (if other coin
 						// spends it, remove that too and so on) and restoring those that it replaced.
 						// After undoing the replaced transaction it will process the replacement transaction.
-						var replacedTxId = doubleSpends.First().TransactionId;
+						var replacedTxId = doubleSpentSpenders.First().TransactionId;
 						var (replaced, restored) = Coins.Undo(replacedTxId);
 
 						result.ReplacedCoins.AddRange(replaced);
@@ -192,7 +197,7 @@ public class TransactionProcessor
 				}
 				else // new confirmation always enjoys priority
 				{
-					var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
+					var unconfirmedDoubleSpentTxId = doubleSpentSpenders.First().TransactionId;
 					if (TransactionStore.MempoolStore.TryGetTransaction(unconfirmedDoubleSpentTxId, out var replacedTx) && replacedTx.IsReplacement)
 					{
 						var (replaced, restored) = Coins.Undo(unconfirmedDoubleSpentTxId);
@@ -208,12 +213,12 @@ public class TransactionProcessor
 					else
 					{
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-						foreach (SmartCoin doubleSpentCoin in doubleSpends)
+						foreach (SmartCoin doubleSpentCoin in doubleSpentSpenders)
 						{
 							Coins.Remove(doubleSpentCoin);
 						}
 
-						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpends);
+						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
 
 						TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
 					}
