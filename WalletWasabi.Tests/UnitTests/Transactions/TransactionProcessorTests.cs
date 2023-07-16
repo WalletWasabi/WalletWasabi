@@ -325,9 +325,12 @@ public class TransactionProcessorTests
 		{
 			if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
 			{
-				// Move the original coin from spent to unspent - so add.
-				var originalCoin = Assert.Single(e.RestoredCoins);
-				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
+				if (e.RestoredCoins.Any())
+				{
+					// Move the original coin from spent to unspent - so add.
+					var originalCoin = Assert.Single(e.RestoredCoins);
+					Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
+				}
 
 				// Remove the created coin by the transaction.
 				Assert.Equal(3, e.ReplacedCoins.Count);
@@ -788,7 +791,7 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Single(mempool);
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);

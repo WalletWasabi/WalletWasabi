@@ -153,6 +153,7 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			var rbf = wallet.SpeedUpTransaction(cpfp.Transaction);
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(cpfp.Transaction.GetHash(), out _));
 
 			var rbfInput = Assert.Single(rbf.Transaction.GetWalletInputs(keyManager));
 			Assert.Equal(rbfInput, cpfpInput);
@@ -177,6 +178,7 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			var rbf2 = wallet.SpeedUpTransaction(rbf.Transaction);
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
 
 			var rbf2Input = Assert.Single(rbf2.Transaction.GetWalletInputs(keyManager));
 			Assert.Equal(rbf2Input, rbfInput);
@@ -338,6 +340,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
 
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToSpeedUp.Transaction.GetHash(), out _));
+
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins), Assert.Single(rbf.SpentCoins));
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, rbf.Transaction);
 			Assert.Equal(Assert.Single(rbf.SpentCoins).SpenderTransaction, rbf.Transaction);
@@ -381,6 +385,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.Equal(Assert.Single(rbf2.SpentCoins).SpenderTransaction, rbf.Transaction);
 
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
 
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins), Assert.Single(rbf2.SpentCoins));
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, rbf2.Transaction);
@@ -445,6 +451,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			}
 
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToSpeedUp.Transaction.GetHash(), out _));
 
 			foreach (var coin in txToSpeedUp.SpentCoins)
 			{
@@ -615,6 +623,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
 
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToSpeedUp.Transaction.GetHash(), out _));
+
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins), Assert.Single(rbf.SpentCoins));
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, rbf.Transaction);
 			Assert.Equal(Assert.Single(rbf.SpentCoins).SpenderTransaction, rbf.Transaction);
@@ -655,6 +665,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.Equal(Assert.Single(rbf2.SpentCoins).SpenderTransaction, rbf.Transaction);
 
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
 
 			Assert.Equal(Assert.Single(rbf.SpentCoins), Assert.Single(rbf2.SpentCoins));
 			Assert.Equal(Assert.Single(rbf.SpentCoins).SpenderTransaction, rbf2.Transaction);
@@ -707,6 +719,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
 
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToSpeedUp.Transaction.GetHash(), out _));
+
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins), Assert.Single(rbf.SpentCoins));
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, rbf.Transaction);
 			Assert.Equal(Assert.Single(rbf.SpentCoins).SpenderTransaction, rbf.Transaction);
@@ -742,6 +756,8 @@ public class SpeedUpTests : IClassFixture<RegTestFixture>
 			Assert.Equal(Assert.Single(rbf2.SpentCoins).SpenderTransaction, rbf.Transaction);
 
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
 
 			Assert.Equal(Assert.Single(rbf.SpentCoins), Assert.Single(rbf2.SpentCoins));
 			Assert.Equal(Assert.Single(rbf.SpentCoins).SpenderTransaction, rbf2.Transaction);

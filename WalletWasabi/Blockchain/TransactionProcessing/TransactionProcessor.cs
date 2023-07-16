@@ -161,54 +161,46 @@ public class TransactionProcessor
 				}
 			}
 
-			if (doubleSpentSpenders.Any() || doubleSpentCoins.Any())
+			var doubleSpentTransactions = doubleSpentCoins.Select(x => x.SpenderTransaction!).Concat(doubleSpentSpenders.Select(x => x.Transaction)).ToHashSet();
+
+			if (doubleSpentTransactions.Any())
 			{
 				tx.SetReplacement();
 			}
 
-			if (doubleSpentSpenders.Any())
+			if (tx.Height == Height.Mempool)
 			{
-				if (tx.Height == Height.Mempool)
+				// if the received transaction is spending at least one input already
+				// spent by a previous unconfirmed transaction signaling RBF then it is not a double
+				// spending transaction but a replacement transaction.
+				var isReplacementTx = doubleSpentSpenders.Any(x => x.IsReplaceable());
+				if (isReplacementTx)
 				{
-					// if the received transaction is spending at least one input already
-					// spent by a previous unconfirmed transaction signaling RBF then it is not a double
-					// spending transaction but a replacement transaction.
-					var isReplacementTx = doubleSpentSpenders.Any(x => x.IsReplaceable());
-					if (isReplacementTx)
-					{
-						// Undo the replaced transaction by removing the coins it created (if other coin
-						// spends it, remove that too and so on) and restoring those that it replaced.
-						// After undoing the replaced transaction it will process the replacement transaction.
-						var replacedTxId = doubleSpentSpenders.First().TransactionId;
-						var (replaced, restored) = Coins.Undo(replacedTxId);
+					// Undo the replaced transaction by removing the coins it created (if other coin
+					// spends it, remove that too and so on) and restoring those that it replaced.
+					// After undoing the replaced transaction it will process the replacement transaction.
+					var replacedTxId = doubleSpentSpenders.First().TransactionId;
+					var (replaced, restored) = Coins.Undo(replacedTxId);
 
-						result.ReplacedCoins.AddRange(replaced);
-						result.RestoredCoins.AddRange(restored);
-
-						foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
-						{
-							TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
-						}
-					}
-					else
-					{
-						return result;
-					}
+					result.ReplacedCoins.AddRange(replaced);
+					result.RestoredCoins.AddRange(restored);
 				}
-				else // new confirmation always enjoys priority
+				else if (doubleSpentSpenders.Any())
 				{
-					var unconfirmedDoubleSpentTxId = doubleSpentSpenders.First().TransactionId;
+					return result;
+				}
+			}
+			else // new confirmation always enjoys priority
+			{
+				foreach (var doubleSpentTx in doubleSpentTransactions)
+				{
+					var unconfirmedDoubleSpentTxId = doubleSpentTx.GetHash();
 					if (TransactionStore.MempoolStore.TryGetTransaction(unconfirmedDoubleSpentTxId, out var replacedTx) && replacedTx.IsReplacement)
 					{
 						var (replaced, restored) = Coins.Undo(unconfirmedDoubleSpentTxId);
 
 						result.ReplacedCoins.AddRange(replaced);
 						result.RestoredCoins.AddRange(restored);
-
-						foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
-						{
-							TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
-						}
 					}
 					else
 					{
@@ -219,10 +211,19 @@ public class TransactionProcessor
 						}
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
-
-						TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
 					}
 				}
+			}
+
+			// Recursively double spent transactions could be here.
+			foreach (var doubleSpentTx in result.ReplacedCoins.Select(coin => coin.Transaction))
+			{
+				doubleSpentTransactions.Add(doubleSpentTx);
+			}
+
+			foreach (var replacedTransactionId in doubleSpentTransactions.Select(x => x.GetHash()))
+			{
+				TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
 			}
 		}
 
@@ -276,6 +277,7 @@ public class TransactionProcessor
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
 			MempoolService?.TrySpend(coin, tx);
+			result.RestoredCoins.Remove(coin);
 
 			if (!alreadyKnown)
 			{

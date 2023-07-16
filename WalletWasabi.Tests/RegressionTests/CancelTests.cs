@@ -141,6 +141,9 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
+
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCpfp);
 			Assert.False(txToCancel.Transaction.IsCancellation);
@@ -173,6 +176,9 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
+
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCpfp);
 			Assert.False(txToCancel.Transaction.IsCancellation);
@@ -237,6 +243,9 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
 			cancellingTx = wallet.CancelTransaction(spendingTxToCancel.Transaction);
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
+
+			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(spendingTxToCancel.Transaction.GetHash(), out _));
+
 			Assert.False(spendingTxToCancel.Transaction.IsReplacement);
 			Assert.False(spendingTxToCancel.Transaction.IsCpfp);
 			Assert.False(spendingTxToCancel.Transaction.IsCancellation);
