@@ -165,6 +165,16 @@
             </DockPanel>
           </Border>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type model:CoinjoiningFundsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses coinjoining coins." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
       </ItemsControl.DataTemplates>
     </ItemsControl>
     <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
