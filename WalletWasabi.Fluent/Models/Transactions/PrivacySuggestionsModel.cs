@@ -131,27 +131,19 @@ public class PrivacySuggestionsModel
 		}
 
 		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletName];
-
 		bool wasCoinjoiningCoinUsed = originalTransaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
-		var allPrivateCoin = wasCoinjoiningCoinUsed ?
-			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray() :
-			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).Except(coinsToExclude).ToArray();
+		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
+		allPrivateCoin = wasCoinjoiningCoinUsed ? allPrivateCoin : ExcludeCoinsFromList(allPrivateCoin, coinsToExclude);
 
-		var onlyKnownByTheRecipientCoins = wasCoinjoiningCoinUsed ?
-			_wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray() :
-			_wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).Except(coinsToExclude).ToArray();
-
-		var allSemiPrivateCoin = wasCoinjoiningCoinUsed ?
+		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
+		var allSemiPrivateCoin =
 			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
 			.Union(onlyKnownByTheRecipientCoins)
-			.ToArray()
-			:
-			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
-			.Union(onlyKnownByTheRecipientCoins)
-			.Except(coinsToExclude)
 			.ToArray();
+
+		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : ExcludeCoinsFromList(allSemiPrivateCoin, coinsToExclude);
 
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
@@ -256,11 +248,10 @@ public class PrivacySuggestionsModel
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transaction.SpentCoins;
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
+		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		ImmutableArray<SmartCoin> coinsToUse = spentCoins.Any(coinsToExclude.Contains) ?
-			usedPockets.SelectMany(x => x.Coins).ToImmutableArray() :
-			usedPockets.SelectMany(x => x.Coins).Except(coinsToExclude).ToImmutableArray();
+		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : ExcludeCoinsFromList(coinsToUse, coinsToExclude).ToImmutableArray();
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
 
@@ -392,5 +383,10 @@ public class PrivacySuggestionsModel
 		};
 
 		return differenceFiatText;
+	}
+
+	private SmartCoin[] ExcludeCoinsFromList(IEnumerable<SmartCoin> coinList, IEnumerable<SmartCoin> coinsToExclude)
+	{
+		return coinList.Except(coinsToExclude).ToArray();
 	}
 }
