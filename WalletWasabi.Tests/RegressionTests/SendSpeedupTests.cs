@@ -114,8 +114,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 				waitCount++;
 				if (waitCount >= 21)
 				{
-					Logger.LogInfo($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
-					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
+					throw new InvalidOperationException($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
 				}
 			}
 
@@ -305,7 +304,24 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region TooSmallHasNoChange
 
-			;
+			var fundingTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), Money.Satoshis(30_000));
+			Assert.NotNull(txId);
+			await rpc.GenerateAsync(1);
+			SmartTransaction? fundingTx = null;
+			while (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out fundingTx) || fundingTx?.Confirmed is false)
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
+				}
+			}
+
+			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.CreateAllRemaining(), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
+			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
+
+			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
 
 			#endregion TooSmallHasNoChange
 

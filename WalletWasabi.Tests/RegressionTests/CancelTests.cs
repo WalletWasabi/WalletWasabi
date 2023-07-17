@@ -113,8 +113,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 				waitCount++;
 				if (waitCount >= 21)
 				{
-					Logger.LogInfo($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
-					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
+					throw new InvalidOperationException($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
 				}
 			}
 
@@ -207,8 +206,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 				waitCount++;
 				if (waitCount >= 21)
 				{
-					Logger.LogInfo($"Wallet didn't recognize transaction confirmation.");
-					return;
+					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
 				}
 			}
 

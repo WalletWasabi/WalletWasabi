@@ -301,7 +301,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
 				}
 			}
-			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, MoneyRequest.CreateAllRemaining()), FeeStrategy.CreateFromFeeRate(new FeeRate(200m)), allowedInputs: receiveTx.WalletOutputs.Select(x => x.Outpoint));
+			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, MoneyRequest.CreateAllRemaining()), FeeStrategy.CreateFromFeeRate(200), allowedInputs: receiveTx.WalletOutputs.Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
 			Assert.Throws<NotEnoughFundsException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));

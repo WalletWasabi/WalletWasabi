@@ -76,10 +76,17 @@ public static class TransactionModifierWalletExtensions
 			{
 				return wallet.RbfTransaction(transactionToSpeedUp);
 			}
-			catch (Exception ex)
+			catch (Exception rbfEx)
 			{
-				Logger.LogDebug(ex);
-				return wallet.CpfpTransaction(transactionToSpeedUp);
+				try
+				{
+					return wallet.CpfpTransaction(transactionToSpeedUp);
+				}
+				catch
+				{
+					// If CPFP fails as well, then we throw the original exception, since it was supposed to be an RBF to begin with.
+					throw rbfEx;
+				}
 			}
 		}
 		else if (transactionToSpeedUp.IsCpfpable(keyManager))
