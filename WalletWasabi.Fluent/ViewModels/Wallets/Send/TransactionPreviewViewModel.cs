@@ -511,7 +511,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
 		await labelSelection.ResetAsync(pockets);
 
-		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient, _wallet.AnonScoreTarget);
 	}
 
 	private async Task ApplyPrivacySuggestionAsync(PrivacySuggestion suggestion)
