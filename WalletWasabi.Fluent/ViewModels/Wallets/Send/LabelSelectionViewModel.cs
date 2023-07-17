@@ -311,25 +311,42 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		await OnSelectionChangedAsync();
 	}
 
-	public bool IsOtherSelectionPossible(IEnumerable<SmartCoin> usedCoins, LabelsArray recipient, int privateThreshold)
+	public async Task<bool> IsOtherSelectionPossibleAsync(IEnumerable<SmartCoin> usedCoins, LabelsArray recipient, int privateThreshold)
 	{
-		var usedLabels = LabelsArray.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
-		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value, StringComparer.OrdinalIgnoreCase)).ToArray();
-		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
+		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
+		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
 
-		// only private / semi private funds are in use
-		if (usedLabels.IsEmpty)
+		// They are handled silently, do not take them into account as manually selectable pockets.
+		remainingUsablePockets.Remove(_privatePocket);
+		remainingUsablePockets.Remove(_semiPrivatePocket);
+
+		if (usedPockets.Length == 1 && usedPockets.First() == _privatePocket)
 		{
 			return false;
 		}
 
-		// There is no other label that the user could click on in the "not allowed" section
-		if (!notUsedLabelViewModels.Any())
+		if (usedPockets.Length == 1 && usedPockets.First() == _semiPrivatePocket)
 		{
 			return false;
 		}
 
-		if (usedLabels.Equals(recipient, StringComparer.OrdinalIgnoreCase))
+		if (usedPockets.Length == 2 && usedPockets.Contains(_privatePocket) && usedPockets.Contains(_semiPrivatePocket))
+		{
+			return false;
+		}
+
+		if (!remainingUsablePockets.Any())
+		{
+			return false;
+		}
+
+		var labels = LabelsArray.Merge(usedPockets.Select(x => x.Labels));
+		if (labels.Equals(recipient, StringComparer.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		if (!await IsPocketEnoughAsync(remainingUsablePockets.ToArray()))
 		{
 			return false;
 		}
