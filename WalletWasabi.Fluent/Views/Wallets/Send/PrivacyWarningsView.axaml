@@ -156,7 +156,8 @@
             </DockPanel>
           </Border>
         </DataTemplate>
-
+        
+        <!-- Unconfirmed funds warning -->
         <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
           <Border Classes="warning">
             <DockPanel>
@@ -166,6 +167,7 @@
           </Border>
         </DataTemplate>
 
+        <!-- Coinjoining funds warning -->
         <DataTemplate DataType="{x:Type model:CoinjoiningFundsWarning}">
           <Border Classes="warning">
             <DockPanel>
