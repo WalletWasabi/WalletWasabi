@@ -61,7 +61,7 @@ public class Wallet : BackgroundService, IWallet
 	public WalletState State
 	{
 		get => _state;
-		private set
+		set
 		{
 			if (_state == value)
 			{

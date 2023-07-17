@@ -277,6 +277,14 @@ public class WalletManager : IWalletProvider
 			_disposedValue = true;
 		}
 
+		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
+		{
+			foreach (var wallet in GetWallets())
+			{
+				wallet.State = WalletState.Stopping;
+			}
+		}
+
 		try
 		{
 			CancelAllTasks?.Cancel();
