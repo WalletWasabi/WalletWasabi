@@ -330,9 +330,9 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancellationToken)
 	{
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		foreach (FilterModel filter in IndexStorage.Fetch(fromHeight: fromHeight.Value))
 		{
-			foreach (FilterModel filter in IndexStorage.Fetch(fromHeight: fromHeight.Value))
+			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				await todo(filter).ConfigureAwait(false);
 			}

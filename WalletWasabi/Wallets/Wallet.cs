@@ -438,6 +438,17 @@ public class Wallet : BackgroundService, IWallet
 
 	private async void IndexDownloader_NewFilterAsync(object? sender, FilterModel filterModel)
 	{
+		while (State is WalletState.Starting)
+		{
+			await Task.Delay(100).ConfigureAwait(false);
+		}
+
+		if (State != WalletState.Started)
+		{
+			Logger.LogInfo($"Wallet was closed before processing filter {filterModel.Header.Height}.");
+			return;
+		}
+		
 		try
 		{
 			// NonTurbo synchronization (keys skipped by TurboSync) is still ongoing.
