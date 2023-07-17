@@ -23,6 +23,7 @@ using Xunit;
 using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -321,7 +322,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.CreateAllRemaining(), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
-			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
+			Assert.Throws<TransactionFeeOverpaymentException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
 
 			#endregion TooSmallHasNoChange
 

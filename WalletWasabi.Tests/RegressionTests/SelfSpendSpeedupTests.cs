@@ -304,7 +304,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, MoneyRequest.CreateAllRemaining()), FeeStrategy.CreateFromFeeRate(200), allowedInputs: receiveTx.WalletOutputs.Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
-			Assert.Throws<NotEnoughFundsException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
+			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
 
 			#endregion TooSmall
 		}
