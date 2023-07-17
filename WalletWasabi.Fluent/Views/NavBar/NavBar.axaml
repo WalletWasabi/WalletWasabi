@@ -38,8 +38,8 @@
       <Setter Property="Spacing" Value="2" />
     </Style>
 
-    <Style Selector="c|NavBarItem StackPanel TextBlock">
-      <Setter Property="TextAlignment" Value="Center" />
+    <Style Selector="c|NavBarItem StackPanel c|FadeOutTextControl">
+      <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
@@ -153,7 +153,7 @@
             <StackPanel>
               <PathIcon Classes="new size24" />
               <LayoutTransformControl>
-                <c:FadeOutTextBlock Text="{Binding Title}" />
+                <c:FadeOutTextControl Text="{Binding Title}" />
               </LayoutTransformControl>
             </StackPanel>
           </c:NavBarItem>
@@ -190,7 +190,7 @@
                   <PathIcon Classes="new size24 wallet"
                             Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}" />
                   <LayoutTransformControl>
-                    <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
+                    <c:FadeOutTextControl Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
                   </LayoutTransformControl>
                 </StackPanel>
               </Panel>
