@@ -398,7 +398,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.Create(activeAmount - changeAmount, subtractFee: true), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
-			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
+			Assert.Throws<TransactionFeeOverpaymentException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
 
 			#endregion TooSmallHasChange
 		}
