@@ -24,6 +24,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -358,6 +359,12 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.Create(activeAmount - changeAmount, subtractFee: true), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
+
+			// Make sure we can spend the coins together by giving them a high anonset.
+			foreach (var c in wallet.Coins)
+			{
+				c.HdPubKey.SetAnonymitySet(9_000);
+			}
 
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
 

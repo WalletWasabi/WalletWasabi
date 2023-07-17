@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -232,6 +233,7 @@ public static class TransactionModifierWalletExtensions
 			// Let's only do this once, because the more we try to merge the more problematic it'll get from privacy point of view.
 			var remainingCoins = wallet.Coins
 				.Except(allowedInputs)
+				.Where(x => x.HdPubKey.Labels == ownOutput.HdPubKey.Labels || x.IsPrivate(wallet.AnonScoreTarget))
 				.OrderByDescending(x => x.Confirmed)
 				.ThenByDescending(x => x.Amount);
 
