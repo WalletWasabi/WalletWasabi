@@ -204,6 +204,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.False(rbf2.Transaction.IsCancellation);
 
 			await rpc.GenerateAsync(1);
+			waitCount = 0;
 			while (wallet.Coins.Any(x => !x.Confirmed))
 			{
 				await Task.Delay(1000);
@@ -291,6 +292,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.False(rbf2.Transaction.IsCancellation);
 
 			await rpc.GenerateAsync(1);
+			waitCount = 0;
 			while (wallet.Coins.Any(x => !x.Confirmed))
 			{
 				await Task.Delay(1000);
@@ -309,6 +311,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.NotNull(txId);
 			await rpc.GenerateAsync(1);
 			SmartTransaction? fundingTx = null;
+			waitCount = 0;
 			while (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out fundingTx) || fundingTx?.Confirmed is false)
 			{
 				await Task.Delay(1000);
@@ -328,7 +331,42 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region TooSmallToRbfButCanCpfpHasChange
 
-			;
+			Assert.Empty(wallet.Coins);
+
+			// The helper coin is to pick up when we realize the change is too small to RBF.
+			var helperCoinAmount = Money.Coins(0.1m);
+			var activeAmount = Money.Coins(1);
+
+			fundingTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), activeAmount);
+			var helperCoinTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar").GetP2wpkhAddress(network), helperCoinAmount);
+			Assert.NotNull(txId);
+			await rpc.GenerateAsync(1);
+			fundingTx = null;
+			SmartTransaction? helperCoinTx = null;
+			waitCount = 0;
+			while ((!wallet.BitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out fundingTx) || fundingTx?.Confirmed is false)
+				|| (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(helperCoinTxId, out helperCoinTx) || helperCoinTx?.Confirmed is false))
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
+				}
+			}
+
+			var changeAmount = Money.Satoshis(20_000);
+			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.Create(activeAmount - changeAmount, subtractFee: true), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
+			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
+
+			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
+
+			Assert.False(cpfp.Transaction.IsReplacement);
+			Assert.True(cpfp.Transaction.IsCpfp);
+			Assert.Equal(2, cpfp.SpentCoins.Count());
+			Assert.Empty(cpfp.Transaction.ForeignInputs);
+			Assert.Single(cpfp.Transaction.Transaction.Outputs);
+			Assert.Contains(Assert.Single(txToSpeedUp.InnerWalletOutputs), cpfp.SpentCoins);
 
 			#endregion TooSmallToRbfButCanCpfpHasChange
 

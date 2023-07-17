@@ -292,6 +292,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(1);
 
 			SmartTransaction? receiveTx;
+			waitCount = 0;
 			while ((wallet.BitcoinStore.TransactionStore.TryGetTransaction(txId, out receiveTx) && receiveTx.Confirmed) is not true)
 			{
 				await Task.Delay(1000);

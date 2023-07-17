@@ -1,9 +1,13 @@
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -192,7 +196,7 @@ public static class TransactionModifierWalletExtensions
 			rbf.Transaction.SetCpfp();
 
 			// If we're RBF-ing a CPFP which has a parent with multiple own outputs and only spends one of them, then the maxFee could be higher.
-			AssertMaxCpfpFee(rbf, keyManager);
+			AssertMaxCpfpFee(transactionToSpeedUp, rbf, keyManager);
 		}
 		else
 		{
@@ -212,10 +216,44 @@ public static class TransactionModifierWalletExtensions
 	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp)
 	{
 		var keyManager = wallet.KeyManager;
+		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
+		List<SmartCoin> allowedInputs = new()
+		{
+			ownOutput
+		};
+
+		try
+		{
+			return wallet.CpfpTransaction(transactionToCpfp, allowedInputs);
+		}
+		catch (Exception ex)
+		{
+			// It might be that the change is too small to CPFP, so we try to add another input.
+			// Let's only do this once, because the more we try to merge the more problematic it'll get from privacy point of view.
+			var remainingCoins = wallet.Coins
+				.Except(allowedInputs)
+				.OrderByDescending(x => x.Confirmed)
+				.ThenByDescending(x => x.Amount);
+
+			if (remainingCoins.Any())
+			{
+				Logger.LogDebug(ex);
+
+				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, InsecureRandom.Instance)!);
+
+				return wallet.CpfpTransaction(transactionToCpfp, allowedInputs);
+			}
+
+			throw;
+		}
+	}
+
+	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs)
+	{
+		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
 		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
-		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
 		var txSizeBytes = transactionToCpfp.Transaction.GetVirtualSize();
 
 		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
@@ -225,7 +263,7 @@ public static class TransactionModifierWalletExtensions
 			keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 			LabelsArray.Empty,
 			bestFeeRate,
-			new[] { ownOutput },
+			allowedInputs,
 			tryToSign: true);
 		var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
@@ -238,35 +276,28 @@ public static class TransactionModifierWalletExtensions
 			keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
 			LabelsArray.Empty,
 			cpfpFeeRate,
-			new[] { ownOutput },
+			allowedInputs,
 			tryToSign: true);
 
 		cpfp.Transaction.SetCpfp();
 
-		AssertMaxCpfpFee(cpfp, keyManager);
+		AssertMaxCpfpFee(transactionToCpfp, cpfp, keyManager);
 
 		return cpfp;
 	}
 
-	private static void AssertMaxCpfpFee(BuildTransactionResult cpfp, KeyManager keyManager)
+	private static void AssertMaxCpfpFee(SmartTransaction transactionToCpfp, BuildTransactionResult cpfp, KeyManager keyManager)
 	{
 		// We want to ensure that the CPFP's fee is not too high.
-		var transactionsToCpfp = cpfp.Transaction.GetWalletInputs(keyManager).Select(x => x.Transaction).Where(x => !x.Confirmed);
+		var outputsToCpfpSum = transactionToCpfp.GetWalletOutputs(keyManager).Sum(x => x.Amount);
+
+		var spentOutputSum = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => cpfp.Transaction.GetWalletInputs(keyManager).Contains(x)).Sum(x => x.Amount);
+		var totalReceivedOutputSum = transactionToCpfp.GetWalletOutputs(keyManager).Sum(x => x.Amount);
+		var totalSentOutputSum = transactionToCpfp.GetForeignOutputs(keyManager).Sum(x => x.TxOut.Value);
 
 		var cpfpFee = cpfp.Fee.Satoshi;
-		var cpfpOutputSum = cpfp.Transaction.GetWalletOutputs(keyManager).Sum(x => x.Amount);
-		var spentOutputSum = transactionsToCpfp
-			.Select(tx => tx.GetWalletOutputs(keyManager).Where(x => cpfp.Transaction.GetWalletInputs(keyManager).Contains(x)).Sum(x => x.Amount))
-			.Sum();
-		var totalReceivedOutputSum = transactionsToCpfp
-			.Select(tx => tx.GetWalletOutputs(keyManager).Sum(x => x.Amount))
-			.Sum();
-		var totalSentOutputSum = transactionsToCpfp
-			.Select(tx => tx.GetForeignOutputs(keyManager).Sum(x => x.TxOut.Value))
-			.Sum();
-
-		var maxFee = totalReceivedOutputSum - spentOutputSum + cpfpOutputSum;
-		foreach (var transactionToCpfp in transactionsToCpfp.Where(tx => tx.GetWalletInputs(keyManager).Any()))
+		var maxFee = (totalReceivedOutputSum - spentOutputSum) + (outputsToCpfpSum - cpfpFee);
+		if (transactionToCpfp.GetWalletInputs(keyManager).Any())
 		{
 			// If we have inputs in the transaction, then we might be sending money to others.
 			// If we don't have inputs in the transaction, then we are receiving money from others.
