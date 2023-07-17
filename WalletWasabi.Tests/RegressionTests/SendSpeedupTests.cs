@@ -336,6 +336,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			// The helper coin is to pick up when we realize the change is too small to RBF.
 			var helperCoinAmount = Money.Coins(0.1m);
 			var activeAmount = Money.Coins(1);
+			var changeAmount = Money.Satoshis(20_000);
 
 			fundingTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), activeAmount);
 			var helperCoinTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar").GetP2wpkhAddress(network), helperCoinAmount);
@@ -355,7 +356,6 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 				}
 			}
 
-			var changeAmount = Money.Satoshis(20_000);
 			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.Create(activeAmount - changeAmount, subtractFee: true), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
@@ -372,7 +372,33 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region TooSmallHasChange
 
-			;
+			// In this case we'd pay more fee than the active output's value, which makes no sense to bring in another coin.
+			helperCoinAmount = Money.Coins(0.1m);
+			activeAmount = Money.Satoshis(40_000);
+			changeAmount = Money.Satoshis(20_000);
+
+			fundingTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), activeAmount);
+			helperCoinTxId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar").GetP2wpkhAddress(network), helperCoinAmount);
+			Assert.NotNull(txId);
+			await rpc.GenerateAsync(1);
+			fundingTx = null;
+			helperCoinTx = null;
+			waitCount = 0;
+			while ((!wallet.BitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out fundingTx) || fundingTx?.Confirmed is false)
+				|| (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(helperCoinTxId, out helperCoinTx) || helperCoinTx?.Confirmed is false))
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
+				}
+			}
+
+			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(rpcAddress, MoneyRequest.Create(activeAmount - changeAmount, subtractFee: true), label: "bar"), FeeStrategy.CreateFromFeeRate(10), allowedInputs: fundingTx!.GetWalletOutputs(keyManager).Select(x => x.Outpoint));
+			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
+
+			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
 
 			#endregion TooSmallHasChange
 		}
