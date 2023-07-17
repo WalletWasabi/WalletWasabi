@@ -32,11 +32,13 @@ public class PrivacySuggestionsModel
 	private readonly AsyncLock _asyncLock = new();
 
 	private readonly Wallet _wallet;
+	private readonly CoinJoinManager _cjManager;
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
 	public PrivacySuggestionsModel(Wallet wallet)
 	{
 		_wallet = wallet;
+		_cjManager = Services.HostedServices.Get<CoinJoinManager>();
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
@@ -128,8 +130,7 @@ public class PrivacySuggestionsModel
 			result.Warnings.Add(new SemiPrivateFundsWarning());
 		}
 
-		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
-		ImmutableList<SmartCoin> coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName];
+		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletName];
 
 		bool wasCoinjoiningCoinUsed = originalTransaction.SpentCoins.Any(coinsToExclude.Contains);
 
@@ -250,8 +251,7 @@ public class PrivacySuggestionsModel
 		// Only allow to create 1 more input with BnB. This accounts for the change created.
 		int maxInputCount = transaction.SpentCoins.Count() + 1;
 
-		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
-		ImmutableList<SmartCoin> coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName];
+		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletName];
 
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transaction.SpentCoins;
