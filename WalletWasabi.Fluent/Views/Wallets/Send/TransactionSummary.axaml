@@ -51,33 +51,6 @@
     </c:PreviewItem>
     <Separator />
 
-    <!-- Selected coin labels -->
-    <DockPanel IsVisible="{Binding TransactionHasPockets}">
-      <Button Classes="plain"
-              Command="{Binding Parent.ChangePocketCommand}"
-              ToolTip.Tip="Control your privacy"
-              DockPanel.Dock="Right"
-              Margin="10 0">
-        <Button.IsVisible>
-          <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <Binding Path="IsOtherPocketSelectionPossible" />
-            <Binding Path="!IsPreview" />
-          </MultiBinding>
-        </Button.IsVisible>
-        <Viewbox Height="20">
-          <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-        </Viewbox>
-      </Button>
-      <c:PreviewItem Icon="{StaticResource nav_incognito_24_regular}"
-                     Label="transaction known as yours by"
-                     CopyableContent="{Binding Labels}">
-        <c:LabelsItemsPresenter ItemsSource="{Binding Labels}"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center" />
-      </c:PreviewItem>
-    </DockPanel>
-    <Separator IsVisible="{Binding TransactionHasPockets}" />
-
     <!-- Fee and confirmation time -->
     <DockPanel>
       <Button Classes="plain"
