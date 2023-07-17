@@ -311,7 +311,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		await OnSelectionChangedAsync();
 	}
 
-	public async Task<bool> IsOtherSelectionPossibleAsync(IEnumerable<SmartCoin> usedCoins, LabelsArray recipient, int privateThreshold)
+	public async Task<bool> IsOtherSelectionPossibleAsync(IEnumerable<SmartCoin> usedCoins, LabelsArray recipient)
 	{
 		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
 		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
