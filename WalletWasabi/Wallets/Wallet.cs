@@ -465,7 +465,7 @@ public class Wallet : BackgroundService, IWallet
 				// Then filters are buffered and are tested against the NonTurbo keys only when the NonTurbo sync is finished (i.e. lock released).
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
-					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+					if (KeyManager.GetBestHeight() < filterModel.Header.Height && State == WalletState.Started)
 					{
 						await ProcessFilterModelAsync(filterModel, SyncType.NonTurbo, CancellationToken.None).ConfigureAwait(false);
 						SetFinalBestHeight(new Height(filterModel.Header.Height));
@@ -476,7 +476,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
-					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
+					if (KeyManager.GetBestHeight() < filterModel.Header.Height && State == WalletState.Started)
 					{
 						await ProcessFilterModelAsync(filterModel, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
 						SetFinalBestHeight(new Height(filterModel.Header.Height));
