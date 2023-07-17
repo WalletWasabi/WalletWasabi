@@ -16,7 +16,8 @@ public class RestartRendererInLinuxBehavior : DisposingBehavior<Window>
 			return;
 		}
 
-		this.WhenAnyValue(x => x.AssociatedObject.WindowState)
+		AssociatedObject
+			.WhenAnyValue(x => x.WindowState)
 			.Where(state => state == WindowState.Normal)
 			.Where(_ => OperatingSystem.IsLinux())
 			.Do(_ =>
