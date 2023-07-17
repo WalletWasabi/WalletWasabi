@@ -131,13 +131,27 @@ public class PrivacySuggestionsModel
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
 		ImmutableList<SmartCoin> coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName];
 
-		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).Except(coinsToExclude).ToArray();
-		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
-		var allSemiPrivateCoin = _wallet.Coins
-			.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
+		bool wasCoinjoiningCoinUsed = originalTransaction.SpentCoins.Any(coinsToExclude.Contains);
+
+		// Only exclude coins if the original transaction doesn't use them either.
+		var allPrivateCoin = wasCoinjoiningCoinUsed ?
+			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray() :
+			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).Except(coinsToExclude).ToArray();
+
+		var onlyKnownByTheRecipientCoins = wasCoinjoiningCoinUsed ?
+			_wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray() :
+			_wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).Except(coinsToExclude).ToArray();
+
+		var allSemiPrivateCoin = wasCoinjoiningCoinUsed ?
+			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
+			.Union(onlyKnownByTheRecipientCoins)
+			.ToArray()
+			:
+			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
 			.Union(onlyKnownByTheRecipientCoins)
 			.Except(coinsToExclude)
 			.ToArray();
+
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
