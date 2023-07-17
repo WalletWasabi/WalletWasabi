@@ -920,7 +920,7 @@ public class PocketSelectionTests
 			new(("Electrum, Faucet, self-transfer", new CoinsView(new[] { c1, c2 }))),
 			LabelTestExtensions.CreateSingleCoinPocket(0.0001m, "Electrum")
 		};
-		selection = CreateLabelSelectionViewModel(Money.Parse("3.5"), recipient);
+		selection = CreateLabelSelectionViewModel(Money.Parse("0.0001"), recipient);
 		await selection.ResetAsync(pockets.ToArray());
 		Assert.False(await selection.IsOtherSelectionPossibleAsync(new[] { c2 }, recipient));
 	}
