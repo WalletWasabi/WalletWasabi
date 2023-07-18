@@ -12,7 +12,7 @@ public class UiContext
 	private INavigate? _navigate;
 	private static UiContext? DefaultInstance;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -21,6 +21,7 @@ public class UiContext
 		HardwareWalletInterface = hardwareWalletInterface ?? throw new ArgumentNullException(nameof(hardwareWalletInterface));
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
+		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 	}
 
 	public IClipboard Clipboard { get; }
@@ -30,10 +31,11 @@ public class UiContext
 	public IHardwareWalletInterface HardwareWalletInterface { get; }
 	public IFileSystem FileSystem { get; }
 	public IClientConfig Config { get; }
+	public IApplicationSettings ApplicationSettings { get; }
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
-	// We provide a NullClipboard object for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), Application.Current?.Clipboard ?? new NullClipboard(), CreateWalletRepository(), CreateHardwareWalletInterface(), CreateFileSystem(), CreateConfig());
+	// We provide "Null Object Pattern" objects for unit tests (when Application.Current is null)
+	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), Application.Current?.Clipboard ?? new NullClipboard(), CreateWalletRepository(), CreateHardwareWalletInterface(), CreateFileSystem(), CreateConfig(), CreateApplicationSettings());
 
 	public void RegisterNavigation(INavigate navigate)
 	{
@@ -97,6 +99,18 @@ public class UiContext
 		else
 		{
 			return new NullClientConfig();
+		}
+	}
+
+	private static IApplicationSettings CreateApplicationSettings()
+	{
+		if (Services.PersistentConfig is { } persistentConfig && Services.UiConfig is { } uiConfig)
+		{
+			return new ApplicationSettings(persistentConfig, uiConfig);
+		}
+		else
+		{
+			return new NullApplicationSettings();
 		}
 	}
 }
