@@ -77,16 +77,29 @@ public static class RPCClientExtensions
 			: await GetFeeEstimationsAsync(rpc, cancel).ConfigureAwait(false);
 
 		var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
+		var uptime = await rpc.UptimeAsync(cancel).ConfigureAwait(false);
+
+		var finalExtimations = uptime < TimeSpan.FromHours(2)
+			? smartEstimations
+			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
 		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
+		return new AllFeeEstimate(
+			EstimateMode,
+			finalExtimations,
+			rpcStatus.Synchronized);
+	}
+
+	private static FeeRateByConfirmationTarget SmartEstimationsWithMempoolInfo(FeeRateByConfirmationTarget smartEstimations, MemPoolInfo mempoolInfo)
+	{
 		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 		var minEstimationFor260Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(260 / 4));
 		var minSanityFeeRate = FeeRate.Max(minEstimationFor260Mb, mempoolInfo.GetSanityFeeRate());
 		var estimationForTarget2 = minEstimations.GetValueOrDefault(2);
 		var maxEstimationFor3Mb = new FeeRate(estimationForTarget2 > 0 ? (decimal)estimationForTarget2 : 5_000m);
 		var maxSanityFeeRate = maxEstimationFor3Mb;
-			
+
 		var fixedEstimations = smartEstimations
 			.GroupJoin(
 				minEstimations,
@@ -106,10 +119,7 @@ public static class RPCClientExtensions
 				})
 			.ToDictionary(x => x.Target, x => x.FeeRate);
 
-		return new AllFeeEstimate(
-			EstimateMode,
-			fixedEstimations,
-			rpcStatus.Synchronized);
+		return fixedEstimations;
 	}
 
 	private static async Task<FeeRateByConfirmationTarget> GetFeeEstimationsAsync(IRPCClient rpc, CancellationToken cancel = default)
@@ -206,7 +216,7 @@ public static class RPCClientExtensions
 
 		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
 			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
-		
+
 		return feeRateByConfirmationTarget;
 	}
 

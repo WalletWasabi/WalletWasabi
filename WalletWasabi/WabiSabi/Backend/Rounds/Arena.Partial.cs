@@ -153,7 +153,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.InputRegistration);
 
-			round.Alices.RemoveAll(x => x.Id == request.AliceId);
+			round.Alices.RemoveAll(x => x.Id == request.AliceId && x.ConfirmedConnection == false);
 		}
 	}
 

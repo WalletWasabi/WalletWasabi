@@ -367,7 +367,7 @@ public class AllFeeEstimateTests
 				Histogram = Array.Empty<FeeRateGroup>()
 			});
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-
+		mockRpc.Setup(rpc => rpc.UptimeAsync(It.IsAny<CancellationToken>())).ReturnsAsync(TimeSpan.FromDays(500));
 		return mockRpc;
 	}
 
