@@ -34,6 +34,7 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 	public ICommand CopyToClipboardCommand { get; }
 
 	public List<RecoveryWordViewModel> MnemonicWords { get; set; }
+	public string Password { get; set; }
 
 	private void OnNext(Mnemonic mnemonic, string walletName)
 	{

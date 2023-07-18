@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="{Binding CurrentWord.Index, StringFormat='Click the correct word into the right order to complete and verify the seed phrase #{0}', FallbackValue=' '}"
+                 Caption="Click the correct word into the right order to complete and verify the seed phrase."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
@@ -26,7 +26,7 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <ItemsControl Items="{Binding RemainingWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
+      <ItemsControl Items="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -34,7 +34,7 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="create:RecoveryWordViewModel">
-            <ToggleButton IsChecked="{Binding IsSelected}" Margin="2 0">
+            <ToggleButton Foreground="{Binding ToggleBackground}" IsChecked="{Binding IsSelected}" Margin="2 0">
               <ToggleButton.IsEnabled>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="IsEnabled" />
@@ -50,6 +50,9 @@
                   <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
                   <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
                 </Style>
+                <Style Selector="ToggleButton[IsSelected=False][IsConfirmed=False] /template/ c|TagControl">
+                  <Setter Property="Foreground" Value="Red" />
+                </Style>
               </ToggleButton.Styles>
               <ToggleButton.Template>
                 <ControlTemplate>
@@ -60,39 +63,60 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      
 
       <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
         <ItemsControl Items="{Binding ConfirmationWords}">
-          
           <ItemsControl.Styles>
             <Style Selector="TextBlock.error">
               <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
             </Style>
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
+            <ItemsPanelTemplate> 
               <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
+              <StackPanel Spacing="0.25" Orientation="Horizontal" Margin="50 0 50 0" Width="80">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="42" />
-                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
-                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                  <TextBlock Foreground="{Binding ConfirmationWordColor}" IsVisible="{Binding IsSelected}" Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
+                           FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                <PathIcon Data="{StaticResource correct}" Foreground="#34D286" Margin="10 0 0 0" VerticalAlignment="Top">
+                <PathIcon.IsVisible> 
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="IsSelectedWordConfirmedWord" />
+                    <Binding Path="IsSelected" />
+                  </MultiBinding>
+                </PathIcon.IsVisible>
+                </PathIcon>
+                <PathIcon Data="{StaticResource cross}" Foreground="Red" Margin="10 0 0 0" VerticalAlignment="Top">
+                  <PathIcon.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsSelected" />
+                      <Binding Path="IsConfirmed" Converter="{x:Static BoolConverters.Not}" />
+                    </MultiBinding>
+                  </PathIcon.IsVisible>
+                </PathIcon>
+                <Border IsVisible="{Binding !IsSelected}" BorderBrush="{Binding BorderBackground}" Margin="7 0 0 0" Width="70" Height="20" CornerRadius="3" BorderThickness="1"
+                        BorderDashArray="5,5" VerticalAlignment="Top" />
+                <PathIcon Data="{StaticResource left_pointing_arrow}" IsVisible="{Binding IsNextWord}" Foreground="#34D286" Margin="10 0 0 0" VerticalAlignment="Top">
+                  <PathIcon.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsNextWord" />
+                      <Binding Path="IsConfirmed" Converter="{x:Static BoolConverters.Not}" />
+                    </MultiBinding>
+                  </PathIcon.IsVisible>
+                </PathIcon>
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-
-        <Grid ColumnDefinitions="*,1,*,1,*">
+        <Grid ColumnDefinitions="*,1,*,1,*"> 
           <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
-      </Panel>
-
-      
+      </Panel>      
     </Grid>
   </c:ContentArea>
 </UserControl>

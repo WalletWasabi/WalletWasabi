@@ -23,6 +23,18 @@
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
+      <StackPanel>
+        <c:TileButton Text="Create a new wallet"
+                      Classes="action doubleline"
+                      Icon="{StaticResource add_regular}"
+                      Command="{Binding CreateWalletCommand}"
+                      IsDefault="{Binding IsActive}"
+                      Width="490" />
+
+        <TextBlock Text="or" HorizontalAlignment="Center" Margin="0 10" />
+      </StackPanel>
+
+
       <UniformGrid Rows="1" HorizontalAlignment="Center">
         <UniformGrid.Styles>
           <Style Selector="c|TileButton">
@@ -35,11 +47,6 @@
             <Setter Property="VerticalContentAlignment" Value="Bottom"/>
           </Style>
         </UniformGrid.Styles>
-        <c:TileButton Text="Create a new wallet"
-                      Classes="action doubleline"
-                      Icon="{StaticResource add_regular}"
-                      Command="{Binding CreateWalletCommand}"
-                      IsDefault="{Binding IsActive}" />
 
         <c:TileButton Text="Connect to hardware wallet"
                       Classes="doubleline"

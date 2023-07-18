@@ -41,7 +41,6 @@
         <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
         <RowDefinition Height="30" />
-        <RowDefinition Height="*" />
       </Grid.RowDefinitions>
 
       <StackPanel Grid.Row="0" VerticalAlignment="Center">
@@ -85,16 +84,6 @@
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
       </Panel>
-
-      <StackPanel Grid.Row="2">
-        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="We recommend to secure the wallet with a 13th word, it will be your daily password to unlock this wallet and needs also to be written down!" />
-      </StackPanel>
-
-      <StackPanel Grid.Row="4" Orientation="Vertical">
-        <TextBlock Text="Define Password (Optional)" HorizontalAlignment="Center" Margin="0,0,0,5" />
-        <TextBox CaretBrush="Transparent" Width="300" HorizontalAlignment="Center" PasswordChar="•" Classes="revealPasswordButton" />
-      </StackPanel>
-
     </Grid>
   </c:ContentArea>
 </UserControl>

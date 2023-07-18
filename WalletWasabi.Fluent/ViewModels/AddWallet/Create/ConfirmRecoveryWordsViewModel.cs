@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Media;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -11,17 +13,16 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Confirm Recovery Words")]
+[NavigationMetaData(Title = "Verify Recovery Words")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
-	private readonly List<RecoveryWordViewModel> _words; 
+	private readonly List<RecoveryWordViewModel> _words;
 	private readonly Mnemonic _mnemonic;
 	private readonly string _walletName;
 
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
-	[AutoNotify] private List<RecoveryWordViewModel> _remainingWords;
 
 	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
@@ -30,7 +31,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		_currentWord = words.First();
 		_mnemonic = mnemonic;
 		_walletName = walletName;
-		_remainingWords = GetRemainingWords();
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -70,6 +70,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		confirmationWordsSourceList.AddRange(_words);
 
 		AvailableWords = confirmationWordsSourceList.Items
+			.Where(x => !x.IsConfirmed)
 			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
 			.OrderBy(x => x.Word)
 			.ToList();
@@ -83,8 +84,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Subscribe(x => OnWordSelectionChanged(x.Sender));
 
 		availableWordsSourceList.AddRange(AvailableWords);
-
 		SetNextWord();
+		CurrentWord.IsNextWord = true;
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
@@ -94,15 +95,11 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		if (ConfirmationWords.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
 		{
+			nextWord.IsNextWord = true;
+			CurrentWord.IsNextWord = false;
 			CurrentWord = nextWord;
-		}
-
+		} 
 		EnableAvailableWords(true);
-	}
-
-	private List<RecoveryWordViewModel> GetRemainingWords()
-	{
-		 return _words.Where(obj => new[] { 2, 5, 8, 11 }.Contains(obj.Index)).ToList();
 	}
 
 	private void OnWordSelectionChanged(RecoveryWordViewModel selectedWord)
@@ -110,16 +107,25 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		if (selectedWord.IsSelected)
 		{
 			CurrentWord.SelectedWord = selectedWord.Word;
+			CurrentWord.IsSelected = true;
+			CurrentWord.IsNextWord = false;
 		}
 		else
 		{
 			CurrentWord.SelectedWord = null;
+			CurrentWord.IsSelected = false;
+			CurrentWord.IsNextWord = true;
+			CurrentWord.BorderBackground = new SolidColorBrush(Color.Parse("#34D286"));
 		}
-
 		if (CurrentWord.IsConfirmed)
 		{
 			selectedWord.IsConfirmed = true;
+			CurrentWord.IsSelectedWordConfirmedWord = true;
+			CurrentWord.IsConfirmed = true;
+			CurrentWord.ConfirmationWordColor = new SolidColorBrush(Color.Parse("#34D286"));
 			SetNextWord();
+			CurrentWord.IsNextWord = true;
+			CurrentWord.BorderBackground = new SolidColorBrush(Color.Parse("#34D286"));
 		}
 		else if (!selectedWord.IsSelected)
 		{
@@ -129,6 +135,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		{
 			EnableAvailableWords(false);
 			selectedWord.IsEnabled = true;
+			selectedWord.ToggleBackground = new SolidColorBrush(Colors.Red);
+			CurrentWord.ConfirmationWordColor = new SolidColorBrush(Colors.Red);
 		}
 	}
 
