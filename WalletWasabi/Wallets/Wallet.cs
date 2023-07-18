@@ -271,7 +271,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, SaveFinalSynchronizationIsFinished, cancel).ConfigureAwait(false);
+				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
 
 				if (LastProcessedFilter is { } lastProcessedFilter)
 				{
@@ -512,7 +512,7 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
-		await PerformWalletSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, AddNewFilterEventHandler, cancel).ConfigureAwait(false);
+		await PerformWalletSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 
 		if (LastProcessedFilter is { } lastProcessedFilter)
 		{
@@ -571,7 +571,7 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Go through the filters and queue the matches to download.
 	/// </summary>
-	public async Task PerformWalletSynchronizationAsync(SyncType syncType, Func<Task>? todoOnFinish = null, CancellationToken cancel = default)
+	public async Task PerformWalletSynchronizationAsync(SyncType syncType, CancellationToken cancel)
 	{
 		var startingHeight = syncType == SyncType.Turbo ?
 			new Height(KeyManager.GetBestTurboSyncHeight() + 1) :
@@ -580,7 +580,7 @@ public class Wallet : BackgroundService, IWallet
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
 			async (filterModel) => await ProcessFilterModelAsync(filterModel, syncType, cancel).ConfigureAwait(false),
 			startingHeight,
-			todoOnFinish,
+			syncType == SyncType.NonTurbo ? SaveFinalSynchronizationIsFinished : AddNewFilterEventHandler,
 			cancel).ConfigureAwait(false);
 	}
 
