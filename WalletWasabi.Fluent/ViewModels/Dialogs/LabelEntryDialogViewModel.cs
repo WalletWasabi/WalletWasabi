@@ -20,9 +20,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
-
-		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-		SuggestionLabels = new SuggestionLabelsViewModel(WalletRepository.CreateWalletModel(wallet), Intent.Send, 3)
+		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
 		{
 			Labels = { labels.AsEnumerable() }
 		};

@@ -10,8 +10,6 @@ public interface IWalletAuthModel
 
 	Task<WalletLoginResult> TryLoginAsync(string password);
 
-	Task<bool> TryPasswordAsync(string password);
-
 	Task AcceptTermsAndConditions();
 
 	void CompleteLogin();

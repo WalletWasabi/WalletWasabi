@@ -16,7 +16,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
-
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -34,7 +33,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
-					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
+					  .TransformWithInlineUpdate(wallet => new WalletModel(wallet), (model, wallet) => { })
 					  .Transform(x => x as IWalletModel);
 
 		// Materialize the Wallet list to determine the default wallet.
@@ -177,14 +176,5 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 			return _wallets.First(x => x.Name == existingWallet.WalletName);
 		}
 		return null;
-	}
-
-	// TODO: Make this method private and non-static once refactoring is completed (this is the only place where WalletModel should be instantiated and its a responsibility of WalletRepository alone)
-	public static WalletModel CreateWalletModel(Wallet wallet)
-	{
-		return
-			wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletModel(wallet)
-			: new WalletModel(wallet);
 	}
 }
