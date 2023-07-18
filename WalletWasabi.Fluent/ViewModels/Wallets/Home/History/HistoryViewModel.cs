@@ -262,10 +262,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
+	private ICollection<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
 	{
 		Money balance = Money.Zero;
 		CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
+
+		var history = new List<HistoryItemViewModelBase>();
 
 		for (var i = 0; i < txRecordList.Count; i++)
 		{
@@ -275,7 +277,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance);
+				history.Add(new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance));
 			}
 
 			if (item.IsOwnCoinjoin)
@@ -297,16 +299,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
 					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
-					yield return singleCjItem;
+					history.Add( singleCjItem);
 				}
 				else
 				{
 					cjg.SetBalance(balance);
-					yield return cjg;
+					history.Add(cjg);
 				}
 
 				coinJoinGroup = null;
 			}
 		}
+
+		return history;
 	}
 }
