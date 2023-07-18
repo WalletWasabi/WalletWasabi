@@ -163,10 +163,16 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
 			Assert.False(txToSpeedUp.Transaction.IsCPFP);
+			Assert.False(txToSpeedUp.Transaction.IsCPFPd);
+			Assert.Empty(txToSpeedUp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToSpeedUp.Transaction.ChildrenPayForThisTx);
 			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.False(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.Empty(rbf.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -204,6 +210,9 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(rbf2.Transaction.IsReplacement);
 			Assert.False(rbf2.Transaction.IsCPFP);
+			Assert.False(rbf2.Transaction.IsCPFPd);
+			Assert.Empty(rbf2.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf2.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
@@ -258,10 +267,16 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
 			Assert.False(txToSpeedUp.Transaction.IsCPFP);
+			Assert.False(txToSpeedUp.Transaction.IsCPFPd);
+			Assert.Empty(txToSpeedUp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToSpeedUp.Transaction.ChildrenPayForThisTx);
 			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.False(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.Empty(rbf.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -295,6 +310,9 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(rbf2.Transaction.IsReplacement);
 			Assert.False(rbf2.Transaction.IsCPFP);
+			Assert.False(rbf2.Transaction.IsCPFPd);
+			Assert.Empty(rbf2.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf2.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
@@ -374,8 +392,16 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
 
+			Assert.False(txToSpeedUp.Transaction.IsCPFP);
+			Assert.False(txToSpeedUp.Transaction.IsCPFPd); // Should be true, but it is not broadcasted yet.
+			Assert.Empty(txToSpeedUp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToSpeedUp.Transaction.ChildrenPayForThisTx); // Should be single, but it is not broadcasted yet.
+
 			Assert.False(cpfp.Transaction.IsReplacement);
 			Assert.True(cpfp.Transaction.IsCPFP);
+			Assert.False(cpfp.Transaction.IsCPFPd);
+			Assert.Equal(txToSpeedUp.Transaction.GetHash(), Assert.Single(cpfp.Transaction.ParentsThisTxPaysFor).GetHash());
+			Assert.Empty(cpfp.Transaction.ChildrenPayForThisTx);
 			Assert.Equal(2, cpfp.SpentCoins.Count());
 			Assert.Empty(cpfp.Transaction.ForeignInputs);
 			Assert.Single(cpfp.Transaction.Transaction.Outputs);
