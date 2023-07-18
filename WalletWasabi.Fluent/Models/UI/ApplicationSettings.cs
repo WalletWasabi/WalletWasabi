@@ -19,6 +19,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 	private static readonly object ConfigLock = new();
 
+	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly PersistentConfig _startupConfig;
 	private readonly PersistentConfig _config;
 	private readonly UiConfig _uiConfig;
@@ -137,8 +138,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 			.DoAsync(async x => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
 			.Subscribe();
 	}
-
-	private Subject<bool> _isRestartNeeded = new();
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 
