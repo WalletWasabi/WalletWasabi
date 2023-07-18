@@ -20,5 +20,5 @@ public record BetterPrivacySuggestion(BuildTransactionResult Transaction, string
 
 public record ChangeAvoidanceSuggestion(BuildTransactionResult Transaction, string DifferenceFiatText) : PrivacySuggestion(Transaction)
 {
-	public Money GetAmount() => Transaction!.CalculateDestinationAmount();
+	public Money GetAmount(BitcoinAddress destination) => Transaction!.CalculateDestinationAmount(destination);
 }

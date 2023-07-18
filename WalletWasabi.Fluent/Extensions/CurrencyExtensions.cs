@@ -15,7 +15,7 @@ public static class CurrencyExtensions
 		NumberDecimalSeparator = "."
 	};
 
-	public static Money CalculateDestinationAmount(this BuildTransactionResult result)
+	public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress destination)
 	{
 		var isNormalPayment = result.OuterWalletOutputs.Any();
 
@@ -26,7 +26,7 @@ public static class CurrencyExtensions
 		else
 		{
 			return result.InnerWalletOutputs
-				.Where(x => !x.HdPubKey.IsInternal)
+				.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
 				.Select(x => x.Amount)
 				.Sum();
 		}
