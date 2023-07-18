@@ -204,7 +204,6 @@ public class Wallet : BackgroundService, IWallet
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
@@ -372,7 +371,7 @@ public class Wallet : BackgroundService, IWallet
 
 				if (prevState >= WalletState.Initialized)
 				{
-					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+					BitcoinStore.IndexStore.RemoveNewFilterEventHandler(IndexDownloader_NewFilterAsync);
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -438,11 +437,6 @@ public class Wallet : BackgroundService, IWallet
 
 	private async void IndexDownloader_NewFilterAsync(object? sender, FilterModel filterModel)
 	{
-		while (State is WalletState.Starting)
-		{
-			await Task.Delay(100).ConfigureAwait(false);
-		}
-
 		if (State != WalletState.Started)
 		{
 			Logger.LogInfo($"Wallet was closed before processing filter {filterModel.Header.Height}.");
@@ -594,9 +588,16 @@ public class Wallet : BackgroundService, IWallet
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
 			async (filterModel) => await ProcessFilterModelAsync(filterModel, syncType, cancel).ConfigureAwait(false),
 			startingHeight,
+			AddNewFilterEventHandler,
 			cancel).ConfigureAwait(false);
 	}
 
+	private Task AddNewFilterEventHandler()
+	{
+		BitcoinStore.IndexStore.AddNewFilterEventHandler(IndexDownloader_NewFilterAsync);
+		return Task.CompletedTask;
+	}
+	
 	/// <summary>
 	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
 	/// </summary>

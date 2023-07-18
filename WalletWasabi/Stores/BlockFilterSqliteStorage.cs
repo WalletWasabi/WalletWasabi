@@ -119,11 +119,21 @@ public class BlockFilterSqliteStorage : IDisposable
 
 	/// <summary>
 	/// Returns all filters with height ≥ than the given one.
+	/// If a maximum number is specified, the number of returned records is limited to this value.
 	/// </summary>
-	public IEnumerable<FilterModel> Fetch(int fromHeight)
+	public IEnumerable<FilterModel> Fetch(int fromHeight, uint? limit = null)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height";
+		if (limit is null)
+		{
+			command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height";
+		}
+		else
+		{
+			command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height LIMIT $limit";
+			command.Parameters.AddWithValue("$limit", limit.Value);
+		}
+
 		command.Parameters.AddWithValue("$block_height", fromHeight);
 
 		using SqliteDataReader reader = command.ExecuteReader();

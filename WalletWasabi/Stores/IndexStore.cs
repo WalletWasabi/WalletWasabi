@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -12,6 +13,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Stores;
 
@@ -20,6 +22,8 @@ namespace WalletWasabi.Stores;
 /// </summary>
 public class IndexStore : IAsyncDisposable
 {
+	private const int MaxNumberOfFiltersInMemory = 10000;
+	
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		SmartHeaderChain = smartHeaderChain;
@@ -328,17 +332,51 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancellationToken)
+	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, Func<Task>? todoOnFinish = null, CancellationToken cancellationToken = default)
 	{
-		foreach (FilterModel filter in IndexStorage.Fetch(fromHeight: fromHeight.Value))
+		while (!cancellationToken.IsCancellationRequested)
 		{
 			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				await todo(filter).ConfigureAwait(false);
+				FilterModel[] filters = IndexStorage.Fetch(fromHeight: fromHeight.Value, limit: MaxNumberOfFiltersInMemory).ToArray();
+
+				foreach (FilterModel filter in filters)
+				{
+					await todo(filter).ConfigureAwait(false);
+				}
+
+				// Check if we reached the end of the filters. This has to be in the loop because it can change when lock is released.
+				FilterModel lastFilter = IndexStorage.FetchLast(1).First();
+				if (filters.Contains(lastFilter))
+				{
+					// Perform OnFinish task.
+					if (todoOnFinish is not null)
+					{
+						await todoOnFinish().ConfigureAwait(false);
+					}
+
+					break;
+				}
 			}
 		}
 	}
 
+	public void AddNewFilterEventHandler(EventHandler<FilterModel> func)
+	{
+		if (NewFilter is null)
+		{
+			NewFilter += func;
+		}
+	}
+	
+	public void RemoveNewFilterEventHandler(EventHandler<FilterModel> func)
+	{
+		if (NewFilter is not null)
+		{
+			NewFilter -= func;
+		}
+	}
+	
 	/// <inheritdoc/>
 	public ValueTask DisposeAsync()
 	{
