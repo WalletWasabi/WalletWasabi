@@ -119,22 +119,15 @@ public class BlockFilterSqliteStorage : IDisposable
 
 	/// <summary>
 	/// Returns all filters with height ≥ than the given one.
-	/// If a maximum number is specified, the number of returned records is limited to this value.
 	/// </summary>
-	public IEnumerable<FilterModel> Fetch(int fromHeight, uint? limit = null)
+	/// <param name="limit">If a maximum number is specified, the number of returned records is limited to this value.</param>
+	public IEnumerable<FilterModel> Fetch(int fromHeight, int limit = -1)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		if (limit is null)
-		{
-			command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height";
-		}
-		else
-		{
-			command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height LIMIT $limit";
-			command.Parameters.AddWithValue("$limit", limit.Value);
-		}
-
+		
+		command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height LIMIT $limit";
 		command.Parameters.AddWithValue("$block_height", fromHeight);
+		command.Parameters.AddWithValue("$limit", limit);
 
 		using SqliteDataReader reader = command.ExecuteReader();
 
@@ -151,7 +144,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	public IEnumerable<FilterModel> FetchLast(int n)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = "SELECT * FROM filter WHERE block_height >= (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
+		command.CommandText = "SELECT * FROM filter WHERE block_height >= (SELECT MAX(block_height) - $n + 1 FROM filter) ORDER BY block_height";
 		command.Parameters.AddWithValue("$n", n);
 
 		using SqliteDataReader reader = command.ExecuteReader();

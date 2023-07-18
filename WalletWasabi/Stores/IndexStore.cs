@@ -333,6 +333,7 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, Func<Task>? todoOnFinish = null, CancellationToken cancellationToken = default)
 	{
+		// Process filters in batches to avoid using too much memory or to hold the IndexLock for too long.
 		while (!cancellationToken.IsCancellationRequested)
 		{
 			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -347,7 +348,7 @@ public class IndexStore : IAsyncDisposable
 				if (filters.Any())
 				{
 					FilterModel lastFilterFetched = filters.Last();
-					FilterModel lastFilterInDb = IndexStorage.FetchLast(0).First();
+					FilterModel lastFilterInDb = IndexStorage.FetchLast(1).First();
 					if (lastFilterFetched.Header.Height != lastFilterInDb.Header.Height)
 					{
 						fromHeight = new Height(lastFilterFetched.Header.Height + 1);

@@ -704,6 +704,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		State = WalletState.Stopping;
 	}
+	
 	private void SetFinalBestTurboSyncHeight(Height filterHeight)
 	{
 		if (KeyManager.GetBestTurboSyncHeight() < filterHeight)
