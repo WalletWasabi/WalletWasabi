@@ -304,6 +304,22 @@ public partial class Arena : PeriodicRunner
 			{
 				if (state.IsFullySigned)
 				{
+					// Prefer to not replace user transaction.
+					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancellationToken).ConfigureAwait(false))
+					{
+						if (offendingAlices.Any())
+						{
+							round.LogInfo($"Some Alices spent their coins during coinjoin construction - aborting the round.");
+
+							// NotAllAlicesSign will indicate the client to wait for the blame round so we will use this, even if it is not exaclty what happened.
+							EndRound(round, EndRoundState.NotAllAlicesSign);
+
+							// We are optimistic and create the blame round and assume there will be enough inputs.
+							await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+							return;
+						}
+					}
+
 					Transaction coinjoin = state.CreateTransaction();
 
 					// Logging.
@@ -344,15 +360,6 @@ public partial class Arena : PeriodicRunner
 					if (TransactionArchiver is not null)
 					{
 						await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
-					}
-
-					// Prefer to not replace user transaction.
-					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancellationToken).ConfigureAwait(false))
-					{
-						if (offendingAlices.Any())
-						{
-							await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
-						}
 					}
 
 					// Broadcasting.
