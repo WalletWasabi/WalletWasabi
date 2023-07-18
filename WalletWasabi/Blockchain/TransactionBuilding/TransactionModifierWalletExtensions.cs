@@ -192,10 +192,8 @@ public static class TransactionModifierWalletExtensions
 			rbf.Transaction.SetCancellation();
 		}
 
-		if (transactionToSpeedUp.IsCpfp)
+		if (transactionToSpeedUp.IsCPFP)
 		{
-			rbf.Transaction.SetCpfp();
-
 			// If we're RBF-ing a CPFP which has a parent with multiple own outputs and only spends one of them, then the maxFee could be higher.
 			AssertMaxCpfpFee(transactionToSpeedUp, rbf, keyManager);
 		}
@@ -283,7 +281,6 @@ public static class TransactionModifierWalletExtensions
 			allowedInputs,
 			tryToSign: true);
 
-		cpfp.Transaction.SetCpfp();
 		cpfp.Transaction.SetSpeedup();
 
 		AssertMaxCpfpFee(transactionToCpfp, cpfp, keyManager);

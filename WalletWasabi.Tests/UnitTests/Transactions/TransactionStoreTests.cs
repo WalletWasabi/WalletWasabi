@@ -55,7 +55,6 @@ public class TransactionStoreTests
 				stx.BlockIndex,
 				"totally random new label",
 				stx.IsReplacement,
-				stx.IsCpfp,
 				stx.IsSpeedup,
 				stx.IsCancellation,
 				stx.FirstSeen));

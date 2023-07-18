@@ -162,11 +162,11 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(rbf.Transaction.ForeignInputs);
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
-			Assert.False(txToSpeedUp.Transaction.IsCpfp);
+			Assert.False(txToSpeedUp.Transaction.IsCPFP);
 			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
-			Assert.False(rbf.Transaction.IsCpfp);
+			Assert.False(rbf.Transaction.IsCPFP);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -203,7 +203,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(rbf2.Transaction.ForeignInputs);
 
 			Assert.True(rbf2.Transaction.IsReplacement);
-			Assert.False(rbf2.Transaction.IsCpfp);
+			Assert.False(rbf2.Transaction.IsCPFP);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
@@ -257,11 +257,11 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(rbf.Transaction.ForeignInputs);
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
-			Assert.False(txToSpeedUp.Transaction.IsCpfp);
+			Assert.False(txToSpeedUp.Transaction.IsCPFP);
 			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
-			Assert.False(rbf.Transaction.IsCpfp);
+			Assert.False(rbf.Transaction.IsCPFP);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -294,7 +294,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(rbf2.Transaction.ForeignInputs);
 
 			Assert.True(rbf2.Transaction.IsReplacement);
-			Assert.False(rbf2.Transaction.IsCpfp);
+			Assert.False(rbf2.Transaction.IsCPFP);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
@@ -375,7 +375,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
 
 			Assert.False(cpfp.Transaction.IsReplacement);
-			Assert.True(cpfp.Transaction.IsCpfp);
+			Assert.True(cpfp.Transaction.IsCPFP);
 			Assert.Equal(2, cpfp.SpentCoins.Count());
 			Assert.Empty(cpfp.Transaction.ForeignInputs);
 			Assert.Single(cpfp.Transaction.Transaction.Outputs);

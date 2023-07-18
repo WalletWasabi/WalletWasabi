@@ -141,11 +141,13 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(feeRate < cpfpFeeRate);
 
 			Assert.False(txToSpeedUp.IsReplacement);
-			Assert.False(txToSpeedUp.IsCpfp);
+			Assert.False(txToSpeedUp.IsCPFP);
+			Assert.True(txToSpeedUp.IsCPFPd);
 			Assert.False(txToSpeedUp.IsSpeedup);
 			Assert.False(txToSpeedUp.IsCancellation);
 			Assert.False(cpfp.Transaction.IsReplacement);
-			Assert.True(cpfp.Transaction.IsCpfp);
+			Assert.True(cpfp.Transaction.IsCPFP);
+			Assert.False(cpfp.Transaction.IsCPFPd);
 			Assert.True(cpfp.Transaction.IsSpeedup);
 			Assert.False(cpfp.Transaction.IsCancellation);
 
@@ -171,7 +173,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(cpfpFeeRate < rbfFeeRate);
 
 			Assert.True(rbf.Transaction.IsReplacement);
-			Assert.True(rbf.Transaction.IsCpfp);
+			Assert.True(rbf.Transaction.IsCPFP);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -197,7 +199,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(rbfFeeRate < rbf2FeeRate);
 
 			Assert.True(rbf2.Transaction.IsReplacement);
-			Assert.True(rbf2.Transaction.IsCpfp);
+			Assert.True(rbf2.Transaction.IsCPFP);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 

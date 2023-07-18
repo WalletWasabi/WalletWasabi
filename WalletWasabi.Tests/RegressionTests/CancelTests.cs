@@ -144,11 +144,11 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
-			Assert.False(txToCancel.Transaction.IsCpfp);
+			Assert.False(txToCancel.Transaction.IsCPFP);
 			Assert.False(txToCancel.Transaction.IsSpeedup);
 			Assert.False(txToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
-			Assert.False(cancellingTx.Transaction.IsCpfp);
+			Assert.False(cancellingTx.Transaction.IsCPFP);
 			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
@@ -181,10 +181,10 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
-			Assert.False(txToCancel.Transaction.IsCpfp);
+			Assert.False(txToCancel.Transaction.IsCPFP);
 			Assert.False(txToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
-			Assert.False(cancellingTx.Transaction.IsCpfp);
+			Assert.False(cancellingTx.Transaction.IsCPFP);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
 			#endregion NoChange
@@ -247,11 +247,11 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(spendingTxToCancel.Transaction.GetHash(), out _));
 
 			Assert.False(spendingTxToCancel.Transaction.IsReplacement);
-			Assert.False(spendingTxToCancel.Transaction.IsCpfp);
+			Assert.False(spendingTxToCancel.Transaction.IsCPFP);
 			Assert.False(spendingTxToCancel.Transaction.IsSpeedup);
 			Assert.False(spendingTxToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
-			Assert.False(cancellingTx.Transaction.IsCpfp);
+			Assert.False(cancellingTx.Transaction.IsCPFP);
 			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 

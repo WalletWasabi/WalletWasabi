@@ -139,7 +139,6 @@ public class SmartTransactionTests
 		Assert.Equal(stx.Height, sameStx.Height);
 		Assert.Equal(stx.IsRBF, sameStx.IsRBF);
 		Assert.Equal(stx.IsReplacement, sameStx.IsReplacement);
-		Assert.Equal(stx.IsCpfp, sameStx.IsCpfp);
 		Assert.Equal(stx.IsSpeedup, sameStx.IsSpeedup);
 		Assert.Equal(stx.IsCancellation, sameStx.IsCancellation);
 		Assert.Equal(stx.Labels, sameStx.Labels);
@@ -199,7 +198,6 @@ public class SmartTransactionTests
 					Assert.True(stx.Labels.IsEmpty);
 					Assert.Equal(stx.FirstSeen.UtcDateTime, DateTime.UtcNow, TimeSpan.FromSeconds(1));
 					Assert.False(stx.IsReplacement);
-					Assert.False(stx.IsCpfp);
 					Assert.False(stx.IsSpeedup);
 					Assert.False(stx.IsCancellation);
 				}
@@ -213,7 +211,6 @@ public class SmartTransactionTests
 					Assert.Equal(label, stx.Labels);
 					Assert.Equal(unixSeconds, stx.FirstSeen.ToUnixTimeSeconds().ToString());
 					Assert.Equal(isReplacement, stx.IsReplacement.ToString());
-					Assert.Equal(isCpfp, stx.IsCpfp.ToString());
 					Assert.Equal(isSpeedup, stx.IsSpeedup.ToString());
 					Assert.Equal(isCancellation, stx.IsCancellation.ToString());
 				}
@@ -425,11 +422,6 @@ public class SmartTransactionTests
 		foreach (var isReplacement in booleans)
 		{
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isReplacement: isReplacement), defaultNetwork };
-		}
-
-		foreach (var isCpfp in booleans)
-		{
-			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isCpfp: isCpfp), defaultNetwork };
 		}
 
 		foreach (var isSpeedup in booleans)

@@ -30,7 +30,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		int blockIndex = 0,
 		LabelsArray? labels = null,
 		bool isReplacement = false,
-		bool isCpfp = false,
 		bool isSpeedup = false,
 		bool isCancellation = false,
 		DateTimeOffset firstSeen = default)
@@ -49,7 +48,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-		IsCpfp = isCpfp;
 		IsSpeedup = isSpeedup;
 		IsCancellation = isCancellation;
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
@@ -205,13 +203,30 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsReplacement { get; private set; }
 
 	[JsonProperty]
-	public bool IsCpfp { get; private set; }
-
-	[JsonProperty]
 	public bool IsSpeedup { get; private set; }
 
 	[JsonProperty]
 	public bool IsCancellation { get; private set; }
+
+	public bool IsCPFP => ParentsThisTxPaysFor.Any();
+	public bool IsCPFPd => ChildrenPayForThisTx.Any();
+
+	/// <summary>
+	/// Children transactions those are paying for this transaction.
+	/// </summary>
+	public IEnumerable<SmartTransaction> ChildrenPayForThisTx => WalletOutputs
+		.Where(x => x.SpenderTransaction is { } spender && spender.IsSpeedup && spender.Height == Height)
+		.Select(x => x.SpenderTransaction!);
+
+	/// <summary>
+	/// Parent transactions this transaction is paying for.
+	/// </summary>
+	public IEnumerable<SmartTransaction> ParentsThisTxPaysFor =>
+		IsSpeedup ? WalletInputs
+			.Select(x => x.Transaction)
+			.Where(x => x.Height == Height
+				|| (x.Height == Height.Mempool && Height == Height.Unknown)) // It's ok if we didn't yet get to the mempool to consider this CPFP.
+		: Enumerable.Empty<SmartTransaction>();
 
 	public bool Confirmed => Height.Type == HeightType.Chain;
 
@@ -394,11 +409,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	public void SetCpfp()
-	{
-		IsCpfp = true;
-	}
-
 	public void SetSpeedup()
 	{
 		IsSpeedup = true;
@@ -459,7 +469,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			Labels,
 			FirstSeen.ToUnixTimeSeconds(),
 			IsReplacement,
-			IsCpfp,
 			IsSpeedup,
 			IsCancellation);
 	}
@@ -481,19 +490,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			var firstSeenString = parts[6];
 			var isReplacementString = parts[7];
 
-			var isCpfpString = "False";
 			var isSpeedupString = "False";
 			var isCancellationString = "False";
 			if (parts.Length > 8)
 			{
-				isCpfpString = parts[8];
+				isSpeedupString = parts[8];
 				if (parts.Length > 9)
 				{
-					isSpeedupString = parts[9];
-					if (parts.Length > 10)
-					{
-						isCancellationString = parts[10];
-					}
+					isCancellationString = parts[9];
 				}
 			}
 
@@ -519,10 +523,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				isReplacement = false;
 			}
-			if (!bool.TryParse(isCpfpString, out bool isCpfp))
-			{
-				isCpfp = false;
-			}
 			if (!bool.TryParse(isSpeedupString, out bool isSpeedup))
 			{
 				isSpeedup = false;
@@ -532,7 +532,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				isCancellation = false;
 			}
 
-			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isCpfp, isSpeedup, isCancellation, firstSeen);
+			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isSpeedup, isCancellation, firstSeen);
 		}
 		catch (Exception ex)
 		{

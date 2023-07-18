@@ -153,7 +153,6 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.BlockIndex,
 			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
-			unsignedSmartTransaction.IsCpfp,
 			unsignedSmartTransaction.IsSpeedup,
 			unsignedSmartTransaction.IsCancellation,
 			unsignedSmartTransaction.FirstSeen);
