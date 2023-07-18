@@ -30,7 +30,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
 	private readonly WalletViewModel _walletViewModel;
-	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
@@ -45,7 +44,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		_undoHistory = new();
 		_wallet = walletViewModel.Wallet;
-		_privacySuggestionsModel = new(_wallet);
 		_walletViewModel = walletViewModel;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
@@ -84,15 +82,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				if (suggestion is { })
 				{
 					await ApplyPrivacySuggestionAsync(suggestion);
-				}
-			});
-
-		PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (!x)
-				{
-					DisplayedTransactionSummary = CurrentTransactionSummary;
 				}
 			});
 
