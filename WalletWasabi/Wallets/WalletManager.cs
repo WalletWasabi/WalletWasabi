@@ -172,7 +172,9 @@ public class WalletManager : IWalletProvider
 			}
 			catch
 			{
-				await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
+				var prevState = wallet.State;
+				wallet.InitWalletStopping();
+				await wallet.StopAsync(prevState, CancellationToken.None).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -277,10 +279,12 @@ public class WalletManager : IWalletProvider
 			_disposedValue = true;
 		}
 
+		var prevStates = new Dictionary<string, WalletState>();
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			foreach (var wallet in GetWallets())
 			{
+				prevStates.Add(wallet.WalletName, wallet.State);
 				wallet.InitWalletStopping();
 			}
 		}
@@ -320,7 +324,13 @@ public class WalletManager : IWalletProvider
 						string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)!).walletBackupFilePath;
 						keyManager.ToFile(backupWalletFilePath);
 						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-						await wallet.StopAsync(cancel).ConfigureAwait(false);
+
+						if (!prevStates.TryGetValue(wallet.WalletName, out var prevState))
+						{
+							prevState = wallet.State;
+							wallet.InitWalletStopping();
+						}
+						await wallet.StopAsync(prevState, cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
 					wallet?.Dispose();

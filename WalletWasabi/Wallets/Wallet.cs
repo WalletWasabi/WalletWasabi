@@ -358,14 +358,10 @@ public class Wallet : BackgroundService, IWallet
 			tryToSign: tryToSign);
 	}
 
-	/// <inheritdoc/>
-	public override async Task StopAsync(CancellationToken cancel)
+	public async Task StopAsync(WalletState prevState, CancellationToken cancel)
 	{
 		try
 		{
-			var prevState = State;
-			State = WalletState.Stopping;
-
 			if (prevState < WalletState.Stopping)
 			{
 				await base.StopAsync(cancel).ConfigureAwait(false);
