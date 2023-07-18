@@ -49,7 +49,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		ConfirmationTimeText = $"≈ {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
-		var destinationAmount = _transaction.CalculateDestinationAmount();
+		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 		Amount = destinationAmount.ToString();
 

@@ -15,7 +15,7 @@ public static class CurrencyExtensions
 		NumberDecimalSeparator = "."
 	};
 
-	public static Money CalculateDestinationAmount(this BuildTransactionResult result)
+	public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress destination)
 	{
 		var isNormalPayment = result.OuterWalletOutputs.Any();
 
@@ -25,22 +25,10 @@ public static class CurrencyExtensions
 		}
 		else
 		{
-			Money destinationAmount = result.InnerWalletOutputs
-				.Where(x => !x.HdPubKey.IsInternal)
+			return result.InnerWalletOutputs
+				.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
 				.Select(x => x.Amount)
 				.Sum();
-
-			// There was no external address in the TX. Internal address re-use case.
-			if (destinationAmount == Money.Zero)
-			{
-				// We sum the Used key's amount, because the clean internal key in the TX is the change.
-				destinationAmount = result.InnerWalletOutputs
-				.Where(x => x.HdPubKey.KeyState is Blockchain.Keys.KeyState.Used)
-				.Select(x => x.Amount)
-				.Sum();
-			}
-
-			return destinationAmount;
 		}
 	}
 

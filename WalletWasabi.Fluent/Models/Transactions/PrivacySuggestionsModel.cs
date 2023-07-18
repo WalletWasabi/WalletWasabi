@@ -112,7 +112,7 @@ public class PrivacySuggestionsModel
 			transactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
 
 		var foundNonPrivate = !onlyKnownByRecipient &&
-		                      originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
+							  originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
 
 		var foundSemiPrivate =
 			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
@@ -134,13 +134,13 @@ public class PrivacySuggestionsModel
 			.Union(onlyKnownByTheRecipientCoins)
 			.ToArray();
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+		var totalAmount = originalTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
 		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any() &&
-		    TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
+			TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
-			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
@@ -160,9 +160,9 @@ public class PrivacySuggestionsModel
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
 		if (foundNonPrivate && allSemiPrivateCoin.Any() &&
-		    TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
+			TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
 		{
-			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
@@ -241,16 +241,16 @@ public class PrivacySuggestionsModel
 		await foreach (var suggestion in suggestions)
 		{
 			var changeAvoidanceSuggestions = result.ToArray();
-			var newSuggestionAmount = suggestion.GetAmount();
+			var newSuggestionAmount = suggestion.GetAmount(info.Destination);
 
 			// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
-			if (changeAvoidanceSuggestions.Any(x => x.GetAmount() == newSuggestionAmount))
+			if (changeAvoidanceSuggestions.Any(x => x.GetAmount(info.Destination) == newSuggestionAmount))
 			{
 				continue;
 			}
 
 			// If BnB solution has the same amount as the original transaction, only suggest that one and stop searching.
-			if (newSuggestionAmount == transaction.CalculateDestinationAmount())
+			if (newSuggestionAmount == transaction.CalculateDestinationAmount(info.Destination))
 			{
 				result.RemoveMany(changeAvoidanceSuggestions);
 				result.Add(suggestion);
@@ -352,7 +352,7 @@ public class PrivacySuggestionsModel
 	private string GetDifferenceFiatText(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
 	{
 		var originalAmount = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
-		var totalAmount = transaction.CalculateDestinationAmount();
+		var totalAmount = transaction.CalculateDestinationAmount(transactionInfo.Destination);
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 		var fiatTotal = total * usdExchangeRate;
 		var fiatOriginal = originalAmount * usdExchangeRate;
