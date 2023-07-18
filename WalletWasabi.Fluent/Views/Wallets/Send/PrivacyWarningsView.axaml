@@ -169,7 +169,7 @@
 
         <!-- Coinjoining funds warning -->
         <DataTemplate DataType="{x:Type model:CoinjoiningFundsWarning}">
-          <Border Classes="warning">
+          <Border Classes="warning info">
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses coinjoining coins." />
