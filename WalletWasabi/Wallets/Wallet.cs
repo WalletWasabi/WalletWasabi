@@ -61,7 +61,7 @@ public class Wallet : BackgroundService, IWallet
 	public WalletState State
 	{
 		get => _state;
-		set
+		private set
 		{
 			if (_state == value)
 			{
@@ -700,6 +700,10 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.ToFile();
 	}
 
+	public void InitWalletStopping()
+	{
+		State = WalletState.Stopping;
+	}
 	private void SetFinalBestTurboSyncHeight(Height filterHeight)
 	{
 		if (KeyManager.GetBestTurboSyncHeight() < filterHeight)

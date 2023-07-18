@@ -281,7 +281,7 @@ public class WalletManager : IWalletProvider
 		{
 			foreach (var wallet in GetWallets())
 			{
-				wallet.State = WalletState.Stopping;
+				wallet.InitWalletStopping();
 			}
 		}
 
