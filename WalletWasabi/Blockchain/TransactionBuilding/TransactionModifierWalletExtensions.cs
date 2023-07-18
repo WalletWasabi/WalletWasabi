@@ -211,6 +211,8 @@ public static class TransactionModifierWalletExtensions
 			}
 		}
 
+		rbf.Transaction.SetSpeedup();
+
 		return rbf;
 	}
 
@@ -282,6 +284,7 @@ public static class TransactionModifierWalletExtensions
 			tryToSign: true);
 
 		cpfp.Transaction.SetCpfp();
+		cpfp.Transaction.SetSpeedup();
 
 		AssertMaxCpfpFee(transactionToCpfp, cpfp, keyManager);
 

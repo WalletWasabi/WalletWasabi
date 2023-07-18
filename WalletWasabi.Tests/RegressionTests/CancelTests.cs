@@ -145,9 +145,11 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCpfp);
+			Assert.False(txToCancel.Transaction.IsSpeedup);
 			Assert.False(txToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCpfp);
+			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
 			await rpc.GenerateAsync(1);
@@ -246,9 +248,11 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.False(spendingTxToCancel.Transaction.IsReplacement);
 			Assert.False(spendingTxToCancel.Transaction.IsCpfp);
+			Assert.False(spendingTxToCancel.Transaction.IsSpeedup);
 			Assert.False(spendingTxToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCpfp);
+			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
 			#endregion CantCancel

@@ -61,8 +61,8 @@ public class TransactionHistoryBuilder
 					Inputs = GetInputs(containingTransaction),
 					Outputs = outputs,
 					DestinationAddresses = destinationAddresses,
-					IsSpeedUp = GetIsSpeedUp(containingTransaction),
-					IsCancellation = GetIsCancellation(containingTransaction),
+					IsSpeedUp = containingTransaction.IsSpeedup,
+					IsCancellation = containingTransaction.IsCancellation,
 				});
 			}
 
@@ -97,8 +97,8 @@ public class TransactionHistoryBuilder
 						Inputs = GetInputs(spenderTransaction),
 						Outputs = outputs,
 						DestinationAddresses = destinationAddresses,
-						IsSpeedUp = GetIsSpeedUp(spenderTransaction),
-						IsCancellation = GetIsCancellation(spenderTransaction),
+						IsSpeedUp = spenderTransaction.IsSpeedup,
+						IsCancellation = spenderTransaction.IsCancellation,
 					});
 				}
 			}
@@ -106,13 +106,6 @@ public class TransactionHistoryBuilder
 		txRecordList = txRecordList.OrderByBlockchain().ToList();
 		return txRecordList;
 	}
-
-	private bool GetIsCancellation(SmartTransaction transaction) => transaction.IsCancellation;
-
-	/// <summary>
-	/// CPFP or RBF that is not cancellation.
-	/// </summary>
-	private bool GetIsSpeedUp(SmartTransaction transaction) => transaction.IsCpfp || transaction.IsReplacement;
 
 	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
 	{

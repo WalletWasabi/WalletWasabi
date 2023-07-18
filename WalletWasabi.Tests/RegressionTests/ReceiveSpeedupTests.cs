@@ -142,9 +142,11 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.IsReplacement);
 			Assert.False(txToSpeedUp.IsCpfp);
+			Assert.False(txToSpeedUp.IsSpeedup);
 			Assert.False(txToSpeedUp.IsCancellation);
 			Assert.False(cpfp.Transaction.IsReplacement);
 			Assert.True(cpfp.Transaction.IsCpfp);
+			Assert.True(cpfp.Transaction.IsSpeedup);
 			Assert.False(cpfp.Transaction.IsCancellation);
 
 			#endregion CanSpeedUp
@@ -170,6 +172,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.True(rbf.Transaction.IsCpfp);
+			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
 			#endregion CanSpeedUpTwice
@@ -195,6 +198,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(rbf2.Transaction.IsReplacement);
 			Assert.True(rbf2.Transaction.IsCpfp);
+			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
 			#endregion CanSpeedUpThrice

@@ -30,8 +30,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		int blockIndex = 0,
 		LabelsArray? labels = null,
 		bool isReplacement = false,
-		bool isCancellation = false,
 		bool isCpfp = false,
+		bool isSpeedup = false,
+		bool isCancellation = false,
 		DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
@@ -48,8 +49,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-		IsCancellation = isCancellation;
 		IsCpfp = isCpfp;
+		IsSpeedup = isSpeedup;
+		IsCancellation = isCancellation;
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
@@ -204,6 +206,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	[JsonProperty]
 	public bool IsCpfp { get; private set; }
+
+	[JsonProperty]
+	public bool IsSpeedup { get; private set; }
 
 	[JsonProperty]
 	public bool IsCancellation { get; private set; }
@@ -389,14 +394,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	public void SetCancellation()
-	{
-		IsCancellation = true;
-	}
-
 	public void SetCpfp()
 	{
 		IsCpfp = true;
+	}
+
+	public void SetSpeedup()
+	{
+		IsSpeedup = true;
+	}
+
+	public void SetCancellation()
+	{
+		IsCancellation = true;
 	}
 
 	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
@@ -450,6 +460,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			FirstSeen.ToUnixTimeSeconds(),
 			IsReplacement,
 			IsCpfp,
+			IsSpeedup,
 			IsCancellation);
 	}
 
@@ -470,14 +481,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			var firstSeenString = parts[6];
 			var isReplacementString = parts[7];
 
-			var isCpfpString = "false";
-			var isCancellationString = "false";
+			var isCpfpString = "False";
+			var isSpeedupString = "False";
+			var isCancellationString = "False";
 			if (parts.Length > 8)
 			{
 				isCpfpString = parts[8];
 				if (parts.Length > 9)
 				{
-					isCancellationString = parts[9];
+					isSpeedupString = parts[9];
+					if (parts.Length > 10)
+					{
+						isCancellationString = parts[10];
+					}
 				}
 			}
 
@@ -507,12 +523,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				isCpfp = false;
 			}
+			if (!bool.TryParse(isSpeedupString, out bool isSpeedup))
+			{
+				isSpeedup = false;
+			}
 			if (!bool.TryParse(isCancellationString, out bool isCancellation))
 			{
 				isCancellation = false;
 			}
 
-			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isCancellation, isCpfp, firstSeen);
+			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isCpfp, isSpeedup, isCancellation, firstSeen);
 		}
 		catch (Exception ex)
 		{

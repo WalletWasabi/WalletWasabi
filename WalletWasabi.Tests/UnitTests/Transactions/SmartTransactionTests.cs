@@ -139,6 +139,9 @@ public class SmartTransactionTests
 		Assert.Equal(stx.Height, sameStx.Height);
 		Assert.Equal(stx.IsRBF, sameStx.IsRBF);
 		Assert.Equal(stx.IsReplacement, sameStx.IsReplacement);
+		Assert.Equal(stx.IsCpfp, sameStx.IsCpfp);
+		Assert.Equal(stx.IsSpeedup, sameStx.IsSpeedup);
+		Assert.Equal(stx.IsCancellation, sameStx.IsCancellation);
 		Assert.Equal(stx.Labels, sameStx.Labels);
 		Assert.Equal(stx.Transaction.GetHash(), sameStx.Transaction.GetHash());
 	}
@@ -155,8 +158,9 @@ public class SmartTransactionTests
 		var label = "foo";
 		var unixSeconds = "1567084917";
 		var isReplacement = "False";
-		var isCancellation = "False";
 		var isCpfp = "False";
+		var isSpeedup = "False";
+		var isCancellation = "False";
 		SmartTransaction stx;
 		foreach (var net in new[] { Network.Main, Network.TestNet, Network.RegTest })
 		{
@@ -166,20 +170,21 @@ public class SmartTransactionTests
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
 
 					// Normal input.
-					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:{isCancellation}:{isCpfp}",
+					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:{isCpfp}:{isSpeedup}:{isCancellation}",
 
 					// Whitespaces.
-					$"     {txHash} :   {txHex}  :  {height}  :  {blockHash} :  {blockIndex}  : {label}    : {unixSeconds}     :    {isReplacement}  ",
+					$"     {txHash} :   {txHex}  :  {height}  :  {blockHash} :  {blockIndex}  : {label}    : {unixSeconds}     :    {isReplacement} :  {isCpfp}: {isSpeedup} :   {isCancellation}  ",
 
 					// Don't fail on more inputs.
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}::",
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:bar:buz",
+					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:{isCpfp}:{isSpeedup}:{isCancellation}:bar:buz",
 
 					// Can leave out some inputs.
 					$":{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
 					$"{txHash}:{txHex}::{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
 					$"{txHash}:{txHex}:{height}::{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
-					$"{txHash}:{txHex}:{height}:{blockHash}::{label}:{unixSeconds}:{isReplacement}"
+					$"{txHash}:{txHex}:{height}:{blockHash}::{label}:{unixSeconds}:{isReplacement}:{isCpfp}:{isSpeedup}:{isCancellation}"
 				})
 			{
 				stx = SmartTransaction.FromLine(inp, net);
@@ -194,8 +199,9 @@ public class SmartTransactionTests
 					Assert.True(stx.Labels.IsEmpty);
 					Assert.Equal(stx.FirstSeen.UtcDateTime, DateTime.UtcNow, TimeSpan.FromSeconds(1));
 					Assert.False(stx.IsReplacement);
-					Assert.False(stx.IsCancellation);
 					Assert.False(stx.IsCpfp);
+					Assert.False(stx.IsSpeedup);
+					Assert.False(stx.IsCancellation);
 				}
 				else
 				{
@@ -207,8 +213,9 @@ public class SmartTransactionTests
 					Assert.Equal(label, stx.Labels);
 					Assert.Equal(unixSeconds, stx.FirstSeen.ToUnixTimeSeconds().ToString());
 					Assert.Equal(isReplacement, stx.IsReplacement.ToString());
-					Assert.Equal(isCancellation, stx.IsCancellation.ToString());
 					Assert.Equal(isCpfp, stx.IsCpfp.ToString());
+					Assert.Equal(isSpeedup, stx.IsSpeedup.ToString());
+					Assert.Equal(isCancellation, stx.IsCancellation.ToString());
 				}
 			}
 		}
@@ -377,7 +384,7 @@ public class SmartTransactionTests
 				DateTimeOffset.UnixEpoch
 			};
 
-		var isReplacements = new List<bool>
+		var booleans = new List<bool>
 			{
 				false,
 				true
@@ -415,9 +422,24 @@ public class SmartTransactionTests
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, firstSeen: firstSeen), defaultNetwork };
 		}
 
-		foreach (var isReplacement in isReplacements)
+		foreach (var isReplacement in booleans)
 		{
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isReplacement: isReplacement), defaultNetwork };
+		}
+
+		foreach (var isCpfp in booleans)
+		{
+			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isCpfp: isCpfp), defaultNetwork };
+		}
+
+		foreach (var isSpeedup in booleans)
+		{
+			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isSpeedup: isSpeedup), defaultNetwork };
+		}
+
+		foreach (var isCancellation in booleans)
+		{
+			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isCancellation: isCancellation), defaultNetwork };
 		}
 	}
 }

@@ -163,9 +163,11 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
 			Assert.False(txToSpeedUp.Transaction.IsCpfp);
+			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.False(rbf.Transaction.IsCpfp);
+			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
 			#endregion HasChange
@@ -206,6 +208,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(rbf2.Transaction.IsReplacement);
 			Assert.False(rbf2.Transaction.IsCpfp);
+			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
 			await rpc.GenerateAsync(1);
@@ -278,9 +281,11 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
 			Assert.False(txToSpeedUp.Transaction.IsCpfp);
+			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.False(rbf.Transaction.IsCpfp);
+			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
 			#endregion HasNoChange

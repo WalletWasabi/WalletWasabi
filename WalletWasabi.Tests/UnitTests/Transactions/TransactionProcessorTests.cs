@@ -780,7 +780,7 @@ public class TransactionProcessorTests
 
 		transactionProcessor.Process(tx1);
 
-		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsCancellation, tx1.IsCpfp, tx1.FirstSeen);
+		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsCpfp, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
 		var relevant = transactionProcessor.Process(tx2);
 
 		Assert.False(relevant.IsNews);
@@ -815,7 +815,7 @@ public class TransactionProcessorTests
 		// Add the transaction to the tx store manually and don't process it.
 		transactionProcessor.TransactionStore.AddOrUpdate(tx1);
 
-		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsCancellation, tx1.IsCpfp, tx1.FirstSeen);
+		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsCpfp, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
 		tx2.Labels = "bar";
 		transactionProcessor.Process(tx2);
 
