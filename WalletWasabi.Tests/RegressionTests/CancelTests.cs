@@ -145,10 +145,16 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCPFP);
+			Assert.False(txToCancel.Transaction.IsCPFPd);
+			Assert.Empty(txToCancel.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToCancel.Transaction.ChildrenPayForThisTx);
 			Assert.False(txToCancel.Transaction.IsSpeedup);
 			Assert.False(txToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCPFP);
+			Assert.False(cancellingTx.Transaction.IsCPFPd);
+			Assert.Empty(cancellingTx.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(cancellingTx.Transaction.ChildrenPayForThisTx);
 			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
@@ -182,9 +188,15 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCPFP);
+			Assert.False(txToCancel.Transaction.IsCPFPd);
+			Assert.Empty(txToCancel.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToCancel.Transaction.ChildrenPayForThisTx);
 			Assert.False(txToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCPFP);
+			Assert.False(cancellingTx.Transaction.IsCPFPd);
+			Assert.Empty(cancellingTx.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(cancellingTx.Transaction.ChildrenPayForThisTx);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
 			#endregion NoChange
@@ -248,10 +260,16 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.False(spendingTxToCancel.Transaction.IsReplacement);
 			Assert.False(spendingTxToCancel.Transaction.IsCPFP);
+			Assert.False(spendingTxToCancel.Transaction.IsCPFPd);
+			Assert.Empty(spendingTxToCancel.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(spendingTxToCancel.Transaction.ChildrenPayForThisTx);
 			Assert.False(spendingTxToCancel.Transaction.IsSpeedup);
 			Assert.False(spendingTxToCancel.Transaction.IsCancellation);
 			Assert.True(cancellingTx.Transaction.IsReplacement);
 			Assert.False(cancellingTx.Transaction.IsCPFP);
+			Assert.False(cancellingTx.Transaction.IsCPFPd);
+			Assert.Empty(cancellingTx.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(cancellingTx.Transaction.ChildrenPayForThisTx);
 			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
 
