@@ -438,12 +438,6 @@ public class Wallet : BackgroundService, IWallet
 
 	private async void IndexDownloader_NewFilterAsync(object? sender, FilterModel filterModel)
 	{
-		if (State != WalletState.Started)
-		{
-			Logger.LogInfo($"Wallet was closed before processing filter {filterModel.Header.Height}.");
-			return;
-		}
-		
 		try
 		{
 			// NonTurbo synchronization (keys skipped by TurboSync) is still ongoing.
@@ -462,7 +456,13 @@ public class Wallet : BackgroundService, IWallet
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
-					if (KeyManager.GetBestHeight() < filterModel.Header.Height && State == WalletState.Started)
+					// Ensure that HandleFiltersLock was not released because the wallet is stopping.
+					if (State != WalletState.Started)
+					{
+						return;
+					}
+					
+					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 					{
 						await ProcessFilterModelAsync(filterModel, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
 						SetFinalBestHeight(new Height(filterModel.Header.Height));
