@@ -101,6 +101,7 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 
 	private Task? FinalSynchronizationTask { get; set; }
+	private bool FinalSynchronizationIsFinished { get; set; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
@@ -270,7 +271,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, cancel).ConfigureAwait(false);
+				await PerformWalletSynchronizationAsync(SyncType.NonTurbo, SaveFinalSynchronizationIsFinished, cancel).ConfigureAwait(false);
 
 				if (LastProcessedFilter is { } lastProcessedFilter)
 				{
@@ -446,24 +447,15 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			// NonTurbo synchronization (keys skipped by TurboSync) is still ongoing.
-			if (FinalSynchronizationTask is not null && !FinalSynchronizationTask.IsCompleted)
+			if (!FinalSynchronizationIsFinished)
 			{
 				// New filters can be processed against Turbo keys as they were already tested against all stored filters, so HandleFiltersLock is not used.
 				// This allows the wallet to process new transactions while the NonTurbo synchronization is running in the background.
+				// These filters will be tested against NonTurbo keys later by PerformFinalSynchronization.
 				if (KeyManager.GetBestTurboSyncHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
 					SetFinalBestTurboSyncHeight(new Height(filterModel.Header.Height));
-				}
-				
-				// Then filters are buffered and are tested against the NonTurbo keys only when the NonTurbo sync is finished (i.e. lock released).
-				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
-				{
-					if (KeyManager.GetBestHeight() < filterModel.Header.Height && State == WalletState.Started)
-					{
-						await ProcessFilterModelAsync(filterModel, SyncType.NonTurbo, CancellationToken.None).ConfigureAwait(false);
-						SetFinalBestHeight(new Height(filterModel.Header.Height));
-					}
 				}
 			}
 			else // NonTurbo synchronization is finished, new filters can be processed normally.
@@ -520,7 +512,7 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
-		await PerformWalletSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
+		await PerformWalletSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, AddNewFilterEventHandler, cancel).ConfigureAwait(false);
 
 		if (LastProcessedFilter is { } lastProcessedFilter)
 		{
@@ -579,7 +571,7 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Go through the filters and queue the matches to download.
 	/// </summary>
-	public async Task PerformWalletSynchronizationAsync(SyncType syncType, CancellationToken cancel)
+	public async Task PerformWalletSynchronizationAsync(SyncType syncType, Func<Task>? todoOnFinish = null, CancellationToken cancel = default)
 	{
 		var startingHeight = syncType == SyncType.Turbo ?
 			new Height(KeyManager.GetBestTurboSyncHeight() + 1) :
@@ -588,13 +580,19 @@ public class Wallet : BackgroundService, IWallet
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(
 			async (filterModel) => await ProcessFilterModelAsync(filterModel, syncType, cancel).ConfigureAwait(false),
 			startingHeight,
-			AddNewFilterEventHandler,
+			todoOnFinish,
 			cancel).ConfigureAwait(false);
 	}
 
 	private Task AddNewFilterEventHandler()
 	{
 		BitcoinStore.IndexStore.AddNewFilterEventHandler(IndexDownloader_NewFilterAsync);
+		return Task.CompletedTask;
+	}
+
+	private Task SaveFinalSynchronizationIsFinished()
+	{
+		FinalSynchronizationIsFinished = true;
 		return Task.CompletedTask;
 	}
 	

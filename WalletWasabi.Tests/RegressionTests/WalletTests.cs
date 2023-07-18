@@ -105,6 +105,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 					await Task.CompletedTask;
 				},
 				new Height(0),
+				null,
 				testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 
@@ -194,6 +195,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 					await Task.CompletedTask;
 				},
 				new Height(0),
+				null,
 				testDeadlineCts.Token);
 			var filterTip = filterList.Last();
 			Assert.Equal(tip, filterTip.Header.BlockHash);
@@ -209,6 +211,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 					await Task.CompletedTask;
 				},
 				new Height(0),
+				null,
 				testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 
