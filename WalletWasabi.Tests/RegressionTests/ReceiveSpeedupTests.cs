@@ -142,12 +142,16 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.IsReplacement);
 			Assert.False(txToSpeedUp.IsCPFP);
+			Assert.Empty(txToSpeedUp.ParentsThisTxPaysFor);
+			Assert.Single(txToSpeedUp.ChildrenPayForThisTx);
 			Assert.True(txToSpeedUp.IsCPFPd);
 			Assert.False(txToSpeedUp.IsSpeedup);
 			Assert.False(txToSpeedUp.IsCancellation);
 			Assert.False(cpfp.Transaction.IsReplacement);
 			Assert.True(cpfp.Transaction.IsCPFP);
 			Assert.False(cpfp.Transaction.IsCPFPd);
+			Assert.Single(cpfp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(cpfp.Transaction.ChildrenPayForThisTx);
 			Assert.True(cpfp.Transaction.IsSpeedup);
 			Assert.False(cpfp.Transaction.IsCancellation);
 
