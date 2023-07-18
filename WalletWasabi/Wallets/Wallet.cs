@@ -698,7 +698,10 @@ public class Wallet : BackgroundService, IWallet
 
 	public void InitWalletStopping()
 	{
-		State = WalletState.Stopping;
+		if (State <= WalletState.Stopping)
+		{
+			State = WalletState.Stopping;
+		}
 	}
 	
 	private void SetFinalBestTurboSyncHeight(Height filterHeight)
