@@ -338,24 +338,30 @@ public class IndexStore : IAsyncDisposable
 			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				FilterModel[] filters = IndexStorage.Fetch(fromHeight: fromHeight.Value, limit: MaxNumberOfFiltersInMemory).ToArray();
-
 				foreach (FilterModel filter in filters)
 				{
 					await todo(filter).ConfigureAwait(false);
 				}
-
+				
 				// Check if we reached the end of the filters. This has to be in the loop because it can change when lock is released.
-				FilterModel lastFilter = IndexStorage.FetchLast(0).First();
-				if (filters.Last().Header.Height == lastFilter.Header.Height)
+				if (filters.Any())
 				{
-					// Perform OnFinish task.
-					if (todoOnFinish is not null)
+					FilterModel lastFilterFetched = filters.Last();
+					FilterModel lastFilterInDb = IndexStorage.FetchLast(0).First();
+					if (lastFilterFetched.Header.Height != lastFilterInDb.Header.Height)
 					{
-						await todoOnFinish().ConfigureAwait(false);
+						fromHeight = new Height(lastFilterFetched.Header.Height + 1);
+						continue;
 					}
-
-					break;
 				}
+				
+				// Perform OnFinish task.
+				if (todoOnFinish is not null)
+				{
+					await todoOnFinish().ConfigureAwait(false);
+				}
+
+				break;
 			}
 		}
 	}
