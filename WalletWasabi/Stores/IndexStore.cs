@@ -345,7 +345,7 @@ public class IndexStore : IAsyncDisposable
 				}
 
 				// Check if we reached the end of the filters. This has to be in the loop because it can change when lock is released.
-				FilterModel lastFilter = IndexStorage.FetchLast(1).First();
+				FilterModel lastFilter = IndexStorage.FetchLast(0).First();
 				if (filters.Contains(lastFilter))
 				{
 					// Perform OnFinish task.
