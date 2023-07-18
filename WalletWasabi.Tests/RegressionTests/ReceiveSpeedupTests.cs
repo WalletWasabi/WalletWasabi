@@ -142,9 +142,9 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.IsReplacement);
 			Assert.False(txToSpeedUp.IsCPFP);
+			Assert.True(txToSpeedUp.IsCPFPd);
 			Assert.Empty(txToSpeedUp.ParentsThisTxPaysFor);
 			Assert.Single(txToSpeedUp.ChildrenPayForThisTx);
-			Assert.True(txToSpeedUp.IsCPFPd);
 			Assert.False(txToSpeedUp.IsSpeedup);
 			Assert.False(txToSpeedUp.IsCancellation);
 			Assert.False(cpfp.Transaction.IsReplacement);
@@ -176,8 +176,17 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			var rbfFeeRate = rbf.Transaction.Transaction.GetFeeRate(rbf.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
 			Assert.True(cpfpFeeRate < rbfFeeRate);
 
+			Assert.True(cpfp.Transaction.IsCPFP);
+			Assert.False(cpfp.Transaction.IsCPFPd);
+			Assert.True(cpfp.Transaction.IsSpeedup);
+			Assert.Single(cpfp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(cpfp.Transaction.ChildrenPayForThisTx);
+
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.True(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.Single(rbf.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -202,8 +211,17 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			var rbf2FeeRate = rbf2.Transaction.Transaction.GetFeeRate(rbf2.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
 			Assert.True(rbfFeeRate < rbf2FeeRate);
 
+			Assert.True(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.True(rbf.Transaction.IsSpeedup);
+			Assert.Single(rbf.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
+
 			Assert.True(rbf2.Transaction.IsReplacement);
 			Assert.True(rbf2.Transaction.IsCPFP);
+			Assert.False(rbf2.Transaction.IsCPFPd);
+			Assert.Single(rbf2.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf2.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
