@@ -331,7 +331,7 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, Func<Task>? todoOnFinish = null, CancellationToken cancellationToken = default)
+	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, Func<Task>? todoOnFinish, CancellationToken cancellationToken)
 	{
 		// Process filters in batches to avoid using too much memory or to hold the IndexLock for too long.
 		while (!cancellationToken.IsCancellationRequested)
