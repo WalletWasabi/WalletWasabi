@@ -163,10 +163,16 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
 			Assert.False(txToSpeedUp.Transaction.IsCPFP);
+			Assert.False(txToSpeedUp.Transaction.IsCPFPd);
+			Assert.Empty(txToSpeedUp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToSpeedUp.Transaction.ChildrenPayForThisTx);
 			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.False(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.Empty(rbf.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
@@ -208,6 +214,9 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(rbf2.Transaction.IsReplacement);
 			Assert.False(rbf2.Transaction.IsCPFP);
+			Assert.False(rbf2.Transaction.IsCPFPd);
+			Assert.Empty(rbf2.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf2.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
@@ -281,10 +290,16 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.False(txToSpeedUp.Transaction.IsReplacement);
 			Assert.False(txToSpeedUp.Transaction.IsCPFP);
+			Assert.False(txToSpeedUp.Transaction.IsCPFPd);
+			Assert.Empty(txToSpeedUp.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(txToSpeedUp.Transaction.ChildrenPayForThisTx);
 			Assert.False(txToSpeedUp.Transaction.IsSpeedup);
 			Assert.False(txToSpeedUp.Transaction.IsCancellation);
 			Assert.True(rbf.Transaction.IsReplacement);
 			Assert.False(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.Empty(rbf.Transaction.ParentsThisTxPaysFor);
+			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
