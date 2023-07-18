@@ -30,7 +30,7 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public uint ConfirmationTarget { get; set; } = 108;
 
-	[DefaultValueMoneyBtc("1.0")]
+	[DefaultValueMoneyBtc("0.1")]
 	[JsonProperty(PropertyName = "DoSSeverity", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DoSSeverity { get; set; } = Money.Coins(0.1m);
@@ -51,7 +51,7 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double DoSPenaltyFactorForDisruptingSigning { get; set; } = 1.5;
 
-	[DefaultValue(1.5)]
+	[DefaultValue(3.0)]
 	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingByDoubleSpending", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double DoSPenaltyFactorForDisruptingByDoubleSpending { get; set; } = 3.0;
 
