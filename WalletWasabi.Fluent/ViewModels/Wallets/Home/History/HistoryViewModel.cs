@@ -262,16 +262,16 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	private ICollection<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
+	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> summaries)
 	{
 		Money balance = Money.Zero;
 		CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
 
 		var history = new List<HistoryItemViewModelBase>();
 
-		for (var i = 0; i < txRecordList.Count; i++)
+		for (var i = 0; i < summaries.Count; i++)
 		{
-			var item = txRecordList[i];
+			var item = summaries[i];
 
 			balance += item.Amount;
 
@@ -293,8 +293,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				((i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin) || // The next item is not CJ so add the group.
-				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin) || // The next item is not CJ so add the group.
+				 i == summaries.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
@@ -311,6 +311,33 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 		}
 
+		foreach (var summary in summaries)
+		{
+			if (summary.Transaction.IsCPFP)
+			{
+				var children = summary.Transaction.ParentsThisTxPaysFor;
+				var parent = Find(history, summary);
+
+				var childrenItems = children.Select(x => Find(history, x)).ToList();
+				var group = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, new [] { parent }.Concat(childrenItems));
+				group.SetBalance(parent.Balance);
+				history.Add(group);
+
+				// Removal
+				history.RemoveMany(new[] { parent }.Concat(childrenItems));
+			}
+		}
+
 		return history;
+	}
+
+	private HistoryItemViewModelBase Find(List<HistoryItemViewModelBase> summaries, SmartTransaction transaction)
+	{
+		return summaries.Single(x => x.Id == transaction.GetHash());
+	}
+
+	private static HistoryItemViewModelBase Find(List<HistoryItemViewModelBase> history, TransactionSummary summary)
+	{
+		return history.Single(x => x.Id == summary.TransactionId);
 	}
 }

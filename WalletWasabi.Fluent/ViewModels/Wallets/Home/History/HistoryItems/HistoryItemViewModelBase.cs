@@ -76,12 +76,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	// Please, notice that these properties are created to allow the required flexibility to adapt the icon visibility in a direct way.
 	// We can, however, do this directly in the XAML file by using Multibinding or Converters, if we are OK with the result.
 	public bool IsConfirmedDisplayed => IsConfirmed;
-	public bool IsPendingDisplayed => !IsConfirmed;
+	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
 	public bool IsNormalTransactionDisplayed => !IsCoinJoin;
 	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
 	public bool IsCoinjoinGroupDisplayed => IsCoinJoin && IsCoinJoinGroup;
 	public bool IsCancellationDisplayed => IsCancellation;
-	public bool IsSpeedUpDisplayed => false;	// TODO: Define this
+	public bool IsSpeedUpDisplayed => IsSpeedUp;
 
 	private async Task CopyToClipboardAsync(string text)
 	{
