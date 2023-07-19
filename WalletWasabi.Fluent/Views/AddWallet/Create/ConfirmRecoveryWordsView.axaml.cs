@@ -5,7 +5,6 @@ namespace WalletWasabi.Fluent.Views.AddWallet.Create;
 
 public class ConfirmRecoveryWordsView : UserControl
 {
-	public string MyEditableProperty { get; set; }
 	public ConfirmRecoveryWordsView()
 	{
 		InitializeComponent();
