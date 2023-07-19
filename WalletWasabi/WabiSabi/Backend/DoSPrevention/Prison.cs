@@ -78,7 +78,7 @@ public class Prison
 
 	private TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
 	{
-		var basePunishmentInHours = disruption.Value.ToDecimal(MoneyUnit.BTC) * (1 / DoSConfiguration.Severity);
+		var basePunishmentInHours = DoSConfiguration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
 
 		if (CoinJoinIdStore.Contains(offender.OutPoint.Hash))
 		{

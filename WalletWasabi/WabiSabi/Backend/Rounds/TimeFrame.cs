@@ -8,8 +8,8 @@ public record TimeFrame
 		Duration = duration;
 	}
 
-	public static TimeFrame Zero = TimeFrame.Create(TimeSpan.Zero);
-	
+	public static readonly TimeFrame Zero = Create(TimeSpan.Zero);
+
 	public static TimeFrame Create(TimeSpan duration) =>
 		new(DateTimeOffset.MinValue, duration);
 

@@ -363,7 +363,7 @@ public static class WabiSabiFactory
 		coinjoinIdStore.Setup(x => x.Contains(uint256.One)).Returns(true);
 		return new Prison(
 			new DoSConfiguration(
-				Severity: 1.0m,
+				SeverityInBitcoinsPerHour: 1.0m,
 				MinTimeForFailedToVerify: TimeSpan.FromDays(30),
 				MinTimeForCheating: TimeSpan.FromDays(1),
 				MinimumTimeInPrison: TimeSpan.FromHours(1),

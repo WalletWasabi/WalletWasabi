@@ -56,8 +56,8 @@ public class WabiSabiConfig : ConfigBase
 	public double DoSPenaltyFactorForDisruptingByDoubleSpending { get; set; } = 3.0;
 
 	[DefaultValueTimeSpan("0d 1h 0m 0s")]
-	[JsonProperty(PropertyName = "DoSMinimumHoursInPrison", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan DoSMinimumHoursInPrison { get; set; } = TimeSpan.FromHours(1.0);
+	[JsonProperty(PropertyName = "DoSMinimumTimeInPrison", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan DoSMinimumTimeInPrison { get; set; } = TimeSpan.FromHours(1.0);
 
 	[DefaultValueMoneyBtc("0.00005")]
 	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]

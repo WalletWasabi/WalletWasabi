@@ -1,7 +1,7 @@
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public record DoSConfiguration(
-	decimal Severity,
+	decimal SeverityInBitcoinsPerHour,
 	TimeSpan MinTimeForFailedToVerify,
 	TimeSpan MinTimeForCheating,
 	TimeSpan MinimumTimeInPrison,

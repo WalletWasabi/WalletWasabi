@@ -62,7 +62,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddScoped<Prison>(s => new Prison(
 				new DoSConfiguration(
-					Severity: 1.0m,
+					SeverityInBitcoinsPerHour: 1.0m,
 					MinTimeForFailedToVerify: TimeSpan.FromDays(30),
 					MinTimeForCheating: TimeSpan.FromDays(1),
 					MinimumTimeInPrison: TimeSpan.FromHours(1),

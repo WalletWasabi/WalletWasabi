@@ -20,13 +20,13 @@ public class Warden : BackgroundService
 		OffendersToSaveChannel = Channel.CreateUnbounded<Offender>();
 
 		var dosConfig = new DoSConfiguration(
-			Severity: config.DoSSeverity.ToDecimal(MoneyUnit.BTC),
+			SeverityInBitcoinsPerHour: config.DoSSeverity.ToDecimal(MoneyUnit.BTC),
 			MinTimeForFailedToVerify: config.DoSMinTimeForFailedToVerify,
 			MinTimeForCheating: config.DoSMinTimeForCheating,
 			PenaltyFactorForDisruptingConfirmation: (decimal) config.DoSPenaltyFactorForDisruptingConfirmation,
 			PenaltyFactorForDisruptingSigning: (decimal) config.DoSPenaltyFactorForDisruptingSigning,
 			PenaltyFactorForDisruptingByDoubleSpending: (decimal) config.DoSPenaltyFactorForDisruptingByDoubleSpending,
-			MinimumTimeInPrison: config.DoSMinimumHoursInPrison);
+			MinimumTimeInPrison: config.DoSMinimumTimeInPrison);
 		Prison = DeserializePrison(PrisonFilePath, dosConfig, coinjoinIdStore, OffendersToSaveChannel.Writer);
 	}
 
