@@ -243,38 +243,38 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		if (NewFilter is null)
+		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			// Lock once.
-			using IDisposable lockDisposable = await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false);
-
-			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
-
-			foreach (FilterModel filter in filters)
+			if (NewFilter is null)
 			{
-				if (!TryProcessFilterNoLock(filter, enqueue: true))
+				// Lock once.
+				using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
+
+				foreach (FilterModel filter in filters)
 				{
-					throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					if (!TryProcessFilterNoLock(filter, enqueue: true))
+					{
+						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					}
 				}
+
+				sqliteTransaction.Commit();
+				return;
+			}
+		}
+		
+		foreach (FilterModel filter in filters)
+		{
+			bool success;
+
+			using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+			{
+				success = TryProcessFilterNoLock(filter, enqueue: true);
 			}
 
-			sqliteTransaction.Commit();
-		}
-		else
-		{
-			foreach (FilterModel filter in filters)
+			if (success)
 			{
-				bool success;
-
-				using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				{
-					success = TryProcessFilterNoLock(filter, enqueue: true);
-				}
-
-				if (success)
-				{
-					NewFilter?.Invoke(this, filter); // Event always outside the lock.
-				}
+				NewFilter?.Invoke(this, filter); // Event always outside the lock.
 			}
 		}
 	}
