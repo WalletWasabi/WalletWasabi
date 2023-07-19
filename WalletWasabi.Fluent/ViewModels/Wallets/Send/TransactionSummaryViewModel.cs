@@ -1,5 +1,3 @@
-using System.Linq;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -17,7 +15,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private string _confirmationTimeText = "";
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _isCustomFeeUsed;
-	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private string _fee = "";
@@ -69,6 +66,5 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
-		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 	}
 }

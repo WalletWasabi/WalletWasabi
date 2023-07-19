@@ -49,8 +49,6 @@ public partial class TransactionInfo
 
 	public bool SubtractFee { get; init; }
 
-	public bool IsOtherPocketSelectionPossible { get; set; }
-
 	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
 
 	public bool IsFixedAmount { get; init; }
@@ -81,7 +79,6 @@ public partial class TransactionInfo
 			PayJoinClient = PayJoinClient,
 			IsCustomFeeUsed = IsCustomFeeUsed,
 			SubtractFee = SubtractFee,
-			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible,
 			IsSelectedCoinModificationEnabled = IsSelectedCoinModificationEnabled,
 			IsFixedAmount = IsFixedAmount
 		};

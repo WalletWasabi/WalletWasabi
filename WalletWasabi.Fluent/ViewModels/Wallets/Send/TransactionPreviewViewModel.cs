@@ -89,11 +89,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction =>
-			{
-				await CheckChangePocketAvailableAsync(transaction);
-				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
-			})
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token))
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -485,22 +481,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_undoHistory.Push((Transaction, _currentTransactionInfo));
 			CanUndo = true;
 		}
-	}
-
-	private async Task CheckChangePocketAvailableAsync(BuildTransactionResult transaction)
-	{
-		if (!_info.IsSelectedCoinModificationEnabled)
-		{
-			_info.IsOtherPocketSelectionPossible = false;
-			return;
-		}
-
-		var usedCoins = transaction.SpentCoins;
-		var pockets = _wallet.GetPockets().ToArray();
-		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets);
-
-		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
 
 	private async Task ApplyPrivacySuggestionAsync(PrivacySuggestion suggestion)

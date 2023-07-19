@@ -59,7 +59,7 @@ public class PrivacySuggestionsModel
 			try
 			{
 				result = result
-					.Combine(VerifyLabels(info, transactionResult))
+					.Combine(await VerifyLabelsAsync(info, transactionResult))
 					.Combine(VerifyPrivacyLevel(info, transactionResult))
 					.Combine(VerifyConsolidation(transactionResult))
 					.Combine(VerifyUnconfirmedInputs(transactionResult))
@@ -81,7 +81,7 @@ public class PrivacySuggestionsModel
 		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
+	private async Task<PrivacySuggestionsResult> VerifyLabelsAsync(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
 		var result = new PrivacySuggestionsResult();
 
@@ -92,7 +92,7 @@ public class PrivacySuggestionsModel
 		{
 			result.Warnings.Add(new InterlinksLabelsWarning(labelsArray));
 
-			if (info.IsOtherPocketSelectionPossible)
+			if (await CheckChangePocketAvailableAsync(info, transactionResult))
 			{
 				result.Suggestions.Add(new LabelManagementSuggestion());
 			}
@@ -347,6 +347,21 @@ public class PrivacySuggestionsModel
 		}
 
 		return true;
+	}
+
+	private async Task<bool> CheckChangePocketAvailableAsync(TransactionInfo info, BuildTransactionResult transaction)
+	{
+		if (!info.IsSelectedCoinModificationEnabled)
+		{
+			return false;
+		}
+
+		var usedCoins = transaction.SpentCoins;
+		var pockets = _wallet.GetPockets().ToArray();
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), info, isSilent: true);
+		await labelSelection.ResetAsync(pockets);
+
+		return labelSelection.IsOtherSelectionPossible(usedCoins, info.Recipient);
 	}
 
 	private string GetDifferenceFiatText(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
