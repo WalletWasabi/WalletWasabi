@@ -81,7 +81,7 @@ public class CoinPrison
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
 	{
 		string prisonFilePath = Path.Combine(containingDirectory, "PrisonedCoins.json");
-		HashSet<PrisonedCoinRecord> prisonedCoinsRecord = new();
+		HashSet<PrisonedCoinRecord> prisonedCoinRecords = new();
 		try
 		{
 			IoHelpers.EnsureFileExists(prisonFilePath);
@@ -92,7 +92,7 @@ public class CoinPrison
 				Logger.LogDebug("Prisoned coins file is empty.");
 				return new(prisonFilePath);
 			}
-			prisonedCoinsRecord = JsonConvert.DeserializeObject<HashSet<PrisonedCoinRecord>>(data)
+			prisonedCoinRecords = JsonConvert.DeserializeObject<HashSet<PrisonedCoinRecord>>(data)
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
 		}
 		catch (Exception exc)
@@ -100,7 +100,7 @@ public class CoinPrison
 			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Deleting corrupt file.", exc);
 			File.Delete(prisonFilePath);
 		}
-		return new(prisonFilePath) { BannedCoins = prisonedCoinsRecord };
+		return new(prisonFilePath) { BannedCoins = prisonedCoinRecords };
 	}
 
 	public void UpdateWallet(Wallet wallet)
