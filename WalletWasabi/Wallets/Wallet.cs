@@ -519,7 +519,14 @@ public class Wallet : BackgroundService, IWallet
 
 		if (LastProcessedFilter is { } lastProcessedFilter)
 		{
-			SetFinalBestTurboSyncHeight(new Height(lastProcessedFilter.Header.Height));
+			if (KeyManager.UseTurboSync)
+			{
+				SetFinalBestTurboSyncHeight(new Height(lastProcessedFilter.Header.Height));
+			}
+			else
+			{
+				SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
+			}
 		}
 	}
 
