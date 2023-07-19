@@ -325,13 +325,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 				var childrenTxs = summary.Transaction.ParentsThisTxPaysFor;
 				var parentHistoryItem = FindHistoryItem(summary, history);
 				var childrenHistoryItems = childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList();
-				var speedUpGroup = new SpeedUpHistoryItemViewModel(parentHistoryItem.OrderIndex, summary, parentHistoryItem, new [] { parentHistoryItem }.Concat(childrenHistoryItems));
+				var children = new [] { parentHistoryItem }.Concat(childrenHistoryItems).ToList();
+				children.ForEach(x => x.IsChild = true);
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parentHistoryItem.OrderIndex, summary, parentHistoryItem, children);
 				speedUpGroup.SetBalance(parentHistoryItem.Balance);
 
 				history.Add(speedUpGroup);
 
 				// Removal
-				history.RemoveMany(new[] { parentHistoryItem }.Concat(childrenHistoryItems));
+				history.RemoveMany(children);
 			}
 		}
 

@@ -61,6 +61,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
+	public bool IsChild { get; set; }
 
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 

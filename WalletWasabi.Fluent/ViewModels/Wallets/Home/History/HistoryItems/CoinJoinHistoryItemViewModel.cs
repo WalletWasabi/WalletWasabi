@@ -22,7 +22,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		Balance = balance;
 		IsCoinJoin = true;
 		CoinJoinTransaction = transactionSummary;
-		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
+		IsChild = !isSingleCoinJoinTransaction;
 
 		var confirmations = transactionSummary.GetConfirmations();
 		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
@@ -35,8 +35,6 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
-
-	public bool IsSingleCoinJoinTransaction { get; }
 
 	public TransactionSummary CoinJoinTransaction { get; private set; }
 }
