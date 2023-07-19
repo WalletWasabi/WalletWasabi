@@ -167,21 +167,31 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			.Union(_hiddenIncludedPockets)
 			.ToArray();
 
-	public async Task ResetAsync(Pocket[] pockets)
+	public async Task ResetAsync(Pocket[] pockets, List<SmartCoin>? coinsToExclude = null)
 	{
 		_allPockets = pockets;
 
-		if (pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket)
+		if (coinsToExclude is not null)
+		{
+			var pocketsWithoutExcludedCoins = _allPockets.Select(x => new Pocket((x.Labels, new CoinsView(x.Coins.Except(coinsToExclude))))).ToArray();
+
+			if (await IsPocketEnoughAsync(pocketsWithoutExcludedCoins))
+			{
+				_allPockets = pocketsWithoutExcludedCoins;
+			}
+		}
+
+		if (_allPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket)
 		{
 			_privatePocket = privatePocket;
 		}
 
-		if (pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.SemiPrivateFundsText) is { } semiPrivatePocket)
+		if (_allPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.SemiPrivateFundsText) is { } semiPrivatePocket)
 		{
 			_semiPrivatePocket = semiPrivatePocket;
 		}
 
-		NonPrivatePockets = pockets.Where(x => x != _privatePocket && x != _semiPrivatePocket).ToArray();
+		NonPrivatePockets = _allPockets.Where(x => x != _privatePocket && x != _semiPrivatePocket).ToArray();
 
 		var allLabels = LabelsArray.Merge(NonPrivatePockets.Select(x => x.Labels));
 		AllLabelsViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
