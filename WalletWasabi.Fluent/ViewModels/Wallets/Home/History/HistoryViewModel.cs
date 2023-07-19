@@ -323,12 +323,11 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				// Group creation
 				var childrenTxs = summary.Transaction.ParentsThisTxPaysFor;
-				var parentHistoryItem = FindHistoryItem(summary, history);
-				var childrenHistoryItems = childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList();
-				var children = new [] { parentHistoryItem }.Concat(childrenHistoryItems).ToList();
+				var parent = FindHistoryItem(summary, history);
+				var children = new [] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList()).ToList();
 				children.ForEach(x => x.IsChild = true);
-				var speedUpGroup = new SpeedUpHistoryItemViewModel(parentHistoryItem.OrderIndex, summary, parentHistoryItem, children);
-				speedUpGroup.SetBalance(parentHistoryItem.Balance);
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, children);
+				speedUpGroup.SetBalance(parent.Balance);
 
 				history.Add(speedUpGroup);
 

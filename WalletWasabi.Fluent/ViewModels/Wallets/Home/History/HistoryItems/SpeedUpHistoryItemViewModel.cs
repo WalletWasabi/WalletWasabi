@@ -22,6 +22,7 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 		Date = parent.Date.ToLocalTime();
 		DateString = parent.Date.ToLocalTime().ToUserFacingString();
 		Labels = new LabelsArray(Children.SelectMany(x => x.Labels));
+		ShowDetailsCommand = parent.ShowDetailsCommand;
 	}
 
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()

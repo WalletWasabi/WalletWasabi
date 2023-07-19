@@ -94,6 +94,15 @@
         </MenuItem.Icon>
       </MenuItem>
     </ContextMenu>
+
+    <ContextMenu x:Key="SpeedUpContextMenu" x:DataType="historyItems:SpeedUpHistoryItemViewModel">
+      <MenuItem Header="Show Details"
+                Command="{Binding ShowDetailsCommand}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource details_regular}" />
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
   </UserControl.Resources>
 
   <Panel>
@@ -192,6 +201,9 @@
         </Style>
         <Style Selector="TreeDataGridRow.CoinJoins">
           <Setter Property="ContextMenu" Value="{StaticResource CoinJoinsTransactionContextMenu}" />
+        </Style>
+        <Style Selector="TreeDataGridRow.SpeedUp">
+          <Setter Property="ContextMenu" Value="{StaticResource SpeedUpContextMenu}" />
         </Style>
 
         <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
