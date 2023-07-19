@@ -319,15 +319,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// 4. Add the group
 		foreach (var summary in summaries)
 		{
-			if (summary.Transaction.IsCPFP)
+			if (summary.Transaction.IsCPFPd)
 			{
 				// Group creation
-				var childrenTxs = summary.Transaction.ParentsThisTxPaysFor;
+				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
 				var parent = FindHistoryItem(summary, history);
 				var children = new [] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList()).ToList();
 				children.ForEach(x => x.IsChild = true);
 				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, children);
-				speedUpGroup.SetBalance(parent.Balance);
+				speedUpGroup.SetBalance(children.Last().Balance);
 
 				history.Add(speedUpGroup);
 

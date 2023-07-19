@@ -14,14 +14,14 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 
 	public SpeedUpHistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, HistoryItemViewModelBase parent, IEnumerable<HistoryItemViewModelBase> children) : base(orderIndex, transactionSummary)
 	{
-		_children = children;
+		_children = children.Reverse();
 		IsSpeedUp = true;
-		IncomingAmount = children.Last().IncomingAmount;
-		OutgoingAmount = children.Last().OutgoingAmount;
+		IncomingAmount = parent.IncomingAmount;
+		OutgoingAmount = parent.OutgoingAmount;
 		OrderIndex = parent.OrderIndex;
 		Date = parent.Date.ToLocalTime();
 		DateString = parent.Date.ToLocalTime().ToUserFacingString();
-		Labels = new LabelsArray(Children.SelectMany(x => x.Labels));
+		Labels = parent.Labels;
 		ShowDetailsCommand = parent.ShowDetailsCommand;
 	}
 
