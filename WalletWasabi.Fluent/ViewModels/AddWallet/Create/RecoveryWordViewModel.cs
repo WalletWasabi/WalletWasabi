@@ -2,7 +2,6 @@ using Avalonia.Media;
 using ReactiveUI;
 using System.Linq;
 
-
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
 public partial class RecoveryWordViewModel : ViewModelBase
@@ -13,7 +12,6 @@ public partial class RecoveryWordViewModel : ViewModelBase
 	[AutoNotify] private string? _selectedWord;
 	[AutoNotify] private SolidColorBrush _confirmationWordColor;
 	[AutoNotify] private SolidColorBrush _borderBackground;
-	[AutoNotify] private SolidColorBrush _toggleBackground;
 	[AutoNotify] private bool _isSelectedWordConfirmedWord;
 	[AutoNotify] private bool _isNextWord;
 
@@ -37,7 +35,6 @@ public partial class RecoveryWordViewModel : ViewModelBase
 		IsSelectedWordConfirmedWord = false;
 		IsNextWord = false;
 		ConfirmationWordColor = new SolidColorBrush(Colors.White);
-		ToggleBackground = new SolidColorBrush(Colors.Transparent);
 		BorderBackground = new SolidColorBrush(Color.Parse("#FAFAFA"));
 	}
 
