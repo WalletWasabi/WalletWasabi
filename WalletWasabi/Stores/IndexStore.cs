@@ -58,7 +58,16 @@ public class IndexStore : IAsyncDisposable
 
 	public event EventHandler<FilterModel>? Reorged;
 
-	public event EventHandler<FilterModel>? NewFilter;
+	private event EventHandler<FilterModel>? _newFilter;
+	public event EventHandler<FilterModel>? NewFilter
+	{
+		add
+		{
+			_newFilter = null;
+			_newFilter += value;
+		}
+		remove => _newFilter -= value;
+	}
 
 	/// <summary>Mature index path for migration purposes.</summary>
 	private string OldIndexFilePath { get; }
@@ -245,7 +254,7 @@ public class IndexStore : IAsyncDisposable
 	{
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			if (NewFilter is null)
+			if (_newFilter is null)
 			{
 				// Lock once.
 				using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
@@ -274,7 +283,7 @@ public class IndexStore : IAsyncDisposable
 
 			if (success)
 			{
-				NewFilter?.Invoke(this, filter); // Event always outside the lock.
+				_newFilter?.Invoke(this, filter); // Event always outside the lock.
 			}
 		}
 	}
@@ -364,22 +373,6 @@ public class IndexStore : IAsyncDisposable
 
 				break;
 			}
-		}
-	}
-
-	public void AddNewFilterEventHandler(EventHandler<FilterModel> func)
-	{
-		if (NewFilter is null)
-		{
-			NewFilter += func;
-		}
-	}
-	
-	public void RemoveNewFilterEventHandler(EventHandler<FilterModel> func)
-	{
-		if (NewFilter is not null)
-		{
-			NewFilter -= func;
 		}
 	}
 	

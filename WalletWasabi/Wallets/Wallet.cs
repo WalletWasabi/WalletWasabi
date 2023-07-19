@@ -368,7 +368,7 @@ public class Wallet : BackgroundService, IWallet
 
 				if (prevState >= WalletState.Initialized)
 				{
-					BitcoinStore.IndexStore.RemoveNewFilterEventHandler(IndexDownloader_NewFilterAsync);
+					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -582,7 +582,7 @@ public class Wallet : BackgroundService, IWallet
 
 	private Task AddNewFilterEventHandler()
 	{
-		BitcoinStore.IndexStore.AddNewFilterEventHandler(IndexDownloader_NewFilterAsync);
+		BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 		return Task.CompletedTask;
 	}
 
