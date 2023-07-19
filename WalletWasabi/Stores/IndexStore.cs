@@ -350,6 +350,10 @@ public class IndexStore : IAsyncDisposable
 				FilterModel[] filters = IndexStorage.Fetch(fromHeight: fromHeight.Value, limit: MaxNumberOfFiltersInMemory).ToArray();
 				foreach (FilterModel filter in filters)
 				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						return;
+					}
 					await todo(filter).ConfigureAwait(false);
 				}
 				
