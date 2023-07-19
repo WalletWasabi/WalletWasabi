@@ -143,7 +143,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	public IEnumerable<FilterModel> FetchLast(int n)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = "SELECT * FROM filter WHERE block_height >= (SELECT MAX(block_height) - $n + 1 FROM filter) ORDER BY block_height";
+		command.CommandText = "SELECT * FROM filter WHERE block_height > (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
 		command.Parameters.AddWithValue("$n", n);
 
 		using SqliteDataReader reader = command.ExecuteReader();
