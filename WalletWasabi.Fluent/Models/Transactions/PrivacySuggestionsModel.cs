@@ -135,7 +135,8 @@ public class PrivacySuggestionsModel
 
 		// Only exclude coins if the original transaction doesn't use them either.
 		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
-		allPrivateCoin = wasCoinjoiningCoinUsed ? allPrivateCoin : ExcludeCoinsFromList(allPrivateCoin, coinsToExclude);
+
+		allPrivateCoin = wasCoinjoiningCoinUsed ? allPrivateCoin : allPrivateCoin.Except(coinsToExclude).ToArray();
 
 		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
 		var allSemiPrivateCoin =
@@ -143,7 +144,7 @@ public class PrivacySuggestionsModel
 			.Union(onlyKnownByTheRecipientCoins)
 			.ToArray();
 
-		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : ExcludeCoinsFromList(allSemiPrivateCoin, coinsToExclude);
+		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		var totalAmount = originalTransaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
@@ -251,7 +252,7 @@ public class PrivacySuggestionsModel
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : ExcludeCoinsFromList(coinsToUse, coinsToExclude).ToImmutableArray();
+		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : coinsToUse.Except(coinsToExclude).ToImmutableArray();
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
 
@@ -383,10 +384,5 @@ public class PrivacySuggestionsModel
 		};
 
 		return differenceFiatText;
-	}
-
-	private SmartCoin[] ExcludeCoinsFromList(IEnumerable<SmartCoin> coinList, IEnumerable<SmartCoin> coinsToExclude)
-	{
-		return coinList.Except(coinsToExclude).ToArray();
 	}
 }
