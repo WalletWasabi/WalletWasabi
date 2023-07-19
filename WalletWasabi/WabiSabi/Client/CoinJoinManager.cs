@@ -588,7 +588,7 @@ public class CoinJoinManager : BackgroundService
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, DateTimeOffset.UtcNow, out _))
+			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, out _))
 			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)

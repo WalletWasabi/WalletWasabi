@@ -21,19 +21,19 @@ public class CoinPrison
 	public string FilePath { get; set; }
 	private object Lock { get; set; } = new();
 
-	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, DateTimeOffset banDeadlineTime, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
+	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
 	{
 		lock (Lock)
 		{
 			bannedUntil = null;
 			if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
 			{
-				if (banDeadlineTime < record.BannedUntil)
+				if (DateTimeOffset.UtcNow < record.BannedUntil)
 				{
 					bannedUntil = record.BannedUntil;
 					return true;
 				}
-				RemoveBannedCoin(coin);
+				RemoveBannedCoinNoLock(coin);
 			}
 			return false;
 		}
@@ -53,7 +53,7 @@ public class CoinPrison
 		}
 	}
 
-	private void RemoveBannedCoin(SmartCoin coin)
+	private void RemoveBannedCoinNoLock(SmartCoin coin)
 	{
 		var recordToRemove = BannedCoins.SingleOrDefault(record => coin.Outpoint == record.Outpoint);
 		if (recordToRemove == null)
@@ -107,7 +107,7 @@ public class CoinPrison
 	{
 		foreach (var coin in wallet.Coins)
 		{
-			if (TryGetOrRemoveBannedCoin(coin, DateTimeOffset.UtcNow, out var bannedUntil))
+			if (TryGetOrRemoveBannedCoin(coin, out var bannedUntil))
 			{
 				coin.BannedUntilUtc = bannedUntil;
 			}
