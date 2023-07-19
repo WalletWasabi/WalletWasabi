@@ -311,6 +311,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 		}
 
+		// This second iteration is necessary to transform the flat list of speedups into actual groups.
+		// We basically do this:
+		// 1. identify which transactions are CPFP (parents) and their children
+		// 2. Create a speed-up group with parent+children
+		// 3. Remove the previously added items from the history (the no longer be there, but in the group)
+		// 4. Add the group
 		foreach (var summary in summaries)
 		{
 			if (summary.Transaction.IsCPFP)
