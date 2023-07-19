@@ -321,28 +321,29 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			if (summary.Transaction.IsCPFP)
 			{
-				var children = summary.Transaction.ParentsThisTxPaysFor;
-				var parent = Find(history, summary);
+				// Group creation
+				var childrenTxs = summary.Transaction.ParentsThisTxPaysFor;
+				var parentHistoryItem = FindHistoryItem(summary, history);
+				var childrenHistoryItems = childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList();
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parentHistoryItem.OrderIndex, summary, parentHistoryItem, new [] { parentHistoryItem }.Concat(childrenHistoryItems));
+				speedUpGroup.SetBalance(parentHistoryItem.Balance);
 
-				var childrenItems = children.Select(x => Find(history, x)).ToList();
-				var group = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, new [] { parent }.Concat(childrenItems));
-				group.SetBalance(parent.Balance);
-				history.Add(group);
+				history.Add(speedUpGroup);
 
 				// Removal
-				history.RemoveMany(new[] { parent }.Concat(childrenItems));
+				history.RemoveMany(new[] { parentHistoryItem }.Concat(childrenHistoryItems));
 			}
 		}
 
 		return history;
 	}
 
-	private HistoryItemViewModelBase Find(List<HistoryItemViewModelBase> summaries, SmartTransaction transaction)
+	private HistoryItemViewModelBase FindHistoryItem(SmartTransaction transaction, IEnumerable<HistoryItemViewModelBase> summaries)
 	{
 		return summaries.Single(x => x.Id == transaction.GetHash());
 	}
 
-	private static HistoryItemViewModelBase Find(List<HistoryItemViewModelBase> history, TransactionSummary summary)
+	private static HistoryItemViewModelBase FindHistoryItem(TransactionSummary summary, IEnumerable<HistoryItemViewModelBase> history)
 	{
 		return history.Single(x => x.Id == summary.TransactionId);
 	}
