@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -55,7 +56,7 @@ public class IndexStore : IAsyncDisposable
 
 	public event EventHandler<FilterModel>? Reorged;
 
-	public event EventHandler<FilterModel>? NewFilter;
+	public event EventHandler<IEnumerable<FilterModel>>? NewFilters;
 
 	/// <summary>Mature index path for migration purposes.</summary>
 	private string OldIndexFilePath { get; }
@@ -240,14 +241,12 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		if (NewFilter is null)
+		var filterModels = filters as FilterModel[] ?? filters.ToArray();
+		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			// Lock once.
-			using IDisposable lockDisposable = await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false);
-
 			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
-			foreach (FilterModel filter in filters)
+			foreach (FilterModel filter in filterModels)
 			{
 				if (!TryProcessFilterNoLock(filter, enqueue: true))
 				{
@@ -257,22 +256,15 @@ public class IndexStore : IAsyncDisposable
 
 			sqliteTransaction.Commit();
 		}
-		else
+		
+		NewFilters?.Invoke(this, filterModels);
+	}
+
+	public async Task<FilterModel[]> FetchBatchAsync(Height fromHeight, int batchSize, CancellationToken cancellationToken)
+	{
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			foreach (FilterModel filter in filters)
-			{
-				bool success;
-
-				using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				{
-					success = TryProcessFilterNoLock(filter, enqueue: true);
-				}
-
-				if (success)
-				{
-					NewFilter?.Invoke(this, filter); // Event always outside the lock.
-				}
-			}
+			return IndexStorage.Fetch(fromHeight: fromHeight.Value, limit: batchSize).ToArray();
 		}
 	}
 
@@ -324,17 +316,6 @@ public class IndexStore : IAsyncDisposable
 			if (filterModel is null)
 			{
 				break;
-			}
-		}
-	}
-
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancellationToken)
-	{
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			foreach (FilterModel filter in IndexStorage.Fetch(fromHeight: fromHeight.Value))
-			{
-				await todo(filter).ConfigureAwait(false);
 			}
 		}
 	}
