@@ -102,7 +102,7 @@ public static class CoinSelectorDataGridSource
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
 				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(b => b.AnonymityScore ?? b.Children.Min(x => x.AnonymityScore)),
-				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(b => b.AnonymityScore ?? b.Children.Max(x => x.AnonymityScore))
+				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(b => b.AnonymityScore ?? b.Children.Min(x => x.AnonymityScore))
 			});
 	}
 
