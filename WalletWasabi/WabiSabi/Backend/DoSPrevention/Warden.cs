@@ -26,7 +26,7 @@ public class Warden : BackgroundService
 			PenaltyFactorForDisruptingConfirmation: (decimal) config.DoSPenaltyFactorForDisruptingConfirmation,
 			PenaltyFactorForDisruptingSigning: (decimal) config.DoSPenaltyFactorForDisruptingSigning,
 			PenaltyFactorForDisruptingByDoubleSpending: (decimal) config.DoSPenaltyFactorForDisruptingByDoubleSpending,
-			MinimumTimeInPrison: config.DoSMinimumTimeInPrison);
+			MinTimeInPrison: config.DoSMinTimeInPrison);
 		Prison = DeserializePrison(PrisonFilePath, dosConfig, coinjoinIdStore, OffendersToSaveChannel.Writer);
 	}
 
@@ -43,14 +43,14 @@ public class Warden : BackgroundService
 		ChannelWriter<Offender> channelWriter)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(prisonFilePath);
-		var inmates = new List<Offender>();
+		var offenders = new List<Offender>();
 		if (File.Exists(prisonFilePath))
 		{
 			try
 			{
-				foreach (var inmate in File.ReadAllLines(prisonFilePath).Select(Offender.FromStringLine))
+				foreach (var offender in File.ReadAllLines(prisonFilePath).Select(Offender.FromStringLine))
 				{
-					inmates.Add(inmate);
+					offenders.Add(offender);
 				}
 			}
 			catch (Exception ex)
@@ -61,18 +61,24 @@ public class Warden : BackgroundService
 			}
 		}
 
-		return new Prison(config, coinjoinIdStore, inmates, channelWriter);
+		return new Prison(config, coinjoinIdStore, offenders, channelWriter);
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
 		while (!cancel.IsCancellationRequested)
 		{
-			await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel))
+			await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
 			{
 				var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
 				await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
 			}
 		}
+	}
+
+	public override Task StopAsync(CancellationToken cancellationToken)
+	{
+		OffendersToSaveChannel.Writer.Complete();
+		return base.StopAsync(cancellationToken);
 	}
 }

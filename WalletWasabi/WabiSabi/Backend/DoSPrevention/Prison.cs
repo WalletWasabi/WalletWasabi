@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Channels;
 using NBitcoin;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -11,9 +12,6 @@ namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public class Prison
 {
-	private ICoinJoinIdStore CoinJoinIdStore { get; }
-	private DoSConfiguration DoSConfiguration { get; }
-
 	public Prison(DoSConfiguration dosConfiguration, ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> inmates, ChannelWriter<Offender> channelWriterWriter)
 	{
 		DoSConfiguration = dosConfiguration;
@@ -22,8 +20,11 @@ public class Prison
 		NotificationChannelWriter = channelWriterWriter;
 	}
 
+	private ICoinJoinIdStore CoinJoinIdStore { get; }
+	private DoSConfiguration DoSConfiguration { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
 	private List<Offender> Offenders { get; }
+	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
 	private object Lock { get; } = new();
 
 	private void Punish(Offender offender)
@@ -32,7 +33,10 @@ public class Prison
 		{
 			Offenders.Add(offender);
 		}
-		NotificationChannelWriter.TryWrite(offender);
+		if (!NotificationChannelWriter.TryWrite(offender))
+		{
+			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
+		}
 	}
 
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
@@ -56,7 +60,12 @@ public class Prison
 
 	public TimeFrame BanningPeriod(OutPoint outpoint)
 	{
-		var offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
+		Offender? offender;
+		lock (Lock)
+		{
+			offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
+		}
+
 		return offender switch
 		{
 			null => TimeFrame.Zero,
@@ -70,7 +79,7 @@ public class Prison
 
 	private TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
 	{
-		var effectiveBanningTime = banningTime < DoSConfiguration.MinimumTimeInPrison
+		var effectiveBanningTime = banningTime < DoSConfiguration.MinTimeInPrison
 			? TimeSpan.Zero
 			: banningTime;
 		return new TimeFrame(offender.StartedTime, effectiveBanningTime);
@@ -85,7 +94,12 @@ public class Prison
 			return TimeSpan.FromHours((double)basePunishmentInHours);
 		}
 
-		var offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
+		List<Offender> offenderHistory;
+		lock (Offenders)
+		{
+			offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
+		}
+
 		var maxOffense = offenderHistory.Max(
 			x => disruption switch
 			{

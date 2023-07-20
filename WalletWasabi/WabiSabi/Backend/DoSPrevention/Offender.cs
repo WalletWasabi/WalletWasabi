@@ -10,7 +10,7 @@ public enum RoundDisruptionMethod
 	DoubleSpent
 }
 
-public record Offense();
+public abstract record Offense();
 public record RoundDisruption(uint256 DisruptedRoundId, Money Value, RoundDisruptionMethod Method) : Offense;
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
 public record Inherited(OutPoint Ancestor) : Offense;

@@ -366,7 +366,7 @@ public static class WabiSabiFactory
 				SeverityInBitcoinsPerHour: 1.0m,
 				MinTimeForFailedToVerify: TimeSpan.FromDays(30),
 				MinTimeForCheating: TimeSpan.FromDays(1),
-				MinimumTimeInPrison: TimeSpan.FromHours(1),
+				MinTimeInPrison: TimeSpan.FromHours(1),
 				PenaltyFactorForDisruptingConfirmation: 1.0m,
 				PenaltyFactorForDisruptingSigning: 1.5m,
 				PenaltyFactorForDisruptingByDoubleSpending: 3.0m),

@@ -4,7 +4,7 @@ public record DoSConfiguration(
 	decimal SeverityInBitcoinsPerHour,
 	TimeSpan MinTimeForFailedToVerify,
 	TimeSpan MinTimeForCheating,
-	TimeSpan MinimumTimeInPrison,
+	TimeSpan MinTimeInPrison,
 	decimal PenaltyFactorForDisruptingConfirmation,
 	decimal PenaltyFactorForDisruptingSigning,
 	decimal PenaltyFactorForDisruptingByDoubleSpending);
