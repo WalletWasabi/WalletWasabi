@@ -26,4 +26,4 @@ public record CreatesChangeWarning() : PrivacyWarning(WarningSeverity.Info);
 
 public record UnconfirmedFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 
-public record CoinjoiningFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
+public record CoinjoiningFundsWarning() : PrivacyWarning(WarningSeverity.Info);

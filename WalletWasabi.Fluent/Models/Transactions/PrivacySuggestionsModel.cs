@@ -202,7 +202,7 @@ public class PrivacySuggestionsModel
 		return result;
 	}
 
-		private PrivacySuggestionsResult VerifyCoinjoiningInputs(BuildTransactionResult transaction)
+	private PrivacySuggestionsResult VerifyCoinjoiningInputs(BuildTransactionResult transaction)
 	{
 		var result = new PrivacySuggestionsResult();
 
