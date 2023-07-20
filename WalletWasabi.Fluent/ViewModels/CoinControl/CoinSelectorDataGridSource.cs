@@ -101,9 +101,31 @@ public static class CoinSelectorDataGridSource
 			new GridLength(55, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(b => b.AnonymityScore),
-				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(b => b.AnonymityScore)
+				CompareAscending = AnonScoreComparisonAscending,
+				CompareDescending = AnonScoreComparisonDescending
 			});
+	}
+
+	private static int AnonScoreComparisonAscending(CoinControlItemViewModelBase? first, CoinControlItemViewModelBase? second)
+	{
+		var byPrivacy = Sort<CoinControlItemViewModelBase>.Ascending(GetLabelPriority)(first, second);
+		if (byPrivacy != 0)
+		{
+			return byPrivacy;
+		}
+
+		return Sort<CoinControlItemViewModelBase>.Ascending(x => x.AnonymityScore)(first, second);
+	}
+
+	private static int AnonScoreComparisonDescending(CoinControlItemViewModelBase? first, CoinControlItemViewModelBase? second)
+	{
+		var byPrivacy = Sort<CoinControlItemViewModelBase>.Descending(GetLabelPriority)(first, second);
+		if (byPrivacy != 0)
+		{
+			return byPrivacy;
+		}
+
+		return Sort<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore)(first, second);
 	}
 
 	private static IColumn<CoinControlItemViewModelBase> PocketColumn()
