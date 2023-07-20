@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -48,6 +47,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.AddKey(model => model.SmartCoin.Outpoint);
 
 		changes
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
@@ -83,8 +83,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.DisposeWith(_disposables);
 
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
-		ApplyDefaultColumnSorting(TreeDataGridSource);
-
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		RefreshFromPockets(sourceItems);
@@ -97,15 +95,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 	public void Dispose()
 	{
 		_disposables.Dispose();
-	}
-
-	private static void ApplyDefaultColumnSorting(HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> treeDataGridSource)
-	{
-		var columnId = 4;
-		if (treeDataGridSource.Columns.Count -1 <= columnId)
-		{
-			treeDataGridSource.SortBy(treeDataGridSource.Columns[columnId], ListSortDirection.Descending);
-		}
 	}
 
 	private static ReadOnlyCollection<SmartCoin> GetSelectedCoins(IReadOnlyCollection<CoinCoinControlItemViewModel> list)
