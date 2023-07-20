@@ -66,6 +66,7 @@ public class PrivacySuggestionsModel
 					.Combine(VerifyPrivacyLevel(info, transactionResult))
 					.Combine(VerifyConsolidation(transactionResult))
 					.Combine(VerifyUnconfirmedInputs(transactionResult))
+					.Combine(VerifyCoinjoiningInputs(transactionResult))
 					.Combine(await VerifyChangeAsync(info, transactionResult, linkedCts));
 			}
 			catch (OperationCanceledException)
@@ -209,6 +210,18 @@ public class PrivacySuggestionsModel
 		if (transaction.SpendsUnconfirmed)
 		{
 			result.Warnings.Add(new UnconfirmedFundsWarning());
+		}
+
+		return result;
+	}
+
+	private PrivacySuggestionsResult VerifyCoinjoiningInputs(BuildTransactionResult transaction)
+	{
+		var result = new PrivacySuggestionsResult();
+
+		if (transaction.SpendsCoinjoining)
+		{
+			result.Warnings.Add(new CoinjoiningFundsWarning());
 		}
 
 		return result;
