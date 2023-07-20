@@ -228,6 +228,9 @@
           <c:SuggestionItem>
             <DockPanel>
               <DockPanel.Styles>
+                <Style Selector="PathIcon">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
+                </Style>
                 <Style Selector="PathIcon.more">
                   <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
                 </Style>
@@ -236,8 +239,7 @@
                 </Style>
               </DockPanel.Styles>
               <PathIcon Classes.more="{Binding IsMore}"
-                        Classes.less="{Binding IsLess}"
-                        Data="{StaticResource change_avoidance_less}" />
+                        Classes.less="{Binding IsLess}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
