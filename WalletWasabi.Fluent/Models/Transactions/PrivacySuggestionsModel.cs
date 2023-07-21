@@ -25,15 +25,8 @@ public class PrivacySuggestionsModel
 	private const decimal MaximumDifferenceTolerance = 0.25m;
 	private const int ConsolidationTolerance = 10;
 
-	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
-	private readonly object _lock = new();
-
-	/// <summary>Allow at most one suggestion generation run.</summary>
-	private readonly AsyncLock _asyncLock = new();
-
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager _cjManager;
-	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
 	public PrivacySuggestionsModel(Wallet wallet)
 	{
@@ -42,44 +35,23 @@ public class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
+	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationTokenSource cancellationTokenSource)
 	{
 		var result = new PrivacySuggestionsResult();
 
-		using CancellationTokenSource singleRunCts = new();
-
-		lock (_lock)
+		try
 		{
-			_suggestionCancellationTokenSource?.Cancel();
-			_suggestionCancellationTokenSource = singleRunCts;
+			result = result
+				.Combine(VerifyLabels(info, transactionResult))
+				.Combine(VerifyPrivacyLevel(info, transactionResult))
+				.Combine(VerifyConsolidation(transactionResult))
+				.Combine(VerifyUnconfirmedInputs(transactionResult))
+				.Combine(VerifyCoinjoiningInputs(transactionResult))
+				.Combine(await VerifyChangeAsync(info, transactionResult, cancellationTokenSource));
 		}
-
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
-
-		using (await _asyncLock.LockAsync(CancellationToken.None))
+		catch (OperationCanceledException)
 		{
-			try
-			{
-				result = result
-					.Combine(VerifyLabels(info, transactionResult))
-					.Combine(VerifyPrivacyLevel(info, transactionResult))
-					.Combine(VerifyConsolidation(transactionResult))
-					.Combine(VerifyUnconfirmedInputs(transactionResult))
-					.Combine(VerifyCoinjoiningInputs(transactionResult))
-					.Combine(await VerifyChangeAsync(info, transactionResult, linkedCts));
-			}
-			catch (OperationCanceledException)
-			{
-				Logger.LogTrace("Operation was cancelled.");
-			}
-			finally
-			{
-				lock (_lock)
-				{
-					_suggestionCancellationTokenSource = null;
-				}
-			}
+			Logger.LogTrace("Operation was cancelled.");
 		}
 
 		return result;

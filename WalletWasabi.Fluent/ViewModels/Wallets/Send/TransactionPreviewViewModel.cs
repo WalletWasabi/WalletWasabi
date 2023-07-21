@@ -91,10 +91,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction =>
+			.Do(transaction =>
 			{
-				await CheckChangePocketAvailableAsync(transaction);
-				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
+				Task.Run(async () =>
+				{
+					await CheckChangePocketAvailableAsync(transaction);
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
+				});
 			})
 			.Subscribe();
 

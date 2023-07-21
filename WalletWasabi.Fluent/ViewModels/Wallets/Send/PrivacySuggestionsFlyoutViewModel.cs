@@ -1,4 +1,5 @@
 using DynamicData;
+using Nito.AsyncEx;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -22,6 +23,14 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
 
+	private CancellationTokenSource? _suggestionCancellationTokenSource;
+
+	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
+	private readonly object _lock = new();
+
+	/// <summary>Allow at most one suggestion generation run.</summary>
+	private readonly AsyncLock _asyncLock = new();
+
 	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
 	{
 		_privacySuggestionsModel = new PrivacySuggestionsModel(wallet);
@@ -33,33 +42,43 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
-		NoPrivacy = false;
-		MaxPrivacy = false;
-		GoodPrivacy = false;
-		Warnings.Clear();
-		Suggestions.Clear();
-		SelectedSuggestion = null;
+		using CancellationTokenSource singleRunCts = new();
 
-		IsBusy = true;
-
-		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
-
-		Warnings.AddRange(result.Warnings);
-		Suggestions.AddRange(result.Suggestions);
-
-		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		_suggestionCancellationTokenSource?.Cancel();
+		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
-			NoPrivacy = true;
-		}
-		else if (Warnings.Any(x => x.Severity == WarningSeverity.Info))
-		{
-			GoodPrivacy = true;
-		}
-		else
-		{
-			MaxPrivacy = true;
-		}
+			_suggestionCancellationTokenSource = singleRunCts;
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(singleRunCts.Token, timeoutCts.Token, cancellationToken);
 
-		IsBusy = false;
+			NoPrivacy = false;
+			MaxPrivacy = false;
+			GoodPrivacy = false;
+			Warnings.Clear();
+			Suggestions.Clear();
+			SelectedSuggestion = null;
+
+			IsBusy = true;
+
+			var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, linkedCts);
+
+			Warnings.AddRange(result.Warnings);
+			Suggestions.AddRange(result.Suggestions);
+
+			if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+			{
+				NoPrivacy = true;
+			}
+			else if (Warnings.Any(x => x.Severity == WarningSeverity.Info))
+			{
+				GoodPrivacy = true;
+			}
+			else
+			{
+				MaxPrivacy = true;
+			}
+			_suggestionCancellationTokenSource = null;
+			IsBusy = false;
+		}
 	}
 }
