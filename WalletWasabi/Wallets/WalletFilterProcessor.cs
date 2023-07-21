@@ -26,7 +26,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	private PriorityQueue<SyncRequestWithTaskCompletionSource, IComparer<SyncRequestWithTaskCompletionSource>> SynchronizationRequests { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(0);
-	private AsyncLock SynchronizationRequestLock { get; } = new();
+	private object SynchronizationRequestsLock { get; } = new();
 	private KeyManager KeyManager { get; }
 	private MempoolService MempoolService { get; }
 	private TransactionProcessor TransactionProcessor { get; }
@@ -55,9 +55,9 @@ public class WalletFilterProcessor : BackgroundService
 		return 0;
 	});
 	
-	private async Task<Task> AddAsync(SyncRequest request, CancellationToken cancellationToken)
+	private Task Add(SyncRequest request, CancellationToken cancellationToken)
 	{
-		using (await SynchronizationRequestLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		lock (SynchronizationRequestsLock)
 		{
 			var toInsertRequest = new SyncRequestWithTaskCompletionSource(request, new TaskCompletionSource());
 			SynchronizationRequests.Enqueue(toInsertRequest, _comparer);
@@ -71,7 +71,7 @@ public class WalletFilterProcessor : BackgroundService
 		List<Task> tasks = new();
 		foreach (var request in requests)
 		{
-			var task = await AddAsync(request, cancellationToken).ConfigureAwait(false);
+			var task = Add(request, cancellationToken);
 			tasks.Add(task);
 		}
 
@@ -87,7 +87,7 @@ public class WalletFilterProcessor : BackgroundService
 			await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 			SyncRequestWithTaskCompletionSource request;
-			using (await SynchronizationRequestLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			lock (SynchronizationRequestsLock)
 			{
 				if (SynchronizationRequests.Count == 0)
 				{
