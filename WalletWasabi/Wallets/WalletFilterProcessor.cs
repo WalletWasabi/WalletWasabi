@@ -54,7 +54,7 @@ public class WalletFilterProcessor : BackgroundService
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
 
-	private Task Add(SyncRequest request, CancellationToken cancellationToken)
+	private Task Add(SyncRequest request)
 	{
 		lock (SynchronizationRequestsLock)
 		{
@@ -65,12 +65,12 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	public async Task ProcessAsync(IEnumerable<SyncRequest> requests, CancellationToken cancellationToken)
+	public async Task ProcessAsync(IEnumerable<SyncRequest> requests)
 	{
 		List<Task> tasks = new();
 		foreach (var request in requests)
 		{
-			var task = Add(request, cancellationToken);
+			var task = Add(request);
 			tasks.Add(task);
 		}
 

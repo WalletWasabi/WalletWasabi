@@ -438,7 +438,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 			}
 
-			await WalletFilterProcessor.ProcessAsync(requests, CancellationToken.None);
+			await WalletFilterProcessor.ProcessAsync(requests);
 			
 			NewFilterProcessed?.Invoke(this, filterModels.Last());
 			
@@ -500,7 +500,7 @@ public class Wallet : BackgroundService, IWallet
 				requests.Add(new WalletFilterProcessor.SyncRequest(syncType, filter));
 			}
 
-			await WalletFilterProcessor.ProcessAsync(requests, cancellationToken).ConfigureAwait(false);
+			await WalletFilterProcessor.ProcessAsync(requests).ConfigureAwait(false);
 
 			currentHeight = filtersBatch.Any() ? 
 				new Height(filtersBatch.Last().Header.Height) : 
