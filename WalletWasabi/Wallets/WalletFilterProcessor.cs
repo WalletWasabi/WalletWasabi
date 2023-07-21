@@ -16,7 +16,14 @@ namespace WalletWasabi.Wallets;
 
 public class WalletFilterProcessor : BackgroundService
 {
-	private List<SyncRequestWithTaskCompletionSource> SynchronizationRequests { get; } = new();
+	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
+	{
+		KeyManager = keyManager;
+		MempoolService = mempoolService;
+		TransactionProcessor = transactionProcessor;
+		BlockProvider = blockProvider;
+	}
+
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(0);
 	private AsyncLock SynchronizationRequestLock { get; } = new();
 	private KeyManager KeyManager { get; }
@@ -57,16 +64,16 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	public async Task AddAndWaitUntilProcessedAsync(IEnumerable<SyncRequest> requests, CancellationToken cancellationToken)
+	public async Task ProcessAsync(IEnumerable<SyncRequest> requests, CancellationToken cancellationToken)
 	{
-		List<Task> toAwaitTasks = new();
+		List<Task> tasks = new();
 		foreach (var request in requests)
 		{
 			var task = await AddAsync(request, cancellationToken).ConfigureAwait(false);
-			toAwaitTasks.Add(task);
+			tasks.Add(task);
 		}
 
-		await Task.WhenAll(toAwaitTasks).ConfigureAwait(false);
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -127,6 +134,7 @@ public class WalletFilterProcessor : BackgroundService
 		if (toTestKeys.Count == 0)
 		{
 			// No keys to test.
+			LastProcessedFilter = request.Filter;
 			return;
 		}
 

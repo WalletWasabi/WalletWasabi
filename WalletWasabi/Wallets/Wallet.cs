@@ -53,7 +53,6 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
-	
 	public event EventHandler<FilterModel>? NewFilterProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
@@ -245,9 +244,10 @@ public class Wallet : BackgroundService, IWallet
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
+				await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
+
 				using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 				{
-					await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
 					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 					await LoadDummyMempoolAsync().ConfigureAwait(false);
 					LoadExcludedCoins();
@@ -438,7 +438,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 			}
 
-			await WalletFilterProcessor.AddAndWaitUntilProcessedAsync(requests, CancellationToken.None);
+			await WalletFilterProcessor.ProcessAsync(requests, CancellationToken.None);
 			
 			NewFilterProcessed?.Invoke(this, filterModels.Last());
 			
@@ -482,7 +482,7 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 		
-		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel);
+		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
 	private async Task PerformSynchronizationAsync(SyncType syncType, CancellationToken cancellationToken)
@@ -500,7 +500,7 @@ public class Wallet : BackgroundService, IWallet
 				requests.Add(new WalletFilterProcessor.SyncRequest(syncType, filter));
 			}
 
-			await WalletFilterProcessor.AddAndWaitUntilProcessedAsync(requests, cancellationToken);
+			await WalletFilterProcessor.ProcessAsync(requests, cancellationToken).ConfigureAwait(false);
 
 			currentHeight = filtersBatch.Any() ? 
 				new Height(filtersBatch.Last().Header.Height) : 
