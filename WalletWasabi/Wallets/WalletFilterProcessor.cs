@@ -15,7 +15,7 @@ namespace WalletWasabi.Wallets;
 
 public class WalletFilterProcessor : BackgroundService
 {
-	private readonly Comparer<SyncRequestWithTaskCompletionSource> _comparer = Comparer<SyncRequestWithTaskCompletionSource>.Create(
+	private readonly Comparer<SyncRequestWithTcs> _comparer = Comparer<SyncRequestWithTcs>.Create(
 		(x, y) =>
 		{
 			// Turbo and Complete have priority over NonTurbo.
@@ -39,14 +39,14 @@ public class WalletFilterProcessor : BackgroundService
 	
 	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
-		SynchronizationRequests = new PriorityQueue<SyncRequestWithTaskCompletionSource, SyncRequestWithTaskCompletionSource>(_comparer);
+		SynchronizationRequests = new PriorityQueue<SyncRequestWithTcs, SyncRequestWithTcs>(_comparer);
 		KeyManager = keyManager;
 		MempoolService = mempoolService;
 		TransactionProcessor = transactionProcessor;
 		BlockProvider = blockProvider;
 	}
 
-	private PriorityQueue<SyncRequestWithTaskCompletionSource, SyncRequestWithTaskCompletionSource> SynchronizationRequests { get; }
+	private PriorityQueue<SyncRequestWithTcs, SyncRequestWithTcs> SynchronizationRequests { get; }
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(0);
 	private object SynchronizationRequestsLock { get; } = new();
 	private KeyManager KeyManager { get; }
@@ -59,7 +59,7 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		lock (SynchronizationRequestsLock)
 		{
-			var toInsertRequest = new SyncRequestWithTaskCompletionSource(request, new TaskCompletionSource());
+			var toInsertRequest = new SyncRequestWithTcs(request, new TaskCompletionSource());
 			SynchronizationRequests.Enqueue(toInsertRequest, toInsertRequest);
 			SynchronizationRequestsSemaphore.Release(1);
 			return toInsertRequest.Task.Task;
@@ -91,7 +91,7 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-			SyncRequestWithTaskCompletionSource request;
+			SyncRequestWithTcs request;
 			lock (SynchronizationRequestsLock)
 			{
 				if (SynchronizationRequests.Count == 0)
@@ -181,5 +181,5 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	public record SyncRequest(SyncType SyncType, FilterModel Filter);
-	private record SyncRequestWithTaskCompletionSource(SyncRequest SyncRequest, TaskCompletionSource Task);
+	private record SyncRequestWithTcs(SyncRequest SyncRequest, TaskCompletionSource Task);
 }
