@@ -60,18 +60,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<Arena>();
 			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
-			services.AddScoped<Prison>(s => new Prison(
-				new DoSConfiguration(
-					SeverityInBitcoinsPerHour: 1.0m,
-					MinTimeForFailedToVerify: TimeSpan.FromDays(30),
-					MinTimeForCheating: TimeSpan.FromDays(1),
-					MinTimeInPrison: TimeSpan.FromHours(1),
-					PenaltyFactorForDisruptingConfirmation: 1.0m,
-					PenaltyFactorForDisruptingSigning: 1.5m,
-					PenaltyFactorForDisruptingByDoubleSpending: 3.0m),
-				s.GetService<ICoinJoinIdStore>()!,
-				Enumerable.Empty<Offender>(),
-				Channel.CreateUnbounded<Offender>().Writer));
+			services.AddScoped<Prison>(_ => WabiSabiFactory.CreatePrison());
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
