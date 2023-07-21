@@ -183,14 +183,14 @@ public class StepTransactionSigningTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
-		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
+		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
 		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
 		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
 
-		Assert.True(prison.IsBanned(aliceClient2.SmartCoin.Outpoint, DateTimeOffset.UtcNow));
+		Assert.True(prison.IsBanned(aliceClient1.SmartCoin.Outpoint, DateTimeOffset.UtcNow));
 
 		await arena.StopAsync(token);
 	}
