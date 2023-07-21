@@ -25,9 +25,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
-	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
-	private readonly object _lock = new();
-
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
