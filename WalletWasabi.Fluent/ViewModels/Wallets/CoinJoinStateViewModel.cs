@@ -34,7 +34,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
+	private const string BackendNotConnected = "Awaiting connection";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
+	private const string WaitingForConfirmedFunds = "Awaiting for confirmed funds";
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
@@ -316,9 +318,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
+					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
+					CoinjoinError.BackendNotSynchronized => BackendNotConnected,
 					_ => GeneralErrorMessage
 				};
 				break;

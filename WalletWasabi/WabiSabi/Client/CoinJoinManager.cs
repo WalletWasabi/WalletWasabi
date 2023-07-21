@@ -203,6 +203,14 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 				}
 
+				coinCandidates = coinCandidates.Where(x => x.Confirmed);
+
+				// Only unconfirmed coins are available
+				if (!coinCandidates.Any())
+				{
+					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidates coins available to mix.");
+				}
+
 				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
 				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
 				{
@@ -607,7 +615,6 @@ public class CoinJoinManager : BackgroundService
 	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
 		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
-			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
 			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, out _))
