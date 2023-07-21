@@ -47,7 +47,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.AddKey(model => model.SmartCoin.Outpoint);
 
 		changes
-			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore))
+			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore ?? x.Children.Min(c => c.AnonymityScore) ?? 0))
 			.DisposeMany()
 			.Bind(out _itemsCollection)
 			.Subscribe()
@@ -83,7 +83,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.DisposeWith(_disposables);
 
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
-
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		RefreshFromPockets(sourceItems);
