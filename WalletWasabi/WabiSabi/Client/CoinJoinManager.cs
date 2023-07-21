@@ -459,9 +459,9 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		// If any coins were marked for banning, store them to file
-		if (finishedCoinJoin.PrisonedCoins.Any())
+		if (finishedCoinJoin.BannedCoins.Any())
 		{
-			foreach (var info in finishedCoinJoin.PrisonedCoins)
+			foreach (var info in finishedCoinJoin.BannedCoins)
 			{
 				CoinPrison.Ban(info.Coin, info.BanUntilUtc);
 			}
