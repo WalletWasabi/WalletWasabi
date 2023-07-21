@@ -436,7 +436,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			if (finishedCoinJoin.IsStopped)
 			{
-				wallet.LogInfo($"{nameof(CoinJoinClient)} was stopped.");
+				wallet.LogInfo($"{nameof(CoinJoinClient)} stopped.");
 			}
 			else
 			{
