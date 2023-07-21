@@ -24,6 +24,7 @@ public class WalletFilterProcessor : BackgroundService
 		BlockProvider = blockProvider;
 	}
 
+	private PriorityQueue<SyncRequestWithTaskCompletionSource, IComparer<SyncRequestWithTaskCompletionSource>> SynchronizationRequests { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(0);
 	private AsyncLock SynchronizationRequestLock { get; } = new();
 	private KeyManager KeyManager { get; }
@@ -32,33 +33,34 @@ public class WalletFilterProcessor : BackgroundService
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
 
-	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
+	private readonly Comparer<SyncRequestWithTaskCompletionSource> _comparer = Comparer<SyncRequestWithTaskCompletionSource>.Create(
+		(x, y) =>
 	{
-		KeyManager = keyManager;
-		MempoolService = mempoolService;
-		TransactionProcessor = transactionProcessor;
-		BlockProvider = blockProvider;
-	}
-
+		// Turbo and Complete have priority over NonTurbo.
+		if (x.SyncRequest.SyncType != SyncType.NonTurbo && y.SyncRequest.SyncType == SyncType.NonTurbo)
+		{
+			return 1;
+		}
+		
+		// Higher height have priority.
+		if (y.SyncRequest.Filter.Header.Height > x.SyncRequest.Filter.Header.Height)
+		{
+			return 1;
+		}
+		if (x.SyncRequest.Filter.Header.Height > y.SyncRequest.Filter.Header.Height)
+		{
+			return -1;
+		}
+		
+		return 0;
+	});
+	
 	private async Task<Task> AddAsync(SyncRequest request, CancellationToken cancellationToken)
 	{
 		using (await SynchronizationRequestLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			bool Predicate(SyncRequestWithTaskCompletionSource currentElementAtIndex)
-			{
-				if (request.SyncType != SyncType.NonTurbo && currentElementAtIndex.SyncRequest.SyncType == SyncType.NonTurbo)
-				{
-					// Turbo and Complete have priority over NonTurbo.
-					return true;
-				}
-				// Higher height have priority.
-				return currentElementAtIndex.SyncRequest.Filter.Header.Height > request.Filter.Header.Height;
-			}
-
-			var matchIndex = SynchronizationRequests.FindIndex(Predicate);
 			var toInsertRequest = new SyncRequestWithTaskCompletionSource(request, new TaskCompletionSource());
-			SynchronizationRequests.Insert(matchIndex == -1 ? SynchronizationRequests.Count : matchIndex, toInsertRequest);
-
+			SynchronizationRequests.Enqueue(toInsertRequest, _comparer);
 			SynchronizationRequestsSemaphore.Release(1);
 			return toInsertRequest.Task.Task;
 		}
@@ -87,13 +89,12 @@ public class WalletFilterProcessor : BackgroundService
 			SyncRequestWithTaskCompletionSource request;
 			using (await SynchronizationRequestLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (!SynchronizationRequests.Any())
+				if (SynchronizationRequests.Count == 0)
 				{
 					continue;
 				}
 
-				request = SynchronizationRequests.First();
-				SynchronizationRequests.RemoveAt(0);
+				request = SynchronizationRequests.Dequeue();
 			}
 
 			await ProcessFilterModelAsync(request.SyncRequest, cancellationToken).ConfigureAwait(false);
