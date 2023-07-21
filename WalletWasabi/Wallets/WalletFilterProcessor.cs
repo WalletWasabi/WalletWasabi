@@ -74,7 +74,12 @@ public class WalletFilterProcessor : BackgroundService
 			tasks.Add(task);
 		}
 
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		while (tasks.Count > 0)
+		{
+			var task = await Task.WhenAny(tasks).ConfigureAwait(false);
+			tasks.Remove(task);
+			await task; // This will re-throw an exception if the task failed.
+		}
 	}
 
 	/// <inheritdoc />
@@ -95,9 +100,16 @@ public class WalletFilterProcessor : BackgroundService
 
 				request = SynchronizationRequests.Dequeue();
 			}
-
-			await ProcessFilterModelAsync(request.SyncRequest, cancellationToken).ConfigureAwait(false);
-			request.Task.SetResult();
+			try
+			{
+				await ProcessFilterModelAsync(request.SyncRequest, cancellationToken).ConfigureAwait(false);
+				request.Task.SetResult();
+			}
+			catch (Exception ex)
+			{
+				request.Task.SetException(ex);
+				throw;
+			}
 		}
 	}
 
