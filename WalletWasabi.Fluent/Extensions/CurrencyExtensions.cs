@@ -26,13 +26,11 @@ public static class CurrencyExtensions
 		{
 			return result.OuterWalletOutputs.Sum(x => x.Amount);
 		}
-		else
-		{
-			return result.InnerWalletOutputs
-				.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
-				.Select(x => x.Amount)
-				.Sum();
-		}
+
+		return result.InnerWalletOutputs
+			.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
+			.Select(x => x.Amount)
+			.Sum();
 	}
 
 	public static string FormattedBtc(this decimal amount)
