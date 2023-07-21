@@ -15,6 +15,28 @@ namespace WalletWasabi.Wallets;
 
 public class WalletFilterProcessor : BackgroundService
 {
+	private readonly Comparer<SyncRequestWithTaskCompletionSource> _comparer = Comparer<SyncRequestWithTaskCompletionSource>.Create(
+		(x, y) =>
+		{
+			// Turbo and Complete have priority over NonTurbo.
+			if (x.SyncRequest.SyncType != SyncType.NonTurbo && y.SyncRequest.SyncType == SyncType.NonTurbo)
+			{
+				return 1;
+			}
+		
+			// Higher height have priority.
+			if (y.SyncRequest.Filter.Header.Height > x.SyncRequest.Filter.Header.Height)
+			{
+				return 1;
+			}
+			if (x.SyncRequest.Filter.Header.Height > y.SyncRequest.Filter.Header.Height)
+			{
+				return -1;
+			}
+		
+			return 0;
+		});
+	
 	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
 		KeyManager = keyManager;
@@ -32,28 +54,6 @@ public class WalletFilterProcessor : BackgroundService
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
 
-	private readonly Comparer<SyncRequestWithTaskCompletionSource> _comparer = Comparer<SyncRequestWithTaskCompletionSource>.Create(
-		(x, y) =>
-	{
-		// Turbo and Complete have priority over NonTurbo.
-		if (x.SyncRequest.SyncType != SyncType.NonTurbo && y.SyncRequest.SyncType == SyncType.NonTurbo)
-		{
-			return 1;
-		}
-		
-		// Higher height have priority.
-		if (y.SyncRequest.Filter.Header.Height > x.SyncRequest.Filter.Header.Height)
-		{
-			return 1;
-		}
-		if (x.SyncRequest.Filter.Header.Height > y.SyncRequest.Filter.Header.Height)
-		{
-			return -1;
-		}
-		
-		return 0;
-	});
-	
 	private Task Add(SyncRequest request, CancellationToken cancellationToken)
 	{
 		lock (SynchronizationRequestsLock)
