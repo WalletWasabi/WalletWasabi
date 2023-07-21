@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.HttpOverrides;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +60,7 @@ public class TransactionHistoryBuilder
 					Inputs = GetInputs(containingTransaction),
 					Outputs = outputs,
 					DestinationAddresses = destinationAddresses,
+					VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
 				});
 			}
 
@@ -94,6 +94,7 @@ public class TransactionHistoryBuilder
 						Inputs = GetInputs(spenderTransaction),
 						Outputs = outputs,
 						DestinationAddresses = destinationAddresses,
+						VirtualSize = spenderTransaction.Transaction.GetVirtualSize(),
 					});
 				}
 			}
