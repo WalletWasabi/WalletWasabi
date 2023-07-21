@@ -485,7 +485,7 @@ public class Wallet : BackgroundService, IWallet
 		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
-	private async Task PerformSynchronizationAsync(SyncType syncType, CancellationToken cancellationToken)
+	public async Task PerformSynchronizationAsync(SyncType syncType, CancellationToken cancellationToken)
 	{
 		Height currentHeight = syncType == SyncType.Turbo ? 
 			KeyManager.GetBestTurboSyncHeight():
