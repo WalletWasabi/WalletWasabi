@@ -402,7 +402,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private void CheckCoinIsNotBanned(OutPoint input)
 	{
-		var banningTime = Prison.BanningPeriod(input);
+		var banningTime = Prison.GetBanTimePeriod(input);
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));

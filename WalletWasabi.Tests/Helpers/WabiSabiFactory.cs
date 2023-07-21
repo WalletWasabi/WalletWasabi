@@ -357,21 +357,33 @@ public static class WabiSabiFactory
 
 	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
 
-	public static Prison CreatePrison()
+	public static (Prison, ChannelReader<Offender>, DoSConfiguration) CreateObservablePrison()
 	{
 		var coinjoinIdStore = new Mock<ICoinJoinIdStore>();
 		coinjoinIdStore.Setup(x => x.Contains(uint256.One)).Returns(true);
-		return new Prison(
-			new DoSConfiguration(
-				SeverityInBitcoinsPerHour: 1.0m,
-				MinTimeForFailedToVerify: TimeSpan.FromDays(30),
-				MinTimeForCheating: TimeSpan.FromDays(1),
-				MinTimeInPrison: TimeSpan.FromHours(1),
-				PenaltyFactorForDisruptingConfirmation: 1.0m,
-				PenaltyFactorForDisruptingSigning: 1.5m,
-				PenaltyFactorForDisruptingByDoubleSpending: 3.0m),
+		var channel = Channel.CreateUnbounded<Offender>();
+		var dosConfiguration = CreateDoSConfiguration();
+		var prison = new Prison(
+			dosConfiguration,
 			coinjoinIdStore.Object,
 			Enumerable.Empty<Offender>(),
-			Channel.CreateUnbounded<Offender>().Writer);
+			channel.Writer);
+		return (prison, channel.Reader, dosConfiguration);
 	}
+
+	public static Prison CreatePrison()
+	{
+		var (prison, _, _) = CreateObservablePrison();
+		return prison;
+	}
+
+	public static DoSConfiguration CreateDoSConfiguration() =>
+		new (
+			SeverityInBitcoinsPerHour: 1.0m,
+			MinTimeForFailedToVerify: TimeSpan.FromDays(30),
+			MinTimeForCheating: TimeSpan.FromDays(1),
+			MinTimeInPrison: TimeSpan.FromHours(1),
+			PenaltyFactorForDisruptingConfirmation: 1.0m,
+			PenaltyFactorForDisruptingSigning: 1.5m,
+			PenaltyFactorForDisruptingByDoubleSpending: 3.0m);
 }

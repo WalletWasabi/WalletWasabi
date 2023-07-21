@@ -12,11 +12,11 @@ namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public class Prison
 {
-	public Prison(DoSConfiguration dosConfiguration, ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> inmates, ChannelWriter<Offender> channelWriterWriter)
+	public Prison(DoSConfiguration dosConfiguration, ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
 		DoSConfiguration = dosConfiguration;
 		CoinJoinIdStore = coinJoinIdStore;
-		Offenders = inmates.ToList();
+		Offenders = offenders.ToList();
 		NotificationChannelWriter = channelWriterWriter;
 	}
 
@@ -56,9 +56,9 @@ public class Prison
 
 
 	public bool IsBanned(OutPoint outpoint, DateTimeOffset when) =>
-		BanningPeriod(outpoint).Includes(when);
+		GetBanTimePeriod(outpoint).Includes(when);
 
-	public TimeFrame BanningPeriod(OutPoint outpoint)
+	public TimeFrame GetBanTimePeriod(OutPoint outpoint)
 	{
 		Offender? offender;
 		lock (Lock)
@@ -72,7 +72,7 @@ public class Prison
 			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForFailedToVerify),
 			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForCheating),
 			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
-			{ Offense: Inherited { Ancestor: { } ancestor } } => BanningPeriod(ancestor),
+			{ Offense: Inherited { Ancestor: { } ancestor } } => GetBanTimePeriod(ancestor),
 			_ => throw new NotSupportedException("Unknown offense type.")
 		};
 	}
@@ -109,7 +109,7 @@ public class Prison
 				_ => throw new NotSupportedException("Unknown round disruption method.")
 			});
 
-		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count);
+		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count-1);
 		return TimeSpan.FromHours((double)prisonTime);
 	}
 }
