@@ -39,13 +39,14 @@ public class WalletFilterProcessor : BackgroundService
 	
 	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
+		SynchronizationRequests = new PriorityQueue<SyncRequestWithTaskCompletionSource, SyncRequestWithTaskCompletionSource>(_comparer);
 		KeyManager = keyManager;
 		MempoolService = mempoolService;
 		TransactionProcessor = transactionProcessor;
 		BlockProvider = blockProvider;
 	}
 
-	private PriorityQueue<SyncRequestWithTaskCompletionSource, IComparer<SyncRequestWithTaskCompletionSource>> SynchronizationRequests { get; } = new();
+	private PriorityQueue<SyncRequestWithTaskCompletionSource, SyncRequestWithTaskCompletionSource> SynchronizationRequests { get; }
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(0);
 	private object SynchronizationRequestsLock { get; } = new();
 	private KeyManager KeyManager { get; }
@@ -59,7 +60,7 @@ public class WalletFilterProcessor : BackgroundService
 		lock (SynchronizationRequestsLock)
 		{
 			var toInsertRequest = new SyncRequestWithTaskCompletionSource(request, new TaskCompletionSource());
-			SynchronizationRequests.Enqueue(toInsertRequest, _comparer);
+			SynchronizationRequests.Enqueue(toInsertRequest, toInsertRequest);
 			SynchronizationRequestsSemaphore.Release(1);
 			return toInsertRequest.Task.Task;
 		}
