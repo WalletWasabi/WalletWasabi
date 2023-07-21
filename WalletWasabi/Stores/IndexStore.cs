@@ -241,8 +241,8 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		var filterModels = filters as FilterModel[] ?? filters.ToArray();
-		FilterModel? filterFailedToProcess = null;
+		var filterModels = filters.ToList();
+		int indexFailure = -1;
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			await using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
@@ -251,7 +251,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				if (!TryProcessFilterNoLock(filter, enqueue: true))
 				{
-					filterFailedToProcess = filter;
+					indexFailure = filterModels.IndexOf(filter);
 					break;
 				}
 			}
@@ -259,14 +259,14 @@ public class IndexStore : IAsyncDisposable
 			sqliteTransaction.Commit();
 		}
 
-		if (filterFailedToProcess is not null)
+		if (indexFailure >= 0)
 		{
-			var correctlyProcessedFilters = filterModels.TakeWhile(x => !x.Equals(filterFailedToProcess)).ToArray();
-			if (correctlyProcessedFilters.Length > 0)
+			var correctlyProcessedFilters = filterModels.Take(indexFailure).ToList();
+			if (correctlyProcessedFilters.Count > 0)
 			{
 				NewFilters?.Invoke(this, correctlyProcessedFilters);
 			}
-			throw new InvalidOperationException($"Failed to process filter with height {filterFailedToProcess.Header.Height}.");
+			throw new InvalidOperationException($"Failed to process filter with height {filterModels.ElementAt(indexFailure).Header.Height}.");
 		}
 
 		NewFilters?.Invoke(this, filterModels);
