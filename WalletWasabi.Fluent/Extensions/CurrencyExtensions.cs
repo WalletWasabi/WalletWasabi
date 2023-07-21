@@ -48,15 +48,9 @@ public static class CurrencyExtensions
 		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
 	}
 
-	public static string ToUsdAprox(this decimal n)
-	{
-		return $"≈{ToUsd(n)}";
-	}
+	public static string ToUsdAprox(this decimal n) => $"≈{ToUsd(n)}";
 
-	public static string ToUsdAproxBetweenParens(this decimal n)
-	{
-		return $"({ToUsdAprox(n)})";
-	}
+	public static string ToUsdAproxBetweenParens(this decimal n) => $"({ToUsdAprox(n)})";
 
 	public static string ToUsd(this decimal n)
 	{
@@ -71,16 +65,6 @@ public static class CurrencyExtensions
 			>= 1 => n.ToString("N1", FormatInfo),
 			_ => n.ToString("N2", FormatInfo)
 		};
-	}
-
-	public static string ToBtcWithUnitAndConversion(this Money money, decimal exchangeRate)
-	{
-		return money.ToBtcWithUnit() + " " + (money.ToDecimal(MoneyUnit.BTC) * exchangeRate).ToUsdAproxBetweenParens();
-	}
-
-	public static string ToFeeWithConversion(this Money money, decimal exchangeRate)
-	{
-		return money.ToFeeDisplayUnitFormattedString() + " " + (money.ToDecimal(MoneyUnit.BTC) * exchangeRate).ToUsdAproxBetweenParens();
 	}
 
 	public static string ToFeeDisplayUnitRawString(this Money? fee)

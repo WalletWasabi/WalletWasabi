@@ -13,10 +13,10 @@ public static class MoneyConverters
 	public static readonly IValueConverter ToUsdNumber =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAmount());
 
-	public static readonly IValueConverter ToUsdAprox =
+	public static readonly IValueConverter ToUsdApprox =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());
 
-	public static readonly IValueConverter ToUsdAproxBetweenParens =
+	public static readonly IValueConverter ToUsdApproxBetweenParens =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
 
 	public static readonly IValueConverter ToBtc =

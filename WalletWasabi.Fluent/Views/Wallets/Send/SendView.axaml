@@ -62,7 +62,7 @@
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
                     <Binding Path="Btc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-                    <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
+                    <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
