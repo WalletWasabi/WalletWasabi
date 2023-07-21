@@ -38,7 +38,7 @@
         <Style Selector="PathIcon.SpeedUp">
           <Setter Property="Data" Value="{StaticResource rocket_regular}" />
           <Setter Property="Height" Value="14" />
-          <Setter Property="ToolTip.Tip" Value="Boost" />
+          <Setter Property="ToolTip.Tip" Value="Accelerated" />
         </Style>
       </PathIcon.Styles>
     </PathIcon>
@@ -80,6 +80,5 @@
         </PathIcon.Styles>
       </PathIcon>
     </c:PrivacyContentControl>
-
   </StackPanel>
 </UserControl>
