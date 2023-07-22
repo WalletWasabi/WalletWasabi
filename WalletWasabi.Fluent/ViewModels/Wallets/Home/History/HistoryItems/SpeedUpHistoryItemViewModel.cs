@@ -15,6 +15,7 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 	public SpeedUpHistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, HistoryItemViewModelBase parent, IEnumerable<HistoryItemViewModelBase> children) : base(orderIndex, transactionSummary)
 	{
 		_children = children.Reverse();
+		IsConfirmed = children.All(x => x.IsConfirmed);
 		IsSpeedUp = true;
 		IncomingAmount = parent.IncomingAmount;
 		OutgoingAmount = parent.OutgoingAmount;
