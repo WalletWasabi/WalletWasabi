@@ -222,7 +222,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// Parent transactions this transaction is paying for.
 	/// </summary>
 	public IEnumerable<SmartTransaction> ParentsThisTxPaysFor =>
-		IsSpeedup ? WalletInputs
+		IsSpeedup && !IsCancellation ? WalletInputs
 			.Select(x => x.Transaction)
 			.Where(x => x.Height == Height
 				|| (x.Height == Height.Mempool && Height == Height.Unknown)) // It's ok if we didn't yet get to the mempool to consider this CPFP.
