@@ -13,6 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -24,13 +25,14 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinManager : BackgroundService
 {
-	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
+	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier, CoinPrison coinPrison)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		CoinPrison = coinPrison;
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -42,6 +44,7 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
+	public CoinPrison CoinPrison { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	/// <summary>
@@ -227,7 +230,8 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogDebug($"Coinjoin client started, {nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
+			walletToStart.LogInfo($"{nameof(CoinJoinClient)} started.");
+			walletToStart.LogDebug($"{nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
 			TryRemoveTrackedAutoStart(trackedAutoStarts, walletToStart);
@@ -456,7 +460,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			if (finishedCoinJoin.IsStopped)
 			{
-				wallet.LogInfo($"{nameof(CoinJoinClient)} was stopped.");
+				wallet.LogInfo($"{nameof(CoinJoinClient)} stopped.");
 			}
 			else
 			{
@@ -474,6 +478,15 @@ public class CoinJoinManager : BackgroundService
 		catch (Exception e)
 		{
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+		}
+
+		// If any coins were marked for banning, store them to file
+		if (finishedCoinJoin.BannedCoins.Any())
+		{
+			foreach (var info in finishedCoinJoin.BannedCoins)
+			{
+				CoinPrison.Ban(info.Coin, info.BanUntilUtc);
+			}
 		}
 
 		NotifyCoinJoinCompletion(finishedCoinJoin);
@@ -597,7 +610,7 @@ public class CoinJoinManager : BackgroundService
 			.Confirmed()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !coin.IsBanned)
+			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, out _))
 			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
