@@ -73,7 +73,5 @@
         </StackPanel>
       </c:QuestionControl>
     </Panel>
-
   </c:ContentArea>
-
 </UserControl>

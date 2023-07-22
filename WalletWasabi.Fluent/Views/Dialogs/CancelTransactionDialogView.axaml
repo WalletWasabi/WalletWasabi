@@ -15,7 +15,7 @@
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
                  EnableNext="False" NextContent="Cancel">
-    
+
     <c:ContentArea.Styles>
       <Style Selector="c|QuestionControl TextBlock">
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -44,6 +44,5 @@
                    Text="Are you sure?" />
       </StackPanel>
     </c:QuestionControl>
-
   </c:ContentArea>
 </UserControl>

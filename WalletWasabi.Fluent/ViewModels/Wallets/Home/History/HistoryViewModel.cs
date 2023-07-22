@@ -299,7 +299,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
 					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
-					history.Add( singleCjItem);
+					history.Add(singleCjItem);
 				}
 				else
 				{
@@ -324,7 +324,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				// Group creation
 				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
 				var parent = FindHistoryItem(summary, history);
-				var children = new [] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList()).ToList();
+				var children = new[] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList()).ToList();
 				children.ForEach(x => x.IsChild = true);
 				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, children);
 				speedUpGroup.SetBalance(children.Last().Balance);
