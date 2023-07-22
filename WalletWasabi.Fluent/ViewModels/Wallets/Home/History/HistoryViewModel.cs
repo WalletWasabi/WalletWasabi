@@ -312,22 +312,22 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 		}
 
-		// This second iteration is necessary to transform the flat list of speedups into actual groups.
-		// We basically do this:
-		// 1. identify which transactions are CPFP (parents) and their children
-		// 2. Create a speed-up group with parent+children
-		// 3. Remove the previously added items from the history (the no longer be there, but in the group)
-		// 4. Add the group
+		// This second iteration is necessary to transform the flat list of speed-ups into actual groups.
+		// Here are the steps:
+		// 1. Identify which transactions are CPFP (parents) and their children.
+		// 2. Create a speed-up group with parent and children.
+		// 3. Remove the previously added items from the history (they should no longer be there, but in the group).
+		// 4. Add the group.
 		foreach (var summary in summaries)
 		{
 			if (summary.Transaction.IsCPFPd)
 			{
-				// Group creation
+				// Group creation.
 				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
 
 				if (!TryFindHistoryItem(summary.TransactionId, history, out var parent))
 				{
-					continue; // If parent transaction not found, continue with the next summary
+					continue; // If the parent transaction is not found, continue with the next summary.
 				}
 
 				var groupItems = new List<HistoryItemViewModelBase> { parent };
@@ -340,7 +340,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				}
 
 				// If there is only one item in the group, it's not a group.
-				// This can happen for example when CPFP happens between user owned wallets.
+				// This can happen, for example, when CPFP occurs between user-owned wallets.
 				if (groupItems.Count <= 1)
 				{
 					continue;
@@ -349,7 +349,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				groupItems.ForEach(x => x.IsChild = true);
 				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, groupItems);
 
-				// Check if the last item's balance is not null before calling SetBalance
+				// Check if the last item's balance is not null before calling SetBalance.
 				var bal = groupItems.Last().Balance;
 				if (bal is not null)
 				{
@@ -362,7 +362,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 				history.Add(speedUpGroup);
 
-				// Removal
+				// Remove the items.
 				history.RemoveMany(groupItems);
 			}
 		}
