@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -323,24 +324,55 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				// Group creation
 				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
-				var parent = FindHistoryItem(summary.TransactionId, history);
-				var children = new[] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx.GetHash(), history)).ToList()).ToList();
-				children.ForEach(x => x.IsChild = true);
-				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, children);
-				speedUpGroup.SetBalance(children.Last().Balance);
+
+				if (!TryFindHistoryItem(summary.TransactionId, history, out var parent))
+				{
+					continue; // If parent transaction not found, continue with the next summary
+				}
+
+				var groupItems = new List<HistoryItemViewModelBase> { parent };
+				foreach (var childTx in childrenTxs)
+				{
+					if (TryFindHistoryItem(childTx.GetHash(), history, out var child))
+					{
+						groupItems.Add(child);
+					}
+				}
+
+				// If there is only one item in the group, it's not a group.
+				// This can happen for example when CPFP happens between user owned wallets.
+				if (groupItems.Count <= 1)
+				{
+					continue;
+				}
+
+				groupItems.ForEach(x => x.IsChild = true);
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, groupItems);
+
+				// Check if the last item's balance is not null before calling SetBalance
+				var bal = groupItems.Last().Balance;
+				if (bal is not null)
+				{
+					speedUpGroup.SetBalance(bal);
+				}
+				else
+				{
+					continue;
+				}
 
 				history.Add(speedUpGroup);
 
 				// Removal
-				history.RemoveMany(children);
+				history.RemoveMany(groupItems);
 			}
 		}
 
 		return history;
 	}
 
-	private HistoryItemViewModelBase FindHistoryItem(uint256 txid, IEnumerable<HistoryItemViewModelBase> history)
+	private bool TryFindHistoryItem(uint256 txid, IEnumerable<HistoryItemViewModelBase> history, [NotNullWhen(true)] out HistoryItemViewModelBase? found)
 	{
-		return history.Single(x => x.Id == txid);
+		found = history.SingleOrDefault(x => x.Id == txid);
+		return found is not null;
 	}
 }
