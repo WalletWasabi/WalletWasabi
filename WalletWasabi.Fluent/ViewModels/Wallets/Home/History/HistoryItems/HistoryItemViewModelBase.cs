@@ -73,6 +73,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsSpeedUp { get; set; }
 	public bool IsCPFP { get; set; }
+	public bool IsCPFPd { get; set; }
 
 	// TODO: Display icons. These toggles control the visibility of the icons in the view. Refactor when the logic is there.
 	// Please, notice that these properties are created to allow the required flexibility to adapt the icon visibility in a direct way.
@@ -86,10 +87,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public bool IsCancellationDisplayed => IsCancellation;
 
 	/// <remarks>
-	/// The user only cares about knowing if it's speed up tx after confirmation if it's a CPFP.
-	/// Otherwise it's just a transaction that got confirmed, and the user doesn't care about it used to be speed up status anymore.
+	/// CPFPd transactions are not SpeedUp transactions, but they are sped up as well.
 	/// </remarks>
-	public bool IsSpeedUpDisplayed => (!IsConfirmed || IsCPFP) && IsSpeedUp;
+	public bool IsSpeedUpDisplayed => !IsConfirmed && (IsSpeedUp || IsCPFPd);
+
+	public bool IsCPFPDisplayed => IsCPFP;
 
 	private async Task CopyToClipboardAsync(string text)
 	{

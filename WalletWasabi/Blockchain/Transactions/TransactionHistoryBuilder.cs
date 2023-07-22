@@ -63,6 +63,7 @@ public class TransactionHistoryBuilder
 					DestinationAddresses = destinationAddresses,
 					IsSpeedUp = containingTransaction.IsSpeedup,
 					IsCPFP = containingTransaction.IsCPFP,
+					IsCPFPd = containingTransaction.IsCPFPd,
 					IsCancellation = containingTransaction.IsCancellation,
 				});
 			}
@@ -100,6 +101,7 @@ public class TransactionHistoryBuilder
 						DestinationAddresses = destinationAddresses,
 						IsSpeedUp = spenderTransaction.IsSpeedup,
 						IsCPFP = containingTransaction.IsCPFP,
+						IsCPFPd = containingTransaction.IsCPFPd,
 						IsCancellation = spenderTransaction.IsCancellation,
 					});
 				}

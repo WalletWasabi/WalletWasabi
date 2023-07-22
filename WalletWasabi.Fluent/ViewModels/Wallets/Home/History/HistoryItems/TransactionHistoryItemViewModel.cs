@@ -31,6 +31,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IsCancellation = transactionSummary.IsCancellation;
 		IsSpeedUp = transactionSummary.IsSpeedUp;
 		IsCPFP = transactionSummary.IsCPFP;
+		IsCPFPd = transactionSummary.IsCPFPd;
 
 		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
 
