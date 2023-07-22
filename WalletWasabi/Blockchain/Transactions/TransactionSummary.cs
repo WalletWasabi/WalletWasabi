@@ -26,4 +26,5 @@ public class TransactionSummary
 	public SmartTransaction Transaction { get; set; }
 	public bool IsCancellation { get; set; }
 	public bool IsSpeedUp { get; set; }
+	public bool IsCPFP { get; set; }
 }
