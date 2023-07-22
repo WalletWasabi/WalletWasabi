@@ -117,6 +117,14 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 			var mempoolTransactions = MempoolStore.GetTransactionHashes();
 			foreach (var hash in mempoolTransactions)
 			{
+				if (hash.ToString() == "d44bbb430842ffea7f2ca9bc74e645cc716759a66ba5b22c064da3d664aaee01")
+				{
+					;
+				}
+				if (hash.ToString() == "fce998c6e6070c86932cfdcb679bb9178e031ceebd9f10fe41cd9d0820fe79c3")
+				{
+					;
+				}
 				// Contains is fast, so do this first.
 				if (ConfirmedStore.Contains(hash)
 					&& MempoolStore.TryRemove(hash, out var uTx))

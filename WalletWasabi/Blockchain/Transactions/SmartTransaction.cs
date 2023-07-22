@@ -401,6 +401,23 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			updated = true;
 		}
 
+		// If we have a flag set on the other, then we make sure it is set on this as well.
+		if (IsReplacement is false && tx.IsReplacement is true)
+		{
+			IsReplacement = true;
+			updated = true;
+		}
+		if (IsSpeedup is false && tx.IsSpeedup is true)
+		{
+			IsSpeedup = true;
+			updated = true;
+		}
+		if (IsCancellation is false && tx.IsCancellation is true)
+		{
+			IsCancellation = true;
+			updated = true;
+		}
+
 		return updated;
 	}
 

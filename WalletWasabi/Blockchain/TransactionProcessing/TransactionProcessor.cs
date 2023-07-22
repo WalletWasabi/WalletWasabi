@@ -130,17 +130,18 @@ public class TransactionProcessor
 		uint256 txId = tx.GetHash();
 
 		// If we already have the transaction, then let's work on that.
-		if (TransactionStore.TryGetTransaction(txId, out var foundTx))
-		{
-			foundTx.TryUpdate(tx);
-			tx = foundTx;
-			result = new ProcessedResult(tx);
-		}
-		else if (MempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
+		if (MempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
 		{
 			// If we already have the transaction in the broadcast store, then let's work on that.
 			foundEntry.Transaction.TryUpdate(tx);
 			tx = foundEntry.Transaction;
+			result = new ProcessedResult(tx);
+		}
+
+		if (TransactionStore.TryGetTransaction(txId, out var foundTx))
+		{
+			foundTx.TryUpdate(tx);
+			tx = foundTx;
 			result = new ProcessedResult(tx);
 		}
 
@@ -296,7 +297,7 @@ public class TransactionProcessor
 			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
 		}
 
-		if (result.IsNews)
+		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
 		{
 			TransactionStore.AddOrUpdate(tx);
 		}

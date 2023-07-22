@@ -100,8 +100,8 @@ public class TransactionHistoryBuilder
 						Outputs = outputs,
 						DestinationAddresses = destinationAddresses,
 						IsSpeedUp = spenderTransaction.IsSpeedup,
-						IsCPFP = containingTransaction.IsCPFP,
-						IsCPFPd = containingTransaction.IsCPFPd,
+						IsCPFP = spenderTransaction.IsCPFP,
+						IsCPFPd = spenderTransaction.IsCPFPd,
 						IsCancellation = spenderTransaction.IsCancellation,
 					});
 				}

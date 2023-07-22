@@ -791,7 +791,10 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Single(mempool);
+		Assert.Equal(2, mempool.Count());
+		Assert.Contains(tx0, mempool);
+		Assert.Contains(tx1, mempool);
+		Assert.Contains(tx2, mempool);
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
