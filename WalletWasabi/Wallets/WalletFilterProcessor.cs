@@ -15,40 +15,33 @@ namespace WalletWasabi.Wallets;
 
 public class WalletFilterProcessor : BackgroundService
 {
-	private readonly Comparer<SyncRequestWithTcs> _comparer = Comparer<SyncRequestWithTcs>.Create(
+	private static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
 		(x, y) =>
 		{
-			// Turbo and Complete have priority over NonTurbo.
-			if (x.SyncRequest.SyncType != SyncType.NonTurbo && y.SyncRequest.SyncType == SyncType.NonTurbo)
+			// Turbo and Complete have higher priority over NonTurbo.
+			if (x.SyncType != SyncType.NonTurbo && y.SyncType == SyncType.NonTurbo)
 			{
 				return 1;
 			}
-		
-			// Higher height have priority.
-			if (y.SyncRequest.Filter.Header.Height > x.SyncRequest.Filter.Header.Height)
-			{
-				return 1;
-			}
-			if (x.SyncRequest.Filter.Header.Height > y.SyncRequest.Filter.Header.Height)
-			{
-				return -1;
-			}
-		
-			return 0;
+
+			// Higher height have higher priority.
+			return y.Height.CompareTo(x.Height);
 		});
 	
 	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
-		SynchronizationRequests = new PriorityQueue<SyncRequestWithTcs, SyncRequestWithTcs>(_comparer);
 		KeyManager = keyManager;
 		MempoolService = mempoolService;
 		TransactionProcessor = transactionProcessor;
 		BlockProvider = blockProvider;
 	}
 
-	private PriorityQueue<SyncRequestWithTcs, SyncRequestWithTcs> SynchronizationRequests { get; }
-	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(0);
+	private PriorityQueue<SyncRequestWithTcs, Priority> SynchronizationRequests { get; } = new(Comparer);
+	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
+
+	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
 	private object SynchronizationRequestsLock { get; } = new();
+
 	private KeyManager KeyManager { get; }
 	private MempoolService MempoolService { get; }
 	private TransactionProcessor TransactionProcessor { get; }
@@ -57,21 +50,25 @@ public class WalletFilterProcessor : BackgroundService
 
 	private Task Add(SyncRequest request)
 	{
+		SyncRequestWithTcs requestWithTcs = new(request, new TaskCompletionSource());
+		Priority priority = new(request.SyncType, request.Filter.Header.Height);
+
 		lock (SynchronizationRequestsLock)
 		{
-			var toInsertRequest = new SyncRequestWithTcs(request, new TaskCompletionSource());
-			SynchronizationRequests.Enqueue(toInsertRequest, toInsertRequest);
-			SynchronizationRequestsSemaphore.Release(1);
-			return toInsertRequest.Task.Task;
+			SynchronizationRequests.Enqueue(requestWithTcs, priority);
+			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 		}
+
+		return requestWithTcs.Task.Task;
 	}
 
 	public async Task ProcessAsync(IEnumerable<SyncRequest> requests)
 	{
 		List<Task> tasks = new();
+
 		foreach (var request in requests)
 		{
-			var task = Add(request);
+			Task task = Add(request);
 			tasks.Add(task);
 		}
 
@@ -79,7 +76,7 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			var task = await Task.WhenAny(tasks).ConfigureAwait(false);
 			tasks.Remove(task);
-			await task; // This will re-throw an exception if the task failed.
+			await task.ConfigureAwait(false); // This will re-throw an exception if the task failed.
 		}
 	}
 
@@ -92,6 +89,7 @@ public class WalletFilterProcessor : BackgroundService
 			await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 			SyncRequestWithTcs request;
+
 			lock (SynchronizationRequestsLock)
 			{
 				if (SynchronizationRequests.Count == 0)
@@ -101,6 +99,7 @@ public class WalletFilterProcessor : BackgroundService
 
 				request = SynchronizationRequests.Dequeue();
 			}
+
 			try
 			{
 				await ProcessFilterModelAsync(request.SyncRequest, cancellationToken).ConfigureAwait(false);
@@ -144,42 +143,40 @@ public class WalletFilterProcessor : BackgroundService
 		var height = new Height(request.Filter.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(height, request.SyncType);
 
-		if (toTestKeys.Count == 0)
+		if (toTestKeys.Count > 0)
 		{
-			// No keys to test.
-			LastProcessedFilter = request.Filter;
-			return;
-		}
+			bool matchFound = request.Filter.Filter.MatchAny(toTestKeys, request.Filter.FilterKey);
 
-		var matchFound = request.Filter.Filter.MatchAny(toTestKeys, request.Filter.FilterKey);
-		if (matchFound)
-		{
-			Block currentBlock = await BlockProvider.GetBlockAsync(request.Filter.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
-
-			var txsToProcess = new List<SmartTransaction>();
-			for (int i = 0; i < currentBlock.Transactions.Count; i++)
+			if (matchFound)
 			{
-				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: MempoolService.TryGetLabel(tx.GetHash())));
-			}
+				Block currentBlock = await BlockProvider.GetBlockAsync(request.Filter.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
 
-			TransactionProcessor.Process(txsToProcess);
+				var txsToProcess = new List<SmartTransaction>();
+				for (int i = 0; i < currentBlock.Transactions.Count; i++)
+				{
+					Transaction tx = currentBlock.Transactions[i];
+					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: MempoolService.TryGetLabel(tx.GetHash())));
+				}
 
-			if (request.SyncType == SyncType.Turbo)
-			{
-				// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-				KeyManager.SetBestTurboSyncHeight(height);
-			}
-			else
-			{
-				// All keys were tested at this height, update the Height.
-				KeyManager.SetBestHeight(height);
+				TransactionProcessor.Process(txsToProcess);
+
+				if (request.SyncType == SyncType.Turbo)
+				{
+					// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
+					KeyManager.SetBestTurboSyncHeight(height);
+				}
+				else
+				{
+					// All keys were tested at this height, update the Height.
+					KeyManager.SetBestHeight(height);
+				}
 			}
 		}
 
 		LastProcessedFilter = request.Filter;
 	}
 
+	public record Priority(SyncType SyncType, uint Height);
 	public record SyncRequest(SyncType SyncType, FilterModel Filter);
 	private record SyncRequestWithTcs(SyncRequest SyncRequest, TaskCompletionSource Task);
 }
