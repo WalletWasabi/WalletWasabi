@@ -323,8 +323,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				// Group creation
 				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
-				var parent = FindHistoryItem(summary, history);
-				var children = new[] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx, history)).ToList()).ToList();
+				var parent = FindHistoryItem(summary.TransactionId, history);
+				var children = new[] { parent }.Concat(childrenTxs.Select(tx => FindHistoryItem(tx.GetHash(), history)).ToList()).ToList();
 				children.ForEach(x => x.IsChild = true);
 				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, children);
 				speedUpGroup.SetBalance(children.Last().Balance);
@@ -339,13 +339,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		return history;
 	}
 
-	private HistoryItemViewModelBase FindHistoryItem(SmartTransaction transaction, IEnumerable<HistoryItemViewModelBase> history)
+	private HistoryItemViewModelBase FindHistoryItem(uint256 txid, IEnumerable<HistoryItemViewModelBase> history)
 	{
-		return history.Single(x => x.Id == transaction.GetHash());
-	}
-
-	private static HistoryItemViewModelBase FindHistoryItem(TransactionSummary summary, IEnumerable<HistoryItemViewModelBase> history)
-	{
-		return history.Single(x => x.Id == summary.TransactionId);
+		return history.Single(x => x.Id == txid);
 	}
 }
