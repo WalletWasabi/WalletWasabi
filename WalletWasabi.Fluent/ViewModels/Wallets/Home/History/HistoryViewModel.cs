@@ -339,9 +339,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		return history;
 	}
 
-	private HistoryItemViewModelBase FindHistoryItem(SmartTransaction transaction, IEnumerable<HistoryItemViewModelBase> summaries)
+	private HistoryItemViewModelBase FindHistoryItem(SmartTransaction transaction, IEnumerable<HistoryItemViewModelBase> history)
 	{
-		return summaries.Single(x => x.Id == transaction.GetHash());
+		return history.Single(x => x.Id == transaction.GetHash());
 	}
 
 	private static HistoryItemViewModelBase FindHistoryItem(TransactionSummary summary, IEnumerable<HistoryItemViewModelBase> history)
