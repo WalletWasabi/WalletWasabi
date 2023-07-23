@@ -21,7 +21,10 @@ public class UtxoPrisonWardenTests
 		var workDir = Common.GetWorkDir();
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
-		using var w = new Warden(coordinatorParameters.PrisonFilePath, null!, coordinatorParameters.RuntimeCoordinatorConfig);
+		using var w = new Warden(
+			coordinatorParameters.PrisonFilePath,
+			WabiSabiFactory.CreateCoinJoinIdStore(),
+			coordinatorParameters.RuntimeCoordinatorConfig);
 		await w.StartAsync(CancellationToken.None);
 		await w.StopAsync(CancellationToken.None);
 	}
@@ -34,7 +37,10 @@ public class UtxoPrisonWardenTests
 
 		// Create prison.
 		CoordinatorParameters coordinatorParameters = new(workDir);
-		using var w = new Warden(coordinatorParameters.PrisonFilePath, null!, coordinatorParameters.RuntimeCoordinatorConfig);
+		using var w = new Warden(
+			coordinatorParameters.PrisonFilePath,
+			WabiSabiFactory.CreateCoinJoinIdStore(),
+			coordinatorParameters.RuntimeCoordinatorConfig);
 		await w.StartAsync(CancellationToken.None);
 		var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 		var i1 = BitcoinFactory.CreateOutPoint();
