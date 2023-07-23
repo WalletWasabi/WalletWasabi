@@ -18,6 +18,11 @@ public static class TransactionSummaryExtensions
 
 	public static TimeSpan? ConfirmationTime(this TransactionSummary transactionSummary, Wallet wallet)
 	{
+		if (IsConfirmed(transactionSummary))
+		{
+			return null;
+		}
+
 		if (transactionSummary.FeeRate is { } feeRate)
 		{
 			var time = TransactionFeeHelper.CalculateConfirmationTime(feeRate, wallet);
