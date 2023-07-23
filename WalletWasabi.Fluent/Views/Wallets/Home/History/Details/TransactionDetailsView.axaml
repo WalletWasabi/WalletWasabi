@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
@@ -29,7 +29,7 @@
                      Label="{Binding AmountText}"
                      CopyableContent="{Binding Amount}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
+          <TextBlock Text="{Binding Amount, Converter={x:Static conv:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
@@ -57,9 +57,9 @@
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee"
-                     CopyableContent="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}}" Classes="monoSpaced" />
+          <TextBlock Text="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithUnit}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
@@ -85,7 +85,7 @@
                      Label="Confirmation time"
                      CopyableContent="{Binding ConfirmationTime}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding ConfirmationTime}" Classes="monoSpaced" />
+          <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 

@@ -16,7 +16,21 @@ public static class TransactionSummaryExtensions
 		return confirmations > 0;
 	}
 
-	public static TimeSpan? ConfirmationTime(this TransactionSummary transactionSummary, Wallet wallet) => transactionSummary.FeeRate is { } feeRate ? TransactionFeeHelper.CalculateConfirmationTime(feeRate, wallet) : null;
+	public static TimeSpan? ConfirmationTime(this TransactionSummary transactionSummary, Wallet wallet)
+	{
+		if (transactionSummary.FeeRate is { } feeRate)
+		{
+			var time = TransactionFeeHelper.CalculateConfirmationTime(feeRate, wallet);
+			if (time < TimeSpan.FromMinutes(1))
+			{
+				return null;
+			}
+
+			return time;
+		}
+
+		return null;
+	}
 
 	public static int GetConfirmations(this TransactionSummary model) => model.Height.Type == HeightType.Chain ? (int)Services.BitcoinStore.SmartHeaderChain.TipHeight - model.Height.Value + 1 : 0;
 
