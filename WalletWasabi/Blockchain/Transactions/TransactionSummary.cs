@@ -23,7 +23,7 @@ public class TransactionSummary
 	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; init; }
-	public long VirtualSize { get; init; }
+	public int VirtualSize { get; init; }
 	
 	public FeeRate? FeeRate
 	{
