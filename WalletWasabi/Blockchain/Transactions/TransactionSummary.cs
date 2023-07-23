@@ -24,7 +24,7 @@ public class TransactionSummary
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; init; }
 	public long VirtualSize { get; init; }
-
+	
 	public FeeRate? FeeRate
 	{
 		get

@@ -79,6 +79,18 @@
 
       <Separator />
 
+      <!-- Confirmation Time -->
+      <c:PreviewItem IsVisible="{Binding ConfirmationTime, Converter={x:Static ObjectConverters.IsNotNull}}"
+                     Icon="{StaticResource clock_regular}"
+                     Label="Confirmation time"
+                     CopyableContent="{Binding ConfirmationTime}">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding ConfirmationTime}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding ConfirmationTime, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
       <!-- Transaction ID -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID"

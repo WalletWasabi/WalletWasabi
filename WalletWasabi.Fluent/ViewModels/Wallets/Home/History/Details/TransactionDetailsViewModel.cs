@@ -48,6 +48,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public Money? Fee { get; }
 
+	public TimeSpan? ConfirmationTime { get; private set; }
+
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
 		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
@@ -55,6 +57,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
+		ConfirmationTime = transactionSummary.ConfirmationTime(_walletVm.Wallet);
 		IsConfirmed = Confirmations > 0;
 
 		if (transactionSummary.Amount < Money.Zero)
