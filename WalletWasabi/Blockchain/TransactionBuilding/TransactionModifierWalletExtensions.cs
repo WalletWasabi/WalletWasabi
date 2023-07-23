@@ -58,6 +58,11 @@ public static class TransactionModifierWalletExtensions
 
 		cancelTransaction.Transaction.SetCancellation();
 
+		if (transactionToCancel.IsSpeedup)
+		{
+			cancelTransaction.Transaction.SetSpeedup();
+		}
+
 		var transactionToCancelFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var transactionToCancelSentAmount = transactionToCancel.GetForeignOutputs(keyManager).Sum(x => x.TxOut.Value);
 		var transactionToCancelCost = transactionToCancelSentAmount + transactionToCancelFee;
