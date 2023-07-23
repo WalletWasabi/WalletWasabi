@@ -23,7 +23,6 @@
     <PathIcon Classes.Confirmed="{Binding IsConfirmedDisplayed}"
               Classes.Pending="{Binding IsPendingDisplayed}"
               Classes.SpeedUp="{Binding IsSpeedUpDisplayed}"
-              Classes.CPFP="{Binding IsCPFPDisplayed}"
               Opacity="0.6">
       <PathIcon.Styles>
         <Style Selector="PathIcon.Confirmed">
@@ -39,12 +38,7 @@
         <Style Selector="PathIcon.SpeedUp">
           <Setter Property="Data" Value="{StaticResource rocket_regular}" />
           <Setter Property="Height" Value="14" />
-          <Setter Property="ToolTip.Tip" Value="Accelerated" />
-        </Style>
-        <Style Selector="PathIcon.CPFP">
-          <Setter Property="Data" Value="{StaticResource rocket_regular}" />
-          <Setter Property="Height" Value="14" />
-          <Setter Property="ToolTip.Tip" Value="Accelerator" />
+          <Setter Property="ToolTip.Tip" Value="Pending (Accelerated)" />
         </Style>
       </PathIcon.Styles>
     </PathIcon>
@@ -63,7 +57,8 @@
                 Classes.NormalTransaction="{Binding IsNormalTransactionDisplayed}"
                 Classes.Coinjoin="{Binding IsCoinjoinDisplayed}"
                 Classes.Cancellation="{Binding IsCancellationDisplayed}"
-                Classes.CoinjoinGroup="{Binding IsCoinjoinGroupDisplayed}">
+                Classes.CoinjoinGroup="{Binding IsCoinjoinGroupDisplayed}"
+                Classes.CPFP="{Binding IsCPFPDisplayed}">
         <PathIcon.Styles>
           <Style Selector="PathIcon.NormalTransaction">
             <Setter Property="Data" Value="{StaticResource normal_transaction}" />
@@ -82,6 +77,11 @@
             <Setter Property="Data" Value="{StaticResource cancel_regular}" />
             <Setter Property="Height" Value="15" />
             <Setter Property="ToolTip.Tip" Value="Cancellation" />
+          </Style>
+          <Style Selector="PathIcon.CPFP">
+            <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+            <Setter Property="Height" Value="14" />
+            <Setter Property="ToolTip.Tip" Value="Accelerator" />
           </Style>
         </PathIcon.Styles>
       </PathIcon>
