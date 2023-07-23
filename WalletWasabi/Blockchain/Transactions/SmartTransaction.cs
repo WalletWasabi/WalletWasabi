@@ -215,7 +215,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// Children transactions those are paying for this transaction.
 	/// </summary>
 	public IEnumerable<SmartTransaction> ChildrenPayForThisTx => WalletOutputs
-		.Where(x => x.SpenderTransaction is { } spender && spender.IsSpeedup && spender.Height == Height)
+		.Where(x => x.SpenderTransaction is { } spender && spender.IsCPFP && spender.Height == Height)
 		.Select(x => x.SpenderTransaction!);
 
 	/// <summary>
