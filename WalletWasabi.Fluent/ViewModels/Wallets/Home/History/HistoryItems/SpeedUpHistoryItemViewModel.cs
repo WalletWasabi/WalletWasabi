@@ -12,7 +12,12 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private readonly IEnumerable<HistoryItemViewModelBase> _children;
 
-	public SpeedUpHistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, HistoryItemViewModelBase parent, IEnumerable<HistoryItemViewModelBase> children) : base(orderIndex, transactionSummary)
+	public SpeedUpHistoryItemViewModel(
+		int orderIndex,
+		TransactionSummary transactionSummary,
+		HistoryItemViewModelBase parent,
+		IEnumerable<HistoryItemViewModelBase> children)
+		: base(orderIndex, transactionSummary)
 	{
 		_children = children.Reverse();
 		IsConfirmed = children.All(x => x.IsConfirmed);

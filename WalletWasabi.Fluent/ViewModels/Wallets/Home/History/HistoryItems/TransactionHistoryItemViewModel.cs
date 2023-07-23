@@ -21,13 +21,10 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		: base(orderIndex, transactionSummary)
 	{
 		Labels = transactionSummary.Labels;
-		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
 		WalletVm = walletVm;
 
-		var confirmations = transactionSummary.GetConfirmations();
-		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 		IsCancellation = transactionSummary.IsCancellation;
 		IsSpeedUp = transactionSummary.IsSpeedUp;
 		IsCPFP = transactionSummary.IsCPFP;

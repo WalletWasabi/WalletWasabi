@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -27,7 +28,10 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		OrderIndex = orderIndex;
 		Id = transactionSummary.TransactionId;
-		_confirmedToolTip = "Confirmed";
+
+		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
+
+		_isConfirmed = transactionSummary.IsConfirmed();
 
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
@@ -41,6 +45,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				});
 		IsCancellation = false;
 		IsSpeedUp = false;
+	}
+
+	protected string GetConfirmedToolTip(int confirmations)
+	{
+		return $"Confirmed ({confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)})";
 	}
 
 	public uint256 Id { get; }
