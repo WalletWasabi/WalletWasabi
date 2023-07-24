@@ -26,7 +26,7 @@
         </Button.IsVisible>
       </Button>
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="amount" HorizontalContentAlignment="Stretch"
+                     Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount}">
         <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
       </c:PreviewItem>
@@ -35,7 +35,7 @@
 
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
-                   Label="recipient"
+                   Label="Recipient"
                    CopyableContent="{Binding Recipient}">
       <c:LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                               HorizontalAlignment="Left"
@@ -45,7 +45,7 @@
 
     <!-- Address -->
     <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                   Label="address"
+                   Label="Address"
                    CopyableContent="{Binding AddressText}">
       <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </c:PreviewItem>
@@ -74,12 +74,12 @@
 
       <StackPanel Spacing="10">
         <c:PreviewItem Icon="{StaticResource timer_regular}"
-                       Label="confirming within"
+                       Label="Confirming within"
                        IsVisible="{Binding !IsCustomFeeUsed}">
           <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Label="fee"
+                       Label="Fee"
                        CopyableContent="{Binding Fee}">
           <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
         </c:PreviewItem>

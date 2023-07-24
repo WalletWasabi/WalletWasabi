@@ -156,7 +156,8 @@
             </DockPanel>
           </Border>
         </DataTemplate>
-
+        
+        <!-- Unconfirmed funds warning -->
         <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
           <Border Classes="warning">
             <DockPanel>
@@ -165,6 +166,17 @@
             </DockPanel>
           </Border>
         </DataTemplate>
+
+        <!-- Coinjoining funds warning -->
+        <DataTemplate DataType="{x:Type model:CoinjoiningFundsWarning}">
+          <Border Classes="warning info">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses coinjoining coins." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
       </ItemsControl.DataTemplates>
     </ItemsControl>
     <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
