@@ -3,7 +3,18 @@
                     xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
 
   <Design.PreviewWith>
-    <c:AnimatedButton />
+    <StackPanel Spacing="8">
+      <!-- Generic -->
+      <TreeDataGridRow />
+      <!-- HistoryTable -->
+      <TreeDataGridRow Theme="{StaticResource HistoryTableTreeDataGridRow}" />
+      <!-- SelectCoinsDialogView -->
+      <TreeDataGridRow Theme="{StaticResource SelectCoinsDialogViewTreeDataGridRow}" />
+      <!-- WalletCoinsView -->
+      <TreeDataGridRow Theme="{StaticResource WalletCoinsViewTreeDataGridRow}" />
+      <!-- ReceiveAddressesView -->
+      <TreeDataGridRow Theme="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
+    </StackPanel>
   </Design.PreviewWith>
 
   <ControlTheme x:Key="{x:Type TreeDataGridRow}" TargetType="TreeDataGridRow">
