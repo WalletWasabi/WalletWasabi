@@ -1,19 +1,18 @@
 using System.Linq;
-using System.Reactive;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Speed Up Transaction")]
-public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Unit>
+public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 
@@ -48,10 +47,6 @@ public partial class SpeedUpTransactionDialogViewModel : DialogViewModelBase<Uni
 
 		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
 		return boostingTransactionFee - originalFee;
-	}
-
-	protected override void OnDialogClosed()
-	{
 	}
 
 	private async Task OnSpeedUpTransactionAsync(BuildTransactionResult boostingTransaction)

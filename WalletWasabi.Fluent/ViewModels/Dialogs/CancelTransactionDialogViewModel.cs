@@ -1,19 +1,18 @@
 using System.Linq;
-using System.Reactive;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Cancel Transaction")]
-public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit>
+public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 
@@ -40,10 +39,6 @@ public partial class CancelTransactionDialogViewModel : DialogViewModelBase<Unit
 	public decimal FeeDifferenceUsd { get; }
 
 	public Money FeeDifference { get; }
-
-	protected override void OnDialogClosed()
-	{
-	}
 
 	private async Task OnCancelTransactionAsync(BuildTransactionResult cancellingTransaction)
 	{
