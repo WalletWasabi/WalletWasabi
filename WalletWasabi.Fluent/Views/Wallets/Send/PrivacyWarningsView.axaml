@@ -240,7 +240,19 @@
         <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
           <c:SuggestionItem>
             <DockPanel>
-              <PathIcon Data="{StaticResource money_24_regular}" />
+              <DockPanel.Styles>
+                <Style Selector="PathIcon">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_equal}" />
+                </Style>
+                <Style Selector="PathIcon.more">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
+                </Style>
+                <Style Selector="PathIcon.less">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_less}" />
+                </Style>
+              </DockPanel.Styles>
+              <PathIcon Classes.more="{Binding IsMore}"
+                        Classes.less="{Binding IsLess}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
