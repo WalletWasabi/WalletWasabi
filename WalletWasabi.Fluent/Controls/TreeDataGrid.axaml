@@ -17,6 +17,8 @@
     </StackPanel>
   </Design.PreviewWith>
 
+  <!-- TreeDataGridRow: Generic -->
+
   <ControlTheme x:Key="{x:Type TreeDataGridRow}" TargetType="TreeDataGridRow">
 
     <Setter Property="Focusable" Value="False" />
@@ -73,6 +75,30 @@
       <Setter Property="Background" Value="Transparent" />
     </Style>
 
+  </ControlTheme>
+
+  <!-- TreeDataGridRow: HistoryTable.axaml -->
+
+  <ControlTheme x:Key="HistoryTableTreeDataGridRow" TargetType="TreeDataGridRow">
+    <!-- TODO: -->
+  </ControlTheme>
+
+  <!-- TreeDataGridRow: SelectCoinsDialogView.axaml -->
+
+  <ControlTheme x:Key="SelectCoinsDialogViewTreeDataGridRow" TargetType="TreeDataGridRow">
+    <!-- TODO: -->
+  </ControlTheme>
+
+  <!-- TreeDataGridRow: WalletCoinsView.axaml -->
+
+  <ControlTheme x:Key="WalletCoinsViewTreeDataGridRow" TargetType="TreeDataGridRow">
+    <!-- TODO: -->
+  </ControlTheme>
+
+  <!-- TreeDataGridRow: ReceiveAddressesView.axaml -->
+
+  <ControlTheme x:Key="ReceiveAddressesViewTreeDataGridRow" TargetType="TreeDataGridRow">
+    <!-- TODO: -->
   </ControlTheme>
 
 </ResourceDictionary>
