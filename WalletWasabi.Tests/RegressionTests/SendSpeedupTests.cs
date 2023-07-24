@@ -440,6 +440,87 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Throws<TransactionFeeOverpaymentException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
 
 			#endregion TooSmallHasChange
+
+			#region MarnixFoundBug
+
+			// https://github.com/zkSNACKs/WalletWasabi/pull/10976#pullrequestreview-1542077218
+			// I speed up a tx which has change, but the the additional fee was deducted from the original send amount not from the change utxo?
+			// https://mempool.space/testnet/tx/b0de46a002e6487dac3a3a98841380d4ced7e4e8482217b2758dd53df0760af8
+			// I sent the 0.0004
+
+			// 1. Let's empty the wallet first.
+			var tx = wallet.BuildTransaction(password, new PaymentIntent(await rpc.GetNewAddressAsync(), MoneyRequest.CreateAllRemaining()), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
+			await broadcaster.SendTransactionAsync(tx.Transaction);
+			await rpc.GenerateAsync(1);
+			waitCount = 0;
+			while (wallet.Coins.Any())
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
+				}
+			}
+
+			// 2. Let's get the exact 9 outputs into our wallet that Marnix had.
+			var amounts = new[]
+			{
+				0.00005000m,
+				0.00004900m,
+				0.00004490m,
+				0.00005000m,
+				0.00005000m,
+				0.00005000m,
+				0.00005000m,
+				0.00005000m,
+				0.00005000m
+			};
+
+			foreach (var amount in amounts)
+			{
+				await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), Money.Coins(amount));
+			}
+
+			await rpc.GenerateAsync(1);
+			waitCount = 0;
+			while (wallet.Coins.Count() != 9)
+			{
+				await Task.Delay(1000);
+				waitCount++;
+				if (waitCount >= 21)
+				{
+					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
+				}
+			}
+
+			// 3. Let's simulate the original tx.
+			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(await rpc.GetNewAddressAsync(), MoneyRequest.Create(Money.Coins(0.0004m), subtractFee: false), label: "foo"), FeeStrategy.CreateFromFeeRate(1), allowUnconfirmed: true);
+
+			Assert.Equal(9, txToSpeedUp.SpentCoins.Count());
+			Assert.Equal(Money.Coins(0.0004m), txToSpeedUp.OuterWalletOutputs.Single().Amount);
+
+			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
+
+			// 4. Finally let's speed up the tx.
+			var feeRate = new FeeRate(2.01m);
+			rbf = wallet.SpeedUpTransaction(txToSpeedUp.Transaction, feeRate);
+			await broadcaster.SendTransactionAsync(rbf.Transaction);
+
+			Assert.Single(rbf.InnerWalletOutputs);
+			Assert.Equal(Money.Coins(0.0004m), Assert.Single(rbf.OuterWalletOutputs).Amount);
+
+			var rbfFeeRate = rbf.Fee.Satoshi / rbf.Transaction.Transaction.GetVirtualSize();
+			Assert.True(rbf.Fee > txToSpeedUp.Fee);
+			Assert.Equal(2, rbfFeeRate);
+
+			Assert.True(rbf.Transaction.IsSpeedup);
+			Assert.True(rbf.Transaction.IsReplacement);
+			Assert.False(rbf.Transaction.IsCPFP);
+			Assert.False(rbf.Transaction.IsCPFPd);
+			Assert.False(rbf.Transaction.IsCancellation);
+
+			#endregion MarnixFoundBug
 		}
 		finally
 		{

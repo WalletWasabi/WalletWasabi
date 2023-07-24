@@ -76,7 +76,8 @@ public static class TransactionModifierWalletExtensions
 
 	public static BuildTransactionResult SpeedUpTransaction(
 		this Wallet wallet,
-		SmartTransaction transactionToSpeedUp)
+		SmartTransaction transactionToSpeedUp,
+		FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 
@@ -84,13 +85,13 @@ public static class TransactionModifierWalletExtensions
 		{
 			try
 			{
-				return wallet.RbfTransaction(transactionToSpeedUp);
+				return wallet.RbfTransaction(transactionToSpeedUp, preferredFeeRate);
 			}
 			catch (Exception rbfEx)
 			{
 				try
 				{
-					return wallet.CpfpTransaction(transactionToSpeedUp);
+					return wallet.CpfpTransaction(transactionToSpeedUp, preferredFeeRate);
 				}
 				catch
 				{
@@ -101,7 +102,7 @@ public static class TransactionModifierWalletExtensions
 		}
 		else if (transactionToSpeedUp.IsCpfpable(keyManager))
 		{
-			return wallet.CpfpTransaction(transactionToSpeedUp);
+			return wallet.CpfpTransaction(transactionToSpeedUp, preferredFeeRate);
 		}
 		else
 		{
@@ -109,12 +110,12 @@ public static class TransactionModifierWalletExtensions
 		}
 	}
 
-	private static BuildTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp)
+	private static BuildTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
 		var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
@@ -219,7 +220,7 @@ public static class TransactionModifierWalletExtensions
 		return rbf;
 	}
 
-	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp)
+	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
@@ -230,7 +231,7 @@ public static class TransactionModifierWalletExtensions
 
 		try
 		{
-			return wallet.CpfpTransaction(transactionToCpfp, allowedInputs);
+			return wallet.CpfpTransaction(transactionToCpfp, allowedInputs, preferredFeeRate);
 		}
 		catch (Exception ex)
 		{
@@ -248,14 +249,14 @@ public static class TransactionModifierWalletExtensions
 
 				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, InsecureRandom.Instance)!);
 
-				return wallet.CpfpTransaction(transactionToCpfp, allowedInputs);
+				return wallet.CpfpTransaction(transactionToCpfp, allowedInputs, preferredFeeRate);
 			}
 
 			throw;
 		}
 	}
 
-	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs)
+	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
@@ -263,7 +264,7 @@ public static class TransactionModifierWalletExtensions
 		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
 		var txSizeBytes = transactionToCpfp.Transaction.GetVirtualSize();
 
-		var bestFeeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(
