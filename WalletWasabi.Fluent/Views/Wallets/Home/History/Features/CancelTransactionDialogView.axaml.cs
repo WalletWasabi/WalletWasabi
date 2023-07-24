@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Dialogs;
+namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Features;
 
 public partial class CancelTransactionDialogView : UserControl
 {

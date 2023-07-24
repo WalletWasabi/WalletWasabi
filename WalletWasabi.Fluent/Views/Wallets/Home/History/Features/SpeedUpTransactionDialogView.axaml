@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:DataType="features:SpeedUpTransactionDialogViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Dialogs.SpeedUpTransactionDialogView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Features.SpeedUpTransactionDialogView">
 
   <c:ContentArea Title="Speed Up Transaction"
                  EnableCancel="False"
