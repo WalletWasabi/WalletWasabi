@@ -145,40 +145,9 @@
         <Style Selector="TreeDataGridRow:pointerover Button.historyDetails">
           <Setter Property="Opacity" Value="1" />
         </Style>
+
         <Style Selector="TreeDataGridRow">
-          <Setter Property="Focusable" Value="False" />
-          <Setter Property="Height" Value="37.5" />
-          <Setter Property="Template">
-            <ControlTemplate>
-              <DockPanel LastChildFill="True"
-                         Background="Transparent"
-                         x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
-                <i:Interaction.Behaviors>
-                  <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
-                </i:Interaction.Behaviors>
-                <Border Name="PART_SelectionIndicator"
-                        BorderThickness="2 0 0 0"
-                        DockPanel.Dock="Left"
-                        VerticalAlignment="Stretch" />
-                <Panel>
-                  <Rectangle Name="BackgroundRectangle"
-                             Classes.selectAnimation="{Binding IsFlashing}" />
-                  <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
-                                              ElementFactory="{TemplateBinding ElementFactory}"
-                                              Items="{TemplateBinding Columns}"
-                                              Rows="{TemplateBinding Rows}"
-                                              Classes.coinJoinTransaction="{Binding !IsSingleCoinJoinTransaction}"
-                                              x:CompileBindings="False" />
-                  <Rectangle Name="PART_Separator"
-                             Margin="-2,0,0,0"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Bottom"
-                             IsHitTestVisible="False"
-                             Height="1" />
-                </Panel>
-              </DockPanel>
-            </ControlTemplate>
-          </Setter>
+          <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
         </Style>
 
         <Style Selector="TreeDataGridRow.Transaction">
@@ -191,47 +160,6 @@
           <Setter Property="ContextMenu" Value="{StaticResource CoinJoinsTransactionContextMenu}" />
         </Style>
 
-        <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
-          <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-          <Setter Property="Opacity" Value="0" />
-          <Style.Animations>
-            <Animation Duration="1.5">
-              <KeyFrame KeyTime="0:0:0.0">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:0.25">
-                <Setter Property="Opacity" Value="0.5" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:0.50">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:0.75">
-                <Setter Property="Opacity" Value="0.5" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:1">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:1.25">
-                <Setter Property="Opacity" Value="0.5" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:1.5">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="TreeDataGridRow /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}" />
-        </Style>
-        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="TreeDataGridRow:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
@@ -255,29 +183,7 @@
         </Style>
 
         <Style Selector="TreeDataGridExpanderCell">
-          <Setter Property="Template">
-            <ControlTemplate>
-              <Border x:Name="CellBorder"
-                      Background="{TemplateBinding Background}"
-                      BorderBrush="{TemplateBinding BorderBrush}"
-                      BorderThickness="{TemplateBinding BorderThickness}"
-                      CornerRadius="{TemplateBinding CornerRadius}"
-                      Padding="0">
-                <DockPanel>
-                  <Border DockPanel.Dock="Left"
-                          Margin="4 0"
-                          Width="12" Height="12">
-                    <ToggleButton Theme="{StaticResource FluentTreeViewExpandCollapseChevron}"
-                                  Focusable="False"
-                                  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                  IsVisible="{TemplateBinding ShowExpander}"
-                                  Cursor="Hand" />
-                  </Border>
-                  <Decorator Name="PART_Content" />
-                </DockPanel>
-              </Border>
-            </ControlTemplate>
-          </Setter>
+          <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridExpanderCell}" />
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>

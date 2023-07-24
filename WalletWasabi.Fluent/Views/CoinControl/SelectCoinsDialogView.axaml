@@ -73,24 +73,7 @@
       </Style>
 
       <Style Selector="TreeDataGridExpanderCell">
-        <Setter Property="Template">
-          <ControlTemplate>
-            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Indent, Converter={StaticResource IndentConverter}}">
-              <DockPanel>
-                <Border DockPanel.Dock="Left"
-                        Margin="4 0"
-                        Width="12" Height="12">
-                  <ToggleButton Classes="ExpandCollapseChevron"
-                                Focusable="False"
-                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                IsVisible="{TemplateBinding ShowExpander}"
-                                Cursor="Hand" />
-                </Border>
-                <Decorator Name="PART_Content" />
-              </DockPanel>
-            </Border>
-          </ControlTemplate>
-        </Setter>
+        <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridExpanderCell}" />
       </Style>
 
     </controls:ContentArea.Styles>
