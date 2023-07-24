@@ -34,9 +34,7 @@ public class TransactionSummary
 				return null;
 			}
 
-			var rate = (double) Fee.Satoshi / VirtualSize;
-			var money = new Money((decimal)rate, MoneyUnit.Satoshi);
-			return new FeeRate(money * 100);
+			return new FeeRate(Fee, VirtualSize);
 		}
 	}
 }
