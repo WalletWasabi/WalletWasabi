@@ -81,18 +81,21 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public bool IsCancellation { get; set; }
 
 	public bool IsSpeedUp { get; set; }
+
 	public bool IsCPFP { get; set; }
+
 	public bool IsCPFPd { get; set; }
 
-	// TODO: Display icons. These toggles control the visibility of the icons in the view. Refactor when the logic is there.
-	// Please, notice that these properties are created to allow the required flexibility to adapt the icon visibility in a direct way.
-	// We can, however, do this directly in the XAML file by using Multibinding or Converters, if we are OK with the result.
 	public bool IsConfirmedDisplayed => IsConfirmed;
 
 	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
+
 	public bool IsNormalTransactionDisplayed => !IsCoinJoin;
+
 	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
+
 	public bool IsCoinjoinGroupDisplayed => IsCoinJoin && IsCoinJoinGroup;
+
 	public bool IsCancellationDisplayed => IsCancellation;
 
 	/// <remarks>
