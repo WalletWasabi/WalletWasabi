@@ -229,7 +229,7 @@
             <DockPanel>
               <DockPanel.Styles>
                 <Style Selector="PathIcon">
-                  <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_equal}" />
                 </Style>
                 <Style Selector="PathIcon.more">
                   <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
