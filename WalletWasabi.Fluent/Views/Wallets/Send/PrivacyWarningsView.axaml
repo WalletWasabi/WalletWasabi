@@ -112,7 +112,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0" />
+              <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
+                         ToolTip.Tip="This compromises your privacy as multiple people can see this transaction. You should coinjoin first or carefully select who should know about this transaction with the label management (if possible)." />
               <c:LabelsItemsPresenter Items="{Binding Labels}" />
             </DockPanel>
           </Border>
@@ -123,7 +124,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses non-private coins." />
+              <TextBlock Text="Transaction uses non-private coins."
+                         ToolTip.Tip="This compromises the privacy of this transaction. You should conjoin first, so you'll have (enough) private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -133,7 +135,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses semi-private coins." />
+              <TextBlock Text="Transaction uses semi-private coins." 
+                         ToolTip.Tip="This may compromise the privacy of this transaction. It is reccommended to coinjoin first, so you'll have (enough) private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -143,7 +146,8 @@
           <Border Classes="warning info">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction creates change." />
+              <TextBlock Text="Transaction creates change." 
+                         ToolTip.Tip="This means that there is change that can be linked back to you. Use the change avoidance suggestion if possible, or coinjoin the change later." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -153,7 +157,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}" />
+              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}" 
+                         ToolTip.Tip="This means that your transaction involves combining multiple coins into one transaction. This can potentially reduce the privacy of your transaction."/>
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -163,7 +168,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses unconfirmed coins." />
+              <TextBlock Text="Transaction uses unconfirmed coins." 
+                         ToolTip.Tip="This may cause your transaction to be delayed or rejected and you may not pay the desired amount of mining fees. Wait for a confirmation to only use confirmed coins." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -173,7 +179,8 @@
           <Border Classes="warning info">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses coinjoining coins." />
+              <TextBlock Text="Transaction uses coinjoining coins." 
+                         ToolTip.Tip="This may cause issues, because some of your coins are currently participating in a coinjoin transaction. Consider waiting for current coinjoin to be finished, before sending this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
