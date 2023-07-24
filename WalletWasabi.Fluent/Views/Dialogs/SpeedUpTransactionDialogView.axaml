@@ -3,10 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:features="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-             x:DataType="dialogs:SpeedUpTransactionDialogViewModel"
+             x:DataType="features:SpeedUpTransactionDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.SpeedUpTransactionDialogView">
 

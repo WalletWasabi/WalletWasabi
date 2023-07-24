@@ -9,7 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
 [NavigationMetaData(Title = "Speed Up Transaction")]
 public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
