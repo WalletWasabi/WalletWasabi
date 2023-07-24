@@ -20,12 +20,13 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string _dateString;
+	[AutoNotify] private string? _dateString;
 	[AutoNotify] private Money? _amount;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private TimeSpan? _confirmationTime;
 
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -47,8 +48,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public bool IsFeeVisible { get; }
 
 	public Money? Fee { get; }
-
-	public TimeSpan? ConfirmationTime { get; private set; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
