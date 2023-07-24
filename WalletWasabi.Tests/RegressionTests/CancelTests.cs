@@ -180,6 +180,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			txToCancel = wallet.BuildChangelessTransaction(externalAddr, "foo", new FeeRate(1m), cancellingTx.InnerWalletOutputs);
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
 
+			Assert.Equal("foo", txToCancel.Transaction.Labels.Single());
+			foreach (var op in txToCancel.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
+
 			cancellingTx = wallet.CancelTransaction(txToCancel.Transaction);
 
 			Assert.Empty(txToCancel.InnerWalletOutputs);
@@ -210,6 +216,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.Transaction.ParentsThisTxPaysFor);
 			Assert.Empty(cancellingTx.Transaction.ChildrenPayForThisTx);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
+
+			Assert.Equal("foo", cancellingTx.Transaction.Labels.Single());
+			foreach (var op in cancellingTx.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
 
 			#endregion NoChange
 
@@ -264,6 +276,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.NotNull(sameCoin3.SpenderTransaction);
 			Assert.NotNull(sameCoin4.SpenderTransaction);
 
+			Assert.Equal("foo", spendingTxToCancel.Transaction.Labels.Single());
+			foreach (var op in spendingTxToCancel.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
+
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
 			cancellingTx = wallet.CancelTransaction(spendingTxToCancel.Transaction);
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
@@ -284,6 +302,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.Transaction.ChildrenPayForThisTx);
 			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
+
+			Assert.Equal("foo", cancellingTx.Transaction.Labels.Single());
+			foreach (var op in cancellingTx.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
 
 			#endregion CantCancel
 		}
