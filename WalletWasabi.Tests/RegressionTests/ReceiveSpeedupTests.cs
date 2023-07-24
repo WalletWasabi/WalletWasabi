@@ -124,6 +124,17 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp);
 			await broadcaster.SendTransactionAsync(cpfp.Transaction);
 
+			Assert.Equal("foo", txToSpeedUp.Labels.Single());
+			Assert.Empty(cpfp.Transaction.Labels);
+			foreach (var op in txToSpeedUp.WalletOutputs)
+			{
+				Assert.Equal("foo", op.HdPubKey.Labels.Single());
+			}
+			foreach (var op in cpfp.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
+
 			Assert.Equal(2, txToSpeedUp.Transaction.Outputs.Count);
 			var outputToSpend = Assert.Single(txToSpeedUp.GetWalletOutputs(keyManager));
 
@@ -163,6 +174,12 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(cpfp.Transaction.GetHash(), out _));
 
+			Assert.Empty(rbf.Transaction.Labels);
+			foreach (var op in rbf.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
+
 			var rbfInput = Assert.Single(rbf.Transaction.GetWalletInputs(keyManager));
 			Assert.Equal(rbfInput, cpfpInput);
 
@@ -197,6 +214,12 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			var rbf2 = wallet.SpeedUpTransaction(rbf.Transaction);
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
+
+			Assert.Empty(rbf2.Transaction.Labels);
+			foreach (var op in rbf2.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
 
 			var rbf2Input = Assert.Single(rbf2.Transaction.GetWalletInputs(keyManager));
 			Assert.Equal(rbf2Input, rbfInput);
