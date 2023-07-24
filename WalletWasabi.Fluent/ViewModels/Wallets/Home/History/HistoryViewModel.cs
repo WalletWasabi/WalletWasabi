@@ -346,7 +346,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 					continue;
 				}
 
-				groupItems.ForEach(x => x.IsChild = true);
 				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, groupItems);
 
 				// Check if the last item's balance is not null before calling SetBalance.

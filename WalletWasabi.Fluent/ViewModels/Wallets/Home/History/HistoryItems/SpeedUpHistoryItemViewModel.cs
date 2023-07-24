@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 
@@ -29,6 +28,11 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 		DateString = parent.Date.ToLocalTime().ToUserFacingString();
 		Labels = parent.Labels;
 		ShowDetailsCommand = parent.ShowDetailsCommand;
+
+		foreach (var child in _children)
+		{
+			child.IsChild = true;
+		}
 	}
 
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
