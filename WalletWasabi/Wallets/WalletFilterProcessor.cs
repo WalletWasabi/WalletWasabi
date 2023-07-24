@@ -69,20 +69,8 @@ public class WalletFilterProcessor : BackgroundService
 
 	public async Task ProcessAsync(IEnumerable<SyncRequest> requests)
 	{
-		List<Task> tasks = new();
-
-		foreach (var request in requests)
-		{
-			Task task = Add(request);
-			tasks.Add(task);
-		}
-
-		while (tasks.Count > 0)
-		{
-			var task = await Task.WhenAny(tasks).ConfigureAwait(false);
-			tasks.Remove(task);
-			await task.ConfigureAwait(false); // This will re-throw an exception if the task failed.
-		}
+		List<Task> tasks = requests.Select(Add).ToList();
+		await Task.WhenAll(tasks).ConfigureAwait(false); // This will throw if a tasks throws.
 	}
 
 	/// <inheritdoc />
@@ -111,7 +99,17 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				Logger.LogError(ex);
 				request.Tcs.SetException(ex);
-				throw;
+				lock (SynchronizationRequestsLock)
+				{
+					// Cancel the remaining tasks before throwing.
+					while (SynchronizationRequests.TryDequeue(out request, out _))
+					{
+						request.Tcs.SetCanceled(CancellationToken.None);
+					}
+
+					SynchronizationRequestsSemaphore.Dispose();
+					throw;
+				}
 			}
 		}
 	}
