@@ -1,0 +1,67 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+
+  <Design.PreviewWith>
+    <c:AnimatedButton />
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type TreeDataGridRow}" TargetType="TreeDataGridRow">
+
+    <Setter Property="Focusable" Value="False" />
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel LastChildFill="True">
+          <Border Name="PART_SelectionIndicator"
+                  BorderThickness="2 0 0 0"
+                  DockPanel.Dock="Left"
+                  VerticalAlignment="Stretch" />
+          <Panel>
+            <Rectangle Name="BackgroundRectangle" />
+            <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
+                                        ElementFactory="{TemplateBinding ElementFactory}"
+                                        Items="{TemplateBinding Columns}"
+                                        Rows="{TemplateBinding Rows}" />
+          </Panel>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^/template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource SystemControlTransparentBrush}" />
+    </Style>
+    <Style Selector="^:pointerover /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundBrush}" />
+    </Style>
+    <Style Selector="^:selected /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundBrush}" />
+      <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundOpacity}" />
+    </Style>
+    <!--<Style Selector="^:selected:pointerover /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedHoveredUnfocusedBackgroundBrush}" />
+      <Setter Property="Opacity" Value="{DynamicResource ListAccentMediumOpacity}" />
+    </Style>-->
+    <Style Selector="^:selected:focus /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundBrush}" />
+      <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedBackgroundOpacity}" />
+    </Style>
+    <!--<Style Selector="^:selected:pointerover:focus /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedHoveredBackgroundBrush}" />
+      <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedHoveredBackgroundOpacity}" />
+    </Style>-->
+
+    <Style Selector="^:selected /template/ Border#PART_SelectionIndicator">
+      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
+    </Style>
+    <Style Selector="^/template/ Border#PART_SelectionIndicator">
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+  </ControlTheme>
+
+</ResourceDictionary>
