@@ -62,6 +62,7 @@
       <Setter Property="DockPanel.Dock" Value="Left" />
       <Setter Property="Height" Value="25" />
       <Setter Property="Width" Value="25" />
+      <Setter Property="Opacity" Value="0.5" />
     </Style>
 
     <Style Selector="Border.warning">
@@ -156,7 +157,7 @@
             </DockPanel>
           </Border>
         </DataTemplate>
-        
+
         <!-- Unconfirmed funds warning -->
         <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
           <Border Classes="warning">
