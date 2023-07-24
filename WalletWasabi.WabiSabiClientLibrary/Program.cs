@@ -6,12 +6,14 @@ using Microsoft.OpenApi.Models;
 #endif
 using System.IO;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 #if DEBUG
 using System.Xml.XPath;
 #endif
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Crypto.Serialization;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WabiSabiClientLibrary.Crypto;
 #if DEBUG
@@ -40,6 +42,8 @@ public class Program
 			builder.Services.AddControllers().AddNewtonsoftJson(x =>
 			{
 				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+				x.SerializerSettings.Converters.Add(new ZeroCredentialsRequestJsonConverter());
+				x.SerializerSettings.Converters.Add(new RealCredentialsRequestJsonConverter());
 			}).ConfigureApiBehaviorOptions(options =>
 			{
 				options.SuppressModelStateInvalidFilter = true;
