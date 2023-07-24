@@ -403,6 +403,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 
+				WalletFilterProcessor.Remove(invalidFilter.Header.Height);
 				if (BlockProvider is SmartBlockProvider smartBlockProvider)
 				{
 					await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
@@ -438,7 +439,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 			}
 
-			await WalletFilterProcessor.ProcessAsync(requests);
+			await WalletFilterProcessor.ProcessAsync(requests).ConfigureAwait(false);
 			
 			NewFilterProcessed?.Invoke(this, filterModels.Last());
 			

@@ -67,6 +67,20 @@ public class WalletFilterProcessor : BackgroundService
 		return requestWithTcs.Tcs.Task;
 	}
 
+	public void Remove(uint fromHeight)
+	{
+		lock (SynchronizationRequestsLock)
+		{
+			foreach (var (item, _) in SynchronizationRequests.UnorderedItems)
+			{
+				if (item.SyncRequest.Filter.Header.Height >= fromHeight)
+				{
+					item.SyncRequest.DoNotProcess = true;
+				}
+			}
+		}
+	}
+	
 	public async Task ProcessAsync(IEnumerable<SyncRequest> requests)
 	{
 		List<Task> tasks = requests.Select(Add).ToList();
@@ -88,6 +102,12 @@ public class WalletFilterProcessor : BackgroundService
 				{
 					continue;
 				}
+			}
+
+			if (request.SyncRequest.DoNotProcess)
+			{
+				request.Tcs.SetCanceled(CancellationToken.None);
+				return;
 			}
 
 			try
@@ -176,8 +196,11 @@ public class WalletFilterProcessor : BackgroundService
 
 		LastProcessedFilter = request.Filter;
 	}
-
-	public record Priority(SyncType SyncType, uint Height);
-	public record SyncRequest(SyncType SyncType, FilterModel Filter);
+	
+	public record SyncRequest(SyncType SyncType, FilterModel Filter)
+	{
+		public bool DoNotProcess { get; set; }
+	}
+	private record Priority(SyncType SyncType, uint Height);
 	private record SyncRequestWithTcs(SyncRequest SyncRequest, TaskCompletionSource Tcs);
 }
