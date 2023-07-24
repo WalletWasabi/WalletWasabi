@@ -176,6 +176,11 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
+			Assert.Equal("bar, foo", txToSpeedUp.Transaction.Labels);
+			Assert.Equal("bar, foo", rbf.Transaction.Labels);
+			Assert.Equal("foo", txToSpeedUp.Transaction.WalletOutputs.Where(x => x.HdPubKey.Labels.Any()).Select(x => x.HdPubKey.Labels).Single());
+			Assert.Equal("foo", rbf.Transaction.WalletOutputs.Where(x => x.HdPubKey.Labels.Any()).Select(x => x.HdPubKey.Labels).Single());
+
 			#endregion HasChange
 
 			#region CanDoTwice
@@ -233,11 +238,14 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 				}
 			}
 
+			Assert.Equal("bar, foo", rbf2.Transaction.Labels);
+			Assert.Equal("foo", rbf2.Transaction.WalletOutputs.Where(x => x.HdPubKey.Labels.Any()).Select(x => x.HdPubKey.Labels).Single());
+
 			#endregion CanDoTwice
 
 			#region HasNoChange
 
-			txToSpeedUp = wallet.BuildChangelessTransaction(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, "foo", new FeeRate(1m), wallet.Coins);
+			txToSpeedUp = wallet.BuildChangelessTransaction(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, "bar", new FeeRate(1m), wallet.Coins);
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
 			foreach (var coin in txToSpeedUp.SpentCoins)
@@ -302,6 +310,11 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(rbf.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
+
+			Assert.Equal("bar, foo", txToSpeedUp.Transaction.Labels);
+			Assert.Equal("bar, foo", rbf.Transaction.Labels);
+			Assert.Equal("foo", txToSpeedUp.Transaction.WalletOutputs.Select(x => x.HdPubKey.Labels).Single());
+			Assert.Equal("foo", rbf.Transaction.WalletOutputs.Select(x => x.HdPubKey.Labels).Single());
 
 			#endregion HasNoChange
 
