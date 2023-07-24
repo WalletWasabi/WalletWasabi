@@ -1,6 +1,8 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Rendering;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -22,7 +24,8 @@ public class RestartRendererInLinuxBehavior : DisposingBehavior<Window>
 			.Where(_ => OperatingSystem.IsLinux())
 			.Do(_ =>
 			{
-				AssociatedObject.Renderer.Start();
+				// TODO: IRenderer.Start() is PrivateApi and can't be accessed normally here.
+				// (AssociatedObject as IRenderRoot).Renderer.Start();
 				AssociatedObject.Activate();
 			})
 			.Subscribe()
