@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Wallets;
@@ -63,7 +64,7 @@ public class WalletFilterProcessor : BackgroundService
 			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 		}
 
-		return requestWithTcs.Task.Task;
+		return requestWithTcs.Tcs.Task;
 	}
 
 	public async Task ProcessAsync(IEnumerable<SyncRequest> requests)
@@ -92,26 +93,24 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-			SyncRequestWithTcs request;
-
+			SyncRequestWithTcs? request;
 			lock (SynchronizationRequestsLock)
 			{
-				if (SynchronizationRequests.Count == 0)
+				if (!SynchronizationRequests.TryDequeue(out request, out _))
 				{
 					continue;
 				}
-
-				request = SynchronizationRequests.Dequeue();
 			}
 
 			try
 			{
 				await ProcessFilterModelAsync(request.SyncRequest, cancellationToken).ConfigureAwait(false);
-				request.Task.SetResult();
+				request.Tcs.SetResult();
 			}
 			catch (Exception ex)
 			{
-				request.Task.SetException(ex);
+				Logger.LogError(ex);
+				request.Tcs.SetException(ex);
 				throw;
 			}
 		}
@@ -182,5 +181,5 @@ public class WalletFilterProcessor : BackgroundService
 
 	public record Priority(SyncType SyncType, uint Height);
 	public record SyncRequest(SyncType SyncType, FilterModel Filter);
-	private record SyncRequestWithTcs(SyncRequest SyncRequest, TaskCompletionSource Task);
+	private record SyncRequestWithTcs(SyncRequest SyncRequest, TaskCompletionSource Tcs);
 }
