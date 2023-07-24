@@ -68,7 +68,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		var keyManager = KeyManager.CreateNew(out _, password, network);
 
 		// 5. Create wallet service.
-		var workDir = Helpers.Common.GetWorkDir();
+		var workDir = Common.GetWorkDir();
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
@@ -124,6 +124,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			var txToCancel = wallet.BuildTransaction(password, new PaymentIntent(externalAddr, amountToSend, label: "bar"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
 
+			Assert.Equal("bar", txToCancel.Transaction.Labels.Single());
+			foreach (var op in txToCancel.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
+
 			var cancellingTx = wallet.CancelTransaction(txToCancel.Transaction);
 
 			var changeOut = Assert.Single(txToCancel.InnerWalletOutputs);
@@ -157,6 +163,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.Transaction.ChildrenPayForThisTx);
 			Assert.False(cancellingTx.Transaction.IsSpeedup);
 			Assert.True(cancellingTx.Transaction.IsCancellation);
+
+			Assert.Equal("bar", cancellingTx.Transaction.Labels.Single());
+			foreach (var op in cancellingTx.InnerWalletOutputs)
+			{
+				Assert.Empty(op.HdPubKey.Labels);
+			}
 
 			await rpc.GenerateAsync(1);
 

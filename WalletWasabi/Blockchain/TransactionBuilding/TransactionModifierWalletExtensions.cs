@@ -42,7 +42,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			cancelTransaction = wallet.BuildChangelessTransaction(
 				ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
-				LabelsArray.Empty,
+				transactionToCancel.Labels,
 				new FeeRate(originalFeeRate.SatoshiPerByte + i),
 				transactionToCancel.WalletInputs,
 				allowDoubleSpend: true,
