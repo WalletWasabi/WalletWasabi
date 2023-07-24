@@ -62,7 +62,7 @@
         <PathIcon.Styles>
           <Style Selector="PathIcon.NormalTransaction">
             <Setter Property="Data" Value="{StaticResource normal_transaction}" />
-            <Setter Property="ToolTip" Value="Transaction" />
+            <Setter Property="ToolTip.Tip" Value="Transaction" />
           </Style>
           <Style Selector="PathIcon.Coinjoin">
             <Setter Property="Data" Value="{StaticResource shield_regular}" />
