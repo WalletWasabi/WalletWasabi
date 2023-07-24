@@ -37,12 +37,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
-			.SubscribeAsync(
-				async _ =>
-				{
-					await Task.Delay(1260);
-					IsFlashing = false;
-				});
+			.SubscribeAsync(async _ =>
+			{
+				await Task.Delay(1260);
+				IsFlashing = false;
+			});
+
 		IsCancellation = false;
 		IsSpeedUp = false;
 	}
