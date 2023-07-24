@@ -176,6 +176,11 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
+			Assert.Equal("bar", txToSpeedUp.Transaction.Labels);
+			Assert.Equal("bar", rbf.Transaction.Labels);
+			Assert.Empty(txToSpeedUp.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
+			Assert.Empty(rbf.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
+
 			#endregion HasChange
 
 			#region CanDoTwiceHasChange
@@ -215,6 +220,9 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(rbf2.Transaction.ChildrenPayForThisTx);
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
+
+			Assert.Equal("bar", rbf2.Transaction.Labels);
+			Assert.Empty(rbf2.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
 
 			await rpc.GenerateAsync(1);
 			waitCount = 0;
@@ -280,6 +288,11 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(rbf.Transaction.IsSpeedup);
 			Assert.False(rbf.Transaction.IsCancellation);
 
+			Assert.Equal("bar", txToSpeedUp.Transaction.Labels);
+			Assert.Equal("bar", rbf.Transaction.Labels);
+			Assert.Empty(txToSpeedUp.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
+			Assert.Empty(rbf.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
+
 			#endregion HasNoChange
 
 			#region CanDoTwiceHasNoChange
@@ -327,6 +340,9 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 					throw new InvalidOperationException($"Wallet didn't recognize transaction confirmation.");
 				}
 			}
+
+			Assert.Equal("bar", rbf2.Transaction.Labels);
+			Assert.Empty(rbf2.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
 
 			#endregion CanDoTwiceHasNoChange
 
@@ -406,6 +422,11 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cpfp.Transaction.ForeignInputs);
 			Assert.Single(cpfp.Transaction.Transaction.Outputs);
 			Assert.Contains(Assert.Single(txToSpeedUp.InnerWalletOutputs), cpfp.SpentCoins);
+
+			Assert.Equal("bar", txToSpeedUp.Transaction.Labels);
+			Assert.Empty(cpfp.Transaction.Labels);
+			Assert.Empty(txToSpeedUp.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
+			Assert.Empty(cpfp.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
 
 			#endregion TooSmallToRbfButCanCpfpHasChange
 
@@ -519,6 +540,11 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.False(rbf.Transaction.IsCPFP);
 			Assert.False(rbf.Transaction.IsCPFPd);
 			Assert.False(rbf.Transaction.IsCancellation);
+
+			Assert.Equal("foo", txToSpeedUp.Transaction.Labels);
+			Assert.Equal("foo", rbf.Transaction.Labels);
+			Assert.Empty(txToSpeedUp.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
+			Assert.Empty(rbf.Transaction.WalletOutputs.SelectMany(x => x.HdPubKey.Labels));
 
 			#endregion MarnixFoundBug
 		}
