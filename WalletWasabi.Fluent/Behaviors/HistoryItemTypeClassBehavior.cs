@@ -79,5 +79,10 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<TreeDat
 		{
 			AssociatedObject.Classes.Remove(CoinJoinsClass);
 		}
+
+		if (AssociatedObject.Classes.Contains(SpeedUpClass))
+		{
+			AssociatedObject.Classes.Remove(SpeedUpClass);
+		}
 	}
 }
