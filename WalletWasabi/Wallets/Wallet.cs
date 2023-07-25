@@ -259,10 +259,6 @@ public class Wallet : BackgroundService, IWallet
 			{
 				_ = Task.Run(() => PerformSynchronizationAsync(BitcoinStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, cancel), cancel);
 			}
-			else
-			{
-				_ = Task.CompletedTask;
-			}
 		}
 		catch
 		{
