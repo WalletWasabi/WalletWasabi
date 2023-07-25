@@ -4,10 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="50"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
              x:CompileBindings="True"
              x:DataType="historyItems:HistoryItemViewModelBase">
+
+  <UserControl.Resources>
+    <converters:TransactionHistoryItemToolTipConverter x:Key="ToolTipConverter" />
+  </UserControl.Resources>
 
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
@@ -23,22 +28,20 @@
     <PathIcon Classes.Confirmed="{Binding IsConfirmedDisplayed}"
               Classes.Pending="{Binding IsPendingDisplayed}"
               Classes.SpeedUp="{Binding IsSpeedUpDisplayed}"
+              ToolTip.Tip="{Binding Converter={StaticResource ToolTipConverter}}"
               Opacity="0.6">
       <PathIcon.Styles>
         <Style Selector="PathIcon.Confirmed">
           <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
           <Setter Property="Height" Value="11" />
-          <Setter Property="ToolTip.Tip" Value="{Binding ConfirmedToolTip}" />
         </Style>
         <Style Selector="PathIcon.Pending">
           <Setter Property="Data" Value="{StaticResource clock_regular}" />
           <Setter Property="Height" Value="14" />
-          <Setter Property="ToolTip.Tip" Value="Pending" />
         </Style>
         <Style Selector="PathIcon.SpeedUp">
           <Setter Property="Data" Value="{StaticResource rocket_regular}" />
           <Setter Property="Height" Value="14" />
-          <Setter Property="ToolTip.Tip" Value="Pending (Accelerated)" />
         </Style>
       </PathIcon.Styles>
     </PathIcon>
