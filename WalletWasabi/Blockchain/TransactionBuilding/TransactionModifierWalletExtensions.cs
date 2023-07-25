@@ -118,7 +118,7 @@ public static class TransactionModifierWalletExtensions
 		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
-		var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
+		var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 		var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 		var minRelayFee = originalFee + minRelayFeeRate.GetFee(txSizeBytes);
