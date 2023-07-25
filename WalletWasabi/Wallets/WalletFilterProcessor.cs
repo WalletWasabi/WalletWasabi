@@ -58,28 +58,21 @@ public class WalletFilterProcessor : BackgroundService
 	public FilterModel? LastProcessedFilter { get; private set; }
 	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
 
-	private void Add(SyncRequest request)
+	private void AddNoLock(SyncRequest request)
 	{
 		Priority priority = new(request.SyncType, request.Height);
-
-		lock (SynchronizationRequestsLock)
-		{
-			SynchronizationRequests.Enqueue(request, priority);
-			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
-		}
+		SynchronizationRequests.Enqueue(request, priority);
+		SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 	}
 
 	public void Remove(uint fromHeight)
 	{
 		lock (SynchronizationRequestsLock)
 		{
-			foreach (var (item, _) in SynchronizationRequests.UnorderedItems)
-			{
-				if (item.Height >= fromHeight)
-				{
-					item.DoNotProcess = true;
-				}
-			}
+			SynchronizationRequests.UnorderedItems
+				.Where(item => item.Element.Height >= fromHeight)
+				.ToList()
+				.ForEach(item => item.Element.DoNotProcess = true);
 		}
 	}
 
@@ -96,13 +89,22 @@ public class WalletFilterProcessor : BackgroundService
 			KeyManager.GetBestHeight() + 1);
 
 		List<Task> tasks = new();
-		foreach (var height in Enumerable.Range((int)currentHeight, (int)(currentHeight - toHeight)))
+		lock (SynchronizationRequestsLock)
 		{
-			var tcs = new TaskCompletionSource();
-			Add(new SyncRequest(syncType, (uint)height, tcs));
-			tasks.Add(tcs.Task);
+			var items = SynchronizationRequests.UnorderedItems;
+			foreach (var height in Enumerable.Range((int)currentHeight, (int)(currentHeight - toHeight)))
+			{
+				if (items.Any(x => x.Element.Height == height && x.Element.SyncType == syncType))
+				{
+					continue;
+				}
+				
+				var tcs = new TaskCompletionSource();
+				AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
+				tasks.Add(tcs.Task);
+			}
 		}
-		
+
 		await Task.WhenAll(tasks).ConfigureAwait(false); // This will throw if a tasks throws.
 	}
 
@@ -154,6 +156,11 @@ public class WalletFilterProcessor : BackgroundService
 					SynchronizationRequestsSemaphore.Dispose();
 					throw;
 				}
+			}
+
+			if (SynchronizationRequestsSemaphore.CurrentCount == 0)
+			{
+				FiltersCache.Clear();
 			}
 		}
 	}
