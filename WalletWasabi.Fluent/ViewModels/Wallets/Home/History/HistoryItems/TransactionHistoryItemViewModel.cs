@@ -35,7 +35,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		DateString = Date.ToLocalTime().ToUserFacingString();
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
-		CanCancelTransaction = transactionSummary.Transaction.IsCancelable(KeyManager);
+		CanCancelTransaction = transactionSummary.Transaction.IsCancellable(KeyManager);
 		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(KeyManager);
 		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transactionSummary.Transaction), Observable.Return(CanSpeedUpTransaction));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transactionSummary.Transaction), Observable.Return(CanCancelTransaction));

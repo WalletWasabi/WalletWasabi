@@ -309,7 +309,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsSpeedupable(KeyManager keyManager) =>
 		(IsCpfpable(keyManager) || IsRbfable(keyManager)); // [Impossiblility] We can only speed up if we can either CPFP or RBF.
 
-	public bool IsCancelable(KeyManager keyManager) =>
+	public bool IsCancellable(KeyManager keyManager) =>
 		IsRbfable(keyManager) // [Impossiblility] We can only cancel with RBF.
 		&& GetForeignOutputs(keyManager).Any() // [Nonsensical] Cancellation of a transaction in which only we have outputs in, is non-sensical.
 		&& !IsCancellation; // [Nonsensical] It is non-sensical to cancel a cancellation transaction.

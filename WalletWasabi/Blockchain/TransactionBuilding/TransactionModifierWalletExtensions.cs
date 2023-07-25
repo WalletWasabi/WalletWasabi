@@ -23,9 +23,9 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		if (!transactionToCancel.IsCancelable(keyManager))
+		if (!transactionToCancel.IsCancellable(keyManager))
 		{
-			throw new InvalidOperationException("Transaction is not cancelable.");
+			throw new InvalidOperationException("Transaction is not cancellable.");
 		}
 
 		// Take the first own output and if we have it that's where we send all our money to.
