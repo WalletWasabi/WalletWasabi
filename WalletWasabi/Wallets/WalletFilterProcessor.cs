@@ -98,12 +98,15 @@ public class WalletFilterProcessor : BackgroundService
 					KeyManager.GetBestTurboSyncHeight() + 1:
 					KeyManager.GetBestHeight() + 1);
 			}
-			
-			foreach (var height in Enumerable.Range((int)startingHeight, (int)(toHeight - startingHeight) + 1))
+
+			if (toHeight >= startingHeight)
 			{
-				var tcs = new TaskCompletionSource();
-				AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
-				tasks.Add(tcs.Task);
+				foreach (var height in Enumerable.Range((int)startingHeight, (int)(toHeight - startingHeight) + 1))
+				{
+					var tcs = new TaskCompletionSource();
+					AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
+					tasks.Add(tcs.Task);
+				}
 			}
 		}
 
