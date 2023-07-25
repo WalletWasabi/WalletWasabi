@@ -6,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
