@@ -59,6 +59,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 			if (isAuthorized)
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(boostingTransaction.Transaction);
+				_wallet.UpdateUsedHdPubKeysLabels(boostingTransaction.HdPubKeysWithNewLabels);
 				UiContext.Navigate().To().SendSuccess(_wallet, boostingTransaction.Transaction);
 			}
 		}
