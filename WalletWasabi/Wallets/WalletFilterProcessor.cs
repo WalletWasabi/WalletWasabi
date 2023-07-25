@@ -240,7 +240,7 @@ public class WalletFilterProcessor : BackgroundService
 		LastProcessedFilter = filter;
 	}
 	
-	public record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
+	private record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
 	{
 		public bool DoNotProcess { get; set; }
 	}
