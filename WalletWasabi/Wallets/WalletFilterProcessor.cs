@@ -22,15 +22,15 @@ public class WalletFilterProcessor : BackgroundService
 			// Turbo and Complete have higher priority over NonTurbo.
 			if (x.SyncType != SyncType.NonTurbo && y.SyncType == SyncType.NonTurbo)
             {
-            	return 1;
+            	return -1;
             }
 			if (y.SyncType != SyncType.NonTurbo && x.SyncType == SyncType.NonTurbo)
 			{
-				return -1;
+				return 1;
 			}
 
 			// Higher height have higher priority.
-			return y.Height.CompareTo(x.Height);
+			return -y.Height.CompareTo(x.Height);
 		});
 	
 	public WalletFilterProcessor(KeyManager keyManager, MempoolService mempoolService, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
