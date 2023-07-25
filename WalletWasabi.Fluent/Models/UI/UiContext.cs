@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Input.Platform;
 using WalletWasabi.Fluent.Models.ClientConfig;
@@ -10,9 +11,9 @@ namespace WalletWasabi.Fluent.Models.UI;
 public class UiContext
 {
 	private INavigate? _navigate;
-	private static UiContext? DefaultInstance;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IUiClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings)
+
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -24,7 +25,7 @@ public class UiContext
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 	}
 
-	public IClipboard Clipboard { get; }
+	public IUiClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 	public IWalletRepository WalletRepository { get; }
 	public IQrCodeReader QrCodeReader { get; }
@@ -34,8 +35,9 @@ public class UiContext
 	public IApplicationSettings ApplicationSettings { get; }
 
 	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
-	// We provide "Null Object Pattern" objects for unit tests (when Application.Current is null)
-	public static UiContext Default => DefaultInstance ??= new UiContext(new QrGenerator(), new QrCodeReader(), Application.Current?.Clipboard ?? new NullClipboard(), CreateWalletRepository(), CreateHardwareWalletInterface(), CreateFileSystem(), CreateConfig(), CreateApplicationSettings());
+
+	// We provide a NullClipboard object for unit tests (when Application.Current is null)
+	public static UiContext Default;
 
 	public void RegisterNavigation(INavigate navigate)
 	{
