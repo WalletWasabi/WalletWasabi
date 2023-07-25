@@ -15,10 +15,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
+	private readonly SmartTransaction _transactionToCancel;
 
 	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
 	{
 		_wallet = wallet;
+		_transactionToCancel = transactionToCancel;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var originalFee = transactionToCancel.WalletInputs.Sum(x => x.Amount) - transactionToCancel.OutputValues.Sum(x => x);
@@ -57,7 +59,10 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Speed Up failed", "Wasabi was unable to cancel your transaction.");
+
+			var msg = _transactionToCancel.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
+
+			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.");
 		}
 
 		IsBusy = false;

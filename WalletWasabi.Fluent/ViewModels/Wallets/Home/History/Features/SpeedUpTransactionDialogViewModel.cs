@@ -15,10 +15,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
+	private readonly SmartTransaction _transactionToSpeedUp;
 
 	private SpeedUpTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
 		_wallet = wallet;
+		_transactionToSpeedUp = transactionToSpeedUp;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
@@ -66,7 +68,8 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Speed Up Failed", "Wasabi was unable to speed up your transaction.");
+			var msg = _transactionToSpeedUp.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
+			UiContext.Navigate().To().ShowErrorDialog(msg, "Speed Up Failed", "Wasabi was unable to speed up your transaction.");
 		}
 
 		IsBusy = false;
