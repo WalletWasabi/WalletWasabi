@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 

@@ -469,14 +469,13 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 		
-		//TODO: This should be locked
+		// TODO: This should be locked
 		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 		var currentTip = BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
 			
 		await PerformSynchronizationAsync(currentTip, KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
-	
 	public async Task PerformSynchronizationAsync(uint toHeight, SyncType syncType, CancellationToken cancellationToken)
 	{
 		// TODO: CancellationToken
