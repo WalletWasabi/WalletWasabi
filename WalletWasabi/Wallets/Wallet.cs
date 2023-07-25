@@ -481,15 +481,6 @@ public class Wallet : BackgroundService, IWallet
 	{
 		// TODO: CancellationToken
 		await WalletFilterProcessor.ProcessAsync(toHeight, syncType).ConfigureAwait(false);
-
-		if (syncType == SyncType.Turbo)
-		{
-			SetFinalBestTurboSyncHeight(new Height(toHeight));
-		}
-		else
-		{
-			SetFinalBestHeight(new Height(toHeight));
-		}
 	}
 	private async Task LoadDummyMempoolAsync()
 	{
@@ -576,20 +567,4 @@ public class Wallet : BackgroundService, IWallet
 
 		KeyManager.ToFile();
 	}
-
-	private void SetFinalBestTurboSyncHeight(Height filterHeight)
-	{
-		if (KeyManager.GetBestTurboSyncHeight() < filterHeight)
-		{
-			KeyManager.SetBestTurboSyncHeight(filterHeight);
-		}
-	}
-
-	private void SetFinalBestHeight(Height filterHeight)
-	{
-		if (KeyManager.GetBestHeight() < filterHeight)
-		{
-			KeyManager.SetBestHeight(filterHeight);
-		}
-	} 
 }

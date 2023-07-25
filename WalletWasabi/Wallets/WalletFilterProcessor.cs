@@ -143,7 +143,19 @@ public class WalletFilterProcessor : BackgroundService
 					filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(request.Height, cancellationToken).ConfigureAwait(false);
 				}
 
-				await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
+				var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
+
+				if (request.SyncType == SyncType.Turbo)
+				{
+					// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
+					KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), (matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight));
+				}
+				else
+				{
+					// All keys were tested at this height, update the Height.
+					KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), (matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight));
+				}
+				
 				request.Tcs.SetResult();
 			}
 			catch (Exception ex)
@@ -207,14 +219,15 @@ public class WalletFilterProcessor : BackgroundService
 		return keysToTest.ToList();
 	}
 
-	private async Task ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
+	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
 
+		var matchFound = false;
 		if (toTestKeys.Count > 0)
 		{
-			bool matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
+			matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 
 			if (matchFound)
 			{
@@ -228,21 +241,11 @@ public class WalletFilterProcessor : BackgroundService
 				}
 
 				TransactionProcessor.Process(txsToProcess);
-
-				if (syncType == SyncType.Turbo)
-				{
-					// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-					KeyManager.SetBestTurboSyncHeight(height);
-				}
-				else
-				{
-					// All keys were tested at this height, update the Height.
-					KeyManager.SetBestHeight(height);
-				}
 			}
 		}
 
 		LastProcessedFilter = filter;
+		return matchFound;
 	}
 	
 	private record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
