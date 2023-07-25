@@ -1,7 +1,7 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
@@ -22,10 +21,10 @@ public class TransactionProcessor
 		KeyManager keyManager,
 		Money dustThreshold)
 	{
-		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+		TransactionStore = transactionStore;
 		MempoolService = mempoolService;
-		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+		KeyManager = keyManager;
+		DustThreshold = dustThreshold;
 		Coins = new();
 		BlockchainAnalyzer = new();
 	}
