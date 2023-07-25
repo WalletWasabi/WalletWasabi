@@ -113,7 +113,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
-                         ToolTip.Tip="Multiple entities can see this transaction. You should coinjoin first or carefully select who should know about this transaction with the label management tool (if available)." />
+                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
               <c:LabelsItemsPresenter Items="{Binding Labels}" />
             </DockPanel>
           </Border>
@@ -125,7 +125,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses non-private coins."
-                         ToolTip.Tip="Some entities will be able to deanonymize this transaction because when multiple coins are used for a transaction, the privacy of it is only as good as the lowest privacy of the coins used. You should conjoin first to have (enough) private coins for this transaction." />
+                         ToolTip.Tip="Some entities can deanonymize this transaction because its privacy is as good as the used coins' lowest privacy. Coinjoin more to have (enough) private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -136,7 +136,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses semi-private coins." 
-                         ToolTip.Tip="This transaction might not be private enough for your needs because when multiple coins are used for a transaction, the privacy of it is only as good as the lowest privacy of the coins used.  You should conjoin first to have (enough) private coins for this transaction." />
+                         ToolTip.Tip="This transaction is not private enough because its privacy is as good as the used coins' lowest privacy. Coinjoin more to have (enough) private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -147,7 +147,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction creates change." 
-                         ToolTip.Tip="Creating change in a transaction is a privacy risk because it can link a following transaction that will use it with this one that created it. Use the change avoidance suggestion if possible, or coinjoin the change later." />
+                         ToolTip.Tip="Change can be used to link this transaction with the next one that will use it. If possible use the change avoidance suggestion, or coinjoin the change later." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -158,7 +158,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}" 
-                         ToolTip.Tip="A lot of coins will be used to make this transaction. This can potentially reduce the privacy of your transaction."/>
+                         ToolTip.Tip="This might reduce the privacy of your transaction."/>
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -169,7 +169,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses unconfirmed coins." 
-                         ToolTip.Tip="This may cause your transaction to be delayed or rejected and you may not pay the desired amount of mining fees. Wait for a confirmation to only use confirmed coins." />
+                         ToolTip.Tip="This may cause your transaction to be rejected, or delay its confirmation, or cost more than needed to get it confirmed within the desired time. Wait for a confirmation to only use confirmed coins." />
             </DockPanel>
           </Border>
         </DataTemplate>
