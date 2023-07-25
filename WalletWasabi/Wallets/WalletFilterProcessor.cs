@@ -92,7 +92,7 @@ public class WalletFilterProcessor : BackgroundService
 		lock (SynchronizationRequestsLock)
 		{
 			var items = SynchronizationRequests.UnorderedItems;
-			foreach (var height in Enumerable.Range((int)currentHeight, (int)(currentHeight - toHeight)))
+			foreach (var height in Enumerable.Range((int)currentHeight, (int)(toHeight - currentHeight) + 1))
 			{
 				if (items.Any(x => x.Element.Height == height && x.Element.SyncType == syncType))
 				{

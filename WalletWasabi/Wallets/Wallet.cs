@@ -86,7 +86,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public HybridFeeProvider FeeProvider { get; private set; }
 	
-	private WalletFilterProcessor WalletFilterProcessor { get; set; }
+	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; private set; }
 
