@@ -10,7 +10,7 @@ public class ValidationFilterAttribute : Attribute, IAsyncActionFilter
 	{
 		if (!context.ModelState.IsValid)
 		{
-			string messages = string.Join("; ", context.ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage));
+			string messages = string.Join("; ", context.ModelState.Values.SelectMany(x => x.Errors).Select(x => x.Exception?.Message ?? x.ErrorMessage));
 			throw new Exception(messages);
 		}
 
