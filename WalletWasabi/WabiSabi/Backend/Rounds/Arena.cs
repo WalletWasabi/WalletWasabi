@@ -280,6 +280,8 @@ public partial class Arena : PeriodicRunner
 
 					if (!allReady && phaseExpired)
 					{
+						// It would be better to end the round and create a blame round here, but older client would not support it.
+						// See https://github.com/zkSNACKs/WalletWasabi/pull/11028.
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
 						round.FastSigningPhase = true;
 					}
@@ -380,7 +382,14 @@ public partial class Arena : PeriodicRunner
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
 					round.LogWarning($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
-					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+					if (round.FastSigningPhase)
+					{
+						await FailFastTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+					}
 				}
 			}
 			catch (RPCException ex)
@@ -432,6 +441,31 @@ public partial class Arena : PeriodicRunner
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
+
+		if (round.InputCount >= round.Parameters.MinInputCountByRound)
+		{
+			EndRound(round, EndRoundState.NotAllAlicesSign);
+			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+		}
+		else
+		{
+			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
+		}
+	}
+
+	private async Task FailFastTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
+	{
+		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
+
+		foreach (var alice in alicesToRemove)
+		{
+			// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
+			Prison.Note(alice, round.Id);
+		}
+
+		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
+
+		round.LogInfo($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}");
 
 		if (round.InputCount >= round.Parameters.MinInputCountByRound)
 		{
