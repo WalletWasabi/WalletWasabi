@@ -12,10 +12,6 @@
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
 
-  <UserControl.Resources>
-    <converters:IndentConverter x:Key="IndentConverter" Multiplier="10" />
-  </UserControl.Resources>
-
   <controls:ContentArea
     Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"

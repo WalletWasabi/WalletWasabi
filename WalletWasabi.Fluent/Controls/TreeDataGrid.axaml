@@ -4,7 +4,8 @@
                     xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
                     xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
                     xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-                    xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
+                    xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+                    xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
 
   <Design.PreviewWith>
     <StackPanel Spacing="8">
@@ -20,6 +21,8 @@
       <TreeDataGridRow Theme="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
     </StackPanel>
   </Design.PreviewWith>
+
+  <converters:IndentConverter x:Key="IndentConverter" Multiplier="10" />
 
   <!-- TreeDataGridExpanderCell: HistoryTable.axaml -->
 
