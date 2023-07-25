@@ -32,7 +32,7 @@ public static class TransactionModifierWalletExtensions
 		var ownOutput = transactionToCancel.GetWalletOutputs(keyManager).FirstOrDefault();
 
 		// Calculate the original fee rate and fee.
-		var originalFeeRate = transactionToCancel.Transaction.GetFeeRate(transactionToCancel.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
+		var originalFeeRate = transactionToCancel.Transaction.GetFeeRate(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var originalFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 
