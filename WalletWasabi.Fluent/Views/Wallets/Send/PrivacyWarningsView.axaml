@@ -62,6 +62,7 @@
       <Setter Property="DockPanel.Dock" Value="Left" />
       <Setter Property="Height" Value="25" />
       <Setter Property="Width" Value="25" />
+      <Setter Property="Opacity" Value="0.5" />
     </Style>
 
     <Style Selector="Border.warning">
@@ -156,7 +157,7 @@
             </DockPanel>
           </Border>
         </DataTemplate>
-        
+
         <!-- Unconfirmed funds warning -->
         <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
           <Border Classes="warning">
@@ -195,7 +196,9 @@
               <PathIcon Data="{StaticResource entities_edit_regular}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Label Management" Classes="title" />
-                <TextBlock Text="Choose labels to link with this transaction." Classes="h8" />
+                <StackPanel Classes="description">
+                  <TextBlock Text="Choose labels to link with this transaction." />
+                </StackPanel>
               </StackPanel>
             </DockPanel>
           </c:SuggestionItem>
@@ -239,7 +242,19 @@
         <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
           <c:SuggestionItem>
             <DockPanel>
-              <PathIcon Data="{StaticResource money_24_regular}" />
+              <DockPanel.Styles>
+                <Style Selector="PathIcon">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_equal}" />
+                </Style>
+                <Style Selector="PathIcon.more">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
+                </Style>
+                <Style Selector="PathIcon.less">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_less}" />
+                </Style>
+              </DockPanel.Styles>
+              <PathIcon Classes.more="{Binding IsMore}"
+                        Classes.less="{Binding IsLess}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">

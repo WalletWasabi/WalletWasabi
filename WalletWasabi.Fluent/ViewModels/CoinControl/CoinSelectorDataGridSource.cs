@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -13,19 +13,19 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 public static class CoinSelectorDataGridSource
 {
-	private static int GetLabelPriority(CoinControlItemViewModelBase coin)
+	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Create(IEnumerable<CoinControlItemViewModelBase> source)
 	{
-		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
+		return new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(source)
 		{
-			return 3;
-		}
-
-		if (coin.Labels == CoinPocketHelper.SemiPrivateFundsText)
-		{
-			return 2;
-		}
-
-		return 1;
+			Columns =
+			{
+				ChildrenColumn(),
+				IndicatorsColumn(),
+				AmountColumn(),
+				AnonymityScoreColumn(),
+				PocketColumn()
+			}
+		};
 	}
 
 	private static int GetIndicatorPriority(CoinControlItemViewModelBase x)
@@ -116,23 +116,8 @@ public static class CoinSelectorDataGridSource
 			GridLength.Star,
 			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(GetLabelPriority),
-				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(GetLabelPriority)
+				CompareAscending = CoinControlLabelComparer.Ascending,
+				CompareDescending = CoinControlLabelComparer.Descending
 			});
-	}
-
-	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Create(IEnumerable<CoinControlItemViewModelBase> source)
-	{
-		return new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(source)
-		{
-			Columns =
-			{
-				ChildrenColumn(),
-				IndicatorsColumn(),
-				AmountColumn(),
-				AnonymityScoreColumn(),
-				PocketColumn()
-			}
-		};
 	}
 }
