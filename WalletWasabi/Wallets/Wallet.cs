@@ -27,8 +27,6 @@ namespace WalletWasabi.Wallets;
 
 public class Wallet : BackgroundService, IWallet
 {
-	private const int MaxNumberFiltersInMemory = 1000;
-		
 	private volatile WalletState _state;
 
 	public Wallet(string dataDir, Network network, string filePath) : this(dataDir, network, KeyManager.FromFile(filePath))
@@ -87,8 +85,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-
-	private Task FinalSynchronizationTask { get; set; }
+	
 	private WalletFilterProcessor WalletFilterProcessor { get; set; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; private set; }
@@ -206,13 +203,12 @@ public class Wallet : BackgroundService, IWallet
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
 			BlockProvider = blockProvider;
 
-			WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore.MempoolService, TransactionProcessor, BlockProvider);
+			WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 			
 			State = WalletState.Initialized;
 		}
@@ -261,11 +257,11 @@ public class Wallet : BackgroundService, IWallet
 			// Perform final synchronization in the background.
 			if (KeyManager.UseTurboSync)
 			{
-				FinalSynchronizationTask = Task.Run(() => PerformSynchronizationAsync(SyncType.NonTurbo, cancel), cancel);
+				_ = Task.Run(() => PerformSynchronizationAsync(BitcoinStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, cancel), cancel);
 			}
 			else
 			{
-				FinalSynchronizationTask = Task.CompletedTask;
+				_ = Task.CompletedTask;
 			}
 		}
 		catch
@@ -425,22 +421,16 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{ 
 			var filterModels = filters as FilterModel[] ?? filters.ToArray();
-			var requests = new List<WalletFilterProcessor.SyncRequest>();
-			foreach (var filter in filterModels)
+
+			if (KeyManager.UseTurboSync)
 			{
-				if (KeyManager.UseTurboSync)
-				{
-					requests.Add(new WalletFilterProcessor.SyncRequest(SyncType.Turbo, filter));
-					requests.Add(new WalletFilterProcessor.SyncRequest(SyncType.NonTurbo, filter));
-				}
-				else
-				{
-					requests.Add(new WalletFilterProcessor.SyncRequest(SyncType.Complete, filter));
-				}
+				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, new List<SyncType>() { SyncType.Turbo, SyncType.NonTurbo }).ConfigureAwait(false);
+			}
+			else
+			{
+				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, SyncType.Complete).ConfigureAwait(false);
 			}
 
-			await WalletFilterProcessor.ProcessAsync(requests).ConfigureAwait(false);
-			
 			NewFilterProcessed?.Invoke(this, filterModels.Last());
 			
 			await Task.Delay(100).ConfigureAwait(false);
@@ -483,38 +473,26 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 		
-		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
+		//TODO: This should be locked
+		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
+		var currentTip = BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
+			
+		await PerformSynchronizationAsync(currentTip, KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
-	public async Task PerformSynchronizationAsync(SyncType syncType, CancellationToken cancellationToken)
+	
+	public async Task PerformSynchronizationAsync(uint toHeight, SyncType syncType, CancellationToken cancellationToken)
 	{
-		Height currentHeight = syncType == SyncType.Turbo ? 
-			KeyManager.GetBestTurboSyncHeight():
-			KeyManager.GetBestHeight();
-
-		while (currentHeight < BitcoinStore.IndexStore.SmartHeaderChain.TipHeight)
-		{
-			var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(currentHeight + 1, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
-			List<WalletFilterProcessor.SyncRequest> requests = new();
-			foreach (var filter in filtersBatch)
-			{
-				requests.Add(new WalletFilterProcessor.SyncRequest(syncType, filter));
-			}
-
-			await WalletFilterProcessor.ProcessAsync(requests).ConfigureAwait(false);
-
-			currentHeight = filtersBatch.Any() ? 
-				new Height(filtersBatch.Last().Header.Height) : 
-				new Height(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
-		}
+		// TODO: CancellationToken
+		await WalletFilterProcessor.ProcessAsync(toHeight, syncType).ConfigureAwait(false);
 
 		if (syncType == SyncType.Turbo)
 		{
-			SetFinalBestTurboSyncHeight(currentHeight);
+			SetFinalBestTurboSyncHeight(new Height(toHeight));
 		}
 		else
 		{
-			SetFinalBestHeight(currentHeight);
+			SetFinalBestHeight(new Height(toHeight));
 		}
 	}
 	private async Task LoadDummyMempoolAsync()
