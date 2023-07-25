@@ -1,8 +1,11 @@
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
+using WabiSabi.Crypto;
+using WalletWasabi.WabiSabiClientLibrary.Models;
 
 namespace WalletWasabi.WabiSabiClientLibrary.Tests.IntegrationTests;
 
@@ -35,6 +38,26 @@ public class IntegrationsTest
 
 		Assert.Equal(expectedResponseContentString, responseContentString);
 	}
+
+	[Fact]
+	public async Task TestCredentialSerialNumberUniquenessAsync()
+	{
+		HttpClient client = _factory.CreateClient();
+		string requestContentString = """{ "credentialIssuerParameters": { "cw": "02BF822F22E5CF2A1725144FB6898EEBC9AD59AEA2C6267F6E9F819517E2B9B882", "i": "02720432E49A94D45794D76143914FCD9E7F9669BFD08B0EC8B45891E228D2D6E8" }, "maxCredentialValue": 255 }""";
+		using StringContent requestContent = new StringContent(requestContentString, Encoding.UTF8, "application/json");
+
+		HashSet<string> randomnessHashSet = new();
+		foreach (var _ in Enumerable.Range(0, 10000))
+		{
+			HttpResponseMessage response = await client.PostAsync("get-zero-credential-requests", requestContent);
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+			string responseContentString = await response.Content.ReadAsStringAsync();
+			bool isUnique = randomnessHashSet.Add(Regex.Match(responseContentString, "\"randomness\":\"([^\"]*)\"").Groups[1].Value);
+			Assert.True(isUnique);
+		}
+	}
+
 }
 
 public class TestVectors : TheoryData<string, string, string, int, string>
