@@ -121,7 +121,7 @@ public static class TransactionModifierWalletExtensions
 		var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 		var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
-		var minRelayFee = originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * txSizeBytes);
+		var minRelayFee = originalFee + minRelayFeeRate.GetFee(txSizeBytes);
 		var minimumRbfFeeRate = new FeeRate(minRelayFee, txSizeBytes);
 
 		// If the best fee rate is smaller than the minimum bump or not available, then we go with the minimum bump.
