@@ -32,7 +32,7 @@ public static class TransactionModifierWalletExtensions
 		var ownOutput = transactionToCancel.GetWalletOutputs(keyManager).FirstOrDefault();
 
 		// Calculate the original fee rate and fee.
-		var originalFeeRate = transactionToCancel.Transaction.GetFeeRate(transactionToCancel.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
+		var originalFeeRate = transactionToCancel.Transaction.GetFeeRate(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var originalFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 
@@ -54,7 +54,7 @@ public static class TransactionModifierWalletExtensions
 			// https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
 			// The replacement transaction must also pay for its own bandwidth at or above the rate set by the node's minimum relay fee setting. For example, if the minimum relay fee is 1 satoshi/byte and the replacement transaction is 500 bytes total, then the replacement must pay a fee at least 500 satoshis higher than the sum of the originals.
 		}
-		while (originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * cancelTransaction.Transaction.Transaction.GetVirtualSize()) >= cancelTransaction.Fee);
+		while (originalFee + minRelayFeeRate.GetFee(cancelTransaction.Transaction.Transaction) >= cancelTransaction.Fee);
 
 		cancelTransaction.Transaction.SetCancellation();
 
@@ -118,10 +118,9 @@ public static class TransactionModifierWalletExtensions
 		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
-		var originalFeeRate = transactionToSpeedUp.Transaction.GetFeeRate(transactionToSpeedUp.GetWalletInputs(keyManager).Select(x => x.Coin).Cast<ICoin>().ToArray());
 		var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
-		var minRelayFee = originalFee + Money.Satoshis(minRelayFeeRate.SatoshiPerByte * txSizeBytes);
+		var minRelayFee = originalFee + minRelayFeeRate.GetFee(txSizeBytes);
 		var minimumRbfFeeRate = new FeeRate(minRelayFee, txSizeBytes);
 
 		// If the best fee rate is smaller than the minimum bump or not available, then we go with the minimum bump.
