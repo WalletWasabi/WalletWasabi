@@ -24,6 +24,7 @@ using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.BitcoinCore.Mempool;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -67,6 +68,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 			services.AddHttpClient();
 			services.AddSingleton<AffiliationManager>();
+			services.AddSingleton<CoinJoinMempoolManager>();
+			services.AddSingleton(s => new Mock<IMempoolMirror>().Object);
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}

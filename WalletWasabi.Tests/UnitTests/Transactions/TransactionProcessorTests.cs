@@ -1422,7 +1422,7 @@ public class TransactionProcessorTests
 		return txStore;
 	}
 
-	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore, int privacyLevelThreshold = 100)
+	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore)
 	{
 		var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
 

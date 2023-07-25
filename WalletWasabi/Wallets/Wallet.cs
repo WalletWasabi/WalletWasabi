@@ -54,8 +54,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public event EventHandler<FilterModel>? NewFilterProcessed;
 
-	public event EventHandler<Block>? NewBlockProcessed;
-
 	public event EventHandler<WalletState>? StateChanged;
 
 	public WalletState State
@@ -278,7 +276,7 @@ public class Wallet : BackgroundService, IWallet
 					SetFinalBestHeight(new Height(lastProcessedFilter.Header.Height));
 				}
 
-				Logger.LogInfo("Wallet is fully synchronized.");
+				Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 			}
 		}
 		catch (OperationCanceledException)
@@ -646,9 +644,8 @@ public class Wallet : BackgroundService, IWallet
 				// All keys were tested at this height, update the Height.
 				KeyManager.SetBestHeight(height);
 			}
-
-			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
+
 		LastProcessedFilter = filterModel;
 	}
 

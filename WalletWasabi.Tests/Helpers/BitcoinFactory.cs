@@ -181,7 +181,7 @@ public static class BitcoinFactory
 
 		// We don't use the result, but we need not to throw NotImplementedException.
 		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
-
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 		return mockRpc;

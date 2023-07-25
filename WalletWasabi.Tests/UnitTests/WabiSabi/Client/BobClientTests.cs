@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Controllers;
+using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
 using WalletWasabi.Crypto.Randomness;
@@ -16,6 +17,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -51,7 +53,8 @@ public class BobClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), new Mock<IMempoolMirror>().Object);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
