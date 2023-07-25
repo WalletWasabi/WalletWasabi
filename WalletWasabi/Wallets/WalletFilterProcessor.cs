@@ -84,21 +84,23 @@ public class WalletFilterProcessor : BackgroundService
 	
 	public async Task ProcessAsync(uint toHeight, SyncType syncType)
 	{
-		 var currentHeight = (uint)(syncType == SyncType.Turbo ? 
-			KeyManager.GetBestTurboSyncHeight() + 1:
-			KeyManager.GetBestHeight() + 1);
-
 		List<Task> tasks = new();
 		lock (SynchronizationRequestsLock)
 		{
-			var items = SynchronizationRequests.UnorderedItems;
-			foreach (var height in Enumerable.Range((int)currentHeight, (int)(toHeight - currentHeight) + 1))
+			uint startingHeight;
+			if (SynchronizationRequests.UnorderedItems.Any(x => x.Element.SyncType == syncType))
 			{
-				if (items.Any(x => x.Element.Height == height && x.Element.SyncType == syncType))
-				{
-					continue;
-				}
-				
+				startingHeight = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType).Max(x => x.Element.Height) + 1;
+			}
+			else
+			{
+				startingHeight = (uint)(syncType == SyncType.Turbo ? 
+					KeyManager.GetBestTurboSyncHeight() + 1:
+					KeyManager.GetBestHeight() + 1);
+			}
+			
+			foreach (var height in Enumerable.Range((int)startingHeight, (int)(toHeight - startingHeight) + 1))
+			{
 				var tcs = new TaskCompletionSource();
 				AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
 				tasks.Add(tcs.Task);
