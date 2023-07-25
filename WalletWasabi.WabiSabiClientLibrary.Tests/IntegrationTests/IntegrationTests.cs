@@ -59,14 +59,14 @@ public class TestVectors : TheoryData<string, string, string, int, string>
 
 public class GetZeroCredentialRequestsTestVectors : TestVectors
 {
-	public GetZeroCredentialRequestsTestVectors() : base("GetRealCredentialRequests.json", "get-real-credential-requests")
+	public GetZeroCredentialRequestsTestVectors() : base("GetZeroCredentialRequests.json", "get-zero-credential-requests")
 	{
 	}
 }
 
 public class GetRealCredentialRequestsTestVectors : TestVectors
 {
-	public GetRealCredentialRequestsTestVectors() : base("GetZeroCredentialRequests.json", "get-zero-credential-requests")
+	public GetRealCredentialRequestsTestVectors() : base("GetRealCredentialRequests.json", "get-real-credential-requests")
 	{
 	}
 }
