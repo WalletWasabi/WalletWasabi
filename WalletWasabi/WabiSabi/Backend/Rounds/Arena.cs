@@ -281,6 +281,7 @@ public partial class Arena : PeriodicRunner
 					if (!allReady && phaseExpired)
 					{
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
+						round.FastSigningPhase = true;
 					}
 
 					SetRoundPhase(round, Phase.TransactionSigning);

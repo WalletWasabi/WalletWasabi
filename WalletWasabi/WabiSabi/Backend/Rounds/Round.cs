@@ -49,6 +49,8 @@ public class Round
 
 		Id = CalculateHash();
 		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
+
+		FastSigningPhase = false;
 	}
 
 	public uint256 Id { get; }
@@ -70,6 +72,8 @@ public class Round
 	public DateTimeOffset End { get; private set; }
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
+
+	public bool FastSigningPhase { get; set; }
 
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
