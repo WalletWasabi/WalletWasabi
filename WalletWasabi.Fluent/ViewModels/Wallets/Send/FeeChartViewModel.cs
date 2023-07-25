@@ -214,7 +214,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
 	{
-		var correctedFeeEstimates = DistinctByValues(feeEstimates);
+		var correctedFeeEstimates = AreEstimatedFeeRatesEqual(feeEstimates) ? feeEstimates : DistinctByValues(feeEstimates);
 
 		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
 		var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
@@ -344,5 +344,13 @@ public partial class FeeChartViewModel : ViewModelBase
 		}
 
 		return valuesToReturn;
+	}
+
+	private bool AreEstimatedFeeRatesEqual(Dictionary<int, int> feeEstimates)
+	{
+		var first = feeEstimates.First();
+		var last = feeEstimates.Last();
+
+		return first.Value == last.Value;
 	}
 }
