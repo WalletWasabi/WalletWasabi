@@ -86,9 +86,10 @@ public class WalletFilterProcessor : BackgroundService
 		lock (SynchronizationRequestsLock)
 		{
 			uint startingHeight;
-			if (SynchronizationRequests.UnorderedItems.Any(x => x.Element.SyncType == syncType))
+			var existingRequestsForSyncType = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType).ToList();
+			if (existingRequestsForSyncType.Count > 0)
 			{
-				startingHeight = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType).Max(x => x.Element.Height) + 1;
+				startingHeight = existingRequestsForSyncType.Max(x => x.Element.Height) + 1;
 			}
 			else
 			{
@@ -104,9 +105,11 @@ public class WalletFilterProcessor : BackgroundService
 					var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 					cancellationToken.Register(() => tcs.TrySetCanceled());
 					AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
-					tasks.Add(tcs.Task);
 				}
 			}
+			
+			// We have to wait for all the requests below toHeight to be processed.
+			tasks.AddRange(SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && x.Element.Height <= toHeight).Select(x => x.Element.Tcs.Task));
 		}
 
 		await Task.WhenAll(tasks).ConfigureAwait(false); // This will throw if a tasks throws.
@@ -261,6 +264,44 @@ public class WalletFilterProcessor : BackgroundService
 		return matchFound;
 	}
 	
+	private async void ReorgedAsync(object? sender, FilterModel invalidFilter)
+	{
+		try
+		{
+			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
+			
+			if (BlockProvider is SmartBlockProvider smartBlockProvider)
+			{
+				await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
+			}
+			
+			lock (SynchronizationRequestsLock)
+			{
+				Remove(invalidFilter.Header.Height);
+				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
+				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
+				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning(ex);
+		}
+	}
+
+	public override async Task StartAsync(CancellationToken cancellationToken)
+	{
+		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
+		await base.StartAsync(cancellationToken);
+	}
+	
+	public override async Task StopAsync(CancellationToken cancellationToken)
+	{
+		BitcoinStore.IndexStore.Reorged -= ReorgedAsync;
+		SynchronizationRequestsSemaphore.Dispose();
+		await base.StopAsync(cancellationToken);
+	}
+
 	private record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
 	{
 		public bool DoNotProcess { get; set; }
