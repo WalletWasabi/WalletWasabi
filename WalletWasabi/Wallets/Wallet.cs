@@ -425,6 +425,11 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
+	public void UnregisterNewFiltersEvent()
+	{
+		BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
+	}
+	
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
 		KeyManager.AssertNetworkOrClearBlockState(Network);
