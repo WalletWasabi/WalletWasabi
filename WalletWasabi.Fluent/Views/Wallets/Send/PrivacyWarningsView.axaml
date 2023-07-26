@@ -125,7 +125,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses non-private coins."
-                         ToolTip.Tip="Some entities can deanonymize this transaction because its privacy is as good as the used coins' lowest privacy. Coinjoin more to have (enough) private coins for this transaction." />
+                         ToolTip.Tip="Some entities can deanonymize this transaction because it spends coins with no privacy. Coinjoin more to have (enough) private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -136,7 +136,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses semi-private coins." 
-                         ToolTip.Tip="This transaction is not private enough because its privacy is as good as the used coins' lowest privacy. Coinjoin more to have (enough) private coins for this transaction." />
+                         ToolTip.Tip="This transaction is not private enough because it spends not fully private coins. Coinjoin more to have (enough) private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -147,7 +147,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction creates change." 
-                         ToolTip.Tip="Change can be used to link this transaction with the next one that will use it. If possible use the change avoidance suggestion, or coinjoin the change later." />
+                         ToolTip.Tip="Change can be used to link this transaction with the next transaction that will use it. Use the change avoidance suggestion to send a little more or less if this is OK for the receiver, or coinjoin the change later." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -180,7 +180,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses coinjoining coins." 
-                         ToolTip.Tip="This may cause issues. For example, your transaction might be replaced by the coinjoin one. Consider waiting for the current coinjoin to be finished before sending this transaction." />
+                         ToolTip.Tip="This may cause your transaction to be replaced by the coinjoin. Consider waiting for the current coinjoin to be finished before sending this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
