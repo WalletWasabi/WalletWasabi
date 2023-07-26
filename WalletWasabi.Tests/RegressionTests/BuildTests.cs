@@ -82,6 +82,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
 
 		using Key key = new();
@@ -196,6 +197,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
+			await wallet.StopAsync(testDeadlineCts.Token);
 			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);

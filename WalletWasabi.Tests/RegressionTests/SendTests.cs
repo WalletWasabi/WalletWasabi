@@ -735,6 +735,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task ReplaceByFeeTxTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
@@ -775,6 +777,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
 
 		Assert.Empty(wallet.Coins);
@@ -834,6 +837,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
+			await wallet.WalletFilterProcessor.StopAsync(testDeadlineCts.Token);
 			await wallet.StopAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
