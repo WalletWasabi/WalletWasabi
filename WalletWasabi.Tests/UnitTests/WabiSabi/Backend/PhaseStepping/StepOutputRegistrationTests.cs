@@ -394,4 +394,28 @@ public class StepOutputRegistrationTests
 
 		await arena.StopAsync(token);
 	}
+
+	[Fact]
+	public async Task AliceIsNotReady()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			OutputRegistrationTimeout = TimeSpan.Zero,
+		};
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
+
+		await alices[0].ReadyToSignAsync(token);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+	}
 }
