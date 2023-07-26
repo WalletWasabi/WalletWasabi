@@ -18,7 +18,7 @@ public class WalletFilterProcessor : BackgroundService
 {
 	private const int MaxNumberFiltersInMemory = 1000;
 	
-	private static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
+	public static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
 		(x, y) =>
 		{
 			// Turbo and Complete have higher priority over NonTurbo.
@@ -299,9 +299,9 @@ public class WalletFilterProcessor : BackgroundService
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
+	public record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
 	{
 		public bool DoNotProcess { get; set; }
 	}
-	private record Priority(SyncType SyncType, uint Height);
+	public record Priority(SyncType SyncType, uint Height);
 }
