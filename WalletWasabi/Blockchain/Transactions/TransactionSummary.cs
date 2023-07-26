@@ -28,9 +28,6 @@ public class TransactionSummary
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
 	public DateTimeOffset DateTime { get; set; }
 	public LabelsArray Labels { get; set; }
-	public Money OutputAmount => Outputs.Sum(x => x.Amount);
-	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
-	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
 	public uint256 TransactionId => Transaction.GetHash();
 	public Height Height => Transaction.Height;
 	public uint256? BlockHash => Transaction.BlockHash;
@@ -42,12 +39,25 @@ public class TransactionSummary
 	{
 		get
 		{
-			if (Fee is null)
+			if (Transaction.TryGetFeeRate(out var feeRate))
 			{
-				return null;
+				return feeRate;
 			}
 
-			return new FeeRate(Fee, VirtualSize);
+			return null;
+		}
+	}
+
+	public Money? Fee
+	{
+		get
+		{
+			if (Transaction.TryGetFee(out var fee))
+			{
+				return fee;
+			}
+
+			return null;
 		}
 	}
 }
