@@ -47,16 +47,7 @@ public class TransactionHistoryBuilder
 				var inputs = GetInputs(containingTransaction).ToList();
 				var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
-				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, GetInputs(containingTransaction), outputs, destinationAddresses)
-				{
-					DateTime = dateTime,
-					Height = coin.Height,
-					Labels = containingTransaction.Labels,
-					BlockIndex = containingTransaction.BlockIndex,
-					BlockHash = containingTransaction.BlockHash,
-					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
-					VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
-				});
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, GetInputs(containingTransaction), outputs, destinationAddresses));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -76,16 +67,7 @@ public class TransactionHistoryBuilder
 					var inputs = GetInputs(containingTransaction).ToList();
 					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, GetInputs(spenderTransaction), outputs, destinationAddresses)
-					{
-						DateTime = dateTime,
-						Height = spenderTransaction.Height,
-						Labels = spenderTransaction.Labels,
-						BlockIndex = spenderTransaction.BlockIndex,
-						BlockHash = spenderTransaction.BlockHash,
-						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
-						VirtualSize = spenderTransaction.Transaction.GetVirtualSize(),
-					});
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, GetInputs(spenderTransaction), outputs, destinationAddresses));
 				}
 			}
 		}

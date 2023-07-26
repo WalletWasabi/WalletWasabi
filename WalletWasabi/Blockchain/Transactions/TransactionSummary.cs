@@ -16,6 +16,9 @@ public class TransactionSummary
 		Inputs = inputs;
 		Outputs = outputs;
 		DestinationAddresses = destinationAddresses;
+
+		DateTime = tx.FirstSeen;
+		Labels = tx.Labels;
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -24,16 +27,16 @@ public class TransactionSummary
 	public IEnumerable<Output> Outputs { get; }
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
 	public DateTimeOffset DateTime { get; set; }
-	public Height Height { get; init; }
 	public LabelsArray Labels { get; set; }
-	public uint256? BlockHash { get; init; }
-	public int BlockIndex { get; init; }
-	public bool IsOwnCoinjoin { get; init; }
 	public Money OutputAmount => Outputs.Sum(x => x.Amount);
 	public Money? InputAmount => Inputs.Any(x => x.Amount == null) ? null : Inputs.Sum(x => x.Amount);
 	public Money? Fee => InputAmount != null ? InputAmount - OutputAmount : null;
-	public int VirtualSize { get; init; }
 	public uint256 TransactionId => Transaction.GetHash();
+	public Height Height => Transaction.Height;
+	public uint256? BlockHash => Transaction.BlockHash;
+	public int BlockIndex => Transaction.BlockIndex;
+	public bool IsOwnCoinjoin => Transaction.IsOwnCoinjoin();
+	public int VirtualSize => Transaction.Transaction.GetVirtualSize();
 
 	public FeeRate? FeeRate
 	{
