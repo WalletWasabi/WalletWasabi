@@ -56,7 +56,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
-		ConfirmationTime = transactionSummary.ConfirmationTime(_walletVm.Wallet);
+		ConfirmationTime = transactionSummary.Transaction.GetConfirmationTime();
 		IsConfirmed = Confirmations > 0;
 
 		if (transactionSummary.Amount < Money.Zero)
