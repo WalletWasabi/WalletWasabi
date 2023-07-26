@@ -90,6 +90,26 @@ public static class TransactionFeeHelper
 	{
 		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
 		var time = TimeSpan.FromMinutes(timeInMinutes);
+
+		// Format the timespan to only include the largest unit of time.
+		// This is confirmation estimation so we can't be precise and we shouldn't give that impression that we can.
+		if (time.TotalDays >= 1)
+		{
+			time = TimeSpan.FromDays(Math.Ceiling(time.TotalDays));
+		}
+		else if (time.TotalHours >= 1)
+		{
+			time = TimeSpan.FromHours(Math.Ceiling(time.TotalHours));
+		}
+		else if (time.TotalMinutes >= 1)
+		{
+			time = TimeSpan.FromMinutes(Math.Ceiling(time.TotalMinutes));
+		}
+		else if (time.TotalSeconds >= 1)
+		{
+			time = TimeSpan.FromSeconds(Math.Ceiling(time.TotalSeconds));
+		}
+
 		return time;
 	}
 
