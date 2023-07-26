@@ -43,21 +43,21 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "DoSMinTimeForCheating", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan DoSMinTimeForCheating { get; set; } = TimeSpan.FromDays(1);
 
-	[DefaultValue(1.0)]
+	[DefaultValue(0.2)]
 	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingConfirmation", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingConfirmation { get; set; } = 1.0;
+	public double DoSPenaltyFactorForDisruptingConfirmation { get; set; } = 0.2;
 
-	[DefaultValue(1.5)]
+	[DefaultValue(1.0)]
 	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingSigning { get; set; } = 1.5;
+	public double DoSPenaltyFactorForDisruptingSigning { get; set; } = 1.0;
 
 	[DefaultValue(3.0)]
 	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingByDoubleSpending", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double DoSPenaltyFactorForDisruptingByDoubleSpending { get; set; } = 3.0;
 
-	[DefaultValueTimeSpan("0d 1h 0m 0s")]
+	[DefaultValueTimeSpan("0d 0h 20m 0s")]
 	[JsonProperty(PropertyName = "DoSMinTimeInPrison", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan DoSMinTimeInPrison { get; set; } = TimeSpan.FromHours(1.0);
+	public TimeSpan DoSMinTimeInPrison { get; set; } = TimeSpan.FromMinutes(20);
 
 	[DefaultValueMoneyBtc("0.00005")]
 	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
