@@ -449,6 +449,10 @@ public class Wallet : BackgroundService, IWallet
 				await task.ConfigureAwait(false);
 			}
 		}
+		catch (OperationCanceledException)
+		{
+			// Cancellation token kicked in while processing the new filters, don't log anything.
+		}
 		catch (Exception ex)
 		{
 			Logger.LogWarning(ex);

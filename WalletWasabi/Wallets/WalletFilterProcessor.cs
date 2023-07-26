@@ -158,7 +158,11 @@ public class WalletFilterProcessor : BackgroundService
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError(ex);
+				if (ex is not OperationCanceledException)
+				{
+					Logger.LogError(ex);
+				}
+
 				request.Tcs.SetException(ex);
 				lock (SynchronizationRequestsLock)
 				{
