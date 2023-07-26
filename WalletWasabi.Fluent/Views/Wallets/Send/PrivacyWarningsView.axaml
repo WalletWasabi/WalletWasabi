@@ -125,7 +125,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses non-private coins."
-                         ToolTip.Tip="Some entities can deanonymize this transaction because it spends coins with no privacy. Coinjoin more to have (enough) private coins for this transaction." />
+                         ToolTip.Tip="Some entities can deanonymize this transaction because it spends coins with no privacy. Coinjoin more to have enough private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -136,7 +136,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses semi-private coins." 
-                         ToolTip.Tip="This transaction is not private enough because it spends not fully private coins. Coinjoin more to have (enough) private coins for this transaction." />
+                         ToolTip.Tip="This transaction is not private enough because it spends not fully private coins. Coinjoin more to have enough private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
