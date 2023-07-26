@@ -420,11 +420,11 @@ public class Wallet : BackgroundService, IWallet
 
 			if (KeyManager.UseTurboSync)
 			{
-				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, new List<SyncType>() { SyncType.Turbo, SyncType.NonTurbo }).ConfigureAwait(false);
+				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, new List<SyncType>() { SyncType.Turbo, SyncType.NonTurbo }, CancellationToken.None).ConfigureAwait(false);
 			}
 			else
 			{
-				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, SyncType.Complete).ConfigureAwait(false);
+				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
 			}
 
 			NewFilterProcessed?.Invoke(this, filterModels.Last());
@@ -482,8 +482,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public async Task PerformSynchronizationAsync(uint toHeight, SyncType syncType, CancellationToken cancellationToken)
 	{
-		// TODO: CancellationToken
-		await WalletFilterProcessor.ProcessAsync(toHeight, syncType).ConfigureAwait(false);
+		await WalletFilterProcessor.ProcessAsync(toHeight, syncType, cancellationToken).ConfigureAwait(false);
 	}
 	private async Task LoadDummyMempoolAsync()
 	{

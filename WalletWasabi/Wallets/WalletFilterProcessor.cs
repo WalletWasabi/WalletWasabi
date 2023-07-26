@@ -74,13 +74,13 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	public async Task ProcessAsync(uint toHeight, IEnumerable<SyncType> syncTypes)
+	public async Task ProcessAsync(uint toHeight, IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
 	{
-		var tasks = syncTypes.Select(syncType => ProcessAsync(toHeight, syncType)).ToList();
+		var tasks = syncTypes.Select(syncType => ProcessAsync(toHeight, syncType, cancellationToken)).ToList();
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 	
-	public async Task ProcessAsync(uint toHeight, SyncType syncType)
+	public async Task ProcessAsync(uint toHeight, SyncType syncType, CancellationToken cancellationToken)
 	{
 		List<Task> tasks = new();
 		lock (SynchronizationRequestsLock)
@@ -101,7 +101,8 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				foreach (var height in Enumerable.Range((int)startingHeight, (int)(toHeight - startingHeight) + 1))
 				{
-					var tcs = new TaskCompletionSource();
+					var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+					cancellationToken.Register(() => tcs.TrySetCanceled());
 					AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
 					tasks.Add(tcs.Task);
 				}
@@ -134,6 +135,13 @@ public class WalletFilterProcessor : BackgroundService
 				continue;
 			}
 
+			// Cancel every request if one is canceled to avoid synchronization problems when different cancellation tokens are used.
+			if (request.Tcs.Task.IsCanceled)
+			{
+				CancelEveryRequest();
+				continue;
+			}
+			
 			try
 			{
 				if (!FiltersCache.TryGetValue(request.Height, out var filterToProcess))
@@ -164,22 +172,25 @@ public class WalletFilterProcessor : BackgroundService
 				}
 
 				request.Tcs.SetException(ex);
-				lock (SynchronizationRequestsLock)
-				{
-					// Cancel the remaining tasks before throwing.
-					while (SynchronizationRequests.TryDequeue(out request, out _))
-					{
-						request.Tcs.SetCanceled(CancellationToken.None);
-					}
-
-					SynchronizationRequestsSemaphore.Dispose();
-					throw;
-				}
+				CancelEveryRequest();
+				throw;
 			}
 
 			if (SynchronizationRequestsSemaphore.CurrentCount == 0)
 			{
 				FiltersCache.Clear();
+			}
+		}
+	}
+
+	private void CancelEveryRequest()
+	{
+		lock (SynchronizationRequestsLock)
+		{
+			// Cancel the remaining tasks before throwing.
+			while (SynchronizationRequests.TryDequeue(out var request, out _))
+			{
+				request.Tcs.SetCanceled(CancellationToken.None);
 			}
 		}
 	}
