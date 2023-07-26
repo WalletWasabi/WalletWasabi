@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Input.Platform;
 using Moq;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.UI;
@@ -15,12 +14,12 @@ public static class Mocks
 {
 	public static UiContext ContextStub()
 	{
-		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface());
+		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IUiClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
-		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface());
+		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IUiClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface());
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
 	}
