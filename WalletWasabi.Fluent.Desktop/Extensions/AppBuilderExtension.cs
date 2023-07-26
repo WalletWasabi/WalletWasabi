@@ -23,25 +23,7 @@ public static class AppBuilderExtension
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			appBuilder.UsePlatformDetect()
-				.UseManagedSystemDialogs<Window>()
-				.AfterPlatformServicesSetup(_ =>
-					{
-						/* TODO: Fix setting FontManagerOptions
-						var systemFontFamily = AvaloniaLocator.Current
-							.GetRequiredService<IFontManagerImpl>()
-							.GetDefaultFontFamilyName();
-
-						// No platform implementation can guarantee that the nullability contract won't be violated
-						// by a native API calls. That's why Avalonia FontManager does exactly the same check.
-						if (string.IsNullOrEmpty(systemFontFamily))
-						{
-							Logger.LogWarning("A default system font family cannot be resolved. Using a fallback.");
-
-							AvaloniaLocator.CurrentMutable
-								.Bind<FontManagerOptions>()
-								.ToConstant(new FontManagerOptions { DefaultFamilyName = "Inter" });
-						}*/
-					});
+				.UseManagedSystemDialogs<Window>();
 		}
 		else
 		{
@@ -49,6 +31,8 @@ public static class AppBuilderExtension
 		}
 
 		return appBuilder
+			.WithInterFont()
+			.With(new FontManagerOptions { DefaultFamilyName = "Inter" })
 			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 })
 			.With(new Win32PlatformOptions
 			{
