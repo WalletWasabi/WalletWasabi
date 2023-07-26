@@ -85,7 +85,7 @@ public class Wallet : BackgroundService, IWallet
 	public HybridFeeProvider FeeProvider { get; private set; }
 	
 	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
-	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
+	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; private set; }
 
 	public bool IsLoggedIn { get; private set; }
@@ -198,6 +198,7 @@ public class Wallet : BackgroundService, IWallet
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
 			BlockProvider = blockProvider;
@@ -438,7 +439,6 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 		
-		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 		var currentTip = BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
 			
 		await PerformSynchronizationAsync(currentTip, KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);

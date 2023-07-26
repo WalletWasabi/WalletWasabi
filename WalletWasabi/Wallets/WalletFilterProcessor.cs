@@ -32,7 +32,7 @@ public class WalletFilterProcessor : BackgroundService
 			}
 
 			// Higher height have higher priority.
-			return -y.Height.CompareTo(x.Height);
+			return x.Height.CompareTo(y.Height);
 		});
 	
 	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
@@ -63,15 +63,12 @@ public class WalletFilterProcessor : BackgroundService
 		SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 	}
 
-	public void Remove(uint fromHeight)
+	private void InvalidateRequestsNoLock(uint fromHeight)
 	{
-		lock (SynchronizationRequestsLock)
-		{
-			SynchronizationRequests.UnorderedItems
-				.Where(item => item.Element.Height >= fromHeight)
-				.ToList()
-				.ForEach(item => item.Element.DoNotProcess = true);
-		}
+		SynchronizationRequests.UnorderedItems
+			.Where(item => item.Element.Height >= fromHeight)
+			.ToList()
+			.ForEach(item => item.Element.DoNotProcess = true);
 	}
 
 	public async Task ProcessAsync(uint toHeight, IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
@@ -269,18 +266,18 @@ public class WalletFilterProcessor : BackgroundService
 		try
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
+
+			lock (SynchronizationRequestsLock)
+			{
+				InvalidateRequestsNoLock(invalidFilter.Header.Height);
+				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
+				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
+				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
+			}
 			
 			if (BlockProvider is SmartBlockProvider smartBlockProvider)
 			{
 				await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
-			}
-			
-			lock (SynchronizationRequestsLock)
-			{
-				Remove(invalidFilter.Header.Height);
-				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
-				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
-				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 			}
 		}
 		catch (Exception ex)
@@ -292,14 +289,14 @@ public class WalletFilterProcessor : BackgroundService
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
 		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
-		await base.StartAsync(cancellationToken);
+		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 	
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		BitcoinStore.IndexStore.Reorged -= ReorgedAsync;
 		SynchronizationRequestsSemaphore.Dispose();
-		await base.StopAsync(cancellationToken);
+		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
