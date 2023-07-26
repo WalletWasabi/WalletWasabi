@@ -230,6 +230,55 @@ public class StepTransactionSigningTests
 		await arena.StopAsync(token);
 	}
 
+	[Fact]
+	public async Task AliceWasNotReady()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			TransactionSigningTimeout = TimeSpan.Zero,
+			OutputRegistrationTimeout = TimeSpan.Zero,
+			FailFastTransactionSigningTimeout = TimeSpan.Zero,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
+		};
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
+
+		Prison prison = new();
+		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
+
+		var badOutpoint = aliceClient1.SmartCoin.Coin.Outpoint;
+		var goodOutpoint = aliceClient2.SmartCoin.Coin.Outpoint;
+		round.Alices.Where(x => badOutpoint == x.Coin.Outpoint).Single().ReadyToSign = false;
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.Ended, round.Phase);
+
+		Assert.Contains(badOutpoint, prison.GetInmates().Select(x => x.Utxo));
+		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
+		var blameRound = Assert.IsType<BlameRound>(onlyRound);
+		Assert.Equal(round.Id, blameRound.BlameOf.Id);
+		var whitelist = blameRound.BlameWhitelist;
+		Assert.Contains(goodOutpoint, whitelist);
+		Assert.DoesNotContain(badOutpoint, whitelist);
+
+		await arena.StopAsync(token);
+	}
+
 	private async Task<(Round Round, AliceClient AliceClient1, AliceClient AliceClient2)>
 			CreateRoundWithOutputsReadyToSignAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
