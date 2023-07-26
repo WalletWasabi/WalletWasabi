@@ -81,7 +81,7 @@
 
       <!-- Confirmation Time -->
       <c:PreviewItem IsVisible="{Binding ConfirmationTime, Converter={x:Static ObjectConverters.IsNotNull}}"
-                     Icon="{StaticResource clock_regular}"
+                     Icon="{StaticResource timer_regular}"
                      Label="Confirmation time"
                      CopyableContent="{Binding ConfirmationTime}">
         <c:PrivacyContentControl>
