@@ -97,15 +97,11 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Assert.Equal(blockCount + 10, bitcoinStore.SmartHeaderChain.HashCount);
 
 			// Test filter block hashes are correct.
-			var filterList = new List<FilterModel>();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
+			var filterList = await bitcoinStore.IndexStore.FetchBatchAsync(
+				0,
+				int.MaxValue,
 				testDeadlineCts.Token);
+
 			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < 101; i++)
@@ -186,14 +182,9 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			tip = await rpc.GetBestBlockHashAsync();
 			Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
 
-			var filterList = new List<FilterModel>();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
+			var filterList = await bitcoinStore.IndexStore.FetchBatchAsync(
+				0,
+				int.MaxValue,
 				testDeadlineCts.Token);
 			var filterTip = filterList.Last();
 			Assert.Equal(tip, filterTip.Header.BlockHash);
@@ -201,15 +192,11 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			// Test filter block hashes are correct after fork.
 			var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
 
-			filterList.Clear();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
+			filterList = await bitcoinStore.IndexStore.FetchBatchAsync(
+				0,
+				int.MaxValue,
 				testDeadlineCts.Token);
+
 			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < blockCountIncludingGenesis; i++)
@@ -291,6 +278,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, setup.ServiceConfiguration, feeProvider, blockProvider);
+		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
 
 		// Get some money, make it confirm.
@@ -435,6 +423,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		finally
 		{
 			wallet.NewFilterProcessed -= setup.Wallet_NewFilterProcessed;
+			await wallet.WalletFilterProcessor.StopAsync(testDeadlineCts.Token);
 			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);

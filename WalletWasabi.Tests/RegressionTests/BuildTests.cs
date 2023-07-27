@@ -82,6 +82,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
 
 		using Key key = new();
@@ -197,6 +198,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 		finally
 		{
 			await wallet.StopAsync(testDeadlineCts.Token);
+			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
@@ -217,7 +219,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -437,7 +439,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);

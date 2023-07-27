@@ -46,7 +46,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -533,7 +533,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
@@ -553,7 +553,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -723,7 +723,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
@@ -735,6 +735,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task ReplaceByFeeTxTestAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
@@ -775,6 +777,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
 
 		Assert.Empty(wallet.Coins);
@@ -834,6 +837,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
+			await wallet.WalletFilterProcessor.StopAsync(testDeadlineCts.Token);
 			await wallet.StopAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
