@@ -28,8 +28,7 @@ public class TransactionHistoryBuilder
 			return txRecordList;
 		}
 
-		var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
-		foreach (SmartCoin coin in allCoins)
+		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
 			var containingTransaction = coin.Transaction;
 
@@ -66,7 +65,7 @@ public class TransactionHistoryBuilder
 					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
 					var inputs = GetInputs(containingTransaction).ToList();
 					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
-
+          
 					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, GetInputs(spenderTransaction), outputs, destinationAddresses));
 				}
 			}

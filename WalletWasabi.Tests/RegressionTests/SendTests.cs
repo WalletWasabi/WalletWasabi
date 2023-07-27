@@ -21,6 +21,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -42,7 +43,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
@@ -69,7 +70,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		using MemoryCache cache = CreateMemoryCache();
+		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
 		var blockProvider = new SmartBlockProvider(

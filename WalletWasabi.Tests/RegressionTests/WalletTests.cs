@@ -239,7 +239,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -353,12 +353,12 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
 			Assert.Equal(2, keyManager.GetKeys(KeyState.Used).Count());
 			Assert.Empty(keyManager.GetKeys(KeyState.Locked, false));
-			Assert.Equal(14, keyManager.GetKeys(KeyState.Locked, true).Count());
-			Assert.Equal(14, keyManager.GetKeys(KeyState.Locked).Count());
-			Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, true).Count());
-			Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, false).Count());
-			Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
-			Assert.Equal(58, keyManager.GetKeys().Count());
+			Assert.Empty(keyManager.GetKeys(KeyState.Locked, true));
+			Assert.Empty(keyManager.GetKeys(KeyState.Locked));
+			Assert.Equal(42, keyManager.GetKeys(KeyState.Clean, true).Count());
+			Assert.Equal(43, keyManager.GetKeys(KeyState.Clean, false).Count());
+			Assert.Equal(85, keyManager.GetKeys(KeyState.Clean).Count());
+			Assert.Equal(87, keyManager.GetKeys().Count());
 
 			Assert.Single(keyManager.GetKeys(x => x.Labels == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal));
 			Assert.Single(keyManager.GetKeys(x => x.Labels == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
@@ -397,12 +397,12 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
 			Assert.Equal(2, keyManager.GetKeys(KeyState.Used).Count());
 			Assert.Empty(keyManager.GetKeys(KeyState.Locked, false));
-			Assert.Equal(14, keyManager.GetKeys(KeyState.Locked, true).Count());
-			Assert.Equal(14, keyManager.GetKeys(KeyState.Locked).Count());
-			Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, true).Count());
-			Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, false).Count());
-			Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
-			Assert.Equal(58, keyManager.GetKeys().Count());
+			Assert.Empty(keyManager.GetKeys(KeyState.Locked, true));
+			Assert.Empty(keyManager.GetKeys(KeyState.Locked));
+			Assert.Equal(42, keyManager.GetKeys(KeyState.Clean, true).Count());
+			Assert.Equal(43, keyManager.GetKeys(KeyState.Clean, false).Count());
+			Assert.Equal(85, keyManager.GetKeys(KeyState.Clean).Count());
+			Assert.Equal(87, keyManager.GetKeys().Count());
 
 			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "foo label"));
 			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "bar label"));

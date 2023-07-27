@@ -28,9 +28,9 @@ namespace WalletWasabi.Tests.RegressionTests;
 
 /// <seealso cref="RegTestCollectionDefinition"/>
 [Collection("RegTest collection")]
-public class BuildTests : IClassFixture<RegTestFixture>
+public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 {
-	public BuildTests(RegTestFixture regTestFixture)
+	public BuildTransactionReorgsTest(RegTestFixture regTestFixture)
 	{
 		RegTestFixture = regTestFixture;
 	}
@@ -215,7 +215,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
@@ -356,7 +356,7 @@ public class BuildTests : IClassFixture<RegTestFixture>
 			// Spend the inputs of the tx so we know
 			var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
 			Assert.True(success);
-			var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction!.GetHash()));
+			var invalidCoin = Assert.Single(wallet.GetAllCoins().CreatedBy(invalidSmartTransaction!.GetHash()));
 			Assert.NotNull(invalidCoin.SpenderTransaction);
 			Assert.True(invalidCoin.Confirmed);
 
