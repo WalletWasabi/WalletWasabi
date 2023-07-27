@@ -209,9 +209,9 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			#endregion CanSpeedUpTwice
 
-			#region CanSpeedUpThrice
+			#region CanSpeedUpCPFPd
 
-			var rbf2 = wallet.SpeedUpTransaction(rbf.Transaction);
+			var rbf2 = wallet.SpeedUpTransaction(txToSpeedUp);
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
 
@@ -248,7 +248,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(rbf2.Transaction.IsSpeedup);
 			Assert.False(rbf2.Transaction.IsCancellation);
 
-			#endregion CanSpeedUpThrice
+			#endregion CanSpeedUpCPFPd
 
 			#region CantSpeedUpTooSmall
 

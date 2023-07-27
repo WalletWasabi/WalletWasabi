@@ -159,15 +159,27 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			confirmationTime = TimeSpan.Zero;
 			return true;
 		}
-		else if (tx.TryGetFeeRate(out var feeRate))
+
+		var unconfirmedChain = new[] { tx }.Concat(tx.ChildrenPayForThisTx).Concat(tx.ParentsThisTxPaysFor);
+
+		// If we cannot estimate the fee rate of one of the unconfirmed transactions then we cannot estimate confirmation time.
+		Money totalFee = Money.Zero;
+		foreach (var currentTx in unconfirmedChain)
 		{
-			confirmationTime = EstimateConfirmationTime(feeRate);
-			return true;
+			if (currentTx.TryGetFee(out var fee))
+			{
+				totalFee += fee;
+			}
+			else
+			{
+				return false;
+			}
 		}
-		else
-		{
-			return false;
-		}
+
+		var totalVsize = unconfirmedChain.Sum(x => x.Transaction.GetVirtualSize());
+
+		confirmationTime = EstimateConfirmationTime(new FeeRate(totalFee, totalVsize));
+		return true;
 	}
 
 	public TimeSpan EstimateConfirmationTime(FeeRate feeRate)
