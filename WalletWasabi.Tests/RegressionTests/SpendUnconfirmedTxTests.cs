@@ -47,7 +47,7 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -217,7 +217,7 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
