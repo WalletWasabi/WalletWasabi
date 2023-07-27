@@ -84,6 +84,15 @@ public static class TransactionModifierWalletExtensions
 	{
 		var keyManager = wallet.KeyManager;
 
+		// If this tx had been CPFPd, then the way to speed it up is to speed up its child.
+		var largestCpfp = transactionToSpeedUp.ChildrenPayForThisTx
+			.Where(x => x.IsSpeedupable(wallet.KeyManager))
+			.MaxBy(x => x.Transaction.Outputs.Sum(o => o.Value));
+		if (largestCpfp is not null)
+		{
+			transactionToSpeedUp = largestCpfp;
+		}
+
 		if (transactionToSpeedUp.IsRbfable(keyManager))
 		{
 			try
