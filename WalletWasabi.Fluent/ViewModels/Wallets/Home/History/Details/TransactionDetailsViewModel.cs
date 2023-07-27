@@ -28,6 +28,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
 	[AutoNotify] private TimeSpan? _confirmationTime;
+	[AutoNotify] private bool _isConfirmationTimeVisible;
+	[AutoNotify] private bool _isLabelsVisible;
 
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -47,8 +49,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	public bool IsConfirmationTimeVisible { get; set; }
-	public bool IsLabelsVisible { get; set; }
+	
+	
 
 	public Money? Fee { get; }
 
