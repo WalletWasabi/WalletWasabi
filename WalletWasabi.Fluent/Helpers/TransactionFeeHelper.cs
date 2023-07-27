@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.RPC;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
@@ -11,19 +13,22 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionFeeHelper
 {
-	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
-	{
-		[1] = 17,
-		[2] = 12,
-		[3] = 9,
-		[6] = 9,
-		[18] = 2,
-		[36] = 2,
-		[72] = 2,
-		[144] = 2,
-		[432] = 1,
-		[1008] = 1
-	};
+	private static readonly AllFeeEstimate TestNetFeeEstimates = new(
+		EstimateSmartFeeMode.Conservative,
+		new Dictionary<int, int>
+		{
+			[1] = 17,
+			[2] = 12,
+			[3] = 9,
+			[6] = 9,
+			[18] = 2,
+			[36] = 2,
+			[72] = 2,
+			[144] = 2,
+			[432] = 1,
+			[1008] = 1
+		},
+		false);
 
 	public static async Task<Dictionary<int, int>> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
@@ -54,7 +59,7 @@ public static class TransactionFeeHelper
 			return false;
 		}
 
-		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates.Estimations : wallet.FeeProvider.AllFeeEstimate.Estimations;
 		return true;
 	}
 
