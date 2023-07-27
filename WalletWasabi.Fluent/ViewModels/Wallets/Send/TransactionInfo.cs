@@ -57,13 +57,20 @@ public partial class TransactionInfo
 
 	private void OnFeeChanged()
 	{
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		if (IsSelectedCoinModificationEnabled)
+		{
+			ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		}
 	}
 
 	private void OnCoinsChanged()
 	{
 		MaximumPossibleFeeRate = null;
-		ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
+
+		if (IsSelectedCoinModificationEnabled)
+		{
+			ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
+		}
 	}
 
 	public TransactionInfo Clone()

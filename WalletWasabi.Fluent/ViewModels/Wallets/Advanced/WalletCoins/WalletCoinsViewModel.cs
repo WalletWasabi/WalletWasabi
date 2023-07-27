@@ -147,9 +147,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 		var info = new TransactionInfo(address.Address, wallet.AnonScoreTarget)
 		{
-			Coins = selectedSmartCoins,
+			ChangelessCoins = selectedSmartCoins,
 			Amount = selectedSmartCoins.Sum(x => x.Amount),
-			SubtractFee = true,
 			Recipient = label,
 			IsSelectedCoinModificationEnabled = false,
 			IsFixedAmount = true,

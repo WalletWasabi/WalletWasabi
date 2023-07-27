@@ -278,7 +278,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (NotEnoughFundsException ex)
 		{
-			// TODO: Any other scenario when this exception happens?
 			var totalFee = _info.Amount + (Money)ex.Missing;
 			var percentage = ((decimal)totalFee.Satoshi / _info.Amount.Satoshi) * 100;
 

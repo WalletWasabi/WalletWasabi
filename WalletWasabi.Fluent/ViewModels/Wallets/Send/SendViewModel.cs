@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,6 +10,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -116,13 +118,16 @@ public partial class SendViewModel : RoutableViewModel
 				}
 
 				var amount = new Money(AmountBtc, MoneyUnit.BTC);
+				var isTotalBalanceUsed = amount == _wallet.Coins.TotalAmount();
+				var isChangelessTransaction = isTotalBalanceUsed && !(IsFixedAmount || IsPayJoin);
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
+					ChangelessCoins = isChangelessTransaction ? _wallet.Coins : Enumerable.Empty<SmartCoin>(),
+					IsSelectedCoinModificationEnabled = !isChangelessTransaction,
 					Amount = amount,
 					Recipient = label,
 					PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
-					IsFixedAmount = IsFixedAmount,
-					SubtractFee = amount == _wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
+					IsFixedAmount = IsFixedAmount
 				};
 
 				if (_coinJoinManager is { } coinJoinManager)
