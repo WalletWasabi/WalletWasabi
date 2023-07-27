@@ -354,7 +354,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	/// <summary>
-	/// We know the fee when we have all the inputs.
+	/// We know the fee rate when we have all the inputs.
 	/// </summary>
 	public bool TryGetFeeRate([NotNullWhen(true)] out FeeRate? feeRate)
 	{
