@@ -36,7 +36,8 @@ public static class TransactionModifierWalletExtensions
 		var originalFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 
-		var destination = ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen.");
+		var destination = ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
+		Guard.NotNull(nameof(destination), destination);
 
 		BuildTransactionResult cancelTransaction;
 		int i = 1;
@@ -117,7 +118,8 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
 		var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
@@ -267,11 +269,15 @@ public static class TransactionModifierWalletExtensions
 		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
 		var txSizeBytes = transactionToCpfp.Transaction.GetVirtualSize();
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2) ?? throw new NullReferenceException($"Couldn't get fee rate. This should never happen.");
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
+
+		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
+		Guard.NotNull(nameof(destination), destination);
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(
-			keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
+			destination,
 			LabelsArray.Empty,
 			bestFeeRate,
 			allowedInputs,
@@ -284,7 +290,7 @@ public static class TransactionModifierWalletExtensions
 		var cpfpFeeRate = new FeeRate((decimal)(cpfpFee / tempTxSizeBytes));
 
 		var cpfp = wallet.BuildChangelessTransaction(
-			keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
+			destination,
 			LabelsArray.Empty,
 			cpfpFeeRate,
 			allowedInputs,
