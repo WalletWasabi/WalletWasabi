@@ -24,4 +24,6 @@ public record ConsolidationWarning(int CoinCount) : PrivacyWarning(WarningSeveri
 
 public record CreatesChangeWarning() : PrivacyWarning(WarningSeverity.Info);
 
-public record UnconfirmedFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
+public record UnconfirmedFundsWarning() : PrivacyWarning(WarningSeverity.Info);
+
+public record CoinjoiningFundsWarning() : PrivacyWarning(WarningSeverity.Info);

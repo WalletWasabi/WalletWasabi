@@ -19,21 +19,12 @@ public static class RPCClientExtensions
 
 	public static async Task<EstimateSmartFeeResponse> EstimateConservativeSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, CancellationToken cancellationToken = default)
 	{
-		EstimateSmartFeeResponse result;
-
-		if (rpc.Network == Network.RegTest)
+		var estimations = await rpc.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
+		return new EstimateSmartFeeResponse
 		{
-			result = SimulateRegTestFeeEstimation(confirmationTarget);
-		}
-		else
-		{
-			result = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateMode, cancellationToken).ConfigureAwait(false);
-
-			var mempoolInfo = await rpc.GetMempoolInfoAsync(cancellationToken).ConfigureAwait(false);
-			result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
-		}
-
-		return result;
+			Blocks = confirmationTarget,
+			FeeRate = estimations.GetFeeRate(confirmationTarget)
+		};
 	}
 
 	private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget)

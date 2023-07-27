@@ -38,17 +38,17 @@
       <!-- Destination Address -->
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Label="Destination addresses" IsVisible="{Binding !!DestinationAddresses.Count}">
-        <c:PrivacyContentControl>
-          <ItemsControl Items="{Binding DestinationAddresses}">
-            <ItemsControl.ItemTemplate>
+        <ItemsRepeater Items="{Binding DestinationAddresses}">
+          <ItemsRepeater.ItemTemplate>
               <DataTemplate>
                 <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
-                  <TextBlock Classes="monoSpaced" Text="{Binding}" />
+                  <c:PrivacyContentControl>
+                    <TextBlock Classes="monoSpaced" Text="{Binding}" />
+                  </c:PrivacyContentControl>
                 </c:PreviewItem>
               </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </c:PrivacyContentControl>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
       </c:PreviewItem>
 
       <Separator IsVisible="{Binding !!DestinationAddresses.Count}" />

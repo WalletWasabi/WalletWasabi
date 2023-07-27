@@ -58,6 +58,8 @@ public class CoinJoinClient
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = ImmutableList<SmartCoin>.Empty;
+
 	private SecureRandom SecureRandom { get; }
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
@@ -332,6 +334,8 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
+			CoinsInCriticalPhase = registeredAliceClients.Select(alice => alice.SmartCoin).ToImmutableList();
+
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
@@ -457,7 +461,8 @@ public class CoinJoinClient
 						{
 							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
 						}
-						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
 						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 						break;
 

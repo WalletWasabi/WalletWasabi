@@ -47,7 +47,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		ConfirmationTime = transactionResult.Transaction.GetConfirmationTime();
 
-		var destinationAmount = _transaction.CalculateDestinationAmount();
+		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 		Amount = destinationAmount.ToString();
 

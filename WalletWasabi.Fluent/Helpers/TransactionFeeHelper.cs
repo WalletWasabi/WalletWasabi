@@ -58,19 +58,6 @@ public static class TransactionFeeHelper
 		return true;
 	}
 
-	public static bool AreTransactionFeesEqual(Wallet wallet)
-	{
-		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
-		{
-			return false;
-		}
-
-		var first = feeEstimates.First();
-		var last = feeEstimates.Last();
-
-		return first.Value == last.Value;
-	}
-
 	public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
 	{
 		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
