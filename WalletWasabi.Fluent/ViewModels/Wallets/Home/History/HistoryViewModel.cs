@@ -346,7 +346,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					continue;
 				}
 
-				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, parent, groupItems);
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, _walletVm, parent, groupItems);
 
 				// Check if the last item's balance is not null before calling SetBalance.
 				var bal = groupItems.Last().Balance;
