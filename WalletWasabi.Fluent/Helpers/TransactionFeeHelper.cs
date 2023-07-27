@@ -51,6 +51,12 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
+	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		return TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
+	}
+
 	public static bool TryEstimateConfirmationTime(Wallet wallet, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
@@ -69,15 +75,18 @@ public static class TransactionFeeHelper
 	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out AllFeeEstimate? estimates)
+		=> TryGetFeeEstimates(wallet.FeeProvider, wallet.Network, out estimates);
+
+	public static bool TryGetFeeEstimates(HybridFeeProvider feeProvider, Network network, [NotNullWhen(true)] out AllFeeEstimate? estimates)
 	{
 		estimates = null;
 
-		if (wallet.FeeProvider.AllFeeEstimate is null)
+		if (feeProvider.AllFeeEstimate is null)
 		{
 			return false;
 		}
 
-		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate;
+		estimates = network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate;
 		return true;
 	}
 

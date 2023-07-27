@@ -27,6 +27,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
+		TransactionSummary = transactionSummary;
 		Id = transactionSummary.TransactionId;
 
 		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
@@ -104,6 +105,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public bool IsSpeedUpDisplayed => !IsConfirmed && (IsSpeedUp || IsCPFPd);
 
 	public bool IsCPFPDisplayed => IsCPFP;
+
+	public TransactionSummary TransactionSummary { get; }
 
 	private async Task CopyToClipboardAsync(string text)
 	{
