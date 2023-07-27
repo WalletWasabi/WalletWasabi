@@ -58,21 +58,6 @@ public static class TransactionFeeHelper
 		return true;
 	}
 
-	public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
-	{
-		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
-		{
-			return TimeSpan.Zero;
-		}
-
-		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates);
-
-		return feeChartViewModel.TryGetConfirmationTarget(feeRate, out var target)
-			? CalculateConfirmationTime(target)
-			: TimeSpan.Zero;
-	}
-
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
 	{
 		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
