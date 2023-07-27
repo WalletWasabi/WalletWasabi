@@ -154,7 +154,12 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	public bool TryEstimateConfirmationTime(SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? confirmationTime)
 	{
 		confirmationTime = default;
-		if (tx.TryGetFeeRate(out var feeRate))
+		if (tx.Confirmed)
+		{
+			confirmationTime = TimeSpan.Zero;
+			return true;
+		}
+		else if (tx.TryGetFeeRate(out var feeRate))
 		{
 			confirmationTime = EstimateConfirmationTime(feeRate);
 			return true;
