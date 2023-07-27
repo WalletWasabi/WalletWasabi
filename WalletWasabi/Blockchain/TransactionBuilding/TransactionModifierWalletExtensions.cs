@@ -36,12 +36,14 @@ public static class TransactionModifierWalletExtensions
 		var originalFee = transactionToCancel.Transaction.GetFee(transactionToCancel.WalletInputs.Select(x => x.Coin).ToArray());
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 
+		var destination = ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen.");
+
 		BuildTransactionResult cancelTransaction;
 		int i = 1;
 		do
 		{
 			cancelTransaction = wallet.BuildChangelessTransaction(
-				ownOutput?.Coin.ScriptPubKey.GetDestinationAddress(network) ?? keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network) ?? throw new NullReferenceException("GetDestinationAddress returned null. This should never happen."),
+				destination,
 				transactionToCancel.Labels,
 				new FeeRate(originalFeeRate.SatoshiPerByte + i),
 				transactionToCancel.WalletInputs,
