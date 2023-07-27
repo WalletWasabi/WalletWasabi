@@ -14,6 +14,7 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 	public SpeedUpHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
+		WalletViewModel walletVm,
 		HistoryItemViewModelBase parent,
 		IEnumerable<HistoryItemViewModelBase> children)
 		: base(orderIndex, transactionSummary)
@@ -33,7 +34,18 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 		{
 			child.IsChild = true;
 		}
+
+		CanCancelTransaction = transactionSummary.Transaction.IsCancellable(walletVm.Wallet.KeyManager);
+		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(walletVm.Wallet.KeyManager);
+		SpeedUpTransactionCommand = parent.SpeedUpTransactionCommand;
+		CancelTransactionCommand = parent.CancelTransactionCommand;
 	}
+
+	public bool CanSpeedUpTransaction { get; }
+
+	public bool CanCancelTransaction { get; }
+
+	public bool TransactionOperationsVisible => CanCancelTransaction || CanSpeedUpTransaction;
 
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
