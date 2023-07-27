@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.HttpOverrides;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,25 +46,7 @@ public class TransactionHistoryBuilder
 				var inputs = GetInputs(containingTransaction).ToList();
 				var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
-				txRecordList.Add(new TransactionSummary
-				{
-					Transaction = containingTransaction,
-					DateTime = dateTime,
-					Height = coin.Height,
-					Amount = coin.Amount,
-					Labels = containingTransaction.Labels,
-					TransactionId = coin.TransactionId,
-					BlockIndex = containingTransaction.BlockIndex,
-					BlockHash = containingTransaction.BlockHash,
-					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
-					Inputs = GetInputs(containingTransaction),
-					Outputs = outputs,
-					DestinationAddresses = destinationAddresses,
-					IsSpeedUp = containingTransaction.IsSpeedup,
-					IsCPFP = containingTransaction.IsCPFP,
-					IsCPFPd = containingTransaction.IsCPFPd,
-					IsCancellation = containingTransaction.IsCancellation,
-				});
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, GetInputs(containingTransaction), outputs, destinationAddresses));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -84,26 +65,8 @@ public class TransactionHistoryBuilder
 					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
 					var inputs = GetInputs(containingTransaction).ToList();
 					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
-
-					txRecordList.Add(new TransactionSummary
-					{
-						Transaction = spenderTransaction,
-						DateTime = dateTime,
-						Height = spenderTransaction.Height,
-						Amount = Money.Zero - coin.Amount,
-						Labels = spenderTransaction.Labels,
-						TransactionId = spenderTxId,
-						BlockIndex = spenderTransaction.BlockIndex,
-						BlockHash = spenderTransaction.BlockHash,
-						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
-						Inputs = GetInputs(spenderTransaction),
-						Outputs = outputs,
-						DestinationAddresses = destinationAddresses,
-						IsSpeedUp = spenderTransaction.IsSpeedup,
-						IsCPFP = spenderTransaction.IsCPFP,
-						IsCPFPd = spenderTransaction.IsCPFPd,
-						IsCancellation = spenderTransaction.IsCancellation,
-					});
+          
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, GetInputs(spenderTransaction), outputs, destinationAddresses));
 				}
 			}
 		}
