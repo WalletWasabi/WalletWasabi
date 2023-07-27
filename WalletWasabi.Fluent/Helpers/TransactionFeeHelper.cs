@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
@@ -30,7 +31,7 @@ public static class TransactionFeeHelper
 		},
 		false);
 
-	public static async Task<Dictionary<int, int>> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
+	public static async Task<AllFeeEstimate> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		var feeProvider = wallet.FeeProvider;
 
@@ -50,7 +51,24 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out Dictionary<int, int>? estimates)
+	public static bool TryEstimateConfirmationTime(Wallet wallet, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		return TryGetFeeEstimates(wallet, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
+	}
+
+	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		if (TryGetFeeEstimates(wallet, out var feeEstimates))
+		{
+			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+		}
+
+		return estimate is not null;
+	}
+
+	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out AllFeeEstimate? estimates)
 	{
 		estimates = null;
 
@@ -59,7 +77,7 @@ public static class TransactionFeeHelper
 			return false;
 		}
 
-		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates.Estimations : wallet.FeeProvider.AllFeeEstimate.Estimations;
+		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate;
 		return true;
 	}
 
@@ -103,7 +121,7 @@ public static class TransactionFeeHelper
 		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
 
 		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates);
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates.Estimations);
 
 		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
 		{

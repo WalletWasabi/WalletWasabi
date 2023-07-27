@@ -40,13 +40,13 @@
                      Label="Destination addresses" IsVisible="{Binding !!DestinationAddresses.Count}">
         <ItemsRepeater Items="{Binding DestinationAddresses}">
           <ItemsRepeater.ItemTemplate>
-              <DataTemplate>
-                <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
-                  <c:PrivacyContentControl>
-                    <TextBlock Classes="monoSpaced" Text="{Binding}" />
-                  </c:PrivacyContentControl>
-                </c:PreviewItem>
-              </DataTemplate>
+            <DataTemplate>
+              <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
+                <c:PrivacyContentControl>
+                  <TextBlock Classes="monoSpaced" Text="{Binding}" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
           </ItemsRepeater.ItemTemplate>
         </ItemsRepeater>
       </c:PreviewItem>
@@ -80,7 +80,7 @@
       <Separator />
 
       <!-- Confirmation Time -->
-      <c:PreviewItem IsVisible="{Binding ConfirmationTime, Converter={x:Static ObjectConverters.IsNotNull}}"
+      <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
                      Label="Confirmation time"
                      CopyableContent="{Binding ConfirmationTime}">
@@ -89,7 +89,7 @@
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-      <Separator IsVisible="{Binding ConfirmationTime, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
 
       <!-- Transaction ID -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
@@ -118,10 +118,11 @@
                      IsVisible="{Binding IsConfirmed}">
         <TextBlock Text="{Binding BlockHeight}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Labels -->
-      <c:PreviewItem Icon="{StaticResource entities_regular}"
+      <Separator IsVisible="{Binding IsLabelsVisible}" />
+      <c:PreviewItem IsVisible="{Binding IsLabelsVisible}"
+                     Icon="{StaticResource entities_regular}"
                      Label="Labels"
                      CopyableContent="{Binding Labels}">
         <c:PrivacyContentControl VerticalContentAlignment="Center">

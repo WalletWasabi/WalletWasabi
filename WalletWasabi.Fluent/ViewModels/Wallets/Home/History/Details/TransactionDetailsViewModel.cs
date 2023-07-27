@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -46,6 +47,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
+	public bool IsConfirmationTimeVisible { get; set; }
+	public bool IsLabelsVisible { get; set; }
 
 	public Money? Fee { get; }
 
@@ -56,7 +59,10 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
-		ConfirmationTime = transactionSummary.Transaction.GetConfirmationTime();
+
+		TransactionFeeHelper.TryEstimateConfirmationTime(_walletVm.Wallet, transactionSummary.Transaction, out var estimate);
+		ConfirmationTime = estimate;
+
 		IsConfirmed = Confirmations > 0;
 
 		if (transactionSummary.Amount < Money.Zero)
@@ -71,6 +77,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		}
 
 		BlockHash = transactionSummary.BlockHash?.ToString();
+
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
+		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
 	}
 
 	private void OnNext()

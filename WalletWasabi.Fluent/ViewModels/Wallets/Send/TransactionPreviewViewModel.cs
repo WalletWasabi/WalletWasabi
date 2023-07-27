@@ -316,7 +316,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 				_info.FeeRate = maximumPossibleFeeRate;
-				_info.ConfirmationTimeSpan = _wallet.FeeProvider.AllFeeEstimate?.EstimateConfirmationTime(maximumPossibleFeeRate) ?? TimeSpan.Zero;
+				_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
+					? estimate.Value
+					: TimeSpan.Zero;
 				return await BuildTransactionAsync();
 			}
 
@@ -360,7 +362,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 		_info.FeeRate = maximumPossibleFeeRate;
-		_info.ConfirmationTimeSpan = _wallet.FeeProvider.AllFeeEstimate?.EstimateConfirmationTime(maximumPossibleFeeRate) ?? TimeSpan.Zero;
+		_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
+			? estimate.Value
+			: TimeSpan.Zero;
 
 		return true;
 	}
