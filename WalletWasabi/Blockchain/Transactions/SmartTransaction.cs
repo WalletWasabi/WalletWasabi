@@ -336,6 +336,40 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	   => WalletInputs.Any() // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
+	/// <summary>
+	/// We know the fee when we have all the inputs.
+	/// </summary>
+	public bool TryGetFee([NotNullWhen(true)] out Money? fee)
+	{
+		if (ForeignInputs.Any())
+		{
+			fee = null;
+			return false;
+		}
+		else
+		{
+			fee = Transaction.GetFee(WalletInputs.Select(x => x.Coin).ToArray());
+			return true;
+		}
+	}
+
+	/// <summary>
+	/// We know the fee rate when we have all the inputs.
+	/// </summary>
+	public bool TryGetFeeRate([NotNullWhen(true)] out FeeRate? feeRate)
+	{
+		if (ForeignInputs.Any())
+		{
+			feeRate = null;
+			return false;
+		}
+		else
+		{
+			feeRate = Transaction.GetFeeRate(WalletInputs.Select(x => x.Coin).ToArray());
+			return true;
+		}
+	}
+
 	#region LineSerialization
 
 	public string ToLine()

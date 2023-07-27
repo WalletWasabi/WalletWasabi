@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.HttpOverrides;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,20 +47,7 @@ public class TransactionHistoryBuilder
 				var inputs = GetInputs(containingTransaction).ToList();
 				var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
-				txRecordList.Add(new TransactionSummary
-				{
-					DateTime = dateTime,
-					Height = coin.Height,
-					Amount = coin.Amount,
-					Labels = containingTransaction.Labels,
-					TransactionId = coin.TransactionId,
-					BlockIndex = containingTransaction.BlockIndex,
-					BlockHash = containingTransaction.BlockHash,
-					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
-					Inputs = GetInputs(containingTransaction),
-					Outputs = outputs,
-					DestinationAddresses = destinationAddresses,
-				});
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, GetInputs(containingTransaction), outputs, destinationAddresses));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -81,20 +67,7 @@ public class TransactionHistoryBuilder
 					var inputs = GetInputs(containingTransaction).ToList();
 					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
-					txRecordList.Add(new TransactionSummary
-					{
-						DateTime = dateTime,
-						Height = spenderTransaction.Height,
-						Amount = Money.Zero - coin.Amount,
-						Labels = spenderTransaction.Labels,
-						TransactionId = spenderTxId,
-						BlockIndex = spenderTransaction.BlockIndex,
-						BlockHash = spenderTransaction.BlockHash,
-						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
-						Inputs = GetInputs(spenderTransaction),
-						Outputs = outputs,
-						DestinationAddresses = destinationAddresses,
-					});
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, GetInputs(spenderTransaction), outputs, destinationAddresses));
 				}
 			}
 		}
@@ -108,7 +81,7 @@ public class TransactionHistoryBuilder
 		var foreignInputs = inputs.OfType<ForeignInput>().ToList();
 		var myOwnOutputs = outputs.OfType<OwnOutput>().ToList();
 		var foreignOutputs = outputs.OfType<ForeignOutput>().ToList();
-		
+
 		// All inputs and outputs are my own, transaction is a self-spend.
 		if (!foreignInputs.Any() && !foreignOutputs.Any())
 		{
@@ -130,7 +103,7 @@ public class TransactionHistoryBuilder
 			// All outputs that are my own are the destinations.
 			return myOwnOutputs.Select(x => x.DestinationAddress);
 		}
-		
+
 		// I'm sending a transaction to someone else.
 		// All outputs that are not my own are the destinations.
 		return foreignOutputs.Select(x => x.DestinationAddress);
