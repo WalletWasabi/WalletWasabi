@@ -111,7 +111,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 
 				var feeRateSatPerByte = smaller.feeRate.SatoshiPerByte + (ratio * diffFeeRateSatPerByte);
 
-				FeeRate feeRate = new FeeRate(feeRateSatPerByte);
+				FeeRate feeRate = new(feeRateSatPerByte);
 				if (feeRate == prevFeeRate)
 				{
 					break;
