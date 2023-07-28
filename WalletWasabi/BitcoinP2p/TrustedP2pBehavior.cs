@@ -16,7 +16,7 @@ public class TrustedP2pBehavior : P2pBehavior
 
 	protected override bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
 	{
-		if (inv.Type.HasFlag(InventoryType.MSG_TX))
+		if (inv.Type.HasFlag(InventoryType.MSG_TX) || inv.Type.HasFlag(InventoryType.MSG_WTX))
 		{
 			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction then adjust confirmation.
 			{
@@ -37,7 +37,7 @@ public class TrustedP2pBehavior : P2pBehavior
 			return true;
 		}
 
-		if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
+		if (inv.Type.HasFlag(InventoryType.MSG_WITNESS_BLOCK))
 		{
 			BlockInv?.Invoke(this, inv.Hash);
 		}
