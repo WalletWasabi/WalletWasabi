@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -112,6 +113,14 @@ public class RegTestSetup : IAsyncDisposable
 	public void Wallet_NewFilterProcessed(object? sender, FilterModel e)
 	{
 		Interlocked.Increment(ref FiltersProcessedByWalletCount);
+	}
+
+	public void Wallet_NewFiltersProcessed(object? sender, IEnumerable<FilterModel> e)
+	{
+		foreach (var filter in e)
+		{
+			Interlocked.Increment(ref FiltersProcessedByWalletCount);
+		}
 	}
 
 	public async ValueTask DisposeAsync()
