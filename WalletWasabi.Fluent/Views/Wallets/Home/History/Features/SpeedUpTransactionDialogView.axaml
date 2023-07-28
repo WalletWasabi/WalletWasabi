@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:features="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:DataType="features:SpeedUpTransactionDialogViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Features.SpeedUpTransactionDialogView">
+
+  <c:ContentArea Title="Speed Up Transaction"
+                 EnableCancel="False"
+                 EnableBack="{Binding EnableBack}"
+                 IsBusy="{Binding IsBusy}"
+                 EnableNext="False" NextContent="Cancel">
+
+    <c:ContentArea.Styles>
+      <Style Selector="c|QuestionControl TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextAlignment" Value="Center" />
+      </Style>
+    </c:ContentArea.Styles>
+
+    <Panel>
+      <c:QuestionControl IsVisible="{Binding AreWePayingTheFee}" HighlightButton="YesButton" YesCommand="{Binding NextCommand}"
+                         NoCommand="{Binding CancelCommand}">
+        <c:QuestionControl.IconContent>
+          <Viewbox MaxHeight="120" Margin="40">
+            <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+          </Viewbox>
+        </c:QuestionControl.IconContent>
+        <StackPanel Spacing="10">
+          <TextBlock Text="Speeding up this transaction will cost you an additional fee of" />
+          <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+            <TextBlock TextAlignment="Center"
+                       FontWeight="Bold"
+                       Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                       Classes="h5" VerticalAlignment="Bottom" />
+            <TextBlock
+              FontWeight="Bold"
+              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
+          </StackPanel>
+          <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
+                     Text="Are you sure?" />
+        </StackPanel>
+      </c:QuestionControl>
+
+      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
+                         NoCommand="{Binding CancelCommand}">
+        <c:QuestionControl.IconContent>
+          <Panel>
+            <Viewbox MaxHeight="120" Margin="40">
+              <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+            </Viewbox>
+            <Viewbox MaxHeight="40" Margin="120, 100 0 0">
+              <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6" />
+            </Viewbox>
+          </Panel>
+        </c:QuestionControl.IconContent>
+        <StackPanel Spacing="10">
+          <TextBlock Text="To speed up this transaction a deduction will be made from the recipient's amount of" />
+          <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                       Classes="h5" FontWeight="Bold" />
+            <TextBlock
+              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
+          </StackPanel>
+          <TextBlock Text="Are you sure?" />
+        </StackPanel>
+      </c:QuestionControl>
+    </Panel>
+  </c:ContentArea>
+</UserControl>

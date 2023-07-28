@@ -34,6 +34,10 @@ public class TransactionSummary
 	public int BlockIndex => Transaction.BlockIndex;
 	public bool IsOwnCoinjoin => Transaction.IsOwnCoinjoin();
 	public int VirtualSize => Transaction.Transaction.GetVirtualSize();
+	public bool IsCancellation => Transaction.IsCancellation;
+	public bool IsSpeedUp => Transaction.IsSpeedup;
+	public bool IsCPFP => Transaction.IsCPFP;
+	public bool IsCPFPd => Transaction.IsCPFPd;
 
 	public FeeRate? FeeRate
 	{
