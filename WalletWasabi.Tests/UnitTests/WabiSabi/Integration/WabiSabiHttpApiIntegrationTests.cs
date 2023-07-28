@@ -90,8 +90,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				};
 				services.AddScoped<IRPCClient>(s => rpc);
 
-				var inmate = new Inmate(bannedOutPoint, Punishment.LongBanned, DateTimeOffset.UtcNow, uint256.One);
-				services.AddScoped(_ => new Prison(new[] { inmate }));
+				var prison = WabiSabiFactory.CreatePrison();
+				prison.FailedVerification(bannedOutPoint, uint256.One);
+				services.AddScoped(_ => prison);
 			})).CreateClient();
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
@@ -105,7 +106,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, timeoutCts.Token));
 
-		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, ex.ErrorCode);
+		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 		var inputBannedData = Assert.IsType<InputBannedExceptionData>(ex.ExceptionData);
 		Assert.True(inputBannedData.BannedUntil > DateTimeOffset.UtcNow);
 	}
