@@ -419,6 +419,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			updated = true;
 		}
 
+		// If we have witness on the other tx, then we should have it on this as well.
+		for (int i = 0; i < Transaction.Inputs.Count; i++)
+		{
+			var input = Transaction.Inputs[i];
+			var otherInput = tx.Transaction.Inputs[i];
+
+			if ((input.WitScript is null || input.WitScript == WitScript.Empty) && (otherInput.WitScript is not null && otherInput.WitScript != WitScript.Empty))
+			{
+				input.WitScript = otherInput.WitScript;
+				updated = true;
+			}
+		}
+
 		return updated;
 	}
 
