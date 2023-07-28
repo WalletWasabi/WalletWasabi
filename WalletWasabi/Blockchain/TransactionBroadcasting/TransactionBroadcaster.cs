@@ -136,6 +136,8 @@ public class TransactionBroadcaster
 			transaction.SetUnconfirmed();
 		}
 
+		BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, "N/A");
+
 		WalletManager.Process(transaction);
 	}
 

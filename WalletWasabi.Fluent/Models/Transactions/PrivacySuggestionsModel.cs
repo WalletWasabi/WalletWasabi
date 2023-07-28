@@ -317,8 +317,7 @@ public class PrivacySuggestionsModel
 
 			try
 			{
-				transaction = TransactionHelpers.BuildChangelessTransaction(
-					_wallet,
+				transaction = _wallet.BuildChangelessTransaction(
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
@@ -349,8 +348,7 @@ public class PrivacySuggestionsModel
 
 		try
 		{
-			txn = TransactionHelpers.BuildTransaction(
-				_wallet,
+			txn = _wallet.BuildTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Amount,
 				transactionInfo.Recipient,
@@ -364,8 +362,7 @@ public class PrivacySuggestionsModel
 		{
 			try
 			{
-				txn = TransactionHelpers.BuildChangelessTransaction(
-					_wallet,
+				txn = _wallet.BuildChangelessTransaction(
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,

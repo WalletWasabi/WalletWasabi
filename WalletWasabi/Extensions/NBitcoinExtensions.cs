@@ -27,7 +27,7 @@ public static class NBitcoinExtensions
 		}
 
 		using var listener = node.CreateListener();
-		var getData = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
+		var getData = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_WITNESS_BLOCK), hash));
 		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -153,6 +153,8 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.BlockIndex,
 			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
+			unsignedSmartTransaction.IsSpeedup,
+			unsignedSmartTransaction.IsCancellation,
 			unsignedSmartTransaction.FirstSeen);
 	}
 
@@ -490,7 +492,7 @@ public static class NBitcoinExtensions
 
 		return ownershipProof;
 	}
-	
+
 	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
 		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 }
