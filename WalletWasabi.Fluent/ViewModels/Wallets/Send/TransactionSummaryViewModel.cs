@@ -45,7 +45,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		_transaction = transactionResult;
 
-		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionResult.Transaction, out var estimate);
+		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, info.FeeRate, out var estimate);
 		ConfirmationTime = estimate;
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
