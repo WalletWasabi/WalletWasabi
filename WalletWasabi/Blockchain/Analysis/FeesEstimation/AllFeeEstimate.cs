@@ -166,7 +166,8 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		Money totalFee = Money.Zero;
 		foreach (var currentTx in unconfirmedChain)
 		{
-			if (currentTx.TryGetFee(out var fee))
+			// We must have all the inputs and know the size of the tx to estimate the feerate.
+			if (currentTx.TryGetFee(out var fee) || currentTx.IsSegwitWithoutWitness)
 			{
 				totalFee += fee;
 			}

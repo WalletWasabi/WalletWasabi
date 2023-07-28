@@ -484,6 +484,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	   => WalletInputs.Any() // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
+	public bool IsSegwitWithoutWitness => !Transaction.HasWitness && Transaction.Inputs.Any(x => x.ScriptSig == Script.Empty);
+
 	/// <summary>
 	/// We know the fee when we have all the inputs.
 	/// </summary>
@@ -502,11 +504,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	/// <summary>
-	/// We know the fee rate when we have all the inputs.
+	/// We know the fee rate when we have all the inputs and the virtual size for the tx.
 	/// </summary>
 	public bool TryGetFeeRate([NotNullWhen(true)] out FeeRate? feeRate)
 	{
-		if (ForeignInputs.Any())
+		if (ForeignInputs.Any() || IsSegwitWithoutWitness)
 		{
 			feeRate = null;
 			return false;
