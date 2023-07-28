@@ -1,5 +1,3 @@
-using System.Linq;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -14,7 +12,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
-	[AutoNotify] private string _confirmationTimeText = "";
+	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _isCustomFeeUsed;
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
@@ -47,7 +45,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		_transaction = transactionResult;
 
-		ConfirmationTimeText = $"≈ {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
+		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionResult.Transaction, out var estimate);
+		ConfirmationTime = estimate;
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";

@@ -214,7 +214,8 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
 	{
-		var correctedFeeEstimates = DistinctByValues(feeEstimates);
+		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
+		var correctedFeeEstimates = areAllValuesEqual ? feeEstimates : DistinctByValues(feeEstimates);
 
 		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
 		var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
@@ -234,9 +235,12 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		if (satoshiPerByteValues.Any())
 		{
-			var minY = satoshiPerByteValues.Min();
 			var maxY = satoshiPerByteValues.Max();
-			SatoshiPerByteLabels = new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+			var minY = satoshiPerByteValues.Min();
+
+			SatoshiPerByteLabels = areAllValuesEqual
+				? new[] { "", "", maxY.ToString("F0") }
+				: new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
 		}
 		else
 		{
@@ -344,5 +348,13 @@ public partial class FeeChartViewModel : ViewModelBase
 		}
 
 		return valuesToReturn;
+	}
+
+	private bool AreEstimatedFeeRatesEqual(Dictionary<int, int> feeEstimates)
+	{
+		var first = feeEstimates.First();
+		var last = feeEstimates.Last();
+
+		return first.Value == last.Value;
 	}
 }

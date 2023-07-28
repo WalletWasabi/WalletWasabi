@@ -131,7 +131,8 @@ public class PrivacySuggestionsModel
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
-				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
+				var differenceFiat = GetDifferenceFiat(transactionInfo, newTransaction, usdExchangeRate);
+				var differenceFiatText = GetDifferenceFiatText(differenceFiat);
 				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText, allPrivateCoin, isChangeless);
 				result.Suggestions.Add(fullPrivacySuggestion);
 			}
@@ -153,7 +154,8 @@ public class PrivacySuggestionsModel
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
-				var differenceFiatText = GetDifferenceFiatText(transactionInfo, newTransaction, usdExchangeRate);
+				var differenceFiat = GetDifferenceFiat(transactionInfo, newTransaction, usdExchangeRate);
+				var differenceFiatText = GetDifferenceFiatText(differenceFiat);
 				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins, isChangeless));
 			}
 		}
@@ -302,7 +304,8 @@ public class PrivacySuggestionsModel
 
 			if (transaction is not null)
 			{
-				yield return new ChangeAvoidanceSuggestion(transaction, GetDifferenceFiatText(transactionInfo, transaction, usdExchangeRate));
+				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
+				yield return new ChangeAvoidanceSuggestion(transaction, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
 			}
 		}
 	}
@@ -352,7 +355,7 @@ public class PrivacySuggestionsModel
 		return true;
 	}
 
-	private string GetDifferenceFiatText(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
+	private decimal GetDifferenceFiat(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
 	{
 		var originalAmount = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 		var totalAmount = transaction.CalculateDestinationAmount(transactionInfo.Destination);
@@ -361,13 +364,16 @@ public class PrivacySuggestionsModel
 		var fiatOriginal = originalAmount * usdExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 
-		var differenceFiatText = fiatDifference switch
+		return fiatDifference;
+	}
+
+	private string GetDifferenceFiatText(decimal fiatDifference)
+	{
+		return fiatDifference switch
 		{
 			> 0 => $"{fiatDifference.ToUsd()} more",
 			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} less",
 			_ => "the same amount"
 		};
-
-		return differenceFiatText;
 	}
 }
