@@ -212,7 +212,17 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			#region CanSpeedUpCPFPd
 
 			var rbf2 = wallet.SpeedUpTransaction(txToSpeedUp);
+
+			// Before broadcast, it's still the old one.
+			Assert.Equal(rbf.Transaction, Assert.Single(txToSpeedUp.ChildrenPayForThisTx));
+			Assert.NotEqual(rbf2.Transaction, Assert.Single(txToSpeedUp.ChildrenPayForThisTx));
+
 			await broadcaster.SendTransactionAsync(rbf2.Transaction);
+
+			// After broadcast, it must update.
+			Assert.NotEqual(rbf.Transaction, Assert.Single(txToSpeedUp.ChildrenPayForThisTx));
+			Assert.Equal(rbf2.Transaction, Assert.Single(txToSpeedUp.ChildrenPayForThisTx));
+
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(rbf.Transaction.GetHash(), out _));
 
 			Assert.Empty(rbf2.Transaction.Labels);
