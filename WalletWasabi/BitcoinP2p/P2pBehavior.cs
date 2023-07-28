@@ -42,7 +42,16 @@ public abstract class P2pBehavior : NodeBehavior
 			}
 			else if (message.Message.Payload is TxPayload txPayload)
 			{
-				ProcessTx(txPayload);
+				var tx = txPayload.Object;
+				var segwitWithoutWitness = !tx.HasWitness && tx.Inputs.Any(x => x.ScriptSig == Script.Empty);
+				if (!segwitWithoutWitness)
+				{
+					ProcessTx(txPayload);
+				}
+				else
+				{
+					Logger.LogInfo($"tx {tx.GetHash()} has no witness data. Ignoring...");
+				}
 			}
 			else if (message.Message.Payload is InvPayload invPayload)
 			{
@@ -67,7 +76,8 @@ public abstract class P2pBehavior : NodeBehavior
 		{
 			if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
 			{
-				getDataPayload.Inventory.Add(inv);
+				var newInv = new InventoryVector(InventoryType.MSG_WTX, inv.Hash);
+				getDataPayload.Inventory.Add(newInv);
 			}
 		}
 		if (getDataPayload.Inventory.Any() && node.IsConnected)
@@ -86,7 +96,7 @@ public abstract class P2pBehavior : NodeBehavior
 			return;
 		}
 
-		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
+		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX) || inv.Type.HasFlag(InventoryType.MSG_WTX)))
 		{
 			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
 			{
