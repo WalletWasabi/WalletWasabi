@@ -101,7 +101,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 				0,
 				int.MaxValue,
 				testDeadlineCts.Token);
-
 			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < 101; i++)
@@ -196,7 +195,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 				0,
 				int.MaxValue,
 				testDeadlineCts.Token);
-
 			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < blockCountIncludingGenesis; i++)

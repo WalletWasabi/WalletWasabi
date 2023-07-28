@@ -198,7 +198,6 @@ public class BuildTests : IClassFixture<RegTestFixture>
 		finally
 		{
 			await wallet.StopAsync(testDeadlineCts.Token);
-			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();

@@ -241,35 +241,28 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		var filterModels = filters.ToList();
-		int? indexFailure = null;
+		var numberOfFiltersCorrectlyProcessed = 0;
+		
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			await using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
-			foreach (FilterModel filter in filterModels)
+			foreach (FilterModel filter in filters)
 			{
 				if (!TryProcessFilterNoLock(filter, enqueue: true))
 				{
-					indexFailure = filterModels.IndexOf(filter);
-					break;
+					if (numberOfFiltersCorrectlyProcessed > 0)
+					{
+						NewFilters?.Invoke(this, filters.Take(numberOfFiltersCorrectlyProcessed));
+					}
+
+					throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
 				}
+				numberOfFiltersCorrectlyProcessed++;
 			}
 
 			sqliteTransaction.Commit();
 		}
-
-		if (indexFailure is not null)
-		{
-			var correctlyProcessedFilters = filterModels.Take((int)indexFailure).ToList();
-			if (correctlyProcessedFilters.Count > 0)
-			{
-				NewFilters?.Invoke(this, correctlyProcessedFilters);
-			}
-			throw new InvalidOperationException($"Failed to process filter with height {filterModels.ElementAt((int)indexFailure).Header.Height}.");
-		}
-
-		NewFilters?.Invoke(this, filterModels);
 	}
 
 	public async Task<FilterModel[]> FetchBatchAsync(Height fromHeight, int batchSize, CancellationToken cancellationToken)
