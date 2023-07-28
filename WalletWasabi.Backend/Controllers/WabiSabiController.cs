@@ -148,7 +148,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 			.OrderByDescending(x => x.InputCount)
 			.Select(r =>
 				new HumanMonitorRoundResponse(
-					RoundId: r.Id,
+					RoundId: r.Idv2,
 					IsBlameRound: r is BlameRound,
 					InputCount: r.InputCount,
 					Phase: r.Phase.ToString(),

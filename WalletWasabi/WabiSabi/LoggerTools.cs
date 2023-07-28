@@ -34,7 +34,7 @@ public static class LoggerTools
 	{
 		string round = roundState.BlameOf == uint256.Zero ? "Round" : "Blame Round";
 
-		Logger.Log(logLevel, $"{round} ({roundState.Id}): {logMessage}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Logger.Log(logLevel, $"{round} ({roundState.Idv2}): {logMessage}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 	}
 
 	public static void LogInfo(this RoundState roundState, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)

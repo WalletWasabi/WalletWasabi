@@ -104,6 +104,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "FailFastTransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan FailFastTransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
+	[DefaultValueTimeSpan("0d 0h 0m 20s")]
+	[JsonProperty(PropertyName = "DelayBeforeSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan DelayBeforeSigning { get; set; } = TimeSpan.FromSeconds(20);
+
 	[DefaultValueTimeSpan("0d 0h 5m 0s")]
 	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);

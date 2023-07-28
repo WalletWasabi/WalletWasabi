@@ -57,17 +57,17 @@ public class RoundStateUpdater : PeriodicRunner
 		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
 
 		var updatedRoundStates = roundStates
-			.Where(rs => RoundStates.ContainsKey(rs.Id))
-			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
+			.Where(rs => RoundStates.ContainsKey(rs.Idv2))
+			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Idv2]))
 			.Select(x => x.NewRoundState with { CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState) })
 			.ToList();
 
 		var newRoundStates = roundStates
-			.Where(rs => !RoundStates.ContainsKey(rs.Id));
+			.Where(rs => !RoundStates.ContainsKey(rs.Idv2));
 
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
-		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
+		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Idv2, x => x);
 
 		lock (AwaitersLock)
 		{

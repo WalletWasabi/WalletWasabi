@@ -88,7 +88,7 @@ public class CoinJoinClient
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
-					&& roundState.Id != excludeRound,
+					&& roundState.Idv2 != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
 	}
@@ -103,23 +103,23 @@ public class CoinJoinClient
 
 		var roundState = await RoundStatusUpdater
 				.CreateRoundAwaiterAsync(
-					roundState => roundState.BlameOf == blameRoundId,
+					roundState => roundState.BlameOfV2 == blameRoundId,
 					linkedCts.Token)
 				.ConfigureAwait(false);
 
 		if (roundState.Phase is not Phase.InputRegistration)
 		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not in Input Registration but in '{roundState.Phase}'.");
+			throw new InvalidOperationException($"Blame Round ({roundState.Idv2}): Abandoning: the round is not in Input Registration but in '{roundState.Phase}'.");
 		}
 
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
+			throw new InvalidOperationException($"Blame Round ({roundState.Idv2}): Abandoning: the minimum output amount is too high.");
 		}
 
 		if (!IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
 		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
+			throw new InvalidOperationException($"Blame Round ({roundState.Idv2}): Abandoning: the round is not economic.");
 		}
 
 		return roundState;
@@ -149,7 +149,7 @@ public class CoinJoinClient
 
 			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
-				excludeRound = currentRoundState.Id;
+				excludeRound = currentRoundState.Idv2;
 				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
 
 				continue;
@@ -157,7 +157,7 @@ public class CoinJoinClient
 
 			if (roundParameters.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
 			{
-				excludeRound = currentRoundState.Id;
+				excludeRound = currentRoundState.Idv2;
 				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{coins.Select(c => c.Amount).Max()}' BTC.");
 
 				continue;
@@ -192,7 +192,7 @@ public class CoinJoinClient
 					coins = info.SignedCoins;
 
 					currentRoundState.LogInfo("Waiting for the blame round.");
-					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
+					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Idv2, cancellationToken).ConfigureAwait(false);
 					break;
 
 				case SuccessfulCoinJoinResult success:
@@ -211,7 +211,7 @@ public class CoinJoinClient
 
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		var roundId = roundState.Id;
+		var roundId = roundState.Idv2;
 
 		// the task is watching if the round ends during operations. If it does it will trigger cancellation.
 		using CancellationTokenSource waitRoundEndedTaskCts = new();
@@ -312,7 +312,7 @@ public class CoinJoinClient
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 
 			// Try to update to the latest roundState.
-			var currentRoundState = RoundStatusUpdater.TryGetRoundState(roundState.Id, out var latestRoundState) ? latestRoundState : roundState;
+			var currentRoundState = RoundStatusUpdater.TryGetRoundState(roundState.Idv2, out var latestRoundState) ? latestRoundState : roundState;
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(currentRoundState));
 		}
 	}
@@ -322,7 +322,7 @@ public class CoinJoinClient
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 		try
 		{
-			var roundId = roundState.Id;
+			var roundId = roundState.Idv2;
 
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
@@ -561,7 +561,7 @@ public class CoinJoinClient
 		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
 
 		return new BobClient(
-			roundState.Id,
+			roundState.Idv2,
 			new(
 				roundState.CreateAmountCredentialClient(SecureRandom),
 				roundState.CreateVsizeCredentialClient(SecureRandom),
@@ -841,9 +841,9 @@ public class CoinJoinClient
 		// Register coins.
 		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 
-		if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
+		if (!RoundStatusUpdater.TryGetRoundState(roundState.Idv2, out var newRoundState))
 		{
-			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
+			throw new InvalidOperationException($"Round '{roundState.Idv2}' is missing.");
 		}
 
 		if (!result.IsDefaultOrEmpty)

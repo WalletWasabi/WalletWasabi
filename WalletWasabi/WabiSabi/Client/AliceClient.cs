@@ -31,7 +31,7 @@ public class AliceClient
 	{
 		var roundParameters = roundState.CoinjoinState.Parameters;
 		AliceId = aliceId;
-		RoundId = roundState.Id;
+		RoundId = roundState.Idv2;
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
 		OwnershipProof = ownershipProof;
@@ -112,13 +112,13 @@ public class AliceClient
 
 		var ownershipProof = keyChain.GetOwnershipProof(
 			coin,
-			new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Id));
+			new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Idv2));
 
-		var (response, isCoordinationFeeExempted) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
+		var (response, isCoordinationFeeExempted) = await arenaClient.RegisterInputAsync(roundState.Idv2, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 		aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isCoordinationFeeExempted);
 		coin.CoinJoinInProgress = true;
 
-		Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
+		Logger.LogInfo($"Round ({roundState.Idv2}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
 
 		return aliceClient;
 	}

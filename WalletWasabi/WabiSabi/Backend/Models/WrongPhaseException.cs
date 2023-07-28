@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models;
 public class WrongPhaseException : WabiSabiProtocolException
 {
 	public WrongPhaseException(Round round, params Phase[] expectedPhases)
-		: base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).", exceptionData: new WrongPhaseExceptionData(round.Phase))
+		: base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Idv2}): Wrong phase ({round.Phase}).", exceptionData: new WrongPhaseExceptionData(round.Phase))
 	{
 		var latestExpectedPhase = expectedPhases.MaxBy(p => (int)p);
 		var now = DateTimeOffset.UtcNow;
@@ -35,7 +35,7 @@ public class WrongPhaseException : WabiSabiProtocolException
 		};
 
 		CurrentPhase = round.Phase;
-		RoundId = round.Id;
+		RoundId = round.Idv2;
 		ExpectedPhases = expectedPhases;
 	}
 

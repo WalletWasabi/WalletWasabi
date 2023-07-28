@@ -147,14 +147,14 @@ public partial class Arena : PeriodicRunner
 							if (coinVerifyInfo.ShouldRemove)
 							{
 								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
-								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from round");
+								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Idv2, $"{coinVerifyInfo.Coin.Outpoint} got removed from round");
 							}
 						}
 					}
 					catch (Exception exc)
 					{
 						// This should never happen.
-						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
+						CoinVerifier.VerifierAuditArchiver.LogException(round.Idv2, exc);
 						throw;
 					}
 				}
@@ -199,7 +199,7 @@ public partial class Arena : PeriodicRunner
 					var alicesDidNotConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
 					foreach (var alice in alicesDidNotConfirm)
 					{
-						Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+						Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Idv2);
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
@@ -212,7 +212,7 @@ public partial class Arena : PeriodicRunner
 						{
 							foreach (var offender in offendingAlices)
 							{
-								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
+								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Idv2);
 								offendingAliceCounter++;
 							}
 						}
@@ -276,7 +276,7 @@ public partial class Arena : PeriodicRunner
 
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, highestFeeRateTask).ConfigureAwait(false);
 
-					round.CoinjoinState = FinalizeTransaction(round.Id, coinjoin);
+					round.CoinjoinState = FinalizeTransaction(round.Idv2, coinjoin);
 
 					if (!allReady && phaseExpired)
 					{
@@ -311,7 +311,7 @@ public partial class Arena : PeriodicRunner
 					Coin[] spentCoins = round.CoinjoinState.Inputs.ToArray();
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
-					uint256 roundId = round.Id;
+					uint256 roundId = round.Idv2;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
 					round.LogInfo($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
 					round.LogInfo($"Desired Fee Rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vByte.");
@@ -425,7 +425,7 @@ public partial class Arena : PeriodicRunner
 
 		foreach (var alice in alicesWhoDidNotSign)
 		{
-			Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Idv2);
 		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
@@ -454,7 +454,7 @@ public partial class Arena : PeriodicRunner
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		AddRound(blameRound);
-		blameRound.LogInfo($"Blame round created from round '{round.Id}'.");
+		blameRound.LogInfo($"Blame round created from round '{round.Idv2}'.");
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -554,7 +554,7 @@ public partial class Arena : PeriodicRunner
 				.ThenBy(x => x.InputCount);
 			times++;
 		}
-		while (times <= maxCycleTimes && orderedRounds.ToImmutableDictionary(x => x.Id, x => x).First().Key != r.Id);
+		while (times <= maxCycleTimes && orderedRounds.ToImmutableDictionary(x => x.Idv2, x => x).First().Key != r.Idv2);
 
 		Logger.LogDebug($"First ordered round creator did {times} cycles.");
 
@@ -702,7 +702,7 @@ public partial class Arena : PeriodicRunner
 	private void AddRound(Round round)
 	{
 		Rounds.Add(round);
-		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
+		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Idv2, round.Parameters));
 	}
 
 	private void SetRoundPhase(Round round, Phase phase)
@@ -713,17 +713,17 @@ public partial class Arena : PeriodicRunner
 		{
 			foreach (Alice alice in round.Alices)
 			{
-				NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
+				NotifyInput(round.Idv2, alice.Coin, alice.IsCoordinationFeeExempted);
 			}
 		}
 
-		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
+		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Idv2, phase));
 	}
 
 	private void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
-		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
+		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Idv2, Phase.Ended));
 	}
 
 	private void NotifyInput(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)

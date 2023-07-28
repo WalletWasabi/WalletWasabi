@@ -52,7 +52,7 @@ public record RoundStateAwaiter
 		{
 			if (RoundId is { })
 			{
-				if (roundState.Id != RoundId)
+				if (roundState.Idv2 != RoundId)
 				{
 					continue;
 				}

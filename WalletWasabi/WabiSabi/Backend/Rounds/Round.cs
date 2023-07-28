@@ -28,6 +28,8 @@ public enum EndRoundState
 	AbortedLoadBalancing
 }
 
+public record RoundWithId(uint256 Id, Round Round);
+
 public class Round
 {
 	public Round(RoundParameters parameters, WasabiRandom random)
@@ -46,11 +48,13 @@ public class Round
 		OutputRegistrationTimeFrame = TimeFrame.Create(Parameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
 
-		Id = CalculateHash();
-		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
+		Id = CalculateLegacyHash();
+		Idv2 = CalculateHash();
 	}
 
+	[Obsolete("Use Idv2 instead")]
 	public uint256 Id { get; }
+	public uint256 Idv2 { get; }
 	public MultipartyTransactionState CoinjoinState { get; set; }
 
 	public CredentialIssuer AmountCredentialIssuer { get; }
@@ -72,8 +76,6 @@ public class Round
 
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
-
-	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData { get; init; }
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -140,8 +142,8 @@ public class Round
 	public SigningState AddWitness(int index, WitScript witness)
 		=> Assert<SigningState>().AddWitness(index, witness);
 
-	private uint256 CalculateHash()
-		=> RoundHasher.CalculateHash(
+	private uint256 CalculateLegacyHash()
+		=> RoundHasher.CalculateLegacyHash(
 				InputRegistrationTimeFrame.StartTime,
 				InputRegistrationTimeFrame.Duration,
 				ConnectionConfirmationTimeFrame.Duration,
@@ -163,4 +165,29 @@ public class Round
 				Parameters.CoordinationIdentifier,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
+	private uint256 CalculateHash()
+		=> RoundHasher.CalculateHash(
+			InputRegistrationTimeFrame.StartTime,
+			InputRegistrationTimeFrame.Duration,
+			ConnectionConfirmationTimeFrame.Duration,
+			OutputRegistrationTimeFrame.Duration,
+			TransactionSigningTimeFrame.Duration,
+			Parameters.DelayBeforeSigning,
+			Parameters.AllowedInputAmounts,
+			Parameters.AllowedInputTypes,
+			Parameters.AllowedOutputAmounts,
+			Parameters.AllowedOutputTypes,
+			Parameters.Network,
+			Parameters.MiningFeeRate.FeePerK,
+			Parameters.CoordinationFeeRate,
+			Parameters.MaxTransactionSize,
+			Parameters.MinRelayTxFee.FeePerK,
+			Parameters.MaxAmountCredentialValue,
+			Parameters.MaxVsizeCredentialValue,
+			Parameters.MaxVsizeAllocationPerAlice,
+			Parameters.MaxSuggestedAmount,
+			Parameters.CoordinationIdentifier,
+			AmountCredentialIssuerParameters,
+			VsizeCredentialIssuerParameters);
+
 }
