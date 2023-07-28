@@ -37,7 +37,7 @@ public class TrustedP2pBehavior : P2pBehavior
 			return true;
 		}
 
-		if (inv.Type.HasFlag(InventoryType.MSG_WITNESS_BLOCK))
+		if (inv.Type.HasFlag(InventoryType.MSG_BLOCK) || inv.Type.HasFlag(InventoryType.MSG_WITNESS_BLOCK))
 		{
 			BlockInv?.Invoke(this, inv.Hash);
 		}
