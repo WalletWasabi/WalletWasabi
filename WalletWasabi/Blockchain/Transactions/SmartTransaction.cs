@@ -371,7 +371,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
 		}
 
-		// Set the height related properties, only if confirmed.
+		// Set the height related properties.
 		if (tx.Confirmed)
 		{
 			if (Height != tx.Height)
@@ -386,6 +386,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				BlockIndex = tx.BlockIndex;
 				updated = true;
 			}
+		}
+		else if (Height == Height.Unknown && tx.Height == Height.Mempool)
+		{
+			Height = tx.Height;
+			updated = true;
 		}
 
 		// Always the earlier seen is the firstSeen.
