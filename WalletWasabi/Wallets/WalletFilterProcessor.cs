@@ -149,6 +149,7 @@ public class WalletFilterProcessor : BackgroundService
 					filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(request.Height, cancellationToken).ConfigureAwait(false);
 				}
 
+				Logger.LogWarning($"{filterToProcess.Header.Height} -> {request.SyncType}");
 				var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
 
 				if (request.SyncType == SyncType.Turbo)
@@ -205,6 +206,14 @@ public class WalletFilterProcessor : BackgroundService
 		}
 
 		return filtersBatch.First();
+	}
+	
+	public void AddToCache(IEnumerable<FilterModel> filters)
+	{
+		foreach (var filter in filters)
+		{
+			FiltersCache[filter.Header.Height] = filter;
+		}
 	}
 	
 	/// <summary>
