@@ -76,7 +76,7 @@ public abstract class P2pBehavior : NodeBehavior
 		{
 			if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
 			{
-				var newInv =  new InventoryVector(InventoryType.MSG_WTX, inv.Hash);
+				var newInv = new InventoryVector(InventoryType.MSG_WTX, inv.Hash);
 				getDataPayload.Inventory.Add(newInv);
 			}
 		}
