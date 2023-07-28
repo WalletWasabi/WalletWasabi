@@ -81,15 +81,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 			Assert.Equal(blockCount + 10, bitcoinStore.SmartHeaderChain.HashCount);
 
 			// Test filter block hashes are correct.
-			var filterList = new List<FilterModel>();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
-				testDeadlineCts.Token);
+			var filterList = await bitcoinStore.IndexStore.FetchBatchAsync(0, -1, testDeadlineCts.Token);
 			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < 101; i++)

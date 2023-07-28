@@ -112,30 +112,15 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 			tip = await rpc.GetBestBlockHashAsync();
 			Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
 
-			var filterList = new List<FilterModel>();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
-				testDeadlineCts.Token);
+			var filterList = await bitcoinStore.IndexStore.FetchBatchAsync(0, -1, testDeadlineCts.Token);
 			var filterTip = filterList.Last();
 			Assert.Equal(tip, filterTip.Header.BlockHash);
 
 			// Test filter block hashes are correct after fork.
 			var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
 
-			filterList.Clear();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
-				testDeadlineCts.Token);
+			filterList = await bitcoinStore.IndexStore.FetchBatchAsync(0, -1, testDeadlineCts.Token);
+
 			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < blockCountIncludingGenesis; i++)
