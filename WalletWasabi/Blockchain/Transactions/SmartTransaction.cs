@@ -520,6 +520,15 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
+	public bool TryGetLargestCPFP(KeyManager keyManage, [NotNullWhen(true)] out SmartTransaction? largestCpfp)
+	{
+		largestCpfp = ChildrenPayForThisTx
+			.Where(x => x.IsSpeedupable(keyManage))
+			.MaxBy(x => x.Transaction.Outputs.Sum(o => o.Value));
+
+		return largestCpfp is not null;
+	}
+
 	#region LineSerialization
 
 	public string ToLine()
