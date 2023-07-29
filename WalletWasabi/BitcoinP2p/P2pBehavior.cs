@@ -42,16 +42,7 @@ public abstract class P2pBehavior : NodeBehavior
 			}
 			else if (message.Message.Payload is TxPayload txPayload)
 			{
-				var tx = txPayload.Object;
-				var segwitWithoutWitness = !tx.HasWitness && tx.Inputs.Any(x => x.ScriptSig == Script.Empty);
-				if (!segwitWithoutWitness)
-				{
-					ProcessTx(txPayload);
-				}
-				else
-				{
-					Logger.LogInfo($"tx {tx.GetHash()} has no witness data. Ignoring...");
-				}
+				ProcessTx(txPayload);
 			}
 			else if (message.Message.Payload is InvPayload invPayload)
 			{
@@ -76,8 +67,7 @@ public abstract class P2pBehavior : NodeBehavior
 		{
 			if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
 			{
-				var newInv = new InventoryVector(InventoryType.MSG_WTX, inv.Hash);
-				getDataPayload.Inventory.Add(newInv);
+				getDataPayload.Inventory.Add(inv);
 			}
 		}
 		if (getDataPayload.Inventory.Any() && node.IsConnected)
