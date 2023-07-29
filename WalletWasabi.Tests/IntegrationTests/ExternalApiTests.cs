@@ -5,7 +5,6 @@ using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.Gemini;
-using WalletWasabi.WebClients.ItBit;
 using Xunit;
 using WalletWasabi.Interfaces;
 using System.Threading;
@@ -29,10 +28,6 @@ public class ExternalApiTests
 	[Fact]
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync(new GeminiExchangeRateProvider());
-
-	[Fact]
-	public async Task ItBitExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new ItBitExchangeRateProvider());
 
 	private async Task AssertProviderAsync(IExchangeRateProvider provider)
 	{

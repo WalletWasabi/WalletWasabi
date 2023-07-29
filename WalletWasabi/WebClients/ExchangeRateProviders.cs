@@ -7,7 +7,6 @@ using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.Gemini;
-using WalletWasabi.WebClients.ItBit;
 using System.Linq;
 using System.Threading;
 
@@ -20,8 +19,7 @@ public class ExchangeRateProvider : IExchangeRateProvider
 		new BlockchainInfoExchangeRateProvider(),
 		new BitstampExchangeRateProvider(),
 		new CoinbaseExchangeRateProvider(),
-		new GeminiExchangeRateProvider(),
-		new ItBitExchangeRateProvider()
+		new GeminiExchangeRateProvider()
 	};
 
 	public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync(CancellationToken cancellationToken)
