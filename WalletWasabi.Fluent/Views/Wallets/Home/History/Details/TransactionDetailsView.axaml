@@ -100,7 +100,7 @@
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-      <Separator />
+      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Block hash -->
       <c:PreviewItem Icon="{StaticResource block_id}"
