@@ -32,7 +32,7 @@
           </Viewbox>
         </c:QuestionControl.IconContent>
         <StackPanel Spacing="10">
-          <TextBlock Text="Speeding up this transaction will cost you an additional fee of" />
+          <TextBlock Text="Speeding up this transaction will cost you" />
           <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
             <TextBlock TextAlignment="Center"
                        FontWeight="Bold"
@@ -61,7 +61,7 @@
           </Panel>
         </c:QuestionControl.IconContent>
         <StackPanel Spacing="10">
-          <TextBlock Text="To speed up this transaction a deduction will be made from the recipient's amount of" />
+          <TextBlock Text="Speeding up this transaction will deduct from the recipient's amount" />
           <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
             <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
                        Classes="h5" FontWeight="Bold" />

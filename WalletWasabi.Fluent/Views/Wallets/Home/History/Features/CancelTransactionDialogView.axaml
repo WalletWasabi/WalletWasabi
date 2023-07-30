@@ -31,7 +31,7 @@
         </Viewbox>
       </c:QuestionControl.IconContent>
       <StackPanel Spacing="10">
-        <TextBlock Text="The cancellation of this transaction will cost you a total of" />
+        <TextBlock Text="Canceling this transaction will cost you" />
         <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
           <TextBlock TextAlignment="Center"
                      Text="{Binding TotalFee, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
