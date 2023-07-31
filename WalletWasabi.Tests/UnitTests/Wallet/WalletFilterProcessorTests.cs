@@ -8,10 +8,10 @@ using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
+
 /// <summary>
-/// Tests for wallet synchronization.
+/// Tests for <see cref="WalletFilterProcessor"/>.
 /// </summary>
-/// <seealso cref="SyncType"/>
 public class WalletFilterProcessorTests
 {
 	private readonly Channel<NewFiltersEventTasks> _eventChannel = Channel.CreateUnbounded<NewFiltersEventTasks>();
@@ -75,11 +75,11 @@ public class WalletFilterProcessorTests
 		var wallet = new TestWallet("wallet", node.Rpc);
 		await using var builder = new WalletBuilder(node);
 
-		await node.GenerateBlockAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await node.GenerateBlockAsync(testDeadlineCts.Token);
 
-		foreach (var _ in Enumerable.Range(0, 200))
+		foreach (var _ in Enumerable.Range(0, 501))
 		{
-			await node.GenerateBlockAsync(testDeadlineCts.Token).ConfigureAwait(false);
+			await node.GenerateBlockAsync(testDeadlineCts.Token);
 		}
 
 		var allFilters = node.BuildFilters().ToList();
@@ -98,7 +98,7 @@ public class WalletFilterProcessorTests
 		// Mock the database
 		realWallet.WalletFilterProcessor.AddToCache(allFilters);
 
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		// This emulates first synchronization
 		var turboSyncTask = Task.Run(
@@ -174,10 +174,9 @@ public class WalletFilterProcessorTests
 	{
 		// Initiate tasks and write tasks to the channel to pass them back to the test.
 		// Underlying tasks without cancellation token as it works on Wallet.
-		_eventChannel.Writer.TryWrite(
-			new NewFiltersEventTasks(
-			walletFilterProcessor.ProcessAsync(filterHeight, SyncType.Turbo, CancellationToken.None),
-		walletFilterProcessor.ProcessAsync(filterHeight, SyncType.NonTurbo, CancellationToken.None)));
+		Task turboTask = walletFilterProcessor.ProcessAsync(filterHeight, SyncType.Turbo, CancellationToken.None);
+		Task nonTurboTask = walletFilterProcessor.ProcessAsync(filterHeight, SyncType.NonTurbo, CancellationToken.None);
+		_eventChannel.Writer.TryWrite(new NewFiltersEventTasks(turboTask, nonTurboTask));
 	}
 
 	private record NewFiltersEventTasks(Task TurboTask, Task NonTurboTask);

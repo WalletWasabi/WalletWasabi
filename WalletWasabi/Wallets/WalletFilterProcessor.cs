@@ -56,6 +56,7 @@ public class WalletFilterProcessor : BackgroundService
 	public FilterModel? LastProcessedFilter { get; private set; }
 	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
 
+	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
 	private void AddNoLock(SyncRequest request)
 	{
 		Priority priority = new(request.SyncType, request.Height);
@@ -63,6 +64,7 @@ public class WalletFilterProcessor : BackgroundService
 		SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 	}
 
+	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
 	private void InvalidateRequestsNoLock(uint fromHeight)
 	{
 		SynchronizationRequests.UnorderedItems
