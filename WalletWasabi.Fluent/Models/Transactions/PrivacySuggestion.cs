@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Models.Transactions;
 // TODO: Case Types should be nested inside the base, and remove the "Suggestion" Suffix
 // Avalonia XAML currently does not support {x:Type} references to nested types (https://github.com/AvaloniaUI/Avalonia/issues/2725)
 // Revisit this after Avalonia V11 upgrade
-public abstract record PrivacySuggestion(BuildTransactionResult? Transaction);
+public abstract record PrivacySuggestion(BuildTransactionResult? Transaction) : PrivacyItem();
 
 public record LabelManagementSuggestion(BuildTransactionResult? Transaction = null, LabelsArray? NewLabels = null) : PrivacySuggestion(Transaction);
 

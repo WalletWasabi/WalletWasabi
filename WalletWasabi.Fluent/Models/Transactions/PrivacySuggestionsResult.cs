@@ -1,18 +1,69 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-public record PrivacySuggestionsResult
+public record PrivacySuggestionsResult(IAsyncEnumerable<PrivacyItem> Items)
 {
-	public List<PrivacyWarning> Warnings { get; } = new();
-	public List<PrivacySuggestion> Suggestions { get; } = new();
+	private List<IAsyncEnumerable<PrivacyItem>> _combinedResults = new();
 
-	public PrivacySuggestionsResult Combine(PrivacySuggestionsResult other)
+	public static PrivacySuggestionsResult CreateNew()
 	{
-		Warnings.AddRange(other.Warnings);
-		Suggestions.AddRange(other.Suggestions);
+		static async IAsyncEnumerable<PrivacyItem> EmptyItemsAsync()
+		{
+			yield break;
+		};
 
+		return new PrivacySuggestionsResult(EmptyItemsAsync());
+	}
+
+	public PrivacySuggestionsResult Combine(IAsyncEnumerable<PrivacyItem> results)
+	{
+		_combinedResults.Add(results);
 		return this;
+	}
+
+	public async IAsyncEnumerable<PrivacyWarning> GetAllWarningsAsync()
+	{
+		await foreach (var item in Items)
+		{
+			if (item is PrivacyWarning warning)
+			{
+				yield return warning;
+			}
+		}
+
+		foreach (var combined in _combinedResults)
+		{
+			await foreach (var item in combined)
+			{
+				if (item is PrivacyWarning warning)
+				{
+					yield return warning;
+				}
+			}
+		}
+	}
+
+	public async IAsyncEnumerable<PrivacySuggestion> GetAllSuggestionsAsync()
+	{
+		await foreach (var item in Items)
+		{
+			if (item is PrivacySuggestion suggestion)
+			{
+				yield return suggestion;
+			}
+		}
+
+		foreach (var combined in _combinedResults)
+		{
+			await foreach (var item in combined)
+			{
+				if (item is PrivacySuggestion suggestion)
+				{
+					yield return suggestion;
+				}
+			}
+		}
 	}
 }
