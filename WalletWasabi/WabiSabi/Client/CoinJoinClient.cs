@@ -591,13 +591,14 @@ public class CoinJoinClient
 	private async Task SignTransactionAsync(
 		IEnumerable<AliceClient> aliceClients,
 		TransactionWithPrecomputedData unsignedCoinJoinTransaction,
+		DateTimeOffset signingStartTime,
 		DateTimeOffset signingEndTime,
 		CancellationToken cancellationToken)
 	{
 		// Maximum signing request delay is 50 seconds, because
 		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, maximumSigningRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingStartTime, signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,
@@ -628,7 +629,7 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), readyToSignEndTime, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,
@@ -659,12 +660,12 @@ public class CoinJoinClient
 
 	private ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime)
 	{
-		return GetScheduledDates(howMany, endTime, TimeSpan.MaxValue);
+		return GetScheduledDates(howMany, DateTimeOffset.UtcNow, endTime, TimeSpan.MaxValue);
 	}
 
-	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
+	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
-		var remainingTime = endTime - DateTimeOffset.UtcNow;
+		var remainingTime = endTime - startTime;
 
 		if (remainingTime > maximumRequestDelay)
 		{
@@ -767,7 +768,7 @@ public class CoinJoinClient
 			// Output registration.
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Length, outputRegistrationEndTime, MaximumRequestDelay);
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, outputRegistrationEndTime, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
 			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
 		}
@@ -822,7 +823,9 @@ public class CoinJoinClient
 			? registeredAliceClients
 			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
 
-		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 0 : 50);
+		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
+		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
 		return (unsignedCoinJoin.Transaction, alicesToSign);

@@ -31,7 +31,8 @@ public record RoundParameters
 		TimeSpan outputRegistrationTimeout,
 		TimeSpan transactionSigningTimeout,
 		TimeSpan blameInputRegistrationTimeout,
-		string coordinationIdentifier)
+		string coordinationIdentifier,
+		bool delayTransactionSigning)
 	{
 		Network = network;
 		MiningFeeRate = miningFeeRate;
@@ -53,6 +54,7 @@ public record RoundParameters
 		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
 		MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
 		CoordinationIdentifier = coordinationIdentifier;
+		DelayTransactionSigning = delayTransactionSigning;
 	}
 
 	public Network Network { get; init; }
@@ -79,6 +81,8 @@ public record RoundParameters
 	public int MaxVsizeAllocationPerAlice { get; init; }
 
 	public string CoordinationIdentifier { get; init; }
+
+	public bool DelayTransactionSigning { get;  }
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
@@ -116,7 +120,8 @@ public record RoundParameters
 			wabiSabiConfig.OutputRegistrationTimeout,
 			wabiSabiConfig.TransactionSigningTimeout,
 			wabiSabiConfig.BlameInputRegistrationTimeout,
-			wabiSabiConfig.CoordinatorIdentifier);
+			wabiSabiConfig.CoordinatorIdentifier,
+			wabiSabiConfig.DelayTransactionSigning);
 	}
 
 	public Transaction CreateTransaction()
