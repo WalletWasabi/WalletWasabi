@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
@@ -14,6 +15,8 @@ public class PrisonTests
 	[Fact]
 	public async Task OffensesAreSavedAsync()
 	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
 		var (prison, reader, _) = WabiSabiFactory.CreateObservablePrison();
 
 		var outpoint = BitcoinFactory.CreateOutPoint();
@@ -21,14 +24,14 @@ public class PrisonTests
 
 		// Fail to verify
 		prison.FailedVerification(outpoint, roundId);
-		var offenderToSave = await reader.ReadAsync();
+		var offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var failedToVerify = Assert.IsType<FailedToVerify>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
 		Assert.Equal(roundId, failedToVerify.VerifiedInRoundId);
 
 		// Fail to confirm
 		prison.FailedToConfirm(outpoint, Money.Coins(1m), roundId);
-		offenderToSave = await reader.ReadAsync();
+		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotConfirming = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
 		Assert.Equal(roundId, disruptionNotConfirming.DisruptedRoundId);
@@ -37,7 +40,7 @@ public class PrisonTests
 
 		// Fail to sign
 		prison.FailedToSign(outpoint, Money.Coins(2m), roundId);
-		offenderToSave = await reader.ReadAsync();
+		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotSigning = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
 		Assert.Equal(roundId, disruptionNotSigning.DisruptedRoundId);
@@ -46,7 +49,7 @@ public class PrisonTests
 
 		// Double spent
 		prison.DoubleSpent(outpoint, Money.Coins(3m), roundId);
-		offenderToSave = await reader.ReadAsync();
+		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var doubleSpending = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
 		Assert.Equal(roundId, doubleSpending.DisruptedRoundId);
@@ -55,7 +58,7 @@ public class PrisonTests
 
 		// Cheating
 		prison.CheatingDetected(outpoint, roundId);
-		offenderToSave = await reader.ReadAsync();
+		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var cheating = Assert.IsType<Cheating>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
 		Assert.Equal(roundId, cheating.RoundId);
