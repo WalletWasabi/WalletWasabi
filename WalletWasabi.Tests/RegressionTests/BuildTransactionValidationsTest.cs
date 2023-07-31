@@ -82,7 +82,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
-		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
+		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		using Key key = new();
 		var scp = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);

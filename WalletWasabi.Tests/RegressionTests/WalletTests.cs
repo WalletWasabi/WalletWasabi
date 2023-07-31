@@ -82,7 +82,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, setup.ServiceConfiguration, feeProvider, blockProvider);
 		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
-		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
+		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo label");
@@ -225,7 +225,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			wallet.NewFilterProcessed -= setup.Wallet_NewFilterProcessed;
+			wallet.NewFiltersProcessed -= setup.Wallet_NewFiltersProcessed;
 			await wallet.WalletFilterProcessor.StopAsync(testDeadlineCts.Token);
 			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();

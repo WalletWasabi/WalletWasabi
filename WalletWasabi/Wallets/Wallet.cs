@@ -49,7 +49,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
-	public event EventHandler<FilterModel>? NewFilterProcessed;
+	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
 
@@ -352,7 +352,7 @@ public class Wallet : BackgroundService, IWallet
 				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
 			}
 
-			NewFilterProcessed?.Invoke(this, filterModels.Last());
+			NewFiltersProcessed?.Invoke(this, filterModels);
 			
 			await Task.Delay(100).ConfigureAwait(false);
 

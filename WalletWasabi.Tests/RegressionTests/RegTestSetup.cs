@@ -110,14 +110,9 @@ public class RegTestSetup : IAsyncDisposable
 		}
 	}
 
-	public void Wallet_NewFilterProcessed(object? sender, FilterModel e)
+	public void Wallet_NewFiltersProcessed(object? sender, IEnumerable<FilterModel> filters)
 	{
-		Interlocked.Increment(ref FiltersProcessedByWalletCount);
-	}
-
-	public void Wallet_NewFiltersProcessed(object? sender, IEnumerable<FilterModel> e)
-	{
-		foreach (var filter in e)
+		foreach (var _ in filters)
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}

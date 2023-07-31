@@ -77,7 +77,7 @@ public class WalletFilterProcessorTests
 
 		await node.GenerateBlockAsync(testDeadlineCts.Token);
 
-		foreach (var _ in Enumerable.Range(0, 501))
+		foreach (var _ in Enumerable.Range(0, 1001))
 		{
 			await node.GenerateBlockAsync(testDeadlineCts.Token);
 		}
@@ -85,7 +85,7 @@ public class WalletFilterProcessorTests
 		var allFilters = node.BuildFilters().ToList();
 
 		// The MinGapLimit will generate some keys for both the Turbo and NonTurbo set.
-		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet, 2000);
+		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet, 5000);
 
 		// Unregister the event because on Wallet this is how it works: initial filters are processed without the event subscribed.
 		realWallet.UnregisterNewFiltersEvent();
