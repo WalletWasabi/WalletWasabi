@@ -199,7 +199,7 @@ public class Wallet : BackgroundService, IWallet
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-			RegisterNewFiltersEvent();
+			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
 			BlockProvider = blockProvider;
@@ -384,14 +384,9 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	public void UnregisterNewFiltersEvent()
+	internal void UnregisterNewFiltersEvent()
 	{
 		BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
-	}
-	
-	public void RegisterNewFiltersEvent()
-	{
-		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 	}
 	
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
