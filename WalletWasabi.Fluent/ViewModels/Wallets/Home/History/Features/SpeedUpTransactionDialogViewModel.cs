@@ -69,7 +69,12 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		{
 			Logger.LogError(ex);
 			var msg = _transactionToSpeedUp.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Speed Up Failed", "Wasabi was unable to speed up your transaction.");
+			await UiContext.Navigate().To().ShowErrorDialog(msg, "Speed Up Failed", "Wasabi was unable to speed up your transaction.").GetResultAsync();
+
+			if (_transactionToSpeedUp.Confirmed)
+			{
+				Navigate().Back();
+			}
 		}
 
 		IsBusy = false;

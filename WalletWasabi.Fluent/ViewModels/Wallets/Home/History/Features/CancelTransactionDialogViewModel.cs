@@ -62,7 +62,12 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 
 			var msg = _transactionToCancel.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
 
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.");
+			await UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.").GetResultAsync();
+
+			if (_transactionToCancel.Confirmed)
+			{
+				Navigate().Back();
+			}
 		}
 
 		IsBusy = false;
