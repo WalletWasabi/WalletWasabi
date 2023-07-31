@@ -263,7 +263,7 @@ public class IndexStore : IAsyncDisposable
 			}
 			
 			sqliteTransaction.Commit();
-			NewFilters?.Invoke(this, filters.Take(numberOfFiltersCorrectlyProcessed));
+			NewFilters?.Invoke(this, filters);
 		}
 	}
 
