@@ -15,7 +15,7 @@ public class PrisonTests
 	[Fact]
 	public async Task OffensesAreSavedAsync()
 	{
-		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(1));
 
 		var (prison, reader, _) = WabiSabiFactory.CreateObservablePrison();
 
