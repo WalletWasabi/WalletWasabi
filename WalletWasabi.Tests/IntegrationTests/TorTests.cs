@@ -124,23 +124,23 @@ public class TorTests : IAsyncLifetime
 		JsonNode? responseNode = JsonNode.Parse(response);
 		Assert.NotNull(responseNode);
 
-		Assert.Equal("{}", responseNode["args"]!.ToJsonString());
-		Assert.Equal("This is expected to be sent back as part of response body.", responseNode["data"]!.GetValue<string>());
-		Assert.Equal("{}", responseNode["files"]!.ToJsonString());
-		Assert.Equal("{}", responseNode["form"]!.ToJsonString());
+		Assert.Equal("{}", GetJsonNode(responseNode, "args").ToJsonString());
+		Assert.Equal("This is expected to be sent back as part of response body.", GetJsonNode(responseNode, "data").GetValue<string>());
+		Assert.Equal("{}", GetJsonNode(responseNode, "files").ToJsonString());
+		Assert.Equal("{}", GetJsonNode(responseNode, "form").ToJsonString());
 
 		// Check headers.
 		{
 			JsonNode? headersNode = responseNode["headers"];
 			Assert.NotNull(headersNode);
 
-			Assert.Equal("58", headersNode["content-length"]!.GetValue<string>());
-			Assert.Equal("gzip", headersNode["accept-encoding"]!.GetValue<string>());
-			Assert.Equal("text/plain; charset=utf-8", headersNode["content-type"]!.GetValue<string>());
+			Assert.Equal("58", GetJsonNode(headersNode, "content-length").GetValue<string>());
+			Assert.Equal("gzip", GetJsonNode(headersNode, "accept-encoding").GetValue<string>());
+			Assert.Equal("text/plain; charset=utf-8", GetJsonNode(headersNode, "content-type").GetValue<string>());
 		}
 
 		Assert.Null(responseNode["json"]);
-		Assert.Equal("https://postman-echo.com/post", responseNode["url"]!.GetValue<string>());
+		Assert.Equal("https://postman-echo.com/post", GetJsonNode(responseNode, "url").GetValue<string>());
 	}
 
 	[Fact]
@@ -208,19 +208,19 @@ public class TorTests : IAsyncLifetime
 		JsonNode? responseNode = JsonNode.Parse(jsonResponse);
 		Assert.NotNull(responseNode);
 
-		Assert.Equal("""{"foo1":"bar1","foo2":"bar2"}""", responseNode["args"]!.ToJsonString());
+		Assert.Equal("""{"foo1":"bar1","foo2":"bar2"}""", GetJsonNode(responseNode, "args").ToJsonString());
 
 		// Check headers.
 		{
 			JsonNode? headersNode = responseNode["headers"];
 			Assert.NotNull(headersNode);
 
-			Assert.Equal("https", headersNode["x-forwarded-proto"]!.GetValue<string>());
-			Assert.Equal("443", headersNode["x-forwarded-port"]!.GetValue<string>());
-			Assert.Equal("gzip", headersNode["accept-encoding"]!.GetValue<string>());
+			Assert.Equal("https", GetJsonNode(headersNode, "x-forwarded-proto").GetValue<string>());
+			Assert.Equal("443", GetJsonNode(headersNode, "x-forwarded-port").GetValue<string>());
+			Assert.Equal("gzip", GetJsonNode(headersNode, "accept-encoding").GetValue<string>());
 		}
 
-		Assert.Equal("https://postman-echo.com/get?foo1=bar1&foo2=bar2", responseNode["url"]!.GetValue<string>());
+		Assert.Equal("https://postman-echo.com/get?foo1=bar1&foo2=bar2", GetJsonNode(responseNode, "url").GetValue<string>());
 	}
 
 	[Fact]
@@ -343,4 +343,11 @@ public class TorTests : IAsyncLifetime
 
 	private TorHttpClient MakeTorHttpClient(Uri uri, Mode mode = Mode.DefaultCircuit)
 		=> new(uri, TorHttpPool, mode);
+
+	private static JsonNode GetJsonNode(JsonNode node, string propertyName)
+	{
+		JsonNode? result = node[propertyName];
+		Assert.NotNull(result);
+		return result;
+	}
 }
