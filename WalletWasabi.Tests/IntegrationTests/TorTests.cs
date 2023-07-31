@@ -190,7 +190,7 @@ public class TorTests : IAsyncLifetime
 	///    "x-amzn-trace-id": "Root=1-64c75932-215a29396ad8c37251f3c45e",
 	///    "accept-encoding": "gzip"
 	///  },
-	///  "url": "https://postman-echo.com/get?foo1=bar1&foo2=bar2"
+	///  "url": "https://postman-echo.com/get?foo1=bar1&amp;foo2=bar2"
 	/// }
 	/// </code>
 	/// </remarks>
