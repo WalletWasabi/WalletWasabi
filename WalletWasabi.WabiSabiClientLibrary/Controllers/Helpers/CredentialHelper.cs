@@ -14,7 +14,15 @@ public class CredentialHelper
 	public static GetRealCredentialRequestsResponse GetRealCredentialRequests(GetRealCredentialRequestsRequest request, WasabiRandom secureRandom)
 	{
 		WabiSabiClient wabiSabiClient = new(request.CredentialIssuerParameters, secureRandom, request.MaxCredentialValue);
-		RealCredentialsRequestData requestData = wabiSabiClient.CreateRequest(request.AmountsToRequest, request.CredentialsToPresent, CancellationToken.None);
+		RealCredentialsRequestData requestData;
+		if (request.AmountsToRequest.Any())
+		{
+			requestData = wabiSabiClient.CreateRequest(request.AmountsToRequest, request.CredentialsToPresent, CancellationToken.None);
+		}
+		else
+		{
+			requestData = wabiSabiClient.CreateRequest(request.CredentialsToPresent, CancellationToken.None);
+		}
 		return new GetRealCredentialRequestsResponse(requestData);
 	}
 
