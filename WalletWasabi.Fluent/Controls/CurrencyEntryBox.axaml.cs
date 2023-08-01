@@ -38,6 +38,15 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<int> MaxDecimalsProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
 
+	public static readonly StyledProperty<Money> BalanceBtcProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, Money>(nameof(BalanceBtc));
+
+	public static readonly StyledProperty<decimal> BalanceUsdProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(BalanceUsd));
+
+	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
+
 	public CurrencyEntryBox()
 	{
 		Text = string.Empty;
@@ -87,6 +96,24 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		get => GetValue(MaxDecimalsProperty);
 		set => SetValue(MaxDecimalsProperty, value);
+	}
+
+	public Money BalanceBtc
+	{
+		get => GetValue(BalanceBtcProperty);
+		set => SetValue(BalanceBtcProperty, value);
+	}
+
+	public decimal BalanceUsd
+	{
+		get => GetValue(BalanceUsdProperty);
+		set => SetValue(BalanceUsdProperty, value);
+	}
+
+	public bool ValidatePasteBalance
+	{
+		get => GetValue(ValidatePasteBalanceProperty);
+		set => SetValue(ValidatePasteBalanceProperty, value);
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
@@ -288,14 +315,18 @@ public partial class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			var money = ClipboardObserver.ParseToMoney(text);
+			var money = ValidatePasteBalance
+				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+				: ClipboardObserver.ParseToMoney(text);
 			if (money is not null)
 			{
 				text = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
 			}
 			else
 			{
-				var usd = ClipboardObserver.ParseToUsd(text);
+				var usd =  ValidatePasteBalance
+					? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+					: ClipboardObserver.ParseToUsd(text);
 				if (usd is not null)
 				{
 					text = usd.Value.ToString("0.00");
