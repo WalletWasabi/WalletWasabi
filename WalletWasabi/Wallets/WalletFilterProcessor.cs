@@ -85,7 +85,7 @@ public class WalletFilterProcessor : BackgroundService
 		lock (SynchronizationRequestsLock)
 		{
 			uint firstHeightToRequest;
-			var existingRequestsForSyncType = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType).ToList();
+			var existingRequestsForSyncType = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && !x.Element.DoNotProcess).ToList();
 			if (existingRequestsForSyncType.Count > 0)
 			{
 				firstHeightToRequest = existingRequestsForSyncType.Max(x => x.Element.Height) + 1;
@@ -107,7 +107,7 @@ public class WalletFilterProcessor : BackgroundService
 			}
 			
 			// We have to wait for all the requests below toHeight to be processed.
-			tasks.AddRange(SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && x.Element.Height <= toHeight).Select(x => x.Element.Tcs.Task));
+			tasks.AddRange(SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && !x.Element.DoNotProcess && x.Element.Height <= toHeight).Select(x => x.Element.Tcs.Task));
 		}
 
 		await Task.WhenAll(tasks).WithCancellation(cancellationToken).ConfigureAwait(false); // This will throw if a tasks throws.
