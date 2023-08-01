@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -16,6 +17,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
@@ -261,20 +263,22 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
+	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> summaries)
 	{
 		Money balance = Money.Zero;
 		CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
 
-		for (var i = 0; i < txRecordList.Count; i++)
+		var history = new List<HistoryItemViewModelBase>();
+
+		for (var i = 0; i < summaries.Count; i++)
 		{
-			var item = txRecordList[i];
+			var item = summaries[i];
 
 			balance += item.Amount;
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance);
+				history.Add(new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance));
 			}
 
 			if (item.IsOwnCoinjoin)
@@ -290,22 +294,84 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				((i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin) || // The next item is not CJ so add the group.
-				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin) || // The next item is not CJ so add the group.
+				 i == summaries.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
 					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
-					yield return singleCjItem;
+					history.Add(singleCjItem);
 				}
 				else
 				{
 					cjg.SetBalance(balance);
-					yield return cjg;
+					history.Add(cjg);
 				}
 
 				coinJoinGroup = null;
 			}
 		}
+
+		// This second iteration is necessary to transform the flat list of speed-ups into actual groups.
+		// Here are the steps:
+		// 1. Identify which transactions are CPFP (parents) and their children.
+		// 2. Create a speed-up group with parent and children.
+		// 3. Remove the previously added items from the history (they should no longer be there, but in the group).
+		// 4. Add the group.
+		foreach (var summary in summaries)
+		{
+			if (summary.Transaction.IsCPFPd)
+			{
+				// Group creation.
+				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
+
+				if (!TryFindHistoryItem(summary.TransactionId, history, out var parent))
+				{
+					continue; // If the parent transaction is not found, continue with the next summary.
+				}
+
+				var groupItems = new List<HistoryItemViewModelBase> { parent };
+				foreach (var childTx in childrenTxs)
+				{
+					if (TryFindHistoryItem(childTx.GetHash(), history, out var child))
+					{
+						groupItems.Add(child);
+					}
+				}
+
+				// If there is only one item in the group, it's not a group.
+				// This can happen, for example, when CPFP occurs between user-owned wallets.
+				if (groupItems.Count <= 1)
+				{
+					continue;
+				}
+
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, _walletVm, parent, groupItems);
+
+				// Check if the last item's balance is not null before calling SetBalance.
+				var bal = groupItems.Last().Balance;
+				if (bal is not null)
+				{
+					speedUpGroup.SetBalance(bal);
+				}
+				else
+				{
+					continue;
+				}
+
+				history.Add(speedUpGroup);
+
+				// Remove the items.
+				history.RemoveMany(groupItems);
+			}
+		}
+
+		return history;
+	}
+
+	private bool TryFindHistoryItem(uint256 txid, IEnumerable<HistoryItemViewModelBase> history, [NotNullWhen(true)] out HistoryItemViewModelBase? found)
+	{
+		found = history.SingleOrDefault(x => x.Id == txid);
+		return found is not null;
 	}
 }

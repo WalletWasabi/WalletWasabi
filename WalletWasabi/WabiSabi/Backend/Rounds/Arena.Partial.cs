@@ -26,7 +26,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		}
 		catch (Exception ex) when (IsUserCheating(ex))
 		{
-			Prison.Ban(request.Input, request.RoundId);
+			Prison.CheatingDetected(request.Input, request.RoundId);
 			throw;
 		}
 	}
@@ -167,7 +167,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 			var alice = GetAlice(request.AliceId, round);
-			Prison.Ban(alice.Coin.Outpoint, round.Id);
+			Prison.CheatingDetected(alice.Coin.Outpoint, request.RoundId);
 			throw;
 		}
 	}
@@ -187,7 +187,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (alice.ConfirmedConnection)
 			{
-				Prison.Ban(alice, round.Id);
+				Prison.CheatingDetected(alice.Coin.Outpoint, round.Id);
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 			}
 
@@ -402,20 +402,10 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private void CheckCoinIsNotBanned(OutPoint input)
 	{
-		if (Prison.TryGet(input, out var inmate))
+		var banningTime = Prison.GetBanTimePeriod(input);
+		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
-			DateTimeOffset bannedUntil;
-			if (inmate.Punishment == Punishment.LongBanned)
-			{
-				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
-			}
-
-			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
-			{
-				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
-			}
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));
 		}
 	}
 

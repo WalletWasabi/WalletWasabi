@@ -112,6 +112,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
+	public ICoinsView GetAllCoins() => ((CoinsRegistry)Coins).AsAllCoinsView();
+
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
@@ -125,8 +127,7 @@ public class Wallet : BackgroundService, IWallet
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
-		var allCoins = ((CoinsRegistry)Coins).AsAllCoinsView();
-		foreach (SmartCoin coin in allCoins)
+		foreach (SmartCoin coin in GetAllCoins())
 		{
 			walletTransactions.Add(coin.Transaction);
 			if (coin.SpenderTransaction is not null)
@@ -198,7 +199,7 @@ public class Wallet : BackgroundService, IWallet
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -314,48 +315,6 @@ public class Wallet : BackgroundService, IWallet
 	/// <inheritdoc />
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 
-	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
-	/// <exception cref="ArgumentException"></exception>
-	/// <exception cref="ArgumentNullException"></exception>
-	/// <exception cref="ArgumentOutOfRangeException"></exception>
-	public BuildTransactionResult BuildTransaction(
-		string password,
-		PaymentIntent payments,
-		FeeStrategy feeStrategy,
-		bool allowUnconfirmed = false,
-		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null,
-		bool tryToSign = true)
-	{
-		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
-		return builder.BuildTransaction(
-			payments,
-			feeRateFetcher: () =>
-			{
-				if (feeStrategy.Type == FeeStrategyType.Target)
-				{
-					return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
-				}
-				else if (feeStrategy.Type == FeeStrategyType.Rate)
-				{
-					return feeStrategy.Rate;
-				}
-				else
-				{
-					throw new NotSupportedException(feeStrategy.Type.ToString());
-				}
-			},
-			allowedInputs,
-			lockTimeSelector: () =>
-			{
-				var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
-				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
-			},
-			payjoinClient,
-			tryToSign: tryToSign);
-	}
-
 	/// <inheritdoc/>
 	public override async Task StopAsync(CancellationToken cancel)
 	{
@@ -448,7 +407,7 @@ public class Wallet : BackgroundService, IWallet
 					await ProcessFilterModelAsync(filterModel, SyncType.Turbo, CancellationToken.None).ConfigureAwait(false);
 					SetFinalBestTurboSyncHeight(new Height(filterModel.Header.Height));
 				}
-				
+
 				// Then filters are buffered and are tested against the NonTurbo keys only when the NonTurbo sync is finished (i.e. lock released).
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
