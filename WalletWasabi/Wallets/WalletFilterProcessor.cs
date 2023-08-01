@@ -63,7 +63,7 @@ public class WalletFilterProcessor : BackgroundService
 		SynchronizationRequests.Enqueue(request, priority);
 		SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 	}
-
+	
 	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
 	private void InvalidateRequestsNoLock(uint fromHeight)
 	{
@@ -117,63 +117,77 @@ public class WalletFilterProcessor : BackgroundService
 	/// <summary>Used for filter synchronization.</summary>
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		while (!cancellationToken.IsCancellationRequested)
+		try
 		{
-			await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-			SyncRequest? request;
-			lock (SynchronizationRequestsLock)
+			while (true)
 			{
-				if (!SynchronizationRequests.TryDequeue(out request, out _))
+				cancellationToken.ThrowIfCancellationRequested();
+				
+				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+				SyncRequest? request;
+				lock (SynchronizationRequestsLock)
 				{
+					if (!SynchronizationRequests.TryDequeue(out request, out _))
+					{
+						continue;
+					}
+				}
+
+				// In case of reorgs.
+				if (request.DoNotProcess)
+				{
+					request.Tcs.SetCanceled(CancellationToken.None);
 					continue;
 				}
-			}
 
-			if (request.DoNotProcess)
-			{
-				request.Tcs.SetCanceled(CancellationToken.None);
-				continue;
-			}
-
-			try
-			{
-				if (!FiltersCache.TryGetValue(request.Height, out var filterToProcess))
+				try
 				{
-					filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(request.Height, cancellationToken).ConfigureAwait(false);
+					if (!FiltersCache.TryGetValue(request.Height, out var filterToProcess))
+					{
+						filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(request.Height, cancellationToken).ConfigureAwait(false);
+					}
+
+					var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
+
+					if (request.SyncType == SyncType.Turbo)
+					{
+						// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
+						KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), (matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight));
+					}
+					else
+					{
+						// All keys were tested at this height, update the Height.
+						KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), (matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight));
+					}
+
+					request.Tcs.SetResult();
+				}
+				catch (Exception ex)
+				{
+					request.Tcs.SetException(ex);
+					throw;
 				}
 
-				var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
-
-				if (request.SyncType == SyncType.Turbo)
+				if (SynchronizationRequestsSemaphore.CurrentCount == 0)
 				{
-					// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-					KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), (matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight));
+					FiltersCache.Clear();
 				}
-				else
-				{
-					// All keys were tested at this height, update the Height.
-					KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), (matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight));
-				}
-				
-				request.Tcs.SetResult();
 			}
-			catch (Exception ex)
+		}
+		catch (Exception ex)
+		{
+			if (ex is OperationCanceledException)
 			{
-				if (ex is not OperationCanceledException)
-				{
-					Logger.LogError(ex);
-				}
-
-				request.Tcs.SetException(ex);
-				CancelEveryRequest();
-				throw;
+				return;
 			}
-
-			if (SynchronizationRequestsSemaphore.CurrentCount == 0)
-			{
-				FiltersCache.Clear();
-			}
+			
+			Logger.LogError(ex);
+			throw;
+		}
+		finally
+		{
+			CancelEveryRequest();
 		}
 	}
 
@@ -201,7 +215,10 @@ public class WalletFilterProcessor : BackgroundService
 		return filtersBatch.First();
 	}
 	
-	public void AddToCache(IEnumerable<FilterModel> filters)
+	/// <summary>
+	/// Used by test to emulate database.
+	/// </summary>
+	internal void AddToCache(IEnumerable<FilterModel> filters)
 	{
 		foreach (var filter in filters)
 		{
