@@ -70,7 +70,7 @@ internal class ClipboardObserver
 		return Money.TryParse(text, out var n) ? n : default;
 	}
 
-	private Money? ParseToMoney(string? text, Money balance)
+	public static Money? ParseToMoney(string? text, Money balance)
 	{
 		return ParseToMoney(text).Ensure(m => m <= balance);
 	}
