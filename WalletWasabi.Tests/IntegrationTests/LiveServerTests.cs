@@ -47,18 +47,18 @@ public class LiveServerTests : IAsyncLifetime
 		await TorProcessManager.DisposeAsync();
 	}
 
-	#region Blockchain
-
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
 	public async Task GetFiltersAsync(Network network)
 	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
 		TorHttpClient torHttpClient = MakeTorHttpClient(network);
 		WasabiClient client = new(torHttpClient);
 
 		var filterModel = StartingFilters.GetStartingFilter(network);
 
-		FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
+		FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, count: 2, ctsTimeout.Token);
 
 		Assert.NotNull(filtersResponse);
 		Assert.Equal(2, filtersResponse!.Filters.Count());
@@ -68,34 +68,34 @@ public class LiveServerTests : IAsyncLifetime
 	[MemberData(nameof(GetNetworks))]
 	public async Task GetTransactionsAsync(Network network)
 	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
 		TorHttpClient torHttpClient = MakeTorHttpClient(network);
 		WasabiClient client = new(torHttpClient);
 
 		IEnumerable<uint256> randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
 
 		var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-			await client.GetTransactionsAsync(network, randomTxIds.Take(4), CancellationToken.None));
+			await client.GetTransactionsAsync(network, randomTxIds.Take(4), ctsTimeout.Token));
 		Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
 
-		var mempoolTxIds = await client.GetMempoolHashesAsync(CancellationToken.None);
+		var mempoolTxIds = await client.GetMempoolHashesAsync(ctsTimeout.Token);
 		randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement(InsecureRandom.Instance)!).Distinct().ToArray();
-		var txs = await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None);
+		var txs = await client.GetTransactionsAsync(network, randomTxIds, ctsTimeout.Token);
 		var returnedTxIds = txs.Select(tx => tx.GetHash());
 		Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
 	}
-
-	#endregion Blockchain
-
-	#region Software
 
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
 	public async Task GetVersionsTestsAsync(Network network)
 	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
 		TorHttpClient torHttpClient = MakeTorHttpClient(network);
 		WasabiClient client = new(torHttpClient);
 
-		var versions = await client.GetVersionsAsync(CancellationToken.None);
+		var versions = await client.GetVersionsAsync(ctsTimeout.Token);
 		Assert.InRange(versions.ClientVersion, new(1, 1, 10), new(1, 2));
 		Assert.InRange(versions.ClientVersion, new(1, 1, 10), WalletWasabi.Helpers.Constants.ClientVersion);
 		Assert.Equal(4, versions.BackendMajorVersion);
@@ -106,10 +106,12 @@ public class LiveServerTests : IAsyncLifetime
 	[MemberData(nameof(GetNetworks))]
 	public async Task CheckUpdatesTestsAsync(Network network)
 	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
 		TorHttpClient torHttpClient = MakeTorHttpClient(network);
 		WasabiClient client = new(torHttpClient);
 
-		var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
+		var updateStatus = await client.CheckUpdatesAsync(ctsTimeout.Token);
 
 		Version expectedVersion = new(2, 0);
 		Version expectedClientVersion = new(1, 1, 12, 9);
@@ -120,30 +122,26 @@ public class LiveServerTests : IAsyncLifetime
 		Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);
 		Assert.Equal(backendVersion, updateStatus.CurrentBackendMajorVersion);
 
-		var versions = await client.GetVersionsAsync(CancellationToken.None);
+		var versions = await client.GetVersionsAsync(ctsTimeout.Token);
 		Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);
 	}
-
-	#endregion Software
-
-	#region Wasabi
 
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
 	public async Task GetLegalDocumentsTestsAsync(Network network)
 	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
 		TorHttpClient torHttpClient = MakeTorHttpClient(network);
 		WasabiClient client = new(torHttpClient);
 
-		var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
+		var content = await client.GetLegalDocumentsAsync(ctsTimeout.Token);
 
 		var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 		Assert.Equal("Last Updated: 2020-04-05", lines[0]);
 		var lineCount = lines.Length;
 		Assert.InRange(lineCount, 100, 1000);
 	}
-
-	#endregion Wasabi
 
 	private TorHttpClient MakeTorHttpClient(Network network)
 	{
