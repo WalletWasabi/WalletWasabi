@@ -58,7 +58,7 @@ public class WalletFilterProcessor : BackgroundService
 	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
 	private AsyncLock HandleHeightLock { get; } = new ();
 
-	private CancellationToken CancelAllTasksToken { get; set; }
+	private CancellationToken CancelReorgToken { get; set; }
 
 	private void Add(SyncRequest request)
 	{
@@ -87,7 +87,7 @@ public class WalletFilterProcessor : BackgroundService
 	/// <summary>Used for filter synchronization.</summary>
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		CancelAllTasksToken = cancellationToken;
+		CancelReorgToken = cancellationToken;
 		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
 		
 		try
@@ -274,7 +274,7 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 
-			using (await HandleHeightLock.LockAsync(CancelAllTasksToken).ConfigureAwait(false))
+			using (await HandleHeightLock.LockAsync(CancelReorgToken).ConfigureAwait(false))
 			{
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
