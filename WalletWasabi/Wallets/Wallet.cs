@@ -199,12 +199,13 @@ public class Wallet : BackgroundService, IWallet
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
 			BlockProvider = blockProvider;
 
 			WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
+			
+			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 			
 			State = WalletState.Initialized;
 		}
