@@ -385,6 +385,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 
 		return $"{preComposedText[..caretIndex]}{input}{preComposedText[caretIndex..]}";
+
 	}
 
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
