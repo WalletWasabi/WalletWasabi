@@ -23,7 +23,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
-	private const string RoundFinishedMessage = "Round completed, awaiting next round";
+	private const string RoundFinishedMessage = "Round ended, awaiting next round";
 	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
 	private const string CoinJoinInProgress = "Coinjoin in progress";
 	private const string InputRegistrationMessage = "Awaiting other participants";
