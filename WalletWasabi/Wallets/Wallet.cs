@@ -247,12 +247,6 @@ public class Wallet : BackgroundService, IWallet
 			await base.StartAsync(cancel).ConfigureAwait(false);
 
 			State = WalletState.Started;
-			
-			// Perform final synchronization in the background.
-			if (KeyManager.UseTurboSync)
-			{
-				_ = Task.Run(() => PerformSynchronizationAsync(BitcoinStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, cancel), cancel);
-			}
 		}
 		catch
 		{
@@ -283,7 +277,14 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	/// <inheritdoc />
-	protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
+	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+	{
+		// Perform final synchronization in the background.
+		if (KeyManager.UseTurboSync)
+		{
+			await PerformSynchronizationAsync(BitcoinStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
+		}
+	}
 
 	/// <inheritdoc/>
 	public override async Task StopAsync(CancellationToken cancel)
