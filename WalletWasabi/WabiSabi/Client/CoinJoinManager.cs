@@ -195,20 +195,12 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 				}
 
-				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
+				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false);
 
 				// If there is no available coin candidates, then don't mix.
 				if (!coinCandidates.Any())
 				{
 					throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
-				}
-
-				coinCandidates = coinCandidates.Where(x => x.Confirmed);
-
-				// Only unconfirmed coins are available
-				if (!coinCandidates.Any())
-				{
-					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidate coins available to mix.");
 				}
 
 				coinCandidates = coinCandidates.Where(x => !CoinPrison.TryGetOrRemoveBannedCoin(x, out _));
@@ -217,6 +209,22 @@ public class CoinJoinManager : BackgroundService
 				if (!coinCandidates.Any())
 				{
 					throw new CoinJoinClientException(CoinjoinError.CoinsRejected, "All coins are banned.");
+				}
+
+				coinCandidates = coinCandidates.Where(x => !x.IsImmature(synchronizerResponse.BestHeight));
+
+				// Only immature coins are available
+				if (!coinCandidates.Any())
+				{
+					throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, "Only immature coins are available.");
+				}
+
+				coinCandidates = coinCandidates.Where(x => x.Confirmed);
+
+				// Only unconfirmed coins are available
+				if (!coinCandidates.Any())
+				{
+					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidate coins available to mix.");
 				}
 
 				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
@@ -620,11 +628,10 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet)
 		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
-			.Where(coin => !coin.IsImmature(bestHeight))
 			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
