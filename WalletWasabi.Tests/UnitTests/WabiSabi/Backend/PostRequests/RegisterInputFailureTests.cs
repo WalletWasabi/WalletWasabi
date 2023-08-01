@@ -123,11 +123,10 @@ public class RegisterInputFailureTests
 		WabiSabiConfig cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		using Arena arena = await ArenaBuilder.From(cfg, rpc, prison).CreateAndStartAsync(round);
-
-		prison.Punish(coin.Outpoint, Punishment.Banned, uint256.One);
+		prison.FailedToSign(coin.Outpoint, Money.Coins(1m), round.Id);
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -152,10 +151,9 @@ public class RegisterInputFailureTests
 		WabiSabiConfig cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
+		prison.FailedVerification(coin.Outpoint, round.Id);
 		using Arena arena = await ArenaBuilder.From(cfg, rpc, prison).CreateAndStartAsync(round);
-
-		prison.Punish(coin.Outpoint, Punishment.LongBanned, uint256.One);
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -164,33 +162,8 @@ public class RegisterInputFailureTests
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
 			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
 
-		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, ex.ErrorCode);
+		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 		Assert.IsAssignableFrom<InputBannedExceptionData>(ex.ExceptionData);
-
-		await arena.StopAsync(CancellationToken.None);
-	}
-
-	[Fact]
-	public async Task InputCanBeNotedAsync()
-	{
-		using Key key = new();
-		var coin = WabiSabiFactory.CreateCoin(key);
-		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
-
-		WabiSabiConfig cfg = new();
-		var round = WabiSabiFactory.CreateRound(cfg);
-
-		Prison prison = new();
-		using Arena arena = await ArenaBuilder.From(cfg, rpc, prison).CreateAndStartAsync(round);
-
-		prison.Punish(coin.Outpoint, Punishment.Noted, uint256.One);
-
-		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
-
-		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-
-		// Noted inputs are allowed and should not throw any exception.
-		await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -206,10 +179,10 @@ public class RegisterInputFailureTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		Prison prison = new();
-		using Arena arena = await ArenaBuilder.From(cfg, rpc, prison).CreateAndStartAsync(round);
+		Prison prison = WabiSabiFactory.CreatePrison();
+		prison.FailedToConfirm(coin.Outpoint, Money.Coins(1m), round.Id);
 
-		prison.Punish(coin.Outpoint, Punishment.Noted, uint256.One);
+		using Arena arena = await ArenaBuilder.From(cfg, rpc, prison).CreateAndStartAsync(round);
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 

@@ -30,7 +30,7 @@ public class ArenaBuilder
 	public Arena Create(params Round[] rounds)
 	{
 		TimeSpan period = Period ?? TimeSpan.FromHours(1);
-		Prison prison = Prison ?? new();
+		Prison prison = Prison ?? WabiSabiFactory.CreatePrison();
 		WabiSabiConfig config = Config ?? new();
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;

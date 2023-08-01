@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.Transactions;
 public class TransactionFactory
 {
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false, bool allowDoubleSpend = false)
 	{
 		Network = network;
 		KeyManager = keyManager;
@@ -28,6 +28,7 @@ public class TransactionFactory
 		TransactionStore = transactionStore;
 		Password = password;
 		AllowUnconfirmed = allowUnconfirmed;
+		AllowDoubleSpend = allowDoubleSpend;
 	}
 
 	public Network Network { get; }
@@ -35,6 +36,7 @@ public class TransactionFactory
 	public ICoinsView Coins { get; }
 	public string Password { get; }
 	public bool AllowUnconfirmed { get; }
+	public bool AllowDoubleSpend { get; }
 	private ITransactionStore TransactionStore { get; }
 
 	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
@@ -66,6 +68,21 @@ public class TransactionFactory
 
 		// Get allowed coins to spend.
 		var availableCoinsView = Coins.Unspent();
+		if (AllowDoubleSpend && allowedInputs is not null)
+		{
+			var doubleSpends = new List<SmartCoin>();
+			foreach (var input in allowedInputs)
+			{
+				if (((CoinsRegistry)Coins).AsAllCoinsView().TryGetByOutPoint(input, out var coin)
+					&& coin.SpenderTransaction is not null
+					&& !coin.SpenderTransaction.Confirmed)
+				{
+					doubleSpends.Add(coin);
+				}
+			}
+			availableCoinsView = new CoinsView(availableCoinsView.ToList().Concat(doubleSpends));
+		}
+
 		List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
@@ -272,9 +289,9 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
-
 		var sign = !KeyManager.IsWatchOnly;
+
+		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 
