@@ -193,11 +193,11 @@ public class WalletFilterProcessor : BackgroundService
 		finally
 		{
 			FiltersCache.Clear();
-			CancelEveryRequest();
+			SetEveryRequestCanceled();
 		}
 	}
 
-	private void CancelEveryRequest()
+	private void SetEveryRequestCanceled()
 	{
 		lock (SynchronizationRequestsLock)
 		{
