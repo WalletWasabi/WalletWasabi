@@ -36,7 +36,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
 	private const string BackendNotConnected = "Awaiting connection";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
-	private const string WaitingForConfirmedFunds = "Awaiting for confirmed funds";
+	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
