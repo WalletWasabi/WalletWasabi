@@ -142,7 +142,10 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			node.VersionHandshake(); // Start mempool service.
 			synchronizer.Start(); // Start wasabi synchronizer service.
 
-			await feeProvider.StartAsync(testDeadlineCts.Token);
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+			{
+				await wallet.StartAsync(cts.Token); // Initialize wallet service with filter processing.
+			}
 
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();

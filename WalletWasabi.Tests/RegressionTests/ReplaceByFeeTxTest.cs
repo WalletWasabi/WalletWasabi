@@ -93,14 +93,14 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+			{
+				await wallet.StartAsync(cts.Token); // Initialize wallet service with filter processing.
+			}
+
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-			{
-				await wallet.StartAsync(cts.Token); // Initialize wallet service.
-			}
 
 			Assert.Empty(wallet.Coins);
 

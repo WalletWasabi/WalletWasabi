@@ -81,7 +81,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, setup.ServiceConfiguration, feeProvider, blockProvider);
-		await wallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		// Get some money, make it confirm.
@@ -97,14 +96,15 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(testDeadlineCts.Token);
 
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+			{
+				await wallet.StartAsync(cts.Token); // Initialize wallet and filter processing services.
+			}
+
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-			{
-				await wallet.StartAsync(cts.Token); // Initialize wallet service.
-			}
 			Assert.Equal(1, await blockRepository.CountAsync(testDeadlineCts.Token));
 
 			Assert.Single(wallet.Coins);

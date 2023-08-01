@@ -98,10 +98,13 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
+			// Start wallet and filter processing service
+			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-			var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+
 			wallet.Kitchen.Cook(password);
 
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
