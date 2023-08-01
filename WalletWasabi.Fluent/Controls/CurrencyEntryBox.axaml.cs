@@ -324,7 +324,7 @@ public partial class CurrencyEntryBox : TextBox
 			}
 			else
 			{
-				var usd =  ValidatePasteBalance
+				var usd = ValidatePasteBalance
 					? ClipboardObserver.ParseToUsd(text, BalanceUsd)
 					: ClipboardObserver.ParseToUsd(text);
 				if (usd is not null)
