@@ -315,26 +315,13 @@ public partial class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			var money = ValidatePasteBalance
-				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-				: ClipboardObserver.ParseToMoney(text);
-			if (money is not null)
+			if (TryParse(text, out var result))
 			{
-				text = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+				text = result;
 			}
 			else
 			{
-				var usd = ValidatePasteBalance
-					? ClipboardObserver.ParseToUsd(text, BalanceUsd)
-					: ClipboardObserver.ParseToUsd(text);
-				if (usd is not null)
-				{
-					text = usd.Value.ToString("0.00");
-				}
-				else
-				{
-					return;
-				}
+				return;
 			}
 
 			if (ValidateEntryText(text))
@@ -342,6 +329,30 @@ public partial class CurrencyEntryBox : TextBox
 				OnTextInput(new TextInputEventArgs { Text = text });
 			}
 		}
+	}
+
+	private bool TryParse(string text, out string? result)
+	{
+		var money = ValidatePasteBalance
+			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+			: ClipboardObserver.ParseToMoney(text);
+		if (money is not null)
+		{
+			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+			return true;
+		}
+
+		var usd = ValidatePasteBalance
+			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+			: ClipboardObserver.ParseToUsd(text);
+		if (usd is not null)
+		{
+			result = usd.Value.ToString("0.00");
+			return true;
+		}
+
+		result = null;
+		return false;
 	}
 
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to
