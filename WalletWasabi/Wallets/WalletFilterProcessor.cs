@@ -84,6 +84,7 @@ public class WalletFilterProcessor : BackgroundService
 		List<Task> tasks = new();
 		lock (SynchronizationRequestsLock)
 		{
+			// Check what is the first height that is neither synced neither already requested.
 			uint firstHeightToRequest;
 			var existingRequestsForSyncType = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && !x.Element.DoNotProcess).ToList();
 			if (existingRequestsForSyncType.Count > 0)
@@ -97,6 +98,7 @@ public class WalletFilterProcessor : BackgroundService
 					KeyManager.GetBestHeight() + 1);
 			}
 
+			// Add requests to the PriorityQueue.
 			if (toHeight >= firstHeightToRequest)
 			{
 				foreach (var height in Enumerable.Range((int)firstHeightToRequest, (int)(toHeight - firstHeightToRequest) + 1))
@@ -110,7 +112,9 @@ public class WalletFilterProcessor : BackgroundService
 			tasks.AddRange(SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && !x.Element.DoNotProcess && x.Element.Height <= toHeight).Select(x => x.Element.Tcs.Task));
 		}
 
-		await Task.WhenAll(tasks).WithCancellation(cancellationToken).ConfigureAwait(false); // This will throw if a tasks throws.
+		// Wait for all Tcs.Task to be finished or for one of them to throw/be cancelled.
+		// If cancellationToken kicks in, cancel the await but the requests can only be cancelled by ExecuteAsync CT to avoid breaking state.
+		await Task.WhenAll(tasks).WithCancellation(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -187,6 +191,7 @@ public class WalletFilterProcessor : BackgroundService
 		}
 		finally
 		{
+			FiltersCache.Clear();
 			CancelEveryRequest();
 		}
 	}
