@@ -101,8 +101,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				foreach (var height in Enumerable.Range((int)firstHeightToRequest, (int)(toHeight - firstHeightToRequest) + 1))
 				{
-					var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-					cancellationToken.Register(() => tcs.TrySetCanceled());
+					var tcs = new TaskCompletionSource();
 					AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
 				}
 			}
@@ -111,7 +110,7 @@ public class WalletFilterProcessor : BackgroundService
 			tasks.AddRange(SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && x.Element.Height <= toHeight).Select(x => x.Element.Tcs.Task));
 		}
 
-		await Task.WhenAll(tasks).ConfigureAwait(false); // This will throw if a tasks throws.
+		await Task.WhenAll(tasks).WithCancellation(cancellationToken).ConfigureAwait(false); // This will throw if a tasks throws.
 	}
 
 	/// <inheritdoc />
@@ -137,13 +136,6 @@ public class WalletFilterProcessor : BackgroundService
 				continue;
 			}
 
-			// Cancel every request if one is canceled to avoid synchronization problems when different cancellation tokens are used.
-			if (request.Tcs.Task.IsCanceled)
-			{
-				CancelEveryRequest();
-				continue;
-			}
-			
 			try
 			{
 				if (!FiltersCache.TryGetValue(request.Height, out var filterToProcess))
