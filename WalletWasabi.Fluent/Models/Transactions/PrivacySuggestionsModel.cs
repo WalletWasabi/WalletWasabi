@@ -25,7 +25,7 @@ public class PrivacySuggestionsModel
 	private const decimal MaximumDifferenceTolerance = 0.25m;
 	private const int ConsolidationTolerance = 10;
 
-	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
+	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
 	private readonly object _lock = new();
 
 	/// <summary>Allow at most one suggestion generation run.</summary>
@@ -33,7 +33,9 @@ public class PrivacySuggestionsModel
 
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager _cjManager;
-	private CancellationTokenSource? _suggestionCancellationTokenSource;
+
+	private CancellationTokenSource? _singleRunCancellationTokenSource;
+	private CancellationTokenSource? _linkedCancellationTokenSource;
 
 	public PrivacySuggestionsModel(Wallet wallet)
 	{
@@ -50,12 +52,13 @@ public class PrivacySuggestionsModel
 
 		lock (_lock)
 		{
-			_suggestionCancellationTokenSource?.Cancel();
-			_suggestionCancellationTokenSource = singleRunCts;
+			_singleRunCancellationTokenSource?.Cancel();
+			_linkedCancellationTokenSource?.Cancel();
+			_singleRunCancellationTokenSource = singleRunCts;
+			CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
+			CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
+			_linkedCancellationTokenSource = linkedCts;
 		}
-
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
 
 		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
@@ -67,7 +70,7 @@ public class PrivacySuggestionsModel
 					.Combine(VerifyConsolidation(transactionResult))
 					.Combine(VerifyUnconfirmedInputs(transactionResult))
 					.Combine(VerifyCoinjoiningInputs(transactionResult))
-					.Combine(VerifyChangeAsync(info, transactionResult, linkedCts));
+					.Combine(VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource));
 			}
 			catch (OperationCanceledException)
 			{
@@ -77,7 +80,7 @@ public class PrivacySuggestionsModel
 			{
 				lock (_lock)
 				{
-					_suggestionCancellationTokenSource = null;
+					_singleRunCancellationTokenSource = null;
 				}
 			}
 		}
