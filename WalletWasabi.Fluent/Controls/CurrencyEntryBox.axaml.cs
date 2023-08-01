@@ -8,8 +8,11 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
@@ -285,14 +288,22 @@ public partial class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			// Based on broad M0 money supply figures (80 900 000 000 000.00 USD).
-			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters.
-			// Bitcoin has "21 000 000 . 0000 0000".
-			// Coincidentally the same character count as USD... weird.
-			// Plus adding 4 characters for the group separators.
-			if (text.Length > 17 + 4)
+			var money = ClipboardObserver.ParseToMoney(text);
+			if (money is not null)
 			{
-				text = text[..(17 + 4)];
+				text = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+			}
+			else
+			{
+				var usd = ClipboardObserver.ParseToUsd(text);
+				if (usd is not null)
+				{
+					text = usd.Value.ToString("0.00");
+				}
+				else
+				{
+					return;
+				}
 			}
 
 			if (ValidateEntryText(text))
