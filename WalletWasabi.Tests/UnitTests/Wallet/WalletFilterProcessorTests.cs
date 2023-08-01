@@ -118,6 +118,7 @@ public class WalletFilterProcessorTests
 		Assert.False(turboSyncTask.IsCompleted);
 
 		var currentRunningTasks = new List<Task>() { turboSyncTask, nonTurboSyncTask, firstExtraFilter.TurboTask, firstExtraFilter.NonTurboTask, secondExtraFilter.TurboTask, secondExtraFilter.NonTurboTask };
+
 		// Turbo sync should finish first
 		var lastTasksToComplete = new List<Task>();
 

@@ -43,7 +43,11 @@ public class WalletFilterProcessor : BackgroundService
 		BlockProvider = blockProvider;
 	}
 
+	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
 	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
+	
+	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
+	private object SynchronizationRequestsLock { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
 	private KeyManager KeyManager { get; }
@@ -53,13 +57,12 @@ public class WalletFilterProcessor : BackgroundService
 	public FilterModel? LastProcessedFilter { get; private set; }
 	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
 	private AsyncLock HandleHeightLock { get; } = new ();
-	private object Lock { get; } = new();
 
 	private CancellationToken CancelAllTasksToken { get; set; }
 
 	private void Add(SyncRequest request)
 	{
-		lock (Lock)
+		lock (SynchronizationRequestsLock)
 		{
 			Priority priority = new(request.SyncType);
 			SynchronizationRequests.Enqueue(request, priority);
@@ -105,7 +108,7 @@ public class WalletFilterProcessor : BackgroundService
 				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 				SyncRequest? request;
-				lock (Lock)
+				lock (SynchronizationRequestsLock)
 				{
 					if (!SynchronizationRequests.TryPeek(out request, out _))
 					{
@@ -152,7 +155,7 @@ public class WalletFilterProcessor : BackgroundService
 					if (reachedBlockChainTip)
 					{
 						request.Tcs.SetResult();
-						lock (Lock)
+						lock (SynchronizationRequestsLock)
 						{
 							SynchronizationRequests.Dequeue();
 						}
@@ -186,6 +189,13 @@ public class WalletFilterProcessor : BackgroundService
 		}
 		finally
 		{
+			lock (SynchronizationRequestsLock)
+			{
+				while (SynchronizationRequests.TryDequeue(out var request, out _))
+				{
+					request.Tcs.SetCanceled(CancellationToken.None);
+				}
+			}
 			FiltersCache.Clear();
 		}
 	}
