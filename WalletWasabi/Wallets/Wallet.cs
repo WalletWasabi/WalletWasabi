@@ -282,7 +282,7 @@ public class Wallet : BackgroundService, IWallet
 		// Perform final synchronization in the background.
 		if (KeyManager.UseTurboSync)
 		{
-			await PerformSynchronizationAsync(BitcoinStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
+			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
 	}
 
@@ -347,11 +347,11 @@ public class Wallet : BackgroundService, IWallet
 
 			if (KeyManager.UseTurboSync)
 			{
-				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, new List<SyncType>() { SyncType.Turbo, SyncType.NonTurbo }, CancellationToken.None).ConfigureAwait(false);
+				await WalletFilterProcessor.ProcessAsync(new List<SyncType> { SyncType.Turbo, SyncType.NonTurbo }, CancellationToken.None).ConfigureAwait(false);
 			}
 			else
 			{
-				await WalletFilterProcessor.ProcessAsync(filterModels.Last().Header.Height, SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
+				await WalletFilterProcessor.ProcessAsync(SyncType.Complete, CancellationToken.None).ConfigureAwait(false);
 			}
 
 			NewFiltersProcessed?.Invoke(this, filterModels);
@@ -404,15 +404,13 @@ public class Wallet : BackgroundService, IWallet
 		{
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
-		
-		var currentTip = BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
-			
-		await PerformSynchronizationAsync(currentTip, KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
+
+		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
-	public async Task PerformSynchronizationAsync(uint toHeight, SyncType syncType, CancellationToken cancellationToken)
+	public async Task PerformSynchronizationAsync(SyncType syncType, CancellationToken cancellationToken)
 	{
-		await WalletFilterProcessor.ProcessAsync(toHeight, syncType, cancellationToken).ConfigureAwait(false);
+		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
 	private async Task LoadDummyMempoolAsync()
 	{

@@ -24,46 +24,34 @@ public class WalletFilterProcessorTests
 	{
 		var requests = new List<WalletFilterProcessor.SyncRequest>()
 		{
-			new(SyncType.NonTurbo, 6, new TaskCompletionSource()),
-			new(SyncType.Turbo, 2, new TaskCompletionSource()),
-			new(SyncType.Complete, 3, new TaskCompletionSource()),
-			new(SyncType.NonTurbo, 5, new TaskCompletionSource()),
-			new(SyncType.Turbo, 4, new TaskCompletionSource()),
-			new(SyncType.NonTurbo, 4, new TaskCompletionSource()),
-			new(SyncType.Turbo, 1, new TaskCompletionSource()),
+			new(SyncType.Turbo, new TaskCompletionSource()),
+			new(SyncType.NonTurbo, new TaskCompletionSource()),
+			new(SyncType.Complete, new TaskCompletionSource()),
+			new(SyncType.NonTurbo, new TaskCompletionSource()),
+			new(SyncType.Turbo, new TaskCompletionSource()),
+			new(SyncType.NonTurbo, new TaskCompletionSource()),
+			new(SyncType.Turbo, new TaskCompletionSource()),
 		};
 
 		PriorityQueue<WalletFilterProcessor.SyncRequest, WalletFilterProcessor.Priority> synchronizationRequests = new(WalletFilterProcessor.Comparer);
 
 		foreach (var request in requests)
 		{
-			WalletFilterProcessor.Priority priority = new(request.SyncType, request.Height);
+			WalletFilterProcessor.Priority priority = new(request.SyncType);
 			synchronizationRequests.Enqueue(request, priority);
 		}
 
-		var currentItem = synchronizationRequests.Dequeue();
-		Assert.Equal((uint)1, currentItem.Height);
-		Assert.Equal(SyncType.Turbo, currentItem.SyncType);
-
-		currentItem = synchronizationRequests.Dequeue();
-		Assert.Equal((uint)2, currentItem.Height);
-		Assert.Equal(SyncType.Turbo, currentItem.SyncType);
-
-		currentItem = synchronizationRequests.Dequeue();
-		Assert.Equal((uint)3, currentItem.Height);
-		Assert.Equal(SyncType.Complete, currentItem.SyncType);
-
-		currentItem = synchronizationRequests.Dequeue();
-		Assert.Equal((uint)4, currentItem.Height);
-		Assert.Equal(SyncType.Turbo, currentItem.SyncType);
-
-		currentItem = synchronizationRequests.Dequeue();
-		Assert.Equal((uint)4, currentItem.Height);
-		Assert.Equal(SyncType.NonTurbo, currentItem.SyncType);
-
-		currentItem = synchronizationRequests.Dequeue();
-		Assert.Equal((uint)5, currentItem.Height);
-		Assert.Equal(SyncType.NonTurbo, currentItem.SyncType);
+		// Make sure that NonTurbo always has lower priority.
+		while (synchronizationRequests.Count > 0)
+		{
+			var dequeuedRequest = synchronizationRequests.Dequeue();
+			if (dequeuedRequest.SyncType == SyncType.NonTurbo)
+			{
+				// If we encounter a non-Turbo request, make sure there are no Turbo nor Complete requests left in the queue.
+				Assert.DoesNotContain(SyncType.Turbo, synchronizationRequests.UnorderedItems.Select(x => x.Element.SyncType));
+				Assert.DoesNotContain(SyncType.Complete, synchronizationRequests.UnorderedItems.Select(x => x.Element.SyncType));
+			}
+		}
 	}
 
 	[Fact]
@@ -93,7 +81,7 @@ public class WalletFilterProcessorTests
 		// Process all but the last 4 which will be processed through events during the synchronization.
 		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(allFilters.Take(allFilters.Count - 4).Where(x => x.Header.Height > 101));
 
-		realWallet.BitcoinStore.IndexStore.NewFilters += (_, filters) => Wallet_NewFiltersEmulator(filters.Last().Header.Height, realWallet.WalletFilterProcessor);
+		realWallet.BitcoinStore.IndexStore.NewFilters += (_, filters) => Wallet_NewFiltersEmulator(realWallet.WalletFilterProcessor);
 
 		// Mock the database
 		realWallet.WalletFilterProcessor.AddToCache(allFilters);
@@ -105,7 +93,6 @@ public class WalletFilterProcessorTests
 			async () =>
 			{
 				await realWallet.WalletFilterProcessor.ProcessAsync(
-					realWallet.BitcoinStore.SmartHeaderChain.TipHeight - 5,
 					SyncType.Turbo,
 					testDeadlineCts.Token);
 			},
@@ -117,29 +104,33 @@ public class WalletFilterProcessorTests
 		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(new List<FilterModel>() { allFilters.ElementAt(allFilters.Count - 3) });
 		var secondExtraFilter = await _eventChannel.Reader.ReadAsync(testDeadlineCts.Token);
 
-		// Turbo sync should take some time.
-		Assert.False(turboSyncTask.IsCompleted);
-
-		// Turbo sync should finish first
-		var lastTaskToComplete = await Task.WhenAny(turboSyncTask, firstExtraFilter.TurboTask, firstExtraFilter.NonTurboTask, secondExtraFilter.TurboTask, secondExtraFilter.NonTurboTask);
-		Assert.Equal(turboSyncTask.Id, lastTaskToComplete.Id);
-
 		// This emulates final synchronization
 		var nonTurboSyncTask = Task.Run(
 			async () =>
 			{
 				await realWallet.WalletFilterProcessor.ProcessAsync(
-					realWallet.BitcoinStore.SmartHeaderChain.TipHeight - 5,
 					SyncType.NonTurbo,
 					testDeadlineCts.Token);
 			},
 			testDeadlineCts.Token);
 
-		// Turbo should be processed first in order of height
-		lastTaskToComplete = await Task.WhenAny(nonTurboSyncTask, firstExtraFilter.TurboTask, firstExtraFilter.NonTurboTask, secondExtraFilter.TurboTask, secondExtraFilter.NonTurboTask);
-		Assert.Equal(firstExtraFilter.TurboTask.Id, lastTaskToComplete.Id);
-		lastTaskToComplete = await Task.WhenAny(nonTurboSyncTask, firstExtraFilter.NonTurboTask, secondExtraFilter.TurboTask, secondExtraFilter.NonTurboTask);
-		Assert.Equal(secondExtraFilter.TurboTask.Id, lastTaskToComplete.Id);
+		// Turbo sync should take some time.
+		Assert.False(turboSyncTask.IsCompleted);
+
+		var currentRunningTasks = new List<Task>() { turboSyncTask, nonTurboSyncTask, firstExtraFilter.TurboTask, firstExtraFilter.NonTurboTask, secondExtraFilter.TurboTask, secondExtraFilter.NonTurboTask };
+		// Turbo sync should finish first
+		var lastTasksToComplete = new List<Task>();
+
+		for (var i = 0; i < 3; i++)
+		{
+			var lastTaskToComplete = await Task.WhenAny(currentRunningTasks);
+			lastTasksToComplete.Add(lastTaskToComplete);
+			currentRunningTasks.Remove(lastTaskToComplete);
+		}
+
+		Assert.Contains(turboSyncTask.Id, lastTasksToComplete.Select(x => x.Id));
+		Assert.Contains(firstExtraFilter.TurboTask.Id, lastTasksToComplete.Select(x => x.Id));
+		Assert.Contains(secondExtraFilter.TurboTask.Id, lastTasksToComplete.Select(x => x.Id));
 
 		// This emulates receiving some new filters while final synchronization is being processed.
 		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(new List<FilterModel>() { allFilters.ElementAt(allFilters.Count - 2) });
@@ -147,22 +138,23 @@ public class WalletFilterProcessorTests
 		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(new List<FilterModel>() { allFilters.ElementAt(allFilters.Count - 1) });
 		var fourthExtraFilter = await _eventChannel.Reader.ReadAsync(testDeadlineCts.Token);
 
-		// Turbo should be gain priority.
-		lastTaskToComplete = await Task.WhenAny(nonTurboSyncTask, firstExtraFilter.NonTurboTask, secondExtraFilter.NonTurboTask, thirdExtraFilter.TurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.TurboTask, fourthExtraFilter.NonTurboTask);
-		Assert.Equal(thirdExtraFilter.TurboTask.Id, lastTaskToComplete.Id);
-		lastTaskToComplete = await Task.WhenAny(nonTurboSyncTask, firstExtraFilter.NonTurboTask, secondExtraFilter.NonTurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.TurboTask, fourthExtraFilter.NonTurboTask);
-		Assert.Equal(fourthExtraFilter.TurboTask.Id, lastTaskToComplete.Id);
+		currentRunningTasks = new List<Task>() { nonTurboSyncTask, firstExtraFilter.NonTurboTask, secondExtraFilter.NonTurboTask, thirdExtraFilter.TurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.TurboTask, fourthExtraFilter.NonTurboTask };
 
-		// Finally NonTurbo should end in order
-		lastTaskToComplete = await Task.WhenAny(nonTurboSyncTask, firstExtraFilter.NonTurboTask, secondExtraFilter.NonTurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.NonTurboTask);
-		Assert.Equal(nonTurboSyncTask.Id, lastTaskToComplete.Id);
-		lastTaskToComplete = await Task.WhenAny(firstExtraFilter.NonTurboTask, secondExtraFilter.NonTurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.NonTurboTask);
-		Assert.Equal(firstExtraFilter.NonTurboTask.Id, lastTaskToComplete.Id);
-		lastTaskToComplete = await Task.WhenAny(secondExtraFilter.NonTurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.NonTurboTask);
-		Assert.Equal(secondExtraFilter.NonTurboTask.Id, lastTaskToComplete.Id);
-		lastTaskToComplete = await Task.WhenAny(thirdExtraFilter.NonTurboTask, fourthExtraFilter.NonTurboTask);
-		Assert.Equal(thirdExtraFilter.NonTurboTask.Id, lastTaskToComplete.Id);
-		await fourthExtraFilter.NonTurboTask;
+		// Turbo should be gain priority.
+		lastTasksToComplete = new List<Task>();
+		for (var i = 0; i < 2; i++)
+		{
+			var lastTaskToComplete = await Task.WhenAny(currentRunningTasks);
+			lastTasksToComplete.Add(lastTaskToComplete);
+			currentRunningTasks.Remove(lastTaskToComplete);
+		}
+		Assert.Contains(thirdExtraFilter.TurboTask.Id, lastTasksToComplete.Select(x => x.Id));
+		Assert.Contains(fourthExtraFilter.TurboTask.Id, lastTasksToComplete.Select(x => x.Id));
+
+		currentRunningTasks = new List<Task>() { nonTurboSyncTask, firstExtraFilter.NonTurboTask, secondExtraFilter.NonTurboTask, thirdExtraFilter.NonTurboTask, fourthExtraFilter.NonTurboTask };
+
+		// Finally NonTurbo will end.
+		await Task.WhenAll(currentRunningTasks);
 
 		// Blockchain Tip should be reach for both SyncTypes.
 		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint) realWallet.KeyManager.GetBestHeight().Value);
@@ -170,12 +162,12 @@ public class WalletFilterProcessorTests
 	}
 
 	// This emulates the NewFiltersProcessed event with SyncType separation to keep the track of the order.
-	private void Wallet_NewFiltersEmulator(uint filterHeight, WalletFilterProcessor walletFilterProcessor)
+	private void Wallet_NewFiltersEmulator(WalletFilterProcessor walletFilterProcessor)
 	{
 		// Initiate tasks and write tasks to the channel to pass them back to the test.
 		// Underlying tasks without cancellation token as it works on Wallet.
-		Task turboTask = walletFilterProcessor.ProcessAsync(filterHeight, SyncType.Turbo, CancellationToken.None);
-		Task nonTurboTask = walletFilterProcessor.ProcessAsync(filterHeight, SyncType.NonTurbo, CancellationToken.None);
+		Task turboTask = walletFilterProcessor.ProcessAsync(SyncType.Turbo, CancellationToken.None);
+		Task nonTurboTask = walletFilterProcessor.ProcessAsync(SyncType.NonTurbo, CancellationToken.None);
 		_eventChannel.Writer.TryWrite(new NewFiltersEventTasks(turboTask, nonTurboTask));
 	}
 

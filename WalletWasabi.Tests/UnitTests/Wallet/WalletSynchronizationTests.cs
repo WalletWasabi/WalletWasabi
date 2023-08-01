@@ -43,10 +43,10 @@ public class WalletSynchronizationTests
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.Turbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(realWallet.GetAllCoins());
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.NonTurbo, testDeadlineCts.Token);
 		Assert.Equal(2, realWallet.GetAllCoins().Count());
 	}
 
@@ -84,10 +84,10 @@ public class WalletSynchronizationTests
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
 		var coins = realWallet.Coins;
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.Turbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(coins.Available());
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.NonTurbo, testDeadlineCts.Token);
 		Assert.Single(coins.Available());
 	}
 
@@ -134,10 +134,10 @@ public class WalletSynchronizationTests
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.Turbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(realWallet.Coins.Available());
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.NonTurbo, testDeadlineCts.Token);
 		Assert.Equal(7, realWallet.GetAllCoins().Count());
 	}
 
@@ -173,10 +173,10 @@ public class WalletSynchronizationTests
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.Turbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Equal(3, realWallet.GetAllCoins().Count());
 
-		await realWallet.PerformSynchronizationAsync(realWallet.BitcoinStore.IndexStore.SmartHeaderChain.TipHeight, SyncType.NonTurbo, testDeadlineCts.Token);
+		await realWallet.PerformSynchronizationAsync(SyncType.NonTurbo, testDeadlineCts.Token);
 		Assert.Equal(3, realWallet.GetAllCoins().Count());
 	}
 

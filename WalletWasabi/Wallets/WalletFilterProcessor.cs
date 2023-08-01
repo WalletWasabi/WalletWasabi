@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
+using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -31,8 +32,7 @@ public class WalletFilterProcessor : BackgroundService
 				return 1;
 			}
 
-			// Higher height have higher priority.
-			return x.Height.CompareTo(y.Height);
+			return 0;
 		});
 	
 	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
@@ -46,127 +46,121 @@ public class WalletFilterProcessor : BackgroundService
 	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
-	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
-	private object SynchronizationRequestsLock { get; } = new();
-
 	private KeyManager KeyManager { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private TransactionProcessor TransactionProcessor { get; }
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
 	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
+	private AsyncLock HandleHeightLock { get; } = new ();
+	private object Lock { get; } = new();
 
-	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
-	private void AddNoLock(SyncRequest request)
+	private CancellationToken CancelAllTasksToken { get; set; }
+
+	private void Add(SyncRequest request)
 	{
-		Priority priority = new(request.SyncType, request.Height);
-		SynchronizationRequests.Enqueue(request, priority);
-		SynchronizationRequestsSemaphore.Release(releaseCount: 1);
-	}
-	
-	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
-	private void InvalidateRequestsNoLock(uint fromHeight)
-	{
-		SynchronizationRequests.UnorderedItems
-			.Where(item => item.Element.Height >= fromHeight)
-			.ToList()
-			.ForEach(item => item.Element.DoNotProcess = true);
+		lock (Lock)
+		{
+			Priority priority = new(request.SyncType);
+			SynchronizationRequests.Enqueue(request, priority);
+			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
+		}
 	}
 
-	public async Task ProcessAsync(uint toHeight, IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
+	public async Task ProcessAsync(IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
 	{
-		var tasks = syncTypes.Select(syncType => ProcessAsync(toHeight, syncType, cancellationToken)).ToList();
+		var tasks = syncTypes.Select(syncType => ProcessAsync(syncType, cancellationToken)).ToList();
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 	
-	public async Task ProcessAsync(uint toHeight, SyncType syncType, CancellationToken cancellationToken)
+	public async Task ProcessAsync(SyncType syncType, CancellationToken cancellationToken)
 	{
-		List<Task> tasks = new();
-		lock (SynchronizationRequestsLock)
+		var tcs = new TaskCompletionSource();
+		Add(new SyncRequest(syncType, tcs));
+
+		var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancelAllTasksToken);
+		try
 		{
-			// Check what is the first height that is neither synced neither already requested.
-			uint firstHeightToRequest;
-			var existingRequestsForSyncType = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && !x.Element.DoNotProcess).ToList();
-			if (existingRequestsForSyncType.Count > 0)
-			{
-				firstHeightToRequest = existingRequestsForSyncType.Max(x => x.Element.Height) + 1;
-			}
-			else
-			{
-				firstHeightToRequest = (uint)(syncType == SyncType.Turbo ? 
-					KeyManager.GetBestTurboSyncHeight() + 1:
-					KeyManager.GetBestHeight() + 1);
-			}
-
-			// Add requests to the PriorityQueue.
-			if (toHeight >= firstHeightToRequest)
-			{
-				foreach (var height in Enumerable.Range((int)firstHeightToRequest, (int)(toHeight - firstHeightToRequest) + 1))
-				{
-					var tcs = new TaskCompletionSource();
-					AddNoLock(new SyncRequest(syncType, (uint)height, tcs));
-				}
-			}
-			
-			// We have to wait for all the requests below toHeight to be processed.
-			tasks.AddRange(SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType && !x.Element.DoNotProcess && x.Element.Height <= toHeight).Select(x => x.Element.Tcs.Task));
+			await tcs.Task.WithCancellation(cts.Token).ConfigureAwait(false);
 		}
-
-		// Wait for all Tcs.Task to be finished or for one of them to throw/be cancelled.
-		// If cancellationToken kicks in, cancel the await but the requests can only be cancelled by ExecuteAsync CT to avoid breaking state.
-		await Task.WhenAll(tasks).WithCancellation(cancellationToken).ConfigureAwait(false);
+		finally
+		{
+			cts.Dispose();
+		}
 	}
 
 	/// <inheritdoc />
 	/// <summary>Used for filter synchronization.</summary>
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
+		CancelAllTasksToken = cancellationToken;
+		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
+		
 		try
 		{
 			while (true)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
-				
+
 				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 				SyncRequest? request;
-				lock (SynchronizationRequestsLock)
+				lock (Lock)
 				{
-					if (!SynchronizationRequests.TryDequeue(out request, out _))
+					if (!SynchronizationRequests.TryPeek(out request, out _))
 					{
 						continue;
 					}
 				}
 
-				// In case of reorgs.
-				if (request.DoNotProcess)
-				{
-					request.Tcs.SetCanceled(CancellationToken.None);
-					continue;
-				}
-
 				try
 				{
-					if (!FiltersCache.TryGetValue(request.Height, out var filterToProcess))
+					bool reachedBlockChainTip;
+					using (await HandleHeightLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
-						filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(request.Height, cancellationToken).ConfigureAwait(false);
+						var currentHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
+
+						if (currentHeight == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight)
+						{
+							request.Tcs.SetResult();
+							SynchronizationRequests.Dequeue();
+							continue;
+						}
+
+						var heightToTest = (uint)currentHeight.Value + 1;
+						if (!FiltersCache.TryGetValue(heightToTest, out var filterToProcess))
+						{
+							filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(heightToTest, cancellationToken).ConfigureAwait(false);
+						}
+
+						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
+
+						reachedBlockChainTip = filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
+						var saveNewHeightToFile = matchFound || reachedBlockChainTip;
+						if (request.SyncType == SyncType.Turbo)
+						{
+							// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
+							KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
+						}
+						else
+						{
+							// All keys were tested at this height, update the Height.
+							KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
+						}
 					}
 
-					var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
-
-					var saveNewHeightToFile = matchFound || filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
-					if (request.SyncType == SyncType.Turbo)
+					if (reachedBlockChainTip)
 					{
-						// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-						KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
+						request.Tcs.SetResult();
+						lock (Lock)
+						{
+							SynchronizationRequests.Dequeue();
+						}
 					}
 					else
 					{
-						// All keys were tested at this height, update the Height.
-						KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
+						SynchronizationRequestsSemaphore.Release(1);
 					}
-
-					request.Tcs.SetResult();
 				}
 				catch (Exception ex)
 				{
@@ -193,22 +187,9 @@ public class WalletFilterProcessor : BackgroundService
 		finally
 		{
 			FiltersCache.Clear();
-			SetEveryRequestCanceled();
 		}
 	}
-
-	private void SetEveryRequestCanceled()
-	{
-		lock (SynchronizationRequestsLock)
-		{
-			// Cancel the remaining tasks before throwing.
-			while (SynchronizationRequests.TryDequeue(out var request, out _))
-			{
-				request.Tcs.SetCanceled(CancellationToken.None);
-			}
-		}
-	}
-
+	
 	private async Task<FilterModel> UpdateFiltersCacheAndReturnFirstAsync(uint startingHeight, CancellationToken cancellationToken)
 	{
 		FiltersCache.Clear();
@@ -292,17 +273,16 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 
-			lock (SynchronizationRequestsLock)
+			using (await HandleHeightLock.LockAsync(CancelAllTasksToken).ConfigureAwait(false))
 			{
-				InvalidateRequestsNoLock(invalidFilter.Header.Height);
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
-			}
-			
-			if (BlockProvider is SmartBlockProvider smartBlockProvider)
-			{
-				await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
+
+				if (BlockProvider is SmartBlockProvider smartBlockProvider)
+				{
+					await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
+				}
 			}
 		}
 		catch (Exception ex)
@@ -313,7 +293,6 @@ public class WalletFilterProcessor : BackgroundService
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 	
@@ -324,9 +303,6 @@ public class WalletFilterProcessor : BackgroundService
 		SynchronizationRequestsSemaphore.Dispose();
 	}
 
-	public record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
-	{
-		public bool DoNotProcess { get; set; }
-	}
-	public record Priority(SyncType SyncType, uint Height);
+	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
+	public record Priority(SyncType SyncType);
 }
