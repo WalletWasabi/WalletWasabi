@@ -24,7 +24,8 @@ public enum CoinjoinError
 	BackendNotSynchronized,
 	AllCoinsPrivate,
 	UserWasntInRound,
-	NoConfirmedCoinsEligibleToMix
+	NoConfirmedCoinsEligibleToMix,
+	CoinsRejected
 }
 
 public class StatusChangedEventArgs : EventArgs

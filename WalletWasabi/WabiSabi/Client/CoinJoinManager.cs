@@ -211,6 +211,14 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidates coins available to mix.");
 				}
 
+				coinCandidates = coinCandidates.Where(x => !CoinPrison.TryGetOrRemoveBannedCoin(x, out _));
+
+				// Only banned coins are available
+				if (!coinCandidates.Any())
+				{
+					throw new CoinJoinClientException(CoinjoinError.CoinsRejected, "All coins are banned.");
+				}
+
 				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
 				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
 				{
@@ -617,7 +625,6 @@ public class CoinJoinManager : BackgroundService
 			.Available()
 			.Where(coin => !coin.IsExcludedFromCoinJoin)
 			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, out _))
 			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
