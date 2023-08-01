@@ -32,7 +32,7 @@ public static class AppBuilderExtension
 
 		return appBuilder
 			.WithInterFont()
-			.With(new FontManagerOptions { DefaultFamilyName = "Inter" })
+			.With(new FontManagerOptions { DefaultFamilyName = "fonts:Inter#Inter, $Default" })
 			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 })
 			.With(new Win32PlatformOptions
 			{
