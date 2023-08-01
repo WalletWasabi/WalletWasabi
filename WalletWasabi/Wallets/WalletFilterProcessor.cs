@@ -84,22 +84,22 @@ public class WalletFilterProcessor : BackgroundService
 		List<Task> tasks = new();
 		lock (SynchronizationRequestsLock)
 		{
-			uint startingHeight;
+			uint firstHeightToRequest;
 			var existingRequestsForSyncType = SynchronizationRequests.UnorderedItems.Where(x => x.Element.SyncType == syncType).ToList();
 			if (existingRequestsForSyncType.Count > 0)
 			{
-				startingHeight = existingRequestsForSyncType.Max(x => x.Element.Height) + 1;
+				firstHeightToRequest = existingRequestsForSyncType.Max(x => x.Element.Height) + 1;
 			}
 			else
 			{
-				startingHeight = (uint)(syncType == SyncType.Turbo ? 
+				firstHeightToRequest = (uint)(syncType == SyncType.Turbo ? 
 					KeyManager.GetBestTurboSyncHeight() + 1:
 					KeyManager.GetBestHeight() + 1);
 			}
 
-			if (toHeight >= startingHeight)
+			if (toHeight >= firstHeightToRequest)
 			{
-				foreach (var height in Enumerable.Range((int)startingHeight, (int)(toHeight - startingHeight) + 1))
+				foreach (var height in Enumerable.Range((int)firstHeightToRequest, (int)(toHeight - firstHeightToRequest) + 1))
 				{
 					var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 					cancellationToken.Register(() => tcs.TrySetCanceled());
