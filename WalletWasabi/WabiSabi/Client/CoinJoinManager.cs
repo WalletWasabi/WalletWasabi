@@ -208,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 				// Only unconfirmed coins are available
 				if (!coinCandidates.Any())
 				{
-					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidates coins available to mix.");
+					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidate coins available to mix.");
 				}
 
 				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
