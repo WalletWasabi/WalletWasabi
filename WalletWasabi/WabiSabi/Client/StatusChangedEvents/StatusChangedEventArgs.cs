@@ -26,7 +26,8 @@ public enum CoinjoinError
 	UserWasntInRound,
 	NoConfirmedCoinsEligibleToMix,
 	CoinsRejected,
-	OnlyImmatureCoinsAvailable
+	OnlyImmatureCoinsAvailable,
+	OnlyExcludedCoinsAvailable,
 }
 
 public class StatusChangedEventArgs : EventArgs

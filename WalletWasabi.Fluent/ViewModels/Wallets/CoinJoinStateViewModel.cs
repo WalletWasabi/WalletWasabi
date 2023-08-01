@@ -39,6 +39,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
 	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
+	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
@@ -327,6 +328,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.BackendNotSynchronized => BackendNotConnected,
 					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
 					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
+					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
 					_ => GeneralErrorMessage
 				};
 				break;
