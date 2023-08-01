@@ -319,8 +319,8 @@ public class WalletFilterProcessor : BackgroundService
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		BitcoinStore.IndexStore.Reorged -= ReorgedAsync;
-		SynchronizationRequestsSemaphore.Dispose();
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
+		SynchronizationRequestsSemaphore.Dispose();
 	}
 
 	public record SyncRequest(SyncType SyncType, uint Height, TaskCompletionSource Tcs)
