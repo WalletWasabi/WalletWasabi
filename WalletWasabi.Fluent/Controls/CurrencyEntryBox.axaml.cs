@@ -304,32 +304,30 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (AvaloniaLocator.Current.GetService<IClipboard>() is not { } clipboard)
+		if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
 		{
-			return;
-		}
+			var text = await clipboard.GetTextAsync();
 
-		var text = await clipboard.GetTextAsync();
+			if (string.IsNullOrEmpty(text))
+			{
+				return;
+			}
 
-		if (string.IsNullOrEmpty(text))
-		{
-			return;
-		}
+			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-		text = text.Replace("\r", "").Replace("\n", "").Trim();
+			if (TryParse(text, out var result))
+			{
+				text = result;
+			}
+			else
+			{
+				return;
+			}
 
-		if (TryParse(text, out var result))
-		{
-			text = result;
-		}
-		else
-		{
-			return;
-		}
-
-		if (ValidateEntryText(text))
-		{
-			OnTextInput(new TextInputEventArgs { Text = text });
+			if (ValidateEntryText(text))
+			{
+				OnTextInput(new TextInputEventArgs { Text = text });
+			}
 		}
 	}
 
@@ -369,23 +367,22 @@ public partial class CurrencyEntryBox : TextBox
 		var selectionStart = SelectionStart;
 		var selectionEnd = SelectionEnd;
 
-		if (string.IsNullOrEmpty(input) || (MaxLength != 0 &&
-		                                    input.Length + preComposedText.Length -
-		                                    Math.Abs(selectionStart - selectionEnd) > MaxLength))
+		if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
+											 input.Length + preComposedText.Length -
+											 Math.Abs(selectionStart - selectionEnd) <= MaxLength))
 		{
-			return "";
+			if (selectionStart != selectionEnd)
+			{
+				var start = Math.Min(selectionStart, selectionEnd);
+				var end = Math.Max(selectionStart, selectionEnd);
+				preComposedText = $"{preComposedText[..start]}{preComposedText[end..]}";
+				caretIndex = start;
+			}
+
+			return $"{preComposedText[..caretIndex]}{input}{preComposedText[caretIndex..]}";
 		}
 
-		if (selectionStart != selectionEnd)
-		{
-			var start = Math.Min(selectionStart, selectionEnd);
-			var end = Math.Max(selectionStart, selectionEnd);
-			preComposedText = $"{preComposedText[..start]}{preComposedText[end..]}";
-			caretIndex = start;
-		}
-
-		return $"{preComposedText[..caretIndex]}{input}{preComposedText[caretIndex..]}";
-
+		return "";
 	}
 
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
