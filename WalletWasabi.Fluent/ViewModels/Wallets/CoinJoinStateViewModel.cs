@@ -36,8 +36,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
 	private const string BackendNotConnected = "Awaiting connection";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
-	private const string WaitingForConfirmedFunds = "Awaiting for confirmed funds";
-	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
+	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
@@ -324,7 +323,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
 					CoinjoinError.BackendNotSynchronized => BackendNotConnected,
-					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
 					_ => GeneralErrorMessage
 				};
 				break;

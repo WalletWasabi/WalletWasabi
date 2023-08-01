@@ -208,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 				// Only unconfirmed coins are available
 				if (!coinCandidates.Any())
 				{
-					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidates coins available to mix.");
+					throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, "No confirmed candidate coins available to mix.");
 				}
 
 				coinCandidates = coinCandidates.Where(x => !CoinPrison.TryGetOrRemoveBannedCoin(x, out _));
