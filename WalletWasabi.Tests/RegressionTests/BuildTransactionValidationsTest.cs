@@ -141,6 +141,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
 			synchronizer.Start(); // Start wasabi synchronizer service.
+			await feeProvider.StartAsync(CancellationToken.None);
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 			{
@@ -150,8 +151,6 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-
-			await wallet.StartAsync(testDeadlineCts.Token); // Initialize wallet service.
 
 			// subtract Fee from amount index with no enough money
 			PaymentIntent operations = new(new DestinationRequest(scp, Money.Coins(1m), subtractFee: true), new DestinationRequest(scp, Money.Coins(0.5m)));
