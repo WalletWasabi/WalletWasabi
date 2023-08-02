@@ -1,10 +1,13 @@
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -14,11 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 [NavigationMetaData(Title = "Cancel Transaction")]
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
+	private readonly UiTriggers _triggers;
 	private readonly Wallet _wallet;
 	private readonly SmartTransaction _transactionToCancel;
 
-	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
+	private CancelTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
 	{
+		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToCancel = transactionToCancel;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -41,6 +46,19 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	public decimal FeeDifferenceUsd { get; }
 
 	public Money FeeDifference { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_triggers.TransactionsUpdateTrigger
+			.Select(_ => _wallet.GetTransactions().First(s => s.GetHash() == _transactionToCancel.GetHash()))
+			.Select(x => x.Confirmed)
+			.Where(isConfirmed => isConfirmed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
+	}
 
 	private async Task OnCancelTransactionAsync(BuildTransactionResult cancellingTransaction)
 	{
