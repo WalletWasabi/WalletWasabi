@@ -79,11 +79,9 @@
             </Border.Styles>
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
-              <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
-              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway"
-                      IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
+              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
                 <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
 
                   <!-- Warnings -->

@@ -26,7 +26,7 @@ public class BuildTransactionResult
 	public Money Fee { get; }
 	public decimal FeePercentOfSent { get; }
 	public bool SpendsUnconfirmed => Transaction.WalletInputs.Any(c => !c.Confirmed);
-
+	public bool SpendsCoinjoining => Transaction.WalletInputs.Any(c => c.CoinJoinInProgress);
 	public IEnumerable<SmartCoin> InnerWalletOutputs => Transaction.WalletOutputs;
 	public IEnumerable<SmartCoin> SpentCoins => Transaction.WalletInputs;
 

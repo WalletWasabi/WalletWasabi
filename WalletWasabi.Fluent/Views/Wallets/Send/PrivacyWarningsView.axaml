@@ -62,6 +62,7 @@
       <Setter Property="DockPanel.Dock" Value="Left" />
       <Setter Property="Height" Value="25" />
       <Setter Property="Width" Value="25" />
+      <Setter Property="Opacity" Value="0.5" />
     </Style>
 
     <Style Selector="Border.warning">
@@ -111,7 +112,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0" />
+              <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
+                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
               <c:LabelsItemsPresenter Items="{Binding Labels}" />
             </DockPanel>
           </Border>
@@ -122,7 +124,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses non-private coins." />
+              <TextBlock Text="Transaction uses non-private coins."
+                         ToolTip.Tip="Some entities can deanonymize this transaction because it spends coins with no privacy. Coinjoin more to have enough private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -132,7 +135,8 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses semi-private coins." />
+              <TextBlock Text="Transaction uses semi-private coins."
+                         ToolTip.Tip="This transaction is not private enough because it spends not fully private coins. Coinjoin more to have enough private coins for this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -142,7 +146,8 @@
           <Border Classes="warning info">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction creates change." />
+              <TextBlock Text="Transaction creates change."
+                         ToolTip.Tip="Change can be used to link this transaction with the next transaction that will use it. Use the change avoidance suggestion to send a little more or less if this is OK for the receiver, or coinjoin the change later." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -152,16 +157,30 @@
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}" />
+              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}"
+                         ToolTip.Tip="This might reduce the privacy of your transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
 
+        <!-- Unconfirmed funds warning -->
         <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
-          <Border Classes="warning">
+          <Border Classes="warning info">
             <DockPanel>
               <PathIcon />
-              <TextBlock Text="Transaction uses unconfirmed coins." />
+              <TextBlock Text="Transaction uses unconfirmed coins."
+                         ToolTip.Tip="This may cause your transaction to be rejected, or delay its confirmation, or cost more than needed to get it confirmed within the desired time. Wait for a confirmation to only use confirmed coins." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Coinjoining funds warning -->
+        <DataTemplate DataType="{x:Type model:CoinjoiningFundsWarning}">
+          <Border Classes="warning info">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses coinjoining coins."
+                         ToolTip.Tip="This may cause your transaction to be replaced by the coinjoin. Consider waiting for the current coinjoin to be finished before sending this transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -183,7 +202,9 @@
               <PathIcon Data="{StaticResource entities_edit_regular}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Label Management" Classes="title" />
-                <TextBlock Text="Choose labels to link with this transaction." Classes="h8" />
+                <StackPanel Classes="description">
+                  <TextBlock Text="Choose labels to link with this transaction." />
+                </StackPanel>
               </StackPanel>
             </DockPanel>
           </c:SuggestionItem>
@@ -227,7 +248,19 @@
         <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
           <c:SuggestionItem>
             <DockPanel>
-              <PathIcon Data="{StaticResource money_24_regular}" />
+              <DockPanel.Styles>
+                <Style Selector="PathIcon">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_equal}" />
+                </Style>
+                <Style Selector="PathIcon.more">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
+                </Style>
+                <Style Selector="PathIcon.less">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_less}" />
+                </Style>
+              </DockPanel.Styles>
+              <PathIcon Classes.more="{Binding IsMore}"
+                        Classes.less="{Binding IsLess}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
