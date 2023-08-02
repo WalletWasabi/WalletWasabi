@@ -226,7 +226,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		finally
 		{
 			wallet.NewFiltersProcessed -= setup.Wallet_NewFiltersProcessed;
-			await wallet.WalletFilterProcessor.StopAsync(testDeadlineCts.Token);
 			await wallet.StopAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);
