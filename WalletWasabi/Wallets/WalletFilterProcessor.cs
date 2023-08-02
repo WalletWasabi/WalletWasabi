@@ -58,7 +58,9 @@ public class WalletFilterProcessor : BackgroundService
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
 	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
-	private AsyncLock HandleHeightLock { get; } = new ();
+	
+	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
+	private AsyncLock ReorgLock { get; } = new ();
 
 	private CancellationToken CancelReorgToken { get; set; }
 
@@ -112,7 +114,7 @@ public class WalletFilterProcessor : BackgroundService
 				try
 				{
 					bool reachedBlockChainTip;
-					using (await HandleHeightLock.LockAsync(cancellationToken).ConfigureAwait(false))
+					using (await ReorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
 						var currentHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
 
@@ -282,7 +284,7 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 
-			using (await HandleHeightLock.LockAsync(CancelReorgToken).ConfigureAwait(false))
+			using (await ReorgLock.LockAsync(CancelReorgToken).ConfigureAwait(false))
 			{
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
