@@ -119,7 +119,10 @@ public class WalletFilterProcessor : BackgroundService
 						if (currentHeight == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight)
 						{
 							request.Tcs.SetResult();
-							SynchronizationRequests.Dequeue();
+							lock (SynchronizationRequestsLock)
+							{
+								SynchronizationRequests.Dequeue();
+							}
 							continue;
 						}
 
