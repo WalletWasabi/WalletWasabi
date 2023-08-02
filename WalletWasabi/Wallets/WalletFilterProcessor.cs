@@ -62,8 +62,6 @@ public class WalletFilterProcessor : BackgroundService
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private AsyncLock ReorgLock { get; } = new ();
 
-	private CancellationToken CancelReorgToken { get; set; }
-
 	private void Add(SyncRequest request)
 	{
 		lock (SynchronizationRequestsLock)
@@ -91,9 +89,6 @@ public class WalletFilterProcessor : BackgroundService
 	/// <summary>Used for filter synchronization.</summary>
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		CancelReorgToken = cancellationToken;
-		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
-		
 		try
 		{
 			while (true)
@@ -284,7 +279,7 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 
-			using (await ReorgLock.LockAsync(CancelReorgToken).ConfigureAwait(false))
+			using (await ReorgLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
@@ -304,6 +299,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
+		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 	
