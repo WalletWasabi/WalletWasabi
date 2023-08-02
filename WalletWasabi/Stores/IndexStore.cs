@@ -261,7 +261,6 @@ public class IndexStore : IAsyncDisposable
 				}
 				numberOfFiltersCorrectlyProcessed++;
 			}
-			
 			sqliteTransaction.Commit();
 			NewFilters?.Invoke(this, filters);
 		}

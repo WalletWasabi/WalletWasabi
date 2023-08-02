@@ -92,7 +92,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
-			// Start wallet and filter processing service
+			// Start wallet and filter processing service.
 			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 
 			// Wait until the filter our previous transaction is present.
