@@ -168,13 +168,12 @@ public class WalletFilterProcessor : BackgroundService
 				}
 			}
 		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogDebug("Filter processor's execution was stopped.");
+		}
 		catch (Exception ex)
 		{
-			if (ex is OperationCanceledException)
-			{
-				return;
-			}
-			
 			Logger.LogError(ex);
 			throw;
 		}
