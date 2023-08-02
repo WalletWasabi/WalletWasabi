@@ -25,9 +25,10 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			// Turbo and Complete have higher priority over NonTurbo.
 			if (x.SyncType != SyncType.NonTurbo && y.SyncType == SyncType.NonTurbo)
-            {
-            	return -1;
-            }
+			{
+				return -1;
+			}
+			
 			if (y.SyncType != SyncType.NonTurbo && x.SyncType == SyncType.NonTurbo)
 			{
 				return 1;
