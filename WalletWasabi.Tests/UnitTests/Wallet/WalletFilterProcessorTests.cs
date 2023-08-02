@@ -90,6 +90,7 @@ public class WalletFilterProcessorTests
 
 		List<Task> allTurboTasks = new();
 		List<Task> allNonTurboTasks = new();
+
 		// This emulates first synchronization
 		var turboSyncTask = Task.Run(
 			async () =>
