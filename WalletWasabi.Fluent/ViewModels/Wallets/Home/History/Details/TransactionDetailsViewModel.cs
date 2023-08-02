@@ -49,7 +49,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
+
 	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
@@ -68,12 +68,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		if (transactionSummary.Amount < Money.Zero)
 		{
 			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
-			AmountText = "Outgoing";
+			AmountText = "Amount sent";
 		}
 		else
 		{
 			Amount = transactionSummary.Amount;
-			AmountText = "Incoming";
+			AmountText = "Amount received";
 		}
 
 		BlockHash = transactionSummary.BlockHash?.ToString();
