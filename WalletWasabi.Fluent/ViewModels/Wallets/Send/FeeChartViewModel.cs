@@ -44,7 +44,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			});
 
 		this.WhenAnyValue(x => x.SliderValue)
-			.Subscribe(SetXAxisCurrentValue);
+			.Subscribe(sliderValue => SetXAxisCurrentValue(sliderValue));
 
 		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
 		MoveSliderLeftCommand = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
@@ -76,11 +76,11 @@ public partial class FeeChartViewModel : ViewModelBase
 		}
 	}
 
-	private void SetXAxisCurrentValue(int sliderValue)
+	private void SetXAxisCurrentValue(int sliderValue, bool force = false)
 	{
 		if (_confirmationTargetValues is not null)
 		{
-			if (!_updatingCurrentValue)
+			if (!_updatingCurrentValue || force)
 			{
 				_updatingCurrentValue = true;
 				var index = _confirmationTargetValues.Length - sliderValue - 1;
@@ -262,6 +262,11 @@ public partial class FeeChartViewModel : ViewModelBase
 			_hasPreviousSliderValue = true;
 			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		}
+		else
+		{
+			SetXAxisCurrentValue(SliderValue, true);
+		}
+
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
 		_updatingCurrentValue = false;
