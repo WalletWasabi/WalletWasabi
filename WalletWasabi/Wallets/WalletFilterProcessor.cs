@@ -189,7 +189,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				while (SynchronizationRequests.TryDequeue(out var request, out _))
 				{
-					request.Tcs.SetCanceled(CancellationToken.None);
+					_ = request.Tcs.TrySetCanceled(cancellationToken);
 				}
 			}
 			FiltersCache.Clear();
