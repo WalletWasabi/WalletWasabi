@@ -90,6 +90,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(_ =>
+			{
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource = new();
+			})
 			.DoAsync(async transaction =>
 			{
 				await CheckChangePocketAvailableAsync(transaction);
