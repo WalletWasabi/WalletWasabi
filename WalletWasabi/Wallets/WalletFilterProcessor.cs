@@ -300,7 +300,12 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		BitcoinStore.IndexStore.Reorged -= ReorgedAsync;
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
+	}
+
+	public override void Dispose()
+	{
 		SynchronizationRequestsSemaphore.Dispose();
+		base.Dispose();
 	}
 
 	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
