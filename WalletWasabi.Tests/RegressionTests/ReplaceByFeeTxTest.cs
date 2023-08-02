@@ -98,7 +98,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 				await wallet.StartAsync(cts.Token); // Initialize wallet service with filter processing.
 			}
 
-			// Wait until the filter our previous transaction is present.
+			// Wait until the filter for block containing our previous transaction was processed.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
