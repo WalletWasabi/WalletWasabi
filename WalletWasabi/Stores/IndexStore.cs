@@ -240,7 +240,7 @@ public class IndexStore : IAsyncDisposable
 	}
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
-	{		
+	{
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			await using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();

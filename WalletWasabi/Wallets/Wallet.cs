@@ -355,7 +355,6 @@ public class Wallet : BackgroundService, IWallet
 			}
 
 			NewFiltersProcessed?.Invoke(this, filterModels);
-			
 			await Task.Delay(100).ConfigureAwait(false);
 
 			if (Synchronizer is null || BitcoinStore?.SmartHeaderChain is null)
