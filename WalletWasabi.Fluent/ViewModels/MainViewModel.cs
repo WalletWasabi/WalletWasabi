@@ -291,7 +291,7 @@ public partial class MainViewModel : ViewModelBase
 						}
 					}
 
-					return new WalletInfoViewModel(UiContext, walletViewModel);
+					return new WalletInfoViewModel(UiContext, new WalletModel(walletViewModel.Wallet));
 				}
 
 				return AuthorizeWalletInfo();

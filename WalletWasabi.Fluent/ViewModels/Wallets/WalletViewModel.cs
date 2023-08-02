@@ -122,7 +122,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 				}
 			}
 
-			Navigate().To().WalletInfo(this);
+			Navigate().To().WalletInfo(new WalletModel(Wallet));
 		});
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(this));

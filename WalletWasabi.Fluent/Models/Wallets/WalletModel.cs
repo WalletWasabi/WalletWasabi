@@ -100,6 +100,11 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		return new Address(Wallet.KeyManager, pubKey);
 	}
 
+	public IWalletInfoModel GetWalletInfo()
+	{
+		return new WalletInfoModel(Wallet);
+	}
+
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;

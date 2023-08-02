@@ -39,4 +39,6 @@ public interface IWalletModel
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
+
+	IWalletInfoModel GetWalletInfo();
 }
