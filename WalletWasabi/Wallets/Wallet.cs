@@ -284,6 +284,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
+		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 	}
 
 	/// <inheritdoc/>
