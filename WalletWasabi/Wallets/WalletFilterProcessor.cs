@@ -80,7 +80,7 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		var tcs = new TaskCompletionSource();
 		Add(new SyncRequest(syncType, tcs));
-		await tcs.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+		await tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
