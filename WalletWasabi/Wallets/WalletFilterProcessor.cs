@@ -9,6 +9,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -158,7 +159,11 @@ public class WalletFilterProcessor : BackgroundService
 				}
 				catch (Exception ex)
 				{
-					request.Tcs.SetException(ex);
+					if (!request.Tcs.TrySetException(ex))
+					{
+						Logger.LogWarning($"Tried to set exception for {request.SyncType.FriendlyName()} but status was already {request.Tcs.Task.Status}.");
+					}
+					
 					throw;
 				}
 
