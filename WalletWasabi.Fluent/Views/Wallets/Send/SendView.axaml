@@ -24,7 +24,6 @@
         </DockPanel>
       </Button>
     </DataTemplate>
-
   </UserControl.DataTemplates>
 
   <UserControl.Styles>
@@ -41,7 +40,6 @@
     <Style Selector="FlyoutPresenter PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
-
   </UserControl.Styles>
 
   <c:ContentArea
@@ -62,7 +60,7 @@
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
                     <Binding Path="Btc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-                    <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
+                    <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
@@ -151,7 +149,6 @@
                                            TrueValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedRight}"
                                            FalseValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedLeft}">
               </converters:BooleanConverter>
-
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"

@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 /// </summary>
 public interface IWalletModel
 {
-	public string Name { get; }
+	string Name { get; }
 
 	IObservable<WalletState> State { get; }
 
