@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
+using Avalonia.Threading;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -48,7 +49,7 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 	{
 		if (AssociatedObject is { RowsPresenter: { } rowsPresenter })
 		{
-			rowsPresenter.BringIntoView(index);
+			Dispatcher.UIThread.Post(() => rowsPresenter.BringIntoView(index));
 		}
 	}
 }
