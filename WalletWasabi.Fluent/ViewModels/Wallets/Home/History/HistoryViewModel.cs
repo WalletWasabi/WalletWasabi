@@ -229,11 +229,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				txnItem.IsFlashing = true;
 			}
-
-			Dispatcher.UIThread.Post(() =>
-			{
-
-			});
 		}
 	}
 
