@@ -259,9 +259,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			: SliderValue;
 
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
-
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
-
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
 		_updatingCurrentValue = false;
