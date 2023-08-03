@@ -208,27 +208,31 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		if (txnItem is { } && Source.RowSelection is { } selection)
 		{
-			// Clear the selection so re-selection will work.
-			Dispatcher.UIThread.Post(() => selection.Clear());
-
-			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
-			// Selecting first the root item, then the child solves the issue.
 			var index = _transactions.IndexOf(txnItem);
-			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
-			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
-				cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
+			Dispatcher.UIThread.Post(() =>
 			{
-				txnItem.IsExpanded = true;
-				child.IsFlashing = true;
+				// Clear the selection so re-selection will work.
+				selection.Clear();
 
-				var childIndex = cjGroup.Children.IndexOf(child);
-				Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index, childIndex));
-			}
-			else
-			{
-				txnItem.IsFlashing = true;
-			}
+				// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
+				// Selecting first the root item, then the child solves the issue.
+				selection.SelectedIndex = new IndexPath(index);
+
+				if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
+				    cjGroup.Children.FirstOrDefault(x => x.Id == txid) is { } child)
+				{
+					txnItem.IsExpanded = true;
+					child.IsFlashing = true;
+
+					var childIndex = cjGroup.Children.IndexOf(child);
+					selection.SelectedIndex = new IndexPath(index, childIndex);
+				}
+				else
+				{
+					txnItem.IsFlashing = true;
+				}
+			});
 		}
 	}
 
