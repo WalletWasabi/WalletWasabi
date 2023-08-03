@@ -20,12 +20,6 @@ public class IdempotencyRequestCache
 		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
 	};
 
-	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
-	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
-	/// <seealso href="https://github.com/dotnet/runtime/issues/36499"/>
-	private object ResponseCacheLock { get; } = new();
-
-	/// <remarks>Guarded by <see cref="ResponseCacheLock"/>.</remarks>
 	private IMemoryCache ResponseCache { get; }
 
 	/// <typeparam name="TRequest">
@@ -50,14 +44,11 @@ public class IdempotencyRequestCache
 		bool callAction = false;
 		TaskCompletionSource<TResponse>? responseTcs;
 
-		lock (ResponseCacheLock)
+		if (!ResponseCache.TryGetValue(request, out responseTcs))
 		{
-			if (!ResponseCache.TryGetValue(request, out responseTcs))
-			{
-				callAction = true;
-				responseTcs = new();
-				ResponseCache.Set(request, responseTcs, options);
-			}
+			callAction = true;
+			responseTcs = new();
+			ResponseCache.Set(request, responseTcs, options);
 		}
 
 		if (callAction)
@@ -70,10 +61,7 @@ public class IdempotencyRequestCache
 			}
 			catch (Exception e)
 			{
-				lock (ResponseCacheLock)
-				{
-					ResponseCache.Remove(request);
-				}
+				ResponseCache.Remove(request);
 
 				responseTcs!.SetException(e);
 
@@ -91,9 +79,6 @@ public class IdempotencyRequestCache
 	internal void Remove<TRequest>(TRequest cacheKey)
 		where TRequest : notnull
 	{
-		lock (ResponseCacheLock)
-		{
-			ResponseCache.Remove(cacheKey);
-		}
+		ResponseCache.Remove(cacheKey);
 	}
 }
