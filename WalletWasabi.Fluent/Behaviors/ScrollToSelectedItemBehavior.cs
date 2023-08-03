@@ -16,7 +16,8 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 			Observable.FromEventPattern(selection, nameof(selection.SelectionChanged))
 				.Select(x =>
 				{
-					var selectedIndexPath = rowSelection.SelectedIndex.FirstOrDefault();
+					var selectedIndex = rowSelection.SelectedIndex;
+					var selectedIndexPath = selectedIndex.FirstOrDefault();
 					if (AssociatedObject.Rows is null)
 					{
 						return selectedIndexPath;
@@ -26,11 +27,11 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 					var rowIndex = AssociatedObject.Rows.ModelIndexToRowIndex(selectedIndexPath);
 
 					// Correct the index wih the index of child item, in the case when the selected item is a child.
-					if (rowSelection.SelectedIndex.Count > 1)
+					if (selectedIndex.Count > 1)
 					{
 						// Skip 1 because the first index is the parent.
 						// Every other index is the child index.
-						rowIndex += rowSelection.SelectedIndex.Skip(1).Sum();
+						rowIndex += selectedIndex.Skip(1).Sum();
 
 						// Need to add 1 to get the correct index.
 						rowIndex += 1;
