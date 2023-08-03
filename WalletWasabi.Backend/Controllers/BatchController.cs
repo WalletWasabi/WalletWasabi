@@ -42,8 +42,8 @@ public class BatchController : ControllerBase
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
 		[FromQuery, Required] int maxNumberOfFilters,
-		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
-		[FromQuery] string? indexType = null,
+		[FromQuery] string estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
+		[FromQuery] string indexType = "segwittaproot",
 		CancellationToken cancellationToken = default)
 	{
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
@@ -66,6 +66,7 @@ public class BatchController : ControllerBase
 			return BadRequest("Not supported index type.");
 		}
 
+		maxNumberOfFilters = int.Min(maxNumberOfFilters, 1_000);
 		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
