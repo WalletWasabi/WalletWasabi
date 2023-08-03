@@ -17,7 +17,7 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private int _sliderMaximum;
 
-	[AutoNotify] private int _sliderValue;
+	[AutoNotify] private int _sliderValue = -1;
 	[AutoNotify] private string[]? _satoshiPerByteLabels;
 	[AutoNotify] private double[]? _satoshiPerByteValues;
 	[AutoNotify] private double[]? _confirmationTargetValues;
@@ -26,7 +26,6 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify] private decimal _currentSatoshiPerByte;
 	[AutoNotify] private string _currentConfirmationTargetString;
 	private bool _updatingCurrentValue;
-	private bool _hasPreviousSliderValue = false;
 
 	public FeeChartViewModel()
 	{
@@ -76,11 +75,11 @@ public partial class FeeChartViewModel : ViewModelBase
 		}
 	}
 
-	private void SetXAxisCurrentValue(int sliderValue, bool force = false)
+	private void SetXAxisCurrentValue(int sliderValue)
 	{
 		if (_confirmationTargetValues is not null)
 		{
-			if (!_updatingCurrentValue || force)
+			if (!_updatingCurrentValue)
 			{
 				_updatingCurrentValue = true;
 				var index = _confirmationTargetValues.Length - sliderValue - 1;
@@ -254,18 +253,14 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		SliderMinimum = 0;
 		SliderMaximum = confirmationTargetValues.Length - 1;
-		var confirmationTargetCandidate = ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget));
+
+		var confirmationTargetCandidate = SliderValue == -1 ?
+			ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget))
+			: SliderValue;
+
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 
-		if (!_hasPreviousSliderValue)
-		{
-			_hasPreviousSliderValue = true;
-			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
-		}
-		else
-		{
-			SetXAxisCurrentValue(SliderValue, true);
-		}
+		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
