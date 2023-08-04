@@ -71,7 +71,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(cancellingTransaction.Transaction);
 				_wallet.UpdateUsedHdPubKeysLabels(cancellingTransaction.HdPubKeysWithNewLabels);
-				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction);
+				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)

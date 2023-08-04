@@ -88,7 +88,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(boostingTransaction.Transaction);
 				_wallet.UpdateUsedHdPubKeysLabels(boostingTransaction.HdPubKeysWithNewLabels);
-				UiContext.Navigate().To().SendSuccess(_wallet, boostingTransaction.Transaction);
+				UiContext.Navigate().To().SendSuccess(_wallet, boostingTransaction.Transaction, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)
