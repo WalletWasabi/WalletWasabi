@@ -97,7 +97,8 @@
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
-                                        Rows="{TemplateBinding Rows}" />
+                                        Rows="{TemplateBinding Rows}"
+                                        Margin="0,0,-2,0" />
           </Panel>
         </DockPanel>
       </ControlTemplate>
@@ -154,6 +155,7 @@
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
                                         Rows="{TemplateBinding Rows}"
+                                        Margin="0,0,-2,0"
                                         Classes.coinJoinTransaction="{Binding !IsSingleCoinJoinTransaction}"
                                         x:CompileBindings="False" />
             <Rectangle Name="PART_Separator"
@@ -241,7 +243,8 @@
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
-                                        Rows="{TemplateBinding Rows}" />
+                                        Rows="{TemplateBinding Rows}"
+                                        Margin="0,0,-2,0" />
           </Panel>
         </DockPanel>
       </ControlTemplate>
@@ -273,7 +276,8 @@
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
-                                        Rows="{TemplateBinding Rows}" />
+                                        Rows="{TemplateBinding Rows}"
+                                        Margin="0,0,-2,0" />
           </Panel>
         </DockPanel>
       </ControlTemplate>
