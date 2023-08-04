@@ -33,7 +33,15 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 
 		FeeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
 		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
-		AreWePayingTheFee = boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
+
+		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
+		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
+
+		// Note, if it's CPFP, then it is changed, but we shouldn't bother by it, due to the other condition.
+		var areForeignAmountsUnchanged = originalForeignAmounts.SequenceEqual(boostedForeignAmounts);
+
+		// If the foreign outputs are unchanged or we have an output, then we are paying the fee.
+		AreWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 	}
 	
 	public decimal FeeDifferenceUsd { get; }
@@ -59,9 +67,9 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_triggers.TransactionsUpdateTrigger
-			.Select(_ => _wallet.GetTransactions().First(s => s.GetHash() == _transactionToSpeedUp.GetHash()))
-			.Select(x => x.Confirmed)
-			.Where(isConfirmed => isConfirmed)
+			.Select(_ => _wallet.GetTransactions().FirstOrDefault(s => s.GetHash() == _transactionToSpeedUp.GetHash()))
+			.WhereNotNull()
+			.Where(s => s.Confirmed)
 			.Do(_ => Navigate().Back())
 			.Subscribe()
 			.DisposeWith(disposables);
