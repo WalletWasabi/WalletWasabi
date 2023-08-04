@@ -6,6 +6,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.Bitstamp;
+using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,7 @@ public class ExchangeRateProvider : IExchangeRateProvider
 	{
 		new BlockchainInfoExchangeRateProvider(),
 		new BitstampExchangeRateProvider(),
+		new CoinGeckoExchangeRateProvider(),
 		new CoinbaseExchangeRateProvider(),
 		new GeminiExchangeRateProvider()
 	};
