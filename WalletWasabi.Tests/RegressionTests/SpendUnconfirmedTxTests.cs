@@ -113,7 +113,8 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 				replaceable: true);
 			var eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(tx0Id, eventArgs.NewlyReceivedCoins.Single().TransactionId);
-			Assert.Single(wallet.Coins);
+			var coin1 = Assert.Single(wallet.Coins);
+			var coin0 = Assert.Single(coin1.Transaction.ForeignInputs);
 
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 			broadcaster.Initialize(nodes, rpc);
@@ -147,6 +148,14 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 			// There is a coin destroyed
 			var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
 			Assert.Equal(1, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransaction?.GetHash() == tx1Res.Transaction.GetHash()));
+
+			// Spent coin should get into the dictionary.
+			var coinRegistry = (CoinsRegistry)wallet.Coins;
+			Assert.True(coinRegistry.TryGetSpenderSpentSmartCoinsByOutPoint(coin1.Outpoint, out var spentCoinsToTest1));
+			Assert.Equal(coin1, spentCoinsToTest1.Single());
+
+			Assert.True(coinRegistry.TryGetSpenderSmartCoinsByOutPoint(coin1.Outpoint, out var coinsToTest1));
+			Assert.Equal(tx1Res.InnerWalletOutputs, coinsToTest1);
 
 			// There is at least one coin created from the destruction of the first coin
 			Assert.Contains(wallet.Coins, x => x.Transaction.Transaction.Inputs.Any(o => o.PrevOut.Hash == tx0Id));

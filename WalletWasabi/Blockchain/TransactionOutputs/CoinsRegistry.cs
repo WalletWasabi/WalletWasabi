@@ -309,4 +309,9 @@ public class CoinsRegistry : ICoinsView
 	public ICoinsView Unspent() => AsCoinsView().Unspent();
 
 	IEnumerator IEnumerable.GetEnumerator() => AsCoinsView().GetEnumerator();
+
+	internal void TryGetSpenderSmartCoinsByOutPoint(SmartCoin myFirstCoin)
+	{
+		throw new NotImplementedException();
+	}
 }

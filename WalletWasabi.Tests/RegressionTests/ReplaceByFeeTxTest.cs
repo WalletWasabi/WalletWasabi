@@ -110,15 +110,25 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 				await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 			}
 
-			Assert.Single(wallet.Coins);
-			Assert.True(wallet.Coins.First().IsReplaceable());
+			var myCoin1 = Assert.Single(wallet.Coins);
+			Assert.True(myCoin1.IsReplaceable());
+
+			var coinRegistry = (CoinsRegistry)wallet.Coins;
+			OutPoint spentCoinOutpoint = myCoin1.Transaction.ForeignInputs.First().PrevOut;
+
+			Assert.True(coinRegistry.TryGetSpenderSmartCoinsByOutPoint(spentCoinOutpoint, out var coin1ToTest));
+			Assert.Equal(myCoin1, Assert.Single(coin1ToTest));
 
 			var bfr = await rpc.BumpFeeAsync(tx0Id);
 			var tx1Id = bfr.TransactionId;
 			await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
-			Assert.Single(wallet.Coins);
-			Assert.True(wallet.Coins.First().IsReplaceable());
+			var myCoin2 = Assert.Single(wallet.Coins);
+			Assert.True(myCoin2.IsReplaceable());
 			Assert.Equal(tx1Id, wallet.Coins.First().TransactionId);
+
+			// Only the new coin should be in the CoinsByOutPoint dictionary.
+			Assert.True(coinRegistry.TryGetSpenderSmartCoinsByOutPoint(spentCoinOutpoint, out var coin2ToTest));
+			Assert.Equal(myCoin2, Assert.Single(coin2ToTest));
 
 			bfr = await rpc.BumpFeeAsync(tx1Id);
 			var tx2Id = bfr.TransactionId;

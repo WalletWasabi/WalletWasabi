@@ -23,6 +23,7 @@ using Xunit;
 using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -130,6 +131,13 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, txToSpeedUp.Transaction);
 
+			var coinRegistry = (CoinsRegistry)wallet.Coins;
+			var inputCoin1 = Assert.Single(txToSpeedUp.Transaction.WalletInputs);
+			var outputCoins1 = txToSpeedUp.Transaction.WalletOutputs;
+
+			coinRegistry.TryGetSpenderSmartCoinsByOutPoint(inputCoin1.Coin.Outpoint, out var coinsToTest1);
+			Assert.Equal(outputCoins1, coinsToTest1);
+
 			var rbf = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
 
 			// Spender is not updated until broadcast:
@@ -183,6 +191,10 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Equal("bar, foo", rbf.Transaction.Labels);
 			Assert.Equal("foo", txToSpeedUp.Transaction.WalletOutputs.Where(x => x.HdPubKey.Labels.Any()).Select(x => x.HdPubKey.Labels).Single());
 			Assert.Equal("foo", rbf.Transaction.WalletOutputs.Where(x => x.HdPubKey.Labels.Any()).Select(x => x.HdPubKey.Labels).Single());
+
+			coinRegistry.TryGetSpenderSmartCoinsByOutPoint(inputCoin1.Coin.Outpoint, out var coinsToTest2);
+			var outputCoins2 = rbf.Transaction.WalletOutputs;
+			Assert.Equal(outputCoins2, coinsToTest2);
 
 			#endregion HasChange
 
