@@ -14,7 +14,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(Title = "Cancel Transaction")]
+[NavigationMetaData(Title = "Cancel Transaction", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly UiTriggers _triggers;
@@ -80,7 +80,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 
 			var msg = _transactionToCancel.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
 
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.");
+			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.", NavigationTarget.CompactDialogScreen);
 		}
 
 		IsBusy = false;
