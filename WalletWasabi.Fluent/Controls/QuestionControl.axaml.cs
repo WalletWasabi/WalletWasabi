@@ -102,11 +102,6 @@ public class QuestionControl : ContentControl
 		set => SetValue(HighlightButtonProperty, value);
 	}
 
-	public QuestionControl()
-	{
-		UpdateHighlightedButton(HighlightButton);
-	}
-
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
