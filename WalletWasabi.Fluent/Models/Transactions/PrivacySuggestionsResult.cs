@@ -1,22 +1,11 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-public record PrivacySuggestionsResult(IAsyncEnumerable<PrivacyItem> Items)
+public record PrivacySuggestionsResult()
 {
 	private List<IAsyncEnumerable<PrivacyItem>> _combinedResults = new();
-
-	public static PrivacySuggestionsResult CreateNew()
-	{
-		static async IAsyncEnumerable<PrivacyItem> EmptyItemsAsync()
-		{
-			yield break;
-		};
-
-		return new PrivacySuggestionsResult(EmptyItemsAsync());
-	}
 
 	public PrivacySuggestionsResult Combine(IAsyncEnumerable<PrivacyItem> results)
 	{
@@ -32,14 +21,6 @@ public record PrivacySuggestionsResult(IAsyncEnumerable<PrivacyItem> Items)
 
 	public async IAsyncEnumerable<PrivacyWarning> GetAllWarningsAsync()
 	{
-		await foreach (var item in Items)
-		{
-			if (item is PrivacyWarning warning)
-			{
-				yield return warning;
-			}
-		}
-
 		foreach (var combined in _combinedResults)
 		{
 			await foreach (var item in combined)
@@ -54,14 +35,6 @@ public record PrivacySuggestionsResult(IAsyncEnumerable<PrivacyItem> Items)
 
 	public async IAsyncEnumerable<PrivacySuggestion> GetAllSuggestionsAsync()
 	{
-		await foreach (var item in Items)
-		{
-			if (item is PrivacySuggestion suggestion)
-			{
-				yield return suggestion;
-			}
-		}
-
 		foreach (var combined in _combinedResults)
 		{
 			await foreach (var item in combined)

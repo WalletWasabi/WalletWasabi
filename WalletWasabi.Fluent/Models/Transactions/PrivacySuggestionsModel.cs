@@ -46,7 +46,7 @@ public class PrivacySuggestionsModel
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
 	{
-		var result = PrivacySuggestionsResult.CreateNew();
+		var result = new PrivacySuggestionsResult();
 
 		using CancellationTokenSource singleRunCts = new();
 
