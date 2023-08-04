@@ -14,7 +14,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(Title = "Speed Up Transaction")]
+[NavigationMetaData(Title = "Speed Up Transaction", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly SmartTransaction _transactionToSpeedUp;
@@ -43,7 +43,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		// If the foreign outputs are unchanged or we have an output, then we are paying the fee.
 		AreWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 	}
-	
+
 	public decimal FeeDifferenceUsd { get; }
 
 	public bool AreWePayingTheFee { get; }
@@ -88,14 +88,14 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(boostingTransaction.Transaction);
 				_wallet.UpdateUsedHdPubKeysLabels(boostingTransaction.HdPubKeysWithNewLabels);
-				UiContext.Navigate().To().SendSuccess(_wallet, boostingTransaction.Transaction);
+				UiContext.Navigate().To().SendSuccess(_wallet, boostingTransaction.Transaction, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
 			var msg = _transactionToSpeedUp.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Speed Up Failed", "Wasabi was unable to speed up your transaction.");
+			UiContext.Navigate().To().ShowErrorDialog(msg, "Speed Up Failed", "Wasabi was unable to speed up your transaction.", NavigationTarget.CompactDialogScreen);
 		}
 
 		IsBusy = false;
