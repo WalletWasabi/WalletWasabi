@@ -23,7 +23,7 @@
       </Style>
     </c:ContentArea.Styles>
 
-    <c:QuestionControl HighlightButton="YesButton" YesCommand="{Binding NextCommand}"
+    <c:QuestionControl HighlightButton="YesButton" YesCommand="{Binding NextCommand}" YesContent="Confirm" NoContent="Cancel"
                        NoCommand="{Binding CancelCommand}">
       <c:QuestionControl.IconContent>
         <Viewbox MaxHeight="120" Margin="40">

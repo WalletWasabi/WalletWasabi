@@ -24,7 +24,7 @@
     </c:ContentArea.Styles>
 
     <Panel>
-      <c:QuestionControl IsVisible="{Binding AreWePayingTheFee}" HighlightButton="YesButton" YesCommand="{Binding NextCommand}"
+      <c:QuestionControl IsVisible="{Binding AreWePayingTheFee}" HighlightButton="YesButton" YesCommand="{Binding NextCommand}" YesContent="Confirm" NoContent="Cancel"
                          NoCommand="{Binding CancelCommand}">
         <c:QuestionControl.IconContent>
           <Viewbox MaxHeight="120" Margin="40">
@@ -46,7 +46,7 @@
         </StackPanel>
       </c:QuestionControl>
 
-      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
+      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}" YesContent="Confirm" NoContent="Cancel"
                          NoCommand="{Binding CancelCommand}">
         <c:QuestionControl.IconContent>
           <Panel>
