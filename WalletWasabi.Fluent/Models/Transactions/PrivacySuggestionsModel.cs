@@ -88,7 +88,7 @@ public class PrivacySuggestionsModel
 		return result;
 	}
 
-	private async IAsyncEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
+	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
 		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
 		var labelsArray = new LabelsArray(labels);
@@ -104,7 +104,7 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private async IAsyncEnumerable<PrivacyItem> VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
+	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
 	{
 		var canModifyTransactionAmount = !transactionInfo.IsPayJoin && !transactionInfo.IsFixedAmount;
 
@@ -186,7 +186,7 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private async IAsyncEnumerable<PrivacyItem> VerifyConsolidation(BuildTransactionResult originalTransaction)
+	private IEnumerable<PrivacyItem> VerifyConsolidation(BuildTransactionResult originalTransaction)
 	{
 		var consolidatedCoins = originalTransaction.SpentCoins.Count();
 
@@ -196,7 +196,7 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private async IAsyncEnumerable<PrivacyItem> VerifyUnconfirmedInputs(BuildTransactionResult transaction)
+	private IEnumerable<PrivacyItem> VerifyUnconfirmedInputs(BuildTransactionResult transaction)
 	{
 		if (transaction.SpendsUnconfirmed)
 		{
@@ -204,7 +204,7 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private async IAsyncEnumerable<PrivacyItem> VerifyCoinjoiningInputs(BuildTransactionResult transaction)
+	private IEnumerable<PrivacyItem> VerifyCoinjoiningInputs(BuildTransactionResult transaction)
 	{
 		if (transaction.SpendsCoinjoining)
 		{

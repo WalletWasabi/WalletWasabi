@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
@@ -20,6 +21,12 @@ public record PrivacySuggestionsResult(IAsyncEnumerable<PrivacyItem> Items)
 	public PrivacySuggestionsResult Combine(IAsyncEnumerable<PrivacyItem> results)
 	{
 		_combinedResults.Add(results);
+		return this;
+	}
+
+	public PrivacySuggestionsResult Combine(IEnumerable<PrivacyItem> results)
+	{
+		_combinedResults.Add(results.ToAsyncEnumerable());
 		return this;
 	}
 
