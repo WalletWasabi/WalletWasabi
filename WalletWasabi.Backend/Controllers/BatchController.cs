@@ -39,6 +39,7 @@ public class BatchController : ControllerBase
 	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
+	//[ResponseCache(Duration = 60, NoStore = false, VaryByQueryKeys = new[]{"bestKnownBlockHash", "indexType"})]
 	[ResponseCache(Duration = 60)]
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
@@ -55,7 +56,8 @@ public class BatchController : ControllerBase
 			return BadRequest("Not supported index type.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, 1_000, out bool found);
+		var numberOfFilters = Global.Config.Network == Network.Main ? 1000 : 10000;
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
