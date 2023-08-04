@@ -82,7 +82,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			cache);
 
 		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
-		wallet.NewFilterProcessed += setup.Wallet_NewFilterProcessed;
+		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		using Key key = new();
 		var scp = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
@@ -141,14 +141,16 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
 			synchronizer.Start(); // Start wasabi synchronizer service.
+			await feeProvider.StartAsync(CancellationToken.None);
 
-			await feeProvider.StartAsync(testDeadlineCts.Token);
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+			{
+				await wallet.StartAsync(cts.Token); // Initialize wallet service with filter processing.
+			}
 
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-
-			await wallet.StartAsync(testDeadlineCts.Token); // Initialize wallet service.
 
 			// subtract Fee from amount index with no enough money
 			PaymentIntent operations = new(new DestinationRequest(scp, Money.Coins(1m), subtractFee: true), new DestinationRequest(scp, Money.Coins(0.5m)));

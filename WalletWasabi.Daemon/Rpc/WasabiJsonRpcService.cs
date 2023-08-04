@@ -294,8 +294,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	[JsonRpcMethod("selectwallet", initializable: false)]
-	public void SelectWallet(string walletName)
+	private void SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try

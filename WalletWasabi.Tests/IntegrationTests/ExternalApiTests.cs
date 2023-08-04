@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
+using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.Gemini;
 using Xunit;
@@ -20,6 +21,10 @@ public class ExternalApiTests
 	[Fact]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync(new BlockchainInfoExchangeRateProvider());
+
+	[Fact]
+	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
+		await AssertProviderAsync(new CoinGeckoExchangeRateProvider());
 
 	[Fact]
 	public async Task BitstampExchangeRateProviderTestsAsync() =>

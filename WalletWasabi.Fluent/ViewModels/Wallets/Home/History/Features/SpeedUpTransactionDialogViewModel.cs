@@ -1,10 +1,13 @@
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -14,11 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 [NavigationMetaData(Title = "Speed Up Transaction")]
 public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
 	private readonly SmartTransaction _transactionToSpeedUp;
+	private readonly UiTriggers _triggers;
+	private readonly Wallet _wallet;
 
-	private SpeedUpTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
+	private SpeedUpTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
+		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToSpeedUp = transactionToSpeedUp;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -28,9 +33,17 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 
 		FeeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
 		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
-		AreWePayingTheFee = boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
-	}
 
+		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
+		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
+
+		// Note, if it's CPFP, then it is changed, but we shouldn't bother by it, due to the other condition.
+		var areForeignAmountsUnchanged = originalForeignAmounts.SequenceEqual(boostedForeignAmounts);
+
+		// If the foreign outputs are unchanged or we have an output, then we are paying the fee.
+		AreWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
+	}
+	
 	public decimal FeeDifferenceUsd { get; }
 
 	public bool AreWePayingTheFee { get; }
@@ -49,6 +62,19 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 
 		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
 		return boostingTransactionFee - originalFee;
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_triggers.TransactionsUpdateTrigger
+			.Select(_ => _wallet.GetTransactions().FirstOrDefault(s => s.GetHash() == _transactionToSpeedUp.GetHash()))
+			.WhereNotNull()
+			.Where(s => s.Confirmed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	private async Task OnSpeedUpTransactionAsync(BuildTransactionResult boostingTransaction)
