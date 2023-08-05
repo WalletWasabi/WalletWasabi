@@ -39,7 +39,6 @@ public class BatchController : ControllerBase
 	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
-	//[ResponseCache(Duration = 60, NoStore = false, VaryByQueryKeys = new[]{"bestKnownBlockHash", "indexType"})]
 	[ResponseCache(Duration = 60)]
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
