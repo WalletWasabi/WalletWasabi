@@ -11,26 +11,17 @@
              x:CompileBindings="True">
 
   <c:ContentArea Title="Cancel Transaction"
-                 EnableCancel="False"
+                 EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Confirm"
                  IsBusy="{Binding IsBusy}"
-                 EnableNext="False" NextContent="Cancel">
+                 MinWidth="500">
 
-    <c:ContentArea.Styles>
-      <Style Selector="c|QuestionControl TextBlock">
-        <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="TextAlignment" Value="Center" />
-      </Style>
-    </c:ContentArea.Styles>
-
-    <c:QuestionControl HighlightButton="YesButton" YesCommand="{Binding NextCommand}" YesContent="Confirm" NoContent="Cancel"
-                       NoCommand="{Binding CancelCommand}">
-      <c:QuestionControl.IconContent>
-        <Viewbox MaxHeight="120" Margin="40">
-          <PathIcon Data="{StaticResource cancel_regular}" Opacity="0.6" />
-        </Viewbox>
-      </c:QuestionControl.IconContent>
-      <StackPanel Spacing="10">
+    <DockPanel>
+      <Viewbox MaxHeight="120" Margin="40" DockPanel.Dock="Top">
+        <PathIcon Data="{StaticResource cancel_regular}" Opacity="0.6" />
+      </Viewbox>
+      <StackPanel Spacing="10" HorizontalAlignment="Center">
         <TextBlock Text="Cancelling this transaction will cost you" />
         <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
           <TextBlock TextAlignment="Center"
@@ -41,6 +32,6 @@
             Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
         </StackPanel>
       </StackPanel>
-    </c:QuestionControl>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
