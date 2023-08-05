@@ -25,6 +25,9 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> SpentCoins { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutpoint { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -129,7 +132,10 @@ public class CoinsRegistry : ICoinsView
 		{
 			if (!Coins.Remove(toRemove))
 			{
-				SpentCoins.Remove(toRemove);
+				if (SpentCoins.Remove(toRemove))
+				{
+					SpentCoinsByOutpoint.Remove(toRemove.Outpoint);
+				}
 			}
 
 			toRemove.UnregisterFromHdPubKey();
@@ -165,9 +171,10 @@ public class CoinsRegistry : ICoinsView
 			if (Coins.Remove(spentCoin))
 			{
 				InvalidateSnapshot = true;
-				SpentCoins.Add(spentCoin);
-
-				var newCoinSet = new HashSet<SmartCoin> { spentCoin };
+				if (SpentCoins.Add(spentCoin))
+				{
+					SpentCoinsByOutpoint.Add(spentCoin.Outpoint, spentCoin);
+				}
 			}
 		}
 	}
@@ -204,10 +211,8 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			coin = SpentCoins.FirstOrDefault(x => x.Outpoint == outPoint);
+			return SpentCoinsByOutpoint.TryGetValue(outPoint, out coin);
 		}
-
-		return coin is not null;
 	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
@@ -229,6 +234,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				if (SpentCoins.Remove(destroyedCoin))
 				{
+					SpentCoinsByOutpoint.Remove(destroyedCoin.Outpoint);
 					Coins.Add(destroyedCoin);
 					toAdd.Add(destroyedCoin);
 				}
