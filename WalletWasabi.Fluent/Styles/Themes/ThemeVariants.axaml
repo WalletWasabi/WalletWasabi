@@ -231,6 +231,11 @@
       <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
       <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
 
+      <!-- TreeDataGrid -->
+      <SolidColorBrush x:Key="TreeDataGridGridLinesBrush"
+                       Color="{StaticResource SystemBaseMediumLowColor}"
+                       Opacity="0.4" />
+
     </ResourceDictionary>
 
     <ResourceDictionary x:Key='Dark'>
@@ -459,6 +464,11 @@
       <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
       <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
       <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
+
+      <!-- TreeDataGrid -->
+      <SolidColorBrush x:Key="TreeDataGridGridLinesBrush"
+                       Color="{StaticResource SystemBaseMediumLowColor}"
+                       Opacity="0.4" />
 
     </ResourceDictionary>
 
