@@ -31,7 +31,7 @@ public class CoinsRegistry : ICoinsView
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutpoint { get; } = new();
+	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -134,7 +134,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				if (SpentCoins.Remove(toRemove))
 				{
-					SpentCoinsByOutpoint.Remove(toRemove.Outpoint);
+					SpentCoinsByOutPoint.Remove(toRemove.Outpoint);
 				}
 			}
 
@@ -173,7 +173,7 @@ public class CoinsRegistry : ICoinsView
 				InvalidateSnapshot = true;
 				if (SpentCoins.Add(spentCoin))
 				{
-					SpentCoinsByOutpoint.Add(spentCoin.Outpoint, spentCoin);
+					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 			}
 		}
@@ -211,7 +211,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			return SpentCoinsByOutpoint.TryGetValue(outPoint, out coin);
+			return SpentCoinsByOutPoint.TryGetValue(outPoint, out coin);
 		}
 	}
 
@@ -234,7 +234,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				if (SpentCoins.Remove(destroyedCoin))
 				{
-					SpentCoinsByOutpoint.Remove(destroyedCoin.Outpoint);
+					SpentCoinsByOutPoint.Remove(destroyedCoin.Outpoint);
 					Coins.Add(destroyedCoin);
 					toAdd.Add(destroyedCoin);
 				}
