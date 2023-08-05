@@ -30,9 +30,6 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, HashSet<SmartCoin>> SpentCoinsByOutPoint { get; } = new();
-
 	private CoinsView AsCoinsViewNoLock()
 	{
 		if (InvalidateSnapshot)
@@ -171,24 +168,6 @@ public class CoinsRegistry : ICoinsView
 				SpentCoins.Add(spentCoin);
 
 				var newCoinSet = new HashSet<SmartCoin> { spentCoin };
-
-				// If we don't succeed to add a new entry to the dictionary.
-				if (!SpentCoinsByOutPoint.TryAdd(spentCoin.Outpoint, newCoinSet))
-				{
-					var previousCoinTxId = SpentCoinsByOutPoint[spentCoin.Outpoint].First().TransactionId;
-
-					// Then check if we're in the same transaction as the previous coins in the dictionary are.
-					if (spentCoin.TransactionId == previousCoinTxId)
-					{
-						// If we are in the same transaction, then just add it to value set.
-						SpentCoinsByOutPoint[spentCoin.Outpoint].Add(spentCoin);
-					}
-					else
-					{
-						// If we aren't in the same transaction, then it's a conflict, so replace the old set with the new one.
-						SpentCoinsByOutPoint[spentCoin.Outpoint] = newCoinSet;
-					}
-				}
 			}
 		}
 	}
@@ -221,16 +200,15 @@ public class CoinsRegistry : ICoinsView
 		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 	}
 
-	public bool TryGetSpenderSpentSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
 		lock (Lock)
 		{
-			return TryGetSpenderSpentSmartCoinsByOutPointNoLock(outPoint, out coins);
+			coin = SpentCoins.FirstOrDefault(x => x.Outpoint == outPoint);
 		}
-	}
 
-	private bool TryGetSpenderSpentSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
-		=> SpentCoinsByOutPoint.TryGetValue(outPoint, out coins);
+		return coin is not null;
+	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 	{
