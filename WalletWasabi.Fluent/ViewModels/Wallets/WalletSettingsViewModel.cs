@@ -52,4 +52,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsWatchOnly { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	public void UpdateAutoCoinJoin()
+	{
+		_wallet.Settings.AutoCoinjoin = true;
+		_wallet.Settings.Save();
+	}
 }

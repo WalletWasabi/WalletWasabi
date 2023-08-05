@@ -7,8 +7,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -147,9 +145,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			_autoCoinJoinStartTimer.Stop();
 		};
 
+		if (!walletVm.CoinJoinSettings.AutoCoinJoin)
+		{
+			walletVm.Settings.UpdateAutoCoinJoin();
+		}
+
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
-
 		_stateMachine.Start();
 	}
 
