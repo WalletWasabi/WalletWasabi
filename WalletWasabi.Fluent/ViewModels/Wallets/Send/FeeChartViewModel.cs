@@ -22,7 +22,7 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify] private double[]? _satoshiPerByteValues;
 	[AutoNotify] private double[]? _confirmationTargetValues;
 	[AutoNotify] private string[]? _confirmationTargetLabels;
-	[AutoNotify] private double _currentConfirmationTarget;
+	[AutoNotify] private double _currentConfirmationTarget = -1;
 	[AutoNotify] private decimal _currentSatoshiPerByte;
 	[AutoNotify] private string _currentConfirmationTargetString;
 	private bool _updatingCurrentValue;
@@ -253,7 +253,11 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		SliderMinimum = 0;
 		SliderMaximum = confirmationTargetValues.Length - 1;
-		var confirmationTargetCandidate = ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget));
+
+		var confirmationTargetCandidate = CurrentConfirmationTarget < 0
+			? ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget))
+			: CurrentConfirmationTarget;
+
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
