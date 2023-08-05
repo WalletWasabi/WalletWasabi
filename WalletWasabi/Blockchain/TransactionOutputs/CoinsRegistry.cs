@@ -25,13 +25,13 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> SpentCoins { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutpoint { get; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutpoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
