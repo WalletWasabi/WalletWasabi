@@ -1,0 +1,23 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
+
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/FadeOutTextControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
+      <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
+    </ResourceDictionary>
+  </Styles.Resources>
+
+</Styles>
+

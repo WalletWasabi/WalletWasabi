@@ -15,28 +15,12 @@
     </DataTemplate>
   </Application.DataTemplates>
 
-  <Application.Resources>
-
-    <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/FadeOutTextControl.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
-      </ResourceDictionary.MergedDictionaries>
-      <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
-      <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
-    </ResourceDictionary>
-
-  </Application.Resources>
-
   <Application.Styles>
 
     <FluentTheme />
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Fluent.axaml" />
+
     <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
@@ -57,7 +41,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
+    <!-- <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" /> -->
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
     <!-- <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" /> -->
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CopyableItem.axaml" />
