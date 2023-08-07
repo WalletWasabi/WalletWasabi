@@ -240,7 +240,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 			SatoshiPerByteLabels = areAllValuesEqual
 				? new[] { "", "", maxY.ToString("F0") }
-				: new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+				: new[] { minY.ToString("F0"), ((maxY + minY) / 2).ToString("F0"), maxY.ToString("F0") };
 		}
 		else
 		{

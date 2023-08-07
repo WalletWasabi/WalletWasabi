@@ -214,9 +214,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return parent.Wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletViewModel(uiContext, parent)
-			: parent.Wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(uiContext, parent)
-				: new WalletViewModel(uiContext, parent);
+			: new WalletViewModel(uiContext, parent);
 	}
 
 	public override string Title
