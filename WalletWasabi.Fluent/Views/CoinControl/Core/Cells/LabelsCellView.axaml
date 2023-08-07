@@ -35,5 +35,6 @@
     Classes.NonPrivate="{Binding IsNonPrivate}"
     Classes.SemiPrivate="{Binding IsSemiPrivate}"
     Classes.Private="{Binding IsPrivate}"
-    ItemsSource="{Binding Labels}" />
+    ItemsSource="{Binding Labels}"
+    InfiniteWidthMeasure="True" />
 </UserControl>

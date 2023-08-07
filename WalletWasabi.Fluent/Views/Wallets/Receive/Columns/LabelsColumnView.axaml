@@ -22,6 +22,7 @@
           </Button>
         </StackPanel>
         <c:LabelsItemsPresenter ItemsSource="{Binding Labels}"
+                                InfiniteWidthMeasure="True"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center" />
       </DockPanel>

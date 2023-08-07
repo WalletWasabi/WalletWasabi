@@ -9,6 +9,9 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class LabelsPanel : Panel
 {
+	public static readonly StyledProperty<bool> InfiniteWidthMeasureProperty =
+		AvaloniaProperty.Register<LabelsPanel, bool>(nameof(InfiniteWidthMeasure));
+
 	public static readonly StyledProperty<Control?> EllipsisControlProperty =
 		AvaloniaProperty.Register<LabelsPanel, Control?>(nameof(EllipsisControl));
 
@@ -20,6 +23,12 @@ public class LabelsPanel : Panel
 
 	private List<string>? _filteredItems;
 	private IDisposable? _disposable;
+
+	public bool InfiniteWidthMeasure
+	{
+		get => GetValue(InfiniteWidthMeasureProperty);
+		set => SetValue(InfiniteWidthMeasureProperty, value);
+	}
 
 	public Control? EllipsisControl
 	{
@@ -121,7 +130,7 @@ public class LabelsPanel : Panel
 		}
 
 		var size = MeasureOverridePanel(availableSize.WithWidth(availableSize.Width + ellipsis));
-		return new Size(double.MaxValue, size.Height);
+		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
