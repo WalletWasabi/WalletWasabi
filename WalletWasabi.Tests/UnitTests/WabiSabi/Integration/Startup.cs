@@ -30,6 +30,10 @@ public class Startup
 		services.AddMvc()
 			.AddApplicationPart(backendAssembly)
 			.AddControllersAsServices()
-			.AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
+			.AddNewtonsoftJson(x =>
+			{
+				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+				x.SerializerSettings.ContractResolver = JsonSerializationOptions.Default.Settings.ContractResolver;
+			});
 	}
 }
