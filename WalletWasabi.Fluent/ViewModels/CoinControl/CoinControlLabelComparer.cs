@@ -45,6 +45,11 @@ public static class CoinControlLabelComparer
 			return 2;
 		}
 
-		return 1;
+		if (coin.Labels == CoinPocketHelper.UnlabelledFundsText)
+		{
+			return 1;
+		}
+
+		return 0;
 	}
 }
