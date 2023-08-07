@@ -489,7 +489,7 @@ public static class Program
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
-				const string shebang = "#!/usr/bin/env sh\n";
+				const string Shebang = "#!/usr/bin/env sh\n";
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 				var wasabiStarterScriptContent = shebang +
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
