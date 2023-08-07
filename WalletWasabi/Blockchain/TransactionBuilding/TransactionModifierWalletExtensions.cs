@@ -329,7 +329,7 @@ public static class TransactionModifierWalletExtensions
 
 		if (cpfpFee > maxFee)
 		{
-			throw new InvalidOperationException($"CPFP fee ({cpfpFee}) is higher than what it it's worth to speed up this transaction ({maxFee}).");
+			throw new InvalidOperationException($"CPFP fee ({cpfpFee}) is higher than what it's worth to speed up this transaction ({maxFee}).");
 		}
 	}
 }

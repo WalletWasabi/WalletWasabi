@@ -60,7 +60,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 				transactionToSpeedUp = largestCpfp;
 			}
 			var boostingTransaction = Wallet.SpeedUpTransaction(transactionToSpeedUp);
-			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.Wallet, transactionToSpeedUp, boostingTransaction);
+			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.UiTriggers, WalletVm.Wallet, transactionToSpeedUp, boostingTransaction);
 		}
 		catch (Exception ex)
 		{
@@ -74,7 +74,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		try
 		{
 			var cancellingTransaction = Wallet.CancelTransaction(transactionToCancel);
-			UiContext.Navigate().To().CancelTransactionDialog(Wallet, transactionToCancel, cancellingTransaction);
+			UiContext.Navigate().To().CancelTransactionDialog(WalletVm.UiTriggers, Wallet, transactionToCancel, cancellingTransaction);
 		}
 		catch (Exception ex)
 		{

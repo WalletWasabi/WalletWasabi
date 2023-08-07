@@ -1,24 +1,29 @@
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(Title = "Cancel Transaction")]
+[NavigationMetaData(Title = "Cancel Transaction", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
+	private readonly UiTriggers _triggers;
 	private readonly Wallet _wallet;
 	private readonly SmartTransaction _transactionToCancel;
 
-	private CancelTransactionDialogViewModel(Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
+	private CancelTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
 	{
+		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToCancel = transactionToCancel;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -42,6 +47,19 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 
 	public Money FeeDifference { get; }
 
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_triggers.TransactionsUpdateTrigger
+			.Select(_ => _wallet.GetTransactions().FirstOrDefault(s => s.GetHash() == _transactionToCancel.GetHash()))
+			.WhereNotNull()
+			.Where(s => s.Confirmed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
 	private async Task OnCancelTransactionAsync(BuildTransactionResult cancellingTransaction)
 	{
 		IsBusy = true;
@@ -53,7 +71,8 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(cancellingTransaction.Transaction);
 				_wallet.UpdateUsedHdPubKeysLabels(cancellingTransaction.HdPubKeysWithNewLabels);
-				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction);
+				var (title, caption) = ("Success", "Your transaction has been successfully cancelled.");
+				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)
@@ -62,7 +81,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 
 			var msg = _transactionToCancel.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
 
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.");
+			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.", NavigationTarget.CompactDialogScreen);
 		}
 
 		IsBusy = false;
