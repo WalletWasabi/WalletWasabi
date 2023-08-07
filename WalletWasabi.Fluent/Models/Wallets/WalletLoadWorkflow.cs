@@ -59,11 +59,8 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
 				  .Where(_ => Services.Synchronizer.BackendStatus != BackendStatus.Connected)
-				  .SubscribeAsync(async _ =>
-				  {
-					  await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
-				  })
-				 .DisposeWith(_disposables);
+				  .SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false))
+				  .DisposeWith(_disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 				  .ObserveOn(RxApp.MainThreadScheduler)
