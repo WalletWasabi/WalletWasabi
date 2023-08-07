@@ -69,8 +69,7 @@
 
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel Orientation="Horizontal"
-                       HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
+        <c:LabelsPanel HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
               <Border Theme="{StaticResource LabelBorder}"

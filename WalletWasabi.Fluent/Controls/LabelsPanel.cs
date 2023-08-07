@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.LogicalTree;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class LabelsPanel : VirtualizingStackPanel
+public class LabelsPanel : Panel
 {
 	public static readonly StyledProperty<Control?> EllipsisControlProperty =
 		AvaloniaProperty.Register<LabelsPanel, Control?>(nameof(EllipsisControl));
@@ -93,6 +94,28 @@ public class LabelsPanel : VirtualizingStackPanel
 		base.OnDetachedFromVisualTree(e);
 	}
 
+	private Size MeasureOverridePanel(Size availableSize)
+	{
+		var num1 = 0.0;
+		var num2 = 0.0;
+		var visualChildren = VisualChildren;
+		var count = visualChildren.Count;
+		for (var index = 0; index < count; ++index)
+		{
+			if (visualChildren[index] is Layoutable layoutable)
+			{
+				if (layoutable == EllipsisControl)
+				{
+					continue;
+				}
+				layoutable.Measure(availableSize);
+				num1 += layoutable.DesiredSize.Width;
+				num2 = Math.Max(num2, layoutable.DesiredSize.Height);
+			}
+		}
+		return new Size(num1, num2);
+	}
+
 	protected override Size MeasureOverride(Size availableSize)
 	{
 		var ellipsis = 0.0;
@@ -102,7 +125,8 @@ public class LabelsPanel : VirtualizingStackPanel
 			ellipsis = EllipsisControl.DesiredSize.Width;
 		}
 
-		return base.MeasureOverride(availableSize.WithWidth(availableSize.Width + ellipsis));
+		var size = MeasureOverridePanel(availableSize.WithWidth(availableSize.Width + ellipsis));
+		return new Size(double.MaxValue, size.Height);
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
