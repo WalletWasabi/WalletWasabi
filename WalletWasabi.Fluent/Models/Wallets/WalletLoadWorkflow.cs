@@ -58,13 +58,9 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 							 .DisposeWith(_disposables);
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
+				  .Where(_ => Services.Synchronizer.BackendStatus != BackendStatus.Connected)
 				  .SubscribeAsync(async _ =>
 				  {
-					  if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
-					  {
-						  return;
-					  }
-
 					  await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
 				  })
 				 .DisposeWith(_disposables);
