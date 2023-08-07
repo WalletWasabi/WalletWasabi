@@ -46,7 +46,6 @@ public class LabelsPanel : Panel
 		}
 	}
 
-
 	public override void ApplyTemplate()
 	{
 		base.ApplyTemplate();
