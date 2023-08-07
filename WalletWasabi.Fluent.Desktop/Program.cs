@@ -7,8 +7,6 @@ using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.OpenGL;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
 using System.Linq;
@@ -187,17 +185,6 @@ public static class WasabiAppExtensions
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
 					{
-						// TODO: AvaloniaLocator.CurrentMutable no longer available so can't get IPlatformGraphics
-						/*
-						var platformGraphics = AvaloniaLocator.CurrentMutable.GetService<IPlatformGraphics>();
-#pragma warning disable CS0618
-						var renderer = platformGraphics?.UsesSharedContext == true
-							? (platformGraphics?.GetSharedContext() as IGlContext)?.GlInterface.Renderer
-							: null;
-#pragma warning restore CS0618
-						Logger.LogInfo($"Renderer: {renderer ?? "Avalonia Software"}");
-						*/
-
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
