@@ -134,8 +134,8 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
 		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
-		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
+		_filterProcessStartingHeight = Math.Max(bestHeight, startingHeight);
 		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
 	}
 
