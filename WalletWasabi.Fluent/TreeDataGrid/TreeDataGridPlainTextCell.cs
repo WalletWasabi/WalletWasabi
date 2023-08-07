@@ -1,7 +1,5 @@
 using System.Globalization;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
@@ -61,14 +59,19 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 		if (availableSize.Width != _formattedText.Width || availableSize.Height != _formattedText.Height)
 		{
 			_formattedText = new FormattedText(
-				_text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+				_text,
+				CultureInfo.CurrentCulture,
+				FlowDirection.LeftToRight,
 				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize, null)
+				FontSize,
+				null)
 			{
-				TextAlignment =
-					TextAlignment.Left,
-				MaxTextHeight = availableSize.Height, MaxTextWidth = availableSize.Width
+				TextAlignment = TextAlignment.Left,
+				MaxTextHeight = availableSize.Height,
+				MaxTextWidth = availableSize.Width,
+				Trimming = TextTrimming.None
 			};
+			_formattedText.Trimming = TextTrimming.None;
 		}
 
 		return new Size(_formattedText.Width, _formattedText.Height);
