@@ -34,6 +34,18 @@ public class LabelsPanel : VirtualizingStackPanel
 
 	internal LabelsItemsPresenter? Presenter { get; set; }
 
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == DataContextProperty)
+		{
+			InvalidateMeasure();
+			InvalidateArrange();
+		}
+	}
+
+
 	public override void ApplyTemplate()
 	{
 		base.ApplyTemplate();
