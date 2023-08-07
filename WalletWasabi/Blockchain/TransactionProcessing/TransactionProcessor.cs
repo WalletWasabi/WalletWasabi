@@ -155,9 +155,9 @@ public class TransactionProcessor
 				{
 					doubleSpentSpenders.AddRange(coins);
 				}
-				if (Coins.TryGetSpenderSpentSmartCoinsByOutPoint(txIn.PrevOut, out var spentCoins))
+				if (Coins.TryGetSpentCoinByOutPoint(txIn.PrevOut, out var spentCoin))
 				{
-					doubleSpentCoins.AddRange(spentCoins);
+					doubleSpentCoins.Add(spentCoin);
 				}
 			}
 
