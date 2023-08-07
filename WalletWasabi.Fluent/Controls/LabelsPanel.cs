@@ -128,7 +128,7 @@ public class LabelsPanel : Panel
 	{
 		// TODO: Spacing property missing in master Avalonia
 		//var spacing = Spacing;
-		var spacing = 0.0;
+		var spacing = 2.0;
 		var ellipsisWidth = 0.0;
 		var width = 0.0;
 		var height = 0.0;
