@@ -11,28 +11,18 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Features.SpeedUpTransactionDialogView">
 
   <c:ContentArea Title="Speed Up Transaction"
-                 EnableCancel="False"
+                 EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Confirm"
                  IsBusy="{Binding IsBusy}"
-                 EnableNext="False" NextContent="Cancel">
-
-    <c:ContentArea.Styles>
-      <Style Selector="c|QuestionControl TextBlock">
-        <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="TextAlignment" Value="Center" />
-      </Style>
-    </c:ContentArea.Styles>
-
+                 MinWidth="500">
     <Panel>
-      <c:QuestionControl IsVisible="{Binding AreWePayingTheFee}" HighlightButton="YesButton" YesCommand="{Binding NextCommand}"
-                         NoCommand="{Binding CancelCommand}">
-        <c:QuestionControl.IconContent>
-          <Viewbox MaxHeight="120" Margin="40">
-            <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
-          </Viewbox>
-        </c:QuestionControl.IconContent>
-        <StackPanel Spacing="10">
-          <TextBlock Text="Speeding up this transaction will cost you an additional fee of" />
+      <DockPanel IsVisible="{Binding AreWePayingTheFee}">
+        <Viewbox MaxHeight="120" Margin="40" DockPanel.Dock="Top">
+          <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+        </Viewbox>
+        <StackPanel Spacing="10" HorizontalAlignment="Center">
+          <TextBlock Text="Speeding up this transaction will cost you" />
           <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
             <TextBlock TextAlignment="Center"
                        FontWeight="Bold"
@@ -43,35 +33,32 @@
               Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
               Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
           </StackPanel>
-          <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
-                     Text="Are you sure?" />
         </StackPanel>
-      </c:QuestionControl>
+      </DockPanel>
 
-      <c:QuestionControl IsVisible="{Binding !AreWePayingTheFee}" YesCommand="{Binding NextCommand}"
-                         NoCommand="{Binding CancelCommand}">
-        <c:QuestionControl.IconContent>
-          <Panel>
-            <Viewbox MaxHeight="120" Margin="40">
-              <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
-            </Viewbox>
-            <Viewbox MaxHeight="40" Margin="120, 100 0 0">
-              <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6" />
-            </Viewbox>
-          </Panel>
-        </c:QuestionControl.IconContent>
-        <StackPanel Spacing="10">
-          <TextBlock Text="To speed up this transaction a deduction will be made from the recipient's amount of" />
-          <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-            <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
-                       Classes="h5" FontWeight="Bold" />
-            <TextBlock
-              Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
-              Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
+      <DockPanel IsVisible="{Binding !AreWePayingTheFee}">
+        <Panel DockPanel.Dock="Top">
+          <Viewbox MaxHeight="120" Margin="40">
+            <PathIcon Data="{StaticResource rocket_regular}" Opacity="0.6" />
+          </Viewbox>
+          <Viewbox MaxHeight="40" Margin="120, 100 0 0">
+            <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6" />
+          </Viewbox>
+        </Panel>
+        <StackPanel Spacing="10" HorizontalAlignment="Center">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Speeding up this transaction will deduct from the recipient's amount" />
+            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+              <TextBlock Text="{Binding FeeDifference, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                         Classes="h5" FontWeight="Bold" />
+              <TextBlock
+                Text="{Binding FeeDifferenceUsd, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
+                Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
+            </StackPanel>
           </StackPanel>
-          <TextBlock Text="Are you sure?" />
         </StackPanel>
-      </c:QuestionControl>
+      </DockPanel>
     </Panel>
+
   </c:ContentArea>
 </UserControl>
