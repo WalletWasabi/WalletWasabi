@@ -103,10 +103,6 @@ public class LabelsPanel : Panel
 		{
 			if (visualChildren[index] is Layoutable layoutable)
 			{
-				if (layoutable == EllipsisControl)
-				{
-					continue;
-				}
 				layoutable.Measure(availableSize);
 				num1 += layoutable.DesiredSize.Width;
 				num2 = Math.Max(num2, layoutable.DesiredSize.Height);
