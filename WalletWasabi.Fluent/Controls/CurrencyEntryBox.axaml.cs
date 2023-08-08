@@ -39,7 +39,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	public CurrencyEntryBox()
 	{
-		Text = string.Empty;
+		SetCurrentValue(TextProperty, string.Empty);
 
 		PseudoClasses.Set(":noexchangerate", true);
 		PseudoClasses.Set(":isrightside", false);
@@ -164,7 +164,7 @@ public partial class CurrencyEntryBox : TextBox
 	private TextInputEventArgs ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
 	{
 		var finalText = "0" + e.Text;
-		Text = "";
+		SetCurrentValue(TextProperty, "");
 		CaretIndex = finalText.Length;
 		ClearSelection();
 		return new TextInputEventArgs {Text = finalText};
@@ -173,7 +173,7 @@ public partial class CurrencyEntryBox : TextBox
 	private TextInputEventArgs InsertLeadingZeroForDecimal(TextInputEventArgs e)
 	{
 		var prependText = "0" + e.Text;
-		Text = Text.Insert(0, prependText);
+		SetCurrentValue(TextProperty, Text.Insert(0, prependText));
 		CaretIndex += prependText.Length;
 		return new TextInputEventArgs {Text = ""};
 	}

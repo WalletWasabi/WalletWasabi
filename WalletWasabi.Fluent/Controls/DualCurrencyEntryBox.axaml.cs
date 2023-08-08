@@ -219,7 +219,7 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void InputBtcValue(decimal value)
 	{
-		AmountBtc = value;
+		SetCurrentValue(AmountBtcProperty, value);
 	}
 
 	private void InputBtcString(string value)
