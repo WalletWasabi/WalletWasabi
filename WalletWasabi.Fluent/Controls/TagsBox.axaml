@@ -183,6 +183,7 @@
   </Style>
 
   <Style Selector="c|TagsBox AutoCompleteBox">
+    <Setter Property="VerticalAlignment" Value="Top" />
     <Setter Property="Background" Value="{x:Null}" />
     <Setter Property="Padding" Value="15 10 15 8" />
     <Setter Property="Margin" Value="0 0 0 2" />
@@ -200,15 +201,16 @@
                    Background="{TemplateBinding Background}"
                    BorderBrush="{TemplateBinding BorderBrush}"
                    BorderThickness="{TemplateBinding BorderThickness}"
+                   CornerRadius="{TemplateBinding CornerRadius}"
                    FontSize="{TemplateBinding FontSize}"
                    FontFamily="{TemplateBinding FontFamily}"
                    FontWeight="{TemplateBinding FontWeight}"
                    Padding="{TemplateBinding Padding}"
                    Margin="0"
                    DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
-
           <Popup Name="PART_Popup"
                  WindowManagerAddShadowHint="False"
+                 MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
                  MaxHeight="120"
                  IsLightDismissEnabled="True"
                  PlacementTarget="{TemplateBinding}">
