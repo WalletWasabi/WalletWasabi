@@ -491,10 +491,10 @@ public static class Program
 
 				const string Shebang = "#!/usr/bin/env sh\n";
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
-				var wasabiStarterScriptContent = shebang +
+				var wasabiStarterScriptContent = Shebang +
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 				var wasabiDaemonStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{DaemonExecutableName}");
-				var wasabiDaemonStarterScriptContent = shebang +
+				var wasabiDaemonStarterScriptContent = Shebang +
 				    $"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
