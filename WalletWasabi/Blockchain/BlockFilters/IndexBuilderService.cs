@@ -1,5 +1,4 @@
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -328,10 +327,11 @@ public class IndexBuilderService
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 	{
+		found = false; // Only build the filter list from when the known hash is found.
+		var filters = new List<FilterModel>();
+
 		lock (IndexLock)
 		{
-			found = false; // Only build the filter list from when the known hash is found.
-			var filters = new List<FilterModel>();
 			foreach (var filter in Index)
 			{
 				if (found)
