@@ -8,7 +8,6 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -36,7 +35,7 @@ public class IndexBuilderService
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
-		Index = new List<FilterModel>();
+		Index = new FilterLinkedList();
 
 		PubKeyTypes = IndexTypeConverter.ToRpcPubKeyTypes(IndexType);
 
@@ -75,10 +74,7 @@ public class IndexBuilderService
 	private IRPCClient RpcClient { get; }
 	private BlockNotifier BlockNotifier { get; }
 	private string IndexFilePath { get; }
-	private List<FilterModel> Index { get; }
-
-	/// <remarks>Guards <see cref="Index"/>.</remarks>
-	private object IndexLock { get; } = new();
+	private FilterLinkedList Index { get; }
 	private uint StartingHeight { get; }
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
@@ -129,23 +125,13 @@ public class IndexBuilderService
 						{
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-							FilterModel? lastIndexFilter = null;
-
-							lock (IndexLock)
-							{
-								if (Index.Count != 0)
-								{
-									lastIndexFilter = Index[^1];
-								}
-							}
-
 							uint currentHeight;
-							uint256? currentHash;
-
-							if (lastIndexFilter is not null)
+							uint256? currentHash = null;
+							if (Index.Count != 0)
 							{
-								currentHeight = lastIndexFilter.Header.Height;
-								currentHash = lastIndexFilter.Header.BlockHash;
+								var lastIndex = Index.Last();
+								currentHeight = lastIndex.Header.Height;
+								currentHash = lastIndex.Header.BlockHash;
 							}
 							else
 							{
@@ -205,10 +191,7 @@ public class IndexBuilderService
 
 							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
 
-							lock (IndexLock)
-							{
-								Index.Add(filterModel);
-							}
+							Index.Add(filterModel);
 
 							// If not close to the tip, just log debug.
 							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
@@ -294,11 +277,8 @@ public class IndexBuilderService
 	private async Task ReorgOneAsync()
 	{
 		// 1. Rollback index
-		lock (IndexLock)
-		{
-			Logger.LogInfo($"REORG invalid block: {Index[^1].Header.BlockHash}");
-			Index.RemoveLast();
-		}
+		Logger.LogInfo($"REORG invalid block: {Index.Last().Header.BlockHash}");
+		Index.RemoveLast();
 
 		// 2. Serialize Index. (Remove last line.)
 		var lines = await File.ReadAllLinesAsync(IndexFilePath).ConfigureAwait(false);
@@ -329,45 +309,35 @@ public class IndexBuilderService
 	{
 		found = false; // Only build the filter list from when the known hash is found.
 		var filters = new List<FilterModel>();
-
-		lock (IndexLock)
+		foreach (var filter in Index)
 		{
-			foreach (var filter in Index)
+			if (found)
 			{
-				if (found)
+				filters.Add(filter);
+				if (filters.Count >= count)
 				{
-					filters.Add(filter);
-					if (filters.Count >= count)
-					{
-						break;
-					}
+					break;
 				}
-				else
-				{
-					if (filter.Header.BlockHash == bestKnownBlockHash)
-					{
-						found = true;
-					}
-				}
-			}
-
-			if (Index.Count == 0)
-			{
-				return (Height.Unknown, Enumerable.Empty<FilterModel>());
 			}
 			else
 			{
-				return ((int)Index[^1].Header.Height, filters);
+				if (filter.Header.BlockHash == bestKnownBlockHash)
+				{
+					found = true;
+				}
 			}
 		}
+
+		if (Index.Count == 0)
+		{
+			return (Height.Unknown, Enumerable.Empty<FilterModel>());
+		}
+		return ((int)Index.Last().Header.Height, filters);
 	}
 
 	public FilterModel GetLastFilter()
 	{
-		lock (IndexLock)
-		{
-			return Index[^1];
-		}
+		return Index.Last();
 	}
 
 	public async Task StopAsync()
