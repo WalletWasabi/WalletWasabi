@@ -17,14 +17,14 @@ public static class CoinPocketHelper
 	public static IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
 		List<(LabelsArray Labels, ICoinsView Coins)> pockets = new();
-		var clusters = new Dictionary<LabelsArray, List<SmartCoin>>();
 
+		var clusters = new Dictionary<LabelsArray, List<SmartCoin>>(comparer: new LabelsComparer());
+		
 		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold))
 		{
 			var cluster = coin.HdPubKey.Cluster.Labels;
 
-			if (clusters.Keys.FirstOrDefault(x => string.Equals(x, cluster, StringComparison.OrdinalIgnoreCase)) is { } key &&
-				clusters.TryGetValue(key, out var clusterCoins))
+			if (clusters.TryGetValue(cluster, out var clusterCoins))
 			{
 				clusterCoins.Add(coin);
 			}

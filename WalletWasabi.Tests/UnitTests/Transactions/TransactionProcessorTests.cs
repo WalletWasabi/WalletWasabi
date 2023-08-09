@@ -1381,6 +1381,19 @@ public class TransactionProcessorTests
 		Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
+	[Fact]
+	// TODO: complete this test
+	public async Task GetPockets()
+	{
+		int targetAnonSet = 60;
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Faucet").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Electrum").P2wpkhScript, Money.Coins(0.0000_0670m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+	}
+
 	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
 	{
 		var tx = Network.RegTest.CreateTransaction();
