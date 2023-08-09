@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -315,11 +316,7 @@ public partial class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			if (TryParse(text, out var result))
-			{
-				text = result;
-			}
-			else
+			if (!TryParse(text, out text))
 			{
 				return;
 			}
@@ -331,7 +328,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
-	private bool TryParse(string text, out string? result)
+	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
 	{
 		var money = ValidatePasteBalance
 			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
