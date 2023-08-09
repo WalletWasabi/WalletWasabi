@@ -142,7 +142,10 @@
                                   ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                  BalanceBtc="{Binding Balances.Btc^}"
+                                  BalanceUsd="{Binding Balances.Usd^}"
+                                  ValidatePasteBalance="True">
             <c:DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"

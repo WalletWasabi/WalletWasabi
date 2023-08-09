@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -63,6 +64,15 @@ public class DualCurrencyEntryBox : UserControl
 
 	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(LeftEntryBox));
+
+	public static readonly StyledProperty<Money> BalanceBtcProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, Money>(nameof(BalanceBtc));
+
+	public static readonly StyledProperty<decimal> BalanceUsdProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(BalanceUsd));
+
+	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
 
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
@@ -172,6 +182,24 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		get => GetValue(LeftEntryBoxProperty);
 		set => SetValue(LeftEntryBoxProperty, value);
+	}
+
+	public Money BalanceBtc
+	{
+		get => GetValue(BalanceBtcProperty);
+		set => SetValue(BalanceBtcProperty, value);
+	}
+
+	public decimal BalanceUsd
+	{
+		get => GetValue(BalanceUsdProperty);
+		set => SetValue(BalanceUsdProperty, value);
+	}
+
+	public bool ValidatePasteBalance
+	{
+		get => GetValue(ValidatePasteBalanceProperty);
+		set => SetValue(ValidatePasteBalanceProperty, value);
 	}
 
 	protected override void OnLostFocus(RoutedEventArgs e)
