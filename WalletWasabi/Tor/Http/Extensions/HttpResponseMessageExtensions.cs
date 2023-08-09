@@ -90,6 +90,7 @@ public static class HttpResponseMessageExtensions
 				new JsonSerializerSettings()
 				{
 					Converters = JsonSerializationOptions.Default.Settings.Converters,
+					ContractResolver = JsonSerializationOptions.Default.Settings.ContractResolver,
 					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
 				});
 			var innerException = error switch

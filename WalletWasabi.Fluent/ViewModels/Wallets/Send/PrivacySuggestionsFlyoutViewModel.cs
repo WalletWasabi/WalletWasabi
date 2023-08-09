@@ -44,8 +44,15 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
 
-		Warnings.AddRange(result.Warnings);
-		Suggestions.AddRange(result.Suggestions);
+		await foreach (var warning in result.GetAllWarningsAsync())
+		{
+			Warnings.Add(warning);
+		}
+
+		await foreach (var suggestion in result.GetAllSuggestionsAsync())
+		{
+			Suggestions.Add(suggestion);
+		}
 
 		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
 		{
