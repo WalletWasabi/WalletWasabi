@@ -123,7 +123,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while ((await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 101)).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{
@@ -136,9 +136,10 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			// Test later synchronization.
 			await rpc.GenerateAsync(10);
 			times = 0;
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found5).filters.Count() != 111)
+
+			Assert.True((await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 111)).found);
+			while ((await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 111)).filters.Count() != 111)
 			{
-				Assert.True(found5);
 				if (times > 500) // 30 sec
 				{
 					throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
@@ -149,16 +150,20 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 			// Test correct number of filters is received.
 			var hundredthHash = await rpc.GetBlockHashAsync(100);
-			Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 11, out bool found).filters.Count());
-			Assert.True(found);
+			var res1 = await indexBuilderService.GetFilterLinesExcludingAsync(hundredthHash, 11);
+			Assert.Equal(11, res1.filters.Count());
+			Assert.True(res1.found);
 			var bestHash = await rpc.GetBestBlockHashAsync();
-			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
-			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3).filters);
-			Assert.False(found3);
+			var res2 = await indexBuilderService.GetFilterLinesExcludingAsync(bestHash, 1);
+			Assert.Empty(res2.filters);
+			var res3 = await indexBuilderService.GetFilterLinesExcludingAsync(uint256.Zero, 1);
+			Assert.Empty(res3.filters);
+			Assert.False(res3.found);
 
 			// Test filter block hashes are correct.
-			var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found4).filters.ToArray();
-			Assert.True(found4);
+			var res4 = await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 111);
+			var filters = res4.filters.ToArray();
+			Assert.True(res4.found);
 			for (int i = 0; i < 111; i++)
 			{
 				var expectedHash = await rpc.GetBlockHashAsync(i + 1);
@@ -199,7 +204,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (segwitTaprootIndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while ((await segwitTaprootIndexBuilderService.GetFilterLinesExcludingAsync(firstHash, 101)).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{
@@ -209,7 +214,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 				times++;
 			}
 
-			while (taprootIndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while ((await taprootIndexBuilderService.GetFilterLinesExcludingAsync(firstHash, 101)).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{

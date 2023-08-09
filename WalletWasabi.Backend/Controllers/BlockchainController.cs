@@ -285,7 +285,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
+	public async Task<IActionResult> GetFiltersAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
 	{
 		if (count <= 0)
 		{
@@ -299,7 +299,7 @@ public class BlockchainController : ControllerBase
 			return BadRequest("Not supported index type.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, count, out bool found);
+		(Height bestHeight, bool found, IEnumerable<FilterModel> filters) = await indexer.GetFilterLinesExcludingAsync(knownHash, count);
 
 		if (!found)
 		{

@@ -318,11 +318,11 @@ public class IndexBuilderService
 		}
 	}
 
-	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
+	public async Task<(Height bestHeight, bool found, IEnumerable<FilterModel> filters)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count)
 	{
-		using (IndexLock.Lock())
+		using (await IndexLock.LockAsync())
 		{
-			found = false; // Only build the filter list from when the known hash is found.
+			var found = false; // Only build the filter list from when the known hash is found.
 			var filters = new List<FilterModel>();
 			foreach (var filter in Index)
 			{
@@ -345,11 +345,11 @@ public class IndexBuilderService
 
 			if (Index.Count == 0)
 			{
-				return (Height.Unknown, Enumerable.Empty<FilterModel>());
+				return (Height.Unknown, found, Enumerable.Empty<FilterModel>());
 			}
 			else
 			{
-				return ((int)Index[^1].Header.Height, filters);
+				return ((int)Index[^1].Header.Height, found, filters);
 			}
 		}
 	}
