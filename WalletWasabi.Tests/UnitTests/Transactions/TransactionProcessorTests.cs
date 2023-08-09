@@ -1340,6 +1340,7 @@ public class TransactionProcessorTests
 	}
 
 	[Fact]
+	// Todo investigate why this fails
 	public async Task GetPocketsAsync()
 	{
 		int targetAnonSet = 60;
@@ -1381,17 +1382,31 @@ public class TransactionProcessorTests
 		Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
+	// Repro of issue 11101 https://github.com/zkSNACKs/WalletWasabi/issues/11101
 	[Fact]
-	// TODO: complete this test
-	public async Task GetPockets()
+	public async Task GetPocketsShouldHaveExpectedCount()
 	{
-		int targetAnonSet = 60;
+		// ARRANGE
+		int targetAnonSet = 10;
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(0.0000_1000m)));
 		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Faucet").P2wpkhScript, Money.Coins(0.0000_1000m)));
 		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Electrum").P2wpkhScript, Money.Coins(0.0000_0670m)));
-		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(0.0000_1000m)));
+
+		// ACT
 		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+
+		// ASSERT
+		var expectedPockets = new LabelsArray[]
+		{
+			CoinPocketHelper.UnlabelledFundsText,
+			"Faucet",
+			"Electrum"
+		}.ToHashSet();
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet();
+
+		Assert.True(expectedPockets.SetEquals(actualPockets));
 	}
 
 	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
