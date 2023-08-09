@@ -73,8 +73,8 @@ public class StepTransactionSigningTests
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
+		mockRpc.OnSendRawTransactionAsync = (_) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
@@ -119,8 +119,8 @@ public class StepTransactionSigningTests
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
+		mockRpc.OnSendRawTransactionAsync = (_) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
@@ -169,8 +169,8 @@ public class StepTransactionSigningTests
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
+		mockRpc.OnSendRawTransactionAsync = (_) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
@@ -214,8 +214,8 @@ public class StepTransactionSigningTests
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
+		mockRpc.OnSendRawTransactionAsync = (_) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();

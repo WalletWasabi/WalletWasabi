@@ -77,11 +77,11 @@ public class PayjoinTests
 		// This tests the scenario where the payjoin server returns the same
 		// transaction that we sent to it and adds no inputs. This can give
 		// us the fake sense of privacy but it should be valid.
-		var mockHttpClient = new Mock<IHttpClient>();
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt => psbt));
+		var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt => psbt);
 
-		var payjoinClient = NewPayjoinClient(mockHttpClient.Object);
+		var payjoinClient = NewPayjoinClient(mockHttpClient);
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 		{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -107,9 +107,9 @@ public class PayjoinTests
 		var amountToPay = Money.Coins(0.001m);
 
 		// This tests the scenario where the payjoin server behaves as expected.
-		var mockHttpClient = new Mock<IHttpClient>();
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var clientTx = psbt.ExtractTransaction();
 				foreach (var input in clientTx.Inputs)
@@ -130,9 +130,9 @@ public class PayjoinTests
 				serverCoinToSign.Sign(serverCoinKey);
 				serverCoinToSign.FinalizeInput();
 				return newPsbt;
-			}));
+			});
 
-		var payjoinClient = NewPayjoinClient(mockHttpClient.Object);
+		var payjoinClient = NewPayjoinClient(mockHttpClient);
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 		{
 			("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -182,9 +182,9 @@ public class PayjoinTests
 		var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		var mockHttpClient = new Mock<IHttpClient>();
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var newCoin = psbt.Inputs[0].GetCoin();
 				if (newCoin is { })
@@ -193,10 +193,10 @@ public class PayjoinTests
 					psbt.AddCoins(newCoin);
 				}
 				return psbt;
-			}));
+			});
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		///////
 
@@ -205,8 +205,8 @@ public class PayjoinTests
 		payment = new PaymentIntent(destination, amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				var diff = Money.Coins(0.0007m);
@@ -216,9 +216,9 @@ public class PayjoinTests
 				paymentOutput.Value += diff;
 
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -231,122 +231,122 @@ public class PayjoinTests
 		var network = Network.Main;
 
 		// This tests the scenario where the payjoin server does not clean GloablXPubs.
-		var mockHttpClient = new Mock<IHttpClient>();
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 				psbt.GlobalXPubs.Add(extPubkey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit)));
 				return psbt;
-			}));
+			});
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server includes keypath info in the inputs.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 				psbt.Inputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit)));
 				return psbt;
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server modifies the inputs sequence.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Inputs[0].Sequence = globalTx.Inputs[0].Sequence + 1;
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server returns an unsigned input (fucking bastard).
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Inputs.Add(GetRandomOutPoint());
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server removes one of our inputs (probably to optimize it).
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Inputs.Clear(); // remove all the inputs
 				globalTx.Inputs.Add(GetRandomOutPoint());
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server includes keypath info in the outputs.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 				psbt.Outputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit)));
 				return psbt;
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server includes partial signatures.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 				psbt.Inputs[0].PartialSigs.Add(new Key().PubKey, new TransactionSignature(new Key().Sign(uint256.One)));
 				return psbt;
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server modifies the original tx version.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Version += 1;
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
 		// This tests the scenario where the payjoin server modifies the original tx locktime value.
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.LockTime = new LockTime(globalTx.LockTime + 1);
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -360,18 +360,18 @@ public class PayjoinTests
 		var payment = new PaymentIntent(destination, amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		var mockHttpClient = new Mock<IHttpClient>();
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
+		var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				var changeOutput = globalTx.Outputs.Single(x => x.ScriptPubKey != destination);
 				changeOutput.Value -= Money.Coins(0.0007m);
 				return PSBT.FromTransaction(globalTx, Network.Main);
-			}));
+			});
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -384,12 +384,12 @@ public class PayjoinTests
 		var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		var mockHttpClient = new Mock<IHttpClient>();
-		mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.Returns((HttpRequestMessage _, CancellationToken _) => PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error"));
+		var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error");
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient.Object));
+		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
