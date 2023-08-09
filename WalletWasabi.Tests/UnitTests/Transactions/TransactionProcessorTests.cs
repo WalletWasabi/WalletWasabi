@@ -1384,7 +1384,7 @@ public class TransactionProcessorTests
 
 	// Repro of issue 11101 https://github.com/zkSNACKs/WalletWasabi/issues/11101
 	[Fact]
-	public async Task GetPocketsShouldHaveExpectedCount()
+	public async Task GetPocketsShouldReturnExpectedPocketListAsync()
 	{
 		// ARRANGE
 		int targetAnonSet = 10;
