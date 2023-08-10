@@ -6,12 +6,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using SQLitePCL;
 using WalletWasabi.Affiliation;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Backend.Controllers;
-using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -35,6 +33,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class ArenaClientTests
 {
+	public MempoolMirror DummyMempoolMirror { get; } = new (TimeSpan.Zero, null!, null!);
+
 	[Fact]
 	public async Task FullP2wpkhCoinjoinTestAsync()
 	{
@@ -65,7 +65,7 @@ public class ArenaClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), new Mock<IMempoolMirror>().Object);
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		var apiClient = new ArenaClient(null!, null!, config.CoordinatorIdentifier, wabiSabiApi);
@@ -107,7 +107,7 @@ public class ArenaClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), new Mock<IMempoolMirror>().Object);
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		InsecureRandom rnd = InsecureRandom.Instance;
@@ -192,7 +192,7 @@ public class ArenaClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), new Mock<IMempoolMirror>().Object);
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		var roundState = RoundState.FromRound(round);

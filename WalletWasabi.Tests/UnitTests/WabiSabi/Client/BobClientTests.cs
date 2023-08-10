@@ -53,7 +53,8 @@ public class BobClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
 		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), new Mock<IMempoolMirror>().Object);
+		using var mempoolMirror = new MempoolMirror(TimeSpan.Zero, null!, null!);
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), mempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
