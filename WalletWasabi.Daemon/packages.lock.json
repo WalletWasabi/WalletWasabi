@@ -4,8 +4,8 @@
     "net7.0": {
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "svHQiUvLNdI2nac68WNQHNo/ZWyavFpt3Oip09QRnWeFqG9iyakKiNLavXr6KE8y7KxEXZNld96KQYbKz8SJMQ==",
+        "resolved": "7.0.9",
+        "contentHash": "6iMRtYIQZj7gMC7iVotL9bZjCjnbV2ZkAAduKYHfV6v+WQhEjk0iEGSFNVh6N9rTCNTeZ2xVgv3xi675GwyDzQ==",
         "dependencies": {
           "Microsoft.CSharp": "4.7.0",
           "Newtonsoft.Json": "13.0.1"
@@ -18,8 +18,8 @@
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
-        "resolved": "7.0.3",
-        "contentHash": "pCmzLLWTIrIv94o7JtQ1qcPD0oc1YNY9XvlO6/tOF9YCcUfDZ3Tx9Z//CM7hFnprduHFPekif7jteBc/sXQ31Q==",
+        "resolved": "7.0.9",
+        "contentHash": "ow2PPoeW0yFc7NhexacQUw/LVjkO1mLK3VZAxhVIVjmQWlgYl/4mo9/U7uz+z75I+ZN6LUvq9M0ftU3IE75Ilg==",
         "dependencies": {
           "SQLitePCLRaw.core": "2.1.4"
         }
@@ -283,8 +283,8 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.0, )",
-          "Microsoft.Data.Sqlite": "[7.0.3, )",
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.9, )",
+          "Microsoft.Data.Sqlite": "[7.0.9, )",
           "Microsoft.Win32.SystemEvents": "[7.0.0, )",
           "NBitcoin": "[7.0.24, )",
           "WabiSabi": "[1.0.1.2, )"
@@ -292,22 +292,22 @@
       },
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "CentralTransitive",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "IJOsB1cm6FYGXxhlNoWR6zZYFREEBzeFX76NlBGhrZ7+VMK4piLm3fAgUBliasyEUg5MOOqFz5EGv8nmU5rXWQ==",
+        "requested": "[7.0.9, )",
+        "resolved": "7.0.9",
+        "contentHash": "dhAFLGV3RfK6BAbLYpTKcVch1hcyP2qDWNy7Pk2wGrQEO/yWbWwiR9c13hk5kGWcPMGeVMkcuftUo6OAHe2yIA==",
         "dependencies": {
-          "Microsoft.AspNetCore.JsonPatch": "7.0.0",
+          "Microsoft.AspNetCore.JsonPatch": "7.0.9",
           "Newtonsoft.Json": "13.0.1",
           "Newtonsoft.Json.Bson": "1.0.2"
         }
       },
       "Microsoft.Data.Sqlite": {
         "type": "CentralTransitive",
-        "requested": "[7.0.3, )",
-        "resolved": "7.0.3",
-        "contentHash": "uumx0bb4FsN7ApP0ZoQDfSJi9c2Xen0PlXCT2BF27cM+yUMFzDEhqxR7/1/DV8ck4mYtL9yShBoOa7jeJ3736w==",
+        "requested": "[7.0.9, )",
+        "resolved": "7.0.9",
+        "contentHash": "XZ/7gpAP3EFlaDkLqv21Ro1ZHMtkh7UpBImyLcv0x+G5qt2J9vvrAk1g5qYL2ykwzpzf7Stc6Xt1MSkv5YmdPg==",
         "dependencies": {
-          "Microsoft.Data.Sqlite.Core": "7.0.3",
+          "Microsoft.Data.Sqlite.Core": "7.0.9",
           "SQLitePCLRaw.bundle_e_sqlite3": "2.1.4"
         }
       },
