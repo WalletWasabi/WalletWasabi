@@ -12,12 +12,7 @@ public class LabelsComparer : IEqualityComparer<LabelsArray>
 
 	public bool Equals(LabelsArray x, LabelsArray y)
 	{
-		if (x.GetType() != y.GetType())
-		{
-			return false;
-		}
-
-		return x.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(y.ToHashSet(StringComparer.OrdinalIgnoreCase));
+		return x.Equals(y, StringComparer.OrdinalIgnoreCase);
 	}
 
 	public int GetHashCode(LabelsArray obj)
