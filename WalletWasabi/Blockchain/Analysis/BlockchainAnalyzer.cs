@@ -33,6 +33,8 @@ public class BlockchainAnalyzer
 		var foreignInputCount = tx.ForeignInputs.Count;
 		var foreignOutputCount = tx.ForeignOutputs.Count;
 
+		AnalyzeCancellation(tx);
+
 		if (ownInputCount == 0)
 		{
 			AnalyzeReceive(tx);
@@ -64,6 +66,18 @@ public class BlockchainAnalyzer
 		}
 
 		AnalyzeClusters(tx);
+	}
+
+	private static void AnalyzeCancellation(SmartTransaction tx)
+	{
+		// If the tx is a cancellation and we have at least one input or output that is not ours, then we set the anonset to 1.
+		if (tx.IsCancellation && (tx.ForeignOutputs.Any() || tx.ForeignInputs.Any()))
+		{
+			foreach (var k in tx.WalletInputs.Select(x => x.HdPubKey).Distinct())
+			{
+				k.SetAnonymitySet(1);
+			}
+		}
 	}
 
 	private static void AnalyzeCoinjoinWalletInputs(
