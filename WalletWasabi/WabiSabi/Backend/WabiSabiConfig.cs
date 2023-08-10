@@ -30,13 +30,34 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public uint ConfirmationTarget { get; set; } = 108;
 
-	[DefaultValueTimeSpan("0d 3h 0m 0s")]
-	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
+	[DefaultValueMoneyBtc("0.1")]
+	[JsonProperty(PropertyName = "DoSSeverity", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money DoSSeverity { get; set; } = Money.Coins(0.1m);
 
 	[DefaultValueTimeSpan("31d 0h 0m 0s")]
-	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfterLongBan", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan ReleaseUtxoFromPrisonAfterLongBan { get; set; } = TimeSpan.FromDays(31);
+	[JsonProperty(PropertyName = "DoSMinTimeForFailedToVerify", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan DoSMinTimeForFailedToVerify { get; set; } = TimeSpan.FromDays(31);
+
+	[DefaultValueTimeSpan("1d 0h 0m 0s")]
+	[JsonProperty(PropertyName = "DoSMinTimeForCheating", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan DoSMinTimeForCheating { get; set; } = TimeSpan.FromDays(1);
+
+	[DefaultValue(0.2)]
+	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingConfirmation", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double DoSPenaltyFactorForDisruptingConfirmation { get; set; } = 0.2;
+
+	[DefaultValue(1.0)]
+	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double DoSPenaltyFactorForDisruptingSigning { get; set; } = 1.0;
+
+	[DefaultValue(3.0)]
+	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingByDoubleSpending", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double DoSPenaltyFactorForDisruptingByDoubleSpending { get; set; } = 3.0;
+
+	[DefaultValueTimeSpan("0d 0h 20m 0s")]
+	[JsonProperty(PropertyName = "DoSMinTimeInPrison", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan DoSMinTimeInPrison { get; set; } = TimeSpan.FromMinutes(20);
 
 	[DefaultValueMoneyBtc("0.00005")]
 	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -51,7 +51,11 @@ public class Startup
 		services.AddMvc()
 			.AddNewtonsoftJson();
 
-		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
+		services.AddControllers().AddNewtonsoftJson(x =>
+		{
+			x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+			x.SerializerSettings.ContractResolver = JsonSerializationOptions.Default.Settings.ContractResolver;
+		});
 
 		// Register the Swagger generator, defining one or more Swagger documents
 		services.AddSwaggerGen(c =>
@@ -122,6 +126,11 @@ public class Startup
 			var global = serviceProvider.GetRequiredService<Global>();
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.AffiliationManager;
+		});
+		services.AddSingleton(serviceProvider =>
+		{
+			var global = serviceProvider.GetRequiredService<Global>();
+			return global.CoinJoinMempoolManager;
 		});
 		services.AddStartupTask<InitConfigStartupTask>();
 

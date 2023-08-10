@@ -347,6 +347,43 @@ public class AllFeeEstimateTests
 		Assert.Equal(expectedMaxFee, maxFee);
 	}
 
+	[Fact]
+	public void WildEstimations()
+	{
+		var estimations = new Dictionary<int, int>
+			{
+				{ 2, 102 }, // 20m
+				{ 3, 20 }, // 30m
+				{ 6, 10 }, // 1h
+				{ 18, 1 } // 3h
+			};
+
+		var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+
+		Assert.Equal(7, allFee.WildEstimations.Count());
+		Assert.Equal(new FeeRate(102m), allFee.WildEstimations.First().feeRate); // 20m
+		Assert.Equal(new FeeRate(20m), allFee.WildEstimations.Skip(1).First().feeRate); // 30m
+		Assert.Equal(new FeeRate(16.666m), allFee.WildEstimations.Skip(2).First().feeRate); // 40m
+		Assert.Equal(new FeeRate(13.333m), allFee.WildEstimations.Skip(3).First().feeRate); // 50m
+		Assert.Equal(new FeeRate(10m), allFee.WildEstimations.Skip(4).First().feeRate); // 1h
+		Assert.Equal(new FeeRate(5.5m), allFee.WildEstimations.Skip(5).First().feeRate); // 2h
+		Assert.Equal(new FeeRate(1m), allFee.WildEstimations.Skip(6).First().feeRate); // 3h
+
+		Assert.Equal(TimeSpan.FromMinutes(10), allFee.EstimateConfirmationTime(new FeeRate(200m)));
+		Assert.Equal(TimeSpan.FromMinutes(20), allFee.EstimateConfirmationTime(new FeeRate(102.1m)));
+		Assert.Equal(TimeSpan.FromMinutes(20), allFee.EstimateConfirmationTime(new FeeRate(102m)));
+		Assert.Equal(TimeSpan.FromMinutes(30), allFee.EstimateConfirmationTime(new FeeRate(101.9m)));
+		Assert.Equal(TimeSpan.FromMinutes(30), allFee.EstimateConfirmationTime(new FeeRate(50m)));
+		Assert.Equal(TimeSpan.FromMinutes(30), allFee.EstimateConfirmationTime(new FeeRate(20m)));
+		Assert.Equal(TimeSpan.FromMinutes(40), allFee.EstimateConfirmationTime(new FeeRate(19m)));
+		Assert.Equal(TimeSpan.FromMinutes(60), allFee.EstimateConfirmationTime(new FeeRate(11m)));
+		Assert.Equal(TimeSpan.FromMinutes(60), allFee.EstimateConfirmationTime(new FeeRate(10m)));
+		Assert.Equal(TimeSpan.FromHours(2), allFee.EstimateConfirmationTime(new FeeRate(9m)));
+		Assert.Equal(TimeSpan.FromHours(3), allFee.EstimateConfirmationTime(new FeeRate(3m)));
+		Assert.Equal(TimeSpan.FromHours(3), allFee.EstimateConfirmationTime(new FeeRate(1m)));
+		Assert.Equal(TimeSpan.FromHours(3), allFee.EstimateConfirmationTime(new FeeRate(0.1m)));
+	}
+
 	private static Mock<IRPCClient> CreateAndConfigureRpcClient(bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
 	{
 		var mockRpc = new Mock<IRPCClient>();
@@ -367,7 +404,7 @@ public class AllFeeEstimateTests
 				Histogram = Array.Empty<FeeRateGroup>()
 			});
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-
+		mockRpc.Setup(rpc => rpc.UptimeAsync(It.IsAny<CancellationToken>())).ReturnsAsync(TimeSpan.FromDays(500));
 		return mockRpc;
 	}
 

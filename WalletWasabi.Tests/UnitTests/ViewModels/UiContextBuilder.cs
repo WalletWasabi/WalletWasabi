@@ -15,6 +15,7 @@ public class UiContextBuilder
 	public IQrCodeReader QrReader { get; } = Mock.Of<IQrCodeReader>();
 	public IClipboard Clipboard { get; private set; } = Mock.Of<IClipboard>();
 	public IWalletRepository WalletRepository { get; private set; } = new NullWalletRepository();
+	public IHardwareWalletInterface HardwareWalletInterface { get; private set; } = new NullHardwareWalletInterface();
 
 	public UiContextBuilder WithDialogThatReturns(object value)
 	{
@@ -30,7 +31,7 @@ public class UiContextBuilder
 
 	public UiContext Build()
 	{
-		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository);
+		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface);
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
 	}

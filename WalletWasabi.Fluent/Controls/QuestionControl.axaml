@@ -16,14 +16,16 @@
             HorizontalAlignment="Stretch" MaxWidth="500" DockPanel.Dock="Bottom">
             <Button Name="PART_NoButton"
                     HorizontalAlignment="Left"
-                    Content="No"
+                    Content="{TemplateBinding NoContent}"
                     Classes.action="{TemplateBinding IsNoButton}"
+                    IsDefault="{TemplateBinding IsNoButton}"
                     Classes="yesNo"
                     Command="{TemplateBinding NoCommand}" />
             <Button Name="PART_YesButton"
                     HorizontalAlignment="Right"
-                    Content="Yes"
+                    Content="{TemplateBinding YesContent}"
                     Classes.action="{TemplateBinding IsYesButton}"
+                    IsDefault="{TemplateBinding IsYesButton}"
                     Classes="yesNo"
                     Command="{TemplateBinding YesCommand}" />
           </DockPanel>

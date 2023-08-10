@@ -854,6 +854,70 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public async Task IsPocketEnoughWithoutCoinjoiningCoinsAsync()
+	{
+		var selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), "Daniel");
+
+		var pockets = new List<Pocket>();
+		var privateCoins = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+		};
+		var privateCoinsView = new CoinsView(privateCoins.ToArray());
+		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
+		pockets.Add(privatePocket);
+
+		var coinjoiningCoins = new List<SmartCoin>() { privateCoins[0], privateCoins[1] };
+		var excludedCoinsView = new CoinsView(coinjoiningCoins.ToArray());
+
+		await selection.ResetAsync(pockets.ToArray(), coinsToExclude: coinjoiningCoins);
+
+		var output = await selection.AutoSelectPocketsAsync();
+
+		var selectedCoins = output.SelectMany(pocket => pocket.Coins);
+
+		Assert.True(selection.EnoughSelected);
+		Assert.Empty(selectedCoins.Intersect(excludedCoinsView));
+		Assert.DoesNotContain(privateCoins[0], selectedCoins);
+		Assert.DoesNotContain(privateCoins[1], selectedCoins);
+		Assert.Contains(privateCoins[2], selectedCoins);
+	}
+
+	[Fact]
+	public async Task UseCoinjoiningCoinsIfNecessaryAsync()
+	{
+		var selection = CreateLabelSelectionViewModel(Money.Parse("2.9"), "Daniel");
+
+		var pockets = new List<Pocket>();
+		var privateCoins = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+		};
+
+		var privateCoinsView = new CoinsView(privateCoins.ToArray());
+		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
+		pockets.Add(privatePocket);
+
+		var coinjoiningCoins = new List<SmartCoin>() { privateCoins[0], privateCoins[1] };
+		var excludedCoinsView = new CoinsView(coinjoiningCoins.ToArray());
+
+		await selection.ResetAsync(pockets.ToArray(), coinsToExclude: coinjoiningCoins);
+
+		var output = await selection.AutoSelectPocketsAsync();
+
+		var selectedCoins = output.SelectMany(pocket => pocket.Coins);
+
+		Assert.True(selection.EnoughSelected);
+		Assert.Contains(privateCoins[0], selectedCoins);
+		Assert.Contains(privateCoins[1], selectedCoins);
+		Assert.Contains(privateCoins[2], selectedCoins);
+	}
+
+	[Fact]
 	public async Task IsOtherSelectionPossibleCasesAsync()
 	{
 		var pockets = new List<Pocket>();

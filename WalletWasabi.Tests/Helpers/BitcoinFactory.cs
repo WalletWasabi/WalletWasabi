@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
@@ -189,7 +190,7 @@ public static class BitcoinFactory
 
 		// We don't use the result, but we need not to throw NotImplementedException.
 		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
-
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 		return mockRpc;
@@ -202,4 +203,10 @@ public static class BitcoinFactory
 	}
 
 	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
+
+	public static MemoryCache CreateMemoryCache() => new MemoryCache(new MemoryCacheOptions
+	{
+		SizeLimit = 1_000,
+		ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+	});
 }

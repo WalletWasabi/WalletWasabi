@@ -24,3 +24,14 @@
    Note: As you can see, the deployer can choose the `codename` freely.
 
 2. Deploy using the `deploy.sh` script.
+
+# Templates for communication
+
+**Deploy to TestNet example**
+
+Hello there, we are deploying this commit to the `TestNet` server.
+- Latest commit on backend: 167c81be80d8d3de9deaf8d306017c5403593c89
+- Planning to deploy to backend: 460e21ce71738d3cc1560a3d4fc1984cc4beb725
+- PRs with affiliate label: https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+is%3Aclosed+label%3Aaffiliate
+
+Please ack and test.
