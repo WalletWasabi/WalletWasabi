@@ -14,7 +14,15 @@
   <controls:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <controls:ContentArea.Title>
       <StackPanel>
-        <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
+        <DockPanel>
+          <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
+          <DockPanel DockPanel.Dock="Right" Margin="0 0 10 0" HorizontalAlignment="Right" IsVisible="{Binding IsNewWallet}">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <TextBlock Text="Auto coinjoin" Margin="0 0 5 0" FontSize="16" VerticalAlignment="Center" />
+              <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=TwoWay}" Command="{Binding ToggleAutoCoinJoinCommand}" VerticalAlignment="Center" />
+            </StackPanel>
+          </DockPanel>
+        </DockPanel>
         <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" />
       </StackPanel>
     </controls:ContentArea.Title>

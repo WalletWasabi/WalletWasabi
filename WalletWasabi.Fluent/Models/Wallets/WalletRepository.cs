@@ -159,8 +159,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 				"", // Make sure it is not saved into a file yet.
 				minGapLimit.Value);
 
-			// result.AutoCoinJoin = true;
-
+			result.AutoCoinJoin = true;
 			// Set the filepath but we will only write the file later when the Ui workflow is done.
 			result.SetFilePath(walletFilePath);
 

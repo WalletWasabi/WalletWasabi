@@ -145,11 +145,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			_autoCoinJoinStartTimer.Stop();
 		};
 
-		if (!walletVm.CoinJoinSettings.AutoCoinJoin)
-		{
-			walletVm.Settings.UpdateAutoCoinJoin();
-		}
-
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
 		_stateMachine.Start();
