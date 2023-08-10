@@ -1402,8 +1402,8 @@ public class TransactionProcessorTests
 			CoinPocketHelper.UnlabelledFundsText,
 			"Faucet",
 			"Electrum"
-		}.ToHashSet();
-		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet();
+		}.ToHashSet(LabelsComparer.Instance);
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(LabelsComparer.Instance);
 
 		Assert.True(expectedPockets.SetEquals(actualPockets));
 	}
