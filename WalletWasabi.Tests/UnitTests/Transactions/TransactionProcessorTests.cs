@@ -1340,7 +1340,6 @@ public class TransactionProcessorTests
 	}
 
 	[Fact]
-	// Todo investigate why this fails
 	public async Task GetPocketsAsync()
 	{
 		int targetAnonSet = 60;
@@ -1405,6 +1404,26 @@ public class TransactionProcessorTests
 			"Electrum"
 		}.ToHashSet();
 		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet();
+
+		Assert.True(expectedPockets.SetEquals(actualPockets));
+	}
+
+	[Fact]
+	public async Task GetPocketsShouldBeCaseInsensitiveAsync()
+	{
+		// ARRANGE
+		int targetAnonSet = 10;
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Pocket").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("PoCKeT").P2wpkhScript, Money.Coins(0.0000_0670m)));
+
+		// ACT
+		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+
+		// ASSERT
+		var expectedPockets = new LabelsArray[] { "Pocket", }.ToHashSet(comparer: LabelsComparer.Instance);
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(comparer: LabelsComparer.Instance);
 
 		Assert.True(expectedPockets.SetEquals(actualPockets));
 	}

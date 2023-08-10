@@ -18,7 +18,7 @@ public static class CoinPocketHelper
 	{
 		List<(LabelsArray Labels, ICoinsView Coins)> pockets = new();
 
-		var clusters = new Dictionary<LabelsArray, List<SmartCoin>>(comparer: new LabelsComparer());
+		var clusters = new Dictionary<LabelsArray, List<SmartCoin>>(comparer: LabelsComparer.Instance);
 		
 		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold))
 		{
