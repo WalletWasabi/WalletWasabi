@@ -23,7 +23,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
-	private const string RoundFinishedMessage = "Round completed, awaiting next round";
+	private const string RoundFinishedMessage = "Round ended, awaiting next round";
 	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
 	private const string CoinJoinInProgress = "Coinjoin in progress";
 	private const string InputRegistrationMessage = "Awaiting other participants";
@@ -34,7 +34,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
+	private const string BackendNotConnected = "Awaiting connection";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
+	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
+	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
+	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
+	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
@@ -316,9 +321,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
+					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
+					CoinjoinError.BackendNotSynchronized => BackendNotConnected,
+					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
+					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
+					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
 					_ => GeneralErrorMessage
 				};
 				break;

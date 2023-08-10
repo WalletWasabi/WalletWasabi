@@ -77,7 +77,7 @@ public class ConfigTests
 		// Remove a line.
 		var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 		var lines = File.ReadAllLines(configPath);
-		var incompleteLines = lines.Where(x => !x.Contains("ReleaseUtxoFromPrisonAfter", StringComparison.Ordinal)).ToArray();
+		var incompleteLines = lines.Where(x => !x.Contains("DoSMinTimeForFailedToVerify", StringComparison.Ordinal)).ToArray();
 		Assert.NotEqual(lines.Length, incompleteLines.Length);
 		File.WriteAllLines(configPath, incompleteLines);
 
@@ -85,14 +85,14 @@ public class ConfigTests
 		CoordinatorParameters coordinatorParameters2 = new(workDir);
 		using WabiSabiCoordinator coordinator2 = CreateWabiSabiCoordinator(coordinatorParameters2);
 		await coordinator2.StartAsync(CancellationToken.None);
-		var defaultValue = TimeSpanJsonConverter.Parse("0d 3h 0m 0s");
-		Assert.Equal(TimeSpan.FromHours(3), defaultValue);
-		Assert.Equal(defaultValue, coordinator2.Config.ReleaseUtxoFromPrisonAfter);
+		var defaultValue = TimeSpanJsonConverter.Parse("31d 0h 0m 0s");
+		Assert.Equal(TimeSpan.FromDays(31), defaultValue);
+		Assert.Equal(defaultValue, coordinator2.Config.DoSMinTimeForFailedToVerify);
 		await coordinator2.StopAsync(CancellationToken.None);
 
 		// Assert the new default value is serialized.
 		lines = File.ReadAllLines(configPath);
-		Assert.Contains(lines, x => x.Contains("\"ReleaseUtxoFromPrisonAfter\": \"0d 3h 0m 0s\"", StringComparison.Ordinal));
+		Assert.Contains(lines, x => x.Contains("\"DoSMinTimeForFailedToVerify\": \"31d 0h 0m 0s\"", StringComparison.Ordinal));
 	}
 
 	[Fact]

@@ -47,7 +47,10 @@
                                       Grid.Column="{TemplateBinding LeftColumn}"
                                       Background="Transparent"
                                       BorderThickness="0"
-                                      IsRightSide="{TemplateBinding IsConversionReversed}" />
+                                      IsRightSide="{TemplateBinding IsConversionReversed}"
+                                      BalanceBtc="{TemplateBinding BalanceBtc}"
+                                      BalanceUsd="{TemplateBinding BalanceUsd}"
+                                      ValidatePasteBalance="{TemplateBinding ValidatePasteBalance}" />
 
                   <Button x:Name="PART_SwapButton" Focusable="False"
                           HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
@@ -67,7 +70,10 @@
                                       Grid.Column="{TemplateBinding RightColumn}"
                                       Background="Transparent"
                                       BorderThickness="0"
-                                      IsRightSide="{TemplateBinding IsConversionReversed, Converter={x:Static BoolConverters.Not}}" />
+                                      IsRightSide="{TemplateBinding IsConversionReversed, Converter={x:Static BoolConverters.Not}}"
+                                      BalanceBtc="{TemplateBinding BalanceBtc}"
+                                      BalanceUsd="{TemplateBinding BalanceUsd}"
+                                      ValidatePasteBalance="{TemplateBinding ValidatePasteBalance}" />
                 </Grid>
               </Panel>
             </Panel>

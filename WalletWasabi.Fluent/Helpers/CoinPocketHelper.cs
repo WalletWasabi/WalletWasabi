@@ -11,8 +11,8 @@ namespace WalletWasabi.Fluent.Helpers;
 public static class CoinPocketHelper
 {
 	public static readonly LabelsArray UnlabelledFundsText = new("Unknown People");
-	public static readonly LabelsArray PrivateFundsText = new("Private Funds");
-	public static readonly LabelsArray SemiPrivateFundsText = new("Semi-private Funds");
+	public static readonly LabelsArray PrivateFundsText = new("Private Coins");
+	public static readonly LabelsArray SemiPrivateFundsText = new("Semi-private Coins");
 
 	public static IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
