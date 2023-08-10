@@ -8,6 +8,8 @@ public class LabelsComparer : IEqualityComparer<LabelsArray>
 {
 	private static LabelsComparer? ComparerInstance;
 
+	public static IEqualityComparer<LabelsArray> Instance => ComparerInstance ??= new LabelsComparer();
+
 	public bool Equals(LabelsArray x, LabelsArray y)
 	{
 		if (x.GetType() != y.GetType())
@@ -17,8 +19,6 @@ public class LabelsComparer : IEqualityComparer<LabelsArray>
 
 		return x.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(y.ToHashSet(StringComparer.OrdinalIgnoreCase));
 	}
-
-	public static IEqualityComparer<LabelsArray> Instance => ComparerInstance ??= new LabelsComparer();
 
 	public int GetHashCode(LabelsArray obj)
 	{
