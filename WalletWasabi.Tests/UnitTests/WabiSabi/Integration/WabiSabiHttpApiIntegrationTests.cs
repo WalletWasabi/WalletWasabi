@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using NBitcoin;
 using System.IO;
 using System.Linq;
@@ -14,7 +13,6 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -165,15 +163,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 
-		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
+		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
 
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
-			.Returns(personCircuit);
-
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-			.Returns(httpClientWrapper);
+		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
+		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 
 		// Total test timeout.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
@@ -183,7 +176,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
 		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
@@ -244,15 +237,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using PersonCircuit personCircuit = new();
 		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
-
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
-			.Returns(personCircuit);
-
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-			.Returns(httpClientWrapper);
+		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
+		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
+		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 
 		// Total test timeout.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
@@ -262,7 +249,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
 
 		bool failedBecauseNotAllAlicesSigned = false;
 		void HandleCoinJoinProgress(object? sender, CoinJoinProgressEventArgs coinJoinProgress)
@@ -361,49 +348,39 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
-			.Returns(personCircuit);
-
-		mockHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-			.Returns(httpClientWrapper);
+		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
+		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
+		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager1, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager1, roundStateUpdater);
 
 		// Run the coinjoin client task.
 		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token).ConfigureAwait(false), cts.Token);
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
-		var nonSigningHttpClientMock = new Mock<ClearnetHttpClient>(MockBehavior.Strict, httpClient);
-		nonSigningHttpClientMock
-			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.CallBase();
-		nonSigningHttpClientMock
-			.Setup(httpClient => httpClient.SendAsync(
-				It.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
-				It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
+		var nonSigningHttpClientMock = new MockIHttpClient();
+		nonSigningHttpClientMock.OnSendAsync = req =>
+		{
+			if (req.RequestUri!.AbsolutePath.Contains("transaction-signature"))
+			{
+				throw new HttpRequestException("Something was wrong posting the signature.");
+			}
 
-		IHttpClient nonSigningHttpClient = nonSigningHttpClientMock.Object;
+			return httpClient.SendAsync(req, CancellationToken.None);
+		};
 
-		var mockNonSigningHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
-		mockNonSigningHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out nonSigningHttpClient))
-			.Returns(personCircuit);
+		IHttpClient nonSigningHttpClient = nonSigningHttpClientMock;
+		var mockNonSigningHttpClientFactory = new MockWasabiHttpClientFactory();
+		mockNonSigningHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, nonSigningHttpClient);
+		mockNonSigningHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => nonSigningHttpClient;
 
-		mockNonSigningHttpClientFactory
-			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-			.Returns(nonSigningHttpClient);
-
-		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockNonSigningHttpClientFactory.Object, keyManager2, roundStateUpdater);
+		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockNonSigningHttpClientFactory, keyManager2, roundStateUpdater);
 
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
@@ -486,25 +463,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
 				});
 
-			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
-			mockHttpClientFactory
-				.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
-				.Returns(personCircuit);
+			var mockHttpClientFactory = new MockWasabiHttpClientFactory();
+			mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
+			mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
+			mockHttpClientFactory.OnNewHttpClientWithDefaultCircuit = () => httpClientWrapper;
 
-			mockHttpClientFactory
-				.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-				.Returns(httpClientWrapper);
-
-			mockHttpClientFactory
-				.Setup(factory => factory.NewHttpClientWithDefaultCircuit())
-				.Returns(httpClientWrapper);
 
 			// Total test timeout.
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
 			var participants = Enumerable
 				.Range(0, NumberOfParticipants)
-				.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory.Object))
+				.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory))
 				.ToArray();
 
 			foreach (var participant in participants)
@@ -643,4 +613,26 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			return ret;
 		}
 	}
+}
+
+public class MockWasabiHttpClientFactory : IWasabiHttpClientFactory
+{
+	public Func<(PersonCircuit, IHttpClient)>? OnNewHttpClientWithPersonCircuit { get; set; }
+	public Func<IHttpClient>? OnNewHttpClientWithCircuitPerRequest { get; set; }
+	public Func<IHttpClient>? OnNewHttpClientWithDefaultCircuit { get; set; }
+
+	public (PersonCircuit, IHttpClient) NewHttpClientWithPersonCircuit() =>
+		OnNewHttpClientWithPersonCircuit?.Invoke()
+			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
+
+	public IHttpClient NewHttpClientWithCircuitPerRequest() =>
+		OnNewHttpClientWithCircuitPerRequest?.Invoke()
+			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
+
+	public IHttpClient NewHttpClientWithDefaultCircuit() =>
+		OnNewHttpClientWithDefaultCircuit?.Invoke()
+			?? throw new NotImplementedException($"{nameof(NewHttpClientWithDefaultCircuit)} was called but never assigned.");
+
+	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null) =>
+		throw new NotImplementedException();
 }
