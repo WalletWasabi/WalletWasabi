@@ -406,6 +406,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			foreach (var c in wallet.Coins)
 			{
 				c.HdPubKey.SetAnonymitySet(9_000);
+				c.IsSufficientlyDistancedFromExternalKeys = true;
 			}
 
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
