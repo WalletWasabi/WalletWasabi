@@ -11,7 +11,6 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;
-	public bool IsCoinJoinPaused { get; }
 
 	[AutoNotify] private bool _isNewWallet;
 	[AutoNotify] private bool _autoCoinjoin;
@@ -57,6 +56,8 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 	public string WalletName { get; }
 
 	public WalletType WalletType { get; }
+
+	public bool IsCoinJoinPaused { get; }
 
 	public void Save()
 	{

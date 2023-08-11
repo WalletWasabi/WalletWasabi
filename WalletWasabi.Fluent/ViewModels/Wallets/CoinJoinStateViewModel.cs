@@ -8,8 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -63,7 +61,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	private CoinJoinStateViewModel(WalletViewModel walletVm)
+	private CoinJoinStateViewModel(WalletViewModel walletVm, IWalletModel walletModel)
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
@@ -81,19 +79,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Select(_ => WalletVm.Wallet.IsWalletPrivate())
 			.BindTo(this, x => x.AreAllCoinsPrivate);
 
-		var initialState = walletVm.CoinJoinSettings.AutoCoinJoin
+		var initialState =
+			walletModel.Settings.AutoCoinjoin
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
+		if (walletModel.IsHardwareWallet || walletModel.IsWatchOnlyWallet)
 		{
 			initialState = State.Disabled;
 		}
 
-		//WalletSettingsModel walletSettingsModel = UiContext.WalletRepository.Wallets.FirstOrDefault(x => x.WalletModel.Name == walletVm.WalletName);
-
-		//if (walletSettingsModel.IsCoinJoinPaused)
-		if (true)
+		if (walletModel.Settings.IsCoinJoinPaused)
 		{
 			initialState = State.StoppedOrPaused;
 		}
@@ -108,9 +104,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				// TODO: remove this after CoinjoinStateViewModel is decoupled
-				var walletSettings = new WalletSettingsModel(wallet.KeyManager);
-				await UiContext.Navigate().To().CoinJoinProfiles(walletSettings, NavigationTarget.DialogScreen).GetResultAsync();
+				await UiContext.Navigate().To().CoinJoinProfiles(walletModel.Settings, NavigationTarget.DialogScreen).GetResultAsync();
 			}
 
 			if (wallet.KeyManager.IsCoinjoinProfileSelected)
