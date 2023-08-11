@@ -42,10 +42,3 @@ jobs:
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
       arguments: --configuration $(testConfiguration) --filter "UnitTests" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
       publishTestResults: true
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage report'
-    inputs:
-      codeCoverageTool: 'Cobertura'
-      summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
-      pathToSources: '$(System.DefaultWorkingDirectory)/'
-      failIfCoverageEmpty: true
