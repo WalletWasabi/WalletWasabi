@@ -223,9 +223,9 @@ public class RoundStateUpdaterTests
 		return response;
 	}
 
-	private MockHttpClient CreateMockHttpClient(params Func<HttpResponseMessage>[] responses)
+	private MockIHttpClient CreateMockHttpClient(params Func<HttpResponseMessage>[] responses)
 	{
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 
 		var callCounter = 0;
 		mockHttpClient.OnSendAsync = req =>

@@ -42,7 +42,7 @@ public class WasabiClientTests
 			return response;
 		}
 
-		var mockTorHttpClient = new MockHttpClient();
+		var mockTorHttpClient = new MockIHttpClient();
 		mockTorHttpClient.OnSendAsync = req =>
 			FakeServerCodeAsync(req.Method, req.RequestUri.PathAndQuery, req.Content, CancellationToken.None);
 

@@ -77,7 +77,7 @@ public class PayjoinTests
 		// This tests the scenario where the payjoin server returns the same
 		// transaction that we sent to it and adds no inputs. This can give
 		// us the fake sense of privacy but it should be valid.
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerOkAsync(req, psbt => psbt);
 
@@ -107,7 +107,7 @@ public class PayjoinTests
 		var amountToPay = Money.Coins(0.001m);
 
 		// This tests the scenario where the payjoin server behaves as expected.
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerOkAsync(req, psbt =>
 			{
@@ -182,7 +182,7 @@ public class PayjoinTests
 		var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerOkAsync(req, psbt =>
 			{
@@ -231,7 +231,7 @@ public class PayjoinTests
 		var network = Network.Main;
 
 		// This tests the scenario where the payjoin server does not clean GloablXPubs.
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerOkAsync(req, psbt =>
 			{
@@ -360,7 +360,7 @@ public class PayjoinTests
 		var payment = new PaymentIntent(destination, amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerOkAsync(req, psbt =>
 			{
@@ -384,7 +384,7 @@ public class PayjoinTests
 		var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 		// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error");
 

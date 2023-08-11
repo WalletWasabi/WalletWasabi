@@ -15,9 +15,9 @@ namespace WalletWasabi.Tests.UnitTests.Affiliation;
 [Collection("Serial unit tests collection")]
 public class AffiliateServerStatusUpdaterTests
 {
-	private MockHttpClient CreateMockHttpClient(string jsonContent, params HttpResponseMessage[] responses)
+	private MockIHttpClient CreateIMockHttpClient(string jsonContent, params HttpResponseMessage[] responses)
 	{
-		var mockHttpClient = new MockHttpClient();
+		var mockHttpClient = new MockIHttpClient();
 
 		var callCounter = 0;
 		mockHttpClient.OnSendAsync = req =>
@@ -59,13 +59,13 @@ public class AffiliateServerStatusUpdaterTests
 			return response;
 		}
 
-		var client1Mock = CreateMockHttpClient(jsonContent: "{}",
+		var client1Mock = CreateIMockHttpClient(jsonContent: "{}",
 			Ok(),
 			Ok(),
 			Error(HttpStatusCode.InternalServerError),
 			Ok());
 
-		var client2Mock = CreateMockHttpClient(jsonContent: "{}",
+		var client2Mock = CreateIMockHttpClient(jsonContent: "{}",
 			Ok(),
 			Error(HttpStatusCode.NotFound),
 			Error(HttpStatusCode.Forbidden),
