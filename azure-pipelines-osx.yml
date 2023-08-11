@@ -30,12 +30,6 @@ jobs:
     inputs:
       command: build
       arguments: --no-restore --configuration Release
-  - task: CmdLine@2
-    inputs:
-      # Remove PathMap properties which ensure deterministic builds, since this
-      # interferes with the coverage analysis. sed -i seems unhappy with the
-      # shell glob but perl doesn't mind.
-      script: 'perl -ni -e "print unless /PathMap/" $(System.DefaultWorkingDirectory)/*/*.csproj'
   - task: DotNetCoreCLI@2
     displayName: 'Test Debug'
     inputs:
