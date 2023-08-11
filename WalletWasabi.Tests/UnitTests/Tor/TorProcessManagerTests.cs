@@ -1,5 +1,4 @@
 using Moq;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -8,11 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Microservices;
+using WalletWasabi.Tests.UnitTests.Helpers.PowerSaving;
 using WalletWasabi.Tests.UnitTests.Tor.Socks5.Pool;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
-using WalletWasabi.Tor.Socks5;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor;
@@ -40,10 +39,8 @@ public class TorProcessManagerTests
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
-		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
-		mockProcess.Setup(p => p.WaitForExitAsync(It.IsAny<CancellationToken>()))
-			.Returns((CancellationToken cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken));
-		mockProcess.Setup(p => p.Dispose());
+		using MockProcessAsync mockProcess = new(new ProcessStartInfo());
+		mockProcess.OnWaitForExitAsync = cancellationToken => Task.Delay(torProcessCrashPeriod, cancellationToken);
 
 		// Set TorTcpConnectionFactory.
 		MockTorTcpConnectionFactory mockTcpConnectionFactory = new(DummyTorControlEndpoint);
@@ -52,7 +49,7 @@ public class TorProcessManagerTests
 		// Mock TorProcessManager.
 		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.StartProcess(It.IsAny<string>()))
-			.Returns(mockProcess.Object);
+			.Returns(mockProcess);
 		mockTorProcessManager.Setup(c => c.EnsureRunningAsync(It.IsAny<ProcessAsync>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
 		mockTorProcessManager.SetupSequence(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
@@ -89,9 +86,8 @@ public class TorProcessManagerTests
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
-		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
-		mockProcess.SetupGet(p => p.Handle).Returns(IntPtr.Zero); // Any value is fine.
-		mockProcess.Setup(p => p.Dispose());
+		using MockProcessAsync mockProcess = new(new ProcessStartInfo());
+		mockProcess.OnHandle = () => IntPtr.Zero; // Any value is fine.
 
 		MockTorTcpConnectionFactory mockTcpConnectionFactory = new(DummyTorControlEndpoint);
 
