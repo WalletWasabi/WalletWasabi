@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,6 +88,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
 		{
 			initialState = State.Disabled;
+		}
+
+		//WalletSettingsModel walletSettingsModel = UiContext.WalletRepository.Wallets.FirstOrDefault(x => x.WalletModel.Name == walletVm.WalletName);
+
+		//if (walletSettingsModel.IsCoinJoinPaused)
+		if (true)
+		{
+			initialState = State.StoppedOrPaused;
 		}
 
 		_stateMachine = new StateMachine<State, Trigger>(initialState);
