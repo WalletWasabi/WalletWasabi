@@ -63,8 +63,7 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
-		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
+		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
 		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
@@ -105,8 +104,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
-		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
+		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
 		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
@@ -190,8 +188,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		Mock<IHttpClientFactory> mockIHttpClientFactory = new(MockBehavior.Strict);
-		using AffiliationManager affiliationManager = new(arena, config, mockIHttpClientFactory.Object);
+		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
 		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 

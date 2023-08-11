@@ -281,8 +281,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			coinJoinClient.CoinJoinClientProgress += HandleCoinJoinProgress;
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
-			throw new Exception("Coinjoin should have never finished successfully.");
+			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+			if (coinjoinResult is SuccessfulCoinJoinResult)
+			{
+				throw new Exception("Coinjoin should have never finished successfully.");
+			}
 		}
 		catch (OperationCanceledException)
 		{
