@@ -37,7 +37,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private CancellationTokenSource? _cancellationTokenSource;
 	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
-	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
@@ -91,6 +90,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(_ =>
+			{
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource = new();
+			})
 			.DoAsync(async transaction =>
 			{
 				await CheckChangePocketAvailableAsync(transaction);
@@ -100,8 +104,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
-
-		AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
 
 		if (PreferPsbtWorkflow)
 		{
@@ -191,9 +193,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
-			? new CustomFeeRateDialogViewModel(_info)
-			: new SendFeeViewModel(UiContext, _wallet, _info, false);
+		var feeDialog = new SendFeeViewModel(UiContext, _wallet, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
@@ -321,7 +321,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 				_info.FeeRate = maximumPossibleFeeRate;
-				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
+				_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
+					? estimate.Value
+					: TimeSpan.Zero;
 				return await BuildTransactionAsync();
 			}
 
@@ -365,7 +367,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 		_info.FeeRate = maximumPossibleFeeRate;
-		_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
+		_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
+			? estimate.Value
+			: TimeSpan.Zero;
 
 		return true;
 	}
@@ -385,11 +389,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
-
-		Observable
-			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
-			.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
-		.DisposeWith(disposables);
 
 		if (!isInHistory)
 		{

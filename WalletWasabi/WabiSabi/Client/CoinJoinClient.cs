@@ -327,7 +327,7 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
@@ -461,8 +461,9 @@ public class CoinJoinClient
 						{
 							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
 						}
-						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
+						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:

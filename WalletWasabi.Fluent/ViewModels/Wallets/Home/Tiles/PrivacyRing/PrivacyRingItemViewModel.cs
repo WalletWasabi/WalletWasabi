@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 

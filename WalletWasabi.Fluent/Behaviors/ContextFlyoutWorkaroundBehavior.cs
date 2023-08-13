@@ -35,8 +35,20 @@ public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 
 			Observable
 				.FromEventPattern<PixelPointEventArgs>(
-					handler => AssociatedObject!.PositionChanged += handler,
-					handler => AssociatedObject!.PositionChanged -= handler)
+					handler =>
+					{
+						if (AssociatedObject is not null)
+						{
+							AssociatedObject.PositionChanged += handler;
+						}
+					},
+					handler =>
+					{
+						if (AssociatedObject is not null)
+						{
+							AssociatedObject.PositionChanged -= handler;
+						}
+					})
 				.Subscribe(_ => CloseFlyouts())
 				.DisposeWith(disposables);
 		}
