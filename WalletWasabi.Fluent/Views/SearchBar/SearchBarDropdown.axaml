@@ -96,7 +96,7 @@
                      ToolTip.Tip="{Binding Name}"
                      VerticalAlignment="Center"  TextTrimming="CharacterEllipsis" MaxWidth="150" />
           <TextBlock Grid.Column="2" Opacity="0.5" VerticalAlignment="Center" ToolTip.Tip="{Binding Description}" Text="{Binding Description}"
-                     TextTrimming="CharacterEllipsis" MaxWidth="225" />
+                     TextTrimming="CharacterEllipsis" MaxWidth="230" />
         </Grid>
 
         <i:Interaction.Behaviors>
