@@ -783,7 +783,7 @@ public class TransactionFactoryTests
 			}
 			else
 			{
-				Assert.True(false, "Main value is not correct.");
+				Assert.Fail("Main value is not correct.");
 			}
 		}
 	}
