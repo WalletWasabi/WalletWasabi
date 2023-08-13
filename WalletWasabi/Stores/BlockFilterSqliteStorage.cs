@@ -297,8 +297,8 @@ public class BlockFilterSqliteStorage : IDisposable
 		using SqliteTransaction transaction = Connection.BeginTransaction();
 
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = """
-			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
+		command.CommandText = """ 
+			INSERT OR IGNORE INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
 			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
 			""";
 
