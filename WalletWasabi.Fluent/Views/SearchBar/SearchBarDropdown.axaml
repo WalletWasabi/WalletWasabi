@@ -39,7 +39,6 @@
         </Setter.Value>
       </Setter>
     </Style>
-
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -83,7 +82,6 @@
                         VerticalContentAlignment="Stretch"
                         Content="{Binding Content}" />
       </DockPanel>
-
     </DataTemplate>
 
     <DataTemplate DataType="searchItems:ActionableItem">
@@ -98,7 +96,7 @@
                      ToolTip.Tip="{Binding Name}"
                      VerticalAlignment="Center"  TextTrimming="CharacterEllipsis" MaxWidth="150" />
           <TextBlock Grid.Column="2" Opacity="0.5" VerticalAlignment="Center" ToolTip.Tip="{Binding Description}" Text="{Binding Description}"
-                     TextTrimming="CharacterEllipsis" />
+                     TextTrimming="CharacterEllipsis" MaxWidth="225" />
         </Grid>
 
         <i:Interaction.Behaviors>
@@ -107,10 +105,8 @@
             <InvokeCommandAction Command="{Binding $parent[searchBar:SearchBar].((sb:SearchBarViewModel)DataContext).ResetCommand}" />
           </EventTriggerBehavior>
         </i:Interaction.Behaviors>
-
       </Button>
     </DataTemplate>
-
   </UserControl.DataTemplates>
 
   <Panel VerticalAlignment="Center">
@@ -126,5 +122,4 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
   </Panel>
-
 </UserControl>
