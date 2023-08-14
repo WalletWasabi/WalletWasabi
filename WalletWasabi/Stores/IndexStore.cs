@@ -90,7 +90,7 @@ public class IndexStore : IAsyncDisposable
 			// Migration code.
 			if (RunMigration)
 			{
-				await Task.Run(() => MigrateToSqliteNoLock(cancellationToken), cancellationToken).ConfigureAwait(false);
+				MigrateToSqliteNoLock(cancellationToken);
 			}
 
 			// If the automatic migration to SQLite is stopped, we would not delete the old index data.
