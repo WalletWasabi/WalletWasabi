@@ -110,6 +110,11 @@ public class ReceiveViewModelTests
 		{
 			return ImmutableArray<(string Label, int Score)>.Empty;
 		}
+
+		public IWalletInfoModel GetWalletInfo()
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	private class AddressConfiguration
