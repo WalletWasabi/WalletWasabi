@@ -8,15 +8,13 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
-using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -65,6 +63,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 	{
 		return Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
 	}
+
 	public async Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
 	{
 		return options switch
@@ -76,6 +75,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 			_ => throw new InvalidOperationException($"{nameof(WalletCreationOptions)} not supported: {options?.GetType().Name}")
 		};
 	}
+
 	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
 	{
 		walletSettings.Save();
@@ -167,7 +167,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 			return result;
 		});
 
-		return new WalletSettingsModel(keyManager, true);
+		return new WalletSettingsModel(keyManager, true, true);
 	}
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)

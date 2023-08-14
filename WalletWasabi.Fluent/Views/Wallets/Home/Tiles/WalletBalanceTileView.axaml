@@ -19,7 +19,7 @@
       <c:CopyableItem ContentToCopy="{Binding UsdBalance^, Converter={x:Static converters:MoneyConverters.ToUsdNumber}}" HorizontalContentAlignment="Center">
         <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
                                  Opacity="0.8"
-                                 Content="{Binding UsdBalance^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
+                                 Content="{Binding UsdBalance^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
       </c:CopyableItem>
     </c:TileControl.BottomContent>
   </c:TileControl>

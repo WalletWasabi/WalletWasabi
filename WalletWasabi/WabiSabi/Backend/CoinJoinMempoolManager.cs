@@ -13,7 +13,7 @@ public class CoinJoinMempoolManager : IDisposable
 {
 	private bool _disposedValue;
 
-	public CoinJoinMempoolManager(ICoinJoinIdStore coinJoinIdStore, IMempoolMirror mempoolMirror)
+	public CoinJoinMempoolManager(ICoinJoinIdStore coinJoinIdStore, MempoolMirror mempoolMirror)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
 		MempoolMirror = mempoolMirror;
@@ -21,7 +21,7 @@ public class CoinJoinMempoolManager : IDisposable
 	}
 
 	private ICoinJoinIdStore CoinJoinIdStore { get; }
-	private IMempoolMirror MempoolMirror { get; set; }
+	private MempoolMirror MempoolMirror { get; }
 	public ImmutableArray<uint256> CoinJoinIds { get; private set; } = ImmutableArray.Create<uint256>();
 
 	private void Mempool_Tick(object? sender, TimeSpan e)
