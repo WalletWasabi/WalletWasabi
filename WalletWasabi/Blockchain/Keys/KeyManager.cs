@@ -257,9 +257,9 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null)
+	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
-		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, Network network, string? filePath = null)
