@@ -39,23 +39,12 @@ public class BatchController : ControllerBase
 	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
+	[ResponseCache(Duration = 60)]
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
-		[FromQuery, Required] int maxNumberOfFilters,
-		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
-		[FromQuery] string? indexType = null,
+		[FromQuery] string indexType = "segwittaproot",
 		CancellationToken cancellationToken = default)
 	{
-		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
-		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
-		if (estimateSmartFee)
-		{
-			if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out mode))
-			{
-				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
-			}
-		}
-
 		if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
 		{
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
@@ -66,7 +55,8 @@ public class BatchController : ControllerBase
 			return BadRequest("Not supported index type.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+		var numberOfFilters = Global.Config.Network == Network.Main ? 1000 : 10000;
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
@@ -86,16 +76,13 @@ public class BatchController : ControllerBase
 
 		response.CcjRoundStates = ChaumianCoinJoinController.GetStatesCollection();
 
-		if (estimateSmartFee)
+		try
 		{
-			try
-			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode, cancellationToken);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+			response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(EstimateSmartFeeMode.Conservative, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
 		}
 
 		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
@@ -105,3 +92,4 @@ public class BatchController : ControllerBase
 		return Ok(response);
 	}
 }
+

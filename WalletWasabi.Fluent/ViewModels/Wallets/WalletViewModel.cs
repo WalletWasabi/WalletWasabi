@@ -27,6 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	private readonly WalletPageViewModel _parent;
+
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
 	[AutoNotify] private bool _isPointerOver;
@@ -45,6 +46,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		_parent = parent;
 		Wallet = parent.Wallet;
+		WalletModel = parent.WalletModel;
 		UiContext = uiContext;
 
 		_title = WalletName;
@@ -57,11 +59,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-		//TODO: remove this after WalletViewModel is decoupled
-		var walletModel = WalletRepository.CreateWalletModel(Wallet);
-
-		Settings = new WalletSettingsViewModel(UiContext, walletModel);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, walletModel);
+		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(UiContext, this);
 
@@ -133,7 +132,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this, WalletModel);
 
 		Tiles = GetTiles().ToList();
 
@@ -145,6 +144,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public WalletState WalletState => Wallet.State;
 
 	private string _title;
+
+	// TODO: Rename this to "Wallet" after this ViewModel is decoupled and the current "Wallet" property is removed.
+	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
 
@@ -216,9 +218,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return parent.Wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletViewModel(uiContext, parent)
-			: parent.Wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(uiContext, parent)
-				: new WalletViewModel(uiContext, parent);
+			: new WalletViewModel(uiContext, parent);
 	}
 
 	public override string Title

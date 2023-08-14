@@ -164,7 +164,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 			return result;
 		});
 
-		return new WalletSettingsModel(keyManager, true);
+		return new WalletSettingsModel(keyManager, true, true);
 	}
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)

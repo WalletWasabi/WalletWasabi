@@ -96,19 +96,12 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 			x => x.LocalBitcoinCoreDataDir,
 			x => x.StopLocalBitcoinCoreOnShutdown,
 			x => x.BitcoinP2PEndPoint,
-			x => x.DustThreshold)
-			.Skip(1)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
-			.Do(_ => Save())
-			.Subscribe();
-
-		// Save on change (continued)
-		this.WhenAnyValue(
+			x => x.DustThreshold,
 			x => x.UseTor,
 			x => x.TerminateTorOnExit,
 			x => x.DownloadNewVersion)
 			.Skip(1)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
 			.Subscribe();
@@ -121,7 +114,8 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 			x => x.CustomChangeAddress,
 			x => x.SelectedFeeDisplayUnit,
 			x => x.RunOnSystemStartup,
-			x => x.HideOnClose)
+			x => x.HideOnClose,
+			x => x.PrivacyMode)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
@@ -215,5 +209,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		_uiConfig.FeeDisplayUnit = (int)SelectedFeeDisplayUnit;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+		_uiConfig.PrivacyMode = PrivacyMode;
 	}
 }

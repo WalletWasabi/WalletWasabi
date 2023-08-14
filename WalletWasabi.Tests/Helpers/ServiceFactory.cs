@@ -52,8 +52,8 @@ public static class ServiceFactory
 		}
 
 		var coinsView = new CoinsView(sCoins);
-		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
-		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
+		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password, allowUnconfirmed);
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)

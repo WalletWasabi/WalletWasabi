@@ -50,7 +50,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -82,8 +82,8 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
+		walletManager.RegisterServices();
 
 		var baseTip = await rpc.GetBestBlockHashAsync();
 
@@ -105,10 +105,13 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
+			// Start wallet and filter processing service
+			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+
 			var coin = Assert.Single(wallet.Coins);
 			Assert.True(coin.Confirmed);
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
@@ -270,7 +273,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(testDeadlineCts.Token);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(testDeadlineCts.Token);
