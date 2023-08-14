@@ -63,7 +63,7 @@ public partial class MainViewModel : ViewModelBase
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
 		_settingsPage = new SettingsPageViewModel(UiContext);
-		_privacyMode = new PrivacyModeViewModel();
+		_privacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();

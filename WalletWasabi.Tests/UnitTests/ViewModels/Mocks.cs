@@ -17,12 +17,12 @@ public static class Mocks
 {
 	public static UiContext ContextStub()
 	{
-		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig());
+		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig(), new NullApplicationSettings());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
-		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig());
+		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig(), new NullApplicationSettings());
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
 	}

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -23,7 +22,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
-	private const string RoundFinishedMessage = "Round completed, awaiting next round";
+	private const string RoundFinishedMessage = "Round ended, awaiting next round";
 	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
 	private const string CoinJoinInProgress = "Coinjoin in progress";
 	private const string InputRegistrationMessage = "Awaiting other participants";
@@ -34,7 +33,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
+	private const string BackendNotConnected = "Awaiting connection";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
+	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
+	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
+	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
+	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
@@ -57,7 +61,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	private CoinJoinStateViewModel(WalletViewModel walletVm)
+	private CoinJoinStateViewModel(WalletViewModel walletVm, IWalletModel walletModel)
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
@@ -75,13 +79,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Select(_ => WalletVm.Wallet.IsWalletPrivate())
 			.BindTo(this, x => x.AreAllCoinsPrivate);
 
-		var initialState = walletVm.CoinJoinSettings.AutoCoinJoin
+		var initialState =
+			walletModel.Settings.AutoCoinjoin
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
+		if (walletModel.IsHardwareWallet || walletModel.IsWatchOnlyWallet)
 		{
 			initialState = State.Disabled;
+		}
+
+		if (walletModel.Settings.IsCoinJoinPaused)
+		{
+			initialState = State.StoppedOrPaused;
 		}
 
 		_stateMachine = new StateMachine<State, Trigger>(initialState);
@@ -94,9 +104,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				// TODO: remove this after CoinjoinStateViewModel is decoupled
-				var walletSettings = new WalletSettingsModel(wallet.KeyManager);
-				await UiContext.Navigate().To().CoinJoinProfiles(walletSettings, NavigationTarget.DialogScreen).GetResultAsync();
+				await UiContext.Navigate().To().CoinJoinProfiles(walletModel.Settings, NavigationTarget.DialogScreen).GetResultAsync();
 			}
 
 			if (wallet.KeyManager.IsCoinjoinProfileSelected)
@@ -316,9 +324,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
+					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
+					CoinjoinError.BackendNotSynchronized => BackendNotConnected,
+					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
+					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
+					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
 					_ => GeneralErrorMessage
 				};
 				break;

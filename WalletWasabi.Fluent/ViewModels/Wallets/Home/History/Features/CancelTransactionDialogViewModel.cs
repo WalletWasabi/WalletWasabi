@@ -15,7 +15,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(Title = "Cancel Transaction")]
+[NavigationMetaData(Title = "Cancel Transaction", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly UiTriggers _triggers;
@@ -51,9 +51,9 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_triggers.TransactionsUpdateTrigger
-			.Select(_ => _wallet.GetTransactions().First(s => s.GetHash() == _transactionToCancel.GetHash()))
-			.Select(x => x.Confirmed)
-			.Where(isConfirmed => isConfirmed)
+			.Select(_ => _wallet.GetTransactions().FirstOrDefault(s => s.GetHash() == _transactionToCancel.GetHash()))
+			.WhereNotNull()
+			.Where(s => s.Confirmed)
 			.Do(_ => Navigate().Back())
 			.Subscribe()
 			.DisposeWith(disposables);
@@ -72,7 +72,8 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(cancellingTransaction.Transaction);
 				_wallet.UpdateUsedHdPubKeysLabels(cancellingTransaction.HdPubKeysWithNewLabels);
-				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction);
+				var (title, caption) = ("Success", "Your transaction has been successfully cancelled.");
+				UiContext.Navigate().To().SendSuccess(_wallet, cancellingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)
@@ -81,7 +82,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 
 			var msg = _transactionToCancel.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
 
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.");
+			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.", NavigationTarget.CompactDialogScreen);
 		}
 
 		IsBusy = false;
