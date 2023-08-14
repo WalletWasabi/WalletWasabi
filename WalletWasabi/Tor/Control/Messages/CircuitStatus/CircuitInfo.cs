@@ -7,15 +7,15 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
 /// <summary>Implemented as specified in <c>4.1.1. Circuit status changed</c> spec.</summary>
 /// <remarks>
-/// Note that the <see cref="CircuitID"/> and <see cref="CircStatus"/> are then only mandatory
+/// Note that the <see cref="CircuitID"/> and <see cref="CircuitStatus"/> are then only mandatory
 /// fields in <c>GETINFO circuit-status</c> reply.
 /// </remarks>
 public record CircuitInfo
 {
-	public CircuitInfo(string circuitID, CircStatus circStatus)
+	public CircuitInfo(string circuitID, CircuitStatus circuitStatus)
 	{
 		CircuitID = circuitID;
-		CircStatus = circStatus;
+		CircuitStatus = circuitStatus;
 	}
 
 	/// <summary>Unique circuit identifier.</summary>
@@ -25,8 +25,8 @@ public record CircuitInfo
 	/// </remarks>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.4. General-use tokens</seealso>
 	public string CircuitID { get; }
-	public CircStatus CircStatus { get; }
-	public List<CircPath> CircPaths { get; init; } = new();
+	public CircuitStatus CircuitStatus { get; }
+	public List<CircuitPath> CircuitPaths { get; init; } = new();
 	public List<BuildFlag> BuildFlags { get; init; } = new();
 	public Purpose? Purpose { get; init; }
 	public HsState? HsState { get; init; }
@@ -46,9 +46,9 @@ public record CircuitInfo
 	public static CircuitInfo ParseLine(string line)
 	{
 		(string circuitId, string remainder1) = Tokenizer.ReadUntilSeparator(line);
-		(string circuitStatus, string remainder2) = Tokenizer.ReadUntilSeparator(remainder1);
+		(string circuitStatusString, string remainder2) = Tokenizer.ReadUntilSeparator(remainder1);
 
-		CircStatus circStatus = Tokenizer.ParseEnumValue(circuitStatus, CircStatus.UNKNOWN);
+		CircuitStatus circuitStatus = Tokenizer.ParseEnumValue(circuitStatusString, CircuitStatus.UNKNOWN);
 
 		string remainder = remainder2;
 
@@ -61,7 +61,7 @@ public record CircuitInfo
 		Reason? remoteReason = null;
 		string? userName = null;
 		string? userPassword = null;
-		List<CircPath> circPaths = new();
+		List<CircuitPath> circuitPaths = new();
 
 		// Optional arguments.
 		while (remainder != "")
@@ -71,7 +71,7 @@ public record CircuitInfo
 			{
 				string pathVal;
 				(pathVal, remainder) = Tokenizer.ReadUntilSeparator(remainder);
-				circPaths = ParseCircPath(pathVal);
+				circuitPaths = ParseCircuitPath(pathVal);
 
 				continue;
 			}
@@ -97,11 +97,11 @@ public record CircuitInfo
 			}
 			else if (key == "PURPOSE")
 			{
-				purpose = Tokenizer.ParseEnumValue(value, CircuitStatus.Purpose.UNKNOWN);
+				purpose = Tokenizer.ParseEnumValue(value, Messages.CircuitStatus.Purpose.UNKNOWN);
 			}
 			else if (key == "HS_STATE")
 			{
-				hsState = Tokenizer.ParseEnumValue(value, CircuitStatus.HsState.UNKNOWN);
+				hsState = Tokenizer.ParseEnumValue(value, Messages.CircuitStatus.HsState.UNKNOWN);
 			}
 			else if (key == "REND_QUERY")
 			{
@@ -113,11 +113,11 @@ public record CircuitInfo
 			}
 			else if (key == "REASON")
 			{
-				reason = Tokenizer.ParseEnumValue(value, CircuitStatus.Reason.UNKNOWN);
+				reason = Tokenizer.ParseEnumValue(value, Messages.CircuitStatus.Reason.UNKNOWN);
 			}
 			else if (key == "REMOTE_REASON")
 			{
-				reason = Tokenizer.ParseEnumValue(value, CircuitStatus.Reason.UNKNOWN);
+				reason = Tokenizer.ParseEnumValue(value, Messages.CircuitStatus.Reason.UNKNOWN);
 			}
 			else
 			{
@@ -127,9 +127,9 @@ public record CircuitInfo
 			remainder = rest;
 		}
 
-		CircuitInfo circuitInfo = new(circuitId, circStatus)
+		CircuitInfo circuitInfo = new(circuitId, circuitStatus)
 		{
-			CircPaths = circPaths,
+			CircuitPaths = circuitPaths,
 			BuildFlags = buildFlags,
 			Purpose = purpose,
 			HsState = hsState,
@@ -145,25 +145,25 @@ public record CircuitInfo
 	}
 
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.4. General-use tokens (see <c>LongName</c>)</seealso>
-	private static List<CircPath> ParseCircPath(string paths)
+	private static List<CircuitPath> ParseCircuitPath(string paths)
 	{
-		List<CircPath> result = new();
+		List<CircuitPath> result = new();
 
 		foreach (string path in paths.Split(','))
 		{
 			if (path.IndexOf('=') > -1)
 			{
 				string[] parts = path.Split('=', count: 2);
-				result.Add(new CircPath(FingerPrint: parts[0], Nickname: parts[1]));
+				result.Add(new CircuitPath(FingerPrint: parts[0], Nickname: parts[1]));
 			}
 			else if (path.IndexOf('~') > -1)
 			{
 				string[] parts = path.Split('~', count: 2);
-				result.Add(new CircPath(FingerPrint: parts[0], Nickname: parts[1]));
+				result.Add(new CircuitPath(FingerPrint: parts[0], Nickname: parts[1]));
 			}
 			else
 			{
-				result.Add(new CircPath(FingerPrint: path, Nickname: null));
+				result.Add(new CircuitPath(FingerPrint: path, Nickname: null));
 			}
 		}
 
@@ -176,7 +176,7 @@ public record CircuitInfo
 		string args = string.Join(
 			separator: ", ",
 			$"{nameof(CircuitID)}='{CircuitID}'",
-			$"{nameof(CircStatus)}={CircStatus}",
+			$"{nameof(CircuitStatus)}={CircuitStatus}",
 			$"{nameof(RendQuery)}={RendQuery ?? "null"}",
 			$"{nameof(TimeCreated)}={TimeCreated ?? "null"}",
 			$"{nameof(Purpose)}={(Purpose.HasValue ? Purpose : "null")}",

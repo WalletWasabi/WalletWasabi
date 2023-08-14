@@ -233,7 +233,8 @@ public class PubKeyReuseAnonScoreTests
 			othersInputCount: 9,
 			Common.Repeat(() => new TxOut(equalOutputAmount, new Key()), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
 			new[] { (Money.Coins(1.1m), 1, BitcoinFactory.CreateHdPubKey(km)) },
-			new[] { (equalOutputAmount, HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
+			new[] { (equalOutputAmount, HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) },
+			orderByAmount: false);
 
 		analyser.Analyze(tx);
 

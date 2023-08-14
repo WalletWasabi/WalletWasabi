@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -13,6 +14,7 @@ using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -38,6 +40,9 @@ public class TagsBox : TemplatedControl
 
 	public static readonly DirectProperty<TagsBox, bool> RequestAddProperty =
 		AvaloniaProperty.RegisterDirect<TagsBox, bool>(nameof(RequestAdd), o => o.RequestAdd);
+
+	public static readonly StyledProperty<bool> ForceAddProperty =
+		AvaloniaProperty.Register<TagsBox, bool>(nameof(ForceAdd));
 
 	public static readonly StyledProperty<string> WatermarkProperty =
 		TextBox.WatermarkProperty.AddOwner<TagsBox>();
@@ -117,12 +122,6 @@ public class TagsBox : TemplatedControl
 		private set => SetValue(IsCurrentTextValidProperty, value);
 	}
 
-	public bool RequestAdd
-	{
-		get => _requestAdd;
-		set => SetAndRaise(RequestAddProperty, ref _requestAdd, value);
-	}
-
 	public IEnumerable<string>? TopItems
 	{
 		get => _topItems;
@@ -133,6 +132,18 @@ public class TagsBox : TemplatedControl
 	{
 		get => GetValue(WatermarkProperty);
 		set => SetValue(WatermarkProperty, value);
+	}
+
+	public bool RequestAdd
+	{
+		get => _requestAdd;
+		set => SetAndRaise(RequestAddProperty, ref _requestAdd, value);
+	}
+
+	public bool ForceAdd
+	{
+		get => GetValue(ForceAddProperty);
+		set => SetValue(ForceAddProperty, value);
 	}
 
 	public bool RestrictInputToSuggestions
@@ -248,6 +259,19 @@ public class TagsBox : TemplatedControl
 			})
 			.DisposeWith(_compositeDisposable);
 
+		Observable
+			.FromEventPattern<CancelEventArgs>(_autoCompleteBox, nameof(_autoCompleteBox.DropDownOpening))
+			.Select(x => (AutoCompleteBox: (x.Sender as AutoCompleteBox)!, EventArgs: x.EventArgs))
+			.Where(x => string.IsNullOrEmpty(x.AutoCompleteBox.Text))
+			.Subscribe(x => x.EventArgs.Cancel = true)
+			.DisposeWith(_compositeDisposable);
+
+		_autoCompleteBox
+			.WhenAnyValue(x => x.Text)
+			.Where(string.IsNullOrEmpty)
+			.Subscribe(_ => _autoCompleteBox.IsDropDownOpen = false)
+			.DisposeWith(_compositeDisposable);
+
 		_autoCompleteBox
 			.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
 			.DisposeWith(_compositeDisposable);
@@ -262,23 +286,26 @@ public class TagsBox : TemplatedControl
 			.Subscribe(_ => RequestAdd = true)
 			.DisposeWith(_compositeDisposable);
 
-		this.WhenAnyValue(x => x.RequestAdd)
-			.Where(x => x)
-			.Throttle(TimeSpan.FromMilliseconds(10))
+		Observable.Merge(
+				this.WhenAnyValue(x => x.RequestAdd).Where(x => x).Throttle(TimeSpan.FromMilliseconds(10)).ToSignal(),
+				this.WhenAnyValue(x => x.ForceAdd).Where(x => x).ToSignal())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => CurrentText)
 			.Subscribe(currentText =>
 			{
-				Dispatcher.UIThread.Post(() => RequestAdd = false);
+				Dispatcher.UIThread.Post(() =>
+				{
+					RequestAdd = false;
+					ForceAdd = false;
+				});
 				ClearInputField();
-
 				var tags = GetFinalTags(currentText, TagSeparator);
-
 				foreach (string tag in tags)
 				{
 					AddTag(tag);
 				}
-			});
+			})
+			.DisposeWith(_compositeDisposable);
 
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>

@@ -1,10 +1,8 @@
-using NBitcoin;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
@@ -42,7 +40,7 @@ public class CoinJoinTrackerFactory
 		}
 
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
-		var outputProvider = new OutputProvider(wallet.DestinationProvider); 
+		var outputProvider = new OutputProvider(wallet.DestinationProvider, InsecureRandom.Instance);
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			wallet.KeyChain,

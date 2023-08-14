@@ -1,4 +1,4 @@
-﻿using System.Reactive;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -25,7 +25,7 @@ public class UiTriggers
 	public IObservable<Unit> TransactionsUpdateTrigger =>
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal()
-			.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).ToSignal())
+			.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal())
 			.Sample(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.StartWith(Unit.Default);

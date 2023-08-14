@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.Transactions;
 public class TransactionFactory
 {
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false, bool allowDoubleSpend = false)
 	{
 		Network = network;
 		KeyManager = keyManager;
@@ -28,6 +28,7 @@ public class TransactionFactory
 		TransactionStore = transactionStore;
 		Password = password;
 		AllowUnconfirmed = allowUnconfirmed;
+		AllowDoubleSpend = allowDoubleSpend;
 	}
 
 	public Network Network { get; }
@@ -35,6 +36,7 @@ public class TransactionFactory
 	public ICoinsView Coins { get; }
 	public string Password { get; }
 	public bool AllowUnconfirmed { get; }
+	public bool AllowDoubleSpend { get; }
 	private ITransactionStore TransactionStore { get; }
 
 	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
@@ -66,6 +68,21 @@ public class TransactionFactory
 
 		// Get allowed coins to spend.
 		var availableCoinsView = Coins.Unspent();
+		if (AllowDoubleSpend && allowedInputs is not null)
+		{
+			var doubleSpends = new List<SmartCoin>();
+			foreach (var input in allowedInputs)
+			{
+				if (((CoinsRegistry)Coins).AsAllCoinsView().TryGetByOutPoint(input, out var coin)
+					&& coin.SpenderTransaction is not null
+					&& !coin.SpenderTransaction.Confirmed)
+				{
+					doubleSpends.Add(coin);
+				}
+			}
+			availableCoinsView = new CoinsView(availableCoinsView.ToList().Concat(doubleSpends));
+		}
+
 		List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
@@ -155,7 +172,7 @@ public class TransactionFactory
 
 		var realToSend = payments.Requests
 			.Select(t =>
-				(label: t.Label,
+				(label: t.Labels,
 				destination: t.Destination,
 				amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
 			.Where(i => i.amount is not null);
@@ -235,12 +252,12 @@ public class TransactionFactory
 			}
 		}
 
-		var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
+		var smartTransaction = new SmartTransaction(tx, Height.Unknown, labels: LabelsArray.Merge(payments.Requests.Select(x => x.Labels)));
 		foreach (var coin in spentCoins)
 		{
 			smartTransaction.TryAddWalletInput(coin);
 		}
-		var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
+		var label = LabelsArray.Merge(payments.Requests.Select(x => x.Labels).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Labels)));
 
 		for (var i = 0U; i < tx.Outputs.Count; i++)
 		{
@@ -248,13 +265,13 @@ public class TransactionFactory
 			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
-				label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
+				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinlabel.
 				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 
 		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
-		Dictionary<HdPubKey, SmartLabel> hdPubKeysWithNewLabels = new();
+		Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels = new();
 
 		foreach (var coin in smartTransaction.WalletOutputs)
 		{
@@ -268,13 +285,13 @@ public class TransactionFactory
 			}
 			else
 			{
-				hdPubKeysWithNewLabels.Add(coin.HdPubKey, SmartLabel.Merge(coin.HdPubKey.Label, foundPaymentRequest.Label));
+				hdPubKeysWithNewLabels.Add(coin.HdPubKey, LabelsArray.Merge(coin.HdPubKey.Labels, foundPaymentRequest.Labels));
 			}
 		}
 
-		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
-
 		var sign = !KeyManager.IsWatchOnly;
+
+		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 

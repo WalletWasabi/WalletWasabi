@@ -10,26 +10,28 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
-	public CoinsRegistry()
-	{
-		Coins = new HashSet<SmartCoin>();
-		SpentCoins = new HashSet<SmartCoin>();
-		LatestCoinsSnapshot = new HashSet<SmartCoin>();
-		LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
-		InvalidateSnapshot = false;
-		CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
-		Lock = new object();
-	}
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> Coins { get; } = new();
 
-	private HashSet<SmartCoin> Coins { get; }
-	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
-	private object Lock { get; set; }
-	private HashSet<SmartCoin> SpentCoins { get; }
-	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
 
-	public bool IsEmpty => !AsCoinsView().Any();
+	private object Lock { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> SpentCoins { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -39,6 +41,7 @@ public class CoinsRegistry : ICoinsView
 			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 			InvalidateSnapshot = false;
 		}
+
 		return new CoinsView(LatestCoinsSnapshot);
 	}
 
@@ -50,6 +53,7 @@ public class CoinsRegistry : ICoinsView
 			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 			InvalidateSnapshot = false;
 		}
+
 		return new CoinsView(LatestSpentCoinsSnapshot);
 	}
 
@@ -104,10 +108,12 @@ public class CoinsRegistry : ICoinsView
 							}
 						}
 					}
+
 					InvalidateSnapshot = true;
 				}
 			}
 		}
+
 		return added;
 	}
 
@@ -126,8 +132,12 @@ public class CoinsRegistry : ICoinsView
 		{
 			if (!Coins.Remove(toRemove))
 			{
-				SpentCoins.Remove(toRemove);
+				if (SpentCoins.Remove(toRemove))
+				{
+					SpentCoinsByOutPoint.Remove(toRemove.Outpoint);
+				}
 			}
+
 			toRemove.UnregisterFromHdPubKey();
 
 			var removedCoinOutPoint = toRemove.Outpoint;
@@ -146,6 +156,7 @@ public class CoinsRegistry : ICoinsView
 				}
 			}
 		}
+
 		InvalidateSnapshot = true;
 		return coinsToRemove;
 	}
@@ -154,12 +165,16 @@ public class CoinsRegistry : ICoinsView
 	{
 		tx.TryAddWalletInput(spentCoin);
 		spentCoin.SpenderTransaction = tx;
+
 		lock (Lock)
 		{
 			if (Coins.Remove(spentCoin))
 			{
 				InvalidateSnapshot = true;
-				SpentCoins.Add(spentCoin);
+				if (SpentCoins.Add(spentCoin))
+				{
+					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
+				}
 			}
 		}
 	}
@@ -192,6 +207,14 @@ public class CoinsRegistry : ICoinsView
 		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 	}
 
+	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
+	{
+		lock (Lock)
+		{
+			return SpentCoinsByOutPoint.TryGetValue(outPoint, out coin);
+		}
+	}
+
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 	{
 		lock (Lock)
@@ -211,11 +234,14 @@ public class CoinsRegistry : ICoinsView
 			{
 				if (SpentCoins.Remove(destroyedCoin))
 				{
+					SpentCoinsByOutPoint.Remove(destroyedCoin.Outpoint);
 					Coins.Add(destroyedCoin);
 					toAdd.Add(destroyedCoin);
 				}
 			}
+
 			InvalidateSnapshot = true;
+
 			return (new CoinsView(toRemove), new CoinsView(toAdd));
 		}
 	}

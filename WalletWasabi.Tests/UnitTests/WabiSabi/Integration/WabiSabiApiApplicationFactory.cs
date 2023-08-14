@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -24,6 +25,7 @@ using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.BitcoinCore.Mempool;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -58,7 +60,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<Arena>();
 			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
-			services.AddScoped<Prison>();
+			services.AddScoped<Prison>(_ => WabiSabiFactory.CreatePrison());
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
@@ -67,6 +69,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 			services.AddHttpClient();
 			services.AddSingleton<AffiliationManager>();
+			services.AddSingleton<CoinJoinMempoolManager>();
+			services.AddSingleton(s => new MempoolMirror(TimeSpan.Zero, null!, null!));
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
@@ -91,11 +95,4 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
 		new(new ClearnetHttpClient(httpClient));
-
-	private static AffiliationManager NewMockAffiliationManager()
-	{
-		Mock<AffiliationManager> mockManager = new();
-		mockManager.Setup(x => x.GetAffiliateInformation()).Returns(AffiliateInformation.Empty);
-		return mockManager.Object;
-	}
 }

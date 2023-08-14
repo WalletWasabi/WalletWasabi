@@ -39,7 +39,7 @@ public static class ServiceFactory
 		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 		foreach (var coin in sCoins)
 		{
-			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
+			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Labels.IsEmpty && c.HdPubKey.Labels == coin.HdPubKey.Labels))
 			{
 				sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 			}
@@ -52,8 +52,8 @@ public static class ServiceFactory
 		}
 
 		var coinsView = new CoinsView(sCoins);
-		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
-		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
+		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password, allowUnconfirmed);
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)

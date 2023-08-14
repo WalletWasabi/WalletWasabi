@@ -11,35 +11,28 @@ namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
-	public ClipboardObserver(WalletBalances walletBalances)
+	public ClipboardObserver(IWalletBalancesModel walletBalances)
 	{
 		WalletBalances = walletBalances;
 	}
 
-	private WalletBalances WalletBalances { get; }
+	private IWalletBalancesModel WalletBalances { get; }
 
 	public IObservable<string?> ClipboardUsdContentChanged(IScheduler scheduler)
 	{
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
-			.CombineLatest(
-				WalletBalances.UsdBalance,
-				(text, balanceUsd) => ParseToUsd(text)
-						.Ensure(n => n <= balanceUsd)
-						.Ensure(n => n >= 1)
-						.Ensure(n => n.CountDecimalPlaces() <= 2))
+			.CombineLatest(WalletBalances.Usd, ParseToUsd)
 			.Select(money => money?.ToString("0.00"));
 	}
 
 	public IObservable<string?> ClipboardBtcContentChanged(IScheduler scheduler)
 	{
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
-			.CombineLatest(
-				WalletBalances.BtcBalance,
-				(text, balance) => ParseToMoney(text).Ensure(m => m <= balance))
+			.CombineLatest(WalletBalances.Btc, ParseToMoney)
 			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
 	}
 
-	private static decimal? ParseToUsd(string? text)
+	public static decimal? ParseToUsd(string? text)
 	{
 		if (text is null)
 		{
@@ -54,7 +47,15 @@ internal class ClipboardObserver
 		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
-	private static Money? ParseToMoney(string? text)
+	public static decimal? ParseToUsd(string? text, decimal balanceUsd)
+	{
+		return ParseToUsd(text)
+			.Ensure(n => n <= balanceUsd)
+			.Ensure(n => n >= 1)
+			.Ensure(n => n.CountDecimalPlaces() <= 2);
+	}
+
+	public static Money? ParseToMoney(string? text)
 	{
 		if (text is null)
 		{
@@ -67,5 +68,10 @@ internal class ClipboardObserver
 		}
 
 		return Money.TryParse(text, out var n) ? n : default;
+	}
+
+	public static Money? ParseToMoney(string? text, Money balance)
+	{
+		return ParseToMoney(text).Ensure(m => m <= balance);
 	}
 }

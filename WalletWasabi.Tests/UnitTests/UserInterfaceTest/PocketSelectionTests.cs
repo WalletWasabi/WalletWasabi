@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
 
 public class PocketSelectionTests
 {
-	private LabelSelectionViewModel CreateLabelSelectionViewModel(Money amount, SmartLabel recipient)
+	private LabelSelectionViewModel CreateLabelSelectionViewModel(Money amount, LabelsArray recipient)
 	{
 		var pw = "";
 		var km = KeyManager.Recover(
@@ -37,7 +37,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -62,7 +62,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AllWhitelistPocketsAreOutputAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -83,7 +83,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPocketsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -101,7 +101,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAndTheOtherLabelsInThosePocketsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -119,7 +119,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListSwapsAllLabelsInOtherPocketsThatContainTargetLabelAndTheOtherLabelsInThosePocketsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -137,7 +137,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task OutPutMatchesWhiteListScenario1Async()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -156,7 +156,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task BlackListHighlightsLabelsExclusivelyThatExistInMultiplePocketsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -185,7 +185,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task BlackListHighlightsDealWithMultipleOverlapsCorrectlyAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
@@ -216,7 +216,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsDealWithMultipleOverlapsCorrectlyAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan");
@@ -235,7 +235,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListSwapsGroupedLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPocketsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
@@ -260,7 +260,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task MovesFromWhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -294,7 +294,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task PrivateAndSemiPrivatePocketsAreHiddenAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -313,7 +313,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task UseOnlyPrivateFundsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.1M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -336,7 +336,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task UsePrivateAndSemiPrivateFundsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.5"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.5"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.9M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -380,7 +380,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task IncludePrivateFundsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -400,7 +400,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task IncludePrivateAndSemiPrivateFundsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.6M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -420,7 +420,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task StillIncludePrivateFundsAfterSwapAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 		var pockets = new List<Pocket>();
 
 		var privateCoin = LabelTestExtensions.CreateCoin(0.8m, "", 999);
@@ -453,7 +453,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task NotEnoughSelectedAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "David");
@@ -726,7 +726,7 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task NotEnoughSelectedWhenSameLabelFoundInSeveralPocketsAsync()
 	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), SmartLabel.Empty);
+		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.4M, out _, "Dan");
@@ -780,7 +780,7 @@ public class PocketSelectionTests
 			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
 		};
 		var coinsView = new CoinsView(privateCoins.ToArray());
-		var pocket = new Pocket((SmartLabel.Empty, coinsView));
+		var pocket = new Pocket((LabelsArray.Empty, coinsView));
 		pockets.Add(pocket);
 
 		await selection.ResetAsync(pockets.ToArray());
@@ -806,7 +806,7 @@ public class PocketSelectionTests
 			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
 		};
 		var coinsView = new CoinsView(semiPrivateCoins.ToArray());
-		var pocket = new Pocket((SmartLabel.Empty, coinsView));
+		var pocket = new Pocket((LabelsArray.Empty, coinsView));
 		pockets.Add(pocket);
 
 		await selection.ResetAsync(pockets.ToArray());
@@ -832,7 +832,7 @@ public class PocketSelectionTests
 			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
 		};
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());
-		var privatePocket = new Pocket((SmartLabel.Empty, privateCoinsView));
+		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
 		pockets.Add(privatePocket);
 
 		var semiPrivateCoins = new[]
@@ -841,7 +841,7 @@ public class PocketSelectionTests
 			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
 		};
 		var semiPrivateCoinsView = new CoinsView(semiPrivateCoins.ToArray());
-		var semiPrivatePocket = new Pocket((SmartLabel.Empty, semiPrivateCoinsView));
+		var semiPrivatePocket = new Pocket((LabelsArray.Empty, semiPrivateCoinsView));
 		pockets.Add(semiPrivatePocket);
 
 		await selection.ResetAsync(pockets.ToArray());
@@ -851,6 +851,70 @@ public class PocketSelectionTests
 		await selection.SetUsedLabelAsync(output.SelectMany(x => x.Coins), privateThreshold: 10);
 
 		Assert.True(selection.EnoughSelected);
+	}
+
+	[Fact]
+	public async Task IsPocketEnoughWithoutCoinjoiningCoinsAsync()
+	{
+		var selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), "Daniel");
+
+		var pockets = new List<Pocket>();
+		var privateCoins = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+		};
+		var privateCoinsView = new CoinsView(privateCoins.ToArray());
+		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
+		pockets.Add(privatePocket);
+
+		var coinjoiningCoins = new List<SmartCoin>() { privateCoins[0], privateCoins[1] };
+		var excludedCoinsView = new CoinsView(coinjoiningCoins.ToArray());
+
+		await selection.ResetAsync(pockets.ToArray(), coinsToExclude: coinjoiningCoins);
+
+		var output = await selection.AutoSelectPocketsAsync();
+
+		var selectedCoins = output.SelectMany(pocket => pocket.Coins);
+
+		Assert.True(selection.EnoughSelected);
+		Assert.Empty(selectedCoins.Intersect(excludedCoinsView));
+		Assert.DoesNotContain(privateCoins[0], selectedCoins);
+		Assert.DoesNotContain(privateCoins[1], selectedCoins);
+		Assert.Contains(privateCoins[2], selectedCoins);
+	}
+
+	[Fact]
+	public async Task UseCoinjoiningCoinsIfNecessaryAsync()
+	{
+		var selection = CreateLabelSelectionViewModel(Money.Parse("2.9"), "Daniel");
+
+		var pockets = new List<Pocket>();
+		var privateCoins = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+		};
+
+		var privateCoinsView = new CoinsView(privateCoins.ToArray());
+		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
+		pockets.Add(privatePocket);
+
+		var coinjoiningCoins = new List<SmartCoin>() { privateCoins[0], privateCoins[1] };
+		var excludedCoinsView = new CoinsView(coinjoiningCoins.ToArray());
+
+		await selection.ResetAsync(pockets.ToArray(), coinsToExclude: coinjoiningCoins);
+
+		var output = await selection.AutoSelectPocketsAsync();
+
+		var selectedCoins = output.SelectMany(pocket => pocket.Coins);
+
+		Assert.True(selection.EnoughSelected);
+		Assert.Contains(privateCoins[0], selectedCoins);
+		Assert.Contains(privateCoins[1], selectedCoins);
+		Assert.Contains(privateCoins[2], selectedCoins);
 	}
 
 	[Fact]

@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -15,9 +17,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	private readonly IMainWindowService _mainWindowService;
 	[AutoNotify] private bool _isMainWindowShown = true;
 
-	public ApplicationViewModel(IMainWindowService mainWindowService)
+	public ApplicationViewModel(UiContext uiContext, IMainWindowService mainWindowService)
 	{
 		_mainWindowService = mainWindowService;
+
+		UiContext = uiContext;
+		MainViewModel = new MainViewModel(UiContext);
 
 		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
 
@@ -41,6 +46,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		TrayIcon = new WindowIcon(bitmap);
 	}
 
+	public MainViewModel MainViewModel { get; }
 	public WindowIcon TrayIcon { get; }
 	public ICommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
@@ -51,8 +57,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	private void AboutExecute()
 	{
-		MainViewModel.Instance.DialogScreen.To(
-			new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null));
+		MainViewModel.Instance.DialogScreen.To().About(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null);
 	}
 
 	private IObservable<bool> AboutCanExecute()
@@ -75,7 +80,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			return;
 		}
 
-		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
+		UiContext.Navigate().To().ShuttingDown(this, restartRequest);
 	}
 
 	public bool CanShutdown(bool restart)
@@ -90,7 +95,11 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool MainViewCanShutdown()
 	{
-		return !MainViewModel.Instance.IsDialogOpen();
+		// Main view can shutdown when:
+		// - no open dialog
+		// - or no wallets available
+		return !MainViewModel.Instance.IsDialogOpen()
+		       || !MainViewModel.Instance.NavBar.Wallets.Any();
 	}
 
 	public bool CoinJoinCanShutdown()

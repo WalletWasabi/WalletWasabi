@@ -1,5 +1,3 @@
-using System.Linq;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -14,14 +12,12 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
-	[AutoNotify] private bool _transactionHasPockets;
-	[AutoNotify] private string _confirmationTimeText = "";
+	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string _feeText = "";
-	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
-	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
-	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
+	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
+	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private string _fee = "";
 	[AutoNotify] private string _amount = "";
 
@@ -30,10 +26,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Parent = parent;
 		_wallet = wallet;
 		IsPreview = isPreview;
-
-		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
-
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
@@ -53,9 +45,10 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		_transaction = transactionResult;
 
-		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
+		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, info.FeeRate, out var estimate);
+		ConfirmationTime = estimate;
 
-		var destinationAmount = _transaction.CalculateDestinationAmount();
+		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 		Amount = destinationAmount.ToString();
 
@@ -73,14 +66,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			FeeText += $" {fiatFeeText}";
 		}
 
-		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
-
-		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient));
-		TransactionHasPockets = Labels.Any();
-
 		Recipient = info.Recipient;
-
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 	}

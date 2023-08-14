@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
@@ -91,7 +92,7 @@ public class CoordinatorRound
 	public event EventHandler<Transaction>? CoinJoinBroadcasted;
 
 	public long RoundId { get; }
-
+	private WasabiRandom Random { get; } = SecureRandom.Instance;
 	public IRPCClient RpcClient { get; }
 	public Network Network => RpcClient.Network;
 
@@ -128,8 +129,8 @@ public class CoordinatorRound
 	private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
 	private object RegisteredUnblindedSignaturesLock { get; }
 
-	private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
-	public static AsyncLock ConnectionConfirmationLock { get; } = new AsyncLock();
+	private static AsyncLock RoundSynchronizerLock { get; } = new();
+	public static AsyncLock ConnectionConfirmationLock { get; } = new();
 
 	private object PhaseLock { get; }
 
@@ -223,7 +224,7 @@ public class CoordinatorRound
 	public CoinVerifier? CoinVerifier { get; }
 	public RoundNonceProvider NonceProvider { get; }
 
-	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
+	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new();
 
 	private void SetInputRegistrationTimesout()
 	{
@@ -566,8 +567,8 @@ public class CoordinatorRound
 		await TryOptimizeFeesAsync(transaction, spentCoins).ConfigureAwait(false);
 
 		// 8. Shuffle.
-		transaction.Inputs.Shuffle();
-		transaction.Outputs.Shuffle();
+		transaction.Inputs.Shuffle(Random);
+		transaction.Outputs.Shuffle(Random);
 
 		// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
 		transaction.Inputs.SortByAmount(spentCoins);
@@ -864,7 +865,7 @@ public class CoordinatorRound
 			}
 
 			// 7.2. Get the most optimal FeeRate.
-			FeeRate optimalFeeRate = (await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			FeeRate optimalFeeRate = (await RpcClient.EstimateConservativeSmartFeeAsync(AdjustedConfirmationTarget).ConfigureAwait(false)).FeeRate;
 
 			if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
 			{
@@ -937,7 +938,7 @@ public class CoordinatorRound
 		var outputSizeInBytes = Constants.OutputSizeInBytes;
 		try
 		{
-			var feeRate = (await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			var feeRate = (await rpc.EstimateConservativeSmartFeeAsync(confirmationTarget).ConfigureAwait(false)).FeeRate;
 
 			// Make sure min relay fee (1000 sat) is hit.
 			feePerInputs = Math.Max(feeRate.GetFee(inputSizeInBytes), Money.Satoshis(500));
@@ -1192,7 +1193,7 @@ public class CoordinatorRound
 					Money networkFee = CoinJoin.GetFee(spentCoins);
 					Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
 					FeeRate feeRate = CoinJoin.GetFeeRate(spentCoins);
-					Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.");
 					Logger.LogInfo($"Round ({RoundId}): Number of inputs: {CoinJoin.Inputs.Count}.");
 					Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
 					Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");

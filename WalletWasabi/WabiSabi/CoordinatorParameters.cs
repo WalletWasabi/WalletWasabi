@@ -60,11 +60,6 @@ public class CoordinatorParameters
 	public TimeSpan ConfigChangeMonitoringPeriod { get; init; } = TimeSpan.FromSeconds(7);
 
 	/// <summary>
-	/// How often should UTXOs be serialized and released from prison.
-	/// </summary>
-	public TimeSpan UtxoWardenPeriod { get; init; } = TimeSpan.FromSeconds(7);
-
-	/// <summary>
 	/// How often should rounds be stepped.
 	/// </summary>
 	public TimeSpan RoundProgressSteppingPeriod { get; init; } = TimeSpan.FromSeconds(1);

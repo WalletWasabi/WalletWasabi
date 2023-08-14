@@ -78,7 +78,7 @@ public class WasabiApplication
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-		Logger.LogSoftwareStarted($"{AppConfig.AppName} was started.");
+		Logger.LogSoftwareStarted(AppConfig.AppName);
 
 		Global = CreateGlobal();
 	}
@@ -95,10 +95,7 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-	{
-		var walletManager = new WalletManager(Config.Network, Config.DataDir, new WalletDirectories(Config.Network, Config.DataDir));
-		return new Global(Config.DataDir, Config, walletManager);
-	}
+		=> new(Config.DataDir, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{

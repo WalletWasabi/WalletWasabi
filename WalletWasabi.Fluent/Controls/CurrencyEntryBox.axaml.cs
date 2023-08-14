@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,7 +9,11 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
@@ -33,6 +38,15 @@ public partial class CurrencyEntryBox : TextBox
 
 	public static readonly StyledProperty<int> MaxDecimalsProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
+
+	public static readonly StyledProperty<Money> BalanceBtcProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, Money>(nameof(BalanceBtc));
+
+	public static readonly StyledProperty<decimal> BalanceUsdProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(BalanceUsd));
+
+	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
 
 	public CurrencyEntryBox()
 	{
@@ -85,6 +99,24 @@ public partial class CurrencyEntryBox : TextBox
 		set => SetValue(MaxDecimalsProperty, value);
 	}
 
+	public Money BalanceBtc
+	{
+		get => GetValue(BalanceBtcProperty);
+		set => SetValue(BalanceBtcProperty, value);
+	}
+
+	public decimal BalanceUsd
+	{
+		get => GetValue(BalanceUsdProperty);
+		set => SetValue(BalanceUsdProperty, value);
+	}
+
+	public bool ValidatePasteBalance
+	{
+		get => GetValue(ValidatePasteBalanceProperty);
+		set => SetValue(ValidatePasteBalanceProperty, value);
+	}
+
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
 		if (ConversionRate == 0m)
@@ -106,7 +138,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		var input = e.Text ?? "";
+		var input = e.Text == null ? "" : e.Text.TotalTrim();
 
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
@@ -134,12 +166,15 @@ public partial class CurrencyEntryBox : TextBox
 
 		var preComposedText = PreComposeText(input);
 
-		decimal fiatValue = 0;
+		var isValid = ValidateEntryText(preComposedText);
 
-		e.Handled = !(ValidateEntryText(preComposedText) &&
-					  decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out fiatValue));
+		preComposedText = preComposedText.TotalTrim();
 
-		if (IsFiat & !e.Handled)
+		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
+
+		e.Handled = !(isValid && parsed);
+
+		if (IsFiat && !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
@@ -281,14 +316,9 @@ public partial class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			// Based on broad M0 money supply figures (80 900 000 000 000.00 USD).
-			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters.
-			// Bitcoin has "21 000 000 . 0000 0000".
-			// Coincidentally the same character count as USD... weird.
-			// Plus adding 4 characters for the group separators.
-			if (text.Length > 17 + 4)
+			if (!TryParse(text, out text))
 			{
-				text = text[..(17 + 4)];
+				return;
 			}
 
 			if (ValidateEntryText(text))
@@ -296,6 +326,30 @@ public partial class CurrencyEntryBox : TextBox
 				OnTextInput(new TextInputEventArgs { Text = text });
 			}
 		}
+	}
+
+	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
+	{
+		var money = ValidatePasteBalance
+			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+			: ClipboardObserver.ParseToMoney(text);
+		if (money is not null)
+		{
+			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+			return true;
+		}
+
+		var usd = ValidatePasteBalance
+			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+			: ClipboardObserver.ParseToUsd(text);
+		if (usd is not null)
+		{
+			result = usd.Value.ToString("0.00");
+			return true;
+		}
+
+		result = null;
+		return false;
 	}
 
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to

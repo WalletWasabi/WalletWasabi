@@ -49,14 +49,18 @@ public static class HttpResponseMessageExtensions
 
 		HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
 		byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine, cancellationToken).ConfigureAwait(false);
-		contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
-		response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 		HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
 
-		if (response.Content is { })
+		if (contentBytes is not null)
 		{
+			contentBytes = HttpMessageHelper.DecompressGzipContentIfRequired(headerStruct.ContentHeaders, contentBytes);
+			response.Content = new ByteArrayContent(contentBytes);
 			HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
+		}
+		else
+		{
+			response.Content = null;
 		}
 
 		return response;
@@ -86,6 +90,7 @@ public static class HttpResponseMessageExtensions
 				new JsonSerializerSettings()
 				{
 					Converters = JsonSerializationOptions.Default.Settings.Converters,
+					ContractResolver = JsonSerializationOptions.Default.Settings.ContractResolver,
 					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
 				});
 			var innerException = error switch

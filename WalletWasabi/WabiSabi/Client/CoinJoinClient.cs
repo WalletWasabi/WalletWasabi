@@ -29,7 +29,7 @@ public class CoinJoinClient
 	private static readonly TimeSpan ExtraRoundTimeoutMargin = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
-	// timings only depends on the input-reg timeout.
+	// timings only depends on the input-reg timeout and signing requests which timings must be larger.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
@@ -57,6 +57,8 @@ public class CoinJoinClient
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
+
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = ImmutableList<SmartCoin>.Empty;
 
 	private SecureRandom SecureRandom { get; }
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
@@ -167,7 +169,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
@@ -217,7 +219,7 @@ public class CoinJoinClient
 		var waitRoundEndedTask = Task.Run(async () =>
 		{
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitRoundEndedTaskCts.Token, cancellationToken);
-			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, linkedCts.Token).ConfigureAwait(false);
+			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.Ended, linkedCts.Token).ConfigureAwait(false);
 
 			// Indicate that the round was ended. Cancel ongoing operations those are using this CTS.
 			roundEndedCts.Cancel();
@@ -247,7 +249,17 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+
+			try
+			{
+				roundState = await waitRoundEndedTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				roundState.Log(LogLevel.Warning, $"Waiting for the round to end failed with: '{ex}'.");
+				throw new UnknownRoundEndingException(signedCoins, outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(), ex);
+			}
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
 
@@ -266,7 +278,12 @@ public class CoinJoinClient
 			};
 
 			roundState.LogInfo(msg);
-			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+
+			// Coinjoin succeeded but wallet had no input in it.
+			if (signedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.TransactionBroadcasted)
+			{
+				throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "No inputs participated in this round.");
+			}
 
 			return roundState.EndRoundState switch
 			{
@@ -310,12 +327,14 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new CoinJoinClientException(CoinjoinError.NoCoinsToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
+
+			CoinsInCriticalPhase = registeredAliceClients.Select(alice => alice.SmartCoin).ToImmutableList();
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
@@ -364,11 +383,11 @@ public class CoinJoinClient
 		{
 			PersonCircuit? personCircuit = null;
 			bool disposeCircuit = true;
-
 			try
 			{
-				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
-
+				var (newPersonCircuit, httpClient) = HttpClientFactory.NewHttpClientWithPersonCircuit();
+				personCircuit = newPersonCircuit;
+				
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
@@ -392,35 +411,70 @@ public class CoinJoinClient
 			}
 			catch (WabiSabiProtocolException wpe)
 			{
-				if (wpe.ErrorCode is WabiSabiProtocolErrorCode.RoundNotFound)
+				switch (wpe.ErrorCode)
 				{
-					// if the round does not exist then it ended/aborted.
-					registrationsCts.Cancel();
-					confirmationsCts.Cancel();
-					roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
-				}
-				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
-				{
-					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
-					{
-						roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
-						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
-						{
-							// Cancel all remaining pending input registrations because they will arrive late too.
-							registrationsCts.Cancel();
+					case WabiSabiProtocolErrorCode.RoundNotFound:
+						// if the round does not exist then it ended/aborted.
+						roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
+						registrationsCts.Cancel();
+						confirmationsCts.Cancel();
+						break;
 
-							if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+					case WabiSabiProtocolErrorCode.WrongPhase:
+						if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
+						{
+							roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
+							if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 							{
-								// Cancel all remaining pending connection confirmations because they will arrive late too.
-								confirmationsCts.Cancel();
+								// Cancel all remaining pending input registrations because they will arrive late too.
+								registrationsCts.Cancel();
+
+								if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+								{
+									// Cancel all remaining pending connection confirmations because they will arrive late too.
+									confirmationsCts.Cancel();
+								}
 							}
 						}
-					}
-					else
-					{
-						throw new InvalidOperationException(
-							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
-					}
+						else
+						{
+							throw new InvalidOperationException(
+								$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
+						}
+						break;
+
+					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+						roundState.LogInfo($"{coin.Coin.Outpoint} was already registered.");
+						break;
+
+					case WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection:
+						roundState.LogInfo($"{coin.Coin.Outpoint} already confirmed connection.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputSpent:
+						coin.SpentAccordingToBackend = true;
+						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+						if (inputBannedExData is null)
+						{
+							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+						}
+						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
+						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
+						break;
+
+					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+						coin.SpentAccordingToBackend = false;
+						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
+						break;
+
+					default:
+						roundState.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
+						break;
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -530,7 +584,7 @@ public class CoinJoinClient
 					x => x.ScriptPubKey,
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
-				.All(x => x >= 0L);
+				.All(x => x >= Money.Zero);
 
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
@@ -541,7 +595,10 @@ public class CoinJoinClient
 		DateTimeOffset signingEndTime,
 		CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
+		// Maximum signing request delay is 50 seconds, because
+		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
+		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,

@@ -29,6 +29,8 @@
   </Window.Styles>
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
+    <behaviors:ContextFlyoutWorkaroundBehavior />
+    <behaviors:RestartRendererInLinuxBehavior />
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

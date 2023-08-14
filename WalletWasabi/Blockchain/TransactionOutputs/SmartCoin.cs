@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Extensions;
+using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -20,8 +21,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private bool _coinJoinInProgress;
 	private DateTimeOffset? _bannedUntilUtc;
 	private bool _spentAccordingToBackend;
-
-	private ISecret? _secret;
 
 	private bool _confirmed;
 	private bool _isBanned;
@@ -113,16 +112,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public HdPubKey HdPubKey { get; }
 
-	/// <summary>
-	/// It's a secret, so it's usually going to be null. Do not use it.
-	/// This will not get serialized, because that's a security risk.
-	/// </summary>
-	public ISecret? Secret
-	{
-		get => _secret;
-		set => RaiseAndSetIfChanged(ref _secret, value);
-	}
-
 	public bool Confirmed
 	{
 		get => _confirmed;
@@ -143,6 +132,10 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _isExcludedFromCoinJoin;
 		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
+
+	/// <returns>False if external, or the tx inputs are all external.</returns>
+	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
 	public bool RegisterToHdPubKey()
 		=> HdPubKey.Coins.Add(this);

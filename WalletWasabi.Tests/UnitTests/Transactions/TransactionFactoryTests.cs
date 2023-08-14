@@ -1,6 +1,7 @@
 using Moq;
 using NBitcoin;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -181,7 +182,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public void SelectSameClusterCoins()
+	public async Task SelectSameClusterCoins()
 	{
 		var password = "foo";
 		var keyManager = ServiceFactory.CreateKeyManager(password);
@@ -200,7 +201,7 @@ public class TransactionFactoryTests
 				BitcoinFactory.CreateSmartCoin(NewKey("Donald, Jean, Lee, Jack"), 0.9m),
 				BitcoinFactory.CreateSmartCoin(NewKey("Satoshi"), 0.9m)
 			};
-		var coinsByLabel = sCoins.ToDictionary(x => x.HdPubKey.Label);
+		var coinsByLabel = sCoins.ToDictionary(x => x.HdPubKey.Labels);
 
 		// cluster 1 is known by 7 people: Pablo, Daniel, Adolf, Maria, Ding, Joseph and Eve
 		var coinsCluster1 = new[] { sCoins[0], sCoins[1], sCoins[2], sCoins[3], sCoins[4], sCoins[5], sCoins[6] };
@@ -219,8 +220,8 @@ public class TransactionFactoryTests
 		}
 
 		var coinsView = new CoinsView(sCoins.ToArray());
-		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
-		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password);
+		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
 
 		// Two 0.9btc coins are enough
 		using Key key1 = new();
@@ -437,8 +438,8 @@ public class TransactionFactoryTests
 		var coins = transactionFactory.Coins;
 		var allowedCoins = new[]
 		{
-				coins.Single(x => x.HdPubKey.Label == "Maria"),
-				coins.Single(x => x.HdPubKey.Label == "Jack")
+				coins.Single(x => x.HdPubKey.Labels == "Maria"),
+				coins.Single(x => x.HdPubKey.Labels == "Jack")
 			}.ToArray();
 		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
 
@@ -467,9 +468,9 @@ public class TransactionFactoryTests
 		var coins = transactionFactory.Coins;
 		var allowedCoins = new[]
 		{
-				coins.Single(x => x.HdPubKey.Label == "Pablo"),
-				coins.Single(x => x.HdPubKey.Label == "Maria"),
-				coins.Single(x => x.HdPubKey.Label == "Jack")
+				coins.Single(x => x.HdPubKey.Labels == "Pablo"),
+				coins.Single(x => x.HdPubKey.Labels == "Maria"),
+				coins.Single(x => x.HdPubKey.Labels == "Jack")
 			}.ToArray();
 		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
 
@@ -497,7 +498,7 @@ public class TransactionFactoryTests
 
 		var allowedCoins = new[]
 		{
-				transactionFactory.Coins.Single(x => x.HdPubKey.Label == "Pablo")
+				transactionFactory.Coins.Single(x => x.HdPubKey.Labels == "Pablo")
 			}.ToArray();
 
 		var amount = Money.Coins(0.5m); // it is not enough
@@ -540,7 +541,7 @@ public class TransactionFactoryTests
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.14m), result.SpentCoins.Select(x => x.Amount).Sum());
 		Assert.Equal(3, result.SpentCoins.Count());
-		var jackCoin = coins.Where(x => x.HdPubKey.Label == "Jack").ToArray();
+		var jackCoin = coins.Where(x => x.HdPubKey.Labels == "Jack").ToArray();
 		Assert.Contains(jackCoin[0], result.SpentCoins);
 		Assert.Contains(jackCoin[1], result.SpentCoins);
 	}

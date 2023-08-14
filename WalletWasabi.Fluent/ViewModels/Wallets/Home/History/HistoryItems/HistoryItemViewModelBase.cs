@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -26,8 +27,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
+		TransactionSummary = transactionSummary;
 		Id = transactionSummary.TransactionId;
-		_confirmedToolTip = "Confirmed";
+
+		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
+
+		_isConfirmed = transactionSummary.IsConfirmed();
 
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
@@ -38,11 +43,19 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				await Task.Delay(1260);
 				IsFlashing = false;
 			});
+
+		IsCancellation = false;
+		IsSpeedUp = false;
+	}
+
+	protected string GetConfirmedToolTip(int confirmations)
+	{
+		return $"Confirmed ({confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)})";
 	}
 
 	public uint256 Id { get; }
 
-	public SmartLabel Label { get; init; } = SmartLabel.Empty;
+	public LabelsArray Labels { get; init; }
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -58,9 +71,42 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
+	public bool IsChild { get; set; }
+
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+
+	public ICommand? CancelTransactionCommand { get; protected set; }
+
+	public bool IsCancellation { get; set; }
+
+	public bool IsSpeedUp { get; set; }
+
+	public bool IsCPFP { get; set; }
+
+	public bool IsCPFPd { get; set; }
+
+	public bool IsConfirmedDisplayed => IsConfirmed;
+
+	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
+
+	public bool IsNormalTransactionDisplayed => !IsCoinJoin;
+
+	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
+
+	public bool IsCoinjoinGroupDisplayed => IsCoinJoin && IsCoinJoinGroup;
+
+	public bool IsCancellationDisplayed => IsCancellation;
+
+	/// <remarks>
+	/// CPFPd transactions are not SpeedUp transactions, but they are sped up as well.
+	/// </remarks>
+	public bool IsSpeedUpDisplayed => !IsConfirmed && (IsSpeedUp || IsCPFPd);
+
+	public bool IsCPFPDisplayed => IsCPFP;
+
+	public TransactionSummary TransactionSummary { get; }
 
 	private async Task CopyToClipboardAsync(string text)
 	{
@@ -75,11 +121,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
-	protected void SetAmount(Money amount)
+	protected void SetAmount(Money amount, Money? fee)
 	{
 		if (amount < Money.Zero)
 		{
-			OutgoingAmount = amount * -1;
+			OutgoingAmount = -amount - (fee ?? Money.Zero);
 		}
 		else
 		{
@@ -89,17 +135,17 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public virtual bool HasChildren() => false;
 
-	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		return Sort(selector, reverse: false);
+		return Sort(selector, comparer, reverse: false);
 	}
 
-	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		return Sort(selector, reverse: true);
+		return Sort(selector, comparer, reverse: true);
 	}
 
-	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, bool reverse)
+	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer, bool reverse)
 	{
 		return (x, y) =>
 		{
@@ -124,7 +170,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			var result = x.IsConfirmed.CompareTo(y.IsConfirmed);
 			if (result == 0)
 			{
-				result = Comparer<T>.Default.Compare(selector(x), selector(y));
+				var xValue = selector(x);
+				var yValue = selector(y);
+
+				result =
+					comparer?.Compare(xValue, yValue) ??
+					Comparer<T>.Default.Compare(xValue, yValue);
 				result *= ordering;
 			}
 

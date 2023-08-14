@@ -3,8 +3,18 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
-public interface INavigate
+public interface INavigate : IWalletNavigation
 {
+	INavigationStack<RoutableViewModel> HomeScreen { get; }
+
+	INavigationStack<RoutableViewModel> DialogScreen { get; }
+
+	INavigationStack<RoutableViewModel> FullScreen { get; }
+
+	INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
+
+	IObservable<bool> IsDialogOpen { get; }
+
 	INavigationStack<RoutableViewModel> Navigate(NavigationTarget target);
 
 	FluentNavigate To();
