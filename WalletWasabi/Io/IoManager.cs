@@ -55,7 +55,7 @@ public class IoManager
 
 	public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 	{
-		if (lines is null || !lines.Any())
+		if (lines is null)
 		{
 			return;
 		}

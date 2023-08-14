@@ -1,9 +1,4 @@
 version = 1
 
-exclude_patterns = [
-  "WalletWasabi.Fluent/ZXing/**"
-
-]
-
 [[analyzers]]
 name = "shell"

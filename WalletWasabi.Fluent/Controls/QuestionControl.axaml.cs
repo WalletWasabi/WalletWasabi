@@ -26,6 +26,12 @@ public class QuestionControl : ContentControl
 	public static readonly StyledProperty<object?> IconContentProperty =
 		AvaloniaProperty.Register<QuestionControl, object?>(nameof(IconContent));
 
+	public static readonly StyledProperty<string> YesContentProperty =
+		AvaloniaProperty.Register<QuestionControl, string>(nameof(YesContent));
+
+	public static readonly StyledProperty<string> NoContentProperty =
+		AvaloniaProperty.Register<QuestionControl, string>(nameof(NoContent));
+
 	public static readonly StyledProperty<HighlightedButton> HighlightButtonProperty =
 		AvaloniaProperty.Register<QuestionControl, HighlightedButton>(nameof(HighlightButton));
 
@@ -38,6 +44,8 @@ public class QuestionControl : ContentControl
 	public QuestionControl()
 	{
 		UpdateHighlightedButton(HighlightButton);
+		YesContent = "Yes";
+		NoContent = "No";
 	}
 
 	public ICommand YesCommand
@@ -74,6 +82,18 @@ public class QuestionControl : ContentControl
 	{
 		get => GetValue(IconContentProperty);
 		set => SetValue(IconContentProperty, value);
+	}
+
+	public string YesContent
+	{
+		get => GetValue(YesContentProperty);
+		set => SetValue(YesContentProperty, value);
+	}
+
+	public string NoContent
+	{
+		get => GetValue(NoContentProperty);
+		set => SetValue(NoContentProperty, value);
 	}
 
 	public HighlightedButton HighlightButton

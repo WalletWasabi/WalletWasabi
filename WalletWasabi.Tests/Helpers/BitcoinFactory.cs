@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.UnitTests;
+using WalletWasabi.Blockchain.Analysis;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -104,6 +106,8 @@ public static class BitcoinFactory
 		{
 			stx.TryAddWalletOutput(sc);
 		}
+
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		return stx;
 	}
 
@@ -115,7 +119,10 @@ public static class BitcoinFactory
 	}
 
 	public static HdPubKey CreateHdPubKey(KeyManager km)
-		=> km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
+		=> CreateHdPubKey(km, isInternal: false);
+
+	public static HdPubKey CreateHdPubKey(KeyManager km, bool isInternal)
+		=> km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal);
 
 	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, bool confirmed = true, int anonymitySet = 1)
 		=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), confirmed, anonymitySet);
@@ -131,7 +138,9 @@ public static class BitcoinFactory
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
-		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
+		var sc = new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
+		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
+		return sc;
 	}
 
 	public static OutPoint CreateOutPoint()
@@ -181,7 +190,7 @@ public static class BitcoinFactory
 
 		// We don't use the result, but we need not to throw NotImplementedException.
 		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
-
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 		return mockRpc;
@@ -194,4 +203,10 @@ public static class BitcoinFactory
 	}
 
 	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
+
+	public static MemoryCache CreateMemoryCache() => new MemoryCache(new MemoryCacheOptions
+	{
+		SizeLimit = 1_000,
+		ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+	});
 }
