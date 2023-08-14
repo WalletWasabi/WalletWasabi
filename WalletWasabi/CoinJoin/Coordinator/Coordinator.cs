@@ -64,7 +64,7 @@ public class Coordinator : IDisposable
 							? $"CoinJoins file contains invalid transaction ID {line}"
 							: $"CoinJoins file got corrupted. Deleting offending line \"{line[..20]}\".";
 
-						Logger.LogWarning($"{logEntry}. {ex.GetType()}: {ex.Message}");
+						Logger.LogError($"{logEntry}. {ex.GetType()}: {ex.Message}");
 					}
 				}
 
@@ -85,7 +85,7 @@ public class Coordinator : IDisposable
 							? $"CoinJoins file contains invalid transaction ID {line}"
 							: $"CoinJoins file got corrupted. Deleting offending line \"{line[..20]}\".";
 
-						Logger.LogWarning($"{logEntry}. {ex.GetType()}: {ex.Message}");
+						Logger.LogError($"{logEntry}. {ex.GetType()}: {ex.Message}");
 					}
 				}
 
