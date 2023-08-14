@@ -1381,6 +1381,53 @@ public class TransactionProcessorTests
 		Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
+	// Repro of issue 11101 https://github.com/zkSNACKs/WalletWasabi/issues/11101
+	[Fact]
+	public async Task GetPocketsShouldReturnExpectedPocketListAsync()
+	{
+		// ARRANGE
+		int targetAnonSet = 10;
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Faucet").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Electrum").P2wpkhScript, Money.Coins(0.0000_0670m)));
+
+		// ACT
+		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+
+		// ASSERT
+		var expectedPockets = new LabelsArray[]
+		{
+			CoinPocketHelper.UnlabelledFundsText,
+			"Faucet",
+			"Electrum"
+		}.ToHashSet(LabelsComparer.Instance);
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(LabelsComparer.Instance);
+
+		Assert.True(expectedPockets.SetEquals(actualPockets));
+	}
+
+	[Fact]
+	public async Task GetPocketsShouldBeCaseInsensitiveAsync()
+	{
+		// ARRANGE
+		int targetAnonSet = 10;
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Pocket").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("PoCKeT").P2wpkhScript, Money.Coins(0.0000_0670m)));
+
+		// ACT
+		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+
+		// ASSERT
+		var expectedPockets = new LabelsArray[] { "Pocket", }.ToHashSet(comparer: LabelsComparer.Instance);
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(comparer: LabelsComparer.Instance);
+
+		Assert.True(expectedPockets.SetEquals(actualPockets));
+	}
+
 	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
 	{
 		var tx = Network.RegTest.CreateTransaction();
