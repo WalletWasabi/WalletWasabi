@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets;
+namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Features;
 
-public class WatchOnlyWalletView : UserControl
+public class SpeedUpTransactionDialogView : UserControl
 {
-	public WatchOnlyWalletView()
+	public SpeedUpTransactionDialogView()
 	{
 		InitializeComponent();
 	}

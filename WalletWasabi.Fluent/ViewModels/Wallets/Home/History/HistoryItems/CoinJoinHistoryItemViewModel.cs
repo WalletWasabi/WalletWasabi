@@ -17,15 +17,11 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		bool isSingleCoinJoinTransaction)
 		: base(orderIndex, transactionSummary)
 	{
-		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
 		IsCoinJoin = true;
 		CoinJoinTransaction = transactionSummary;
-		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
-
-		var confirmations = transactionSummary.GetConfirmations();
-		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
+		IsChild = !isSingleCoinJoinTransaction;
 
 		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
 
@@ -35,8 +31,6 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
-
-	public bool IsSingleCoinJoinTransaction { get; }
 
 	public TransactionSummary CoinJoinTransaction { get; private set; }
 }

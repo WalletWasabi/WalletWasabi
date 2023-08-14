@@ -22,7 +22,7 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify] private double[]? _satoshiPerByteValues;
 	[AutoNotify] private double[]? _confirmationTargetValues;
 	[AutoNotify] private string[]? _confirmationTargetLabels;
-	[AutoNotify] private double _currentConfirmationTarget;
+	[AutoNotify] private double _currentConfirmationTarget = -1;
 	[AutoNotify] private decimal _currentSatoshiPerByte;
 	[AutoNotify] private string _currentConfirmationTargetString;
 	private bool _updatingCurrentValue;
@@ -214,7 +214,8 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
 	{
-		var correctedFeeEstimates = DistinctByValues(feeEstimates);
+		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
+		var correctedFeeEstimates = areAllValuesEqual ? feeEstimates : DistinctByValues(feeEstimates);
 
 		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
 		var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
@@ -234,9 +235,12 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		if (satoshiPerByteValues.Any())
 		{
-			var minY = satoshiPerByteValues.Min();
 			var maxY = satoshiPerByteValues.Max();
-			SatoshiPerByteLabels = new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+			var minY = satoshiPerByteValues.Min();
+
+			SatoshiPerByteLabels = areAllValuesEqual
+				? new[] { "", "", maxY.ToString("F0") }
+				: new[] { minY.ToString("F0"), ((maxY + minY) / 2).ToString("F0"), maxY.ToString("F0") };
 		}
 		else
 		{
@@ -249,7 +253,11 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		SliderMinimum = 0;
 		SliderMaximum = confirmationTargetValues.Length - 1;
-		var confirmationTargetCandidate = ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget));
+
+		var confirmationTargetCandidate = CurrentConfirmationTarget < 0
+			? ConfirmationTargetValues.MinBy(x => Math.Abs(x - Services.UiConfig.FeeTarget))
+			: CurrentConfirmationTarget;
+
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
@@ -344,5 +352,13 @@ public partial class FeeChartViewModel : ViewModelBase
 		}
 
 		return valuesToReturn;
+	}
+
+	private bool AreEstimatedFeeRatesEqual(Dictionary<int, int> feeEstimates)
+	{
+		var first = feeEstimates.First();
+		var last = feeEstimates.Last();
+
+		return first.Value == last.Value;
 	}
 }

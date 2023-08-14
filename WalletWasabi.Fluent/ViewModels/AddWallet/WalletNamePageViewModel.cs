@@ -9,7 +9,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
-using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -17,8 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
 	private readonly WalletCreationOptions _options;
-	private readonly string? _importFilePath;
-	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 	[AutoNotify] private string _walletName;
 
 	public WalletNamePageViewModel(UiContext uiContext, WalletCreationOptions options)

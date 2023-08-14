@@ -4,7 +4,9 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -59,17 +61,13 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void Update()
 	{
-		var privateThreshold = _wallet.AnonScoreTarget;
-
-		var currentPrivacyScore = _wallet.Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
-		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);
-		int pcPrivate = maxPrivacyScore == 0M ? 100 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
+		int pcPrivate = _wallet.GetPrivacyPercentage();
 
 		PercentText = $"{pcPrivate} %";
 
-		FullyMixed = pcPrivate >= 100;
+		FullyMixed = _wallet.IsWalletPrivate();
 
-		BalancePrivate = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		BalancePrivate = _wallet.Coins.FilterBy(x => x.IsPrivate(_wallet.AnonScoreTarget)).TotalAmount();
 		HasPrivateBalance = BalancePrivate > Money.Zero;
 	}
 }

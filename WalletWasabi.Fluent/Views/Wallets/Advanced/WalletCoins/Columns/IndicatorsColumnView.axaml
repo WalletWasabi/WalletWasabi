@@ -45,6 +45,5 @@
               Foreground="{StaticResource SystemControlErrorTextForegroundBrush}"
               Height="14"
               ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
-
   </StackPanel>
 </UserControl>
