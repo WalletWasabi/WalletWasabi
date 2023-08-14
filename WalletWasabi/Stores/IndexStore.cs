@@ -131,6 +131,8 @@ public class IndexStore : IAsyncDisposable
 
 			Stopwatch stopwatch = Stopwatch.StartNew();
 
+			IndexStorage.Clear();
+			
 			List<string> filters = new(capacity: 10_000);
 			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			using (BufferedStream bs = new(fs))
