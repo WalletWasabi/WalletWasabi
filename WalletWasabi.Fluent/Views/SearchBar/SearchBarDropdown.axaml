@@ -89,15 +89,15 @@
       <Button Command="{Binding Command}" ClickMode="Press" Classes="searchItem" Background="Transparent"
               Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
-        <Grid ColumnDefinitions="16 Auto *" Background="Transparent" Margin="10">
+        <DockPanel Background="Transparent" Margin="10">
           <PathIcon Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center" Foreground="{DynamicResource AcrylicTrimForeground}"
                     Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
           <TextBlock Grid.Column="1" Margin="10 0 10 0" Text="{Binding Name}"
                      ToolTip.Tip="{Binding Name}"
                      VerticalAlignment="Center"  TextTrimming="CharacterEllipsis" MaxWidth="150" />
           <TextBlock Grid.Column="2" Opacity="0.5" VerticalAlignment="Center" ToolTip.Tip="{Binding Description}" Text="{Binding Description}"
-                     TextTrimming="CharacterEllipsis" MaxWidth="227" />
-        </Grid>
+                     TextTrimming="CharacterEllipsis" />
+        </DockPanel>
 
         <i:Interaction.Behaviors>
           <EventTriggerBehavior EventName="Click">
