@@ -672,7 +672,7 @@ public class CoinJoinClient
 			remainingTime = maximumRequestDelay;
 		}
 
-		return remainingTime.SamplePoisson(howMany);
+		return remainingTime.SamplePoisson(howMany, startTime);
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, RoundState roundState)
