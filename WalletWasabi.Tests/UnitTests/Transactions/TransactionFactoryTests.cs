@@ -1,6 +1,7 @@
 using Moq;
 using NBitcoin;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -181,7 +182,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public void SelectSameClusterCoins()
+	public async Task SelectSameClusterCoins()
 	{
 		var password = "foo";
 		var keyManager = ServiceFactory.CreateKeyManager(password);
@@ -219,8 +220,8 @@ public class TransactionFactoryTests
 		}
 
 		var coinsView = new CoinsView(sCoins.ToArray());
-		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
-		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password);
+		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
 
 		// Two 0.9btc coins are enough
 		using Key key1 = new();
@@ -783,7 +784,7 @@ public class TransactionFactoryTests
 			}
 			else
 			{
-				Assert.True(false, "Main value is not correct.");
+				Assert.Fail("Main value is not correct.");
 			}
 		}
 	}

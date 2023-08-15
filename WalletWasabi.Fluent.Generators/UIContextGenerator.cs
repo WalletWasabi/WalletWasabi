@@ -182,7 +182,12 @@ public class UiContextGenerator : ISourceGenerator
 				continue;
 			}
 
-			var viewModelTypeInfo = semanticModel.GetDeclaredSymbol(cls);
+			if (cls.IsAbstractClass(semanticModel))
+			{
+				continue;
+			}
+
+			var viewModelTypeInfo =	semanticModel.GetDeclaredSymbol(cls);
 
 			if (viewModelTypeInfo == null)
 			{

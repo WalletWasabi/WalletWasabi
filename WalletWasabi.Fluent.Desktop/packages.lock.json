@@ -592,7 +592,7 @@
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.9, )",
           "Microsoft.Data.Sqlite": "[7.0.9, )",
           "Microsoft.Win32.SystemEvents": "[7.0.0, )",
-          "NBitcoin": "[7.0.24, )",
+          "NBitcoin": "[7.0.27, )",
           "WabiSabi": "[1.0.1.2, )"
         }
       },
@@ -698,7 +698,7 @@
       },
       "Microsoft.CodeAnalysis.Common": {
         "type": "CentralTransitive",
-        "requested": "[4.2.0, )",
+        "requested": "[4.6.0, )",
         "resolved": "3.4.0",
         "contentHash": "3ncA7cV+iXGA1VYwe2UEZXcvWyZSlbexWjM9AvocP7sik5UD93qt9Hq0fMRGk0jFRmvmE4T2g+bGfXiBVZEhLw==",
         "dependencies": {
@@ -713,7 +713,7 @@
       },
       "Microsoft.CodeAnalysis.CSharp": {
         "type": "CentralTransitive",
-        "requested": "[4.2.0, )",
+        "requested": "[4.6.0, )",
         "resolved": "3.4.0",
         "contentHash": "/LsTtgcMN6Tu1oo7/WYbRAHL4/ubXC/miEakwTpcZKJKtFo7D0AK95Hw0dbGxul6C8WJu60v6NP2435TDYZM+Q==",
         "dependencies": {
@@ -738,9 +738,9 @@
       },
       "NBitcoin": {
         "type": "CentralTransitive",
-        "requested": "[7.0.24, )",
-        "resolved": "7.0.24",
-        "contentHash": "+K8o9WH09/o8oTl0aV/IR2y+1leR7e1vvZ2S6A7IozvMsWGh/Wi3TYWhasAskEYryQJr2f4gQsy67eAO7YExAg==",
+        "requested": "[7.0.27, )",
+        "resolved": "7.0.27",
+        "contentHash": "n2eHYJf0YVOf3ld0fhQJ8qR8TDvGZObGseOf5gHx03QpG+lq5L5qJAn5SA+MvZQLKcqhEUJ+S2AKvWkgZYS4Gw==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "13.0.1"

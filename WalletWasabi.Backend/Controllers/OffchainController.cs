@@ -35,6 +35,7 @@ public class OffchainController : ControllerBase
 	[HttpGet("exchange-rates")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(404)]
+	[ResponseCache(Duration = 120)]
 	public async Task<IActionResult> GetExchangeRatesAsync(CancellationToken cancellationToken)
 	{
 		IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync(cancellationToken);
