@@ -29,7 +29,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 	// Bitcoin
 	[AutoNotify] private Network _network;
-
 	[AutoNotify] private bool _startLocalBitcoinCoreOnStartup;
 	[AutoNotify] private string _localBitcoinCoreDataDir;
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
@@ -38,7 +37,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 	// General
 	[AutoNotify] private bool _darkModeEnabled;
-
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
@@ -129,7 +127,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 		// Apply RunOnSystenStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
-			.DoAsync(async x => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
+			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
 			.Subscribe();
 	}
 
@@ -157,9 +155,9 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 						ApplyChanges(config);
 
 						config.ToFile();
-
-						_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
 					}
+
+					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
 				}
 				catch (Exception ex)
 				{
