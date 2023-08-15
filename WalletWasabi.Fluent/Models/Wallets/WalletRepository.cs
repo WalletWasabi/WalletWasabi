@@ -75,6 +75,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 			_ => throw new InvalidOperationException($"{nameof(WalletCreationOptions)} not supported: {options?.GetType().Name}")
 		};
 	}
+
 	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
 	{
 		walletSettings.Save();
@@ -166,7 +167,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 			return result;
 		});
 
-		return new WalletSettingsModel(keyManager, true);
+		return new WalletSettingsModel(keyManager, true, true);
 	}
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
