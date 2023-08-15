@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
