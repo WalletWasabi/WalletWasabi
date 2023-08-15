@@ -132,7 +132,7 @@ public class IndexStore : IAsyncDisposable
 			Stopwatch stopwatch = Stopwatch.StartNew();
 
 			IndexStorage.Clear();
-			
+
 			List<string> filters = new(capacity: 10_000);
 			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			using (BufferedStream bs = new(fs))
@@ -170,7 +170,7 @@ public class IndexStore : IAsyncDisposable
 
 			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
 		}
-		catch (OperationCanceledException ex)
+		catch (OperationCanceledException)
 		{
 			SqliteConnection.ClearAllPools();
 			throw;
