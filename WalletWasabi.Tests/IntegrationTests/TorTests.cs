@@ -152,9 +152,9 @@ public class TorTests : IAsyncLifetime
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
-		TorHttpClient client = MakeTorHttpClient(new Uri("https://bitcoin.org"));
+		TorHttpClient client = MakeTorHttpClient(new Uri("https://wasabiwallet.io"));
 
-		using HttpRequestMessage request = new(HttpMethod.Get, "https://bitcoin.org/bitcoin.pdf");
+		using HttpRequestMessage request = new(HttpMethod.Get, "https://wasabiwallet.io/bitcoin-whitepaper.pdf");
 		HttpResponseMessage response = await client.SendAsync(request, ctsTimeout.Token);
 		byte[] content = await response.Content.ReadAsByteArrayAsync(ctsTimeout.Token);
 
