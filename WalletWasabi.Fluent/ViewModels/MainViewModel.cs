@@ -222,9 +222,9 @@ public partial class MainViewModel : ViewModelBase
 		AboutViewModel.RegisterLazy(() => new AboutViewModel(UiContext));
 		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(UiContext));
 		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(UiContext));
-		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
-		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
-		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
+		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel(UiContext));
+		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel(UiContext));
+		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel(UiContext));
 		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(UiContext));
 		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(UiContext));
 		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel(UiContext));
