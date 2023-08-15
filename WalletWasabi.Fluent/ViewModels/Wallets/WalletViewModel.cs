@@ -132,7 +132,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this, WalletModel);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, WalletModel);
 
 		Tiles = GetTiles().ToList();
 
