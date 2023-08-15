@@ -116,8 +116,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	private IEnumerable<ICoinModel> GetCoins()
 	{
-		return Wallet.Coins
-					  .Select(x => new CoinModel(Wallet, x));
+		return Wallet.Coins.Select(x => new CoinModel(Wallet, x));
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()
