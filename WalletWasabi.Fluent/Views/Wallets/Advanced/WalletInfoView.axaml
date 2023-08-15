@@ -23,94 +23,94 @@
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Master Private Key"
-                     CopyableContent="{Binding Model.ExtendedMasterPrivateKey}"
-                     IsVisible="{Binding !!Model.ExtendedMasterPrivateKey}"
+                     CopyableContent="{Binding ExtendedMasterPrivateKey}"
+                     IsVisible="{Binding !!ExtendedMasterPrivateKey}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Model.ExtendedMasterPrivateKey}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterPrivateKey}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding !!Model.ExtendedMasterPrivateKey}" />
+      <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Master zprv"
-                     CopyableContent="{Binding Model.ExtendedMasterZprv}"
-                     IsVisible="{Binding !!Model.ExtendedMasterZprv}"
+                     CopyableContent="{Binding ExtendedMasterZprv}"
+                     IsVisible="{Binding !!ExtendedMasterZprv}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Model.ExtendedMasterZprv}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterZprv}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding !!Model.ExtendedMasterZprv}" />
+      <Separator IsVisible="{Binding !!ExtendedMasterZprv}" />
 
       <c:PreviewItem Icon="{StaticResource fingerprint_regular}"
                      Label="Extended Master Fingerprint"
-                     CopyableContent="{Binding Model.MasterKeyFingerprint}"
-                     IsVisible="{Binding Model.MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Model.MasterKeyFingerprint}" />
+                     CopyableContent="{Binding MasterKeyFingerprint}"
+                     IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="monoSpaced" Text="{Binding MasterKeyFingerprint}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding Model.MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      <Separator IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
       <c:PreviewItem Icon="{StaticResource organization_regular}"
                      Label="Account Key Path (SegWit)"
-                     CopyableContent="{Binding Model.SegWitAccountKeyPath}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Model.SegWitAccountKeyPath}" />
+                     CopyableContent="{Binding SegWitAccountKeyPath}">
+        <TextBlock Classes="monoSpaced" Text="{Binding SegWitAccountKeyPath}" />
       </c:PreviewItem>
       <Separator />
 
       <c:PreviewItem Icon="{StaticResource organization_regular}"
                            Label="Account Key Path (Taproot)"
-                           CopyableContent="{Binding Model.TaprootAccountKeyPath}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Model.TaprootAccountKeyPath}" />
+                           CopyableContent="{Binding TaprootAccountKeyPath}">
+        <TextBlock Classes="monoSpaced" Text="{Binding TaprootAccountKeyPath}" />
       </c:PreviewItem>
       <Separator />
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Account Private Key xpriv"
-                     CopyableContent="{Binding Model.ExtendedAccountPrivateKey}"
-                     IsVisible="{Binding !!Model.ExtendedAccountPrivateKey}"
+                     CopyableContent="{Binding ExtendedAccountPrivateKey}"
+                     IsVisible="{Binding !!ExtendedAccountPrivateKey}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding Model.ExtendedAccountPrivateKey}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedAccountPrivateKey}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding !!Model.ExtendedAccountPrivateKey}" />
+      <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <StackPanel Spacing="10" IsVisible="{Binding Model.WpkhOutputDescriptors, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <StackPanel Spacing="10" IsVisible="{Binding HasOutputDescriptors}">
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public External Output descriptor"
-                       CopyableContent="{Binding Model.WpkhOutputDescriptors.PublicExternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Model.WpkhOutputDescriptors.PublicExternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PublicExternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PublicExternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public Internal Output descriptor"
-                       CopyableContent="{Binding Model.WpkhOutputDescriptors.PublicInternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Model.WpkhOutputDescriptors.PublicInternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PublicInternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PublicInternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
 
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Private External Output descriptor"
-                       IsVisible="{Binding !!Model.WpkhOutputDescriptors.PrivateExternal}"
+                       IsVisible="{Binding !!PrivateExternalOutputDescriptor}"
                        PrivacyModeEnabled="{Binding !ShowSensitiveData}"
-                       CopyableContent="{Binding Model.WpkhOutputDescriptors.PrivateExternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Model.WpkhOutputDescriptors.PrivateExternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PrivateExternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PrivateExternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Private Internal Output descriptor"
-                       IsVisible="{Binding !!Model.WpkhOutputDescriptors.PrivateInternal}"
+                       IsVisible="{Binding !!PrivateInternalOutputDescriptor}"
                        PrivacyModeEnabled="{Binding !ShowSensitiveData}"
-                       CopyableContent="{Binding Model.WpkhOutputDescriptors.PrivateInternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Model.WpkhOutputDescriptors.PrivateInternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PrivateInternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PrivateInternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
       </StackPanel>
-      <Separator IsVisible="{Binding Model.WpkhOutputDescriptors, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Separator IsVisible="{Binding HasOutputDescriptors}" />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (SegWit)"
-                     CopyableContent="{Binding Model.SegWitExtendedAccountPublicKey}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Model.SegWitExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
+                     CopyableContent="{Binding SegWitExtendedAccountPublicKey}">
+        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding SegWitExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
       <Separator />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (Taproot)"
-                     CopyableContent="{Binding Model.TaprootExtendedAccountPublicKey}"
-                     IsVisible="{Binding !!Model.TaprootExtendedAccountPublicKey}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Model.TaprootExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
+                     CopyableContent="{Binding TaprootExtendedAccountPublicKey}"
+                     IsVisible="{Binding !!TaprootExtendedAccountPublicKey}">
+        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding TaprootExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>
