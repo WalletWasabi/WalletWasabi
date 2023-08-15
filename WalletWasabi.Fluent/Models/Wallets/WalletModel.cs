@@ -29,9 +29,19 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		_historyBuilder = new TransactionHistoryBuilder(_wallet);
 
-		RelevantTransactionProcessed = Observable
-			.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
-			.ObserveOn(RxApp.MainThreadScheduler);
+		Auth = new WalletAuthModel(this, _wallet);
+		Loader = new WalletLoadWorkflow(_wallet);
+		Settings = new WalletSettingsModel(_wallet.KeyManager);
+
+		RelevantTransactionProcessed =
+			Observable.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
+					  .ObserveOn(RxApp.MainThreadScheduler);
+
+		Coins =
+			Observable.Defer(() => GetCoins().ToObservable())                                                 // initial coin list
+					  .Concat(RelevantTransactionProcessed.SelectMany(_ => GetCoins()))                       // Refresh whenever there's a relevant transaction
+					  .Concat(this.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => GetCoins())) // Also refresh whenever AnonScoreTarget changes
+					  .ToObservableChangeSet();
 
 		Transactions = Observable
 			.Defer(() => BuildSummary().ToObservable())
@@ -51,10 +61,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
 			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
-
-		Auth = new WalletAuthModel(this, _wallet);
-		Loader = new WalletLoadWorkflow(_wallet);
-		Settings = new WalletSettingsModel(_wallet.KeyManager);
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
@@ -80,6 +86,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IWalletSettingsModel Settings { get; }
 
+	public IObservable<IChangeSet<ICoinModel>> Coins { get; }
+
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
@@ -103,6 +111,11 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return _wallet.GetLabelsWithRanking(intent);
+	}
+
+	private IEnumerable<ICoinModel> GetCoins()
+	{
+		return _wallet.Coins.Select(x => new CoinModel(_wallet, x));
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()

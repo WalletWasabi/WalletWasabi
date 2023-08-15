@@ -95,6 +95,8 @@ public class ReceiveAddressViewModelTests
 
 		public IWalletSettingsModel Settings => throw new NotImplementedException();
 
+		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
