@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
@@ -76,8 +77,28 @@ public class TransactionProcessor
 			WalletRelevantTransactionProcessed?.Invoke(this, ret);
 		}
 
+		TimeSpan total = A + B + C + D + E + F + G;
+
+		double aPercentage = (A.TotalMilliseconds / total.TotalMilliseconds) * 100;
+		double bPercentage = (B.TotalMilliseconds / total.TotalMilliseconds) * 100;
+		double cPercentage = (C.TotalMilliseconds / total.TotalMilliseconds) * 100;
+		double dPercentage = (D.TotalMilliseconds / total.TotalMilliseconds) * 100;
+		double ePercentage = (E.TotalMilliseconds / total.TotalMilliseconds) * 100;
+		double fPercentage = (F.TotalMilliseconds / total.TotalMilliseconds) * 100;
+		double gPercentage = (G.TotalMilliseconds / total.TotalMilliseconds) * 100;
+
+		Logger.LogWarning($"A: {aPercentage:F2}%, B: {bPercentage:F2}%, C: {cPercentage:F2}%, D: {dPercentage:F2}%, E: {ePercentage:F2}%, F: {fPercentage:F2}%, G: {gPercentage:F2}%\n");
+
 		return rets;
 	}
+
+	private TimeSpan A { get; set; }
+	private TimeSpan B { get; set; }
+	private TimeSpan C { get; set; }
+	private TimeSpan D { get; set; }
+	private TimeSpan E { get; set; }
+	private TimeSpan F { get; set; }
+	private TimeSpan G { get; set; }
 
 	public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
 		=> Process(txs as IEnumerable<SmartTransaction>);
@@ -118,6 +139,7 @@ public class TransactionProcessor
 
 	private ProcessedResult ProcessNoLock(SmartTransaction tx)
 	{
+		var start = DateTimeOffset.UtcNow;
 		var result = new ProcessedResult(tx);
 
 		// We do not care about non-witness transactions for other than mempool cleanup.
@@ -144,9 +166,12 @@ public class TransactionProcessor
 			result = new ProcessedResult(tx);
 		}
 
+		start = SetA(start);
+
 		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
 		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
+			start = SetB(start);
 			var doubleSpentSpenders = new List<SmartCoin>();
 			var doubleSpentCoins = new List<SmartCoin>();
 			foreach (var txIn in tx.Transaction.Inputs)
@@ -226,8 +251,10 @@ public class TransactionProcessor
 				TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
 			}
 		}
+		start = SetC(start);
 
 		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
+		start = SetD(start);
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
@@ -269,6 +296,7 @@ public class TransactionProcessor
 				}
 			}
 		}
+		start = SetE(start);
 
 		// If spends any of our coin
 		foreach (var coin in myInputs)
@@ -300,10 +328,61 @@ public class TransactionProcessor
 		{
 			TransactionStore.AddOrUpdate(tx);
 		}
+		start = SetF(start);
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
+		start = SetG(start);
 
 		return result;
+	}
+
+	private DateTimeOffset SetA(DateTimeOffset start)
+	{
+		A += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	private DateTimeOffset SetB(DateTimeOffset start)
+	{
+		B += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	private DateTimeOffset SetC(DateTimeOffset start)
+	{
+		C += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	private DateTimeOffset SetD(DateTimeOffset start)
+	{
+		D += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	private DateTimeOffset SetE(DateTimeOffset start)
+	{
+		E += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	private DateTimeOffset SetF(DateTimeOffset start)
+	{
+		F += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	private DateTimeOffset SetG(DateTimeOffset start)
+	{
+		G += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
 	}
 
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
