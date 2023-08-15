@@ -72,7 +72,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Subscribe();
 	}
 
-	protected Wallet Wallet { get; }
+	internal Wallet Wallet { get; }
 
 	public IWalletBalancesModel Balances { get; }
 

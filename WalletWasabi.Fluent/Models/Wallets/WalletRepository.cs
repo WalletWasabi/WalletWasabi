@@ -2,6 +2,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -20,6 +21,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class WalletRepository : ReactiveObject, IWalletRepository
 {
+	private static Dictionary<string, WalletModel> WalletDictionary = new();
 	private ReadOnlyObservableCollection<IWalletModel> _wallets;
 
 	public WalletRepository()
@@ -180,9 +182,22 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 	// TODO: Make this method private and non-static once refactoring is completed (this is the only place where WalletModel should be instantiated and its a responsibility of WalletRepository alone)
 	public static WalletModel CreateWalletModel(Wallet wallet)
 	{
-		return
+		if (WalletDictionary.TryGetValue(wallet.WalletName, out var existing))
+		{
+			if (!object.ReferenceEquals(existing.Wallet, wallet))
+			{
+				throw new InvalidOperationException($"Different instance of: {wallet.WalletName}");
+			}
+			return existing;
+		}
+
+		var result =
 			wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletModel(wallet)
 			: new WalletModel(wallet);
+
+		WalletDictionary[wallet.WalletName] = result;
+
+		return result;
 	}
 }
