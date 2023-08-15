@@ -280,7 +280,9 @@ public partial class MainViewModel : ViewModelBase
 				{
 					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
 					{
-						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
+						// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+						// TODO: Why is this code duplicated?
+						var pwAuthDialog = new PasswordAuthDialogViewModel(WalletRepository.CreateWalletModel(walletViewModel.Wallet));
 						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
@@ -315,7 +317,8 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new ReceiveViewModel(UiContext, new WalletModel(walletViewModel.Wallet));
+				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+				return new ReceiveViewModel(UiContext, WalletRepository.CreateWalletModel(walletViewModel.Wallet));
 			}
 
 			return null;
