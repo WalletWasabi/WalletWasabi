@@ -75,8 +75,17 @@ public static class ObservableExtensions
 						Expression<Func<TSender, T10>> property10
 			)
 	{
-		return sender.WhenAny(property1, property2, property3, property4, property5, property6, property7, property8, property9, property10,
-							(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) =>
-								(c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value, c10.Value));
+		return sender.WhenAny(
+			property1,
+			property2,
+			property3,
+			property4,
+			property5,
+			property6,
+			property7,
+			property8,
+			property9,
+			property10,
+			(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value, c10.Value));
 	}
 }
