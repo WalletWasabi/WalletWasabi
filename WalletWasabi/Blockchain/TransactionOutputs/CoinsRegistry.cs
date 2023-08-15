@@ -14,6 +14,9 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> Coins { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<uint256> AllSeenTxIds { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -83,6 +86,7 @@ public class CoinsRegistry : ICoinsView
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
+				AllSeenTxIds.Add(coin.TransactionId);
 				coin.RegisterToHdPubKey();
 				if (added)
 				{
@@ -176,6 +180,14 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 			}
+		}
+	}
+
+	public bool Seen(uint256 txid)
+	{
+		lock (Lock)
+		{
+			return AllSeenTxIds.Contains(txid);
 		}
 	}
 
