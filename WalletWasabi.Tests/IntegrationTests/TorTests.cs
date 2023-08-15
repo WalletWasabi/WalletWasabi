@@ -1,3 +1,4 @@
+using NBitcoin.Crypto;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -141,6 +142,26 @@ public class TorTests : IAsyncLifetime
 
 		Assert.Null(responseNode["json"]);
 		Assert.Equal("https://postman-echo.com/post", GetJsonNode(responseNode, "url").GetValue<string>());
+	}
+
+	/// <summary>
+	/// Downloads a binary file and verifies its checksum to prove it's correctly downloaded.
+	/// </summary>
+	[Fact]
+	public async Task DownloadBinaryFileAsync()
+	{
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
+
+		TorHttpClient client = MakeTorHttpClient(new Uri("https://bitcoin.org"));
+
+		using HttpRequestMessage request = new(HttpMethod.Get, "https://bitcoin.org/bitcoin.pdf");
+		HttpResponseMessage response = await client.SendAsync(request, ctsTimeout.Token);
+		byte[] content = await response.Content.ReadAsByteArrayAsync(ctsTimeout.Token);
+
+		string expectedHex = "B1674191A88EC5CDD733E4240A81803105DC412D6C6708D53AB94FC248F4F553";
+		string actualHex = Convert.ToHexString(Hashes.SHA256(content));
+
+		Assert.Equal(expectedHex, actualHex);
 	}
 
 	[Fact]
