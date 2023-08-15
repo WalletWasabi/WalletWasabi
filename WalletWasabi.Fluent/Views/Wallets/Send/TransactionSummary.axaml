@@ -67,7 +67,7 @@
 
       <StackPanel Spacing="10">
         <c:PreviewItem Icon="{StaticResource timer_regular}"
-                       Label="Confirming within"
+                       Label="Expected confirmation time"
                        IsVisible="{Binding !IsCustomFeeUsed}">
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
         </c:PreviewItem>
