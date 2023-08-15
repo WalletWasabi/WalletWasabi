@@ -83,7 +83,7 @@
       <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
                      Label="Expected confirmation time"
-                     ToolTip.Tip="This is an estimation based on current mempool statistics. The confirmation time might change.">
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
