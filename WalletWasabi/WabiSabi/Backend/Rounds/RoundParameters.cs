@@ -47,7 +47,7 @@ public record RoundParameters
 		StandardInputRegistrationTimeout = standardInputRegistrationTimeout;
 		ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 		OutputRegistrationTimeout = outputRegistrationTimeout;
-		TransactionSigningTimeout = transactionSigningTimeout;
+		TransactionSigningTimeout = transactionSigningTimeout + TimeSpan.FromSeconds(delayTransactionSigning ? 50 : 0);
 		BlameInputRegistrationTimeout = blameInputRegistrationTimeout;
 
 		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
@@ -82,7 +82,7 @@ public record RoundParameters
 
 	public string CoordinationIdentifier { get; init; }
 
-	public bool DelayTransactionSigning { get;  }
+	public bool DelayTransactionSigning { get; }
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
