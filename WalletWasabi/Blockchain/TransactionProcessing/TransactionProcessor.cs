@@ -253,7 +253,7 @@ public class TransactionProcessor
 		}
 		start = SetC(start);
 
-		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
+		var myInputs = Coins.GetMyInputs(tx).ToArray();
 		start = SetD(start);
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{

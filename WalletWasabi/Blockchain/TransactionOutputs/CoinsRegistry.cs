@@ -17,6 +17,9 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<uint256> AllSeenTxIds { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, SmartCoin> AllSeenCoins { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -87,6 +90,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				added = Coins.Add(coin);
 				AllSeenTxIds.Add(coin.TransactionId);
+				AllSeenCoins.AddOrReplace(coin.Outpoint, coin);
 				coin.RegisterToHdPubKey();
 				if (added)
 				{
@@ -305,4 +309,80 @@ public class CoinsRegistry : ICoinsView
 	public ICoinsView Unspent() => AsCoinsView().Unspent();
 
 	IEnumerator IEnumerable.GetEnumerator() => AsCoinsView().GetEnumerator();
+
+	public TimeSpan A { get; set; }
+	public TimeSpan B { get; set; }
+	public TimeSpan C { get; set; }
+	public TimeSpan D { get; set; }
+	public TimeSpan E { get; set; }
+	public TimeSpan F { get; set; }
+	public TimeSpan G { get; set; }
+
+	public SmartCoin[] GetMyInputs(SmartTransaction transaction)
+	{
+		var inputs = transaction.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
+
+		var myInputs = new List<SmartCoin>();
+		lock (Lock)
+		{
+			foreach (var input in inputs)
+			{
+				if (AllSeenCoins.TryGetValue(input, out var coin))
+				{
+					myInputs.Add(coin);
+				}
+			}
+		}
+
+		return myInputs.ToArray();
+	}
+
+	public DateTimeOffset SetA(DateTimeOffset start)
+	{
+		A += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	public DateTimeOffset SetB(DateTimeOffset start)
+	{
+		B += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	public DateTimeOffset SetC(DateTimeOffset start)
+	{
+		C += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	public DateTimeOffset SetD(DateTimeOffset start)
+	{
+		D += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	public DateTimeOffset SetE(DateTimeOffset start)
+	{
+		E += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	public DateTimeOffset SetF(DateTimeOffset start)
+	{
+		F += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
+
+	public DateTimeOffset SetG(DateTimeOffset start)
+	{
+		G += DateTimeOffset.UtcNow - start;
+		start = DateTimeOffset.UtcNow;
+		return start;
+	}
 }
