@@ -19,6 +19,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
+	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -29,8 +30,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		Auth = new WalletAuthModel(this, Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
 		Settings = new WalletSettingsModel(Wallet.KeyManager);
-		Privacy = new WalletPrivacyModel(this, Wallet);
-		Coinjoin = new WalletCoinjoinModel(Wallet, Settings);
+
+		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
 
 		var relevantTransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
@@ -59,6 +60,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .Select(_ => Wallet.State);
+
+		Privacy = new WalletPrivacyModel(this, Wallet);
 
 		var balance =
 			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
@@ -91,7 +94,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IWalletPrivacyModel Privacy { get; }
 
-	public IWalletCoinjoinModel Coinjoin { get; }
+	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
 
 	public IObservable<IChangeSet<ICoinModel>> Coins { get; }
 
@@ -126,7 +129,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	private IEnumerable<ICoinModel> GetCoins()
 	{
 		return Wallet.Coins
-					  .Select(x => new CoinModel(Wallet, x));
+					 .Select(x => new CoinModel(Wallet, x));
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()

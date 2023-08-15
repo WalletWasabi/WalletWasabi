@@ -62,6 +62,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private CoinJoinStateViewModel(IWalletModel wallet)
 	{
+		_wallet = wallet;
+
 		wallet.Coinjoin.StatusUpdated
 					   .Do(ProcessStatusChange)
 					   .Subscribe();
@@ -141,7 +143,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
 
 		_stateMachine.Start();
-		_wallet = wallet;
 	}
 
 	private enum State
