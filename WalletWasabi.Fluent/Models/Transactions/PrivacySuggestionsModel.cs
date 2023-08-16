@@ -206,7 +206,7 @@ public class PrivacySuggestionsModel
 
 	private IEnumerable<PrivacyItem> VerifyCoinjoiningInputs(BuildTransactionResult transaction)
 	{
-		if (transaction.SpendsCoinjoining)
+		if (transaction.SpentCoins.Any(_cjManager.CoinsUsedInCoinjoins[_wallet.WalletName].Contains))
 		{
 			yield return new CoinjoiningFundsWarning();
 		}
