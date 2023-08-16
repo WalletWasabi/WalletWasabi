@@ -22,7 +22,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletRepository : ReactiveObject, IWalletRepository
 {
 	private static Dictionary<string, WalletModel> WalletDictionary = new();
-	private ReadOnlyObservableCollection<IWalletModel> _wallets;
 
 	public WalletRepository()
 	{
@@ -36,19 +35,12 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
 					  .Transform(x => x as IWalletModel);
 
-		// Materialize the Wallet list to determine the default wallet.
-		Wallets
-			.Bind(out _wallets)
-			.Subscribe();
-
-		DefaultWallet =
-			_wallets.FirstOrDefault(item => item.Name == Services.UiConfig.LastSelectedWallet)
-			?? _wallets.FirstOrDefault();
+		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	public IWalletModel? DefaultWallet { get; }
+	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();
 
 	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
@@ -79,7 +71,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 	{
 		walletSettings.Save();
 
-		return _wallets.First(x => x.Name == walletSettings.WalletName);
+		return GetByName(walletSettings.WalletName);
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
@@ -169,12 +161,20 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 		return new WalletSettingsModel(keyManager, true, true);
 	}
 
+	private IWalletModel GetByName(string walletName)
+	{
+		return
+			WalletDictionary.TryGetValue(walletName, out var wallet)
+			? wallet
+			: throw new InvalidOperationException($"Wallet not found: {walletName}");
+	}
+
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
 	{
 		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
 		if (existingWallet is { })
 		{
-			return _wallets.First(x => x.Name == existingWallet.WalletName);
+			return GetByName(existingWallet.WalletName);
 		}
 		return null;
 	}
