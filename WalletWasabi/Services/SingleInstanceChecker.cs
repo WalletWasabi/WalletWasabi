@@ -46,18 +46,19 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	}
 
 	public event EventHandler? OtherInstanceStarted;
+	public event EventHandler<string>? UriActivated;
 
 	private int Port { get; }
 
 	private CancellationTokenSource DisposeCts { get; } = new();
 	private TaskCompletionSource? TaskStartTcpListener { get; set; }
 
-	public async Task<WasabiInstanceStatus> CheckSingleInstanceAsync()
+	public async Task<WasabiInstanceStatus> CheckSingleInstanceAsync(string? uri)
 	{
 		// Start single instance checker that is active over the lifetime of the application.
 		try
 		{
-			var singleInstanceResult = await CanRunAsSingleInstanceAsync().ConfigureAwait(false);
+			var singleInstanceResult = await CanRunAsSingleInstanceAsync(uri).ConfigureAwait(false);
 			return singleInstanceResult
 				? WasabiInstanceStatus.NoOtherInstanceIsRunning
 				: WasabiInstanceStatus.AnotherInstanceIsRunning;
@@ -74,8 +75,9 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// we try to signal the first instance before returning false.
 	/// On macOS this function will never fail if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 	/// </summary>
+	/// <param name="uri">A BIP21 address which should be handled by an already running instance.</param>
 	/// <returns>true if this is the only instance running; otherwise false.</returns>
-	private async Task<bool> CanRunAsSingleInstanceAsync()
+	private async Task<bool> CanRunAsSingleInstanceAsync(string? uri)
 	{
 		if (DisposeCts.IsCancellationRequested)
 		{
@@ -120,6 +122,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
 		await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
+		await writer.WriteAsync(uri.AsMemory(), cts.Token).ConfigureAwait(false);
 		await writer.FlushAsync().ConfigureAwait(false);
 		await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
 
@@ -173,10 +176,17 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 					// The read operation cancellation will happen on reader disposal.
 					string answer = await reader.ReadToEndAsync(cts.Token).ConfigureAwait(false);
-					if (answer == WasabiMagicString)
+					if (answer.StartsWith(WasabiMagicString))
 					{
 						Logger.LogInfo($"Detected another Wasabi instance.");
 						OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
+
+						var uri = answer[WasabiMagicString.Length..];
+						if (uri.Length > 0)
+						{
+							Logger.LogInfo($"Activated URI: {uri}");
+							UriActivated?.Invoke(this, uri);
+						}
 					}
 				}
 				catch (Exception ex)

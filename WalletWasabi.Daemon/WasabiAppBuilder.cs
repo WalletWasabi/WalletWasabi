@@ -45,7 +45,10 @@ public class WasabiApplication
 
 		if (AppConfig.MustCheckSingleInstance)
 		{
-			var instanceResult = await SingleInstanceChecker.CheckSingleInstanceAsync();
+			var uri = AppConfig.Arguments
+				.FirstOrDefault(static arg => Uri.TryCreate(arg, UriKind.Absolute, out _));
+
+			var instanceResult = await SingleInstanceChecker.CheckSingleInstanceAsync(uri);
 			if (instanceResult == WasabiInstanceStatus.AnotherInstanceIsRunning)
 			{
 				Logger.LogDebug("Wasabi is already running, signaled the first instance.");
@@ -163,6 +166,7 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 
 	public WasabiAppBuilder OnTermination(Action action) =>
 		this with { Terminate = action };
+
 	public WasabiApplication Build() =>
 		new(this);
 

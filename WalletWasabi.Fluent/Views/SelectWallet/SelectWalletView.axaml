@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="using:WalletWasabi.Fluent.Converters"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:wvm="using:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:svm="using:WalletWasabi.Fluent.ViewModels.SelectWallet"
+             xmlns:sv="clr-namespace:WalletWasabi.Fluent.Views.SelectWallet"
+             mc:Ignorable="d"
+             x:DataType="svm:SelectWalletViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.SelectWallet.SelectWalletView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableCancel="{Binding EnableCancel}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <ItemsControl Items="{Binding Wallets}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="wvm:WalletViewModelBase">
+            <c:TileButton Command="{ReflectionBinding $parent[sv:SelectWalletView].DataContext.SelectCommand}"
+                          CommandParameter="{Binding}"
+                          Text="{Binding WalletName}"
+                          Icon="{Binding IconName, Converter={x:Static converters:NavBarIconConverter.Instance}}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="{Binding Columns}" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.Styles>
+          <Style Selector="ItemsControl:empty">
+            <Setter Property="Template">
+              <ControlTemplate>
+                <TextBlock Text="No wallets to spend money from." />
+              </ControlTemplate>
+            </Setter>
+          </Style>
+          
+          <Style Selector="c|TileButton">
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="IconSize" Value="50" />
+          </Style>
+
+          <Style Selector="Panel.small c|TileButton">
+            <Setter Property="Width" Value="120" />
+            <Setter Property="VerticalContentAlignment" Value="Bottom"/>
+          </Style>
+        </ItemsControl.Styles>
+      </ItemsControl>
+    </ScrollViewer>
+  </c:ContentArea>
+</UserControl>

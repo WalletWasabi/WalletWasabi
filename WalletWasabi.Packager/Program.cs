@@ -483,7 +483,8 @@ public static class Program
 					$"Comment=Privacy focused Bitcoin wallet.\n" +
 					$"Icon={ExecutableName}\n" +
 					$"Terminal=false\n" +
-					$"Exec={ExecutableName}\n" +
+					$"Exec={ExecutableName} %u\n" +
+					$"MimeType=x-scheme-handler/bitcoin;\n" +
 					$"Categories=Office;Finance;\n" +
 					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;\n";
 

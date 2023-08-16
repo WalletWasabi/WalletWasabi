@@ -13,16 +13,19 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly bool _startInBg;
+	private readonly string? _bip21Uri;
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
+	private Bip21Workflow? _bip21Workflow;
 
 	public App()
 	{
 		Name = "Wasabi Wallet";
 	}
 
-	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
+	public App(Func<Task> backendInitialiseAsync, bool startInBg, string? bip21Uri) : this()
 	{
+		_bip21Uri = bip21Uri;
 		_startInBg = startInBg;
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
@@ -39,8 +42,10 @@ public class App : Application
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
 				var uiContext = CreateUiContext();
-				_applicationStateManager =
-					new ApplicationStateManager(desktop, uiContext, _startInBg);
+				
+				_applicationStateManager = new ApplicationStateManager(desktop, uiContext, _startInBg);
+				_bip21Workflow = new Bip21Workflow(uiContext, MainViewModel.Instance.CurrentWallet);
+				_bip21Workflow.RegisterUriHandler();
 
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
@@ -52,6 +57,11 @@ public class App : Application
 						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
 
 						MainViewModel.Instance.Initialize();
+
+						if (_bip21Uri is { })
+						{
+							_bip21Workflow.HandleUri(_bip21Uri);
+						}
 					});
 			}
 		}

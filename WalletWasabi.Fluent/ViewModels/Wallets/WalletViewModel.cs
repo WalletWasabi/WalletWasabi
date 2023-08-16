@@ -102,7 +102,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !Wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
+		SendCommand = ReactiveCommand.Create<string>(to => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this) { To = to }));
 
 		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(WalletRepository.CreateWalletModel(Wallet)));
