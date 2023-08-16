@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -88,11 +89,25 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
+		if (!isBackendAvailable || _wallet.KeyManager.SkipSynchronization)
 		{
-			await Task.Delay(1000).ConfigureAwait(false);
+			await StartWalletAsync();
 		}
+		else
+		{
+			// Listen to NewFiltersProcessed event until RemainingFiltersToDownload == 0 and then Start the wallet
+			Observable.FromEventPattern(_wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal()
+					  .StartWith(Unit.Default)
+					  .Where(_ => RemainingFiltersToDownload == 0)
+					  .Take(1)
+					  .DoAsync(_ => StartWalletAsync())
+					  .Subscribe()
+					  .DisposeWith(_disposables);
+		}
+	}
 
+	private async Task StartWalletAsync()
+	{
 		if (_wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");
