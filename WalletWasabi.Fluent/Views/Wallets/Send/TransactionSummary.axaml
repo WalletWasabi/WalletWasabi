@@ -68,7 +68,8 @@
       <StackPanel Spacing="10">
         <c:PreviewItem Icon="{StaticResource timer_regular}"
                        Label="Expected confirmation time"
-                       IsVisible="{Binding !IsCustomFeeUsed}">
+                       IsVisible="{Binding !IsCustomFeeUsed}"
+                       ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
