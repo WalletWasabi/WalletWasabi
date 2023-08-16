@@ -32,7 +32,7 @@ public class IndexStore : IAsyncDisposable
 		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
 		OldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
 		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		RunMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath);
+		RunMigration = File.Exists(OldIndexFilePath);
 
 		if (network == Network.RegTest)
 		{
@@ -90,10 +90,10 @@ public class IndexStore : IAsyncDisposable
 			// Migration code.
 			if (RunMigration)
 			{
-				await Task.Run(MigrateToSqliteNoLock, cancellationToken).ConfigureAwait(false);
+				MigrateToSqliteNoLock(cancellationToken);
 			}
 
-			// If the automatic migration to SQLite is stopped or somehow disrupted, we would not delete the old index data.
+			// If the automatic migration to SQLite is stopped, we would not delete the old index data.
 			// So check it every time.
 			RemoveOldIndexFilesIfExist();
 
@@ -121,7 +121,7 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	private void MigrateToSqliteNoLock()
+	private void MigrateToSqliteNoLock(CancellationToken cancel)
 	{
 		int i = 0;
 
@@ -131,14 +131,17 @@ public class IndexStore : IAsyncDisposable
 
 			Stopwatch stopwatch = Stopwatch.StartNew();
 
-			List<string> filters = new(capacity: 100_000);
+			IndexStorage.Clear();
 
+			List<string> filters = new(capacity: 10_000);
 			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			using (BufferedStream bs = new(fs))
 			using (StreamReader sr = new(bs))
 			{
 				while (true)
 				{
+					cancel.ThrowIfCancellationRequested();
+
 					i++;
 					string? line = sr.ReadLine();
 
@@ -155,7 +158,7 @@ public class IndexStore : IAsyncDisposable
 
 					filters.Add(line);
 
-					if (i % 100_000 == 0)
+					if (i % 10_000 == 0)
 					{
 						IndexStorage.BulkAppend(filters);
 						filters.Clear();
@@ -166,6 +169,11 @@ public class IndexStore : IAsyncDisposable
 			IndexStorage.BulkAppend(filters);
 
 			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
+		}
+		catch (OperationCanceledException)
+		{
+			SqliteConnection.ClearAllPools();
+			throw;
 		}
 		catch (Exception ex)
 		{

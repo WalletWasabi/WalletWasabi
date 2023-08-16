@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -15,16 +16,16 @@ public partial class PrivacyModeViewModel : RoutableViewModel
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
 
-	public PrivacyModeViewModel()
+	public PrivacyModeViewModel(IApplicationSettings applicationSettings)
 	{
-		_privacyMode = Services.UiConfig.PrivacyMode;
+		_privacyMode = applicationSettings.PrivacyMode;
 
 		SetIcon();
 
 		this.WhenAnyValue(x => x.PrivacyMode)
 			.Skip(1)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(x => Services.UiConfig.PrivacyMode = x);
+			.Do(x => applicationSettings.PrivacyMode = x)
+			.Subscribe();
 	}
 
 	public void Toggle()

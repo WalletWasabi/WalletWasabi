@@ -18,6 +18,8 @@ public interface IWalletModel
 
 	IObservable<WalletState> State { get; }
 
+	IObservable<IChangeSet<ICoinModel>> Coins { get; }
+
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	IObservable<IChangeSet<IAddress, string>> Addresses { get; }
@@ -37,4 +39,6 @@ public interface IWalletModel
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
+
+	IWalletInfoModel GetWalletInfo();
 }

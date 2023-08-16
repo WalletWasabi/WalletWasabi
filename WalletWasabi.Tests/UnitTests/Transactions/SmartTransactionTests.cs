@@ -308,7 +308,7 @@ public class SmartTransactionTests
 		t2.Outputs.Add(txout4);
 		SmartTransaction st2 = new(t2, 0);
 
-		Assert.Equal(1, st2.ForeignVirtualOutputs.Count);
+		Assert.Single(st2.ForeignVirtualOutputs);
 		Assert.Equal(2, st2.ForeignVirtualOutputs.First().OutPoints.Count);
 	}
 
@@ -329,7 +329,7 @@ public class SmartTransactionTests
 		st1.TryAddWalletInput(sc);
 		st1.TryAddWalletInput(sc2);
 
-		Assert.Equal(1, st1.WalletVirtualInputs.Count);
+		Assert.Single(st1.WalletVirtualInputs);
 		Assert.Equal(2, st1.WalletVirtualInputs.First().Coins.Count);
 	}
 
@@ -350,7 +350,7 @@ public class SmartTransactionTests
 		st1.TryAddWalletOutput(sc);
 		st1.TryAddWalletOutput(sc2);
 
-		Assert.Equal(1, st1.WalletVirtualOutputs.Count);
+		Assert.Single(st1.WalletVirtualOutputs);
 		Assert.Equal(Money.Coins(3), st1.WalletVirtualOutputs.First().Amount);
 		Assert.Equal(2, st1.WalletVirtualOutputs.First().Coins.Count);
 	}
