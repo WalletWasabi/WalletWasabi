@@ -70,8 +70,9 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
 	{
 		walletSettings.Save();
-
-		return GetByName(walletSettings.WalletName);
+		var result = GetByName(walletSettings.WalletName);
+		result.Settings.IsCoinJoinPaused = walletSettings.IsCoinJoinPaused;
+		return result;
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
