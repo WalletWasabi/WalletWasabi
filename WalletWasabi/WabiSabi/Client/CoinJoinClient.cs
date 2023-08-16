@@ -29,7 +29,7 @@ public class CoinJoinClient
 	private static readonly TimeSpan ExtraRoundTimeoutMargin = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
-	// timings only depends on the input-reg timeout.
+	// timings only depends on the input-reg timeout and signing requests which timings must be larger.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
@@ -57,6 +57,8 @@ public class CoinJoinClient
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
+
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = ImmutableList<SmartCoin>.Empty;
 
 	public ImmutableList<SmartCoin> CoinsUsedInCoinjoin { get; private set; } = ImmutableList<SmartCoin>.Empty;
 
@@ -327,12 +329,14 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, $"The coordinator rejected all {smartCoins.Count()} inputs.");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
+
+			CoinsInCriticalPhase = registeredAliceClients.Select(alice => alice.SmartCoin).ToImmutableList();
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
@@ -377,8 +381,9 @@ public class CoinJoinClient
 			bool disposeCircuit = true;
 			try
 			{
-				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
-
+				var (newPersonCircuit, httpClient) = HttpClientFactory.NewHttpClientWithPersonCircuit();
+				personCircuit = newPersonCircuit;
+				
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
@@ -453,8 +458,9 @@ public class CoinJoinClient
 						{
 							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
 						}
-						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
+						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
@@ -587,7 +593,10 @@ public class CoinJoinClient
 		DateTimeOffset signingEndTime,
 		CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
+		// Maximum signing request delay is 50 seconds, because
+		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
+		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,

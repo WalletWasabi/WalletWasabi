@@ -12,7 +12,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Recipient")]
+[NavigationMetaData(Title = "Recipient", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray?>
 {
 	private readonly Wallet _wallet;
@@ -20,7 +20,9 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
-		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
+
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		SuggestionLabels = new SuggestionLabelsViewModel(WalletRepository.CreateWalletModel(wallet), Intent.Send, 3)
 		{
 			Labels = { labels.AsEnumerable() }
 		};

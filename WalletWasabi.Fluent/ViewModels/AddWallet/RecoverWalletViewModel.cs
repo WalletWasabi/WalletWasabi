@@ -16,6 +16,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -26,7 +27,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 
-	private RecoverWalletViewModel(string walletName)
+	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -44,7 +45,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnNextAsync(walletName),
+			async () => await OnNextAsync(options),
 			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
@@ -56,8 +57,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
-	private async Task OnNextAsync(string walletName)
+	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{
+		var (walletName, _, _, _) = options;
+		ArgumentException.ThrowIfNullOrEmpty(walletName);
+
 		var password = await Navigate().To().CreatePasswordDialog("Add Password", "Type the password of the wallet if there is one").GetResultAsync();
 		if (password is not { } || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
 		{
@@ -68,7 +72,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		try
 		{
-			var wallet = await UiContext.WalletList.RecoverWalletAsync(walletName, password, currentMnemonics, MinGapLimit);
+			options = options with { Password = password, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
+			var wallet = await UiContext.WalletRepository.NewWalletAsync(options);
 			await Navigate().To().CoinJoinProfiles(wallet).GetResultAsync();
 		}
 		catch (Exception ex)
@@ -113,7 +118,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = UiContext.WalletList.HasWallet;
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 }

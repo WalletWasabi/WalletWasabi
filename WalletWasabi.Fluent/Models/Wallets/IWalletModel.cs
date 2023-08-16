@@ -14,9 +14,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 /// </summary>
 public interface IWalletModel
 {
-	public string Name { get; }
+	string Name { get; }
 
 	IObservable<WalletState> State { get; }
+
+	IObservable<IChangeSet<ICoinModel>> Coins { get; }
 
 	IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
@@ -37,4 +39,6 @@ public interface IWalletModel
 	IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels);
 
 	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
+
+	IWalletInfoModel GetWalletInfo();
 }

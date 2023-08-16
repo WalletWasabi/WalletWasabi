@@ -41,7 +41,7 @@ public class TerminateService
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Debugger.IsAttached)
 		{
 			// If the debugger is attached and you subscribe to SystemEvents, then on quit Wasabi gracefully stops but never returns from console.
-			Logger.LogInfo($"{nameof(TerminateService)} subscribed to SystemEvents");
+			Logger.LogDebug($"{nameof(TerminateService)} subscribed to SystemEvents");
 			SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			IsSystemEventsSubscribed = true;
 		}

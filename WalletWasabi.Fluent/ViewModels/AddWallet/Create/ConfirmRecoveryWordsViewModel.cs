@@ -5,12 +5,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -19,20 +15,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
 	private readonly List<RecoveryWordViewModel> _words;
-	private readonly Mnemonic _mnemonic;
-	private readonly string _walletName;
+	private readonly WalletCreationOptions.AddNewWallet _options;
 
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
-	private ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
+	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
 	{
+		_options = options;
 		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words.OrderBy(x => x.Index).ToList();
 		_currentWord = words.First();
-		_mnemonic = mnemonic;
-		_walletName = walletName;
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -88,7 +82,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		SetNextWord();
 
-		var enableCancel = UiContext.WalletList.HasWallet;
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 
@@ -146,7 +140,9 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			var walletSettings = await UiContext.WalletList.CreateNewWalletAsync(_walletName, password, _mnemonic);
+			var options = _options with { Password = password };
+
+			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 
 			IsBusy = false;
 
@@ -162,7 +158,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private void SetSkip()
 	{
 #if RELEASE
-		IsSkipEnabled = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
+		IsSkipEnabled = Services.WalletManager.Network != NBitcoin.Network.Main || System.Diagnostics.Debugger.IsAttached;
 #else
 		IsSkipEnabled = true;
 #endif

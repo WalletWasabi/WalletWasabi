@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -33,7 +34,6 @@ public partial class MainViewModel : ViewModelBase
 {
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
-	private readonly AddWalletPageViewModel _addWalletPage;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
@@ -52,17 +52,18 @@ public partial class MainViewModel : ViewModelBase
 		_dialogScreen = new DialogScreenViewModel();
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		_navBar = new NavBarViewModel(UiContext);
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen));
+		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen, _navBar));
+
+		_navBar.Activate();
 
 		UiServices.Initialize(UiContext);
 
 		_statusIcon = new StatusIconViewModel(new TorStatusCheckerModel(Services.TorStatusChecker));
 
-		_addWalletPage = new AddWalletPageViewModel(UiContext);
 		_settingsPage = new SettingsPageViewModel(UiContext);
-		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel(UiContext);
+		_privacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
@@ -93,7 +94,7 @@ public partial class MainViewModel : ViewModelBase
 			{
 				IsOobeBackgroundVisible = true;
 
-				await UiContext.Navigate().To().WelcomePage(_addWalletPage).GetResultAsync();
+				await UiContext.Navigate().To().WelcomePage().GetResultAsync();
 
 				if (Services.WalletManager.HasWallet())
 				{
@@ -198,7 +199,7 @@ public partial class MainViewModel : ViewModelBase
 	private void RegisterViewModels()
 	{
 		PrivacyModeViewModel.Register(_privacyMode);
-		AddWalletPageViewModel.Register(_addWalletPage);
+		AddWalletPageViewModel.RegisterLazy(() => new AddWalletPageViewModel(UiContext));
 		SettingsPageViewModel.Register(_settingsPage);
 
 		GeneralSettingsTabViewModel.RegisterLazy(() =>
@@ -222,14 +223,14 @@ public partial class MainViewModel : ViewModelBase
 		AboutViewModel.RegisterLazy(() => new AboutViewModel(UiContext));
 		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(UiContext));
 		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(UiContext));
-		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
-		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
-		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
-		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
-		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
-		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
-		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel(UiContext));
+		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel(UiContext));
+		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel(UiContext));
+		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(UiContext));
+		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(UiContext));
+		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel(UiContext));
+		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(UiContext));
+		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(UiContext));
 
 		WalletCoinsViewModel.RegisterLazy(() =>
 		{
@@ -279,7 +280,9 @@ public partial class MainViewModel : ViewModelBase
 				{
 					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
 					{
-						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.Wallet);
+						// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+						// TODO: Why is this code duplicated?
+						var pwAuthDialog = new PasswordAuthDialogViewModel(WalletRepository.CreateWalletModel(walletViewModel.Wallet));
 						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
@@ -288,7 +291,7 @@ public partial class MainViewModel : ViewModelBase
 						}
 					}
 
-					return new WalletInfoViewModel(UiContext, walletViewModel);
+					return new WalletInfoViewModel(UiContext, new WalletModel(walletViewModel.Wallet));
 				}
 
 				return AuthorizeWalletInfo();
@@ -314,7 +317,8 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new ReceiveViewModel(UiContext, new WalletModel(walletViewModel.Wallet));
+				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+				return new ReceiveViewModel(UiContext, WalletRepository.CreateWalletModel(walletViewModel.Wallet));
 			}
 
 			return null;
@@ -334,7 +338,7 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchSource(
 			new ActionsSearchSource(UiContext, filterChanged),
-			new SettingsSearchSource(_settingsPage, filterChanged),
+			new SettingsSearchSource(UiContext, filterChanged),
 			new TransactionsSearchSource(filterChanged));
 
 		var searchBar = new SearchBarViewModel(source.Changes);

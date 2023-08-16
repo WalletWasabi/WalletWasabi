@@ -72,4 +72,6 @@ public class FeeStrategy
 	public static FeeStrategy CreateFromConfirmationTarget(int confirmationTarget) => new(FeeStrategyType.Target, confirmationTarget: confirmationTarget, feeRate: null);
 
 	public static FeeStrategy CreateFromFeeRate(FeeRate feeRate) => new(FeeStrategyType.Rate, confirmationTarget: null, feeRate: feeRate);
+
+	public static FeeStrategy CreateFromFeeRate(decimal satoshiPerByte) => CreateFromFeeRate(new FeeRate(satoshiPerByte));
 }

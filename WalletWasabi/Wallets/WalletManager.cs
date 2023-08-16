@@ -24,14 +24,28 @@ public class WalletManager : IWalletProvider
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
-	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
+	public WalletManager(
+		Network network,
+		string workDir,
+		WalletDirectories walletDirectories,
+		BitcoinStore bitcoinStore,
+		WasabiSynchronizer synchronizer,
+		HybridFeeProvider feeProvider,
+		IBlockProvider blockProvider,
+		ServiceConfiguration serviceConfiguration)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		Network = Guard.NotNull(nameof(network), network);
+		Network = network;
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);
-		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		WalletDirectories = walletDirectories;
+		BitcoinStore = bitcoinStore;
+		Synchronizer = synchronizer;
+		FeeProvider = feeProvider;
+		BlockProvider = blockProvider;
+		ServiceConfiguration = serviceConfiguration;
+		CancelAllTasksToken = CancelAllTasks.Token;
 
 		RefreshWalletList();
 	}
@@ -51,7 +65,12 @@ public class WalletManager : IWalletProvider
 	/// </summary>
 	public event EventHandler<Wallet>? WalletAdded;
 
-	private CancellationTokenSource CancelAllInitialization { get; } = new();
+	/// <summary>Cancels initialization of wallets.</summary>
+	private CancellationTokenSource CancelAllTasks { get; } = new();
+
+	/// <summary>Token from <see cref="CancelAllTasks"/>.</summary>
+	/// <remarks>Accessing the token of <see cref="CancelAllTasks"/> can lead to <see cref="ObjectDisposedException"/>. So we copy the token and no exception can be thrown.</remarks>
+	private CancellationToken CancelAllTasksToken { get; }
 
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private HashSet<Wallet> Wallets { get; } = new();
@@ -59,15 +78,15 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; set; }
-	private WasabiSynchronizer? Synchronizer { get; set; }
-	private ServiceConfiguration ServiceConfiguration { get; set; }
+	private BitcoinStore BitcoinStore { get; }
+	private WasabiSynchronizer Synchronizer { get; }
+	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
-	private HybridFeeProvider FeeProvider { get; set; }
+	private HybridFeeProvider FeeProvider { get; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private IBlockProvider BlockProvider { get; set; }
+	private IBlockProvider BlockProvider { get; }
 	private string WorkDir { get; }
 
 	private void RefreshWalletList()
@@ -118,8 +137,6 @@ public class WalletManager : IWalletProvider
 
 	public async Task<Wallet> StartWalletAsync(Wallet wallet)
 	{
-		Guard.NotNull(nameof(wallet), wallet);
-
 		lock (Lock)
 		{
 			if (_disposedValue)
@@ -128,7 +145,7 @@ public class WalletManager : IWalletProvider
 				throw new OperationCanceledException("Object was already disposed.");
 			}
 
-			if (CancelAllInitialization.IsCancellationRequested)
+			if (CancelAllTasks.IsCancellationRequested)
 			{
 				throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 			}
@@ -142,7 +159,7 @@ public class WalletManager : IWalletProvider
 		// Wait for the WalletManager to be initialized.
 		while (!IsInitialized)
 		{
-			await Task.Delay(100, CancelAllInitialization.Token).ConfigureAwait(false);
+			await Task.Delay(100, CancelAllTasks.Token).ConfigureAwait(false);
 		}
 
 		if (wallet.State == WalletState.WaitingForInit)
@@ -150,16 +167,14 @@ public class WalletManager : IWalletProvider
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 
-		using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
 			{
-				var cancel = CancelAllInitialization.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
-				await wallet.StartAsync(cancel).ConfigureAwait(false);
+				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
-				cancel.ThrowIfCancellationRequested();
-
+				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
 			catch
@@ -269,15 +284,7 @@ public class WalletManager : IWalletProvider
 			_disposedValue = true;
 		}
 
-		try
-		{
-			CancelAllInitialization?.Cancel();
-			CancelAllInitialization?.Dispose();
-		}
-		catch (ObjectDisposedException)
-		{
-			Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-		}
+		CancelAllTasks.Cancel();
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
@@ -307,7 +314,8 @@ public class WalletManager : IWalletProvider
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
-					wallet?.Dispose();
+
+					wallet.Dispose();
 				}
 				catch (Exception ex)
 				{
@@ -315,6 +323,8 @@ public class WalletManager : IWalletProvider
 				}
 			}
 		}
+
+		CancelAllTasks.Dispose();
 	}
 
 	public void ProcessCoinJoin(SmartTransaction tx)
@@ -373,14 +383,8 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void RegisterServices()
 	{
-		BitcoinStore = bitcoinStore;
-		Synchronizer = synchronizer;
-		ServiceConfiguration = serviceConfiguration;
-		FeeProvider = feeProvider;
-		BlockProvider = blockProvider;
-
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
