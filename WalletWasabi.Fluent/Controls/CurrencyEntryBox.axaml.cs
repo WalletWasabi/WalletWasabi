@@ -15,7 +15,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
-using static WalletWasabi.Userfacing.CurrencyInput;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -166,18 +165,9 @@ public partial class CurrencyEntryBox : TextBox
 
 		var preComposedText = PreComposeText(input);
 
-		var isValid = ValidateEntryText(preComposedText);
+		var isValid = ValidateEntryText(preComposedText, validatePasteBalance: false);
 
-		preComposedText = preComposedText.TotalTrim();
-
-		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
-
-		e.Handled = !(isValid && parsed);
-
-		if (IsFiat && !e.Handled)
-		{
-			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
-		}
+		e.Handled = !isValid;
 
 		base.OnTextInput(e);
 	}
@@ -209,74 +199,11 @@ public partial class CurrencyEntryBox : TextBox
 		CaretIndex += prependText.Length;
 	}
 
-	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
-	private static partial Regex RegexBtcFormat();
-
-	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
-	private static partial Regex RegexDecimalCharsOnly();
-
-	[GeneratedRegex($"{GroupSeparator}{{2,}}")]
-	private static partial Regex RegexConsecutiveSpaces();
-
-	[GeneratedRegex($"[{GroupSeparator}{DecimalSeparator}]+")]
-	private static partial Regex RegexGroupAndDecimal();
-
-	private bool ValidateEntryText(string preComposedText)
+	private bool ValidateEntryText(string preComposedText, bool validatePasteBalance)
 	{
-		// Check if it has a decimal separator.
-		var trailingDecimal = preComposedText.Length > 0 && preComposedText.EndsWith(DecimalSeparator);
-		var match = RegexBtcFormat().Match(preComposedText);
-
-		// Ignore group chars on count of the whole part of the decimal.
-		var wholeStr = match.Groups["Whole"].ToString();
-		var whole = RegexGroupAndDecimal().Replace(wholeStr, "").Length;
-
-		var fracStr = match.Groups["Frac"].ToString().Replace(GroupSeparator, "");
-		var frac = RegexGroupAndDecimal().Replace(fracStr, "").Length;
-
-		// Check for consecutive spaces (2 or more) and leading spaces.
-		var rule1 = preComposedText.Length > 1 && (preComposedText.StartsWith(GroupSeparator) ||
-												   RegexConsecutiveSpaces().IsMatch(preComposedText));
-
-		// Check for trailing spaces in the whole number part and in the last part of the precomp string.
-		var rule2 = whole >= 8 && (preComposedText.EndsWith(GroupSeparator) || wholeStr.EndsWith(GroupSeparator));
-
-		// Check for non-numeric chars.
-		var rule3 = !RegexDecimalCharsOnly().IsMatch(preComposedText);
-		if (rule1 || rule2 || rule3)
+		if (!TryParse(preComposedText, validatePasteBalance, out _))
 		{
 			return false;
-		}
-
-		// Reject and dont process the input if the string doesnt match.
-		if (!match.Success)
-		{
-			return false;
-		}
-
-		// Passthrough the decimal place char or the group separator.
-		if (preComposedText == DecimalSeparator && !trailingDecimal)
-		{
-			return false;
-		}
-
-		if (IsFiat)
-		{
-			// Fiat input restriction is to only allow 2 decimal places max
-			// and also 16 whole number places.
-			if ((whole > 16 && !trailingDecimal) || frac > 2)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			// Bitcoin input restriction is to only allow 8 decimal places max
-			// and also 8 whole number places.
-			if ((whole > 8 && !trailingDecimal) || frac > MaxDecimals)
-			{
-				return false;
-			}
 		}
 
 		return true;
@@ -316,21 +243,21 @@ public partial class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			if (!TryParse(text, out text))
+			if (!TryParse(text, ValidatePasteBalance, out text))
 			{
 				return;
 			}
 
-			if (ValidateEntryText(text))
+			if (ValidateEntryText(text, ValidatePasteBalance))
 			{
 				OnTextInput(new TextInputEventArgs { Text = text });
 			}
 		}
 	}
 
-	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
+	private bool TryParse(string text, bool validatePasteBalance, [NotNullWhen(true)] out string? result)
 	{
-		var money = ValidatePasteBalance
+		var money = validatePasteBalance
 			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
 			: ClipboardObserver.ParseToMoney(text);
 		if (money is not null)
@@ -339,7 +266,7 @@ public partial class CurrencyEntryBox : TextBox
 			return true;
 		}
 
-		var usd = ValidatePasteBalance
+		var usd = validatePasteBalance
 			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
 			: ClipboardObserver.ParseToUsd(text);
 		if (usd is not null)
