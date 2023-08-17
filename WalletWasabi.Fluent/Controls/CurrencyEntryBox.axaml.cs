@@ -163,6 +163,14 @@ public partial class CurrencyEntryBox : TextBox
 			return;
 		}
 
+		if (IsInsertingComma(input))
+		{
+			ReplaceCommandWithDot(e);
+
+			base.OnTextInput(e);
+			return;
+		}
+
 		var preComposedText = PreComposeText(input);
 
 		var isValid = ValidateEntryText(preComposedText, validatePasteBalance: false);
@@ -182,6 +190,11 @@ public partial class CurrencyEntryBox : TextBox
 		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
 	}
 
+	private bool IsInsertingComma(string input)
+	{
+		return input.Contains(',');
+	}
+
 	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
 	{
 		var finalText = "0" + e.Text;
@@ -197,6 +210,12 @@ public partial class CurrencyEntryBox : TextBox
 		Text = Text.Insert(0, prependText);
 		e.Text = "";
 		CaretIndex += prependText.Length;
+	}
+
+	private void ReplaceCommandWithDot(TextInputEventArgs e)
+	{
+		var finalText = e.Text.Replace(',', '.');
+		e.Text = finalText;
 	}
 
 	private bool ValidateEntryText(string preComposedText, bool validatePasteBalance)
