@@ -193,6 +193,10 @@ public class SuggestionLabelsViewModelTests
 
 		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotImplementedException();
 
+		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
+
+		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
