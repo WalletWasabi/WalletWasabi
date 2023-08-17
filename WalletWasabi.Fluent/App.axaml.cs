@@ -65,7 +65,6 @@ public class App : Application
 		base.OnFrameworkInitializationCompleted();
 	}
 
-
 	private static IWalletRepository CreateWalletRepository()
 	{
 		if (Services.WalletManager is { })
