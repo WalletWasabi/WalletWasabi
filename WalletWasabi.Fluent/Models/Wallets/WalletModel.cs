@@ -19,6 +19,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
+	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -30,33 +31,42 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		Loader = new WalletLoadWorkflow(Wallet);
 		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
-		RelevantTransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed))
-					  .ObserveOn(RxApp.MainThreadScheduler);
+		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
+
+		var relevantTransactionProcessed =
+			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
+					  .Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal())
+					  .Sample(TimeSpan.FromSeconds(1))
+					  .ObserveOn(RxApp.MainThreadScheduler)
+					  .StartWith(Unit.Default);
 
 		Coins =
 			Observable.Defer(() => GetCoins().ToObservable())                                                 // initial coin list
-					  .Concat(RelevantTransactionProcessed.SelectMany(_ => GetCoins()))                       // Refresh whenever there's a relevant transaction
+					  .Concat(relevantTransactionProcessed.SelectMany(_ => GetCoins()))                       // Refresh whenever there's a relevant transaction
 					  .Concat(this.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => GetCoins())) // Also refresh whenever AnonScoreTarget changes
 					  .ToObservableChangeSet();
 
-		Transactions = Observable
-			.Defer(() => BuildSummary().ToObservable())
-			.Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-			.ToObservableChangeSet(x => x.TransactionId);
+		Transactions =
+			Observable.Defer(() => BuildSummary().ToObservable())
+					  .Concat(relevantTransactionProcessed.SelectMany(_ => BuildSummary()))
+					  .ToObservableChangeSet(x => x.TransactionId);
 
-		Addresses = Observable
-			.Defer(() => GetAddresses().ToObservable())
-			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-			.ToObservableChangeSet(x => x.Text);
+		Addresses =
+			Observable.Defer(() => GetAddresses().ToObservable())
+					  .Concat(relevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
+					  .ToObservableChangeSet(x => x.Text);
 
-		State = Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
-						  .ObserveOn(RxApp.MainThreadScheduler)
-						  .Select(_ => Wallet.State);
+		State =
+			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
+					  .ObserveOn(RxApp.MainThreadScheduler)
+					  .Select(_ => Wallet.State);
 
-		var balance = Observable
-			.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
-			.Concat(RelevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+		Privacy = new WalletPrivacyModel(this, Wallet);
+
+		var balance =
+			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
+					  .Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 
 		// Start the Loader after wallet is logged in
@@ -82,11 +92,13 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IWalletSettingsModel Settings { get; }
 
+	public IWalletPrivacyModel Privacy { get; }
+
+	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
+
 	public IObservable<IChangeSet<ICoinModel>> Coins { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
-
-	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
 
 	public string Name => Wallet.WalletName;
 
