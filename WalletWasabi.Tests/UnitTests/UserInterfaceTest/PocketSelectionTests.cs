@@ -933,20 +933,20 @@ public class PocketSelectionTests
 		var selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), recipient);
 		await selection.ResetAsync(pockets.ToArray());
 		var output = await selection.AutoSelectPocketsAsync();
-		Assert.True(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+		Assert.True(await selection.IsOtherSelectionPossibleAsync(output.SelectMany(x => x.Coins), recipient, 999));
 
 		// No other pocket can be used case.
 		recipient = "Adam";
 		selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), recipient);
 		output = await selection.AutoSelectPocketsAsync();
-		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+		Assert.False(await selection.IsOtherSelectionPossibleAsync(output.SelectMany(x => x.Coins), recipient, 999));
 
 		// Exact match. Recipient == pocket, no better selection.
 		recipient = "Dan";
 		selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), recipient);
 		await selection.ResetAsync(pockets.ToArray());
 		output = await selection.AutoSelectPocketsAsync();
-		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+		Assert.False(await selection.IsOtherSelectionPossibleAsync(output.SelectMany(x => x.Coins), recipient, 999));
 
 		pockets.Add(privatePocket);
 		await selection.ResetAsync(pockets.ToArray());
@@ -956,7 +956,7 @@ public class PocketSelectionTests
 		selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), recipient);
 		await selection.ResetAsync(pockets.ToArray());
 		output = await selection.AutoSelectPocketsAsync();
-		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+		Assert.False(await selection.IsOtherSelectionPossibleAsync(output.SelectMany(x => x.Coins), recipient, 999));
 
 		pockets.Remove(privatePocket);
 		pockets.Add(semiPrivatePocket);
@@ -965,7 +965,7 @@ public class PocketSelectionTests
 
 		// Semi funds are enough for the payment, no better selection.
 		output = await selection.AutoSelectPocketsAsync();
-		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+		Assert.False(await selection.IsOtherSelectionPossibleAsync(output.SelectMany(x => x.Coins), recipient, 999));
 
 		pockets.Add(privatePocket);
 		selection = CreateLabelSelectionViewModel(Money.Parse("3.5"), recipient);
@@ -973,6 +973,19 @@ public class PocketSelectionTests
 
 		// Private and semi funds are enough for the payment, no better selection.
 		output = await selection.AutoSelectPocketsAsync();
-		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+		Assert.False(await selection.IsOtherSelectionPossibleAsync(output.SelectMany(x => x.Coins), recipient, 999));
+
+		// https://github.com/zkSNACKs/WalletWasabi/issues/11038
+		recipient = "Electrum";
+		var c1 = LabelTestExtensions.CreateCoin(0.00030000m, "Electrum, Faucet, self-transfer");
+		var c2 = LabelTestExtensions.CreateCoin(0.00029112m, "Electrum, Faucet, self-transfer");
+		pockets = new List<Pocket>
+		{
+			new(("Electrum, Faucet, self-transfer", new CoinsView(new[] { c1, c2 }))),
+			LabelTestExtensions.CreateSingleCoinPocket(0.0001m, "Electrum")
+		};
+		selection = CreateLabelSelectionViewModel(Money.Parse("0.0001"), recipient);
+		await selection.ResetAsync(pockets.ToArray());
+		Assert.False(await selection.IsOtherSelectionPossibleAsync(new[] { c2 }, recipient, 999));
 	}
 }

@@ -321,7 +321,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		await OnSelectionChangedAsync();
 	}
 
-	public bool IsOtherSelectionPossible(IEnumerable<SmartCoin> usedCoins, LabelsArray recipient)
+	public async Task<bool> IsOtherSelectionPossibleAsync(IEnumerable<SmartCoin> usedCoins, LabelsArray recipient, int privateThreshold)
 	{
 		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
 		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
@@ -356,6 +356,25 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return false;
 		}
 
-		return true;
+		await SetUsedLabelAsync(usedCoins, privateThreshold);
+
+		if (LabelsBlackList.Any())
+		{
+			return true;
+		}
+
+		foreach (var labelViewModel in LabelsWhiteList)
+		{
+			var associatedLabels = GetAssociatedLabels(labelViewModel);
+			var labelsWithoutAssociatedLabels = LabelsWhiteList.Except(associatedLabels);
+			var remainingPockets = NonPrivatePockets.Where(x => x.Labels.All(label => labelsWithoutAssociatedLabels.Any(labelViewModel => labelViewModel.Value == label)));
+
+			if (await IsPocketEnoughAsync(Pocket.Merge(remainingPockets.ToArray())))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
