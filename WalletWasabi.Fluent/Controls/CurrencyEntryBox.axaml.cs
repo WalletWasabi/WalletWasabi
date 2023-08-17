@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -214,15 +212,25 @@ public partial class CurrencyEntryBox : TextBox
 
 	private void ReplaceCommandWithDot(TextInputEventArgs e)
 	{
-		var finalText = e.Text.Replace(',', '.');
+		var finalText = e.Text?.Replace(',', '.');
 		e.Text = finalText;
 	}
 
 	private bool ValidateEntryText(string preComposedText, bool validatePasteBalance)
 	{
-		if (!TryParse(preComposedText, validatePasteBalance, out _))
+		if (IsFiat)
 		{
-			return false;
+			if (!TryParseUsd(preComposedText, validatePasteBalance, out _))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (!TryParseBtc(preComposedText, validatePasteBalance, out _))
+			{
+				return false;
+			}
 		}
 
 		return true;
@@ -276,18 +284,40 @@ public partial class CurrencyEntryBox : TextBox
 
 	private bool TryParse(string text, bool validatePasteBalance, [NotNullWhen(true)] out string? result)
 	{
+		if (TryParseBtc(text, validatePasteBalance, out result) && result is not null)
+		{
+			return true;
+		}
+
+		if (TryParseUsd(text, validatePasteBalance, out result) && result is not null)
+		{
+			return true;
+		}
+
+		result = null;
+		return false;
+	}
+
+	private bool TryParseBtc(string text, bool validatePasteBalance, out string? result)
+	{
 		var money = validatePasteBalance
-			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-			: ClipboardObserver.ParseToMoney(text);
+			? ClipboardObserver.ParseToMoney(text, BalanceBtc).Ensure(n => n.ToDecimal(MoneyUnit.BTC).CountDecimalPlaces() <= 8)
+			: ClipboardObserver.ParseToMoney(text).Ensure(n => n.ToDecimal(MoneyUnit.BTC).CountDecimalPlaces() <= 8);
 		if (money is not null)
 		{
 			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
 			return true;
 		}
 
+		result = null;
+		return false;
+	}
+
+	private bool TryParseUsd(string text, bool validatePasteBalance, out string? result)
+	{
 		var usd = validatePasteBalance
 			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
-			: ClipboardObserver.ParseToUsd(text);
+			: ClipboardObserver.ParseToUsd(text).Ensure(n => n >= 1).Ensure(n => n.CountDecimalPlaces() <= 2);
 		if (usd is not null)
 		{
 			result = usd.Value.ToString("0.00");
