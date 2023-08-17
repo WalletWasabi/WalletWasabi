@@ -47,14 +47,14 @@ public record RoundParameters
 		StandardInputRegistrationTimeout = standardInputRegistrationTimeout;
 		ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 		OutputRegistrationTimeout = outputRegistrationTimeout;
-		TransactionSigningTimeout = transactionSigningTimeout + TimeSpan.FromSeconds(delayTransactionSigning ? 50 : 0);
+		TransactionSigningDelay = TimeSpan.FromSeconds(delayTransactionSigning ? 50 : 0);
+		TransactionSigningTimeout = transactionSigningTimeout + TransactionSigningDelay;
 		BlameInputRegistrationTimeout = blameInputRegistrationTimeout;
 
 		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
 		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
 		MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
 		CoordinationIdentifier = coordinationIdentifier;
-		DelayTransactionSigning = delayTransactionSigning;
 	}
 
 	public Network Network { get; init; }
@@ -82,7 +82,7 @@ public record RoundParameters
 
 	public string CoordinationIdentifier { get; init; }
 
-	public bool DelayTransactionSigning { get; }
+	public TimeSpan TransactionSigningDelay { get; }
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 

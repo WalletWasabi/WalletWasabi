@@ -629,7 +629,7 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), startTime: DateTimeOffset.UtcNow, endTime: readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,
@@ -823,8 +823,7 @@ public class CoinJoinClient
 			? registeredAliceClients
 			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
 
-		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
-		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
+		var signingStateStartTime = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.TransactionSigningDelay;
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
