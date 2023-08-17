@@ -408,8 +408,10 @@ public class Wallet : BackgroundService, IWallet
 		var lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
 		while (BitcoinStore.SmartHeaderChain.HashesLeft > 0)
 		{
+			cancel.ThrowIfCancellationRequested();
 			if (lastHashesLeft == BitcoinStore.SmartHeaderChain.HashesLeft)
 			{
+				await Task.Delay(100, cancel).ConfigureAwait(false);
 				continue;
 			}
 			lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
