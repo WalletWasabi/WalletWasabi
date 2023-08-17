@@ -62,13 +62,13 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .Select(_ => Wallet.State);
 
-
 		Privacy = new WalletPrivacyModel(this, Wallet);
+
 		_balances = new Lazy<IWalletBalancesModel>(() =>
 		{
 			var balance = Observable
 			.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
-			.Concat(RelevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+			.Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
 			return new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 		});
 
