@@ -405,6 +405,16 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
+		var lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
+		while (BitcoinStore.SmartHeaderChain.HashesLeft > 0)
+		{
+			if (lastHashesLeft == BitcoinStore.SmartHeaderChain.HashesLeft)
+			{
+				continue;
+			}
+			lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
+			await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
+		}
 		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
