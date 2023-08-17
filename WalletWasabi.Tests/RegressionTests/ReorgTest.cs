@@ -76,7 +76,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		var node = RegTestFixture.BackendRegTestNode;
 
-		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 
 		try

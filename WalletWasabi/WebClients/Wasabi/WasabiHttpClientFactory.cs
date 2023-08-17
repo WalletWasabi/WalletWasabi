@@ -11,13 +11,13 @@ namespace WalletWasabi.WebClients.Wasabi;
 /// <summary>
 /// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 /// </summary>
-public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
+public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 {
 	/// <summary>
 	/// Creates a new instance of the object.
 	/// </summary>
 	/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-	public HttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
+	public WasabiHttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
 	{
 		SocketHandler = new()
 		{

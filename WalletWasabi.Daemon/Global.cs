@@ -125,9 +125,9 @@ public class Global
 	public BitcoinStore BitcoinStore { get; }
 
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
-	public HttpClientFactory HttpClientFactory { get; }
+	public WasabiHttpClientFactory HttpClientFactory { get; }
 
-	public HttpClientFactory CoordinatorHttpClientFactory { get; }
+	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
 	public LegalChecker LegalChecker { get; private set; }
 	public Config Config { get; }
@@ -151,7 +151,7 @@ public class Global
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
-	private HttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
+	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
