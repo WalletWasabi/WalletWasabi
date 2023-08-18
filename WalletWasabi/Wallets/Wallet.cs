@@ -8,7 +8,6 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,7 +19,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
@@ -74,8 +72,7 @@ public class Wallet : BackgroundService, IWallet
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
-	/// <summary>Unspent Transaction Outputs</summary>
-	public ICoinsView Coins { get; private set; }
+	public CoinsRegistry Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
@@ -83,7 +80,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-	
+
 	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; private set; }
@@ -108,7 +105,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
-	public ICoinsView GetAllCoins() => ((CoinsRegistry)Coins).AsAllCoinsView();
+	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
@@ -200,9 +197,9 @@ public class Wallet : BackgroundService, IWallet
 			BlockProvider = blockProvider;
 
 			WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
-			
+
 			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
-			
+
 			State = WalletState.Initialized;
 		}
 		catch
@@ -339,7 +336,7 @@ public class Wallet : BackgroundService, IWallet
 	private async void IndexDownloader_NewFiltersAsync(object? sender, IEnumerable<FilterModel> filters)
 	{
 		try
-		{ 
+		{
 			var filterModels = filters as FilterModel[] ?? filters.ToArray();
 
 			if (KeyManager.UseTurboSync)
@@ -386,7 +383,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
 	}
-	
+
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
 		KeyManager.AssertNetworkOrClearBlockState(Network);
