@@ -672,16 +672,21 @@ public class KeyManager
 		}
 	}
 
-	public void SetMaxBestHeight(Height height)
+	public void SetMaxBestHeight(Height newHeight)
 	{
 		lock (CriticalStateLock)
 		{
 			var prevHeight = BlockchainState.Height;
-			var newHeight = Math.Min(prevHeight, height);
-			if (prevHeight != newHeight)
+			var prevTurboSyncHeight = BlockchainState.TurboSyncHeight;
+			if (newHeight < prevHeight)
 			{
 				SetBestHeights(newHeight, newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
+			}
+			else if (newHeight < prevTurboSyncHeight)
+			{
+				SetBestTurboSyncHeight(newHeight);
+				Logger.LogWarning($"Wallet ({WalletName}) turbo sync height has been set back by {prevTurboSyncHeight - (int)newHeight}. From {prevTurboSyncHeight} to {newHeight}.");
 			}
 		}
 	}
