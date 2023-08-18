@@ -16,7 +16,7 @@ Todo:
 ```
 Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
 macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
-Linux: ~"./bitcoin-[version number]/bin/bitcoin-qt -regtest
+Linux: ~/bitcoin-[version number]/bin/bitcoin-qt -regtest
 ```
 3. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
 ```
