@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
+using SQLitePCL;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Timing;
@@ -137,15 +138,14 @@ public class ConfigTests
 
 	private static IRPCClient NewMockRpcClient()
 	{
-		var rpcMock = new Mock<IRPCClient>();
-		rpcMock.SetupGet(rpc => rpc.Network).Returns(Network.Main);
-		rpcMock.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new EstimateSmartFeeResponse { FeeRate = new FeeRate(10m) });
-		rpcMock.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo { MemPoolMinFee = 0.00001000 });
-		return rpcMock.Object;
+		var rpcMock = new MockRpcClient() { Network = Network.Main };
+		rpcMock.OnEstimateSmartFeeAsync = (_, _) =>
+			Task.FromResult(new EstimateSmartFeeResponse { FeeRate = new FeeRate(10m) });
+		rpcMock.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo { MemPoolMinFee = 0.00001000 });
+		return rpcMock;
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore(), new Mock<IHttpClientFactory>(MockBehavior.Strict).Object);
+		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore(), new MockHttpClientFactory());
 }

@@ -83,8 +83,8 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
+		walletManager.RegisterServices();
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo");
@@ -406,6 +406,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			foreach (var c in wallet.Coins)
 			{
 				c.HdPubKey.SetAnonymitySet(9_000);
+				c.IsSufficientlyDistancedFromExternalKeys = true;
 			}
 
 			var cpfp = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
