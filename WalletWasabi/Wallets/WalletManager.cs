@@ -164,7 +164,7 @@ public class WalletManager : IWalletProvider
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
-			wallet.RegisterServices();
+			wallet.Initialize();
 		}
 
 		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
@@ -383,11 +383,11 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices()
+	public void Initialize()
 	{
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
-			wallet.RegisterServices();
+			wallet.Initialize();
 		}
 
 		IsInitialized = true;
