@@ -405,6 +405,7 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
+		// Each time a new batch of filters is downloaded, request a synchronization.
 		var lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
 		while (BitcoinStore.SmartHeaderChain.HashesLeft > 0)
 		{
@@ -417,6 +418,8 @@ public class Wallet : BackgroundService, IWallet
 			lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
 			await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 		}
+		
+		// Request a synchronization once all filters were downloaded.
 		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
 
