@@ -44,6 +44,7 @@ public class Program
 				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
 				x.SerializerSettings.Converters.Add(new ZeroCredentialsRequestJsonConverter());
 				x.SerializerSettings.Converters.Add(new RealCredentialsRequestJsonConverter());
+				x.SerializerSettings.ContractResolver = JsonSerializationOptions.Default.Settings.ContractResolver;
 			}).ConfigureApiBehaviorOptions(options =>
 			{
 				options.SuppressModelStateInvalidFilter = true;

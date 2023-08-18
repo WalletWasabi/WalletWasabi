@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabiClientLibrary.Models.SelectInputsForRound;
 /// <param name="Outpoint">The outpoint identififying the UTXO</param>
 /// <param name="Amount">Value of the UTXO in Bitcoin (not effective value).</param>
 /// <param name="AnonymitySet">Anonymity set assigned to the UTXO.</param>
-public record Utxo(OutPoint Outpoint, Money Amount, [property: JsonProperty("scriptPubKey")] string ScriptPubKeyHex, double AnonymitySet) : ISmartCoin
+public record Utxo(OutPoint Outpoint, Money Amount, [property: JsonProperty("ScriptPubKey")] string ScriptPubKeyHex, double AnonymitySet) : ISmartCoin
 {
 	[JsonIgnore]
 	public uint Index => Outpoint.N;

@@ -1,24 +1,24 @@
 [
   {
-    "name": "",
-    "request": {
-      "inputSize": 58,
-      "outputSize": 43,
-      "availableVsize": 394,
-      "miningFeeRate": 129000,
-      "allowedOutputAmounts": {
-        "min": 5000,
-        "max": 4300000000000
+    "Name": "",
+    "Request": {
+      "InputSize": 58,
+      "OutputSize": 43,
+      "AvailableVsize": 394,
+      "MiningFeeRate": 129000,
+      "AllowedOutputAmounts": {
+        "Min": 5000,
+        "Max": 4300000000000
       },
-      "internalAmounts": [
+      "InternalAmounts": [
         19932518,
         996992518
       ],
-      "externalAmounts": []
+      "ExternalAmounts": []
     },
-    "expectedStatusCode": 200,
-    "expectedResponse": {
-      "outputAmounts": [
+    "ExpectedStatusCode": 200,
+    "ExpectedResponse": {
+      "OutputAmounts": [
         16777216,
         16777216,
         16777216,
@@ -32,27 +32,27 @@
     }
   },
   {
-    "name": "Not enough money",
-    "request": {
-      "inputSize": 58,
-      "outputSize": 43,
-      "availableVsize": 394,
-      "miningFeeRate": 129000,
-      "allowedOutputAmounts": {
-        "min": 5000,
-        "max": 4300000000000
+    "Name": "Not enough money",
+    "Request": {
+      "InputSize": 58,
+      "OutputSize": 43,
+      "AvailableVsize": 394,
+      "MiningFeeRate": 129000,
+      "AllowedOutputAmounts": {
+        "Min": 5000,
+        "Max": 4300000000000
       },
-      "internalAmounts": [
+      "InternalAmounts": [
         4000
       ],
-      "externalAmounts": [
+      "ExternalAmounts": [
         30000,
         20000
       ]
     },
-    "expectedStatusCode": 500,
-    "expectedResponse": {
-      "description": "Not enough coins registered to participate in the coinjoin."
+    "ExpectedStatusCode": 500,
+    "ExpectedResponse": {
+      "Description": "Not enough coins registered to participate in the coinjoin."
     }
   }
 ]

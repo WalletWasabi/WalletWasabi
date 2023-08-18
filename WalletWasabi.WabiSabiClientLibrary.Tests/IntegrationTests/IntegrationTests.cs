@@ -43,7 +43,7 @@ public class IntegrationsTest
 	public async Task TestCredentialSerialNumberUniquenessAsync()
 	{
 		HttpClient client = _factory.CreateClient();
-		string requestContentString = """{ "credentialIssuerParameters": { "cw": "02BF822F22E5CF2A1725144FB6898EEBC9AD59AEA2C6267F6E9F819517E2B9B882", "i": "02720432E49A94D45794D76143914FCD9E7F9669BFD08B0EC8B45891E228D2D6E8" }, "maxCredentialValue": 255 }""";
+		string requestContentString = """{ "credentialIssuerParameters": { "Cw": "02BF822F22E5CF2A1725144FB6898EEBC9AD59AEA2C6267F6E9F819517E2B9B882", "I": "02720432E49A94D45794D76143914FCD9E7F9669BFD08B0EC8B45891E228D2D6E8" }, "maxCredentialValue": 255 }""";
 		using StringContent requestContent = new StringContent(requestContentString, Encoding.UTF8, "application/json");
 
 		HashSet<string> randomnessHashSet = new();
@@ -53,7 +53,7 @@ public class IntegrationsTest
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
 			string responseContentString = await response.Content.ReadAsStringAsync();
-			bool isUnique = randomnessHashSet.Add(Regex.Match(responseContentString, "\"randomness\":\"([^\"]*)\"").Groups[1].Value);
+			bool isUnique = randomnessHashSet.Add(Regex.Match(responseContentString, "\"Randomness\":\"([^\"]*)\"").Groups[1].Value);
 			Assert.True(isUnique);
 		}
 	}

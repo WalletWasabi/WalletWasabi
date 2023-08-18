@@ -1,111 +1,111 @@
 [
   {
-    "name": "",
-    "request": {
-      "transactions": [
+    "Name": "",
+    "Request": {
+      "Transactions": [
         {
-          "internalInputs": [],
-          "externalInputs": [
+          "InternalInputs": [],
+          "ExternalInputs": [
             {
-              "scriptPubKey": "76a914343f14545ae181898cced42a280e25cc20f7972c88ac",
-              "value": 4979995320
+              "ScriptPubKey": "76a914343f14545ae181898cced42a280e25cc20f7972c88ac",
+              "Value": 4979995320
             }
           ],
-          "internalOutputs": [
+          "InternalOutputs": [
             {
-              "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
-              "value": 1000000000
+              "Address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+              "Value": 1000000000
             }
           ],
-          "externalOutputs": [
+          "ExternalOutputs": [
             {
-              "scriptPubKey": "76a914d51d49df61c406305f14cae176e0e05f200d40b288ac",
-              "value": 3979990640
+              "ScriptPubKey": "76a914d51d49df61c406305f14cae176e0e05f200d40b288ac",
+              "Value": 3979990640
             }
           ]
         },
         {
-          "internalInputs": [],
-          "externalInputs": [
+          "InternalInputs": [],
+          "ExternalInputs": [
             {
-              "scriptPubKey": "76a9143833d325bfc715ec1e902e75456265c0f7d2e41988ac",
-              "value": 5000000000
+              "ScriptPubKey": "76a9143833d325bfc715ec1e902e75456265c0f7d2e41988ac",
+              "Value": 5000000000
             }
           ],
-          "internalOutputs": [
+          "InternalOutputs": [
             {
-              "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
-              "value": 20000000
+              "Address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+              "Value": 20000000
             }
           ],
-          "externalOutputs": [
+          "ExternalOutputs": [
             {
-              "scriptPubKey": "76a914343f14545ae181898cced42a280e25cc20f7972c88ac",
-              "value": 4979995320
+              "ScriptPubKey": "76a914343f14545ae181898cced42a280e25cc20f7972c88ac",
+              "Value": 4979995320
             }
           ]
         }
       ]
     },
-    "expectedStatusCode": 200,
-    "expectedResponse": {
-      "results": [
+    "ExpectedStatusCode": 200,
+    "ExpectedResponse": {
+      "Results": [
         {
-          "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
-          "anonymitySet": 1.0
+          "Address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+          "AnonymitySet": 1.0
         }
       ]
     }
   },
   {
-    "name": "",
-    "request": {
-      "transactions": [
+    "Name": "",
+    "Request": {
+      "Transactions": [
         {
-          "internalInputs": [
+          "InternalInputs": [
             {
-              "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
-              "value": 20000000
+              "Address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+              "Value": 20000000
             }
           ],
-          "externalInputs": [],
-          "internalOutputs": [],
-          "externalOutputs": []
+          "ExternalInputs": [],
+          "InternalOutputs": [],
+          "ExternalOutputs": []
         }
       ]
     },
-    "expectedStatusCode": 500,
-    "expectedResponse": {
-      "description": "There is an internal input that references a non-existing transaction."
+    "ExpectedStatusCode": 500,
+    "ExpectedResponse": {
+      "Description": "There is an internal input that references a non-existing transaction."
     }
   },
   {
-    "name": "",
-    "request": {},
-    "expectedStatusCode": 500,
-    "expectedResponse": {
-      "description": "The Transactions field is required."
+    "Name": "",
+    "Request": {},
+    "ExpectedStatusCode": 500,
+    "ExpectedResponse": {
+      "Description": "The Transactions field is required."
     }
   },
   {
-    "name": "",
-    "request": {
-      "transactions": [
+    "Name": "",
+    "Request": {
+      "Transactions": [
         {
-          "internalInputs": [
+          "InternalInputs": [
             {
-              "value": ""
+              "Value": ""
             }
           ],
-          "externalInputs": [],
-          "internalOutputs": [],
-          "externalOutputs": []
+          "ExternalInputs": [],
+          "InternalOutputs": [],
+          "ExternalOutputs": []
         }
       ]
     },
-    "expectedStatusCode": 500,
-    "expectedResponse": {
-      "description": "Unable to cast object of type 'System.String' to type 'System.Nullable`1[System.Int64]'."
+    "ExpectedStatusCode": 500,
+    "ExpectedResponse": {
+      "Description": "Unable to cast object of type 'System.String' to type 'System.Nullable`1[System.Int64]'."
     }
   }
 ]
