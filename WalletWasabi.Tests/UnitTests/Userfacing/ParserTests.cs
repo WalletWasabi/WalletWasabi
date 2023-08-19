@@ -97,7 +97,7 @@ public class ParserTests
 				}
 				else
 				{
-					Assert.True(false, "Parsing failed.");
+					Assert.Fail("Parsing failed.");
 				}
 			}
 		}
@@ -111,7 +111,7 @@ public class ParserTests
 			}
 			else
 			{
-				Assert.True(false, "Parsing failed.");
+				Assert.Fail("Parsing failed.");
 			}
 		}
 

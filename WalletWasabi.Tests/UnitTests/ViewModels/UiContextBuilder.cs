@@ -1,5 +1,7 @@
 using Avalonia.Input.Platform;
 using Moq;
+using WalletWasabi.Fluent.Models.ClientConfig;
+using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -16,6 +18,8 @@ public class UiContextBuilder
 	public IClipboard Clipboard { get; private set; } = Mock.Of<IClipboard>();
 	public IWalletRepository WalletRepository { get; private set; } = new NullWalletRepository();
 	public IHardwareWalletInterface HardwareWalletInterface { get; private set; } = new NullHardwareWalletInterface();
+	public IFileSystem FileSystem { get; private set; } = new NullFileSystem();
+	public IClientConfig ClientConfig { get; private set; } = new NullClientConfig();
 
 	public UiContextBuilder WithDialogThatReturns(object value)
 	{
@@ -31,7 +35,7 @@ public class UiContextBuilder
 
 	public UiContext Build()
 	{
-		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface);
+		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface, FileSystem, ClientConfig, new NullApplicationSettings());
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
 	}

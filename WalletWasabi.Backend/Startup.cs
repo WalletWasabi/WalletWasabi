@@ -51,11 +51,7 @@ public class Startup
 		services.AddMvc()
 			.AddNewtonsoftJson();
 
-		services.AddControllers().AddNewtonsoftJson(x =>
-		{
-			x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
-			x.SerializerSettings.ContractResolver = JsonSerializationOptions.Default.Settings.ContractResolver;
-		});
+		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
 
 		// Register the Swagger generator, defining one or more Swagger documents
 		services.AddSwaggerGen(c =>

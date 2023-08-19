@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using SQLitePCL;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
@@ -16,6 +18,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
+using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -83,45 +86,47 @@ public static class WabiSabiFactory
 			MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead
 		});
 
-	public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
+	public static MockRpcClient CreatePreconfiguredRpcClient(params Coin[] coins)
 	{
 		using Key key = new();
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new GetTxOutResponse
-			{
-				IsCoinBase = false,
-				ScriptPubKeyType = "witness_v0_keyhash",
-				Confirmations = 120,
-				TxOut = new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()),
-			});
-		foreach (var coin in coins)
+		var mockRpc = new MockRpcClient();
+		mockRpc.OnGetTxOutAsync = (txId, n, _) =>
 		{
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new GetTxOutResponse
+			var maybeCoin = coins.FirstOrDefault(x => x.Outpoint.Hash == txId && x.Outpoint.N == n);
+			if (maybeCoin is { } coin)
+			{
+				return new GetTxOutResponse
 				{
 					IsCoinBase = false,
 					ScriptPubKeyType = "witness_v0_keyhash",
 					Confirmations = 120,
 					TxOut = coin.TxOut,
-				});
+				};
+			}
+			return new GetTxOutResponse
+			{
+				IsCoinBase = false,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				Confirmations = 120,
+				TxOut = new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()),
+			};
+		};
+		mockRpc.OnGetRawTransactionAsync = (_,_) =>
+			Task.FromResult(BitcoinFactory.CreateTransaction());
 
-			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(BitcoinFactory.CreateTransaction());
-		}
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new EstimateSmartFeeResponse
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
+			Task.FromResult(new EstimateSmartFeeResponse
 			{
 				Blocks = 1000,
 				FeeRate = new FeeRate(10m)
 			});
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MinRelayTxFee = 1
 			});
-		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-		mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(600);
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(500));
 		return mockRpc;
 	}
 
@@ -329,8 +334,8 @@ public static class WabiSabiFactory
 			TimeSpan.Zero);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
-		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
-			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
+		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
+			.Returns((int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, startTime, endTime, TimeSpan.FromSeconds(1)));
 
 		mock.CallBase = true;
 
