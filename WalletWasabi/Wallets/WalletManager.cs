@@ -195,7 +195,7 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = new(WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+		Wallet wallet = CreateWalletInstance(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
@@ -206,7 +206,7 @@ public class WalletManager : IWalletProvider
 		Wallet wallet;
 		try
 		{
-			wallet = new Wallet(WorkDir, Network, KeyManager.FromFile(walletFullPath), BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
@@ -233,7 +233,7 @@ public class WalletManager : IWalletProvider
 			}
 			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = new Wallet(WorkDir, Network, KeyManager.FromFile(walletFullPath), BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
 		}
 
 		return wallet;
@@ -260,6 +260,9 @@ public class WalletManager : IWalletProvider
 
 		WalletAdded?.Invoke(this, wallet);
 	}
+
+	private Wallet CreateWalletInstance(KeyManager keyManager)
+		=> new(WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
