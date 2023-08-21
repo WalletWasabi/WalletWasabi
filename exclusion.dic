@@ -249,3 +249,13 @@ usings
 ﻿Utxos
 ﻿substate
 ﻿Isnt
+﻿jsonifyer
+﻿txin
+﻿Schnorr
+﻿Rkey
+﻿Rpub
+﻿Deserializes
+﻿Nonces
+﻿Dont
+﻿rpubkey
+﻿Unblind
