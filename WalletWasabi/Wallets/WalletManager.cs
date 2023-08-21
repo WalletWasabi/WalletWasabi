@@ -103,7 +103,9 @@ public class WalletManager : IWalletProvider
 						continue;
 					}
 				}
-				AddWallet(walletName);
+
+				Wallet wallet = GetWalletByName(walletName);
+				AddWallet(wallet);
 			}
 			catch (Exception ex)
 			{
@@ -198,7 +200,7 @@ public class WalletManager : IWalletProvider
 		return wallet;
 	}
 
-	private void AddWallet(string walletName)
+	private Wallet GetWalletByName(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 		Wallet wallet;
@@ -234,7 +236,7 @@ public class WalletManager : IWalletProvider
 			wallet = new Wallet(WorkDir, Network, KeyManager.FromFile(walletFullPath), BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 
-		AddWallet(wallet);
+		return wallet;
 	}
 
 	private void AddWallet(Wallet wallet)
