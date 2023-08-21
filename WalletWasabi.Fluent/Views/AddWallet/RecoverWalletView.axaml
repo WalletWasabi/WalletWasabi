@@ -35,6 +35,11 @@
                    AllowDuplication="True"
                    EnableCounter="True"
                    EnableDelete="False">
+          <c:TagsBox.Styles>
+            <Style Selector="c|TagsBox AutoCompleteBox">
+              <Setter Property="MinimumPrefixLength" Value="0" />
+            </Style>
+          </c:TagsBox.Styles>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
