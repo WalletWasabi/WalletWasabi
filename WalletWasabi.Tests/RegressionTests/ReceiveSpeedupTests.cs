@@ -82,7 +82,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
-		walletManager.RegisterServices();
+		walletManager.Initialize();
 
 		try
 		{
