@@ -164,7 +164,7 @@ public class WalletManager : IWalletProvider
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.Initialize();
 		}
 
 		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
@@ -193,7 +193,7 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = new(WorkDir, Network, keyManager);
+		Wallet wallet = new(WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		AddWallet(wallet);
 		return wallet;
 	}
@@ -204,7 +204,7 @@ public class WalletManager : IWalletProvider
 		Wallet wallet;
 		try
 		{
-			wallet = new Wallet(WorkDir, Network, walletFullPath);
+			wallet = new Wallet(WorkDir, Network, KeyManager.FromFile(walletFullPath), BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 		catch (Exception ex)
 		{
@@ -231,7 +231,7 @@ public class WalletManager : IWalletProvider
 			}
 			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = new Wallet(WorkDir, Network, walletFullPath);
+			wallet = new Wallet(WorkDir, Network, KeyManager.FromFile(walletFullPath), BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
 
 		AddWallet(wallet);
@@ -383,11 +383,11 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices()
+	public void Initialize()
 	{
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.Initialize();
 		}
 
 		IsInitialized = true;
