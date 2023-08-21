@@ -237,3 +237,15 @@ usings
 ﻿Cpfp
 ﻿writelog
 ﻿substractasync
+﻿jsonrpc
+﻿Xunit
+﻿bitcoind
+﻿datadir
+﻿testnet
+﻿conf
+﻿wwwroot
+﻿Coldcard
+﻿Trezor
+﻿Utxos
+﻿substate
+﻿Isnt
