@@ -225,7 +225,7 @@ public class Global
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
-				WalletManager.RegisterServices();
+				WalletManager.Initialize();
 			}
 			finally
 			{

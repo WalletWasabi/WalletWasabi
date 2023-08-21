@@ -83,7 +83,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			cache);
 
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
-		walletManager.RegisterServices();
+		walletManager.Initialize();
 
 		var baseTip = await rpc.GetBestBlockHashAsync();
 
