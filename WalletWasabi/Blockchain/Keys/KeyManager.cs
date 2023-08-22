@@ -159,6 +159,9 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
+	
+	[JsonProperty(PropertyName = "UseTurboSync")]
+	public bool UseTurboSync { get; private set; } = true;
 
 	[JsonProperty(PropertyName = "MinGapLimit")]
 	public int MinGapLimit { get; private set; }
@@ -254,9 +257,9 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null)
+	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
-		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, Network network, string? filePath = null)
@@ -393,12 +396,16 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public IEnumerable<byte[]> GetPubKeyScriptBytes()
+	/// <summary>
+	/// This function can only be called for wallet synchronization.
+	/// It's unsafe because it doesn't assert that the GapLimit is respected.
+	/// GapLimit should be enforced whenever a transaction is discovered.
+	/// </summary>
+	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			AssertCleanKeysIndexed();
-			return HdPubKeyCache.GetScriptPubKeysBytes();
+			return HdPubKeyCache.GetSynchronizationInfos();
 		}
 	}
 
@@ -665,16 +672,21 @@ public class KeyManager
 		}
 	}
 
-	public void SetMaxBestHeight(Height height)
+	public void SetMaxBestHeight(Height newHeight)
 	{
 		lock (CriticalStateLock)
 		{
 			var prevHeight = BlockchainState.Height;
-			var newHeight = Math.Min(prevHeight, height);
-			if (prevHeight != newHeight)
+			var prevTurboSyncHeight = BlockchainState.TurboSyncHeight;
+			if (newHeight < prevHeight)
 			{
 				SetBestHeights(newHeight, newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
+			}
+			else if (newHeight < prevTurboSyncHeight)
+			{
+				SetBestTurboSyncHeight(newHeight);
+				Logger.LogWarning($"Wallet ({WalletName}) turbo sync height has been set back by {prevTurboSyncHeight - (int)newHeight}. From {prevTurboSyncHeight} to {newHeight}.");
 			}
 		}
 	}

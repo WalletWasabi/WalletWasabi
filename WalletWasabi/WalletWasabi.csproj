@@ -27,6 +27,17 @@
 		<ErrorReport>none</ErrorReport>
 	</PropertyGroup>
 
+	<Target Name="WriteMetadata" BeforeTargets="PrepareForBuild">
+		<!-- Get hash commit -->
+		<Exec Command="git rev-parse HEAD" StandardOutputImportance="Low" ConsoleToMSBuild="true" IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="CommitHash" />
+		</Exec>
+
+		<ItemGroup>
+			<AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
+		</ItemGroup>
+	</Target>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
 		<PackageReference Include="Microsoft.Data.Sqlite" />

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Filters;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -33,6 +34,7 @@ namespace WalletWasabi.Backend.Controllers;
 /// </summary>
 [Produces("application/json")]
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
+[Deprecated]
 public class ChaumianCoinJoinController : ControllerBase
 {
 	public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)

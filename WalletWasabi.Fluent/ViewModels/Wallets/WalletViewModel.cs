@@ -14,11 +14,8 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -27,9 +24,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletViewModel : RoutableViewModel, IComparable<WalletViewModel>
+public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	private readonly WalletPageViewModel _parent;
+
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
 	[AutoNotify] private bool _isPointerOver;
@@ -48,6 +46,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	{
 		_parent = parent;
 		Wallet = parent.Wallet;
+		WalletModel = parent.WalletModel;
 		UiContext = uiContext;
 
 		_title = WalletName;
@@ -60,11 +59,8 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-		//TODO: remove this after ConfirmRecoveryWordsViewModel is decoupled
-		var walletModel = new WalletModel(Wallet);
-
-		Settings = new WalletSettingsViewModel(UiContext, walletModel);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, walletModel);
+		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(UiContext, this);
 
@@ -108,13 +104,15 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(new WalletModel(Wallet)));
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(WalletRepository.CreateWalletModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!string.IsNullOrEmpty(Wallet.Kitchen.SaltSoup()))
 			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(Wallet);
+				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+				var pwAuthDialog = new PasswordAuthDialogViewModel(WalletRepository.CreateWalletModel(Wallet));
 				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 				if (!dialogResult.Result)
@@ -123,7 +121,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 				}
 			}
 
-			Navigate().To().WalletInfo(this);
+			Navigate().To().WalletInfo(new WalletModel(Wallet));
 		});
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(this));
@@ -134,7 +132,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, WalletModel);
 
 		Tiles = GetTiles().ToList();
 
@@ -146,6 +144,9 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	public WalletState WalletState => Wallet.State;
 
 	private string _title;
+
+	// TODO: Rename this to "Wallet" after this ViewModel is decoupled and the current "Wallet" property is removed.
+	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
 
@@ -195,11 +196,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	{
 		Navigate().To(this, NavigationMode.Clear);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await Task.Delay(500);
-			History.SelectTransaction(txid);
-		});
+		SelectTransaction(txid);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -221,9 +218,7 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 	{
 		return parent.Wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletViewModel(uiContext, parent)
-			: parent.Wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(uiContext, parent)
-				: new WalletViewModel(uiContext, parent);
+			: new WalletViewModel(uiContext, parent);
 	}
 
 	public override string Title
@@ -232,9 +227,19 @@ public partial class WalletViewModel : RoutableViewModel, IComparable<WalletView
 		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
+	public void SelectTransaction(uint256 txid)
+	{
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await Task.Delay(500);
+			History.SelectTransaction(txid);
+		});
+	}
+
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		var walletModel = new WalletModel(Wallet);
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		var walletModel = WalletRepository.CreateWalletModel(Wallet);
 		var balances = walletModel.Balances;
 
 		yield return new WalletBalanceTileViewModel(balances);

@@ -40,7 +40,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private long _running;
 
-	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
+	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory)
 	{
 		RequestInterval = requestInterval;
 		MaxFiltersToSync = maxFiltersToSync;
@@ -62,7 +62,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public HttpClientFactory HttpClientFactory { get; }
+	public WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiClient WasabiClient { get; }
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>

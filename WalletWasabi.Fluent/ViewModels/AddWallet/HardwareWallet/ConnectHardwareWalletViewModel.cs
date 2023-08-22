@@ -1,15 +1,12 @@
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
@@ -20,15 +17,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 {
+	private readonly WalletCreationOptions.ConnectToHardwareWallet _options;
 	[AutoNotify] private string _message;
 	[AutoNotify] private bool _isSearching;
 	[AutoNotify] private bool _existingWalletFound;
 	[AutoNotify] private bool _confirmationRequired;
 
-	private ConnectHardwareWalletViewModel(string walletName)
+	private ConnectHardwareWalletViewModel(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
+		_options = options;
+
+		ArgumentException.ThrowIfNullOrEmpty(options.WalletName);
 		_message = "";
-		WalletName = walletName;
+		WalletName = options.WalletName;
 		AbandonedTasks = new AbandonedTasks();
 		CancelCts = new CancellationTokenSource();
 
@@ -36,7 +37,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
+		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(OnNavigateToExistingWalletLogin);
 
 		this.WhenAnyValue(x => x.Message)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -51,9 +52,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public string WalletName { get; }
 
-	public ObservableCollection<WalletViewModel> Wallets { get; }
-
-	public WalletViewModel? ExistingWallet { get; set; }
+	public IWalletModel? ExistingWallet { get; set; }
 
 	public ICommand NavigateToExistingWalletLoginCommand { get; }
 
@@ -81,10 +80,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		if (ExistingWallet is { })
 		{
 			Navigate().Clear();
-
-			// Temporary workaround
-			MainViewModel.Instance.NavBar.SelectedWallet =
-				MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == ExistingWallet.Wallet.WalletName);
+			UiContext.Navigate().To(ExistingWallet);
 		}
 	}
 
@@ -108,7 +104,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		try
 		{
-			var result = await HardwareWalletOperationHelpers.DetectAsync(Services.WalletManager.Network, cancel);
+			var result = await UiContext.HardwareWalletInterface.DetectAsync(cancel);
 			EvaluateDetectionResult(result, cancel);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -137,9 +133,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		var device = devices[0];
 
-		if (Services.WalletManager.WalletExists(device.Fingerprint))
+		var existingWallet = UiContext.WalletRepository.GetExistingWallet(device);
+		if (existingWallet is { })
 		{
-			ExistingWallet = Wallets.FirstOrDefault(x => x.Wallet.KeyManager.MasterFingerprint == device.Fingerprint);
+			ExistingWallet = existingWallet;
 			Message = "The connected hardware wallet is already added to the software, click below to open it or click Rescan to search again.";
 			ExistingWalletFound = true;
 			return;
@@ -154,7 +151,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 			else
 			{
 				Message = "Check your device and finish the initialization.";
-				AbandonedTasks.AddAndClearCompleted(HardwareWalletOperationHelpers.InitHardwareWalletAsync(device, Services.WalletManager.Network, cancel));
+				AbandonedTasks.AddAndClearCompleted(UiContext.HardwareWalletInterface.InitHardwareWalletAsync(device, cancel));
 			}
 
 			return;
@@ -188,14 +185,14 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void NavigateToNext(HwiEnumerateEntry device)
 	{
-		Navigate().To().DetectedHardwareWallet(WalletName, device);
+		Navigate().To().DetectedHardwareWallet(_options with { Device = device });
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 

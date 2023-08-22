@@ -26,7 +26,7 @@ public class WabiSabiCoordinator : BackgroundService
 	{
 		Parameters = parameters;
 
-		Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
+		Warden = new(parameters.PrisonFilePath, coinJoinIdStore, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifier = coinVerifier;
