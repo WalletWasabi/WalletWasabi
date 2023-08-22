@@ -3,7 +3,6 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
