@@ -122,7 +122,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 					: accounts,
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-						.Sum(c => c.Amount.Satoshi)
+						.Sum(c => c.Amount.Satoshi),
+			anonScoreTarget = activeWallet.AnonScoreTarget
 		};
 	}
 
