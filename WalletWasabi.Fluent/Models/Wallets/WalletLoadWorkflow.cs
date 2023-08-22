@@ -95,11 +95,6 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
-		{
-			await Task.Delay(1000).ConfigureAwait(false);
-		}
-
 		if (_wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");
