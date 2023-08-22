@@ -1,4 +1,3 @@
-using System;
 using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using Avalonia;
@@ -6,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
@@ -67,62 +65,27 @@ public class App : Application
 
 	private static IWalletRepository CreateWalletRepository()
 	{
-		if (Services.WalletManager is { })
-		{
-			return new WalletRepository();
-		}
-		else
-		{
-			return new NullWalletRepository();
-		}
+		return new WalletRepository();
 	}
 
 	private static IHardwareWalletInterface CreateHardwareWalletInterface()
 	{
-		if (Services.WalletManager is { })
-		{
-			return new HardwareWalletInterface();
-		}
-		else
-		{
-			return new NullHardwareWalletInterface();
-		}
+		return new HardwareWalletInterface();
 	}
 
 	private static IFileSystem CreateFileSystem()
 	{
-		if (Services.DataDir is { })
-		{
-			return new FileSystemModel();
-		}
-		else
-		{
-			return new NullFileSystem();
-		}
+		return new FileSystemModel();
 	}
 
 	private static IClientConfig CreateConfig()
 	{
-		if (Services.PersistentConfig is { })
-		{
-			return new ClientConfigModel();
-		}
-		else
-		{
-			return new NullClientConfig();
-		}
+		return new ClientConfigModel();
 	}
 
 	private static IApplicationSettings CreateApplicationSettings()
 	{
-		if (Services.PersistentConfig is { } persistentConfig && Services.UiConfig is { } uiConfig)
-		{
-			return new ApplicationSettings(persistentConfig, uiConfig);
-		}
-		else
-		{
-			return new NullApplicationSettings();
-		}
+		return new ApplicationSettings(Services.PersistentConfig, Services.UiConfig);
 	}
 
 	private UiContext CreateUiContext()
