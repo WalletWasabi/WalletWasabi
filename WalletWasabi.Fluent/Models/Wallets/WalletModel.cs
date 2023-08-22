@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -19,7 +20,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
-	private readonly Lazy<IWalletBalancesModel> _balances;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
@@ -64,13 +64,10 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
-		_balances = new Lazy<IWalletBalancesModel>(() =>
-		{
-			var balance = Observable
-			.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
-			.Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
-			return new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
-		});
+		var balance =
+			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
+					  .Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
@@ -87,7 +84,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	internal Wallet Wallet { get; }
 
-	public IWalletBalancesModel Balances => _balances.Value;
+	public IWalletBalancesModel Balances { get; }
 
 	public IWalletAuthModel Auth { get; }
 
