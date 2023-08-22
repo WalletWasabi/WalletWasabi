@@ -220,6 +220,12 @@ public partial class FeeChartViewModel : ViewModelBase
 		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
 		var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
 
+		if (xs.Length == 1)
+		{
+			xs = new[] { xs[0], xs[0] };
+			ys = new[] { ys[0], ys[0] };
+		}
+
 		GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
 
 		if (maxFee is { })
