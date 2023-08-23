@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using Avalonia;
@@ -6,6 +7,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.ClientConfig;
+using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
@@ -86,6 +89,42 @@ public class App : Application
 		}
 	}
 
+	private static IFileSystem CreateFileSystem()
+	{
+		if (Services.DataDir is { })
+		{
+			return new FileSystemModel();
+		}
+		else
+		{
+			return new NullFileSystem();
+		}
+	}
+
+	private static IClientConfig CreateConfig()
+	{
+		if (Services.PersistentConfig is { })
+		{
+			return new ClientConfigModel();
+		}
+		else
+		{
+			return new NullClientConfig();
+		}
+	}
+
+	private static IApplicationSettings CreateApplicationSettings()
+	{
+		if (Services.PersistentConfig is { } persistentConfig && Services.UiConfig is { } uiConfig)
+		{
+			return new ApplicationSettings(persistentConfig, uiConfig);
+		}
+		else
+		{
+			return new NullApplicationSettings();
+		}
+	}
+
 	private UiContext CreateUiContext()
 	{
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
@@ -95,6 +134,9 @@ public class App : Application
 			new QrCodeReader(),
 			new UiClipboard(),
 			CreateWalletRepository(),
-			CreateHardwareWalletInterface());
+			CreateHardwareWalletInterface(),
+			CreateFileSystem(),
+			CreateConfig(),
+			CreateApplicationSettings());
 	}
 }

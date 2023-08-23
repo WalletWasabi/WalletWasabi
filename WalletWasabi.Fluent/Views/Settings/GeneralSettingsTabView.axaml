@@ -23,17 +23,17 @@
 
     <DockPanel>
       <TextBlock Text="Run in background when window closed" />
-      <ToggleSwitch IsChecked="{Binding HideOnClose}" />
+      <ToggleSwitch IsChecked="{Binding Settings.HideOnClose}" />
     </DockPanel>
 
     <DockPanel>
       <TextBlock Text="Auto copy addresses" />
-      <ToggleSwitch IsChecked="{Binding AutoCopy}" />
+      <ToggleSwitch IsChecked="{Binding Settings.AutoCopy}" />
     </DockPanel>
 
     <DockPanel>
       <TextBlock Text="Auto paste addresses" />
-      <ToggleSwitch IsChecked="{Binding AutoPaste}" />
+      <ToggleSwitch IsChecked="{Binding Settings.AutoPaste}" />
     </DockPanel>
     <!-- Temporarily remove from settings view for release
     TODO: Make Custom change address active/implement.
@@ -45,22 +45,22 @@
 
     <DockPanel>
       <TextBlock Text="Network anonymization (Tor)" />
-      <ToggleSwitch IsChecked="{Binding UseTor}" />
+      <ToggleSwitch IsChecked="{Binding Settings.UseTor}" />
     </DockPanel>
 
-    <DockPanel IsVisible="{Binding UseTor}">
+    <DockPanel IsVisible="{Binding Settings.UseTor}">
       <TextBlock Text="Terminate Tor when Wasabi shuts down" />
-      <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
+      <ToggleSwitch IsChecked="{Binding Settings.TerminateTorOnExit}" />
     </DockPanel>
 
     <DockPanel>
       <TextBlock Text="Auto download new version" />
-      <ToggleSwitch IsChecked="{Binding DownloadNewVersion}" />
+      <ToggleSwitch IsChecked="{Binding Settings.DownloadNewVersion}" />
     </DockPanel>
 
     <StackPanel Spacing="10">
       <TextBlock Text="Fee display unit" />
-      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding FeeDisplayUnits}" SelectedItem="{Binding SelectedFeeDisplayUnit}">
+      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding FeeDisplayUnits}" SelectedItem="{Binding Settings.SelectedFeeDisplayUnit}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="models:FeeDisplayUnit">
             <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />

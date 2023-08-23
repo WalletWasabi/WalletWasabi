@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SQLitePCL;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
@@ -201,9 +202,8 @@ public class RegisterInputFailureTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((NBitcoin.RPC.GetTxOutResponse?)null);
+		var mockRpc = new MockRpcClient();
+		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
@@ -223,9 +223,9 @@ public class RegisterInputFailureTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse { Confirmations = 0 });
+		var mockRpc = new MockRpcClient();
+		mockRpc.OnGetTxOutAsync = (_,_,_) =>
+			new NBitcoin.RPC.GetTxOutResponse { Confirmations = 0 };
 
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
@@ -246,11 +246,13 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
-		var rpcCfg = rpc.SetupSequence(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()));
-		foreach (var i in Enumerable.Range(1, 100))
+		var callCounter = 1;
+		rpc.OnGetTxOutAsync = (_, _, _) =>
 		{
-			rpcCfg = rpcCfg.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse { Confirmations = i, IsCoinBase = true });
-		}
+			var ret = new NBitcoin.RPC.GetTxOutResponse {Confirmations = callCounter, IsCoinBase = true};
+			callCounter++;
+			return ret;
+		};
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
@@ -359,7 +361,7 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
-		RoundParameterFactory roundParameterFactory = WabiSabiFactory.CreateRoundParametersFactory(cfg, rpc.Object.Network, maxVsizeAllocationPerAlice: 0);
+		RoundParameterFactory roundParameterFactory = WabiSabiFactory.CreateRoundParametersFactory(cfg, rpc.Network, maxVsizeAllocationPerAlice: 0);
 		Round round = WabiSabiFactory.CreateRound(roundParameterFactory.CreateRoundParameter(new FeeRate(10m), Money.Zero));
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With(roundParameterFactory).CreateAndStartAsync(round);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);

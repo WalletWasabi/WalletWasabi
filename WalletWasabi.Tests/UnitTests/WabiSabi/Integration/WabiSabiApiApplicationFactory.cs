@@ -70,7 +70,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddHttpClient();
 			services.AddSingleton<AffiliationManager>();
 			services.AddSingleton<CoinJoinMempoolManager>();
-			services.AddSingleton(s => new Mock<IMempoolMirror>().Object);
+			services.AddSingleton(s => new MempoolMirror(TimeSpan.Zero, null!, null!));
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}

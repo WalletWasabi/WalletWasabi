@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
 public class TransactionBroadcaster
 {
-	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, WalletManager walletManager)
+	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory, WalletManager walletManager)
 	{
 		Network = Guard.NotNull(nameof(network), network);
 		BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);

@@ -60,7 +60,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
@@ -80,8 +80,8 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
+		walletManager.Initialize();
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo");
@@ -124,7 +124,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 			var externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
 			var txToCancel = wallet.BuildTransaction(password, new PaymentIntent(externalAddr, amountToSend, label: "bar"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
+
+			SetHighInputAnonsets(txToCancel);
+
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+
+			AssertAllAnonsets1(txToCancel);
 
 			Assert.Equal("bar", txToCancel.Transaction.Labels.Single());
 			foreach (var op in txToCancel.InnerWalletOutputs)
@@ -150,6 +155,8 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
 
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
+
+			AssertAllAnonsets1(cancellingTx);
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCPFP);
@@ -180,7 +187,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
 			txToCancel = wallet.BuildChangelessTransaction(externalAddr, "foo", new FeeRate(1m), cancellingTx.InnerWalletOutputs);
+
+			SetHighInputAnonsets(txToCancel);
+
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+
+			AssertAllAnonsets1(txToCancel);
 
 			Assert.Equal("foo", txToCancel.Transaction.Labels.Single());
 			foreach (var op in txToCancel.InnerWalletOutputs)
@@ -205,6 +217,8 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
 
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
+
+			AssertAllAnonsets1(cancellingTx);
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCPFP);
@@ -321,6 +335,26 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
+		}
+	}
+
+	private static void AssertAllAnonsets1(BuildTransactionResult txToCancel)
+	{
+		foreach (var input in txToCancel.SpentCoins)
+		{
+			Assert.Equal(1, input.AnonymitySet);
+		}
+		foreach (var output in txToCancel.InnerWalletOutputs)
+		{
+			Assert.Equal(1, output.AnonymitySet);
+		}
+	}
+
+	private static void SetHighInputAnonsets(BuildTransactionResult tx)
+	{
+		foreach (var input in tx.SpentCoins)
+		{
+			input.HdPubKey.SetAnonymitySet(999);
 		}
 	}
 }

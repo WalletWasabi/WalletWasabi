@@ -18,43 +18,56 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class WalletModel : ReactiveObject, IWalletModel
 {
-	private readonly Wallet _wallet;
 	private readonly TransactionHistoryBuilder _historyBuilder;
-
-	[AutoNotify] private bool _isLoggedIn;
+	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
 	{
-		_wallet = wallet;
+		Wallet = wallet;
 
-		_historyBuilder = new TransactionHistoryBuilder(_wallet);
+		_historyBuilder = new TransactionHistoryBuilder(Wallet);
 
-		RelevantTransactionProcessed = Observable
-			.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
-			.ObserveOn(RxApp.MainThreadScheduler);
+		Auth = new WalletAuthModel(this, Wallet);
+		Loader = new WalletLoadWorkflow(Wallet);
+		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
-		Transactions = Observable
-			.Defer(() => BuildSummary().ToObservable())
-			.Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-			.ToObservableChangeSet(x => x.TransactionId);
+		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
 
-		Addresses = Observable
-			.Defer(() => GetAddresses().ToObservable())
-			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-			.ToObservableChangeSet(x => x.Text);
+		var relevantTransactionProcessed =
+			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
+					  .Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal())
+					  .Sample(TimeSpan.FromSeconds(1))
+					  .ObserveOn(RxApp.MainThreadScheduler)
+					  .StartWith(Unit.Default);
 
-		State = Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
-						  .ObserveOn(RxApp.MainThreadScheduler)
-						  .Select(_ => _wallet.State);
+		Coins =
+			Observable.Defer(() => GetCoins().ToObservable())                                                 // initial coin list
+					  .Concat(relevantTransactionProcessed.SelectMany(_ => GetCoins()))                       // Refresh whenever there's a relevant transaction
+					  .Concat(this.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => GetCoins())) // Also refresh whenever AnonScoreTarget changes
+					  .ToObservableChangeSet();
 
-		var balance = Observable
-			.Defer(() => Observable.Return(_wallet.Coins.TotalAmount()))
-			.Concat(RelevantTransactionProcessed.Select(_ => _wallet.Coins.TotalAmount()));
+		Transactions =
+			Observable.Defer(() => BuildSummary().ToObservable())
+					  .Concat(relevantTransactionProcessed.SelectMany(_ => BuildSummary()))
+					  .ToObservableChangeSet(x => x.TransactionId);
+
+		Addresses =
+			Observable.Defer(() => GetAddresses().ToObservable())
+					  .Concat(relevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
+					  .ToObservableChangeSet(x => x.Text);
+
+		State =
+			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
+					  .ObserveOn(RxApp.MainThreadScheduler)
+					  .Select(_ => Wallet.State);
+
+		Privacy = new WalletPrivacyModel(this, Wallet);
+
+		var balance =
+			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
+					  .Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
-
-		Auth = new WalletAuthModel(this, _wallet);
-		Loader = new WalletLoadWorkflow(_wallet);
-		Settings = new WalletSettingsModel(_wallet.KeyManager);
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
@@ -69,8 +82,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Subscribe();
 	}
 
-	// TODO: Remove this
-	public Wallet Wallet => _wallet;
+	protected Wallet Wallet { get; }
 
 	public IWalletBalancesModel Balances { get; }
 
@@ -80,11 +92,15 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IWalletSettingsModel Settings { get; }
 
+	public IWalletPrivacyModel Privacy { get; }
+
+	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
+
+	public IObservable<IChangeSet<ICoinModel>> Coins { get; }
+
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
-	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
-
-	public string Name => _wallet.WalletName;
+	public string Name => Wallet.WalletName;
 
 	public IObservable<WalletState> State { get; }
 
@@ -92,17 +108,27 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
-		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
-		return new Address(_wallet.KeyManager, pubKey);
+		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
+		return new Address(Wallet.KeyManager, pubKey);
 	}
 
-	public bool IsHardwareWallet => _wallet.KeyManager.IsHardwareWallet;
+	public IWalletInfoModel GetWalletInfo()
+	{
+		return new WalletInfoModel(Wallet);
+	}
 
-	public bool IsWatchOnlyWallet => _wallet.KeyManager.IsWatchOnly;
+	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
-		return _wallet.GetLabelsWithRanking(intent);
+		return Wallet.GetLabelsWithRanking(intent);
+	}
+
+	private IEnumerable<ICoinModel> GetCoins()
+	{
+		return Wallet.Coins.Select(x => new CoinModel(Wallet, x));
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()
@@ -112,9 +138,9 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	private IEnumerable<IAddress> GetAddresses()
 	{
-		return _wallet.KeyManager
+		return Wallet.KeyManager
 			.GetKeys()
 			.Reverse()
-			.Select(x => new Address(_wallet.KeyManager, x));
+			.Select(x => new Address(Wallet.KeyManager, x));
 	}
 }

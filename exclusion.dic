@@ -27,6 +27,7 @@ github
 alices
 Prevout
 segwit
+Segwit
 json
 txid
 coinbase
@@ -230,3 +231,4 @@ sayajin
 hashset
 enum
 usings
+clearnet

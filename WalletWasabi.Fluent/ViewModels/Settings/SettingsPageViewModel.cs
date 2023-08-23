@@ -1,13 +1,12 @@
 using System.Reactive;
-using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -35,12 +34,26 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		GeneralSettingsTab = new GeneralSettingsTabViewModel();
-		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
-		AdvancedSettingsTab = new AdvancedSettingsTabViewModel();
+		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
+		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
+		AdvancedSettingsTab = new AdvancedSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
 		NextCommand = CancelCommand;
+
+		this.WhenAnyValue(x => x.UiContext.ApplicationSettings.DarkModeEnabled)
+			.Skip(1)
+			.Subscribe(x => Navigate().To().ThemeChange(x ? Theme.Dark : Theme.Light));
+
+		// Show restart message when needed
+		UiContext.ApplicationSettings.IsRestartNeeded
+									 .BindTo(this, x => x.IsModified);
+
+		// Show restart notification when needed only if this page is not active.
+		UiContext.ApplicationSettings.IsRestartNeeded
+				 .Where(x => x && !IsActive)
+				 .Do(_ => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")))
+				 .Subscribe();
 	}
 
 	public ICommand RestartCommand { get; }
@@ -48,23 +61,6 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 	public AdvancedSettingsTabViewModel AdvancedSettingsTab { get; }
-
-	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
-	{
-		IsModified = e.IsRestartNeeded;
-	}
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		IsModified = SettingsTabViewModelBase.CheckIfRestartIsNeeded();
-
-		SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
-
-		disposables.Add(
-			Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded));
-	}
 
 	public async Task Activate()
 	{

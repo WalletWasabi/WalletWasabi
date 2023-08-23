@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
+using Avalonia;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -16,12 +17,11 @@ public class UiClipboard : IUiClipboard
 
 	public async Task SetTextAsync(string? text)
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
+		if (ApplicationHelper.Clipboard is { } clipboard && text is { })
 		{
 			await clipboard.SetTextAsync(text);
 			return;
 		}
-		await Task.CompletedTask;
 	}
 
 	public async Task ClearAsync()
@@ -31,6 +31,5 @@ public class UiClipboard : IUiClipboard
 			await clipboard.ClearAsync();
 			return;
 		}
-		await Task.CompletedTask;
 	}
 }

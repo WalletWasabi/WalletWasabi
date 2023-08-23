@@ -1,10 +1,8 @@
+using NBitcoin;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Channels;
-using NBitcoin;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
@@ -109,7 +107,7 @@ public class Prison
 				_ => throw new NotSupportedException("Unknown round disruption method.")
 			});
 
-		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count-1);
+		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count - 1);
 		return TimeSpan.FromHours((double)prisonTime);
 	}
 }
