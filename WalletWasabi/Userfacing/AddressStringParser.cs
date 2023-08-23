@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Extensions;
 using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Userfacing;
@@ -61,16 +62,14 @@ public static class AddressStringParser
 		// Parse a Bitcoin address (not BIP21 URI string)
 		if (!text.StartsWith($"{Bip21UriParser.UriScheme}:", StringComparison.OrdinalIgnoreCase))
 		{
-			if (!Bip21UriParser.TryParseBitcoinAddressForNetwork(text, expectedNetwork, out BitcoinAddress? address))
-			{
-				error = Bip21UriParser.ErrorInvalidAddress with { Details = text };
-			}
-			else
+			if (NBitcoinExtensions.TryParseBitcoinAddressForNetwork(text, expectedNetwork, out BitcoinAddress? address))
 			{
 				Uri uri = new($"{Bip21UriParser.UriScheme}:{text}");
 				result = new Bip21UriParser.Result(uri, expectedNetwork, address);
 				return true;
 			}
+
+			error = Bip21UriParser.ErrorInvalidAddress with { Details = text };
 		}
 		else // Parse BIP21 URI string.
 		{
@@ -87,7 +86,7 @@ public static class AddressStringParser
 		{
 			Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
 
-			if (Bip21UriParser.TryParseBitcoinAddressForNetwork(error.Details!, networkGuess, out _))
+			if (NBitcoinExtensions.TryParseBitcoinAddressForNetwork(error.Details!, networkGuess, out _))
 			{
 				errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
 				return false;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Web;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Userfacing.Bip21;
 
@@ -59,7 +60,7 @@ public class Bip21UriParser
 		string? label = null;
 		string? message = null;
 
-		if (!TryParseBitcoinAddressForNetwork(addressString, network, out BitcoinAddress? address))
+		if (!NBitcoinExtensions.TryParseBitcoinAddressForNetwork(addressString, network, out BitcoinAddress? address))
 		{
 			error = ErrorInvalidAddress with { Details = addressString };
 			return false;
@@ -91,7 +92,7 @@ public class Bip21UriParser
 				}
 
 				if (value.Trim() == "")
-				{					
+				{
 					error = ErrorMissingAmountValue with { Details = value };
 					return false;
 				}
@@ -131,21 +132,6 @@ public class Bip21UriParser
 
 		result = new(Uri: parsedUri, network, address, amount, Label: label, Message: message, unknownParameters);
 		return true;
-	}
-
-	/// <remarks>NBitcoin does not provide a try-parse method.</remarks>
-	public static bool TryParseBitcoinAddressForNetwork(string address, Network network, [NotNullWhen(true)] out BitcoinAddress? bitcoinAddress)
-	{
-		try
-		{
-			bitcoinAddress = Network.Parse<BitcoinAddress>(address, network);
-			return true;
-		}
-		catch
-		{
-			bitcoinAddress = null;
-			return false;
-		}
 	}
 
 	/// <summary>
