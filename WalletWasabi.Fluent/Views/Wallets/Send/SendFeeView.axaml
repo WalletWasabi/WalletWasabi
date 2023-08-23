@@ -194,7 +194,8 @@
                      XAxisValues="{Binding ConfirmationTargetValues}"
                      XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
                      YAxisLabels="{Binding SatoshiPerByteLabels}"
-                     YAxisValues="{Binding SatoshiPerByteValues}">
+                     YAxisValues="{Binding SatoshiPerByteValues}"
+                     EnableCursor="{Binding EnableCursor}">
           <c:LineChart.Styles>
             <Style Selector="c|LineChart">
               <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />

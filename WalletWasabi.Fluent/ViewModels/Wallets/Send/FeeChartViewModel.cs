@@ -25,6 +25,7 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify] private double _currentConfirmationTarget = -1;
 	[AutoNotify] private decimal _currentSatoshiPerByte;
 	[AutoNotify] private string _currentConfirmationTargetString;
+	[AutoNotify] private bool _enableCursor = true;
 	private bool _updatingCurrentValue;
 
 	public FeeChartViewModel()
@@ -214,6 +215,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
 	{
+		var enableCursor = true;
 		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
 		var correctedFeeEstimates = areAllValuesEqual ? feeEstimates : DistinctByValues(feeEstimates);
 
@@ -228,6 +230,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			ys = new[] { ys[0], ys[0] };
 			xts = xs.ToList();
 			yts = ys.ToList();
+			enableCursor = false;
 		}
 		else
 		{
@@ -273,6 +276,8 @@ public partial class FeeChartViewModel : ViewModelBase
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
+
+		EnableCursor = enableCursor;
 
 		_updatingCurrentValue = false;
 	}
