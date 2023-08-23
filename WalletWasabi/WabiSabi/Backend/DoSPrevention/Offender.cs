@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
@@ -13,7 +14,7 @@ public enum RoundDisruptionMethod
 public abstract record Offense();
 public record RoundDisruption(uint256 DisruptedRoundId, Money Value, RoundDisruptionMethod Method) : Offense;
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
-public record Inherited(OutPoint Ancestor) : Offense;
+public record Inherited(OutPoint[] Ancestors) : Offense;
 public record Cheating(uint256 RoundId) : Offense;
 
 public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Offense)
@@ -45,7 +46,10 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					break;
 				case Inherited inherited:
 					yield return nameof(Inherited);
-					yield return inherited.Ancestor.ToString();
+					foreach (var ancestor in inherited.Ancestors)
+					{
+						yield return ancestor.ToString();
+					}
 					break;
 				case Cheating cheating:
 					yield return nameof(Cheating);
@@ -83,12 +87,19 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 			nameof(FailedToVerify) =>
 				new FailedToVerify(uint256.Parse(parts[3])),
 			nameof(Inherited) =>
-				new Inherited(OutPoint.Parse(parts[3])),
+				ParseInheritedOffense(),
 			nameof(Cheating) =>
 				new Cheating(uint256.Parse(parts[3])),
-			_ => throw new NotImplementedException("Cannot deserialize an unknown offense type.")
+		_ => throw new NotImplementedException("Cannot deserialize an unknown offense type.")
 		};
 
 		return new Offender(outpoint, startedTime, offense);
+
+		Offense ParseInheritedOffense()
+		{
+			var ancestorCount = parts.Length - 4;
+			var ancestors = Enumerable.Range(0, ancestorCount).Select(x => OutPoint.Parse(parts[4 + x])).ToArray();
+			return new Inherited(ancestors);
+		}
 	}
 }
