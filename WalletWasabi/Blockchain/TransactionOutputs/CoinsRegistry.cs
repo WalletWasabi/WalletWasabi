@@ -250,11 +250,11 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			return new CoinsView(AsAllCoinsViewNoLock().ToList());
+			return new CoinsView(AsAllCoinsViewNoLock());
 		}
 	}
 
-	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
+	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()));
 
 	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
