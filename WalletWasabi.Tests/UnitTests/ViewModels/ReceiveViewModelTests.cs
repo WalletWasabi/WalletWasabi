@@ -84,6 +84,12 @@ public class ReceiveViewModelTests
 
 		public IWalletSettingsModel Settings => throw new NotImplementedException();
 
+		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotImplementedException();
+
+		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
+
+		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
@@ -107,6 +113,11 @@ public class ReceiveViewModelTests
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
 			return ImmutableArray<(string Label, int Score)>.Empty;
+		}
+
+		public IWalletInfoModel GetWalletInfo()
+		{
+			throw new NotImplementedException();
 		}
 	}
 

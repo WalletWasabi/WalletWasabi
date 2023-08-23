@@ -191,6 +191,12 @@ public class SuggestionLabelsViewModelTests
 
 		public IWalletSettingsModel Settings => throw new NotImplementedException();
 
+		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotImplementedException();
+
+		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
+
+		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
@@ -214,6 +220,11 @@ public class SuggestionLabelsViewModelTests
 		public void Logout()
 		{
 			throw new NotSupportedException();
+		}
+
+		public IWalletInfoModel GetWalletInfo()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -16,7 +16,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	[AutoNotify] private PrivacySuggestion? _previewSuggestion;
 	[AutoNotify] private PrivacySuggestion? _selectedSuggestion;
-	[AutoNotify] private bool _isOpen;
 	[AutoNotify] private bool _isBusy;
 
 	[AutoNotify] private bool _noPrivacy;
@@ -26,15 +25,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
 	{
 		_privacySuggestionsModel = new PrivacySuggestionsModel(wallet);
-
-		this.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (!x)
-				{
-					PreviewSuggestion = null;
-				}
-			});
 	}
 
 	public ObservableCollection<PrivacyWarning> Warnings { get; } = new();
@@ -54,8 +44,15 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
 
-		Warnings.AddRange(result.Warnings);
-		Suggestions.AddRange(result.Suggestions);
+		await foreach (var warning in result.GetAllWarningsAsync())
+		{
+			Warnings.Add(warning);
+		}
+
+		await foreach (var suggestion in result.GetAllSuggestionsAsync())
+		{
+			Suggestions.Add(suggestion);
+		}
 
 		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
 		{

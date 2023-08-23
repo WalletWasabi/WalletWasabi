@@ -97,7 +97,7 @@ public class P2pTests
 		using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
-		await using HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
+		await using WasabiHttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 

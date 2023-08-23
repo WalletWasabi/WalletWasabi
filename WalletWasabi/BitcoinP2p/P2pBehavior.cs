@@ -67,7 +67,7 @@ public abstract class P2pBehavior : NodeBehavior
 		{
 			if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
 			{
-				getDataPayload.Inventory.Add(inv);
+				getDataPayload.Inventory.Add(new InventoryVector(node.AddSupportedOptions(inv.Type), inv.Hash));
 			}
 		}
 		if (getDataPayload.Inventory.Any() && node.IsConnected)
@@ -86,7 +86,7 @@ public abstract class P2pBehavior : NodeBehavior
 			return;
 		}
 
-		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
+		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX) || inv.Type.HasFlag(InventoryType.MSG_WTX)))
 		{
 			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
 			{

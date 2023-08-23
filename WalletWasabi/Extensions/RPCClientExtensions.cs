@@ -19,21 +19,12 @@ public static class RPCClientExtensions
 
 	public static async Task<EstimateSmartFeeResponse> EstimateConservativeSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, CancellationToken cancellationToken = default)
 	{
-		EstimateSmartFeeResponse result;
-
-		if (rpc.Network == Network.RegTest)
+		var estimations = await rpc.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
+		return new EstimateSmartFeeResponse
 		{
-			result = SimulateRegTestFeeEstimation(confirmationTarget);
-		}
-		else
-		{
-			result = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateMode, cancellationToken).ConfigureAwait(false);
-
-			var mempoolInfo = await rpc.GetMempoolInfoAsync(cancellationToken).ConfigureAwait(false);
-			result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
-		}
-
-		return result;
+			Blocks = confirmationTarget,
+			FeeRate = estimations.GetFeeRate(confirmationTarget)
+		};
 	}
 
 	private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget)
@@ -97,7 +88,7 @@ public static class RPCClientExtensions
 		var minEstimationFor260Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(260 / 4));
 		var minSanityFeeRate = FeeRate.Max(minEstimationFor260Mb, mempoolInfo.GetSanityFeeRate());
 		var estimationForTarget2 = minEstimations.GetValueOrDefault(2);
-		var maxEstimationFor3Mb = new FeeRate(estimationForTarget2 > 0 ? (decimal)estimationForTarget2 : 5_000m);
+		var maxEstimationFor3Mb = new FeeRate(estimationForTarget2 > 0 ? estimationForTarget2 : 5_000m);
 		var maxSanityFeeRate = maxEstimationFor3Mb;
 
 		var fixedEstimations = smartEstimations

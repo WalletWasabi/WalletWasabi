@@ -1,7 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;
 using Xunit;
 

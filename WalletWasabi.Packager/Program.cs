@@ -489,11 +489,16 @@ public static class Program
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
+				const string Shebang = "#!/usr/bin/env sh\n";
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
-				var wasabiStarterScriptContent = $"#!/bin/sh\n" +
+				var wasabiStarterScriptContent = Shebang +
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+				var wasabiDaemonStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{DaemonExecutableName}");
+				var wasabiDaemonStarterScriptContent = Shebang +
+				    $"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
+				File.WriteAllText(wasabiDaemonStarterScriptPath, wasabiDaemonStarterScriptContent, Encoding.ASCII);
 
 				string debDesktopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 

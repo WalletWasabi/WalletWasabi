@@ -7,7 +7,7 @@ namespace WalletWasabi.Backend.Models;
 
 public class FilterModel
 {
-	private Lazy<GolombRiceFilter> _filter;
+	private readonly Lazy<GolombRiceFilter> _filter;
 
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
@@ -16,7 +16,7 @@ public class FilterModel
 		FilterData = filter.ToBytes();
 	}
 
-	public FilterModel(SmartHeader header, byte[] filterData)
+	private FilterModel(SmartHeader header, byte[] filterData)
 	{
 		Header = header;
 		FilterData = filterData;

@@ -35,33 +35,26 @@ public class WalletBuilder : IAsyncDisposable
 
 		Filters = node.BuildFilters();
 
-		var blockRepositoryMock = new Mock<IRepository<uint256, Block>>();
-		blockRepositoryMock
-			.Setup(br => br.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.Returns((uint256 hash, CancellationToken _) => Task.FromResult(node.BlockChain[hash])!);
-		blockRepositoryMock
-			.Setup(br => br.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
-			.Returns((Block _, CancellationToken _) => Task.CompletedTask);
-
-		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), blockRepositoryMock.Object);
+		var blockRepositoryMock = new MockBlockRepository(node.BlockChain);
+		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
-		HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
+		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
 	}
 
 	private IndexStore IndexStore { get; }
 	private AllTransactionStore TransactionStore { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private MemoryCache Cache { get; }
-	private HttpClientFactory HttpClientFactory { get; }
+	private WasabiHttpClientFactory HttpClientFactory { get; }
 	public IEnumerable<FilterModel> Filters { get; }
 	public string DataDir { get; }
 
-	public async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestWallet wallet)
+	public async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestWallet wallet, int? minGapLimit = null)
 	{
 		await BitcoinStore.InitializeAsync().ConfigureAwait(false); // StartingFilter already added to IndexStore after this line.
 
 		await BitcoinStore.IndexStore.AddNewFiltersAsync(Filters.Skip(1)).ConfigureAwait(false);
-		var keyManager = KeyManager.CreateNewWatchOnly(wallet.GetSegwitAccountExtPubKey(), null!);
+		var keyManager = KeyManager.CreateNewWatchOnly(wallet.GetSegwitAccountExtPubKey(), null!, null, minGapLimit);
 		keyManager.GetKeys(_ => true); // Make sure keys are asserted.
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
@@ -79,4 +72,25 @@ public class WalletBuilder : IAsyncDisposable
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();
 	}
+}
+
+public class MockBlockRepository : IRepository<uint256, Block>
+{
+	public Dictionary<uint256, Block> Blocks { get; }
+
+	public MockBlockRepository(Dictionary<uint256, Block> blocks)
+	{
+		Blocks = blocks;
+	}
+	public Task<Block?> TryGetAsync(uint256 id, CancellationToken cancel) =>
+		Task.FromResult(Blocks.GetValueOrDefault(id));
+
+	public Task SaveAsync(Block element, CancellationToken cancel) =>
+		Task.CompletedTask;
+
+	public Task RemoveAsync(uint256 id, CancellationToken cancel) =>
+		Task.CompletedTask;
+
+	public Task<int> CountAsync(CancellationToken cancel) =>
+		Task.FromResult(Blocks.Count);
 }

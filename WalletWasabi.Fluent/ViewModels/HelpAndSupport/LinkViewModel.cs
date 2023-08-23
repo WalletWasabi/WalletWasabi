@@ -1,26 +1,15 @@
 using System.Windows.Input;
-using Avalonia;
 using ReactiveUI;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
-public class LinkViewModel : ViewModelBase
+public partial class LinkViewModel : ViewModelBase
 {
-	public LinkViewModel()
+	private LinkViewModel()
 	{
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
-			async (link) =>
-				await IoHelpers.OpenBrowserAsync(link));
+		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.FileSystem.OpenBrowserAsync(link));
 
-		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
-			async (link) =>
-				{
-					if (Application.Current is { Clipboard: { } clipboard })
-					{
-						await clipboard.SetTextAsync(link);
-					}
-				});
+		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.Clipboard.SetTextAsync(link));
 	}
 
 	public string? Link { get; set; }

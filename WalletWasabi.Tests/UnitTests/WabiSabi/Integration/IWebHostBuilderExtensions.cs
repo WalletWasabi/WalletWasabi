@@ -14,6 +14,7 @@ public static class IWebHostBuilderExtensions
 	public static IWebHostBuilder AddMockRpcClient(this IWebHostBuilder builder, SmartCoin[] coins, Action<MockRpcClient> options)
 	{
 		var rpc = BitcoinFactory.GetMockMinimalRpc();
+		rpc.Network = Network.Main;
 
 		// Make the coordinator believe that the coins are real and
 		// that they exist in the blockchain with many confirmations.

@@ -42,7 +42,7 @@ public class TorMonitor : PeriodicRunner
 	/// <remarks>Guards <see cref="ForceTorRestartCts"/>.</remarks>
 	private readonly object _lock = new();
 
-	public TorMonitor(TimeSpan period, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, TorProcessManager torProcessManager, WasabiHttpClientFactory httpClientFactory) : base(period)
 	{
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
