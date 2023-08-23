@@ -22,6 +22,7 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 	private uint _filtersToDownloadCount;
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
+	private uint _filterProcessCurrentTipHeight;
 	private Subject<(double PercentComplete, TimeSpan TimeRemaining)> _progress;
 	[AutoNotify] private bool _isLoading;
 
@@ -71,8 +72,10 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Subscribe(_ =>
+				  .Subscribe(
+					  _ =>
 				  {
+					  UpdateCurrentTipHeight();
 					  var processedCount = GetCurrentProcessedCount();
 					  UpdateProgress(processedCount);
 				  })
@@ -132,6 +135,7 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
 			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+			_filterProcessCurrentTipHeight = tipHeight;
 		}
 	}
 
@@ -152,6 +156,18 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 		var processedCount = downloadedFilters + processedFilters;
 
 		return processedCount;
+	}
+
+	private void UpdateCurrentTipHeight()
+	{
+		var smartHeaderChainTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
+		if (_filtersToProcessCount == 0 || smartHeaderChainTipHeight == _filterProcessCurrentTipHeight)
+		{
+			return;
+		}
+
+		_filtersToProcessCount += smartHeaderChainTipHeight - _filterProcessCurrentTipHeight;
+		_filterProcessCurrentTipHeight = smartHeaderChainTipHeight;
 	}
 
 	private void UpdateProgress(uint processedCount)
