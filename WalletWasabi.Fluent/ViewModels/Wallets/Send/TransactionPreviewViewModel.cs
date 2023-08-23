@@ -427,8 +427,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource?.Cancel();
 				Navigate().To().SendSuccess(_wallet, finalTransaction);
-
-				IsBusy = false;
 			}
 		}
 		catch (Exception ex)
@@ -438,6 +436,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				"Transaction",
 				ex.ToUserFriendlyString(),
 				"Wasabi was unable to send your transaction.");
+		}
+		finally
+		{
+			IsBusy = false;
 		}
 	}
 
