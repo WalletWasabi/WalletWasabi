@@ -97,8 +97,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 
 		Offense ParseInheritedOffense()
 		{
-			var ancestorCount = parts.Length - 4;
-			var ancestors = Enumerable.Range(0, ancestorCount).Select(x => OutPoint.Parse(parts[4 + x])).ToArray();
+			var ancestors = parts.Skip(3).Select(OutPoint.Parse).ToArray();
 			return new Inherited(ancestors);
 		}
 	}
