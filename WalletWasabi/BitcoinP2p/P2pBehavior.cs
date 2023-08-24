@@ -21,8 +21,8 @@ public abstract class P2pBehavior : NodeBehavior
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 	}
 
-	public MempoolService MempoolService { get; }
 	public event EventHandler<Transaction>? OnTransactionArrived;
+	public MempoolService MempoolService { get; }
 
 	protected override void AttachCore()
 	{
