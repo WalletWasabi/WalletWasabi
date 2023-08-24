@@ -118,6 +118,18 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 	}
 
+	public void BanDoubleSpenders(object? sender, Transaction tx)
+	{
+		var disruptedRounds = Arena.Rounds
+			.SelectMany(r => r.Alices.Select(a => (RoundId: r.Id, a.Coin)))
+			.Where(x => tx.Inputs.Any(i => i.PrevOut == x.Coin.Outpoint));
+
+		foreach (var (roundId, offender) in disruptedRounds)
+		{
+			Warden.Prison.DoubleSpent(offender.Outpoint, offender.Amount, roundId);
+		}
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);
