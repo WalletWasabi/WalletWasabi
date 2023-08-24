@@ -54,7 +54,7 @@ public class Wallet : BackgroundService, IWallet
 
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
-		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
+		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, BitcoinStore.SmartHeaderChain, KeyManager, ServiceConfiguration.DustThreshold);
 		Coins = TransactionProcessor.Coins;
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 	}

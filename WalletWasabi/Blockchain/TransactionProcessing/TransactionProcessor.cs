@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -18,11 +19,13 @@ public class TransactionProcessor
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
 		MempoolService? mempoolService,
+		SmartHeaderChain? smartHeaderChain,
 		KeyManager keyManager,
 		Money dustThreshold)
 	{
 		TransactionStore = transactionStore;
 		MempoolService = mempoolService;
+		SmartHeaderChain = smartHeaderChain;
 		KeyManager = keyManager;
 		DustThreshold = dustThreshold;
 		Coins = new();
@@ -33,6 +36,7 @@ public class TransactionProcessor
 
 	private static object Lock { get; } = new object();
 	public AllTransactionStore TransactionStore { get; }
+	private SmartHeaderChain? SmartHeaderChain { get; }
 	private HashSet<uint256> Aware { get; } = new();
 
 	public KeyManager KeyManager { get; }
@@ -145,7 +149,8 @@ public class TransactionProcessor
 		}
 
 		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
-		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
+		var isTxImmature = tx.Height == Height.Mempool || SmartHeaderChain is null || (tx.Height >= SmartHeaderChain.TipHeight - 101);
+		if (isTxImmature && !tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpentSpenders = new List<SmartCoin>();
 			var doubleSpentCoins = new List<SmartCoin>();
