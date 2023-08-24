@@ -23,7 +23,7 @@
 
    Note: As you can see, the deployer can choose the `codename` freely.
 
-   - Creating a tag: `git tag v2.0.3-myexampletag`
+   - Creating a tag: `git tag v2.0.3-myexampletag <commit-id>`
    - Push the tag to upstream: `git push upstream v2.0.3-myexampletag`
 
 3. Deploy using the `deploy.sh` script.
