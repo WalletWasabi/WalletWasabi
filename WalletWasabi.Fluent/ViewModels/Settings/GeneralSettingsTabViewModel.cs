@@ -24,13 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : RoutableViewModel
 {
-	[AutoNotify] private bool _darkModeEnabled;
 	[AutoNotify] private bool _runOnSystemStartup;
 
 	public GeneralSettingsTabViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
-		_darkModeEnabled = settings.DarkModeEnabled;
 		_runOnSystemStartup = settings.RunOnSystemStartup;
 
 		StartupCommand = ReactiveCommand.Create(async () =>
