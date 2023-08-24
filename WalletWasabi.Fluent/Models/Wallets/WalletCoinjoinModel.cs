@@ -51,6 +51,6 @@ public class WalletCoinjoinModel : IWalletCoinjoinModel
 
 	public async Task StopAsync()
 	{
-		await _coinJoinManager.StopAsync(CancellationToken.None);
+		await _coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 	}
 }
