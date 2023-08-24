@@ -1,6 +1,3 @@
-using System;
-using Avalonia;
-using Avalonia.Input.Platform;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -33,9 +30,9 @@ public class UiContext
 	public IClientConfig Config { get; }
 	public IApplicationSettings ApplicationSettings { get; }
 
-	// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
-
-	// We provide a NullClipboard object for unit tests (when Application.Current is null)
+	/// <summary>
+	/// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
+	/// </summary>
 	public static UiContext Default;
 
 	public void RegisterNavigation(INavigate navigate)

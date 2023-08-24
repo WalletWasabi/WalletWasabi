@@ -412,15 +412,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnConfirmAsync()
 	{
-		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
-		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
-		if (authResult)
+		try
 		{
-			IsBusy = true;
-
-			try
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			if (authResult)
 			{
+				IsBusy = true;
+
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
@@ -428,15 +428,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_cancellationTokenSource?.Cancel();
 				Navigate().To().SendSuccess(_wallet, finalTransaction);
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				await ShowErrorAsync(
-					"Transaction",
-					ex.ToUserFriendlyString(),
-					"Wasabi was unable to send your transaction.");
-			}
-
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync(
+				"Transaction",
+				ex.ToUserFriendlyString(),
+				"Wasabi was unable to send your transaction.");
+		}
+		finally
+		{
 			IsBusy = false;
 		}
 	}
