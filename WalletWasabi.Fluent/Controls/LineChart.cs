@@ -123,6 +123,11 @@ public partial class LineChart : Control
 
 	private void PointerMovedHandler(object? sender, PointerEventArgs e)
 	{
+		if (!EnableCursor)
+		{
+			return;
+		}
+
 		var position = e.GetPosition(this);
 		if (_captured)
 		{
@@ -163,6 +168,11 @@ public partial class LineChart : Control
 
 	private void PointerPressedHandler(object? sender, PointerPressedEventArgs e)
 	{
+		if (!EnableCursor)
+		{
+			return;
+		}
+
 		var position = e.GetPosition(this);
 		UpdateXAxisCursorPosition(position.X);
 		Cursor = new Cursor(StandardCursorType.SizeWestEast);
@@ -871,7 +881,11 @@ public partial class LineChart : Control
 
 		DrawAreaFill(context, state);
 		DrawAreaStroke(context, state);
-		DrawCursor(context, state);
+
+		if (EnableCursor)
+		{
+			DrawCursor(context, state);
+		}
 
 		DrawXAxis(context, state);
 		DrawXAxisTitle(context, state);
