@@ -28,7 +28,7 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+	private Dictionary<Height, Dictionary<OutPoint, HashSet<SmartCoin>>> CoinsByOutPoint { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
@@ -75,40 +75,62 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin) => AsCoinsView().TryGetByOutPoint(outpoint, out coin);
 
-	public bool TryAdd(SmartCoin coin)
+	private static bool IsMature(Height height, Height currentBlockchainTipHeight) => height != Height.Mempool && height < currentBlockchainTipHeight - 101;
+	
+	private void RemoveMatureEntriesCoinsByOutPoint(Height currentBlockchainTipHeight)
+	{
+		var keysToRemove = CoinsByOutPoint.Keys.Where(key => IsMature(key, currentBlockchainTipHeight)).ToList();
+
+		foreach (var key in keysToRemove)
+		{
+			CoinsByOutPoint.Remove(key);
+		}
+	}
+	
+	public bool TryAdd(SmartCoin coin, Height currentBlockchainTipHeight)
 	{
 		var added = false;
 		lock (Lock)
 		{
+			RemoveMatureEntriesCoinsByOutPoint(currentBlockchainTipHeight);
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
 				coin.RegisterToHdPubKey();
 				if (added)
 				{
-					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
+					// Only add to the cache if coin is immature
+					if (!IsMature(coin.Height, currentBlockchainTipHeight))
 					{
-						var newCoinSet = new HashSet<SmartCoin> { coin };
-
-						// If we don't succeed to add a new entry to the dictionary.
-						if (!CoinsByOutPoint.TryAdd(outPoint, newCoinSet))
+						foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
 						{
-							var previousCoinTxId = CoinsByOutPoint[outPoint].First().TransactionId;
-
-							// Then check if we're in the same transaction as the previous coins in the dictionary are.
-							if (coin.TransactionId == previousCoinTxId)
+							var newCoinSet = new HashSet<SmartCoin> { coin };
+							
+							if (!CoinsByOutPoint.ContainsKey(coin.Transaction.Height))
 							{
-								// If we are in the same transaction, then just add it to value set.
-								CoinsByOutPoint[outPoint].Add(coin);
+								CoinsByOutPoint.Add(coin.Transaction.Height, new Dictionary<OutPoint, HashSet<SmartCoin>>());
 							}
-							else
+							var entry = CoinsByOutPoint[coin.Transaction.Height];
+							
+							// If we don't succeed to add a new entry to the dictionary.
+							if (!entry.TryAdd(outPoint, newCoinSet))
 							{
-								// If we aren't in the same transaction, then it's a conflict, so replace the old set with the new one.
-								CoinsByOutPoint[outPoint] = newCoinSet;
+								var previousCoinTxId = entry[outPoint].First().TransactionId;
+
+								// Then check if we're in the same transaction as the previous coins in the dictionary are.
+								if (coin.TransactionId == previousCoinTxId)
+								{
+									// If we are in the same transaction, then just add it to value set.
+									entry[outPoint].Add(coin);
+								}
+								else
+								{
+									// If we aren't in the same transaction, then it's a conflict, so replace the old set with the new one.
+									entry[outPoint] = newCoinSet;
+								}
 							}
 						}
 					}
-
 					InvalidateSnapshot = true;
 				}
 			}
@@ -143,15 +165,15 @@ public class CoinsRegistry : ICoinsView
 			var removedCoinOutPoint = toRemove.Outpoint;
 
 			// If we can find it in our outpoint to coins cache.
-			if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+			if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint, out var height))
 			{
 				// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
 				foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
 				{
 					// Remove the coin from the set, and if the set becomes empty as a consequence remove the key too.
-					if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
+					if (CoinsByOutPoint[height][removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[height][removedCoinOutPoint].Any())
 					{
-						CoinsByOutPoint.Remove(removedCoinOutPoint);
+						CoinsByOutPoint[height].Remove(removedCoinOutPoint);
 					}
 				}
 			}
@@ -194,17 +216,33 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins, out Height height, Height? currentBlockchainTipHeight = null)
 	{
 		lock (Lock)
 		{
-			return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins);
+			if (currentBlockchainTipHeight is { } currentBlockchainTipHeightNonNullable)
+			{
+				RemoveMatureEntriesCoinsByOutPoint(currentBlockchainTipHeightNonNullable);
+			}
+
+			return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins, out height);
 		}
 	}
 
-	private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins, out Height height)
 	{
-		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
+		foreach (var kvp in CoinsByOutPoint)
+		{
+			if (kvp.Value.TryGetValue(outPoint, out coins))
+			{
+				height = kvp.Key;
+				return true;
+			}
+		}
+    
+		coins = null;
+		height = Height.Unknown;
+		return false;
 	}
 
 	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
