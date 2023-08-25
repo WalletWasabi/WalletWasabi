@@ -106,9 +106,10 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
 	{
-		while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+		if (isBackendAvailable)
 		{
-			await Task.Delay(500).ConfigureAwait(false);
+			// Wait until filters are initialized.
+			await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(false);
 		}
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
