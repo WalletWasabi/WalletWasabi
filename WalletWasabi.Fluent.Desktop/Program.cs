@@ -198,6 +198,7 @@ public static class WasabiAppExtensions
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
+					Logger.LogDebug("Skip starting Avalonia UI as requested the application to stop.");
 					stopLoadingCts.Cancel();
 				}
 				else
