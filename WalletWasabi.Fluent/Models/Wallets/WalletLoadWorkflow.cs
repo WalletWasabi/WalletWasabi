@@ -113,17 +113,16 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-		if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
-			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
-		{
-			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
-			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+		uint serverTipHeight = Services.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		uint clientTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
 
-			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
-			_filterProcessCurrentTipHeight = tipHeight;
-		}
+		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+
+		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+		_filterProcessCurrentTipHeight = tipHeight;
 	}
 
 	private uint GetCurrentProcessedCount()
