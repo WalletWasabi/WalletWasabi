@@ -286,6 +286,9 @@ public partial class LineChart
 
 	// Cursor
 
+	public static readonly StyledProperty<bool> EnableCursorProperty =
+		AvaloniaProperty.Register<LineChart, bool>(nameof(EnableCursor), true);
+
 	public static readonly StyledProperty<IBrush?> CursorStrokeProperty =
 		AvaloniaProperty.Register<LineChart, IBrush?>(nameof(CursorStroke));
 
@@ -408,7 +411,8 @@ public partial class LineChart
 			CursorStrokeDashStyleProperty,
 			CursorStrokeLineCapProperty,
 			CursorStrokeLineJoinProperty,
-			CursorStrokeMiterLimitProperty);
+			CursorStrokeMiterLimitProperty,
+			EnableCursorProperty);
 
 		AffectsRender<LineChart>(
 			BorderBrushProperty,
@@ -894,6 +898,12 @@ public partial class LineChart
 	}
 
 	// Cursor
+
+	public bool EnableCursor
+	{
+		get => GetValue(EnableCursorProperty);
+		set => SetValue(EnableCursorProperty, value);
+	}
 
 	public IBrush? CursorStroke
 	{

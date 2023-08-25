@@ -57,7 +57,7 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 
 	public WalletType WalletType { get; }
 
-	public bool IsCoinJoinPaused { get; }
+	public bool IsCoinJoinPaused { get; set; }
 
 	public void Save()
 	{

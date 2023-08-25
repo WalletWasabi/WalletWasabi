@@ -11,7 +11,7 @@ public interface IWalletRepository
 {
 	IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	IWalletModel? DefaultWallet { get; }
+	string? DefaultWalletName { get; }
 
 	bool HasWallet { get; }
 

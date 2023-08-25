@@ -61,6 +61,9 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
+	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
+	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
+
 	public SynchronizeResponse? LastResponse { get; private set; }
 	public WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiClient WasabiClient { get; }
@@ -119,8 +122,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 		Task.Run(async () =>
 		{
-			Logger.LogTrace("> Wasabi synchronizer thread starts.");
-
 			try
 			{
 				bool ignoreRequestInterval = false;
@@ -294,11 +295,13 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private void DoGenSocksServFail()
 	{
+		InitialRequestTcs.TrySetResult(false);
 		ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
 	}
 
 	private void DoNotGenSocksServFail()
 	{
+		InitialRequestTcs.TrySetResult(true);
 		ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 	}
 

@@ -17,7 +17,7 @@ public interface IWalletSettingsModel
 
 	bool IsCoinjoinProfileSelected { get; set; }
 
-	bool IsCoinJoinPaused { get; }
+	bool IsCoinJoinPaused { get; set; }
 
 	Money PlebStopThreshold { get; set; }
 
