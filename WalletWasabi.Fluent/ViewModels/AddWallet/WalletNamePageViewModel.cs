@@ -35,9 +35,8 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
 
-		if (!UiContext.WalletRepository.HasWallet)
+		if (!UiContext.WalletRepository.HasWallet && NextCommand.CanExecute(default))
 		{
-			WalletName = "Wallet";
 			NextCommand.Execute(default);
 		}
 	}
@@ -103,7 +102,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		if (!isInHistory && !UiContext.WalletRepository.HasWallet)
+		if (isInHistory && !UiContext.WalletRepository.HasWallet)
 		{
 			Navigate().Back();
 		}
