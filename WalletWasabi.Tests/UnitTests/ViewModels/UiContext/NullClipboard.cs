@@ -1,17 +1,16 @@
 using System.Threading.Tasks;
-using Avalonia.Input;
-using Avalonia.Input.Platform;
+using WalletWasabi.Fluent.Models.UI;
 
-namespace WalletWasabi.Fluent.Models.UI;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UiContext;
 
 public class NullClipboard : IUiClipboard
 {
-	public Task<string> GetTextAsync()
+	public Task<string?> GetTextAsync()
 	{
-		return Task.FromResult("");
+		return Task.FromResult<string?>("");
 	}
 
-	public Task SetTextAsync(string text)
+	public Task SetTextAsync(string? text)
 	{
 		return Task.CompletedTask;
 	}
