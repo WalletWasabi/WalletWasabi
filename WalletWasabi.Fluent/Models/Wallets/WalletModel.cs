@@ -66,7 +66,6 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		var balance =
 			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
 					  .Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
-
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 
 		// Start the Loader after wallet is logged in
@@ -82,7 +81,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			 .Subscribe();
 	}
 
-	protected Wallet Wallet { get; }
+	internal Wallet Wallet { get; }
 
 	public IWalletBalancesModel Balances { get; }
 
