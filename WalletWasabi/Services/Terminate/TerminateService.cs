@@ -35,6 +35,7 @@ public class TerminateService
 	/// <summary>Cancellation token source cancelled once <see cref="TerminationRequested"/> is assigned a result.</summary>
 	private CancellationTokenSource TerminationCts { get; } = new();
 
+	/// <summary>Cancellation token that denotes that user requested to stop the application.</summary>
 	/// <remarks>Assigned once so that there are no issues with <see cref="TerminationCts"/> being disposed.</remarks>
 	public CancellationToken CancellationToken { get; }
 
