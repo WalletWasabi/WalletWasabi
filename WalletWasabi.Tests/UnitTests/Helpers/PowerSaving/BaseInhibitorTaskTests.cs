@@ -18,7 +18,7 @@ public class BaseInhibitorTaskTests
 	[Fact]
 	public async Task CancelBehaviorAsync()
 	{
-		MockProcessAsync mockProcess = new(new ProcessStartInfo());
+		using MockProcessAsync mockProcess = new(new ProcessStartInfo());
 		mockProcess.OnWaitForExitAsync = (cancellationToken) => Task.Delay(Timeout.Infinite, cancellationToken);
 		mockProcess.OnHasExited = () => false;
 		mockProcess.OnKill = b => { };
