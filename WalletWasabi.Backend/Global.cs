@@ -165,7 +165,7 @@ public class Global : IDisposable
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
 		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
-		blockNotifier.OnBlock += WabiSabiCoordinator.Warden.BanDescendant;
+		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
@@ -246,7 +246,7 @@ public class Global : IDisposable
 				if (WabiSabiCoordinator is { } wabiSabiCoordinator)
 				{
 					var blockNotifier = HostedServices.Get<BlockNotifier>();
-					blockNotifier.OnBlock -= wabiSabiCoordinator.Warden.BanDescendant;
+					blockNotifier.OnBlock -= wabiSabiCoordinator.BanDescendant;
 				}
 				CoinVerifierHttpClient.Dispose();
 
