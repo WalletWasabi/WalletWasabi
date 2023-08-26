@@ -108,7 +108,7 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 	{
 		if (isBackendAvailable)
 		{
-			// Wait until initial response from the Backend server is processed.
+			// Wait until initial synchronization response from the Backend server is processed.
 			await Services.BitcoinStore.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(false);
 		}
 
