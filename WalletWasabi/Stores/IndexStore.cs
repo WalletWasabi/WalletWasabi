@@ -72,10 +72,6 @@ public class IndexStore : IAsyncDisposable
 
 	public SmartHeaderChain SmartHeaderChain { get; }
 
-	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
-	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
-	public TaskCompletionSource<bool> InitializedTcs { get; } = new();
-
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
 	private BlockFilterSqliteStorage IndexStorage { get; }
@@ -87,32 +83,21 @@ public class IndexStore : IAsyncDisposable
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		try
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			cancellationToken.ThrowIfCancellationRequested();
+
+			// Migration code.
+			if (RunMigration)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
-
-				// Migration code.
-				if (RunMigration)
-				{
-					MigrateToSqliteNoLock(cancellationToken);
-				}
-
-				// If the automatic migration to SQLite is stopped, we would not delete the old index data.
-				// So check it every time.
-				RemoveOldIndexFilesIfExist();
-
-				await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
-
-				// Initialization succeeded.
-				InitializedTcs.SetResult(true);
+				MigrateToSqliteNoLock(cancellationToken);
 			}
-		}
-		catch (Exception)
-		{
-			InitializedTcs.SetResult(false);
-			throw;
+
+			// If the automatic migration to SQLite is stopped, we would not delete the old index data.
+			// So check it every time.
+			RemoveOldIndexFilesIfExist();
+
+			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
