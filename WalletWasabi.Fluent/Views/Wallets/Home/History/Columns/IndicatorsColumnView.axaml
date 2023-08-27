@@ -58,6 +58,9 @@
 
       <PathIcon Opacity="0.6"
                 Classes.NormalTransaction="{Binding IsNormalTransactionDisplayed}"
+                Classes.IncomingTransaction="{Binding IsIncomingTransactionDisplayed}"
+                Classes.OutgoingTransaction="{Binding IsOutgoingTransactionDisplayed}"
+                Classes.SelfTransfer="{Binding IsSelfShareTransaction}"
                 Classes.Coinjoin="{Binding IsCoinjoinDisplayed}"
                 Classes.Cancellation="{Binding IsCancellationDisplayed}"
                 Classes.CoinjoinGroup="{Binding IsCoinjoinGroupDisplayed}"
@@ -66,6 +69,18 @@
           <Style Selector="PathIcon.NormalTransaction">
             <Setter Property="Data" Value="{StaticResource normal_transaction}" />
             <Setter Property="ToolTip.Tip" Value="Transaction" />
+          </Style>
+          <Style Selector="PathIcon.IncomingTransaction">
+            <Setter Property="Data" Value="{StaticResource incoming_arrow}" />
+            <Setter Property="ToolTip.Tip" Value="Incoming Transaction" />
+          </Style>
+          <Style Selector="PathIcon.OutgoingTransaction">
+            <Setter Property="Data" Value="{StaticResource outgoing_arrow}" />
+            <Setter Property="ToolTip.Tip" Value="Outgoing Transaction" />
+          </Style>
+          <Style Selector="PathIcon.SelfTransfer">
+            <Setter Property="Data" Value="{StaticResource normal_transaction}" />
+            <Setter Property="ToolTip.Tip" Value="Self Transfer" />
           </Style>
           <Style Selector="PathIcon.Coinjoin">
             <Setter Property="Data" Value="{StaticResource shield_regular}" />

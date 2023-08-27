@@ -298,7 +298,21 @@ public class TransactionProcessor
 
 		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
 		{
-			TransactionStore.AddOrUpdate(tx);
+			bool isSpent = result.NewlySpentCoins.Any();
+			bool isReceived = result.NewlyReceivedCoins.Any();
+			Money miningFee = tx.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
+			if (isReceived || isSpent)
+			{
+				Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
+				Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
+				Money incoming = receivedSum - spentSum;
+				Money receiveSpentDiff = incoming.Abs();
+				if (isSpent && receiveSpentDiff == miningFee)
+				{
+					tx.IsSelfTransfer = true;
+				}
+			}
+				TransactionStore.AddOrUpdate(tx);
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
