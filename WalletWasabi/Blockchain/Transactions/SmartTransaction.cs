@@ -109,7 +109,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
 	{
-		get
+		get 
 		{
 			if (ForeignOutputsCache is null)
 			{
@@ -170,7 +170,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonProperty]
 	[JsonConverter(typeof(Uint256JsonConverter))]
 	public uint256? BlockHash { get; private set; }
-
+	public bool IsSelfTransfer { get; set; }
 	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
