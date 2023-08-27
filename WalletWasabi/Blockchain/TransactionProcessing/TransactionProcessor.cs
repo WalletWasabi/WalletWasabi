@@ -312,7 +312,7 @@ public class TransactionProcessor
 					tx.IsSelfTransfer = true;
 				}
 			}
-				TransactionStore.AddOrUpdate(tx);
+			TransactionStore.AddOrUpdate(tx);
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
