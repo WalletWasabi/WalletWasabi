@@ -1,26 +1,24 @@
-using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Address")]
-public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUrlBuilder?>
+public partial class AddressEntryDialogViewModel : DialogViewModelBase<Bip21UriParser.Result?>
 {
 	private readonly Network _network;
 	[AutoNotify] private string _to = "";
@@ -28,7 +26,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 	private bool _parsingUrl;
 	private bool _payJoinUrlFound;
 	private bool _amountUrlFound;
-	private BitcoinUrlBuilder? _resultToReturn;
+	private Bip21UriParser.Result? _resultToReturn;
 
 	private AddressEntryDialogViewModel(Network network)
 	{
@@ -125,18 +123,18 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 			return false;
 		}
 
-		if (AddressStringParser.TryParse(text, _network, out BitcoinUrlBuilder? url))
+		if (AddressStringParser.TryParse(text, _network, out Bip21UriParser.Result? result))
 		{
-			_resultToReturn = url;
+			_resultToReturn = result;
 
-			_payJoinUrlFound = url.UnknownParameters.TryGetValue("pj", out _);
+			_payJoinUrlFound = result.UnknownParameters.TryGetValue("pj", out _);
 
-			if (url.Address is { })
+			if (result.Address is { })
 			{
-				To = url.Address.ToString();
+				To = result.Address.ToString();
 			}
 
-			_amountUrlFound = url.Amount is { };
+			_amountUrlFound = result.Amount is { };
 		}
 		else
 		{
