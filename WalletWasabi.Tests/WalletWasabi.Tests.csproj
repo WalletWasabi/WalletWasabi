@@ -15,7 +15,6 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>
-		<AvaloniaVersion>11.0.0-rc1.1</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
