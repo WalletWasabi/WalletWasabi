@@ -100,6 +100,24 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 	}
 
+	public void BanDescendant(object? sender, Block block)
+	{
+		var now = DateTimeOffset.UtcNow;
+
+		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, now);
+		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
+
+		var outpointsToBan = block.Transactions
+			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
+			.Where(x => x.BannedInputs.Any())
+			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
+
+		foreach (var (outpoint, ancestors) in outpointsToBan)
+		{
+			Warden.Prison.InheritPunishment(outpoint, ancestors);
+		}
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);
