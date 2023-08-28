@@ -104,7 +104,8 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 				null)
 			{
 				TextAlignment = TextAlignment.Left,
-				MaxTextHeight = availableSize.Height, MaxTextWidth = availableSize.Width,
+				MaxTextHeight = availableSize.Height,
+				MaxTextWidth = availableSize.Width,
 				Trimming = TextTrimming.None
 			};
 		}
