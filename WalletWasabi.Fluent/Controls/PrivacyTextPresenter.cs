@@ -44,8 +44,6 @@ public class PrivacyTextPresenter : UserControl
 			return null;
 		}
 
-		// TODO: advances ?
-		//var advances = new ReadOnlyMemory<double>(Enumerable.Repeat(advance, count).ToArray());
 		var characters = new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray());
 		var glyphs = Enumerable.Repeat(glyph, count).ToArray();
 
