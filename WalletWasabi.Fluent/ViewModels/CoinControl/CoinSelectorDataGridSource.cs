@@ -53,7 +53,7 @@ public static class CoinSelectorDataGridSource
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
 			SelectionColumn(),
 			group => group.Children,
-			node => node.Children.Any(),
+			node => node.HasChildren(),
 			node => node.IsExpanded);
 	}
 
