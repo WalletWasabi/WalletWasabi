@@ -36,6 +36,7 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 		}
 
 		// TODO: ItemContainerGenerator was totally refactored, there are no events I think, might need to subclass to get callbacks
+		// TODO: Use implicit animations instead animation.RunAsync.
 		/*
 		Observable
 			.FromEventPattern<ContainerPreparedEventArgs>(AssociatedObject.ItemContainerGenerator, nameof(ItemsControl.ContainerPrepared))
