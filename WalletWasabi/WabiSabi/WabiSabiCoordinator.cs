@@ -118,6 +118,31 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 	}
 
+	public void BanDoubleSpenders(object? sender, Transaction tx)
+	{
+		// Detect and punish double spending coins
+		var disrupters = Arena.Rounds
+			.Where(r => r.Phase != Phase.Ended)
+			.SelectMany(r => r.Alices.Select(a => (RoundId: r.Id, a.Coin)))
+			.Where(x => tx.Inputs.Any(i => i.PrevOut == x.Coin.Outpoint));
+
+		foreach (var (roundId, offender) in disrupters)
+		{
+			Warden.Prison.DoubleSpent(offender.Outpoint, offender.Amount, roundId);
+		}
+
+		// Abort disrupted rounds
+		var disruptedRounds = disrupters.Select(x => x.RoundId).Distinct();
+		foreach (var roundId in disruptedRounds)
+		{
+			var maybeNullRoundToAbort = Arena.Rounds.FirstOrDefault(r => r.Id == roundId);
+			if (maybeNullRoundToAbort is { } roundToAbort)
+			{
+				roundToAbort.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
+			}
+		}
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);
