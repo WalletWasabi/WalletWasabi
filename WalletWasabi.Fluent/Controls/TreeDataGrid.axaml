@@ -156,8 +156,7 @@
                                         Items="{TemplateBinding Columns}"
                                         Rows="{TemplateBinding Rows}"
                                         Margin="0,0,-2,0"
-                                        Classes.coinJoinTransaction="{Binding !IsSingleCoinJoinTransaction}"
-                                        x:CompileBindings="False" />
+                                        Classes.isChild="{Binding IsChild}" />
             <Rectangle Name="PART_Separator"
                        Margin="-2,0,0,0"
                        HorizontalAlignment="Stretch"
@@ -201,13 +200,13 @@
     <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="^/template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+    <Style Selector="^/template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
       <Setter Property="Background" Value="{DynamicResource SystemListLowColor}" />
     </Style>
-    <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+    <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="^:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+    <Style Selector="^:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
       <Setter Property="Background" Value="Transparent" />
     </Style>
 
