@@ -20,6 +20,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Backend;
 
@@ -33,7 +34,7 @@ public class Global : IDisposable
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
-		HttpClient = new();
+		CoinVerifierHttpClient = WasabiHttpClientFactory.CreateLongLivedHttpClient();
 		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
@@ -67,7 +68,7 @@ public class Global : IDisposable
 	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
 	public IndexBuilderService TaprootIndexBuilderService { get; }
 
-	private HttpClient HttpClient { get; }
+	private HttpClient CoinVerifierHttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Coordinator? Coordinator { get; private set; }
@@ -120,11 +121,11 @@ public class Global : IDisposable
 					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
 				}
 
-				HttpClient.BaseAddress = url;
-				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
+				CoinVerifierHttpClient.BaseAddress = url;
+				CoinVerifierHttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
 				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
+				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, CoinVerifierHttpClient);
 				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
 
 				Logger.LogInfo("CoinVerifier created successfully.");
@@ -241,7 +242,7 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
-				HttpClient.Dispose();
+				CoinVerifierHttpClient.Dispose();
 
 				if (Coordinator is { } coordinator)
 				{

@@ -85,8 +85,7 @@ public class Wallet : BackgroundService, IWallet
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
-	/// <summary>Unspent Transaction Outputs</summary>
-	public ICoinsView Coins { get; private set; }
+	public CoinsRegistry Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
@@ -94,7 +93,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
-	
+
 	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; private set; }
@@ -119,7 +118,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
-	public ICoinsView GetAllCoins() => ((CoinsRegistry)Coins).AsAllCoinsView();
+	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
