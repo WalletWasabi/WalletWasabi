@@ -26,7 +26,7 @@ Wasabi uses [reproducible builds](https://reproducible-builds.org/), which you c
 ## Documentation
 :spider_web: [Website](https://wasabiwallet.io)
 :onion: [Tor onion site](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/)
-:orange_book: [Docs](https://docs.wasabiwallet.io)
+:orange_book: [Documentation](https://docs.wasabiwallet.io)
 :grey_question: [FAQ](https://github.com/zkSNACKs/WalletWasabi/discussions/categories/faq)
 
 ## Requirements
