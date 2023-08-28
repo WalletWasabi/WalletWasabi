@@ -19,16 +19,16 @@ Read the [related blog]() for more information.
 Download the operating system relevant software package and install Wasabi like you would any other software on your computer. 
 For a detailed installation guide, including **signature verification**, see [the documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html).
 
+## Advanced Guide
+If you want to build or update Wasabi from source code, check out [these easy instructions](https://docs.wasabiwallet.io/using-wasabi/BuildSource.html).
+
+Wasabi uses [reproducible builds](https://reproducible-builds.org/), which you can verify with [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md).
+
 ## Documentation
 :spider_web: [Website](https://wasabiwallet.io)
 :onion: [Tor onion site](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/)
 :orange_book: [Documentation](https://docs.wasabiwallet.io)
 :grey_question: [FAQ](https://github.com/zkSNACKs/WalletWasabi/discussions/categories/faq)
-
-## Advanced Guide
-If you want to build or update Wasabi from source code, check out [these easy instructions](https://docs.wasabiwallet.io/using-wasabi/BuildSource.html).
-
-Wasabi uses [reproducible builds](https://reproducible-builds.org/), which you can verify with [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md).
 
 ## Requirements
 - Windows 10 1607+
