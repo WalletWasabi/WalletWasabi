@@ -135,8 +135,6 @@ public class LabelsPanel : Panel
 
 	protected override Size ArrangeOverride(Size finalSize)
 	{
-		// TODO: Spacing property missing in master Avalonia
-		//var spacing = Spacing;
 		var spacing = 2.0;
 		var ellipsisWidth = 0.0;
 		var width = 0.0;
