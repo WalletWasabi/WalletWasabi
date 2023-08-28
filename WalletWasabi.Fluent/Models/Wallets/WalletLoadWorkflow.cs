@@ -108,9 +108,12 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 	{
 		if (isBackendAvailable)
 		{
-			// Wait until initial synchronization response from the Backend server is processed.
-			await Services.BitcoinStore.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(false);
+			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
+			await Services.BitcoinStore.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
 		}
+
+		// Wait until "client tip height" is initialized.
+		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
