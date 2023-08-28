@@ -10,7 +10,9 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 internal class TreeDataGridPlainTextCell : TreeDataGridCell
 {
 	private FormattedText? _formattedText;
-	private string? _text;
+	private string? _value;
+
+	public string? Text => _value;
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
@@ -27,9 +29,9 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 		var plainTextCell = (PlainTextCell)model;
 		var text = plainTextCell.Value;
 
-		if (text != _text)
+		if (text != _value)
 		{
-			_text = text;
+			_value = text;
 			_formattedText = null;
 		}
 
@@ -51,7 +53,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (string.IsNullOrWhiteSpace(_text))
+		if (string.IsNullOrWhiteSpace(Text))
 		{
 			return default;
 		}
@@ -59,7 +61,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 		if (availableSize.Width != _formattedText.Width || availableSize.Height != _formattedText.Height)
 		{
 			_formattedText = new FormattedText(
-				_text,
+				Text,
 				CultureInfo.CurrentCulture,
 				FlowDirection.LeftToRight,
 				new Typeface(FontFamily, FontStyle, FontWeight),
