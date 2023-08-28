@@ -64,6 +64,7 @@ public static class CoinSelectorDataGridSource
 			new FuncDataTemplate<CoinControlItemViewModelBase>(
 				(_, _) => new SelectionCellView(),
 				true),
+			null,
 			GridLength.Auto);
 	}
 
