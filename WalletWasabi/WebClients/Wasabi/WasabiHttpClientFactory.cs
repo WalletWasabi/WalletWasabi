@@ -11,22 +11,15 @@ namespace WalletWasabi.WebClients.Wasabi;
 /// <summary>
 /// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 /// </summary>
-public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
+public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 {
 	/// <summary>
 	/// Creates a new instance of the object.
 	/// </summary>
 	/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-	public HttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
+	public WasabiHttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
 	{
-		SocketHandler = new()
-		{
-			// Only GZip is currently used by Wasabi Backend.
-			AutomaticDecompression = DecompressionMethods.GZip,
-			PooledConnectionLifetime = TimeSpan.FromMinutes(5)
-		};
-
-		HttpClient = new(SocketHandler);
+		HttpClient = CreateLongLivedHttpClient(automaticDecompression: DecompressionMethods.GZip);
 
 		TorEndpoint = torEndPoint;
 		BackendUriGetter = backendUriGetter;
@@ -56,8 +49,6 @@ public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 	[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
 	public bool IsTorEnabled => TorEndpoint is not null;
 
-	private SocketsHttpHandler SocketHandler { get; }
-
 	/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
 	private HttpClient HttpClient { get; }
 
@@ -69,6 +60,27 @@ public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 
 	/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
 	public WasabiClient SharedWasabiClient { get; }
+
+	/// <summary>
+	/// Creates a long-lived <see cref="HttpClient"/> instance for accessing clearnet sites.
+	/// </summary>
+	/// <remarks>Created HTTP client handles correctly DNS changes.</remarks>
+	/// <seealso href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory"/>
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "HTTP client will dispose the handler correctly.")]
+	public static HttpClient CreateLongLivedHttpClient(TimeSpan? pooledConnectionLifetime = null, DecompressionMethods? automaticDecompression = null)
+	{
+		SocketsHttpHandler handler = new()
+		{
+			PooledConnectionLifetime = pooledConnectionLifetime ?? TimeSpan.FromMinutes(5),
+		};
+
+		if (automaticDecompression is not null)
+		{
+			handler.AutomaticDecompression = automaticDecompression.Value;
+		}
+
+		return new HttpClient(handler);
+	}
 
 	/// <summary>
 	/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
@@ -116,7 +128,6 @@ public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 		}
 
 		HttpClient.Dispose();
-		SocketHandler.Dispose();
 
 		if (TorHttpPool is not null)
 		{

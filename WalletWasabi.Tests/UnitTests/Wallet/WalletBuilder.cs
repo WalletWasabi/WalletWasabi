@@ -38,14 +38,14 @@ public class WalletBuilder : IAsyncDisposable
 		var blockRepositoryMock = new MockBlockRepository(node.BlockChain);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
-		HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
+		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
 	}
 
 	private IndexStore IndexStore { get; }
 	private AllTransactionStore TransactionStore { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private MemoryCache Cache { get; }
-	private HttpClientFactory HttpClientFactory { get; }
+	private WasabiHttpClientFactory HttpClientFactory { get; }
 	public IEnumerable<FilterModel> Filters { get; }
 	public string DataDir { get; }
 

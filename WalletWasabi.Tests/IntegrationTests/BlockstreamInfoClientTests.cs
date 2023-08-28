@@ -20,8 +20,8 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 		TorProcessManager = new(Common.TorSettings);
 	}
 
-	private HttpClientFactory ClearnetHttpClientFactory { get; }
-	private HttpClientFactory TorHttpClientFactory { get; }
+	private WasabiHttpClientFactory ClearnetHttpClientFactory { get; }
+	private WasabiHttpClientFactory TorHttpClientFactory { get; }
 	private TorProcessManager TorProcessManager { get; }
 
 	public async Task InitializeAsync()

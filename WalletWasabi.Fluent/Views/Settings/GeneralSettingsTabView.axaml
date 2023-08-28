@@ -12,7 +12,7 @@
 
     <DockPanel>
       <TextBlock Text="Dark mode" />
-      <ToggleSwitch IsChecked="{Binding DarkModeEnabled}" />
+      <ToggleSwitch IsChecked="{Binding Settings.DarkModeEnabled}" />
     </DockPanel>
 
     <DockPanel>

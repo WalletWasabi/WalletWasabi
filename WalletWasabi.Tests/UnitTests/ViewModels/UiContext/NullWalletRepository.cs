@@ -17,7 +17,7 @@ public class NullWalletRepository : IWalletRepository
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	public IWalletModel? DefaultWallet => null;
+	public string? DefaultWalletName => null;
 
 	public bool HasWallet => false;
 
