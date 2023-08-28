@@ -78,7 +78,7 @@ public class MempoolService
 	/// <summary>
 	/// Tries to perform mempool cleanup with the help of the backend.
 	/// </summary>
-	public async Task<bool> TryPerformMempoolCleanupAsync(HttpClientFactory httpClientFactory)
+	public async Task<bool> TryPerformMempoolCleanupAsync(WasabiHttpClientFactory httpClientFactory)
 	{
 		// If already cleaning, then no need to run it that often.
 		if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)

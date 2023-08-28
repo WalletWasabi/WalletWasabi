@@ -2,6 +2,7 @@ using System.Linq;
 using Moq;
 using NBitcoin;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
@@ -44,12 +45,24 @@ public class CoinJoinCoinSelectionTests
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
 
-		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
+		// We gotta make sure the distance from external keys is sufficient.
+		foreach (var sc in coinsToSelectFrom)
+		{
+			var sci = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
+			sci.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+			sc.Transaction.TryAddWalletInput(sci);
+		}
+		foreach (var sc in coinsToSelectFrom)
+		{
+			BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
+		}
 
+		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
+
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
@@ -62,6 +75,79 @@ public class CoinJoinCoinSelectionTests
 	/// This test is to make sure no coins are selected when there too small coins.
 	/// Although the coin amount is larger than the smallest reasonable effective denomination, if the algorithm is right, then the effective input amount is considered.
 	/// </summary>
+	[Fact]
+	public void SelectSomethingFromPrivateButExternalSetOfCoins1()
+	{
+		// Although all coins have reached the desired anonymity set, they are not sufficiently distanced from external keys, because they are external keys.
+		const int AnonymitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = Enumerable
+			.Range(0, 10)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: false), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.ToList();
+
+		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.NotEmpty(coins);
+	}
+
+	[Fact]
+	public void SelectSomethingFromPrivateButNotDistancedSetOfCoins2()
+	{
+		// Although all coins have reached the desired anonymity set, they are not sufficiently distanced from external keys.
+		const int AnonymitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = Enumerable
+			.Range(0, 10)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.ToList();
+
+		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.NotEmpty(coins);
+	}
+
+	[Fact]
+	public void SelectSomethingFromPrivateButExternalSetOfCoins3()
+	{
+		// Although all coins have reached the desired anonymity set, they are not sufficiently distanced from external keys.
+		const int AnonymitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = Enumerable
+			.Range(0, 10)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.ToList();
+
+		// We gotta make sure the distance from external keys is sufficient.
+		foreach (var sc in coinsToSelectFrom)
+		{
+			sc.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: false), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+		}
+		foreach (var sc in coinsToSelectFrom)
+		{
+			BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
+		}
+
+		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.NotEmpty(coins);
+	}
+
 	[Fact]
 	public void SelectNothingFromTooSmallCoin()
 	{

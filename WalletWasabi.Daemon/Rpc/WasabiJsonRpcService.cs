@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -122,7 +123,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 					: accounts,
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-						.Sum(c => c.Amount.Satoshi)
+						.Sum(c => c.Amount.Satoshi),
+			anonScoreTarget = activeWallet.AnonScoreTarget
 		};
 	}
 
@@ -293,6 +295,18 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
+
+	[JsonRpcMethod("getfeerates", initializable: false)]
+	public object GetFeeRate()
+	{
+		if (Global.Synchronizer.LastAllFeeEstimate is { } nonNullFeeRates)
+		{
+			return nonNullFeeRates.Estimations;
+		}
+
+		return new Dictionary<int, int>();
+	}
+
 
 	private void SelectWallet(string walletName)
 	{
