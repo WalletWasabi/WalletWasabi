@@ -188,6 +188,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			null,
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -201,6 +202,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			null,
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IndicatorsColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -233,6 +235,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			new AnonymitySetHeaderView(),
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -248,6 +251,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			"Labels",
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new LabelsColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,

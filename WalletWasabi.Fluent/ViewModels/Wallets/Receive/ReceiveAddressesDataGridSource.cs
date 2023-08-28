@@ -31,6 +31,7 @@ public static class ReceiveAddressesDataGridSource
 		return new TemplateColumn<AddressViewModel>(
 			null,
 			new FuncDataTemplate<AddressViewModel>((node, ns) => new ActionsColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -44,6 +45,7 @@ public static class ReceiveAddressesDataGridSource
 		return new TemplateColumn<AddressViewModel>(
 			"Address",
 			new FuncDataTemplate<AddressViewModel>((_, _) => new AddressColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -59,6 +61,7 @@ public static class ReceiveAddressesDataGridSource
 		return new TemplateColumn<AddressViewModel>(
 			"Labels",
 			new FuncDataTemplate<AddressViewModel>((_, _) => new LabelsColumnView(), true),
+			null,
 			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
