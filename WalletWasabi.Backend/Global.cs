@@ -167,7 +167,7 @@ public class Global : IDisposable
 		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
-
+		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
@@ -249,6 +249,8 @@ public class Global : IDisposable
 					blockNotifier.OnBlock -= wabiSabiCoordinator.BanDescendant;
 				}
 				CoinVerifierHttpClient.Dispose();
+
+				P2pNode.OnTransactionArrived -= WabiSabiCoordinator.BanDoubleSpenders;
 
 				if (Coordinator is { } coordinator)
 				{
