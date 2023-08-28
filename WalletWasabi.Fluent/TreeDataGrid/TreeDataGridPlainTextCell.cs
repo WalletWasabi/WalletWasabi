@@ -58,7 +58,8 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 			return default;
 		}
 
-		if (availableSize.Width != _formattedText.Width || availableSize.Height != _formattedText.Height)
+		if (availableSize.Width != _formattedText?.MaxTextWidth
+		    || availableSize.Height != _formattedText.MaxTextHeight)
 		{
 			_formattedText = new FormattedText(
 				Text,
