@@ -13,8 +13,6 @@ internal class PlainTextCell : ICell
 
 	public BeginEditGestures EditGestures => BeginEditGestures.None;
 
-	public bool SingleTapEdit => false;
-
 	public string? Value { get; }
 
 	object? ICell.Value => Value;
