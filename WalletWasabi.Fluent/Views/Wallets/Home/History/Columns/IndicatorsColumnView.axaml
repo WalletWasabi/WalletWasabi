@@ -60,7 +60,7 @@
                 Classes.NormalTransaction="{Binding IsNormalTransactionDisplayed}"
                 Classes.IncomingTransaction="{Binding IsIncomingTransactionDisplayed}"
                 Classes.OutgoingTransaction="{Binding IsOutgoingTransactionDisplayed}"
-                Classes.SelfTransfer="{Binding IsSelfShareTransaction}"
+                Classes.SelfTransfer="{Binding IsSelfTransferTransaction}"
                 Classes.Coinjoin="{Binding IsCoinjoinDisplayed}"
                 Classes.Cancellation="{Binding IsCancellationDisplayed}"
                 Classes.CoinjoinGroup="{Binding IsCoinjoinGroupDisplayed}"
