@@ -720,7 +720,7 @@ public partial class Arena : PeriodicRunner
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
 	}
 
-	private void EndRound(Round round, EndRoundState endRoundState)
+	internal void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
