@@ -89,7 +89,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsIncomingTransactionDisplayed => IsConfirmed && (IncomingAmount != null && IncomingAmount > Money.Zero);
 	public bool IsOutgoingTransactionDisplayed => IsConfirmed && (OutgoingAmount != null && OutgoingAmount > Money.Zero);
-	public bool IsSelfShareTransaction => TransactionSummary.Transaction.IsSelfTransfer;
+	public bool IsSelfTransferTransaction => TransactionSummary.Transaction.IsSelfTransfer;
 	public bool IsConfirmedDisplayed => IsConfirmed;
 
 	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;

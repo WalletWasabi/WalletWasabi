@@ -298,26 +298,33 @@ public class TransactionProcessor
 
 		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
 		{
-			bool isSpent = result.NewlySpentCoins.Any();
-			bool isReceived = result.NewlyReceivedCoins.Any();
-			Money miningFee = tx.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
-			if (isReceived || isSpent)
-			{
-				Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
-				Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
-				Money incoming = receivedSum - spentSum;
-				Money receiveSpentDiff = incoming.Abs();
-				if (isSpent && receiveSpentDiff == miningFee)
-				{
-					tx.IsSelfTransfer = true;
-				}
-			}
+			tx.IsSelfTransfer = IsSelfTransfer(tx, result);
 			TransactionStore.AddOrUpdate(tx);
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
 
 		return result;
+	}
+	 
+
+	private bool IsSelfTransfer(SmartTransaction tx, ProcessedResult result)
+	{
+		bool isSpent = result.NewlySpentCoins.Any();
+		bool isReceived = result.NewlyReceivedCoins.Any();
+		Money miningFee = tx.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
+		if (isReceived || isSpent)
+		{
+			Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
+			Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
+			Money incoming = receivedSum - spentSum;
+			Money receiveSpentDiff = incoming.Abs();
+			if (isSpent && receiveSpentDiff == miningFee)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
