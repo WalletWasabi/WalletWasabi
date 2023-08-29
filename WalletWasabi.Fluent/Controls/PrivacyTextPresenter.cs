@@ -79,4 +79,14 @@ public class PrivacyTextPresenter : UserControl
 			context.DrawGlyphRun(Foreground, _glyphRun);
 		}
 	}
+
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == ForegroundProperty)
+		{
+			InvalidateVisual();
+		}
+	}
 }
