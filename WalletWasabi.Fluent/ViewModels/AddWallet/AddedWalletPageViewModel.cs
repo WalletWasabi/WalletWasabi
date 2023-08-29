@@ -13,7 +13,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 {
 	private readonly WalletCreationOptions? _options;
 	private readonly IWalletSettingsModel _walletSettings;
-	private IWalletModel _wallet;
+	private IWalletModel? _wallet;
 
 	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions? options)
 	{
@@ -38,7 +38,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		await AutoLoginAsync();
 
 		Navigate().Clear();
-		UiContext.Navigate().To(_wallet);
+		UiContext.Navigate().To(_wallet!);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -60,10 +60,10 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		if (password is { })
 		{
-			var (result, _) = await TermsAndConditionsViewModel.TryShowAsync(UiContext, _wallet);
+			var (result, _) = await TermsAndConditionsViewModel.TryShowAsync(UiContext, _wallet!);
 			if (result)
 			{
-				await _wallet.Auth.LoginAsync(password);
+				await _wallet!.Auth.LoginAsync(password);
 			}
 		}
 	}
