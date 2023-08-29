@@ -65,6 +65,7 @@ public partial class LoginViewModel : RoutableViewModel
 		}
 		else
 		{
+			walletModel.Auth.Logout();
 			ErrorMessage = msg!;
 		}
 	}

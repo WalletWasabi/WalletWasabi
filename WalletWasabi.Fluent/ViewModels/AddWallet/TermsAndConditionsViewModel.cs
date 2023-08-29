@@ -39,7 +39,6 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 			}
 			else
 			{
-				walletModel.Auth.Logout();
 				return (false, "You must accept the Terms and Conditions!");
 			}
 		}
