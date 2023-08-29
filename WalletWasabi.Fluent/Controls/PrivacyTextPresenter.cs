@@ -1,11 +1,8 @@
 using System.Globalization;
 using System.Linq;
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Utilities;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -13,7 +10,7 @@ public class PrivacyTextPresenter : UserControl
 {
 	private GlyphRun? _glyphRun;
 	private double _width;
-	private FormattedText _formattedText;
+	private FormattedText? _formattedText;
 
 	private FormattedText CreateFormattedText()
 	{
@@ -26,7 +23,8 @@ public class PrivacyTextPresenter : UserControl
 			null)
 		{
 			TextAlignment = TextAlignment.Left,
-			MaxTextHeight = Size.Infinity.Height, MaxTextWidth = Size.Infinity.Width
+			MaxTextHeight = Size.Infinity.Height,
+			MaxTextWidth = Size.Infinity.Width
 		};
 	}
 
@@ -69,7 +67,7 @@ public class PrivacyTextPresenter : UserControl
 		var width = Bounds.Width;
 		if (_glyphRun is null || width != _width)
 		{
-			(_glyphRun as IDisposable)?.Dispose();
+			_glyphRun?.Dispose();
 			_glyphRun = CreateGlyphRun(width);
 			_width = width;
 		}
