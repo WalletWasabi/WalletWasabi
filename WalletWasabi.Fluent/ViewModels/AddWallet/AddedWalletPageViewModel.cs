@@ -53,6 +53,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 			{
 				WalletCreationOptions.AddNewWallet add => add.Password,
 				WalletCreationOptions.RecoverWallet rec => rec.Password,
+				WalletCreationOptions.ConnectToHardwareWallet => "",
 				_ => null
 			};
 
