@@ -12,7 +12,7 @@
 
 ## Release Summary
 
-Read the [related blog]() for more information.
+Read the [related blog](https://blog.wasabiwallet.io/) for more information.
 
 ---
 ## Installation Guide
