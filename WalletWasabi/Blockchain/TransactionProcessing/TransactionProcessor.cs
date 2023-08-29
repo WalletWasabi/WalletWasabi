@@ -306,7 +306,6 @@ public class TransactionProcessor
 
 		return result;
 	}
-	 
 
 	private bool IsSelfTransfer(SmartTransaction tx, ProcessedResult result)
 	{
