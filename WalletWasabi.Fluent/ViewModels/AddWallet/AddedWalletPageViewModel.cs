@@ -11,14 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Success")]
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
-	private readonly WalletCreationOptions? _options;
 	private readonly IWalletSettingsModel _walletSettings;
 	private IWalletModel? _wallet;
 
 	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions? options)
 	{
 		_walletSettings = walletSettings;
-		_options = options;
 
 		WalletName = walletSettings.WalletName;
 		WalletType = walletSettings.WalletType;
@@ -26,16 +24,16 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(options));
 	}
 
 	public WalletType WalletType { get; }
 
 	public string WalletName { get; }
 
-	private async Task OnNextAsync()
+	private async Task OnNextAsync(WalletCreationOptions? options)
 	{
-		await AutoLoginAsync();
+		await AutoLoginAsync(options);
 
 		Navigate().Clear();
 		UiContext.Navigate().To(_wallet!);
@@ -48,10 +46,10 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		_wallet = UiContext.WalletRepository.SaveWallet(_walletSettings);
 	}
 
-	private async Task AutoLoginAsync()
+	private async Task AutoLoginAsync(WalletCreationOptions? options)
 	{
 		var password =
-			_options switch
+			options switch
 			{
 				WalletCreationOptions.AddNewWallet add => add.Password,
 				WalletCreationOptions.RecoverWallet rec => rec.Password,
