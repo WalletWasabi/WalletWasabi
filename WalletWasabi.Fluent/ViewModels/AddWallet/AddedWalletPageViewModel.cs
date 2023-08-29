@@ -1,8 +1,5 @@
 using ReactiveUI;
-using System.Linq;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
