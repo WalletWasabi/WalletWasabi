@@ -58,15 +58,15 @@ public partial class LoginViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
-		var (result, msg) = await TermsAndConditionsViewModel.TryShowAsync(UiContext, walletModel);
-		if (result)
+		var termsAndConditionsAccepted = await TermsAndConditionsViewModel.TryShowAsync(UiContext, walletModel);
+		if (termsAndConditionsAccepted)
 		{
 			walletModel.Auth.CompleteLogin();
 		}
 		else
 		{
 			walletModel.Auth.Logout();
-			ErrorMessage = msg!;
+			ErrorMessage = "You must accept the Terms and Conditions!";
 		}
 	}
 

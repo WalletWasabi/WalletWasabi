@@ -27,7 +27,7 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 
 	public ICommand ViewTermsCommand { get; }
 
-	public static async Task<(bool Result, string? Message)> TryShowAsync(UiContext uiContext, IWalletModel walletModel)
+	public static async Task<bool> TryShowAsync(UiContext uiContext, IWalletModel walletModel)
 	{
 		if (walletModel.Auth.IsLegalRequired)
 		{
@@ -35,16 +35,16 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 			if (accepted)
 			{
 				await walletModel.Auth.AcceptTermsAndConditions();
-				return (true, null);
+				return true;
 			}
 			else
 			{
-				return (false, "You must accept the Terms and Conditions!");
+				return false;
 			}
 		}
 		else
 		{
-			return (true, null);
+			return true;
 		}
 	}
 
