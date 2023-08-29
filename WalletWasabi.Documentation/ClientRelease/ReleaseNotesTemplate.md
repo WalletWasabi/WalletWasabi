@@ -16,7 +16,7 @@ Read the [related blog]() for more information.
 
 ---
 ## Installation Guide
-Download the operating system relevant software package and install Wasabi like you would any other software on your computer. 
+Download the operating system relevant software package and install Wasabi like you would with any other software on your computer. 
 For a detailed installation guide, including **signature verification**, see [the documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html).
 
 ## Documentation
