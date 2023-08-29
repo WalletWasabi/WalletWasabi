@@ -18,12 +18,14 @@ public class PrivacyTextPresenter : UserControl
 	private FormattedText CreateFormattedText()
 	{
 		return new FormattedText(
-			"X", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+			"X",
+			CultureInfo.CurrentCulture,
+			FlowDirection.LeftToRight,
 			new Typeface(FontFamily, FontStyle, FontWeight),
-			FontSize, null)
+			FontSize,
+			null)
 		{
-			TextAlignment =
-				TextAlignment.Left,
+			TextAlignment = TextAlignment.Left,
 			MaxTextHeight = Size.Infinity.Height, MaxTextWidth = Size.Infinity.Width
 		};
 	}
