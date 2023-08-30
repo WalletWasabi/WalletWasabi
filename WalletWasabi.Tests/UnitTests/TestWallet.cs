@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
@@ -14,18 +15,23 @@ using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
 
-public class TestWallet : IKeyChain, IDestinationProvider
+public class TestWallet
 {
-	public TestWallet(string name, IRPCClient rpc)
+	public TestWallet(string name, RPCClient rpc)
 	{
 		Rpc = rpc;
 		ExtKey = new ExtKey(Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(name)));
 	}
+	public TestWallet(string name, Mnemonic mnemonic, RPCClient rpc)
+	{
+		Rpc = rpc;
+		ExtKey = mnemonic.DeriveExtKey();
+	}
 
-	private IRPCClient Rpc { get; }
-	private List<Coin> Utxos { get; } = new();
+	private RPCClient Rpc { get; }
+	public List<Coin> Utxos { get; } = new();
 	private ExtKey ExtKey { get; }
-	private Dictionary<Script, ExtKey> ScriptPubKeys { get; } = new();
+	public Dictionary<Script, ExtKey> ScriptPubKeys { get; } = new();
 	private uint NextKeyIndex { get; set; } = 0;
 
 	public async Task GenerateAsync(int blocks, CancellationToken cancellationToken)
@@ -48,6 +54,33 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return scriptPubKey.GetDestinationAddress(Rpc.Network);
 	}
 
+	public async Task<uint256> CreateSweepToManyTransactionAsync(IEnumerable<Script> outputsOwn, IEnumerable<Script> outputsForeign)
+	{
+		var feeRate = new FeeRate(2m);
+		var tx = Rpc.Network.CreateTransaction();
+		var outputsCount = outputsOwn.Count() + outputsForeign.Count();
+		long totalValue = 0;
+		foreach (var utxo in Utxos)
+		{
+			totalValue += utxo.Amount;
+			tx.Inputs.Add(utxo.Outpoint);
+		}
+
+		var totalSize = tx.Inputs.Count * 69 + outputsCount * 31 + 122;
+		var totalFee = GetFeeWithZero(feeRate, totalSize);
+		var outputsForEachOwn = (totalValue - outputsForeign.Count() - totalFee) / outputsOwn.Count();
+		foreach (var output in outputsOwn)
+		{
+			tx.Outputs.Add(outputsForEachOwn, output);
+		}
+		foreach (var output in outputsForeign)
+		{
+			tx.Outputs.Add(1000, output);
+		}
+
+		var txid = await SendRawTransactionAsync(SignTransaction(tx), CancellationToken.None).ConfigureAwait(false);
+		return txid;
+	}
 	public (Transaction, Coin) CreateTemplateTransaction()
 	{
 		var biggestUtxo = Utxos.MaxBy(x => x.Amount)
@@ -60,32 +93,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public Transaction CreateSelfTransfer(FeeRate feeRate)
 	{
 		var (tx, spendingCoin) = CreateTemplateTransaction();
-		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFeeWithZero(Constants.P2wpkhOutputVirtualSize), CreateNewAddress());
-		return tx;
-	}
-
-	public async Task<Transaction> SendToAsync(Money amount, Script scriptPubKey, FeeRate feeRate, CancellationToken cancellationToken)
-	{
-		const int FinalSignedTxVirtualSize = 222;
-		var effectiveOutputCost = amount + feeRate.GetFeeWithZero(FinalSignedTxVirtualSize);
-		var tx = CreateSelfTransfer(FeeRate.Zero);
-
-		if (tx.Outputs[0].Value < effectiveOutputCost)
-		{
-			throw new ArgumentException("Not enough satoshis in input.");
-		}
-
-		if (effectiveOutputCost != tx.Outputs[0].Value)
-		{
-			tx.Outputs[0].Value -= effectiveOutputCost;
-			tx.Outputs.Add(amount, scriptPubKey);
-		}
-		else
-		{
-			// Sending whole coin.
-			tx.Outputs[0].ScriptPubKey = scriptPubKey;
-		}
-		await SendRawTransactionAsync(SignTransaction(tx), cancellationToken).ConfigureAwait(false);
+		tx.Outputs.Add(spendingCoin.Amount - GetFeeWithZero(feeRate, 31), CreateNewAddress());
 		return tx;
 	}
 
@@ -116,21 +124,6 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public ExtPubKey GetExtPubKey(Script scriptPubKey) =>
 		ScriptPubKeys[scriptPubKey].Neuter();
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData)
-	{
-		if (!ScriptPubKeys.TryGetValue(destination.ScriptPubKey, out var extKey))
-		{
-			throw new ArgumentException("Destination doesn't belong to this wallet.");
-		}
-
-		using var identificationKey = new Key();
-		return OwnershipProof.GenerateCoinJoinInputProof(
-				extKey.PrivateKey,
-				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				committedData,
-				ScriptPubKeyType.Segwit);
-	}
-
 	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
@@ -140,11 +133,6 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
 		return transaction;
-	}
-
-	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
-	{
-		// Test wallet doesn't care
 	}
 
 	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
@@ -168,4 +156,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		var path = isInternal ? "84'/0'/0'/1" : "84'/0'/0'/0";
 		return ExtKey.Derive(KeyPath.Parse($"{path}/{NextKeyIndex++}"));
 	}
+
+	public static Money GetFeeWithZero(FeeRate feeRate, int virtualSize) =>
+		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 }
