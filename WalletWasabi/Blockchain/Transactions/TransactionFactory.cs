@@ -207,11 +207,14 @@ public class TransactionFactory
 		decimal feePercentage;
 		if (payments.ChangeStrategy == ChangeStrategy.AllRemainingCustom)
 		{
-			decimal inputSumDecimal = Money.FromUnit(allowedSmartCoinInputs.Sum(x => x.Amount), MoneyUnit.Satoshi).ToDecimal(MoneyUnit.BTC);
+			// In this scenario since the amount changes as the fee changes, we need to compare against the total sum / 2,
+			// as with this, we will make sure the fee cannot be higher than the amount.
+			decimal inputSumDecimal = allowedSmartCoinInputs.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 			feePercentage = 100 * (feeDecimal / (inputSumDecimal / 2));
 		}
 		else
 		{
+			// In this scenario the amount is fixed, so we can compare against it.
 			// Cannot divide by zero, so use the closest number we have to zero.
 			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
 			feePercentage = 100 * (feeDecimal / totalOutgoingAmountNoFeeDecimalDivisor);
