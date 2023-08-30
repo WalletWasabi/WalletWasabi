@@ -10,17 +10,18 @@ namespace WalletWasabi.Fluent.Generators;
 internal abstract class CombinedGenerator : ISourceGenerator
 {
 	private List<Func<GeneratorStep>> StepFactories { get; } = new();
+	private List<StaticFileGenerator> StaticFileGenerators { get; } = new();
 
 	public void Initialize(GeneratorInitializationContext context)
 	{
-		foreach (var factory in StepFactories)
+		foreach (var generator in StaticFileGenerators)
 		{
-			var step = factory();
-			foreach (var (fileName, source) in step.GenerateStaticFiles())
+			foreach (var (fileName, source) in generator.Generate())
 			{
 				context.RegisterForPostInitialization(ctx => ctx.AddSource(fileName, SourceText.From(source, Encoding.UTF8)));
 			}
 		}
+
 		context.RegisterForSyntaxNotifications(() => new CombinedSyntaxReceiver(this));
 	}
 
@@ -52,6 +53,11 @@ internal abstract class CombinedGenerator : ISourceGenerator
 	protected void Add<T>() where T : GeneratorStep, new()
 	{
 		StepFactories.Add(() => new T());
+	}
+
+	protected void AddStaticFileGenerator<T>() where T : StaticFileGenerator, new()
+	{
+		StaticFileGenerators.Add(new T());
 	}
 
 	private class CombinedSyntaxReceiver : ISyntaxReceiver
