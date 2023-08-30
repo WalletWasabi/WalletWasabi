@@ -200,15 +200,26 @@ public class TransactionFactory
 		{
 			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
 		}
-		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
 
-		// Cannot divide by zero, so use the closest number we have to zero.
-		decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-		decimal feePercentage = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
+		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+		decimal feeDecimal = fee.ToDecimal(MoneyUnit.BTC);
+
+		decimal feePercentage;
+		if (payments.ChangeStrategy == ChangeStrategy.AllRemainingCustom)
+		{
+			decimal inputSumDecimal = Money.FromUnit(allowedSmartCoinInputs.Sum(x => x.Amount), MoneyUnit.Satoshi).ToDecimal(MoneyUnit.BTC);
+			feePercentage = 100 * (feeDecimal / (inputSumDecimal / 2));
+		}
+		else
+		{
+			// Cannot divide by zero, so use the closest number we have to zero.
+			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
+			feePercentage = 100 * (feeDecimal / totalOutgoingAmountNoFeeDecimalDivisor);
+		}
 
 		if (feePercentage > 100)
 		{
-			throw new TransactionFeeOverpaymentException(feePercentage, fee.ToDecimal(MoneyUnit.BTC));
+			throw new TransactionFeeOverpaymentException(feePercentage);
 		}
 
 		// Build the transaction

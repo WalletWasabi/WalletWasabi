@@ -292,19 +292,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (TransactionFeeOverpaymentException ex)
 		{
-			decimal percentage;
-
-			if (_info.IsOptimized)
-			{
-				var maxFee = _info.Amount.ToDecimal(MoneyUnit.BTC) / 2m;
-				percentage = ex.Fee / maxFee * 100;
-			}
-			else
-			{
-				percentage = ex.PercentageOfOverpayment;
-			}
-
-			var result = await TryAdjustTransactionFeeAsync(percentage);
+			var result = await TryAdjustTransactionFeeAsync(ex.PercentageOfOverpayment);
 
 			return result ? await BuildTransactionAsync() : null;
 		}
