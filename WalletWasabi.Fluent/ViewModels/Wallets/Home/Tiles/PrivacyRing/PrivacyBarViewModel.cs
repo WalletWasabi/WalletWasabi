@@ -1,7 +1,6 @@
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
@@ -59,31 +58,13 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			return;
 		}
 
-		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
+		var segments =
+			_walletViewModel.Wallet.Coins
+								   .GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+								   .OrderBy(x => (int)x.Key)
+								   .Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+								   .ToList();
 
-		var result =
-			shouldCreateSegmentsByCoin
-			? CreateSegmentsByCoin()
-			: CreateSegmentsByPrivacyLevel();
-
-		list.AddRange(result);
-	}
-
-	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByCoin()
-	{
-		return _walletViewModel.Wallet.Coins
-			.Select(coin => new PrivacyBarItemViewModel(this, coin))
-			.OrderBy(x => x.PrivacyLevel)
-			.ThenByDescending(x => x.Amount)
-			.ToList();
-	}
-
-	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByPrivacyLevel()
-	{
-		return _walletViewModel.Wallet.Coins
-			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-			.OrderBy(x => (int)x.Key)
-			.Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
-			.ToList();
+		list.AddRange(segments);
 	}
 }

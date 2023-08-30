@@ -13,6 +13,8 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<TreeDat
 
 	private const string CoinJoinsClass = "CoinJoins";
 
+	private const string SpeedUpClass = "SpeedUp";
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		AssociatedObject?.WhenAnyValue(x => x.DataContext)
@@ -49,6 +51,10 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<TreeDat
 			case CoinJoinsHistoryItemViewModel:
 				AssociatedObject.Classes.Add(CoinJoinsClass);
 				break;
+
+			case SpeedUpHistoryItemViewModel:
+				AssociatedObject.Classes.Add(SpeedUpClass);
+				break;
 		}
 	}
 
@@ -72,6 +78,11 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<TreeDat
 		if (AssociatedObject.Classes.Contains(CoinJoinsClass))
 		{
 			AssociatedObject.Classes.Remove(CoinJoinsClass);
+		}
+
+		if (AssociatedObject.Classes.Contains(SpeedUpClass))
+		{
+			AssociatedObject.Classes.Remove(SpeedUpClass);
 		}
 	}
 }

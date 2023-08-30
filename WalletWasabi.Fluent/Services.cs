@@ -18,7 +18,7 @@ public static class Services
 
 	public static BitcoinStore BitcoinStore { get; private set; } = null!;
 
-	public static HttpClientFactory HttpClientFactory { get; private set; } = null!;
+	public static WasabiHttpClientFactory HttpClientFactory { get; private set; } = null!;
 
 	public static LegalChecker LegalChecker { get; private set; } = null!;
 

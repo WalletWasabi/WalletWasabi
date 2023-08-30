@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,7 +28,7 @@ public static class NBitcoinExtensions
 		}
 
 		using var listener = node.CreateListener();
-		var getData = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
+		var getData = new GetDataPayload(new InventoryVector(InventoryType.MSG_BLOCK, hash));
 		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -153,6 +154,8 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.BlockIndex,
 			unsignedSmartTransaction.Labels,
 			unsignedSmartTransaction.IsReplacement,
+			unsignedSmartTransaction.IsSpeedup,
+			unsignedSmartTransaction.IsCancellation,
 			unsignedSmartTransaction.FirstSeen);
 	}
 
@@ -490,7 +493,22 @@ public static class NBitcoinExtensions
 
 		return ownershipProof;
 	}
-	
+
 	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
 		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
+
+	/// <remarks>NBitcoin does not provide a try-parse method.</remarks>
+	public static bool TryParseBitcoinAddressForNetwork(string address, Network network, [NotNullWhen(true)] out BitcoinAddress? bitcoinAddress)
+	{
+		try
+		{
+			bitcoinAddress = Network.Parse<BitcoinAddress>(address, network);
+			return true;
+		}
+		catch
+		{
+			bitcoinAddress = null;
+			return false;
+		}
+	}
 }

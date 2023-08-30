@@ -82,8 +82,8 @@
       <!-- Confirmation Time -->
       <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
-                     Label="Confirmation time"
-                     CopyableContent="{Binding ConfirmationTime}">
+                     Label="Expected confirmation time"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
@@ -100,7 +100,7 @@
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-      <Separator />
+      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Block hash -->
       <c:PreviewItem Icon="{StaticResource block_id}"

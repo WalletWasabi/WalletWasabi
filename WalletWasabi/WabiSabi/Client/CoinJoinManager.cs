@@ -197,16 +197,10 @@ public class CoinJoinManager : BackgroundService
 
 				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
 
-				// If there is no available coin candidates, then don't mix.
-				if (!coinCandidates.Any())
-				{
-					throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
-				}
-
 				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
 				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
 				{
-					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate, $"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
+					throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 
 				NotifyWalletStartedCoinJoin(walletToStart);
@@ -230,7 +224,7 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogInfo($"{nameof(CoinJoinClient)} started.");
+			walletToStart.LogDebug($"{nameof(CoinJoinClient)} started.");
 			walletToStart.LogDebug($"{nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
@@ -280,6 +274,64 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
+	}
+
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet walletToStart, int bestHeight)
+	{
+		var coinCandidates = new CoinsView(await walletToStart.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+			.Available()
+			.Where(x => !CoinRefrigerator.IsFrozen(x))
+			.ToArray();
+
+		// If there is no available coin candidates, then don't mix.
+		if (!coinCandidates.Any())
+		{
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
+		}
+
+		var bannedCoins = coinCandidates.Where(x => CoinPrison.TryGetOrRemoveBannedCoin(x, out _)).ToArray();
+		var immatureCoins = coinCandidates.Where(x => x.IsImmature(bestHeight)).ToArray();
+		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
+		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
+
+		coinCandidates = coinCandidates
+			.Except(bannedCoins)
+			.Except(immatureCoins)
+			.Except(unconfirmedCoins)
+			.Except(excludedCoins)
+			.ToArray();
+
+		if (!coinCandidates.Any())
+		{
+			var anyNonPrivateUnconfirmed = unconfirmedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+			var anyNonPrivateImmature = immatureCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+			var anyNonPrivateBanned = bannedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+			var anyNonPrivateExcluded = excludedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+
+			var errorMessage = $"Coin candidates are empty! {nameof(anyNonPrivateUnconfirmed)}:{anyNonPrivateUnconfirmed} {nameof(anyNonPrivateImmature)}:{anyNonPrivateImmature} {nameof(anyNonPrivateBanned)}:{anyNonPrivateBanned} {nameof(anyNonPrivateExcluded)}:{anyNonPrivateExcluded}";
+
+			if (anyNonPrivateUnconfirmed)
+			{
+				throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, errorMessage);
+			}
+
+			if (anyNonPrivateImmature)
+			{
+				throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, errorMessage);
+			}
+
+			if (anyNonPrivateBanned)
+			{
+				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, errorMessage);
+			}
+
+			if (anyNonPrivateExcluded)
+			{
+				throw new CoinJoinClientException(CoinjoinError.OnlyExcludedCoinsAvailable, errorMessage);
+			}
+		}
+
+		return coinCandidates;
 	}
 
 	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
@@ -603,15 +655,6 @@ public class CoinJoinManager : BackgroundService
 		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
-
-	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
-			.Available()
-			.Confirmed()
-			.Where(coin => !coin.IsExcludedFromCoinJoin)
-			.Where(coin => !coin.IsImmature(bestHeight))
-			.Where(coin => !CoinPrison.TryGetOrRemoveBannedCoin(coin, out _))
-			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{

@@ -199,7 +199,7 @@ public partial class Arena : PeriodicRunner
 					var alicesDidNotConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
 					foreach (var alice in alicesDidNotConfirm)
 					{
-						Prison.Note(alice, round.Id);
+						Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
@@ -212,7 +212,7 @@ public partial class Arena : PeriodicRunner
 						{
 							foreach (var offender in offendingAlices)
 							{
-								Prison.Ban(offender, round.Id);
+								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
 								offendingAliceCounter++;
 							}
 						}
@@ -425,7 +425,7 @@ public partial class Arena : PeriodicRunner
 
 		foreach (var alice in alicesWhoDidNotSign)
 		{
-			Prison.Note(alice, round.Id);
+			Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
 		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
@@ -448,7 +448,7 @@ public partial class Arena : PeriodicRunner
 		var feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
-			.Where(x => !Prison.IsBanned(x))
+			.Where(x => !Prison.IsBanned(x, DateTimeOffset.UtcNow))
 			.ToHashSet();
 
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
@@ -696,7 +696,7 @@ public partial class Arena : PeriodicRunner
 
 		// Could be a coin from WW1.
 		var roundId = roundState?.Id ?? uint256.Zero;
-		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
+		Prison.FailedVerification(coin.Outpoint, roundId);
 	}
 
 	private void AddRound(Round round)
@@ -720,7 +720,7 @@ public partial class Arena : PeriodicRunner
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
 	}
 
-	private void EndRound(Round round, EndRoundState endRoundState)
+	internal void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));

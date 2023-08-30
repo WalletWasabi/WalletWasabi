@@ -325,9 +325,12 @@ public class TransactionProcessorTests
 		{
 			if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
 			{
-				// Move the original coin from spent to unspent - so add.
-				var originalCoin = Assert.Single(e.RestoredCoins);
-				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
+				if (e.RestoredCoins.Any())
+				{
+					// Move the original coin from spent to unspent - so add.
+					var originalCoin = Assert.Single(e.RestoredCoins);
+					Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
+				}
 
 				// Remove the created coin by the transaction.
 				Assert.Equal(3, e.ReplacedCoins.Count);
@@ -777,7 +780,7 @@ public class TransactionProcessorTests
 
 		transactionProcessor.Process(tx1);
 
-		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.FirstSeen);
+		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
 		var relevant = transactionProcessor.Process(tx2);
 
 		Assert.False(relevant.IsNews);
@@ -789,6 +792,9 @@ public class TransactionProcessorTests
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 		Assert.Equal(2, mempool.Count());
+		Assert.Contains(tx0, mempool);
+		Assert.Contains(tx1, mempool);
+		Assert.Contains(tx2, mempool);
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
@@ -812,7 +818,7 @@ public class TransactionProcessorTests
 		// Add the transaction to the tx store manually and don't process it.
 		transactionProcessor.TransactionStore.AddOrUpdate(tx1);
 
-		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.FirstSeen);
+		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
 		tx2.Labels = "bar";
 		transactionProcessor.Process(tx2);
 
@@ -1375,6 +1381,53 @@ public class TransactionProcessorTests
 		Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
+	// Repro of issue 11101 https://github.com/zkSNACKs/WalletWasabi/issues/11101
+	[Fact]
+	public async Task GetPocketsShouldReturnExpectedPocketListAsync()
+	{
+		// ARRANGE
+		int targetAnonSet = 10;
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Faucet").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Electrum").P2wpkhScript, Money.Coins(0.0000_0670m)));
+
+		// ACT
+		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+
+		// ASSERT
+		var expectedPockets = new LabelsArray[]
+		{
+			CoinPocketHelper.UnlabelledFundsText,
+			"Faucet",
+			"Electrum"
+		}.ToHashSet(LabelsComparer.Instance);
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(LabelsComparer.Instance);
+
+		Assert.True(expectedPockets.SetEquals(actualPockets));
+	}
+
+	[Fact]
+	public async Task GetPocketsShouldBeCaseInsensitiveAsync()
+	{
+		// ARRANGE
+		int targetAnonSet = 10;
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("Pocket").P2wpkhScript, Money.Coins(0.0000_1000m)));
+		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("PoCKeT").P2wpkhScript, Money.Coins(0.0000_0670m)));
+
+		// ACT
+		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+
+		// ASSERT
+		var expectedPockets = new LabelsArray[] { "Pocket", }.ToHashSet(comparer: LabelsComparer.Instance);
+		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(comparer: LabelsComparer.Instance);
+
+		Assert.True(expectedPockets.SetEquals(actualPockets));
+	}
+
 	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
 	{
 		var tx = Network.RegTest.CreateTransaction();
@@ -1428,6 +1481,7 @@ public class TransactionProcessorTests
 
 		return new TransactionProcessor(
 			transactionStore,
+			null,
 			keyManager,
 			Money.Coins(0.0001m));
 	}

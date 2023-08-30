@@ -141,11 +141,11 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 	}
 
-	public FeeRate GetFeeRate(int feeTarget)
+	public FeeRate GetFeeRate(int confirmationTarget)
 	{
 		// Where the target is still under or equal to the requested target.
 		decimal satoshiPerByte = Estimations
-			.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
+			.Last(x => x.Key <= confirmationTarget) // The last should be the largest confirmation target.
 			.Value;
 
 		return new FeeRate(satoshiPerByte);
@@ -159,15 +159,28 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			confirmationTime = TimeSpan.Zero;
 			return true;
 		}
-		else if (tx.TryGetFeeRate(out var feeRate))
+
+		var unconfirmedChain = new[] { tx }.Concat(tx.ChildrenPayForThisTx).Concat(tx.ParentsThisTxPaysFor);
+
+		// If we cannot estimate the fee rate of one of the unconfirmed transactions then we cannot estimate confirmation time.
+		Money totalFee = Money.Zero;
+		foreach (var currentTx in unconfirmedChain)
 		{
-			confirmationTime = EstimateConfirmationTime(feeRate);
-			return true;
+			// We must have all the inputs and know the size of the tx to estimate the feerate.
+			if (!currentTx.TryGetFee(out var fee) || currentTx.IsSegwitWithoutWitness)
+			{
+				return false;
+			}
+			else
+			{
+				totalFee += fee;
+			}
 		}
-		else
-		{
-			return false;
-		}
+
+		var totalVsize = unconfirmedChain.Sum(x => x.Transaction.GetVirtualSize());
+
+		confirmationTime = EstimateConfirmationTime(new FeeRate(totalFee, totalVsize));
+		return true;
 	}
 
 	public TimeSpan EstimateConfirmationTime(FeeRate feeRate)

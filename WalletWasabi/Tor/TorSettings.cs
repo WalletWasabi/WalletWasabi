@@ -98,6 +98,7 @@ public class TorSettings
 		List<string> arguments = new()
 		{
 			$"--LogTimeGranularity 1",
+			$"--TruncateLogFile 1",
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
 			$"--SocksTimeout 30", // Default is 2 minutes.

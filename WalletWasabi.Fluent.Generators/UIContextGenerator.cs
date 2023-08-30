@@ -10,6 +10,9 @@ using System.Text;
 
 namespace WalletWasabi.Fluent.Generators;
 
+// QuickFix for https://github.com/dotnet/roslyn-analyzers/issues/6467
+#pragma warning disable RS1035
+
 [Generator]
 public class UiContextGenerator : ISourceGenerator
 {
@@ -179,7 +182,12 @@ public class UiContextGenerator : ISourceGenerator
 				continue;
 			}
 
-			var viewModelTypeInfo = semanticModel.GetDeclaredSymbol(cls);
+			if (cls.IsAbstractClass(semanticModel))
+			{
+				continue;
+			}
+
+			var viewModelTypeInfo =	semanticModel.GetDeclaredSymbol(cls);
 
 			if (viewModelTypeInfo == null)
 			{
