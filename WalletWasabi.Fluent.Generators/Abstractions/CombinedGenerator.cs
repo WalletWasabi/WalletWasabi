@@ -14,15 +14,25 @@ internal abstract class CombinedGenerator : ISourceGenerator
 
 	public void Initialize(GeneratorInitializationContext context)
 	{
-		foreach (var generator in StaticFileGenerators)
+		var files =
+			StaticFileGenerators.SelectMany(x => x.Generate())
+								.ToArray();
+
+		if (files.Any())
 		{
-			foreach (var (fileName, source) in generator.Generate())
+			context.RegisterForPostInitialization(ctx =>
 			{
-				context.RegisterForPostInitialization(ctx => ctx.AddSource(fileName, SourceText.From(source, Encoding.UTF8)));
-			}
+				foreach (var (fileName, source) in files)
+				{
+					ctx.AddSource(fileName, SourceText.From(source, Encoding.UTF8));
+				}
+			});
 		}
 
-		context.RegisterForSyntaxNotifications(() => new CombinedSyntaxReceiver(this));
+		if (StepFactories.Any())
+		{
+			context.RegisterForSyntaxNotifications(() => new CombinedSyntaxReceiver(this));
+		}
 	}
 
 	public void Execute(GeneratorExecutionContext context)
