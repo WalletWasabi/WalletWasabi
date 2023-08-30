@@ -4,12 +4,14 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace WalletWasabi.Fluent.Generators;
 
-internal class AutoNotifyGenerator2 : GeneratorStep<FieldDeclarationSyntax>
+internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 {
+	private const string AutoNotifyAttributeDisplayString = "WalletWasabi.Fluent.AutoNotifyAttribute";
+	private const string ReactiveObjectDisplayString = "ReactiveUI.ReactiveObject";
+
 	public override bool Filter(FieldDeclarationSyntax field)
 	{
 		return field.AttributeLists.Count > 0;
@@ -17,46 +19,15 @@ internal class AutoNotifyGenerator2 : GeneratorStep<FieldDeclarationSyntax>
 
 	public override void Execute(FieldDeclarationSyntax[] syntaxNodes)
 	{
-		
-	}
-}
+		var fieldSymbols = GetAutoNotifyFields(syntaxNodes).ToArray();
 
-[Generator]
-public class AutoNotifyGenerator : ISourceGenerator
-{
-	private const string AutoNotifyAttributeDisplayString = "WalletWasabi.Fluent.AutoNotifyAttribute";
-
-	private const string ReactiveObjectDisplayString = "ReactiveUI.ReactiveObject";
-
-
-
-
-
-	public void Initialize(GeneratorInitializationContext context)
-	{
-		// System.Diagnostics.Debugger.Launch();
-		context.RegisterForPostInitialization((i) =>
-		{
-			
-		});
-
-		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
-	}
-
-	public void Execute(GeneratorExecutionContext context)
-	{
-		if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
-		{
-			return;
-		}
-
-		var attributeSymbol = context.Compilation.GetTypeByMetadataName(AutoNotifyAttributeDisplayString);
+		var attributeSymbol = Context.Compilation.GetTypeByMetadataName(AutoNotifyAttributeDisplayString);
 		if (attributeSymbol is null)
 		{
 			return;
 		}
 
-		var notifySymbol = context.Compilation.GetTypeByMetadataName(ReactiveObjectDisplayString);
+		var notifySymbol = Context.Compilation.GetTypeByMetadataName(ReactiveObjectDisplayString);
 		if (notifySymbol is null)
 		{
 			return;
@@ -64,7 +35,7 @@ public class AutoNotifyGenerator : ISourceGenerator
 
 		// TODO: https://github.com/dotnet/roslyn/issues/49385
 #pragma warning disable RS1024
-		var groupedFields = receiver.FieldSymbols.GroupBy(f => f.ContainingType);
+		var groupedFields = fieldSymbols.GroupBy(f => f.ContainingType);
 #pragma warning restore RS1024
 
 		foreach (var group in groupedFields)
@@ -74,11 +45,12 @@ public class AutoNotifyGenerator : ISourceGenerator
 			{
 				continue;
 			}
-			context.AddSource($"{group.Key.Name}_AutoNotify.cs", SourceText.From(classSource, Encoding.UTF8));
+
+			AddSource($"{group.Key.Name}_AutoNotify.cs", classSource);
 		}
 	}
 
-	private static string? ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol)
+	private string? ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol)
 	{
 		if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
 		{
@@ -146,7 +118,7 @@ namespace {namespaceName}
 		return source.ToString();
 	}
 
-	private static void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
+	private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
 	{
 		var fieldName = fieldSymbol.Name;
 		var fieldType = fieldSymbol.Type;
@@ -223,27 +195,23 @@ namespace {namespaceName}
 		}
 	}
 
-	private class SyntaxReceiver : ISyntaxContextReceiver
+	private IEnumerable<IFieldSymbol> GetAutoNotifyFields(FieldDeclarationSyntax[] fieldDeclarations)
 	{
-		public List<IFieldSymbol> FieldSymbols { get; } = new();
-
-		public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
+		foreach (var fieldDeclaration in fieldDeclarations)
 		{
-			if (context.Node is FieldDeclarationSyntax fieldDeclarationSyntax
-				&& fieldDeclarationSyntax.AttributeLists.Count > 0)
-			{
-				foreach (VariableDeclaratorSyntax variable in fieldDeclarationSyntax.Declaration.Variables)
-				{
-					if (context.SemanticModel.GetDeclaredSymbol(variable) is not IFieldSymbol fieldSymbol)
-					{
-						continue;
-					}
+			var semanticModel = GetSemanticModel(fieldDeclaration.SyntaxTree);
 
-					var attributes = fieldSymbol.GetAttributes();
-					if (attributes.Any(ad => ad?.AttributeClass?.ToDisplayString() == AutoNotifyAttributeDisplayString))
-					{
-						FieldSymbols.Add(fieldSymbol);
-					}
+			foreach (VariableDeclaratorSyntax variable in fieldDeclaration.Declaration.Variables)
+			{
+				if (semanticModel.GetDeclaredSymbol(variable) is not IFieldSymbol fieldSymbol)
+				{
+					continue;
+				}
+
+				var attributes = fieldSymbol.GetAttributes();
+				if (attributes.Any(ad => ad?.AttributeClass?.ToDisplayString() == AutoNotifyAttributeDisplayString))
+				{
+					yield return fieldSymbol;
 				}
 			}
 		}
