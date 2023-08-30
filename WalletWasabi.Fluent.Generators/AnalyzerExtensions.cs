@@ -148,6 +148,13 @@ public static class AnalyzerExtensions
 
 	public static string SimplifyType(this ITypeSymbol typeSymbol, List<string> namespaces)
 	{
+		if (typeSymbol is IArrayTypeSymbol arrayType)
+		{
+			var dimensions = new string(',', arrayType.Rank - 1);
+
+			return $"{arrayType.ElementType.SimplifyType(namespaces)}[{dimensions}]";
+		}
+
 		if (typeSymbol is not INamedTypeSymbol type)
 		{
 			return "";
