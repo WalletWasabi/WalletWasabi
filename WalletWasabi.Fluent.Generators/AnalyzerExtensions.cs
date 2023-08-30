@@ -183,6 +183,11 @@ public static class AnalyzerExtensions
 				_ => type.Name
 			};
 
+		if (type.ContainingType is { } containingType)
+		{
+			typeName = containingType.SimplifyType(namespaces) + "." + typeName;
+		}
+
 		if (type.IsTupleType)
 		{
 			typeName = "(";
