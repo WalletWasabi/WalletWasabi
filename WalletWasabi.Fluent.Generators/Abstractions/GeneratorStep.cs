@@ -1,9 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
 using System.Text;
-using System;
 
 namespace WalletWasabi.Fluent.Generators;
 
@@ -17,8 +15,6 @@ internal abstract class GeneratorStep
 	{
 		Context = new GeneratorStepContext(context, compilation);
 	}
-
-	public virtual IEnumerable<(string FileName, string Source)> GenerateStaticFiles() => Array.Empty<(string, string)>();
 
 	public virtual void OnInitialize(Compilation compilation, GeneratorStep[] steps)
 	{
