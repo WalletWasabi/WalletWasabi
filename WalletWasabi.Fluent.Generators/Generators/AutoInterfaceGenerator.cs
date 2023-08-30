@@ -90,7 +90,9 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					from parameter in method.Parameters
 					let type = parameter.Type.SimplifyType(namespaces)
 					let name = parameter.Name
-					select $"{type} {name}";
+					let defaultValue = parameter.GetExplicitDefaultValueString()
+					let defaultValueString = defaultValue != null ? " = " + defaultValue : null
+					select $"{type} {name}{defaultValueString}";
 
 				signature += string.Join(", ", parameters);
 

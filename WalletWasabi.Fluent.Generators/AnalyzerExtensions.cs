@@ -160,6 +160,11 @@ public static class AnalyzerExtensions
 			return "";
 		}
 
+		if (type.NullableAnnotation == NullableAnnotation.Annotated && type.Name == "Nullable")
+		{
+			return type.TypeArguments.First().SimplifyType(namespaces) + "?";
+		}
+
 		if (!type.ContainingNamespace.IsGlobalNamespace)
 		{
 			namespaces.Add(type.ContainingNamespace.ToDisplayString());
@@ -217,5 +222,20 @@ public static class AnalyzerExtensions
 		}
 
 		return typeName;
+	}
+
+	public static string? GetExplicitDefaultValueString(this IParameterSymbol parameter)
+	{
+		if (!parameter.HasExplicitDefaultValue)
+		{
+			return null;
+		}
+
+		return parameter.ExplicitDefaultValue switch
+		{
+			string s => $"\"{s}\"",
+			null => "null",
+			_ => parameter.ExplicitDefaultValue.ToString()
+		};
 	}
 }
