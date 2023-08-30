@@ -66,10 +66,7 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 				var returnType = method.ReturnType.SimplifyType(namespaces);
 
 				var signature = $"    ";
-				if (method.IsAsync)
-				{
-					signature += "async ";
-				}
+				
 				signature += returnType;
 
 				signature += $" {method.Name}";
