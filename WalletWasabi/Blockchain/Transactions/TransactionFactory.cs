@@ -208,7 +208,7 @@ public class TransactionFactory
 
 		if (feePercentage > 100)
 		{
-			throw new TransactionFeeOverpaymentException(feePercentage);
+			throw new TransactionFeeOverpaymentException(feePercentage, fee.ToDecimal(MoneyUnit.BTC));
 		}
 
 		// Build the transaction
