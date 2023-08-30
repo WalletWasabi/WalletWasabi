@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.Generators;
 
-internal abstract class GeneratorStep<T> : GeneratorStep where T : SyntaxNode
+internal abstract class GeneratorStep<T> : GeneratorStep, ISyntaxReceiver where T : SyntaxNode
 {
 	private List<T> _nodes = new();
 
-	public override sealed void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+	public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
 	{
 		if (syntaxNode is not T node)
 		{

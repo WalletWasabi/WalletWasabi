@@ -20,16 +20,23 @@ internal abstract class GeneratorStep
 
 	public virtual IEnumerable<(string FileName, string Source)> GenerateStaticFiles() => Array.Empty<(string, string)>();
 
+	public virtual void OnInitialize(Compilation compilation, GeneratorStep[] steps)
+	{
+	}
+
 	public abstract void Execute();
 
-	protected void AddSource(string name, string source)
+	protected SyntaxTree AddSource(string name, string source)
 	{
+		var syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
 		Context.Context.AddSource(name, SourceText.From(source, Encoding.UTF8));
 
 		lock (_lock)
 		{
-			Context = Context with { Compilation = Context.Compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source)) };
+			Context = Context with { Compilation = Context.Compilation.AddSyntaxTrees(syntaxTree) };
 		}
+
+		return syntaxTree;
 	}
 
 	protected void ReportDiagnostic(DiagnosticDescriptor diagnosticDescriptor, Location? location)
@@ -38,6 +45,4 @@ internal abstract class GeneratorStep
 	}
 
 	protected SemanticModel GetSemanticModel(SyntaxTree syntaxTree) => Context.Compilation.GetSemanticModel(syntaxTree);
-
-	public abstract void OnVisitSyntaxNode(SyntaxNode syntaxNode);
 }
