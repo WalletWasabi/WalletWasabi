@@ -117,6 +117,10 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 
 namespace {interfaceNamespace};
 
+public partial class {className}: {interfaceName}
+{{
+}}
+
 public partial interface {interfaceName}
 {{
 {string.Join("\r\n\r\n", properties)}
