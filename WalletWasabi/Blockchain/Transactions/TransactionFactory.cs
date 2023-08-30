@@ -209,7 +209,7 @@ public class TransactionFactory
 		{
 			// In this scenario since the amount changes as the fee changes, we need to compare against the total sum / 2,
 			// as with this, we will make sure the fee cannot be higher than the amount.
-			decimal inputSumDecimal = allowedSmartCoinInputs.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
+			decimal inputSumDecimal = spentCoins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 			feePercentage = 100 * (feeDecimal / (inputSumDecimal / 2));
 		}
 		else
