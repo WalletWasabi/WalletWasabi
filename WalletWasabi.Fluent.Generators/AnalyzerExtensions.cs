@@ -71,7 +71,7 @@ public static class AnalyzerExtensions
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
 		var typeInfo = model.GetDeclaredSymbol(cls)
-		               ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
+					   ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
 	}
@@ -144,5 +144,66 @@ public static class AnalyzerExtensions
 				yield return typeArg.ContainingNamespace;
 			}
 		}
+	}
+
+	public static string SimplifyType(this ITypeSymbol typeSymbol, List<string> namespaces)
+	{
+		if (typeSymbol is not INamedTypeSymbol type)
+		{
+			return "";
+		}
+
+		if (!type.ContainingNamespace.IsGlobalNamespace)
+		{
+			namespaces.Add(type.ContainingNamespace.ToDisplayString());
+		}
+
+		var typeName =
+			type.SpecialType switch
+			{
+				SpecialType.System_Object => "object",
+				SpecialType.System_Void => "void",
+				SpecialType.System_Boolean => "bool",
+				SpecialType.System_Char => "char",
+				SpecialType.System_Byte => "byte",
+				SpecialType.System_Int16 => "short",
+				SpecialType.System_Int32 => "int",
+				SpecialType.System_Int64 => "long",
+				SpecialType.System_Decimal => "decimal",
+				SpecialType.System_Single => "float",
+				SpecialType.System_Double => "double",
+				SpecialType.System_String => "string",
+				_ => type.Name
+			};
+
+		if (type.IsTupleType)
+		{
+			typeName = "(";
+
+			var elements =
+				from element in type.TupleElements
+				let elementType = element.Type.SimplifyType(namespaces)
+				let elementName = element.Name
+				select $"{elementType} {elementName}";
+
+			typeName += string.Join(", ", elements);
+
+			typeName += ")";
+		}
+		else if (type.IsGenericType)
+		{
+			typeName += "<";
+
+			var typeArguments =
+				from argument in type.TypeArguments
+				let argumentType = argument.SimplifyType(namespaces)
+				select argumentType;
+
+			typeName += string.Join(", ", typeArguments);
+
+			typeName += ">";
+		}
+
+		return typeName;
 	}
 }
