@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -19,7 +19,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 			"RoutableViewModel"
 		};
 
-		return 
+		return
 			cls.Identifier.Text.EndsWith("ViewModel") &&
 			!exclusions.Contains(cls.Identifier.Text) &&
 			!cls.IsSourceGenerated();
@@ -104,7 +104,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 
 				var parametersString = constructor.ParameterList.Parameters.Insert(0, uiContextParameter).ToFullString();
 
-				var usings = string.Join(Environment.NewLine, parameterUsings.Distinct().OrderBy(x => x));
+				var usings = string.Join("\r\n", parameterUsings.Distinct().OrderBy(x => x));
 
 				var code =
 					$$"""
