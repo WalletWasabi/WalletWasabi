@@ -7,6 +7,7 @@ internal class MainGenerator : CombinedGenerator
 {
 	public MainGenerator()
 	{
+		AddStaticFileGenerator<AutoInterfaceAttributeGenerator>();
 		Add<AutoInterfaceGenerator>();
 		Add<UiContextConstructorGenerator>();
 		Add<FluentNavigationGenerator>();
