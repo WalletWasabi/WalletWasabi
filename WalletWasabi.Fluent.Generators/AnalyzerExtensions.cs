@@ -221,6 +221,11 @@ public static class AnalyzerExtensions
 			typeName += ">";
 		}
 
+		if (type.NullableAnnotation == NullableAnnotation.Annotated)
+		{
+			typeName += "?";
+		}
+
 		return typeName;
 	}
 
