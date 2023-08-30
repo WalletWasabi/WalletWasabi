@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -158,9 +158,9 @@ internal class FluentNavigationGenerator: GeneratorStep
 			.Select(n => $"using {n};")
 			.ToArray();
 
-		var usingsString = string.Join(Environment.NewLine, usings);
+		var usingsString = string.Join("\r\n", usings);
 
-		var methodsString = string.Join(Environment.NewLine, methods);
+		var methodsString = string.Join("\r\n", methods);
 
 		var sourceText =
 			$$"""
