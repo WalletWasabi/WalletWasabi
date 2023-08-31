@@ -121,11 +121,11 @@ public partial class SendViewModel : RoutableViewModel
 
 				var amount = new Money(AmountBtc, MoneyUnit.BTC);
 				var isTotalBalanceUsed = amount == _wallet.Coins.TotalAmount();
-				var isChangelessTransaction = isTotalBalanceUsed && !(IsFixedAmount || IsPayJoin);
+				var buildChangelessTransaction = isTotalBalanceUsed && !(IsFixedAmount || IsPayJoin);
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
-					ChangelessCoins = isChangelessTransaction ? _wallet.Coins : Enumerable.Empty<SmartCoin>(),
-					IsSelectedCoinModificationEnabled = !isChangelessTransaction,
+					ChangelessCoins = buildChangelessTransaction ? _wallet.Coins : Enumerable.Empty<SmartCoin>(),
+					IsSelectedCoinModificationEnabled = !buildChangelessTransaction,
 					Amount = amount,
 					Recipient = label,
 					PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
