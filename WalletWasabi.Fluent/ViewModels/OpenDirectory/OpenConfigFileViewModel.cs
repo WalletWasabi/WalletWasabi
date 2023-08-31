@@ -1,3 +1,5 @@
+using WalletWasabi.Fluent.Models.UI;
+
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 [NavigationMetaData(
@@ -12,5 +14,9 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 	IconName = "document_regular")]
 public partial class OpenConfigFileViewModel : OpenFileViewModel
 {
-	public override string FilePath => Services.PersistentConfig.FilePath;
+	public OpenConfigFileViewModel(UiContext uiContext) : base(uiContext)
+	{
+	}
+
+	public override string FilePath => UiContext.Config.ConfigFilePath;
 }

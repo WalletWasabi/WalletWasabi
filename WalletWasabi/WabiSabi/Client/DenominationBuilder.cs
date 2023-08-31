@@ -1,23 +1,25 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public static class DenominationBuilder
 {
-	public static IOrderedEnumerable<Output> CreateDenominations(Money minAllowedOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, IEnumerable<ScriptType> allowedOutputTypes)
+	public static IOrderedEnumerable<Output> CreateDenominations(
+		Money minAllowedOutputAmount,
+		Money maxAllowedOutputAmount,
+		FeeRate feeRate,
+		IEnumerable<ScriptType> allowedOutputTypes,
+		WasabiRandom random)
 	{
 		var denominations = new HashSet<Output>();
 
 		Output CreateDenom(double sats)
 		{
-			var scriptType = allowedOutputTypes.RandomElement();
+			var scriptType = allowedOutputTypes.RandomElement(random);
 			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, feeRate);
 		}
 

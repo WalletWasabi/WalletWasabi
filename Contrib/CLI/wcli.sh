@@ -39,7 +39,7 @@ if [ $# -ge 1 ]; then
 fi
 
 REQUEST="{\"jsonrpc\":\"2.0\", \"id\":\"curltext\", \"method\":\"$METHOD\", \"params\":[$PARAMS]}"
-RESULT=$(curl -s "$BASIC_AUTH" --data-binary "$REQUEST" -H -- "content-type: text/plain;" "$ENDPOINT$WALLETNAME")
+RESULT=$(curl -s $BASIC_AUTH --data-binary "$REQUEST" -H -- "content-type: text/plain;" "$ENDPOINT$WALLETNAME")
 CURL_ERRORCODE=$?
 RESULT_ERROR=$(echo "$RESULT" | jq -r .error)
 CURL_FAIL_TO_CONNECT_ERRORCODE=7

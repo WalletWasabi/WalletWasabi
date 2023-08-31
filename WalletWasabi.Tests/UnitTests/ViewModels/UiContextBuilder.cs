@@ -1,5 +1,6 @@
-using Avalonia.Input.Platform;
 using Moq;
+using WalletWasabi.Fluent.Models.ClientConfig;
+using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -13,8 +14,11 @@ public class UiContextBuilder
 	public INavigate Navigate { get; private set; } = Mock.Of<INavigate>();
 	public IQrCodeGenerator QrGenerator { get; } = Mock.Of<IQrCodeGenerator>();
 	public IQrCodeReader QrReader { get; } = Mock.Of<IQrCodeReader>();
-	public IClipboard Clipboard { get; private set; } = Mock.Of<IClipboard>();
-	public IWalletListModel WalletList { get; private set; } = new NullWalletList();
+	public IUiClipboard Clipboard { get; private set; } = Mock.Of<IUiClipboard>();
+	public IWalletRepository WalletRepository { get; private set; } = new NullWalletRepository();
+	public IHardwareWalletInterface HardwareWalletInterface { get; private set; } = new NullHardwareWalletInterface();
+	public IFileSystem FileSystem { get; private set; } = new NullFileSystem();
+	public IClientConfig ClientConfig { get; private set; } = new NullClientConfig();
 
 	public UiContextBuilder WithDialogThatReturns(object value)
 	{
@@ -22,7 +26,7 @@ public class UiContextBuilder
 		return this;
 	}
 
-	public UiContextBuilder WithClipboard(IClipboard clipboard)
+	public UiContextBuilder WithClipboard(IUiClipboard clipboard)
 	{
 		Clipboard = clipboard;
 		return this;
@@ -30,7 +34,7 @@ public class UiContextBuilder
 
 	public UiContext Build()
 	{
-		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletList);
+		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface, FileSystem, ClientConfig, new NullApplicationSettings());
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
 	}

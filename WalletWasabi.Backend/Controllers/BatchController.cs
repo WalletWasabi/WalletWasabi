@@ -21,11 +21,12 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, HomeController homeController, OffchainController offchainController, Global global)
+	public BatchController(BlockchainController blockchainController, HomeController homeController, OffchainController offchainController, WabiSabiController wabiSabiController, Global global)
 	{
 		BlockchainController = blockchainController;
 		HomeController = homeController;
 		OffchainController = offchainController;
+		WabiSabiController = wabiSabiController;
 		Global = global;
 	}
 
@@ -33,25 +34,15 @@ public class BatchController : ControllerBase
 	public BlockchainController BlockchainController { get; }
 	public HomeController HomeController { get; }
 	public OffchainController OffchainController { get; }
+	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
+	[ResponseCache(Duration = 60)]
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
-		[FromQuery, Required] int maxNumberOfFilters,
-		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
-		[FromQuery] string? indexType = null,
+		[FromQuery] string indexType = "segwittaproot",
 		CancellationToken cancellationToken = default)
 	{
-		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
-		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
-		if (estimateSmartFee)
-		{
-			if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out mode))
-			{
-				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
-			}
-		}
-
 		if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
 		{
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
@@ -62,7 +53,8 @@ public class BatchController : ControllerBase
 			return BadRequest("Not supported index type.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+		var numberOfFilters = Global.Config.Network == Network.Main ? 1000 : 10000;
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
@@ -80,16 +72,13 @@ public class BatchController : ControllerBase
 			response.Filters = filters;
 		}
 
-		if (estimateSmartFee)
+		try
 		{
-			try
-			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode, cancellationToken);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+			response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(EstimateSmartFeeMode.Conservative, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
 		}
 
 		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);

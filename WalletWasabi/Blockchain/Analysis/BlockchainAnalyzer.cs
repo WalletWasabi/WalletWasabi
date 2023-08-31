@@ -33,6 +33,8 @@ public class BlockchainAnalyzer
 		var foreignInputCount = tx.ForeignInputs.Count;
 		var foreignOutputCount = tx.ForeignOutputs.Count;
 
+		AnalyzeCancellation(tx);
+
 		if (ownInputCount == 0)
 		{
 			AnalyzeReceive(tx);
@@ -64,6 +66,19 @@ public class BlockchainAnalyzer
 		}
 
 		AnalyzeClusters(tx);
+		SetIsSufficientlyDistancedFromExternalKeys(tx);
+	}
+
+	private static void AnalyzeCancellation(SmartTransaction tx)
+	{
+		// If the tx is a cancellation and we have at least one input or output that is not ours, then we set the anonset to 1.
+		if (tx.IsCancellation && (tx.ForeignOutputs.Any() || tx.ForeignInputs.Any()))
+		{
+			foreach (var k in tx.WalletInputs.Select(x => x.HdPubKey).Distinct())
+			{
+				k.SetAnonymitySet(1);
+			}
+		}
 	}
 
 	private static void AnalyzeCoinjoinWalletInputs(
@@ -343,6 +358,36 @@ public class BlockchainAnalyzer
 					newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
 				}
 			}
+		}
+	}
+
+	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartTransaction tx)
+	{
+		foreach (var output in tx.WalletOutputs)
+		{
+			SetIsSufficientlyDistancedFromExternalKeys(output);
+		}
+	}
+
+	/// <summary>
+	/// Sets output's IsSufficientlyDistancedFromExternalKeys property to false if external, or the tx inputs are all external.
+	/// </summary>
+	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartCoin output)
+	{
+		if (!output.Transaction.WalletInputs.Any())
+		{
+			// If there's no wallet input, then money is coming from external sources.
+			output.IsSufficientlyDistancedFromExternalKeys = false;
+		}
+		else if (output.Transaction.WalletInputs.All(x => !x.Transaction.WalletInputs.Any()))
+		{
+			// If there are wallet inputs, and each and every one of them are coming from external sources, then we consider this as not sufficiently distanced as well.
+			output.IsSufficientlyDistancedFromExternalKeys = false;
+		}
+		else
+		{
+			output.IsSufficientlyDistancedFromExternalKeys = true;
 		}
 	}
 }

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.Collections.Generic;
@@ -24,8 +23,9 @@ using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
+/// <seealso cref="RegTestCollectionDefinition"/>
 [Collection("RegTest collection")]
-public class BackendTests
+public class BackendTests : IClassFixture<RegTestFixture>
 {
 	public BackendTests(RegTestFixture regTestFixture)
 	{
@@ -70,7 +70,8 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastReplayTxAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
 
 		var utxos = await rpc.ListUnspentAsync();
 		var utxo = utxos[0];
@@ -89,7 +90,7 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastInvalidTxAsync()
 	{
-		await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 
 		using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
@@ -107,7 +108,9 @@ public class BackendTests
 	[Fact]
 	public async Task FilterBuilderTestAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		using Backend.Global global = setup.Global;
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
@@ -175,9 +178,11 @@ public class BackendTests
 	[Fact]
 	public async Task StatusRequestTestAsync()
 	{
-		var requestUri = "btc/Blockchain/status";
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		using Backend.Global global = setup.Global;
 
-		(_, IRPCClient rpc, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		var requestUri = "btc/Blockchain/status";
 
 		var segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
 		var taprootIndexBuilderService = global.TaprootIndexBuilderService;

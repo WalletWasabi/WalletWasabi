@@ -17,6 +17,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Backend;
 
@@ -30,7 +31,7 @@ public class Global : IDisposable
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
-		HttpClient = new();
+		CoinVerifierHttpClient = WasabiHttpClientFactory.CreateLongLivedHttpClient();
 		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
@@ -48,6 +49,9 @@ public class Global : IDisposable
 
 		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), segwitTaprootIndexFilePath);
 		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, HostedServices.Get<BlockNotifier>(), taprootIndexFilePath);
+
+		MempoolMirror = new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode);
+		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, MempoolMirror);
 	}
 
 	public string DataDir { get; }
@@ -61,7 +65,7 @@ public class Global : IDisposable
 	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
 	public IndexBuilderService TaprootIndexBuilderService { get; }
 
-	private HttpClient HttpClient { get; }
+	private HttpClient CoinVerifierHttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	private CoinVerifierApiClient? CoinVerifierApiClient { get; set; }
@@ -74,6 +78,8 @@ public class Global : IDisposable
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 	private Whitelist? WhiteList { get; set; }
+	private MempoolMirror MempoolMirror { get; }
+	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
 	public async Task InitializeAsync(CancellationToken cancel)
 	{
@@ -83,7 +89,7 @@ public class Global : IDisposable
 		// Make sure P2P works.
 		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
+		HostedServices.Register<MempoolMirror>(() => MempoolMirror, "Full Node Mempool Mirror");
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
@@ -107,11 +113,11 @@ public class Global : IDisposable
 					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
 				}
 
-				HttpClient.BaseAddress = url;
-				HttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
+				CoinVerifierHttpClient.BaseAddress = url;
+				CoinVerifierHttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
 
 				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, HttpClient);
+				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, CoinVerifierHttpClient);
 				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
 
 				Logger.LogInfo("CoinVerifier created successfully.");
@@ -125,7 +131,9 @@ public class Global : IDisposable
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
 		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
+		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
+		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;
 
 		await HostedServices.StartAllAsync(cancel);
 
@@ -192,7 +200,16 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
-				HttpClient.Dispose();
+				if (WabiSabiCoordinator is { } wabiSabiCoordinator)
+				{
+					var blockNotifier = HostedServices.Get<BlockNotifier>();
+					blockNotifier.OnBlock -= wabiSabiCoordinator.BanDescendant;
+				}
+
+				CoinVerifierHttpClient.Dispose();
+				P2pNode.OnTransactionArrived -= WabiSabiCoordinator.BanDoubleSpenders;
+				CoinJoinMempoolManager.Dispose();
+
 				var stoppingTask = Task.Run(DisposeAsync);
 
 				stoppingTask.GetAwaiter().GetResult();

@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -122,7 +123,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 					: accounts,
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-						.Sum(c => c.Amount.Satoshi)
+						.Sum(c => c.Amount.Satoshi),
+			anonScoreTarget = activeWallet.AnonScoreTarget
 		};
 	}
 
@@ -149,6 +151,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public object GetStatus()
 	{
 		var sync = Global.Synchronizer;
+		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new
 		{
@@ -159,10 +162,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 				_ => "Turned off"
 			},
 			backendStatus = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
-			bestBlockchainHeight = sync.BitcoinStore.SmartHeaderChain.TipHeight.ToString(),
-			bestBlockchainHash = sync.BitcoinStore.SmartHeaderChain.TipHash?.ToString() ?? "",
-			filtersCount = sync.BitcoinStore.SmartHeaderChain.HashCount,
-			filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
+			bestBlockchainHeight = smartHeaderChain.TipHeight.ToString(),
+			bestBlockchainHash = smartHeaderChain.TipHash?.ToString() ?? "",
+			filtersCount = smartHeaderChain.HashCount,
+			filtersLeft = smartHeaderChain.HashesLeft,
 			network = Global.Network.Name,
 			exchangeRate = sync.UsdExchangeRate,
 			peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(
@@ -293,8 +296,19 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	[JsonRpcMethod("selectwallet", initializable: false)]
-	public void SelectWallet(string walletName)
+	[JsonRpcMethod("getfeerates", initializable: false)]
+	public object GetFeeRate()
+	{
+		if (Global.Synchronizer.LastAllFeeEstimate is { } nonNullFeeRates)
+		{
+			return nonNullFeeRates.Estimations;
+		}
+
+		return new Dictionary<int, int>();
+	}
+
+
+	private void SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try

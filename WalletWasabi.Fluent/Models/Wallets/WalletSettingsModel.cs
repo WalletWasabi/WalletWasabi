@@ -2,6 +2,7 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -20,12 +21,13 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 
-	public WalletSettingsModel(Wallet wallet, bool isNewWallet = false)
+	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
-		_keyManager = wallet.KeyManager;
+		_keyManager = keyManager;
 
 		_isNewWallet = isNewWallet;
 		_isDirty = isNewWallet;
+		IsCoinJoinPaused = isCoinJoinPaused;
 
 		_autoCoinjoin = _keyManager.AutoCoinJoin;
 		_isCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
@@ -36,6 +38,7 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
 		WalletName = _keyManager.WalletName;
+		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
 			x => x.AutoCoinjoin,
@@ -52,11 +55,21 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 
 	public string WalletName { get; }
 
+	public WalletType WalletType { get; }
+
+	public bool IsCoinJoinPaused { get; set; }
+
 	public void Save()
 	{
 		if (_isDirty)
 		{
 			_keyManager.ToFile();
+
+			if (IsNewWallet)
+			{
+				Services.WalletManager.AddWallet(_keyManager);
+				IsNewWallet = false;
+			}
 
 			_isDirty = false;
 		}
@@ -68,7 +81,7 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 		_keyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
-		_keyManager.SetAnonScoreTarget(AnonScoreTarget, false);
+		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 

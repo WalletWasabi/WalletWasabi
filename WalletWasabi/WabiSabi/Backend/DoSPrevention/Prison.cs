@@ -1,143 +1,121 @@
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using NBitcoin;
-using WalletWasabi.WabiSabi.Backend.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Channels;
+using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
-/// <summary>
-/// Malicious UTXOs are sent here.
-/// </summary>
 public class Prison
 {
-	public Prison() : this(Enumerable.Empty<Inmate>())
+	public Prison(DoSConfiguration dosConfiguration, ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
+		DoSConfiguration = dosConfiguration;
+		CoinJoinIdStore = coinJoinIdStore;
+		Offenders = offenders.ToList();
+		NotificationChannelWriter = channelWriterWriter;
 	}
 
-	public Prison(IEnumerable<Inmate> inmates)
-	{
-		Inmates = inmates.ToDictionary(x => x.Utxo, x => x);
-	}
+	private ICoinJoinIdStore CoinJoinIdStore { get; }
+	private DoSConfiguration DoSConfiguration { get; }
+	private ChannelWriter<Offender> NotificationChannelWriter { get; }
+	private List<Offender> Offenders { get; }
+	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
+	private object Lock { get; } = new();
 
-	private Dictionary<OutPoint, Inmate> Inmates { get; }
-	private object Lock { get; } = new object();
-
-	/// <summary>
-	/// To identify the latest change happened in the prison.
-	/// </summary>
-	public Guid ChangeId { get; private set; } = Guid.NewGuid();
-
-	public (int noted, int banned, int longBanned) CountInmates()
+	private void Punish(Offender offender)
 	{
 		lock (Lock)
 		{
-			return (Inmates.Count(x => x.Value.Punishment == Punishment.Noted), Inmates.Count(x => x.Value.Punishment == Punishment.Banned), Inmates.Count(x => x.Value.Punishment == Punishment.LongBanned));
+			Offenders.Add(offender);
+		}
+		if (!NotificationChannelWriter.TryWrite(offender))
+		{
+			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
 		}
 	}
 
-	public void Note(Alice alice, uint256 lastDisruptedRoundId)
+	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotConfirm)));
+
+	public void FailedToSign(OutPoint outPoint, Money value, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotSign)));
+
+	public void FailedVerification(OutPoint outPoint, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new FailedToVerify(roundId)));
+
+	public void CheatingDetected(OutPoint outPoint, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new Cheating(roundId)));
+
+	public void DoubleSpent(OutPoint outPoint, Money value, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DoubleSpent)));
+
+	public void InheritPunishment(OutPoint outpoint, OutPoint[] ancestors) =>
+		Punish(new Offender(outpoint, DateTimeOffset.UtcNow, new Inherited(ancestors)));
+
+	public bool IsBanned(OutPoint outpoint, DateTimeOffset when) =>
+		GetBanTimePeriod(outpoint).Includes(when);
+
+	public TimeFrame GetBanTimePeriod(OutPoint outpoint)
 	{
-		Punish(alice.Coin.Outpoint, Punishment.Noted, lastDisruptedRoundId);
-	}
-
-	public void Ban(Alice alice, uint256 lastDisruptedRoundId, bool isLongBan = false)
-		=> Ban(alice.Coin.Outpoint, lastDisruptedRoundId, isLongBan);
-
-	public void Ban(OutPoint utxo, uint256 lastDisruptedRoundId, bool isLongBan = false)
-	{
-		Punish(utxo, isLongBan ? Punishment.LongBanned : Punishment.Banned, lastDisruptedRoundId);
-	}
-
-	public void Ban(OutPoint outpoint, uint256 lastDisruptedRoundId)
-	{
-		Punish(outpoint, Punishment.Banned, lastDisruptedRoundId);
-	}
-
-	public void Punish(OutPoint utxo, Punishment punishment, uint256 lastDisruptedRoundId)
-		=> Punish(new Inmate(utxo, punishment, DateTimeOffset.UtcNow, lastDisruptedRoundId));
-
-	public void Punish(Inmate inmate)
-	{
+		Offender? offender;
 		lock (Lock)
 		{
-			var utxo = inmate.Utxo;
+			offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
+		}
 
-			// If successfully removed, then it contained it previously, so make the punishment banned and restart its time.
-			Inmate inmateToPunish = inmate;
-			if (Inmates.Remove(utxo))
+		return offender switch
+		{
+			null => TimeFrame.Zero,
+			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForFailedToVerify),
+			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForCheating),
+			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
+			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
+			_ => throw new NotSupportedException("Unknown offense type.")
+		};
+	}
+
+	private TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
+	{
+		var effectiveBanningTime = banningTime < DoSConfiguration.MinTimeInPrison
+			? TimeSpan.Zero
+			: banningTime;
+		return new TimeFrame(offender.StartedTime, effectiveBanningTime);
+	}
+
+	private TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
+	{
+		var basePunishmentInHours = DoSConfiguration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
+
+		if (CoinJoinIdStore.Contains(offender.OutPoint.Hash))
+		{
+			return TimeSpan.FromHours((double)basePunishmentInHours);
+		}
+
+		List<Offender> offenderHistory;
+		lock (Offenders)
+		{
+			offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
+		}
+
+		var maxOffense = offenderHistory.Max(
+			x => disruption switch
 			{
-				// If it was noted before, then no matter the specified punishment, it must be banned.
-				// Both the started and the last disrupted round parameters must be updated.
-				inmateToPunish = new Inmate(utxo, Punishment.Banned, inmate.Started, inmate.LastDisruptedRoundId);
-			}
+				{ Method: RoundDisruptionMethod.DidNotConfirm } => DoSConfiguration.PenaltyFactorForDisruptingConfirmation,
+				{ Method: RoundDisruptionMethod.DidNotSign } => DoSConfiguration.PenaltyFactorForDisruptingSigning,
+				{ Method: RoundDisruptionMethod.DoubleSpent } => DoSConfiguration.PenaltyFactorForDisruptingByDoubleSpending,
+				_ => throw new NotSupportedException("Unknown round disruption method.")
+			});
 
-			Inmates.Add(utxo, inmateToPunish);
-
-			ChangeId = Guid.NewGuid();
-		}
+		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count - 1);
+		return TimeSpan.FromHours((double)prisonTime);
 	}
 
-	public bool TryRelease(OutPoint utxo, [NotNullWhen(returnValue: true)] out Inmate? inmate)
-	{
-		lock (Lock)
-		{
-			if (Inmates.TryGetValue(utxo, out inmate))
-			{
-				Inmates.Remove(utxo);
-				ChangeId = Guid.NewGuid();
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-
-	public IEnumerable<Inmate> ReleaseEligibleInmates(TimeSpan normalBanPeriod, TimeSpan longBanPeriod)
-	{
-		lock (Lock)
-		{
-			var released = new List<Inmate>();
-
-			foreach (var inmate in Inmates.Values.ToList())
-			{
-				var banPeriod = inmate.Punishment is Punishment.LongBanned ? longBanPeriod : normalBanPeriod;
-				if (inmate.TimeSpent > banPeriod)
-				{
-					Inmates.Remove(inmate.Utxo);
-					released.Add(inmate);
-				}
-			}
-
-			if (released.Any())
-			{
-				ChangeId = Guid.NewGuid();
-			}
-
-			return released;
-		}
-	}
-
-	public bool TryGet(OutPoint utxo, [NotNullWhen(returnValue: true)] out Inmate? inmate)
-	{
-		lock (Lock)
-		{
-			return Inmates.TryGetValue(utxo, out inmate);
-		}
-	}
-
-	public bool IsBanned(OutPoint utxo)
-	{
-		return TryGet(utxo, out var inmate) && inmate.Punishment is Punishment.Banned;
-	}
-
-	public IEnumerable<Inmate> GetInmates()
-	{
-		lock (Lock)
-		{
-			return Inmates.Select(x => x.Value).ToList();
-		}
-	}
+	private TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors) =>
+		ancestors
+			.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a)))
+			.MaxBy(x => x.BanningTime.EndTime)
+			.BanningTime;
 }
