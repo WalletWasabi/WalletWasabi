@@ -11,10 +11,11 @@
       3. Give the Wasabi team the final approval.
       4. The Wasabi team and the Affiliates must agree on a release date for production deployment.
 5. Don't forget to make the discussion in the maintenance repository with a short summary.
+6. If TestNet test successful 
 
 # How to deploy
 
-1. Create a tag that identifies the commit to be deployed. The naming format is `version-codename-iteration`, where `version` is the official version number (for example, v2.0.3.1), `codename` an identifier of what is being deployed (for example, `wgpt`, `wabisabi`, `affsvr` or any other), and `iteration` a sequence number to identify a sequence of deployments (first iteration doesn't need to have this number). For example:
+1. Create a tag that identifies the commit to be deployed. The naming format is `version-codename-iteration`, where `version` is the official version number (for example, v2.0.3.1), `codename` is an identifier of what is being deployed (for example, `wgpt`, `wabisabi`, `affsvr` or any other), and `iteration` a sequence number to identify a sequence of deployments (first iteration doesn't need to have this number). For example:
    - `v2.0.3-wabisabi` is the tag that was used to deploy the backend with the external WabiSabi library.
    - `v2.0.2.1-as` is the tag that was used to deploy the backend containing the **a**filiation **s**erver integration.
    - `v2.0.2.1-as-1` is the tag that was used to deploy the affiliation server integration again.
@@ -35,7 +36,7 @@
 Post the following message to slack/integrations channel
 
 ```
-Hello there, we are deploying this commit to backend servers.
+Hello there, we are deploying this commit to the 'TestNet' servers.
 - Latest commit on backend: 167c81be80d8d3de9deaf8d306017c5403593c89
 - Planning to deploy to backend: 460e21ce71738d3cc1560a3d4fc1984cc4beb725
 - PRs with affiliate label: https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+is%3Aclosed+label%3Aaffiliate
@@ -44,3 +45,11 @@ Please ack and test.
 
 Tagging: @Kuba Ondracek
 ```
+
+After the approval arrives for TestNet, reply to the previous message with the following message and make sure to display it in the main channel:
+
+```
+Hello there, we are going to deploy to Production what was previously deployed to TestNet.
+```
+
+
