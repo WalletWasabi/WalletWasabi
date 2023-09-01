@@ -9,7 +9,7 @@
           pname = "WalletWasabi.Backend";
           version = "2.0.4.0";
           nugetDeps = ./deps.nix; # nix build .#packages.x86_64-linux.default.passthru.fetch-deps
-          runtimeDeps = [ pkgs.openssl ];
+          runtimeDeps = [ pkgs.openssl pkgs.zlib];
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_7_0;
           selfContainedBuild = true;
 
@@ -17,8 +17,6 @@
           src = ./.;
           projectFile = "WalletWasabi.Backend/WalletWasabi.Backend.csproj";
           executables = [ "WalletWasabi.Backend" ];
-
-          doCheck = false;
         };
     in
     {
