@@ -89,7 +89,7 @@
 
                   <!-- Full privacy message -->
                   <DockPanel IsVisible="{Binding MaxPrivacy}">
-                    <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+                    <TextBlock Text="This transaction dances gracefully to the tune of best practices" DockPanel.Dock="Top" HorizontalAlignment="Center" />
                     <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
                   </DockPanel>
                 </Panel>
