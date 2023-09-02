@@ -94,8 +94,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
 
-	public bool IsNormalTransactionDisplayed => !IsCoinJoin;
-
 	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
 
 	public bool IsCoinjoinGroupDisplayed => IsCoinJoin && IsCoinJoinGroup;
