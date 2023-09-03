@@ -109,7 +109,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
 	{
-		get 
+		get
 		{
 			if (ForeignOutputsCache is null)
 			{
