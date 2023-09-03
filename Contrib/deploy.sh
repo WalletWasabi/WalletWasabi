@@ -13,5 +13,5 @@ WASABI_SERVICE_STATUS="$(systemctl is-active $SERVICE)"
 if [ "${WASABI_SERVICE_STATUS}" = "active" ]; then
    echo "$SERVICE is running"
 else
-   echo "$SERVICE NOT is running"
+   echo "$SERVICE is NOT running"
 fi
