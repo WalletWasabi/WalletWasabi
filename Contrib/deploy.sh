@@ -1,11 +1,6 @@
 set -e
 
 SERVICE="walletwasabi.service"
-REVISION="$1"
-
-# Building
-nix build -o "$HOME/wasabi-backend github:zkSNACKs/WalletWasabi/$REVISION"
-echo "[OK] Built"
 
 # Restarting WalletWasabi service....
 sudo systemctl restart $SERVICE
