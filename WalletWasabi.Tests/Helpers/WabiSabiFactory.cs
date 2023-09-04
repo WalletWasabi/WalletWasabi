@@ -389,7 +389,8 @@ public static class WabiSabiFactory
 			MinTimeInPrison: TimeSpan.FromHours(1),
 			PenaltyFactorForDisruptingConfirmation: 1.0m,
 			PenaltyFactorForDisruptingSigning: 1.5m,
-			PenaltyFactorForDisruptingByDoubleSpending: 3.0m);
+			PenaltyFactorForDisruptingByDoubleSpending: 3.0m,
+			PenaltyFactorForFailingToSignalReadyToSign: 1.5m);
 
 	internal static ICoinJoinIdStore CreateCoinJoinIdStore()
 	{
