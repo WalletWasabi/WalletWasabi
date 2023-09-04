@@ -57,7 +57,7 @@ public class Prison
 		Punish(new Offender(outpoint, DateTimeOffset.UtcNow, new Inherited(ancestors)));
 
 	public void FailedToSignalReadyToSign(OutPoint outPoint, Money value, uint256 roundId) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.FailedToSignalReadyToSign)));
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotSignalReadyToSign)));
 
 	public bool IsBanned(OutPoint outpoint, DateTimeOffset when) =>
 		GetBanTimePeriod(outpoint).Includes(when);
@@ -110,7 +110,7 @@ public class Prison
 				{ Method: RoundDisruptionMethod.DidNotConfirm } => DoSConfiguration.PenaltyFactorForDisruptingConfirmation,
 				{ Method: RoundDisruptionMethod.DidNotSign } => DoSConfiguration.PenaltyFactorForDisruptingSigning,
 				{ Method: RoundDisruptionMethod.DoubleSpent } => DoSConfiguration.PenaltyFactorForDisruptingByDoubleSpending,
-				{ Method: RoundDisruptionMethod.FailedToSignalReadyToSign } => DoSConfiguration.PenaltyFactorForFailingToSignalReadyToSign,
+				{ Method: RoundDisruptionMethod.DidNotSignalReadyToSign } => DoSConfiguration.PenaltyFactorForDisruptingSignalReadyToSign,
 				_ => throw new NotSupportedException("Unknown round disruption method.")
 			});
 
