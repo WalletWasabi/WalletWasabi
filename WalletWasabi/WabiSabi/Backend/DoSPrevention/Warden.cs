@@ -26,6 +26,7 @@ public class Warden : BackgroundService
 			PenaltyFactorForDisruptingConfirmation: (decimal) config.DoSPenaltyFactorForDisruptingConfirmation,
 			PenaltyFactorForDisruptingSigning: (decimal) config.DoSPenaltyFactorForDisruptingSigning,
 			PenaltyFactorForDisruptingByDoubleSpending: (decimal) config.DoSPenaltyFactorForDisruptingByDoubleSpending,
+			PenaltyFactorForFailingToSignalReadyToSign: (decimal) config.DoSPenaltyFactorForFailingToSignalReadyToSign,
 			MinTimeInPrison: config.DoSMinTimeInPrison);
 		Prison = DeserializePrison(PrisonFilePath, dosConfig, coinjoinIdStore, OffendersToSaveChannel.Writer);
 	}
