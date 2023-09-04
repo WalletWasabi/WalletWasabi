@@ -191,17 +191,17 @@
                        Color="{DynamicResource SystemAccentColor}" />
       <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
-       <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
+      <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
       <!-- <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" /> -->
       <!-- TODO: Investigate why below line causes stack overflow exception (after lazy resource loading was added) ? -->
       <!--<StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />-->
 
-          <!-- TODO: Remove already included in ThemeVariants file -->
-          <!--
+      <!-- TODO: Remove already included in ThemeVariants file -->
+      <!--
       <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
       <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
       <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemBaseMediumHighColor}" />
-  -->
+      -->
 
       <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
@@ -425,17 +425,17 @@
                        Color="{StaticResource SystemBaseMediumLowColor}" />
       <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
-       <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
+      <!-- TODO: TileRegionColor is in ThemeVariants file, we can remove it from here -->
       <!-- <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" /> -->
       <!-- TODO: Investigate why below line causes stack overflow exception (after lazy resource loading was added) ? -->
       <!--<StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />-->
 
-          <!-- TODO: Remove already included in ThemeVariants file -->
-          <!--
+      <!-- TODO: Remove already included in ThemeVariants file -->
+      <!--
       <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
       <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
       <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemBaseMediumHighColor}" />
-  -->
+      -->
 
       <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
