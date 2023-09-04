@@ -7,4 +7,5 @@ public record DoSConfiguration(
 	TimeSpan MinTimeInPrison,
 	decimal PenaltyFactorForDisruptingConfirmation,
 	decimal PenaltyFactorForDisruptingSigning,
-	decimal PenaltyFactorForDisruptingByDoubleSpending);
+	decimal PenaltyFactorForDisruptingByDoubleSpending,
+	decimal PenaltyFactorForFailingToSignalReadyToSign);
