@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
@@ -19,8 +18,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-		Network = network;
-
 		MempoolStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "Mempool"), network);
 		ConfirmedStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion), network);
 	}
@@ -28,24 +25,18 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	#region Initializers
 
 	private string WorkFolderPath { get; }
-	private Network Network { get; }
 
 	public TransactionStore MempoolStore { get; }
 	public TransactionStore ConfirmedStore { get; }
-	private object Lock { get; } = new object();
+	private object Lock { get; } = new();
 
-	public async Task InitializeAsync(CancellationToken cancel = default)
+	public Task InitializeAsync()
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		var initTasks = new[]
-		{
-			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
-			ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
-		};
-
-		await Task.WhenAll(initTasks).ConfigureAwait(false);
 		EnsureConsistency();
+
+		return Task.CompletedTask;
 	}
 
 	#endregion Initializers
@@ -169,7 +160,8 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
-	public bool Contains(uint256 hash)
+	/// <remarks>Only used by tests.</remarks>
+	internal bool Contains(uint256 hash)
 	{
 		lock (Lock)
 		{
@@ -190,8 +182,9 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 				if (ConfirmedStore.TryRemove(txHash, out var removedTx))
 				{
 					removedTx.SetUnconfirmed();
-					if (MempoolStore.TryAddOrUpdate(removedTx).isAdded)
+					if (MempoolStore.TryAdd(removedTx))
 					{
+						_ = MempoolStore.TryUpdate(removedTx);
 						reorgedTxs.Add(removedTx);
 					}
 				}

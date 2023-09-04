@@ -232,3 +232,6 @@ hashset
 enum
 usings
 clearnet
+upsert
+txid
+Txids
