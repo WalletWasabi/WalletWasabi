@@ -6,7 +6,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class WalletPrivacyModel : IWalletPrivacyModel
+[AutoInterface]
+public partial class WalletPrivacyModel
 {
 	public WalletPrivacyModel(IWalletModel walletModel, Wallet wallet)
 	{

@@ -22,6 +22,7 @@ public class Prison
 	private DoSConfiguration DoSConfiguration { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
 	private List<Offender> Offenders { get; }
+
 	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
 	private object Lock { get; } = new();
 
@@ -95,7 +96,7 @@ public class Prison
 		}
 
 		List<Offender> offenderHistory;
-		lock (Offenders)
+		lock (Lock)
 		{
 			offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
 		}

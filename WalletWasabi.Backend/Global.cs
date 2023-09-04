@@ -247,10 +247,10 @@ public class Global : IDisposable
 				{
 					var blockNotifier = HostedServices.Get<BlockNotifier>();
 					blockNotifier.OnBlock -= wabiSabiCoordinator.BanDescendant;
+					P2pNode.OnTransactionArrived -= wabiSabiCoordinator.BanDoubleSpenders;
 				}
-				CoinVerifierHttpClient.Dispose();
 
-				P2pNode.OnTransactionArrived -= WabiSabiCoordinator.BanDoubleSpenders;
+				CoinVerifierHttpClient.Dispose();
 
 				if (Coordinator is { } coordinator)
 				{
