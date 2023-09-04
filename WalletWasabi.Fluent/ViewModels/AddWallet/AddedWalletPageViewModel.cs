@@ -33,10 +33,15 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(WalletCreationOptions? options)
 	{
+		if (_wallet is not { })
+		{
+			return;
+		}
+
 		await AutoLoginAsync(options);
 
 		Navigate().Clear();
-		UiContext.Navigate().To(_wallet!);
+		UiContext.Navigate().To(_wallet);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -48,6 +53,11 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 	private async Task AutoLoginAsync(WalletCreationOptions? options)
 	{
+		if (_wallet is not { })
+		{
+			return;
+		}
+
 		var password =
 			options switch
 			{
@@ -59,10 +69,10 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		if (password is { })
 		{
-			var termsAndConditionsAccepted = await TermsAndConditionsViewModel.TryShowAsync(UiContext, _wallet!);
+			var termsAndConditionsAccepted = await TermsAndConditionsViewModel.TryShowAsync(UiContext, _wallet);
 			if (termsAndConditionsAccepted)
 			{
-				await _wallet!.Auth.LoginAsync(password);
+				await _wallet.Auth.LoginAsync(password);
 			}
 		}
 	}
