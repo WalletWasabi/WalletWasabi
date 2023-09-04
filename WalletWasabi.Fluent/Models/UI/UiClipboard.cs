@@ -3,7 +3,8 @@ using Avalonia;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public class UiClipboard : IUiClipboard
+[AutoInterface]
+public partial class UiClipboard
 {
 	public async Task<string?> GetTextAsync()
 	{
