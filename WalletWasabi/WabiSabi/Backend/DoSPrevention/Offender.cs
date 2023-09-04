@@ -8,7 +8,8 @@ public enum RoundDisruptionMethod
 {
 	DidNotConfirm,
 	DidNotSign,
-	DoubleSpent
+	DoubleSpent,
+	FailedToSignalReadyToSign
 }
 
 public abstract record Offense();
