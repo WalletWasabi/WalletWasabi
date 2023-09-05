@@ -460,7 +460,7 @@ public partial class Arena : PeriodicRunner
 		foreach (var alice in alicesToRemove)
 		{
 			// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
-			Prison.Note(alice, round.Id);
+			Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
 		}
 
 		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));

@@ -239,7 +239,7 @@ public class StepTransactionSigningTests
 	}
 
 	[Fact]
-	public async Task AliceWasNotReady()
+	public async Task AliceWasNotReadyAsync()
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
@@ -256,16 +256,17 @@ public class StepTransactionSigningTests
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
+		mockRpc.OnSendRawTransactionAsync = (tx) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		var badOutpoint = aliceClient1.SmartCoin.Coin.Outpoint;
 		var goodOutpoint = aliceClient2.SmartCoin.Coin.Outpoint;
-		round.Alices.Where(x => badOutpoint == x.Coin.Outpoint).Single().ReadyToSign = false;
+		var badAlice = round.Alices.Single(x => badOutpoint == x.Coin.Outpoint);
+		badAlice.ReadyToSign = false;
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -276,7 +277,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.Ended, round.Phase);
 
-		Assert.Contains(badOutpoint, prison.GetInmates().Select(x => x.Utxo));
+		Assert.True(prison.IsBanned(badOutpoint, DateTimeOffset.UtcNow));
 		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
 		var blameRound = Assert.IsType<BlameRound>(onlyRound);
 		Assert.Equal(round.Id, blameRound.BlameOf.Id);

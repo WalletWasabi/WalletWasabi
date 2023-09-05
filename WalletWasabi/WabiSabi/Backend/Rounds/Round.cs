@@ -49,8 +49,6 @@ public class Round
 
 		Id = CalculateHash();
 		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
-
-		FastSigningPhase = false;
 	}
 
 	public uint256 Id { get; }
