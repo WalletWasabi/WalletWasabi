@@ -146,7 +146,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 			IsBusy = false;
 
-			await Navigate().To().CoinJoinProfiles(walletSettings).GetResultAsync();
+			await Navigate().To().CoinJoinProfiles(walletSettings, options).GetResultAsync();
 		}
 	}
 
