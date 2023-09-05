@@ -13,7 +13,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletLoadWorkflow : IWalletLoadWorkflow
+[AutoInterface]
+public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;

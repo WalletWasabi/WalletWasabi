@@ -6,7 +6,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class CoinModel : ReactiveObject, ICoinModel
+[AutoInterface]
+public partial class CoinModel : ReactiveObject
 {
 	[AutoNotify] private PrivacyLevel _privacyLevel;
 
