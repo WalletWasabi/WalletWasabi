@@ -16,7 +16,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletModel : ReactiveObject, IWalletModel
+[AutoInterface]
+public partial class WalletModel : ReactiveObject
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;

@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+using NBitcoin;
+using WalletWasabi.Daemon;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -24,4 +25,9 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool TerminateTorOnExit { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public bool DownloadNewVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public bool PrivacyMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+	public bool CheckIfRestartIsNeeded(PersistentConfig config)
+	{
+		throw new NotImplementedException();
+	}
 }
