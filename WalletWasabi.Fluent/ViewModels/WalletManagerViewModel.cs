@@ -43,6 +43,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 								return;
 							}
 
+							MainViewModel.Instance.NavBar.SelectedWallet = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.Wallet == wallet);
 							wvm.NavigateAndHighlight(e.Transaction.GetHash());
 						}
 

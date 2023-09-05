@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -19,12 +21,15 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string _dateString;
+	[AutoNotify] private string? _dateString;
 	[AutoNotify] private Money? _amount;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private TimeSpan? _confirmationTime;
+	[AutoNotify] private bool _isConfirmationTimeVisible;
+	[AutoNotify] private bool _isLabelsVisible;
 
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -34,15 +39,18 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = transactionSummary.Fee;
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
+		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
 
-	public bool IsFeeVisible { get; set; }
+	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
-	public Money? Fee { get; set; }
+	public bool IsFeeVisible { get; }
+	
+	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -51,6 +59,10 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
+
+		TransactionFeeHelper.TryEstimateConfirmationTime(_walletVm.Wallet, transactionSummary.Transaction, out var estimate);
+		ConfirmationTime = estimate;
+
 		IsConfirmed = Confirmations > 0;
 
 		if (transactionSummary.Amount < Money.Zero)
@@ -65,6 +77,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		}
 
 		BlockHash = transactionSummary.BlockHash?.ToString();
+
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
+		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
 	}
 
 	private void OnNext()

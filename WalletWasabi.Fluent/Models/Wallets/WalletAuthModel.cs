@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
+[AutoInterface]
+public partial class WalletAuthModel : ReactiveObject
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
@@ -26,6 +28,11 @@ public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 		var compatibilityPasswordUsed = compatibilityPassword is { };
 
 		return new(isPasswordCorrect, compatibilityPasswordUsed);
+	}
+
+	public async Task<bool> TryPasswordAsync(string password)
+	{
+		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password, out _));
 	}
 
 	public async Task AcceptTermsAndConditions()

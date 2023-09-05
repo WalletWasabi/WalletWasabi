@@ -1,4 +1,7 @@
 using Avalonia.Media.Imaging;
+using FlashCap;
+using FlashCap.Utilities;
+using FlashCap.Devices;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
@@ -6,13 +9,14 @@ using ZXing.QrCode;
 using SkiaSharp;
 using System.Threading;
 using System.Threading.Tasks;
-using QRackers.Capturing;
-using QRackers.Capturing.Utilities;
-using QRackers.Capturing.Devices;
+using ZXing.SkiaSharp;
+using ZXing.Common;
+using ZXing;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public class QrCodeReader : IQrCodeReader
+[AutoInterface]
+public partial class QrCodeReader
 {
 	private readonly QRCodeReader _decoder = new();
 
@@ -57,6 +61,8 @@ public class QrCodeReader : IQrCodeReader
 	private string Decode(PixelBufferScope scope)
 	{
 		using var bitmap = SKBitmap.Decode(scope.Buffer.ReferImage());
-		return _decoder.DecodeBitmap(bitmap)?.Text ?? "";
+		var source = new SKBitmapLuminanceSource(bitmap);
+		var binary = new BinaryBitmap(new HybridBinarizer(source));
+		return _decoder.decode(binary)?.Text ?? "";
 	}
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -52,6 +53,11 @@ public static partial class TextHelpers
 		return result;
 	}
 
+	public static string ToBtcWithUnit(this Money money)
+	{
+		return money.ToFormattedString() + " BTC";
+	}
+
 	public static string ToFormattedString(this Money money)
 	{
 		const int WholeGroupSize = 3;
@@ -74,6 +80,15 @@ public static partial class TextHelpers
 	}
 
 	public static string ParseLabel(this string text) => ParseLabelRegex().Replace(text, " ").Trim();
+
+	public static string TotalTrim(this string text)
+	{
+		return text
+			.Replace("\r", "")
+			.Replace("\n", "")
+			.Replace("\t", "")
+			.Replace(" ", "");
+	}
 
 	public static string GetPrivacyMask(int repeatCount)
 	{

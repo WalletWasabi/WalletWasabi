@@ -25,12 +25,11 @@
 
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Label="Transaction ID">
-        <c:PreviewItem DataContext="{Binding TransactionId}" CopyableContent="{Binding }">
-          <c:PrivacyContentControl>
-            <TextBlock Text="{Binding }" Classes="monoSpaced" />
-          </c:PrivacyContentControl>
-        </c:PreviewItem>
+                     Label="Transaction ID"
+                     CopyableContent="{Binding TransactionId}">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
       </c:PreviewItem>
 
       <Separator />

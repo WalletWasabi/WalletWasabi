@@ -25,6 +25,7 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -66,7 +67,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balances = new WalletModel(_wallet).Balances;
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		Balances = WalletRepository.CreateWalletModel(_wallet).Balances;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -272,22 +274,22 @@ public partial class SendViewModel : RoutableViewModel
 
 		bool result = false;
 
-		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
+		if (AddressStringParser.TryParse(text, _wallet.Network, out Bip21UriParser.Result? parserResult))
 		{
 			result = true;
 
-			_parsedLabel = url.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
+			_parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
 
-			PayJoinEndPoint = url.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
+			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
-			if (url.Address is { })
+			if (parserResult.Address is { })
 			{
-				To = url.Address.ToString();
+				To = parserResult.Address.ToString();
 			}
 
-			if (url.Amount is { })
+			if (parserResult.Amount is { })
 			{
-				AmountBtc = url.Amount.ToDecimal(MoneyUnit.BTC);
+				AmountBtc = parserResult.Amount.ToDecimal(MoneyUnit.BTC);
 				IsFixedAmount = true;
 			}
 			else

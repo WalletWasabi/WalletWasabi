@@ -20,6 +20,7 @@ public class CoordinatorRoundTests
 			Blocks = 1,
 			FeeRate = new FeeRate(10m)
 		});
+		rpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 
 		var roundConfig = new CoordinatorRoundConfig();
 		var utxoReferee = new UtxoReferee(Network.Main, "./", rpc, roundConfig);
@@ -35,7 +36,7 @@ public class CoordinatorRoundTests
 		using var key = new Key();
 		tx.Outputs.Add(Money.Coins(1.9995m), key.PubKey.ScriptPubKey);
 
-		// Under normal circunstances
+		// Under normal circumstances
 		{
 			rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 			{
@@ -77,6 +78,7 @@ public class CoordinatorRoundTests
 
 		var rpc = new MockRpcClient();
 		rpc.Network = Network.Main;
+		rpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
 		rpc.OnEstimateSmartFeeAsync = (confTarget, estMode) => Task.FromResult(new EstimateSmartFeeResponse
 		{
 			Blocks = 1,

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using NBitcoin.Policy;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
@@ -30,7 +31,8 @@ public record RoundParameters
 		TimeSpan outputRegistrationTimeout,
 		TimeSpan transactionSigningTimeout,
 		TimeSpan blameInputRegistrationTimeout,
-		string coordinationIdentifier)
+		string coordinationIdentifier,
+		bool delayTransactionSigning)
 	{
 		Network = network;
 		MiningFeeRate = miningFeeRate;
@@ -45,13 +47,14 @@ public record RoundParameters
 		StandardInputRegistrationTimeout = standardInputRegistrationTimeout;
 		ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 		OutputRegistrationTimeout = outputRegistrationTimeout;
-		TransactionSigningTimeout = transactionSigningTimeout;
+		TransactionSigningTimeout = transactionSigningTimeout + TimeSpan.FromSeconds(delayTransactionSigning ? 50 : 0);
 		BlameInputRegistrationTimeout = blameInputRegistrationTimeout;
 
 		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
 		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
 		MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
 		CoordinationIdentifier = coordinationIdentifier;
+		DelayTransactionSigning = delayTransactionSigning;
 	}
 
 	public Network Network { get; init; }
@@ -78,6 +81,8 @@ public record RoundParameters
 	public int MaxVsizeAllocationPerAlice { get; init; }
 
 	public string CoordinationIdentifier { get; init; }
+
+	public bool DelayTransactionSigning { get; }
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
@@ -115,7 +120,8 @@ public record RoundParameters
 			wabiSabiConfig.OutputRegistrationTimeout,
 			wabiSabiConfig.TransactionSigningTimeout,
 			wabiSabiConfig.BlameInputRegistrationTimeout,
-			wabiSabiConfig.CoordinatorIdentifier);
+			wabiSabiConfig.CoordinatorIdentifier,
+			wabiSabiConfig.DelayTransactionSigning);
 	}
 
 	public Transaction CreateTransaction()
@@ -129,17 +135,26 @@ public record RoundParameters
 		return Math.Max(minEconomicalOutput, AllowedOutputAmounts.Min);
 	}
 
-	public Money CalculateSmallestReasonableEffectiveDenomination()
-		=> CalculateSmallestReasonableEffectiveDenomination(CalculateMinReasonableOutputAmount(), AllowedOutputAmounts.Max, MiningFeeRate, MaxVsizeInputOutputPairScriptType);
+	public Money CalculateSmallestReasonableEffectiveDenomination(WasabiRandom? random = null)
+	{
+		random ??= SecureRandom.Instance;
+		return CalculateSmallestReasonableEffectiveDenomination(CalculateMinReasonableOutputAmount(), AllowedOutputAmounts.Max, MiningFeeRate, MaxVsizeInputOutputPairScriptType, random);
+	}
 
 	/// <returns>Smallest effective denom that's larger than min reasonable output amount. </returns>
-	public static Money CalculateSmallestReasonableEffectiveDenomination(Money minReasonableOutputAmount, Money maxAllowedOutputAmount, FeeRate feeRate, ScriptType maxVsizeInputOutputPairScriptType)
+	public static Money CalculateSmallestReasonableEffectiveDenomination(
+		Money minReasonableOutputAmount,
+		Money maxAllowedOutputAmount,
+		FeeRate feeRate,
+		ScriptType maxVsizeInputOutputPairScriptType,
+		WasabiRandom random)
 	{
 		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
 				minReasonableOutputAmount,
 				maxAllowedOutputAmount,
 				feeRate,
-				new List<ScriptType>() { maxVsizeInputOutputPairScriptType })
+				new List<ScriptType>() { maxVsizeInputOutputPairScriptType },
+				random)
 			.Min(x => x.EffectiveCost);
 
 		return smallestEffectiveDenom is null
@@ -148,5 +163,5 @@ public record RoundParameters
 	}
 
 	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
-	public MoneyRange CalculateReasonableOutputAmountRange() => new(CalculateSmallestReasonableEffectiveDenomination(), AllowedOutputAmounts.Max);
+	public MoneyRange CalculateReasonableOutputAmountRange(WasabiRandom random) => new(CalculateSmallestReasonableEffectiveDenomination(random), AllowedOutputAmounts.Max);
 }

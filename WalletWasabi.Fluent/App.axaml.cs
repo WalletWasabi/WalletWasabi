@@ -5,7 +5,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.ClientConfig;
+using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent;
@@ -39,6 +42,7 @@ public class App : Application
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
 				var uiContext = CreateUiContext();
+				UiContext.Default = uiContext;
 				_applicationStateManager =
 					new ApplicationStateManager(desktop, uiContext, _startInBg);
 
@@ -59,11 +63,43 @@ public class App : Application
 		base.OnFrameworkInitializationCompleted();
 	}
 
+	private static IWalletRepository CreateWalletRepository()
+	{
+		return new WalletRepository();
+	}
+
+	private static IHardwareWalletInterface CreateHardwareWalletInterface()
+	{
+		return new HardwareWalletInterface();
+	}
+
+	private static IFileSystem CreateFileSystem()
+	{
+		return new FileSystemModel();
+	}
+
+	private static IClientConfig CreateConfig()
+	{
+		return new ClientConfigModel();
+	}
+
+	private static IApplicationSettings CreateApplicationSettings()
+	{
+		return new ApplicationSettings(Services.PersistentConfig, Services.UiConfig);
+	}
+
 	private UiContext CreateUiContext()
 	{
-		// TODO: This method is really the place where UiContext should be instantiated, as opposed to using a static singleton.
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to recieve UiContext as a constructor parameter, this static singleton property can be removed.
-		return UiContext.Default;
+		return new UiContext(
+			new QrCodeGenerator(),
+			new QrCodeReader(),
+			new UiClipboard(),
+			CreateWalletRepository(),
+			CreateHardwareWalletInterface(),
+			CreateFileSystem(),
+			CreateConfig(),
+			CreateApplicationSettings());
 	}
 }

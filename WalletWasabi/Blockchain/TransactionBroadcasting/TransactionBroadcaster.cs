@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
 public class TransactionBroadcaster
 {
-	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, WalletManager walletManager)
+	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory, WalletManager walletManager)
 	{
 		Network = Guard.NotNull(nameof(network), network);
 		BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
@@ -33,6 +34,7 @@ public class TransactionBroadcaster
 	public NodesGroup? Nodes { get; private set; }
 	public IRPCClient? RpcClient { get; private set; }
 	public WalletManager WalletManager { get; }
+	private WasabiRandom Random { get; } = InsecureRandom.Instance;
 
 	public void Initialize(NodesGroup nodes, IRPCClient? rpc)
 	{
@@ -134,6 +136,8 @@ public class TransactionBroadcaster
 			transaction.SetUnconfirmed();
 		}
 
+		BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, "N/A");
+
 		WalletManager.Process(transaction);
 	}
 
@@ -155,7 +159,7 @@ public class TransactionBroadcaster
 				throw new InvalidOperationException($"Nodes are not yet initialized.");
 			}
 
-			Node? node = Nodes.ConnectedNodes.RandomElement();
+			Node? node = Nodes.ConnectedNodes.RandomElement(Random);
 			while (node is null || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
 			{
 				// As long as we are connected to at least 4 nodes, we can always try again.
@@ -165,7 +169,7 @@ public class TransactionBroadcaster
 					throw new InvalidOperationException("We are not connected to enough nodes.");
 				}
 				await Task.Delay(100).ConfigureAwait(false);
-				node = Nodes.ConnectedNodes.RandomElement();
+				node = Nodes.ConnectedNodes.RandomElement(Random);
 			}
 			await BroadcastTransactionToNetworkNodeAsync(transaction, node).ConfigureAwait(false);
 		}

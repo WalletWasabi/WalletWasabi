@@ -10,7 +10,7 @@ insert_final_newline = true
 # Formatting - remove any whitespace characters preceding newline characters
 trim_trailing_whitespace = true
 
-[*.{cs,csproj}]
+[*.{cs,csproj,props}]
 
 # use hard tabs for indentation
 indent_style = tab
@@ -296,3 +296,6 @@ dotnet_diagnostic.CA1827.severity = warning
 
 # CA1822: This complains to make functions static. Static is evil. Don't let it complain.
 dotnet_diagnostic.CA1822.severity = none
+
+# CA1868: Unnecessary call to Set.Contains(item)
+dotnet_diagnostic.CA1868.severity = warning
