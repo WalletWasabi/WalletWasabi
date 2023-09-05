@@ -65,15 +65,14 @@
                 Classes.CoinjoinGroup="{Binding IsCoinjoinGroupDisplayed}"
                 Classes.CPFP="{Binding IsCPFPDisplayed}">
         <PathIcon.Styles>
-          <Style Selector="PathIcon.NormalTransaction">
-            <Setter Property="ToolTip.Tip" Value="Transaction" />
-          </Style>
           <Style Selector="PathIcon.IncomingTransaction">
             <Setter Property="Data" Value="{StaticResource incoming_arrow}" />
+            <Setter Property="Height" Value="13" />
             <Setter Property="ToolTip.Tip" Value="Incoming" />
           </Style>
           <Style Selector="PathIcon.OutgoingTransaction">
             <Setter Property="Data" Value="{StaticResource outgoing_arrow}" />
+            <Setter Property="Height" Value="13" />
             <Setter Property="ToolTip.Tip" Value="Outgoing" />
           </Style>
           <Style Selector="PathIcon.SelfTransfer">
