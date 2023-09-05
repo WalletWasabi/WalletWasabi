@@ -38,6 +38,15 @@ public class PrisonTests
 		Assert.Equal(RoundDisruptionMethod.DidNotConfirm, disruptionNotConfirming.Method);
 		Assert.Equal(Money.Coins(1m), disruptionNotConfirming.Value);
 
+		// Fail to signal ready to sign
+		prison.FailedToSignalReadyToSign(outpoint, Money.Coins(1m), roundId);
+		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
+		var disruptionNotSignallingReadyToSign = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
+		Assert.Equal(outpoint, offenderToSave.OutPoint);
+		Assert.Equal(roundId, disruptionNotSignallingReadyToSign.DisruptedRoundId);
+		Assert.Equal(RoundDisruptionMethod.DidNotSignalReadyToSign, disruptionNotSignallingReadyToSign.Method);
+		Assert.Equal(Money.Coins(1m), disruptionNotSignallingReadyToSign.Value);
+
 		// Fail to sign
 		prison.FailedToSign(outpoint, Money.Coins(2m), roundId);
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
