@@ -20,6 +20,17 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public bool IsLegalRequired => Services.LegalChecker.TryGetNewLegalDocs(out _);
 
+	public async Task LoginAsync(string password)
+	{
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var _));
+		if (!isPasswordCorrect)
+		{
+			throw new InvalidOperationException($"Incorrect password.");
+		}
+
+		CompleteLogin();
+	}
+
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
 		string? compatibilityPassword = null;
