@@ -38,6 +38,8 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 			return;
 		}
 
+		IsBusy = true;
+
 		await AutoLoginAsync(options);
 
 		Navigate().Clear();
