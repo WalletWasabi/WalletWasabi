@@ -87,9 +87,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCPFPd { get; set; }
 
-	public bool IsIncomingTransactionDisplayed => IsConfirmed && IncomingAmount != null && IncomingAmount > Money.Zero;
-	public bool IsOutgoingTransactionDisplayed => IsConfirmed && OutgoingAmount != null && OutgoingAmount > Money.Zero;
+	public bool IsIncomingTransactionDisplayed => IsConfirmed && IncomingAmount > Money.Zero;
+	
+	public bool IsOutgoingTransactionDisplayed => IsConfirmed && OutgoingAmount > Money.Zero;
+
 	public bool IsSelfTransferTransaction => OutgoingAmount == Money.Zero;
+
 	public bool IsConfirmedDisplayed => IsConfirmed;
 
 	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
