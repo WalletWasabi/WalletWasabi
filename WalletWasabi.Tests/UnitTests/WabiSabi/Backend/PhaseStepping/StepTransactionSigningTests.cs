@@ -41,9 +41,6 @@ public class StepTransactionSigningTests
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
-
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -79,9 +76,6 @@ public class StepTransactionSigningTests
 		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
-
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -126,9 +120,6 @@ public class StepTransactionSigningTests
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
-
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -176,9 +167,6 @@ public class StepTransactionSigningTests
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
-		await aliceClient1.ReadyToSignAsync(token);
-		await aliceClient2.ReadyToSignAsync(token);
-
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -206,8 +194,6 @@ public class StepTransactionSigningTests
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 1,
 			TransactionSigningTimeout = TimeSpan.Zero,
-			OutputRegistrationTimeout = TimeSpan.Zero,
-			FailFastTransactionSigningTimeout = TimeSpan.Zero,
 			FailFastOutputRegistrationTimeout = TimeSpan.Zero,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
@@ -224,6 +210,7 @@ public class StepTransactionSigningTests
 		// Make sure not all alices signed.
 		var alice3 = WabiSabiFactory.CreateAlice(round);
 		alice3.ConfirmedConnection = true;
+		alice3.ReadyToSign = true;
 		round.Alices.Add(alice3);
 		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin, alice3.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -246,6 +233,56 @@ public class StepTransactionSigningTests
 		var whitelist = blameRound.BlameWhitelist;
 		Assert.Contains(aliceClient1.SmartCoin.Outpoint, whitelist);
 		Assert.Contains(aliceClient2.SmartCoin.Outpoint, whitelist);
+		Assert.DoesNotContain(badOutpoint, whitelist);
+
+		await arena.StopAsync(token);
+	}
+
+	[Fact]
+	public async Task AliceWasNotReadyAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			TransactionSigningTimeout = TimeSpan.Zero,
+			OutputRegistrationTimeout = TimeSpan.Zero,
+			FailFastTransactionSigningTimeout = TimeSpan.Zero,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
+		};
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		mockRpc.OnSendRawTransactionAsync = (tx) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
+
+		Prison prison = WabiSabiFactory.CreatePrison();
+		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
+
+		var badOutpoint = aliceClient1.SmartCoin.Coin.Outpoint;
+		var goodOutpoint = aliceClient2.SmartCoin.Coin.Outpoint;
+		var badAlice = round.Alices.Single(x => badOutpoint == x.Coin.Outpoint);
+		badAlice.ReadyToSign = false;
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.Ended, round.Phase);
+
+		Assert.True(prison.IsBanned(badOutpoint, DateTimeOffset.UtcNow));
+		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
+		var blameRound = Assert.IsType<BlameRound>(onlyRound);
+		Assert.Equal(round.Id, blameRound.BlameOf.Id);
+		var whitelist = blameRound.BlameWhitelist;
+		Assert.Contains(goodOutpoint, whitelist);
 		Assert.DoesNotContain(badOutpoint, whitelist);
 
 		await arena.StopAsync(token);
@@ -295,6 +332,9 @@ public class StepTransactionSigningTests
 			aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			token).ConfigureAwait(false);
+
+		await aliceClient1.ReadyToSignAsync(token);
+		await aliceClient2.ReadyToSignAsync(token);
 
 		await roundStateUpdater.StopAsync(token);
 		return (round, aliceClient1, aliceClient2);
