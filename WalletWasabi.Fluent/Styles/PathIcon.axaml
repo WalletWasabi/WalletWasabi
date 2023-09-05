@@ -1,4 +1,10 @@
 <Styles xmlns="https://github.com/avaloniaui">
+
+  <!-- Workaround for Foreground not being applied in light theme -->
+  <Style Selector="PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+  </Style>
+
   <Style Selector="PathIcon.new">
     <Setter Property="Template">
       <ControlTemplate>
