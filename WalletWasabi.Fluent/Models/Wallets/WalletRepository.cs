@@ -18,7 +18,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletRepository : ReactiveObject, IWalletRepository
+[AutoInterface]
+public partial class WalletRepository : ReactiveObject
 {
 	private static Dictionary<string, WalletModel> WalletDictionary = new();
 
