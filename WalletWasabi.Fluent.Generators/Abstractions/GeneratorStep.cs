@@ -24,7 +24,7 @@ internal abstract class GeneratorStep
 
 	protected SyntaxTree AddSource(string name, string source)
 	{
-		var syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
+		var syntaxTree = SyntaxFactory.ParseSyntaxTree(source, Context.Context.ParseOptions);
 		Context.Context.AddSource(name, SourceText.From(source, Encoding.UTF8));
 
 		lock (_lock)
