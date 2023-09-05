@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -24,22 +25,35 @@ public static class AvaloniaExtensions
 			return;
 		}
 
-		if (!window.IsActive)
+		if (OperatingSystem.IsMacOS())
 		{
-			var position = window.Position;
 			if (window.IsVisible)
 			{
 				window.Hide();
 			}
 
-			window.Position = position;
 			window.Show();
 		}
 
-		window.Topmost = true;
-		if (window.Topmost)
+		if (OperatingSystem.IsLinux())
 		{
-			window.Topmost = false;
+			if (!window.IsActive)
+			{
+				var position = window.Position;
+				if (window.IsVisible)
+				{
+					window.Hide();
+				}
+
+				window.Position = position;
+				window.Show();
+			}
+		}
+
+		if (OperatingSystem.IsWindows())
+		{
+			window.Topmost = !window.Topmost;
+			window.Topmost = !window.Topmost;
 		}
 	}
 }
