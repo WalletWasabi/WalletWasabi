@@ -203,8 +203,6 @@
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:HistoryItemTypeClassBehavior />
-                <!-- TODO: The Command binding doesn't work in Avalonia 0.10.x -->
-                <!-- <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand, Mode=OneWay}" /> -->
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
