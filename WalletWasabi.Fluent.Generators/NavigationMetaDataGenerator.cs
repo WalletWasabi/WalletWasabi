@@ -174,7 +174,10 @@ public partial class {classSymbol.ToDisplayString(format)}{implementedInterfaces
 			}
 		}
 
-		source.Append($@"}}");
+		source.Append(
+			"""
+			}
+			""");
 
 		return source.ToString();
 	}
