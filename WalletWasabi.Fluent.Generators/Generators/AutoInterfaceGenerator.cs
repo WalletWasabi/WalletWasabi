@@ -59,13 +59,13 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					: "{ get; }";
 
 				var type = property.Type.SimplifyType(namespaces);
-				properties.Add($"    {type} {property.Name} {accessors}");
+				properties.Add($"\t{type} {property.Name} {accessors}");
 			}
 			else if (member is IMethodSymbol method && method.MethodKind == MethodKind.Ordinary)
 			{
 				var returnType = method.ReturnType.SimplifyType(namespaces);
 
-				var signature = $"    ";
+				var signature = "\t";
 
 				signature += returnType;
 
