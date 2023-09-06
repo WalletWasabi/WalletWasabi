@@ -115,12 +115,8 @@
               <Panel>
                 <!-- "transparent" Border used for MouseMove -->
                 <Border Background="White" Margin="{Binding NegativeMargin}" Opacity="0.0001" />
-                <!-- TODO:
-                         Items="{TemplateBinding Items}"
-                         ItemTemplate="{TemplateBinding ItemTemplate}"
-                -->
                 <ItemsPresenter Name="PART_ItemsPresenter"
-                         ItemsPanel="{TemplateBinding ItemsPanel}" />
+                                ItemsPanel="{TemplateBinding ItemsPanel}" />
               </Panel>
             </ControlTemplate>
           </ListBox.Template>
