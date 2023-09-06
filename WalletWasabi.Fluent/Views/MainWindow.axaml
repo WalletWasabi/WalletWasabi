@@ -21,7 +21,8 @@
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}"
         Focusable="{Binding SearchBar.IsSearchListVisible}"
-        Icon="/Assets/WasabiLogo.ico">
+        Icon="/Assets/WasabiLogo.ico"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
   <Window.Styles>
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
