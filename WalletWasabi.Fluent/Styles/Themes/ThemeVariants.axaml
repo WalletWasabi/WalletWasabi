@@ -185,7 +185,7 @@
       <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="{StaticResource SystemAccentColor}" />
       <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
-          <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
+      <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
       <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush"
                        Opacity="0.25"
                        Color="{DynamicResource SystemAccentColor}" />
@@ -419,7 +419,7 @@
       <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="{StaticResource SystemAccentColor}" />
       <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
       <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
-          <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
+      <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
       <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
                        Opacity="0.25"
                        Color="{StaticResource SystemBaseMediumLowColor}" />
