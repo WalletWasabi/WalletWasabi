@@ -90,16 +90,27 @@ public class PrivacySuggestionsModel
 
 	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
-		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
-		var labelsArray = new LabelsArray(labels);
-
-		if (labelsArray.Any())
+		var pockets = _wallet.GetPockets();
+		var spentCoins = transactionResult.SpentCoins;
+		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin))).ToList();
+		if (usedPockets.Count > 1)
 		{
-			yield return new InterlinksLabelsWarning(labelsArray);
+			var pocketLabels = usedPockets.SelectMany(x => x.Labels).Distinct().ToArray();
+			yield return new InterlinksLabelsWarning(new LabelsArray(pocketLabels));
+		}
+		else
+		{
+			var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
+			var labelsArray = new LabelsArray(labels);
 
-			if (info.IsOtherPocketSelectionPossible)
+			if (labelsArray.Any())
 			{
-				yield return new LabelManagementSuggestion();
+				yield return new TransactionKnownAsYoursBy(labelsArray);
+
+				if (info.IsOtherPocketSelectionPossible)
+				{
+					yield return new LabelManagementSuggestion();
+				}
 			}
 		}
 	}
