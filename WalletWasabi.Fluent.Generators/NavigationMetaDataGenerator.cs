@@ -126,10 +126,11 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 							  $"{namedArgument.Value.ToCSharpString()}{(i < length - 1 ? "," : "")}");
 		}
 
-		source.Append("""
-		                  };
+		source.Append(
+			"""
+				};
 
-		              """);
+			""");
 
 		source.AppendLine(
 			"""
