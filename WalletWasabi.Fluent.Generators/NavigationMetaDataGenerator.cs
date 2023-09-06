@@ -140,7 +140,7 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 			""");
 		source.AppendLine(
 			"""
-				static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);
+				public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);
 			""");
 
 		var routeableClass = compilation.GetTypeByMetadataName(RoutableViewModelDisplayString);
