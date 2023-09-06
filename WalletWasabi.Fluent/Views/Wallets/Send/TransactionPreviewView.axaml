@@ -106,9 +106,13 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <!-- TODO: IsVirtualized="False" -->
     <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
+      <Carousel.ItemsPanel>
+        <ItemsPanelTemplate>
+          <Panel />
+        </ItemsPanelTemplate>
+      </Carousel.ItemsPanel>
       <Carousel.PageTransition>
         <CrossFade Duration="0.75" />
       </Carousel.PageTransition>
