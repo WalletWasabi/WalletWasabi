@@ -73,11 +73,8 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		{
 			var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
 			scaleAnimation.Target = "Scale";
-			// TODO: Workaround for https://github.com/AvaloniaUI/Avalonia/issues/11305, fix https://github.com/AvaloniaUI/Avalonia/pull/11304
-			// scaleAnimation.InsertExpressionKeyFrame(0f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
-			// scaleAnimation.InsertExpressionKeyFrame(1f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
-			scaleAnimation.InsertExpressionKeyFrame(0f, "Vector3(0.96 + (1.0 - 0.96) * this.Target.Opacity, 0.96 + (1.0 - 0.96) * this.Target.Opacity, 0)", fluentEasing);
-			scaleAnimation.InsertExpressionKeyFrame(1f, "Vector3(0.96 + (1.0 - 0.96) * this.Target.Opacity, 0.96 + (1.0 - 0.96) * this.Target.Opacity, 0)", fluentEasing);
+			scaleAnimation.InsertExpressionKeyFrame(0f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
+			scaleAnimation.InsertExpressionKeyFrame(1f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
 			scaleAnimation.Duration = scaleDuration;
 			scaleAnimation.Direction = PlaybackDirection.Normal;
 
