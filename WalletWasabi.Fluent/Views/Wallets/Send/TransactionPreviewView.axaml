@@ -106,7 +106,6 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <!-- TODO: IsVirtualized="False" -->
     <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>

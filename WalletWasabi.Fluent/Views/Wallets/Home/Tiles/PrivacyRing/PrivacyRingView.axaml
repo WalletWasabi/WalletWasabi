@@ -142,7 +142,6 @@
           </ListBox.ItemTemplate>
         </ListBox>
 
-        <!-- TODO: IsVirtualized="False" -->
         <Carousel ItemsSource="{Binding PreviewItems}"
                   SelectedItem="{Binding SelectedItem, Mode=OneWay}"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
