@@ -108,11 +108,17 @@ public sealed class StaticViewLocatorAttribute : Attribute
 			var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
 			if (classNameViewSymbol is null || classNameViewSymbol.BaseType?.Equals(userControlViewSymbol, SymbolEqualityComparer.Default) != true)
 			{
-				source.AppendLine($@"\t\t[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
+				source.AppendLine(
+					$$"""
+							[typeof({{classNameViewModel}})] = () => new TextBlock() { Text = {{("\"Not Found: " + classNameView + "\"")}} },
+					""");
 			}
 			else
 			{
-				source.AppendLine($@"\t\t[typeof({classNameViewModel})] = () => new {classNameView}(),");
+				source.AppendLine(
+					$$"""
+							[typeof({{classNameViewModel}})] = () => new {{classNameView}}(),
+					""");
 			}
 		}
 
