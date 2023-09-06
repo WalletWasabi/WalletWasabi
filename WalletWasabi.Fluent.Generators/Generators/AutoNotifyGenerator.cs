@@ -89,10 +89,10 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 #nullable enable
 using ReactiveUI;
 
-namespace {namespaceName}
-{{
-    public partial class {classSymbol.ToDisplayString(format)} : {notifySymbol.ToDisplayString()}
-    {{");
+namespace {namespaceName};
+
+public partial class {classSymbol.ToDisplayString(format)} : {notifySymbol.ToDisplayString()}
+{{");
 		}
 		else
 		{
@@ -100,10 +100,10 @@ namespace {namespaceName}
 #nullable enable
 using ReactiveUI;
 
-namespace {namespaceName}
-{{
-    public partial class {classSymbol.ToDisplayString(format)}
-    {{");
+namespace {namespaceName};
+
+public partial class {classSymbol.ToDisplayString(format)}
+{{");
 		}
 
 		foreach (IFieldSymbol fieldSymbol in fields)
@@ -112,7 +112,6 @@ namespace {namespaceName}
 		}
 
 		source.Append($@"
-    }}
 }}");
 
 		return source.ToString();
@@ -137,19 +136,19 @@ namespace {namespaceName}
 		if (setterModifier is null)
 		{
 			source.Append($@"
-        public {fieldType} {propertyName}
-        {{
-            get => {fieldName};
-        }}");
+    public {fieldType} {propertyName}
+    {{
+        get => {fieldName};
+    }}");
 		}
 		else
 		{
 			source.Append($@"
-        public {fieldType} {propertyName}
-        {{
-            get => {fieldName};
-            {setterModifier}set => this.RaiseAndSetIfChanged(ref {fieldName}, value);
-        }}");
+    public {fieldType} {propertyName}
+    {{
+        get => {fieldName};
+        {setterModifier}set => this.RaiseAndSetIfChanged(ref {fieldName}, value);
+    }}");
 		}
 
 		static string? ChooseSetterModifier(TypedConstant overridenSetterModifierOpt)

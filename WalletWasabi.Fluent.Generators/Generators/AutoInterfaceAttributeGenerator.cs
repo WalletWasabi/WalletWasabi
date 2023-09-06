@@ -8,14 +8,13 @@ internal class AutoInterfaceAttributeGenerator: StaticFileGenerator
 #nullable enable
 using System;
 
-namespace WalletWasabi.Fluent
+namespace WalletWasabi.Fluent;
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+sealed class AutoInterfaceAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed class AutoInterfaceAttribute : Attribute
+    public AutoInterfaceAttribute()
     {
-        public AutoInterfaceAttribute()
-        {
-        }
     }
 }";
 
