@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Models.FileSystem;
 
-namespace WalletWasabi.Fluent.Models.FileSystem;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UiContext;
 
 public class NullFileSystem : IFileSystem
 {
