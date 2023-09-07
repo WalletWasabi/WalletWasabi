@@ -118,10 +118,11 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 			ProcessField(source, fieldSymbol, attributeSymbol);
 		}
 
-		source.Append("""
+		source.Append(
+			"""
 
-		              }
-		              """);
+			}
+			""");
 
 		return source.ToString();
 	}
