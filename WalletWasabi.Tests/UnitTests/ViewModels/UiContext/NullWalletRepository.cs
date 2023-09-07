@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels.UiContext;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullWalletRepository : IWalletRepository
 {

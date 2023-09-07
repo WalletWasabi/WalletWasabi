@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.UI;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels.UiContext;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullClipboard : IUiClipboard
 {
