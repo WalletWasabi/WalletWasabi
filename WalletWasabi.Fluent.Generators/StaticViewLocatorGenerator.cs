@@ -92,6 +92,7 @@ public class StaticViewLocatorGenerator : ISourceGenerator
 			public partial class {{classNameLocator}}
 			{
 			""");
+
 		source.Append(
 			"""
 
