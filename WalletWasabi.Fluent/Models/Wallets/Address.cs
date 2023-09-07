@@ -39,8 +39,7 @@ public class Address : ReactiveObject, IAddress
 
 	public void Hide()
 	{
-		// Code commented out due to https://github.com/zkSNACKs/WalletWasabi/issues/10177
-		// KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
+		HdPubKey.SetLabel(LabelsArray.Empty, KeyManager);
 		this.RaisePropertyChanged(nameof(IsUsed));
 	}
 
