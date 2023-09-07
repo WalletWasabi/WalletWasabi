@@ -145,25 +145,25 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 		if (setterModifier is null)
 		{
 			source.Append(
-$$"""
+				$$"""
 
-	public {{fieldType}} {{propertyName}}
-	{
-		get => {{fieldName}};
-	}
-""");
+					public {{fieldType}} {{propertyName}}
+					{
+						get => {{fieldName}};
+					}
+				""");
 		}
 		else
 		{
 			source.Append(
-$$"""
+				$$"""
 
-	public {{fieldType}} {{propertyName}}
-	{
-		get => {{fieldName}};
-		{{setterModifier}}set => this.RaiseAndSetIfChanged(ref {{fieldName}}, value);
-	}
-""");
+					public {{fieldType}} {{propertyName}}
+					{
+						get => {{fieldName}};
+						{{setterModifier}}set => this.RaiseAndSetIfChanged(ref {{fieldName}}, value);
+					}
+				""");
 		}
 
 		static string? ChooseSetterModifier(TypedConstant overridenSetterModifierOpt)
