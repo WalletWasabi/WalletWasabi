@@ -26,8 +26,7 @@ public partial class WalletModel : ReactiveObject
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
-	private string _name;
-	private string _path;
+	private readonly string _path;
 
 	public WalletModel(Wallet wallet)
 	{
