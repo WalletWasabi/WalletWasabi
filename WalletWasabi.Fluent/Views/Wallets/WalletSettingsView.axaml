@@ -5,6 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:DataType="wallets:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
@@ -14,6 +15,18 @@
                  EnableBack="{Binding EnableBack}">
 
     <StackPanel Spacing="20" Margin="0 30">
+
+      <StackPanel Classes="settingsLayout">
+        <DockPanel>
+          <TextBlock Text="Wallet name" />
+          <TextBox MaxLength="50" Text="{Binding WalletName, Mode=TwoWay}" Watermark="Type in a wallet name">
+            <Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+              <behaviors:TextBoxSelectAllTextBehavior />
+            </Interaction.Behaviors>
+          </TextBox>
+        </DockPanel>
+      </StackPanel>
 
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">

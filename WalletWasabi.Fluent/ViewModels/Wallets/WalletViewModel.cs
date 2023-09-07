@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -27,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	private readonly WalletPageViewModel _parent;
+	private string _title;
 
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
@@ -35,6 +34,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private string _walletName;
 
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private bool _isLoading;
@@ -48,8 +48,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Wallet = parent.Wallet;
 		WalletModel = parent.WalletModel;
 		UiContext = uiContext;
-
-		_title = WalletName;
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
@@ -139,18 +137,24 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
+
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.WalletName);
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
 
 	public WalletState WalletState => Wallet.State;
 
-	private string _title;
-
 	// TODO: Rename this to "Wallet" after this ViewModel is decoupled and the current "Wallet" property is removed.
+
 	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
 
-	public string WalletName => Wallet.WalletName;
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+	}
 
 	public bool IsLoggedIn => Wallet.IsLoggedIn;
 
@@ -219,12 +223,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		return parent.Wallet.KeyManager.IsHardwareWallet
 			? new HardwareWalletViewModel(uiContext, parent)
 			: new WalletViewModel(uiContext, parent);
-	}
-
-	public override string Title
-	{
-		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
 	public void SelectTransaction(uint256 txid)

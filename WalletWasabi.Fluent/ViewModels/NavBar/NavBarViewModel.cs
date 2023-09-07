@@ -62,7 +62,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 			})
 			.Subscribe();
 
-		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName);
+		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletId);
 	}
 
 	public async Task InitialiseAsync()

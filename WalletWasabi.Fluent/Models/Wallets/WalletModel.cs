@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Avalonia.Logging;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -13,6 +17,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
+using Logger = WalletWasabi.Logging.Logger;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -21,6 +26,8 @@ public partial class WalletModel : ReactiveObject
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
+	private string _name;
+	private string _path;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -80,6 +87,8 @@ public partial class WalletModel : ReactiveObject
 		State.Where(x => x == WalletState.Started)
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
+
+		_path = $"WalletMetadata/{Wallet.WalletName}.json";
 	}
 
 	internal Wallet Wallet { get; }
@@ -100,7 +109,56 @@ public partial class WalletModel : ReactiveObject
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
-	public string Name => Wallet.WalletName;
+	public string Name
+	{
+		get => GetName();
+		set
+		{
+			SetName(value);
+			this.RaisePropertyChanged();
+		}
+	}
+
+	public string Id => Wallet.WalletName;
+
+	private void SetName(string name)
+	{
+		try
+		{
+			var directoryName = Path.GetDirectoryName(_path);
+
+			if (!Directory.Exists(directoryName))
+			{
+				Directory.CreateDirectory(directoryName!);
+			}
+
+			using var fileStream = File.Create(_path);
+			JsonSerializer.Serialize(fileStream, new WalletMetadata() { Name = name });
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning($"Cannot save Wallet Name {Wallet}: {e.Message}");
+		}
+	}
+
+	private string GetName()
+	{
+		if (!File.Exists(_path))
+		{
+			return Wallet.WalletName;
+		}
+
+		try
+		{
+			using var fileStream = File.OpenRead(_path);
+			var walletMetadata = JsonSerializer.Deserialize<WalletMetadata>(fileStream);
+			return walletMetadata.Name;
+		}
+		catch
+		{
+			return Wallet.WalletName;
+		}
+	}
 
 	public IObservable<WalletState> State { get; }
 

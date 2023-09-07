@@ -35,12 +35,12 @@ public partial class WalletRepository : ReactiveObject
 					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
 					  .Transform(x => x as IWalletModel);
 
-		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
+		DefaultWalletId = Services.UiConfig.LastSelectedWallet;
 	}
 
 	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
 
-	public string? DefaultWalletName { get; }
+	public string? DefaultWalletId { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();
 
 	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);

@@ -35,7 +35,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		// TODO: Finish partial refactor
 		// this must be removed after VerifyRecoveryWords has been decoupled
-		var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
+		var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Id);
 		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(wallet));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
@@ -45,6 +45,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				_wallet.Settings.PreferPsbtWorkflow = value;
 				_wallet.Settings.Save();
 			});
+	}
+
+	public string WalletName
+	{
+		get => _wallet.Name;
+		set => _wallet.Name = value;
 	}
 
 	public bool IsHardwareWallet { get; }
