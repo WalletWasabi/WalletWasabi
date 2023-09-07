@@ -28,7 +28,6 @@ Hello there, we are deploying this commit to the `TestNet` server.
 
 Please ack and test.
 
-
 -------
 
 ## Scripts details
@@ -36,6 +35,7 @@ Please ack and test.
 ### build-wasabi script
 
 This script builds wasabi backend and it is defined as follow:
+
 ```bash
 $ echo "#!/usr/bin/env bash" > build-wasabi
 $ echo "nix build -o wasabi-backend github:zksnacks/walletwasabi/\$1" >> build-wasabi
@@ -44,6 +44,7 @@ $ echo "nix build -o wasabi-backend github:zksnacks/walletwasabi/\$1" >> build-w
 ### deploy-wasabi script
 
 This script deploys the already built wasabi backend and it is defined as follow:
+
 ```bash
 $ echo "#!/usr/bin/env bash" > deploy-wasabi
 $ echo "./wasabi-backend/deploy" >> deploy-wasabi
