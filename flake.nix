@@ -41,6 +41,7 @@
         wasabi-shell = pkgs.mkShell {
            name = "wasabi-shell";
            packages = [
+             pkgs.dotnetCorePackages.sdk_7_0
              dotnet-trace
              dotnet-dump
              ];
@@ -48,6 +49,7 @@
            shellHook = ''
              export DOTNET_CLI_TELEMETRY_OPTOUT=1
              export DOTNET_NOLOGO=1
+             export DOTNET_ROOT=${pkgs.dotnetCorePackages.sdk_7_0}
              export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
            '';
         };
