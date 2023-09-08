@@ -30,10 +30,19 @@
           nugetSha256 = "sha256-yKmpygSNpNWNhLt9vS/1mterTU1l0gmpo3Ef2HvLsLw=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_7_0;
         };
+        # dotnet dump
+        dotnet-dump = pkgs.buildDotnetGlobalTool {
+          pname = "dotnet-dump";
+          nugetName = "dotnet-dump";
+          version = "7.0.442301";
+          nugetSha256 = "sha256-UZE1UJfOWYw+ONOemAtuhtfXE/9a2WbnOQFXXuE7p80=";
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_7_0;
+        };
         wasabi-shell = pkgs.mkShell {
            name = "wasabi-shell";
            packages = [
              dotnet-trace
+             dotnet-dump
              ];
 
            shellHook = ''
