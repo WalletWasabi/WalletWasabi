@@ -84,7 +84,7 @@ public class Prison
 	private TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
 	{
 		var effectiveBanningTime = banningTime < DoSConfiguration.MinTimeInPrison
-			? TimeSpan.Zero
+			? DoSConfiguration.MinTimeInPrison
 			: banningTime;
 		return new TimeFrame(offender.StartedTime, effectiveBanningTime);
 	}
