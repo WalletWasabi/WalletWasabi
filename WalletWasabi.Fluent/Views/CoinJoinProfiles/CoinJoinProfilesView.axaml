@@ -26,11 +26,13 @@
               Content="Customize" />
 
       <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
+               VerticalAlignment="Center"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <ListBox.Styles>
           <Style Selector="ListBoxItem">
             <Setter Property="Cursor" Value="Hand" />
-          </Style>
+            <Setter Property="Margin" Value="15 20" />
+            </Style>
           <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
           </Style>
@@ -43,14 +45,11 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-            <Setter Property="Padding" Value="15,25,15,0" />
             <Setter Property="CornerRadius" Value="4" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="10 5 10 20" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
@@ -58,14 +57,12 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="10 5 10 20" />
+            
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
             <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
-
             <Setter Property="Opacity" Value="0" />
           </Style>
 
@@ -81,7 +78,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <c:SuggestionItem MaxHeight="280">
-              <prof:CoinJoinProfileControl />
+              <prof:CoinJoinProfileControl Margin="10 15" />
             </c:SuggestionItem>
           </DataTemplate>
         </ListBox.ItemTemplate>
