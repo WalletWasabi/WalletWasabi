@@ -77,7 +77,7 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <c:SuggestionItem MaxHeight="280">
+            <c:SuggestionItem ClipToBounds="False" MaxHeight="280">
               <prof:CoinJoinProfileControl Margin="10 15" />
             </c:SuggestionItem>
           </DataTemplate>
