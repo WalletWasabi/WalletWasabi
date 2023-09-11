@@ -1,7 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
-
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -18,6 +17,5 @@
       <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
     </ResourceDictionary>
   </Styles.Resources>
-
 </Styles>
 

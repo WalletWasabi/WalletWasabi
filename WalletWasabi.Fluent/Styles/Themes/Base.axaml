@@ -1,5 +1,4 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:system="clr-namespace:System;assembly=System.Runtime">
-  <!-- Removed in Avalonia v11 update -->
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- TODO: Remove after Avalonia v11 update is merged -->
 </Styles>
