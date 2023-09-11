@@ -66,7 +66,7 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|TagControl Button#PART_DeleteButton">
+  <Style Selector="c|TagControl /template/ Button#PART_DeleteButton">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="VerticalAlignment" Value="Top" />
     <Setter Property="HorizontalAlignment" Value="Right" />
