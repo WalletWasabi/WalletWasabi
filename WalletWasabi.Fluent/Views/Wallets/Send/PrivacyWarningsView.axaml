@@ -120,7 +120,7 @@
         </DataTemplate>
 
         <!-- Transaction Known as Yours By Warning -->
-        <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursBy}">
+        <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursByWarning}">
           <Border Classes="warning">
             <DockPanel>
               <PathIcon />
