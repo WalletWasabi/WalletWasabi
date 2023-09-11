@@ -106,7 +106,7 @@ public class PrivacySuggestionsModel
 
 			if (labelsArray.Any())
 			{
-				yield return new TransactionKnownAsYoursBy(labelsArray);
+				yield return new TransactionKnownAsYoursByWarning(labelsArray);
 
 				if (info.IsOtherPocketSelectionPossible)
 				{
