@@ -13,9 +13,6 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
-  <i:Interaction.Behaviors>
-    <behaviors:NavBarSelectedIndicatorParentBehavior />
-  </i:Interaction.Behaviors>
   <UserControl.Styles>
 
     <Style Selector="Separator">
@@ -99,13 +96,6 @@
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0"/>
       <Setter Property="ClipToBounds" Value="False"/>
-      <Setter Property="(Interaction.Behaviors)">
-        <BehaviorCollectionTemplate>
-          <BehaviorCollection>
-            <behaviors:NavBarSelectedIndicatorChildBehavior />
-          </BehaviorCollection>
-        </BehaviorCollectionTemplate>
-      </Setter>
     </Style>
     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
@@ -169,7 +159,8 @@
       <ListBox ItemsSource="{Binding Wallets}"
                SelectionMode="AlwaysSelected"
                SelectedItem="{Binding SelectedWallet}"
-               Background="Transparent">
+               Background="Transparent"
+               behaviors:SelectingItemsControlBehavior.EnableSelectionAnimation="True">
         <Interaction.Behaviors>
           <behaviors:ListBoxReselectingBehavior />
         </Interaction.Behaviors>
