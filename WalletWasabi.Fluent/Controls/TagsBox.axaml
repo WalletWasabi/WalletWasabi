@@ -173,9 +173,11 @@
     <Setter Property="Margin" Value="0,0,4,3" />
   </Style>
 
-  <Style
-    Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl,
-                     c|TagsBox:readonly WrapPanel c|TagControl">
+  <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
+    <Setter Property="Margin" Value="0,0,4,4" />
+  </Style>
+
+  <Style Selector="c|TagsBox:readonly WrapPanel c|TagControl">
     <Setter Property="Margin" Value="0,0,4,4" />
   </Style>
 
