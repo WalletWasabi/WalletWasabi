@@ -18,6 +18,8 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBar.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBarSegment.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRing.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRingArc.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TextBox.axaml" />
