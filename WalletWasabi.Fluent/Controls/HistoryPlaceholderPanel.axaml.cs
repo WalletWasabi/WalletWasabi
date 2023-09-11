@@ -5,7 +5,7 @@ using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class HistoryPlaceholderPanel : ContentControl
+public class HistoryPlaceholderPanel : TemplatedControl
 {
 	private ItemsControl? _targetItemsControl;
 

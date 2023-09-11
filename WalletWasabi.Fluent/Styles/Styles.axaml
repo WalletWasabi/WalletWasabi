@@ -23,7 +23,6 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/NotificationCard.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CurrencyEntryBox.axaml" />
-  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/HistoryPlaceholderPanel.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TreeDataGrid.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/RadioButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SettingsLayout.axaml" />
