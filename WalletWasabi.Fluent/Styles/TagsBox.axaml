@@ -7,4 +7,12 @@
     <Setter Property="RenderTransform" Value="scale(1,1)" />
   </Style>
 
+  <Style Selector="c|TagsBox c|TagControl">
+    <Setter Property="Margin" Value="0,0,4,3" />
+  </Style>
+
+  <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
+    <Setter Property="Margin" Value="0,0,4,4" />
+  </Style>
+
 </Styles>
