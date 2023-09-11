@@ -20,7 +20,6 @@
     <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRingArc.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRing.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBox.axaml" />
