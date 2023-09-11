@@ -172,12 +172,12 @@
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
             <c:NavBarItem Classes.selected="{Binding IsSelected}">
-              <Panel >
-                <ToolTip.Tip>
-                  <StackPanel>
-                    <TextBlock Text="{Binding Title}" />
-                  </StackPanel>
-                </ToolTip.Tip>
+              <ToolTip.Tip>
+                <StackPanel>
+                  <TextBlock Text="{Binding Title}" />
+                </StackPanel>
+              </ToolTip.Tip>
+              <Panel>
                 <Ellipse Classes="loadingindicator"
                          Classes.isLoading="{Binding IsLoading}"
                          Classes.isLoggedIn="{Binding IsLoggedIn}"
