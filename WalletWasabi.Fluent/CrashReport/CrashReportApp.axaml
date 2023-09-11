@@ -20,6 +20,5 @@
     <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
   </Application.Styles>
 </Application>
