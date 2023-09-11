@@ -92,7 +92,8 @@ public class PrivacySuggestionsModel
 	{
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transactionResult.SpentCoins;
-		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin))).ToList();
+		var nonPrivateSpentCoins = spentCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate).ToList();
+		var usedPockets = pockets.Where(x => x.Coins.Any(coin => nonPrivateSpentCoins.Contains(coin))).ToList();
 		if (usedPockets.Count > 1)
 		{
 			var pocketLabels = usedPockets.SelectMany(x => x.Labels).Distinct().ToArray();
