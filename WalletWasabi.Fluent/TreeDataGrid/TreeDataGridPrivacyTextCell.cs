@@ -51,7 +51,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		if (_formattedText is not null)
 		{
-			var r = Bounds.CenterRect(new Rect(new Point(0,0), new Size(_formattedText.Width, _formattedText.Height)));
+			var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(_formattedText.Width, _formattedText.Height)));
 			if (Foreground is { })
 			{
 				_formattedText.SetForegroundBrush(Foreground);
