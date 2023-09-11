@@ -15,6 +15,12 @@ public class ClipboardCopyButton : TemplatedControl
 	public static readonly StyledProperty<string> TextProperty =
 		AvaloniaProperty.Register<ClipboardCopyButton, string>(nameof(Text));
 
+	public ClipboardCopyButton()
+	{
+		var canCopy = this.WhenAnyValue(x => x.Text, selector: text => text is not null);
+		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboardAsync, canCopy);
+	}
+
 	public ReactiveCommand<Unit, Unit> CopyCommand
 	{
 		get => GetValue(CopyCommandProperty);
@@ -25,12 +31,6 @@ public class ClipboardCopyButton : TemplatedControl
 	{
 		get => GetValue(TextProperty);
 		set => SetValue(TextProperty, value);
-	}
-
-	public ClipboardCopyButton()
-	{
-		var canCopy = this.WhenAnyValue(x => x.Text, selector: text => text is not null);
-		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboardAsync, canCopy);
 	}
 
 	private async Task CopyToClipboardAsync()
