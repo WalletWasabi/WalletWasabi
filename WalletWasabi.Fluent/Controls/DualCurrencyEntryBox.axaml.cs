@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.VisualTree;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -13,8 +14,14 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class DualCurrencyEntryBox : UserControl
+public class DualCurrencyEntryBox : TemplatedControl
 {
+	public static readonly StyledProperty<HorizontalAlignment> HorizontalContentAlignmentProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, HorizontalAlignment>(nameof(HorizontalContentAlignment));
+
+	public static readonly StyledProperty<VerticalAlignment> VerticalContentAlignmentProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, VerticalAlignment>(nameof(VerticalContentAlignment));
+
 	public static readonly DirectProperty<DualCurrencyEntryBox, decimal> AmountBtcProperty =
 		AvaloniaProperty.RegisterDirect<DualCurrencyEntryBox, decimal>(
 			nameof(AmountBtc),
@@ -92,6 +99,18 @@ public class DualCurrencyEntryBox : UserControl
 		UpdateDisplay(false);
 
 		PseudoClasses.Set(":noexchangerate", true);
+	}
+
+	public HorizontalAlignment HorizontalContentAlignment
+	{
+		get { return GetValue(HorizontalContentAlignmentProperty); }
+		set { SetValue(HorizontalContentAlignmentProperty, value); }
+	}
+
+	public VerticalAlignment VerticalContentAlignment
+	{
+		get { return GetValue(VerticalContentAlignmentProperty); }
+		set { SetValue(VerticalContentAlignmentProperty, value); }
 	}
 
 	public decimal AmountBtc
