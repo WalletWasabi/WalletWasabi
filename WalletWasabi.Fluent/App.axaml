@@ -24,7 +24,6 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBox.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileButton.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>

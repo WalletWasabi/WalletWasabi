@@ -27,6 +27,7 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TextBox.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
