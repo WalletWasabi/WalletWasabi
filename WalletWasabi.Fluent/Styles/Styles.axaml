@@ -37,4 +37,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CuedScrollViewer.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PrivacyContentControl.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TileButton.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PreviewItem.axaml" />
 </Styles>
