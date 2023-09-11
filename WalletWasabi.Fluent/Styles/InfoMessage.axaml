@@ -6,6 +6,11 @@
     </Border>
   </Design.PreviewWith>
 
+  <Style Selector="c|InfoMessage :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
   <Style Selector="c|InfoMessage.overlay">
     <Setter Property="Background" Value="{DynamicResource PopupBackground}" />
   </Style>

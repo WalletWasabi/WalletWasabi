@@ -51,11 +51,6 @@
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="^:is(TextBlock)">
-      <Setter Property="TextWrapping" Value="Wrap" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-
   </ControlTheme>
 
 </ResourceDictionary>
