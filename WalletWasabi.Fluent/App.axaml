@@ -22,7 +22,6 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContentArea.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/Dialog.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRingArc.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRing.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagControl.axaml" />
