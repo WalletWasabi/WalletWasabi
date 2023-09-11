@@ -142,11 +142,6 @@
                   SelectedItem="{Binding SelectedItem, Mode=OneWay}"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   x:Name="Carousel">
-          <Carousel.ItemsPanel>
-            <ItemsPanelTemplate>
-              <Panel />
-            </ItemsPanelTemplate>
-          </Carousel.ItemsPanel>
           <Carousel.PageTransition>
             <CrossFade Duration="0.25" />
           </Carousel.PageTransition>
