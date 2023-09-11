@@ -4,7 +4,7 @@
         xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
-      <c:TagControl Content="Test" />
+      <c:TagControl Content="Label 1, Label 2, Label 3" />
     </Border>
   </Design.PreviewWith>
 
