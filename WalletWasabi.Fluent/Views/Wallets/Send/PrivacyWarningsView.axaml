@@ -121,7 +121,7 @@
 
         <!-- Transaction Known as Yours By Warning -->
         <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursBy}">
-          <Border Classes="warning info">
+          <Border Classes="warning">
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
