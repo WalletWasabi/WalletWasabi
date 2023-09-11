@@ -16,7 +16,7 @@ public abstract record PrivacyWarning(WarningSeverity Severity) : PrivacyItem();
 
 public record InterlinksLabelsWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Warning);
 
-public record TransactionKnownAsYoursBy(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Info);
+public record TransactionKnownAsYoursBy(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Warning);
 
 public record NonPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 
