@@ -27,7 +27,6 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
