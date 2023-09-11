@@ -127,4 +127,30 @@ public class SmartCoinTests
 		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		Assert.True(coin.IsSufficientlyDistancedFromExternalKeys);
 	}
+
+	[Fact]
+	public void SmartCoinImmatureTest()
+	{
+		var coinBaseTx = Transaction.Parse("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff4f0327510c1362696e616e63652f3839345700000418572e8b066a61786e657420a584170a5545b9f9e18627d950d38f3cbefc9d6c7977259947ac326fe00fee1c066a61786e65745a9c0000c2000000ffffffff04f653a7260000000017a914ca35b1f4d02907314852f09935b9604507f8d700870000000000000000266a24aa21a9ed243c043949d4fdd7cfce809b7e4070c4a832da5d4cd0b137390b2e18d149696b00000000000000002b6a2952534b424c4f434b3a036b8396d36b05334061cf892fc5d21967011977486d73169b45b617004bfe5a00000000000000001976a914bc473af4c71c45d5aa3278adc99701ded3740a5488ac0120000000000000000000000000000000000000000000000000000000000000000000000000", Network.Main);
+		var stx = new SmartTransaction(coinBaseTx, 100);
+		var coin = new SmartCoin(stx, 0, null!);
+
+		// Negative bestHeight.
+		Assert.True(coin.IsImmature(-100));
+
+		// Relatively negative bestHeight.
+		Assert.True(coin.IsImmature(0));
+
+		// Same.
+		Assert.True(coin.IsImmature(100));
+
+		// Almost mature.
+		Assert.True(coin.IsImmature(200));
+
+		// Mature.
+		Assert.False(coin.IsImmature(201));
+
+		// Mature.
+		Assert.False(coin.IsImmature(300));
+	}
 }
