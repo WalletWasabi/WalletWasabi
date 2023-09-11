@@ -236,7 +236,6 @@
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to use only private coins." />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -253,7 +252,6 @@
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to avoid non-private coins." />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -282,7 +280,6 @@
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to remove change." />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
