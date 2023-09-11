@@ -60,7 +60,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		{
 			NoPrivacy = true;
 		}
-		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		else if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
 		{
 			BadPrivacy = true;
 		}
