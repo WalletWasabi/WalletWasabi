@@ -153,17 +153,14 @@ public class SmartCoinTests
 		// Mature.
 		Assert.False(coinBaseCoin.IsImmature(300));
 
+		// Non-Coinbase tx.
 		var tx = Transaction.Parse("01000000015cff8c26f4ed95b6db750c21fe1a150ee7c6fb629b7f97f77e641935e6109b31000000006a47304402204e4655953a5f3b13764563f673760d6f0d6a1837b01846f12f2ffdd819a1f21d022075bbc5be28aa32be69d17c3b5ca502264460387594c3b4bc66d65f130812613501210369e03e2c91f0badec46c9c903d9e9edae67c167b9ef9b550356ee791c9a40896ffffffff02dfaff10f000000001976a9149f21a07a0c7c3cf65a51f586051395762267cdaf88acb4062c000000000016001472196a5d64c66518fbe9555854ac7a6a4be902f200000000", Network.Main);
 		var stx = new SmartTransaction(tx, 100);
 		var coin = new SmartCoin(stx, 0, null!);
 
-		// Relatively negative bestHeight.
+		// Whatever happens this should be always false.
 		Assert.False(coin.IsImmature(0));
-
-		// Same.
 		Assert.False(coin.IsImmature(100));
-
-		// Mature.
 		Assert.False(coin.IsImmature(300));
 	}
 }
