@@ -29,7 +29,26 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	}
 
 	public ObservableCollection<PrivacyWarning> Warnings { get; } = new();
+	public ObservableCollection<PrivacyWarning> PreviewWarnings { get; } = new();
 	public ObservableCollection<PrivacySuggestion> Suggestions { get; } = new();
+
+	public async Task UpdatePreviewWarningsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
+	{
+		PreviewWarnings.Clear();
+
+		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
+
+		await foreach (var warning in result.GetAllWarningsAsync())
+		{
+			PreviewWarnings.Add(warning);
+		}
+	}
+
+	public void ClearPreviewWarnings()
+	{
+		PreviewWarnings.Clear();
+		PreviewWarnings.AddRange(Warnings);
+	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
