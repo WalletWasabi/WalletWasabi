@@ -14,7 +14,7 @@
     <converters:TransactionHistoryItemToolTipConverter x:Key="ToolTipConverter" />
   </UserControl.Resources>
 
-  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="10 0">
 
     <Panel Background="Transparent">
       <Button Classes="plain" ToolTip.Tip="Show Details"

@@ -160,11 +160,6 @@
         <Style Selector="TextBlock, c|PrivacyContentControl">
           <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="StackPanel">
-          <Setter Property="Orientation" Value="Horizontal" />
-          <Setter Property="Spacing" Value="10" />
-          <Setter Property="Margin" Value="10 0" />
-        </Style>
         <Style Selector="TreeDataGridRow Button.historyDetails">
           <Setter Property="Opacity" Value="0" />
         </Style>
