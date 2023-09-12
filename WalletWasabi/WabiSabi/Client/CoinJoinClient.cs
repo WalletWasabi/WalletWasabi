@@ -273,7 +273,6 @@ public class CoinJoinClient
 				EndRoundState.NotAllAlicesSign => "Aborted. Some Alices didn't sign. Go to blame round.",
 				EndRoundState.AbortedNotAllAlicesConfirmed => "Aborted. Some Alices didn't confirm.",
 				EndRoundState.AbortedLoadBalancing => "Aborted. Load balancing registrations.",
-				EndRoundState.AbortedDoubleSpendingDetected => "Aborted. Double spending detected.",
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException(nameof(roundState))
 			};
