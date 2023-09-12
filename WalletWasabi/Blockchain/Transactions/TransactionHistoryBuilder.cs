@@ -42,11 +42,11 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
-				var outputs = GetOutputs(containingTransaction, wallet.Network).ToList();
-				var inputs = GetInputs(containingTransaction).ToList();
+				var outputs = containingTransaction.GetOutputs(wallet.Network).ToList();
+				var inputs = containingTransaction.GetInputs().ToList();
 				var destinationAddresses = GetDestinationAddresses(inputs, outputs);
 
-				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, GetInputs(containingTransaction), outputs, destinationAddresses));
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, containingTransaction.GetInputs(), outputs, destinationAddresses));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -62,11 +62,11 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
-					var outputs = GetOutputs(spenderTransaction, wallet.Network).ToList();
-					var inputs = GetInputs(spenderTransaction).ToList();
+					var outputs = spenderTransaction.GetOutputs(wallet.Network).ToList();
+					var inputs = spenderTransaction.GetInputs().ToList();
 					var destinationAddresses = GetDestinationAddresses(inputs, outputs);
-          
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, GetInputs(spenderTransaction), outputs, destinationAddresses));
+
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, spenderTransaction.GetInputs(), outputs, destinationAddresses));
 				}
 			}
 		}
@@ -106,35 +106,5 @@ public class TransactionHistoryBuilder
 		// I'm sending a transaction to someone else.
 		// All outputs that are not my own are the destinations.
 		return foreignOutputs.Select(x => x.DestinationAddress);
-	}
-
-	private IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
-	{
-		var known = smartTransaction.WalletOutputs.Select(coin =>
-		{
-			var address = coin.TxOut.ScriptPubKey.GetDestinationAddress(network)!;
-			return new OwnOutput(coin.TxOut.Value, address, coin.HdPubKey.IsInternal);
-		}).Cast<Output>();
-
-		var unknown = smartTransaction.ForeignOutputs.Select(coin =>
-		{
-			var address = coin.TxOut.ScriptPubKey.GetDestinationAddress(network)!;
-			return new ForeignOutput(coin.TxOut.Value, address);
-		}).Cast<Output>();
-
-		return known.Concat(unknown);
-	}
-
-	private static IEnumerable<IInput> GetInputs(SmartTransaction transaction)
-	{
-		var known = transaction.WalletInputs
-			.Select(x => new KnownInput(x.Amount))
-			.OfType<IInput>();
-
-		var unknown = transaction.ForeignInputs
-			.Select(_ => new ForeignInput())
-			.OfType<IInput>();
-
-		return known.Concat(unknown);
 	}
 }
