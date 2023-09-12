@@ -1,7 +1,9 @@
 using NBitcoin;
 using WalletWasabi.Daemon;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 
-namespace WalletWasabi.Fluent.Models.UI;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullApplicationSettings : IApplicationSettings
 {
