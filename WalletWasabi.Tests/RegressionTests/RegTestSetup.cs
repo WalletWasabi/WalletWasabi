@@ -33,11 +33,12 @@ public class RegTestSetup : IAsyncDisposable
 		RegTestFixture = regTestFixture;
 		ServiceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
-		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, new SmartHeaderChain());
+		SmartHeaderChain smartHeaderChain = new();
+		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
 		MempoolService mempoolService = new();
 		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
-		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, blocks);
+		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
 	}
 
 	public RegTestFixture RegTestFixture { get; }

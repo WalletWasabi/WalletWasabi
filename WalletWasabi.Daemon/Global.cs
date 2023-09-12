@@ -55,7 +55,7 @@ public class Global
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
+		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
@@ -154,10 +154,13 @@ public class Global
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
-	public async Task InitializeNoWalletAsync(TerminateService terminateService)
+	public async Task InitializeNoWalletAsync(TerminateService terminateService, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
+		CancellationToken cancel = linkedCts.Token;
+
 		// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
-		using (await InitializationAsyncLock.LockAsync())
+		using (await InitializationAsyncLock.LockAsync(cancellationToken))
 		{
 			Logger.LogTrace("Initialization started.");
 
@@ -165,8 +168,6 @@ public class Global
 			{
 				return;
 			}
-
-			CancellationToken cancel = StoppingCts.Token;
 
 			try
 			{
@@ -190,7 +191,7 @@ public class Global
 					WalletManager.EnsureTurboSyncHeightConsistency();
 
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
-					WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
 				}
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{

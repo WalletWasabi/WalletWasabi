@@ -70,7 +70,7 @@ public class IndexStore : IAsyncDisposable
 	/// <summary>Run migration if SQLite file does not exist.</summary>
 	private bool RunMigration { get; }
 
-	public SmartHeaderChain SmartHeaderChain { get; }
+	private SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
@@ -251,7 +251,7 @@ public class IndexStore : IAsyncDisposable
 	{
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			await using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
+			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
 			int processed = 0;
 
