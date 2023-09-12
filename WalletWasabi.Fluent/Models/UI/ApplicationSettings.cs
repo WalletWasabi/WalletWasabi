@@ -115,11 +115,17 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.CustomChangeAddress,
 			x => x.SelectedFeeDisplayUnit,
 			x => x.RunOnSystemStartup,
-			x => x.HideOnClose,
-			x => x.PrivacyMode)
+			x => x.HideOnClose)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
+			.Subscribe();
+
+		// Save UiConfig on change without throttling
+		this.WhenAnyValue(
+				x => x.PrivacyMode)
+			.Skip(1)
+			.Do(_ => ApplyUiConfigPrivacyModeChange())
 			.Subscribe();
 
 		// Set Default BitcoinCoreDataDir if required
@@ -210,6 +216,10 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.FeeDisplayUnit = (int)SelectedFeeDisplayUnit;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+	}
+
+	private void ApplyUiConfigPrivacyModeChange()
+	{
 		_uiConfig.PrivacyMode = PrivacyMode;
 	}
 }
