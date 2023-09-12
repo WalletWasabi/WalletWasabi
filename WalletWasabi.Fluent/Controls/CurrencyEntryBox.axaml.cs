@@ -198,7 +198,7 @@ public partial class CurrencyEntryBox : TextBox
 		SetCurrentValue(TextProperty, "");
 		CaretIndex = finalText.Length;
 		ClearSelection();
-		return new TextInputEventArgs {Text = finalText};
+		return new TextInputEventArgs { Text = finalText };
 	}
 
 	private TextInputEventArgs InsertLeadingZeroForDecimal(TextInputEventArgs e)
@@ -206,7 +206,7 @@ public partial class CurrencyEntryBox : TextBox
 		var prependText = "0" + e.Text;
 		SetCurrentValue(TextProperty, Text.Insert(0, prependText));
 		CaretIndex += prependText.Length;
-		return new TextInputEventArgs {Text = ""};
+		return new TextInputEventArgs { Text = "" };
 	}
 
 	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
