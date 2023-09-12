@@ -13,7 +13,8 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
+[AutoInterface]
+public partial class ApplicationSettings : ReactiveObject
 {
 	private const int ThrottleTime = 500;
 
@@ -29,6 +30,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 	// Bitcoin
 	[AutoNotify] private Network _network;
+
 	[AutoNotify] private bool _startLocalBitcoinCoreOnStartup;
 	[AutoNotify] private string _localBitcoinCoreDataDir;
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
@@ -37,6 +39,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 	// General
 	[AutoNotify] private bool _darkModeEnabled;
+
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;

@@ -113,7 +113,7 @@ public class WalletFilterProcessor : BackgroundService
 					{
 						var currentHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
 
-						if (currentHeight == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight)
+						if (currentHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
 							request.Tcs.SetResult();
 							lock (SynchronizationRequestsLock)
@@ -131,7 +131,7 @@ public class WalletFilterProcessor : BackgroundService
 
 						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
 
-						reachedBlockChainTip = filterToProcess.Header.Height == BitcoinStore.IndexStore.SmartHeaderChain.TipHeight;
+						reachedBlockChainTip = filterToProcess.Header.Height == BitcoinStore.SmartHeaderChain.TipHeight;
 						var saveNewHeightToFile = matchFound || reachedBlockChainTip;
 						if (request.SyncType == SyncType.Turbo)
 						{

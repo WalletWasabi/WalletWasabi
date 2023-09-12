@@ -100,6 +100,49 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 	}
 
+	public void BanDescendant(object? sender, Block block)
+	{
+		var now = DateTimeOffset.UtcNow;
+
+		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, now);
+		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
+
+		var outpointsToBan = block.Transactions
+			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
+			.Where(x => x.BannedInputs.Any())
+			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
+
+		foreach (var (outpoint, ancestors) in outpointsToBan)
+		{
+			Warden.Prison.InheritPunishment(outpoint, ancestors);
+		}
+	}
+
+	public void BanDoubleSpenders(object? sender, Transaction tx)
+	{
+		// Detect and punish double spending coins
+		var disrupters = Arena.Rounds
+			.Where(r => r.Phase != Phase.Ended)
+			.SelectMany(r => r.Alices.Select(a => (RoundId: r.Id, a.Coin)))
+			.Where(x => tx.Inputs.Any(i => i.PrevOut == x.Coin.Outpoint));
+
+		foreach (var (roundId, offender) in disrupters)
+		{
+			Warden.Prison.DoubleSpent(offender.Outpoint, offender.Amount, roundId);
+		}
+
+		// Abort disrupted rounds
+		var disruptedRounds = disrupters.Select(x => x.RoundId).Distinct();
+		foreach (var roundId in disruptedRounds)
+		{
+			var maybeNullRoundToAbort = Arena.Rounds.FirstOrDefault(r => r.Id == roundId);
+			if (maybeNullRoundToAbort is { } roundToAbort)
+			{
+				roundToAbort.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
+			}
+		}
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);

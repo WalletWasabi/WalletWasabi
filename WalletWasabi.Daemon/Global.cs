@@ -56,7 +56,7 @@ public class Global
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
+		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
@@ -193,7 +193,7 @@ public class Global
 					WalletManager.EnsureTurboSyncHeightConsistency();
 
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
-					WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
 				}
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
