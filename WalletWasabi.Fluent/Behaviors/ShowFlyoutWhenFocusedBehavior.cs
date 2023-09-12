@@ -85,7 +85,6 @@ public class ShowFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Contro
 			.Subscribe();
 	}
 
-
 	private class FlyoutController : IDisposable
 	{
 		public FlyoutController(PopupFlyoutBase flyout)

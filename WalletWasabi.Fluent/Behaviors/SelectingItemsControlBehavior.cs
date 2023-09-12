@@ -97,8 +97,7 @@ public class SelectingItemsControlBehavior
 	        0f,
 	        isVerticalOffset
 		        ? $"Vector3(this.FinalValue.X, this.FinalValue.Y{expression}, 0)"
-		        : $"Vector3(this.FinalValue.X{expression}, this.FinalValue.Y, 0)"
-        );
+		        : $"Vector3(this.FinalValue.X{expression}, this.FinalValue.Y, 0)");
         offsetAnimation.InsertExpressionKeyFrame(1f, "this.FinalValue");
         offsetAnimation.Duration = TimeSpan.FromMilliseconds(250);
 
