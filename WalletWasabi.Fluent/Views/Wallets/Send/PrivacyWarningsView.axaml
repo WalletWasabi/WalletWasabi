@@ -79,6 +79,11 @@
           </BehaviorCollection>
         </BehaviorCollectionTemplate>
       </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
     </Style>
 
     <Style Selector="Border.warning.fadeout">
