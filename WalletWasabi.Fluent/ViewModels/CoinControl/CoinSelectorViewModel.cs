@@ -11,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Wallets;
@@ -21,13 +22,13 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<CoinControlItemViewModelBase> _itemsCollection;
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
 
-	public CoinSelectorViewModel(WalletViewModel walletViewModel, IList<SmartCoin> initialCoinSelection)
+	public CoinSelectorViewModel(IWalletModel wallet, IList<SmartCoin> initialCoinSelection)
 	{
-		_wallet = walletViewModel.Wallet;
+		_wallet = wallet;
 		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
 		sourceItems.DisposeWith(_disposables);
 
