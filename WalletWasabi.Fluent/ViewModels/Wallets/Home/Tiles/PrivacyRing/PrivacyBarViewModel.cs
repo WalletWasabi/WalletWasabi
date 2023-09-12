@@ -1,12 +1,11 @@
 using DynamicData;
 using DynamicData.Binding;
-using ReactiveUI;
 using System.Linq;
-using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
@@ -14,6 +13,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 {
 	private readonly WalletViewModel _walletViewModel;
 
+	[AutoNotify] private bool _hasProgress;
 	[AutoNotify] private decimal _totalAmount;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel)
@@ -64,6 +64,8 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 								   .OrderBy(x => (int)x.Key)
 								   .Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
 								   .ToList();
+
+		HasProgress = segments.Any(x => x.PrivacyLevel != PrivacyLevel.NonPrivate);
 
 		list.AddRange(segments);
 	}
