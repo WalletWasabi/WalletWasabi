@@ -249,7 +249,10 @@
                 <TextBlock Text="Full Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="by" />
+                  <TextBlock Text="{Binding DifferenceAmountText}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -265,7 +268,10 @@
                 <TextBlock Text="Better Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="by" />
+                  <TextBlock Text="{Binding DifferenceAmountText}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
