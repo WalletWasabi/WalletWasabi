@@ -19,7 +19,7 @@
                                      MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
       <Viewbox Stretch="Uniform" ClipToBounds="False">
-        <shell:WelcomeBg ClipToBounds="False" />
+        <shell:WelcomeBg EnableAnimations="{Binding IsOobeBackgroundVisible, FallbackValue=False}" ClipToBounds="False" />
       </Viewbox>
     </ExperimentalAcrylicBorder>
     <c:Dialog DataContext="{Binding FullScreen}"
