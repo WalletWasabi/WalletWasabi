@@ -59,8 +59,8 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
-					var destinationAddresses = spenderTransaction.GetDestinationAddresses(wallet.Network, out _, out List<Output> outputs);
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, spenderTransaction.GetInputs(), outputs, destinationAddresses));
+					var destinationAddresses = spenderTransaction.GetDestinationAddresses(wallet.Network, out List<IInput> inputs, out List<Output> outputs);
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, inputs, outputs, destinationAddresses));
 				}
 			}
 		}
