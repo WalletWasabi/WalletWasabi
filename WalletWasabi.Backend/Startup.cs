@@ -14,7 +14,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
 using WalletWasabi.Affiliation;
-using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
 using WalletWasabi.Helpers;
@@ -145,11 +144,6 @@ public class Startup
 		app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", $"Wasabi Wallet API V{Constants.BackendMajorVersion}"));
 
 		app.UseRouting();
-
-		// So to correctly handle HEAD requests.
-		// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
-		// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
-		app.UseMiddleware<HeadMethodMiddleware>();
 
 		app.UseResponseCompression();
 
