@@ -32,7 +32,8 @@
           <Style Selector="ListBoxItem">
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Margin" Value="15 20" />
-            </Style>
+            <Setter Property="ClipToBounds" Value="False" />
+          </Style>
           <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
           </Style>
@@ -58,7 +59,7 @@
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
             <Setter Property="CornerRadius" Value="4" />
-            
+
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
