@@ -273,6 +273,7 @@ public class CoinJoinClient
 				EndRoundState.NotAllAlicesSign => "Aborted. Some Alices didn't sign. Go to blame round.",
 				EndRoundState.AbortedNotAllAlicesConfirmed => "Aborted. Some Alices didn't confirm.",
 				EndRoundState.AbortedLoadBalancing => "Aborted. Load balancing registrations.",
+				EndRoundState.AbortedDoubleSpendingDetected => "Aborted. Double spending detected.",
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException(nameof(roundState))
 			};
@@ -387,7 +388,7 @@ public class CoinJoinClient
 			{
 				var (newPersonCircuit, httpClient) = HttpClientFactory.NewHttpClientWithPersonCircuit();
 				personCircuit = newPersonCircuit;
-				
+
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 

@@ -68,7 +68,7 @@ public partial class Arena : PeriodicRunner
 	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
-	internal ImmutableList<RoundState> RoundStates { get; set; } = ImmutableList<RoundState>.Empty;
+	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
 	private ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
 	private AsyncLock AsyncLock { get; } = new();
 	private WabiSabiConfig Config { get; }
@@ -744,7 +744,7 @@ public partial class Arena : PeriodicRunner
 		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
 	}
 
-	internal void AbortRound(uint256 roundId)
+	public void AbortRound(uint256 roundId)
 	{
 		DisruptedRounds.Enqueue(roundId);
 	}
