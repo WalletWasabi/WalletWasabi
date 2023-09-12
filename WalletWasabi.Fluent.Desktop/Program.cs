@@ -21,10 +21,7 @@ using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using System.Threading;
-using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Fluent.Desktop;
 
