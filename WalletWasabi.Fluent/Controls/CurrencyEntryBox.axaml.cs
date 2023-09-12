@@ -48,7 +48,7 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
 
-	private static readonly string[] invalidCharacters = new string[1] { "\u007f" };
+	private static readonly string[] InvalidCharacters = new string[1] { "\u007f" };
 
 	public CurrencyEntryBox()
 	{
@@ -362,9 +362,9 @@ public partial class CurrencyEntryBox : TextBox
 			return null;
 		}
 
-		for (var i = 0; i < invalidCharacters.Length; i++)
+		for (var i = 0; i < InvalidCharacters.Length; i++)
 		{
-			text = text.Replace(invalidCharacters[i], string.Empty);
+			text = text.Replace(InvalidCharacters[i], string.Empty);
 		}
 
 		return text;
