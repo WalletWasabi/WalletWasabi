@@ -40,6 +40,7 @@ public class Address : ReactiveObject, IAddress
 	public void Hide()
 	{
 		KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
+		KeyManager.ToFile();
 		this.RaisePropertyChanged(nameof(IsUsed));
 	}
 
