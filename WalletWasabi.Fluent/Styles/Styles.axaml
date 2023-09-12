@@ -10,6 +10,8 @@
     <sys:Int32 x:Key="MaxLabelLength">50</sys:Int32>
     <x:Double x:Key="LabelMaxWidth">120</x:Double>
   </Styles.Resources>
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContextMenu.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/MenuFlyoutPresenter.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Button.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Checkmark.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContentArea.axaml" />
