@@ -90,30 +90,41 @@ public class PrivacySuggestionsModel
 
 	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
+		var warning = GetLabelWarning(transactionResult, info.Recipient);
+
+		if (warning is not null)
+		{
+			yield return warning;
+
+			if (info.IsOtherPocketSelectionPossible)
+			{
+				yield return new LabelManagementSuggestion();
+			}
+		}
+	}
+
+	private PrivacyItem? GetLabelWarning(BuildTransactionResult transactionResult, LabelsArray recipient)
+	{
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transactionResult.SpentCoins;
 		var nonPrivateSpentCoins = spentCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate).ToList();
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => nonPrivateSpentCoins.Contains(coin))).ToList();
+
 		if (usedPockets.Count > 1)
 		{
 			var pocketLabels = usedPockets.SelectMany(x => x.Labels).Distinct().ToArray();
-			yield return new InterlinksLabelsWarning(new LabelsArray(pocketLabels));
+			return new InterlinksLabelsWarning(new LabelsArray(pocketLabels));
 		}
-		else
+
+		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(recipient);
+		var labelsArray = new LabelsArray(labels);
+
+		if (labelsArray.Any())
 		{
-			var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
-			var labelsArray = new LabelsArray(labels);
-
-			if (labelsArray.Any())
-			{
-				yield return new TransactionKnownAsYoursByWarning(labelsArray);
-
-				if (info.IsOtherPocketSelectionPossible)
-				{
-					yield return new LabelManagementSuggestion();
-				}
-			}
+			return new TransactionKnownAsYoursByWarning(labelsArray);
 		}
+
+		return null;
 	}
 
 	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
