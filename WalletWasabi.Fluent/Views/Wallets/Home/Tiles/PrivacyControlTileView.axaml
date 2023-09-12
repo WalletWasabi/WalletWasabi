@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:privacyBar="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="140"
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
@@ -13,7 +14,7 @@
   <c:TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
-      <privacyBar:PrivacyBarView DockPanel.Dock="Bottom" />
+      <privacyBar:PrivacyBarView IsVisible="{Binding PrivacyBar.HasProgress}" DockPanel.Dock="Bottom" />
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"
