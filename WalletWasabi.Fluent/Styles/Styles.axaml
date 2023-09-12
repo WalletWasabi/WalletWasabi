@@ -15,6 +15,7 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Button.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Checkmark.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContentArea.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Dialog.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/FontSizes.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/IconButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/InfoMessage.axaml" />
