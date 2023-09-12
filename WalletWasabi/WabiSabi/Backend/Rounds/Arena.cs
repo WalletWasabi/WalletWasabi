@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
@@ -67,7 +68,8 @@ public partial class Arena : PeriodicRunner
 	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
-	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
+	internal ImmutableList<RoundState> RoundStates { get; set; } = ImmutableList<RoundState>.Empty;
+	private ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
 	private AsyncLock AsyncLock { get; } = new();
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
@@ -101,6 +103,8 @@ public partial class Arena : PeriodicRunner
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
+			AbortDisruptedRounds();
+
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
 		}
@@ -117,7 +121,7 @@ public partial class Arena : PeriodicRunner
 						.ThenBy(x => x.InputCount)
 						.ToList();
 
-		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0));
+		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableList();
 	}
 
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
@@ -738,6 +742,23 @@ public partial class Arena : PeriodicRunner
 	{
 		Rounds.Add(round);
 		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
+	}
+
+	internal void AbortRound(uint256 roundId)
+	{
+		DisruptedRounds.Enqueue(roundId);
+	}
+
+	private void AbortDisruptedRounds()
+	{
+		while (DisruptedRounds.TryDequeue(out var disruptedRoundId))
+		{
+			var roundOrNull = Rounds.FirstOrDefault(x => x.Id == disruptedRoundId);
+			if (roundOrNull is { } nonNullRound)
+			{
+				nonNullRound.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
+			}
+		}
 	}
 
 	private void SetRoundPhase(Round round, Phase phase)

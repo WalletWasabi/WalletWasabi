@@ -120,11 +120,14 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
+		var outPoints = tx.Inputs.Select(x => x.PrevOut);
+
 		// Detect and punish double spending coins
-		var disrupters = Arena.Rounds
+		var disrupters = Arena.RoundStates
 			.Where(r => r.Phase != Phase.Ended)
-			.SelectMany(r => r.Alices.Select(a => (RoundId: r.Id, a.Coin)))
-			.Where(x => tx.Inputs.Any(i => i.PrevOut == x.Coin.Outpoint));
+			.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
+			.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
+			.ToArray();
 
 		foreach (var (roundId, offender) in disrupters)
 		{
@@ -135,11 +138,7 @@ public class WabiSabiCoordinator : BackgroundService
 		var disruptedRounds = disrupters.Select(x => x.RoundId).Distinct();
 		foreach (var roundId in disruptedRounds)
 		{
-			var maybeNullRoundToAbort = Arena.Rounds.FirstOrDefault(r => r.Id == roundId);
-			if (maybeNullRoundToAbort is { } roundToAbort)
-			{
-				roundToAbort.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
-			}
+			Arena.AbortRound(roundId);
 		}
 	}
 
