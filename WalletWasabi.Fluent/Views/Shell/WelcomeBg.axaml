@@ -52,6 +52,7 @@
       </Style>
 
       <Style Selector="Viewbox.wal1">
+        <Setter Property="Opacity" Value="0" />
         <Style.Animations>
           <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:1" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -71,6 +72,7 @@
       </Style>
 
       <Style Selector="Viewbox.wal2">
+        <Setter Property="Opacity" Value="0" />
         <Style.Animations>
           <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:5" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -90,6 +92,7 @@
       </Style>
 
       <Style Selector="Viewbox.wal3">
+        <Setter Property="Opacity" Value="0" />
         <Style.Animations>
           <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:7" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -109,6 +112,7 @@
       </Style>
 
       <Style Selector="Viewbox.wal4">
+        <Setter Property="Opacity" Value="0" />
         <Style.Animations>
           <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:9" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -128,6 +132,7 @@
       </Style>
 
       <Style Selector="Viewbox.wal5">
+        <Setter Property="Opacity" Value="0" />
         <Style.Animations>
           <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:11" IterationCount="Infinite">
             <KeyFrame Cue="0%">
