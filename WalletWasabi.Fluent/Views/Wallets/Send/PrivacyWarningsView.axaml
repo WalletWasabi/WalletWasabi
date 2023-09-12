@@ -119,6 +119,18 @@
           </Border>
         </DataTemplate>
 
+        <!-- Transaction Known as Yours By Warning -->
+        <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursBy}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
+                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
+              <c:LabelsItemsPresenter Items="{Binding Labels}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
         <!-- Non-private funds Warning -->
         <DataTemplate DataType="{x:Type model:NonPrivateFundsWarning}">
           <Border Classes="warning">
