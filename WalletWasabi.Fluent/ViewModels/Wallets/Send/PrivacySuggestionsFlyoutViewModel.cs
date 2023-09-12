@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 {
 	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
+	private readonly Subject<IEnumerable<PrivacyWarning>> _previewWarnings = new();
 
 	[AutoNotify] private PrivacySuggestion? _previewSuggestion;
 	[AutoNotify] private PrivacySuggestion? _selectedSuggestion;
@@ -25,7 +26,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _badPrivacy;
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
-	private readonly Subject<IEnumerable<PrivacyWarning>> _previewWarnings = new();
 
 	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
 	{
