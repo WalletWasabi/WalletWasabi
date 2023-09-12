@@ -64,7 +64,10 @@ public partial class LineChart : Control
 
 	private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
 	{
-		var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, null);
+		var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, null)
+		{
+			TextAlignment = alignment
+		};
 
 		if (constraint != default)
 		{
