@@ -18,6 +18,17 @@ public class FadeOutTextBlock : TextBlock
 		}
 	}.ToImmutable();
 
+	private static readonly IBrush OpacityMask = new LinearGradientBrush
+	{
+		StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+		EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
+		GradientStops =
+		{
+			new GradientStop { Color = Colors.White, Offset = 0 },
+			new GradientStop { Color = Colors.White, Offset = 1 },
+		}
+	}.ToImmutable();
+
 	internal TextBlock? TrimmedTextBlock { get; set; }
 
 	protected override void RenderTextLayout(DrawingContext context, Point origin)
@@ -36,6 +47,7 @@ public class FadeOutTextBlock : TextBlock
 			}
 			else
 			{
+				using var _ = context.PushOpacityMask(OpacityMask, Bounds);
 				TextLayout.Draw(context, origin + new Point(TextLayout.OverhangLeading, 0));
 			}
 		}
