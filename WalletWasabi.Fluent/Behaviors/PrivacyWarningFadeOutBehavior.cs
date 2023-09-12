@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -12,19 +14,12 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class PrivacyWarningFadeOutBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	public static readonly StyledProperty<ObservableCollection<PrivacyWarning>> WarningsProperty =
-		AvaloniaProperty.Register<PrivacyWarningFadeOutBehavior, ObservableCollection<PrivacyWarning>>(nameof(Warnings));
+	private const string FadeOutClassName = "fadeout";
 
-	public static readonly StyledProperty<ObservableCollection<PrivacyWarning>> PreviewWarningsProperty =
-		AvaloniaProperty.Register<PrivacyWarningFadeOutBehavior, ObservableCollection<PrivacyWarning>>(nameof(PreviewWarnings));
+	public static readonly StyledProperty<IEnumerable<PrivacyWarning>> PreviewWarningsProperty =
+		AvaloniaProperty.Register<PrivacyWarningFadeOutBehavior, IEnumerable<PrivacyWarning>>(nameof(PreviewWarnings));
 
-	public ObservableCollection<PrivacyWarning> Warnings
-	{
-		get => GetValue(WarningsProperty);
-		set => SetValue(WarningsProperty, value);
-	}
-
-	public ObservableCollection<PrivacyWarning> PreviewWarnings
+	public IEnumerable<PrivacyWarning> PreviewWarnings
 	{
 		get => GetValue(PreviewWarningsProperty);
 		set => SetValue(PreviewWarningsProperty, value);
@@ -37,23 +32,21 @@ public class PrivacyWarningFadeOutBehavior : AttachedToVisualTreeBehavior<Contro
 			return;
 		}
 
-		var warnings = Observable.FromEventPattern(Warnings, nameof(Warnings.CollectionChanged)).ToSignal();
-		var previewWarnings = Observable.FromEventPattern(PreviewWarnings, nameof(PreviewWarnings.CollectionChanged)).ToSignal();
-
-		warnings.Merge(previewWarnings)
-				.Do(_ =>
+		this.WhenAnyValue(x => x.PreviewWarnings)
+			.WhereNotNull()
+			.Do(_ =>
+			{
+				var fadeOut = !PreviewWarnings.Any(p => p == current);
+				if (fadeOut && !AssociatedObject.Classes.Contains(FadeOutClassName))
 				{
-					var fadeOut = !PreviewWarnings.Any(p => p == current);
-					if (fadeOut)
-					{
-						AssociatedObject.Classes.Add("fadeout");
-					}
-					else
-					{
-						AssociatedObject.Classes.Remove("fadeout");
-					}
-				})
-				.Subscribe()
-				.DisposeWith(disposable);
+					AssociatedObject.Classes.Add(FadeOutClassName);
+				}
+				else if (!fadeOut && AssociatedObject.Classes.Contains(FadeOutClassName))
+				{
+					AssociatedObject.Classes.Remove(FadeOutClassName);
+				}
+			})
+			.Subscribe()
+			.DisposeWith(disposable);
 	}
 }

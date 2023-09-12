@@ -1,7 +1,10 @@
 using DynamicData;
 using ReactiveUI;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -22,6 +25,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _badPrivacy;
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
+	private readonly Subject<IEnumerable<PrivacyWarning>> _previewWarnings = new();
 
 	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
 	{
@@ -29,25 +33,25 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	}
 
 	public ObservableCollection<PrivacyWarning> Warnings { get; } = new();
-	public ObservableCollection<PrivacyWarning> PreviewWarnings { get; } = new();
 	public ObservableCollection<PrivacySuggestion> Suggestions { get; } = new();
+	public IObservable<IEnumerable<PrivacyWarning>> PreviewWarnings => _previewWarnings;
 
 	public async Task UpdatePreviewWarningsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
-		PreviewWarnings.Clear();
-
+		var previewWarningList = new List<PrivacyWarning>();
 		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
 
 		await foreach (var warning in result.GetAllWarningsAsync())
 		{
-			PreviewWarnings.Add(warning);
+			previewWarningList.Add(warning);
 		}
+
+		_previewWarnings.OnNext(previewWarningList);
 	}
 
 	public void ClearPreviewWarnings()
 	{
-		PreviewWarnings.Clear();
-		PreviewWarnings.AddRange(Warnings);
+		_previewWarnings.OnNext(Warnings);
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>

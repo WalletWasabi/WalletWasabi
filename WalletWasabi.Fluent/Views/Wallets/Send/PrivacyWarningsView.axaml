@@ -73,9 +73,7 @@
       <Setter Property="(Interaction.Behaviors)">
         <BehaviorCollectionTemplate>
           <BehaviorCollection>
-            <behaviors:PrivacyWarningFadeOutBehavior
-              Warnings="{Binding Warnings}"
-              PreviewWarnings="{Binding PreviewWarnings}" />
+            <behaviors:PrivacyWarningFadeOutBehavior PreviewWarnings="{Binding PreviewWarnings^}" />
           </BehaviorCollection>
         </BehaviorCollectionTemplate>
       </Setter>
