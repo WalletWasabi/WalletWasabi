@@ -16,7 +16,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Rpc;
@@ -56,7 +55,7 @@ public class Global
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
+		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
@@ -134,7 +133,6 @@ public class Global
 	public WasabiSynchronizer Synchronizer { get; private set; }
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
-	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private SpecificNodeBlockProvider SpecificNodeBlockProvider { get; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
@@ -156,10 +154,13 @@ public class Global
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
-	public async Task InitializeNoWalletAsync(TerminateService terminateService)
+	public async Task InitializeNoWalletAsync(TerminateService terminateService, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
+		CancellationToken cancel = linkedCts.Token;
+
 		// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
-		using (await InitializationAsyncLock.LockAsync())
+		using (await InitializationAsyncLock.LockAsync(cancellationToken))
 		{
 			Logger.LogTrace("Initialization started.");
 
@@ -167,8 +168,6 @@ public class Global
 			{
 				return;
 			}
-
-			CancellationToken cancel = StoppingCts.Token;
 
 			try
 			{
@@ -192,7 +191,7 @@ public class Global
 					WalletManager.EnsureTurboSyncHeightConsistency();
 
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
-					WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
 				}
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
@@ -221,7 +220,6 @@ public class Global
 				Logger.LogInfo("Start synchronizing filters...");
 
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
-				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
@@ -391,12 +389,6 @@ public class Global
 				{
 					await specificNodeBlockProvider.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(SpecificNodeBlockProvider)} is disposed.");
-				}
-
-				if (CoinJoinProcessor is { } coinJoinProcessor)
-				{
-					coinJoinProcessor.Dispose();
-					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
 				if (LegalChecker is { } legalChecker)

@@ -24,6 +24,7 @@ public class Warden : BackgroundService
 			MinTimeForFailedToVerify: config.DoSMinTimeForFailedToVerify,
 			MinTimeForCheating: config.DoSMinTimeForCheating,
 			PenaltyFactorForDisruptingConfirmation: (decimal) config.DoSPenaltyFactorForDisruptingConfirmation,
+			PenaltyFactorForDisruptingSignalReadyToSign: (decimal) config.DoSPenaltyFactorForDisruptingSignalReadyToSign,
 			PenaltyFactorForDisruptingSigning: (decimal) config.DoSPenaltyFactorForDisruptingSigning,
 			PenaltyFactorForDisruptingByDoubleSpending: (decimal) config.DoSPenaltyFactorForDisruptingByDoubleSpending,
 			MinTimeInPrison: config.DoSMinTimeInPrison);

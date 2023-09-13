@@ -13,7 +13,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletLoadWorkflow : IWalletLoadWorkflow
+[AutoInterface]
+public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
@@ -106,24 +107,27 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
 	{
-		while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+		if (isBackendAvailable)
 		{
-			await Task.Delay(500).ConfigureAwait(false);
+			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
+			await Services.BitcoinStore.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
 		}
+
+		// Wait until "client tip height" is initialized.
+		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-		if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
-			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
-		{
-			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
-			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+		uint serverTipHeight = Services.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		uint clientTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
 
-			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
-			_filterProcessCurrentTipHeight = tipHeight;
-		}
+		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+
+		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+		_filterProcessCurrentTipHeight = tipHeight;
 	}
 
 	private uint GetCurrentProcessedCount()

@@ -512,3 +512,4 @@ public class Coordinator : IDisposable
 
 	#endregion IDisposable Support
 }
+
