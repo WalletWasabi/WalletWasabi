@@ -1,8 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
@@ -18,24 +19,26 @@ public partial class WalletCoinsModel
 	{
 		_wallet = wallet;
 
+		var initialCoinList = Observable.Defer(() => GetCoins().ToObservable());
+		var initialPocketList = Observable.Defer(() => _wallet.GetPockets().ToObservable());
+		var transactionProcessed = walletModel.TransactionProcessed;
+		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
+		var signals = transactionProcessed.Merge(anonScoreTargetChanged);
+
 		List =
-			Observable.Defer(() => GetCoins().ToObservable())                                                        // initial coin list
-					  .Concat(walletModel.TransactionProcessed.SelectMany(_ => GetCoins()))                          // Refresh whenever there's a relevant transaction
-					  .Concat(walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => GetCoins())) // Also refresh whenever AnonScoreTarget changes
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .ToObservableChangeSet();
+			initialCoinList
+				.Concat(signals.SelectMany(_ => GetCoins()))
+				.ToObservableChangeSet(x => x.Key);
 
 		Pockets =
-			Observable.Defer(() => _wallet.GetPockets().ToObservable())                                                       // initial pocket list
-					  .Concat(walletModel.TransactionProcessed.SelectMany(_ => wallet.GetPockets()))                          // Refresh whenever there's a relevant transaction
-					  .Concat(walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => wallet.GetPockets())) // Also refresh whenever AnonScoreTarget changes
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .ToObservableChangeSet();
+			initialPocketList
+				.Concat(signals.SelectMany(_ => _wallet.GetPockets().ToObservable()))
+				.ToObservableChangeSet(x => x.Labels);
 	}
 
-	public IObservable<IChangeSet<ICoinModel>> List { get; }
+	public IObservable<IChangeSet<ICoinModel, int>> List { get; }
 
-	public IObservable<IChangeSet<Pocket>> Pockets { get; }
+	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets { get; }
 
 	private IEnumerable<ICoinModel> GetCoins()
 	{
