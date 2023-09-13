@@ -59,9 +59,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void ShowDetails()
 	{
-		// TODO: remove this after PrivacyRing is decoupled.
-		var walletVm = MainViewModel.Instance.NavBar.Wallets.Select(x => x.WalletViewModel).First(x => x?.WalletName == _wallet.Name);
-		UiContext.Navigate().To().PrivacyRing(walletVm);
+		UiContext.Navigate().To().PrivacyRing(_wallet);
 	}
 
 	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<ICoinModel> coins)
