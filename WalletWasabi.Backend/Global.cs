@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -102,9 +101,8 @@ public class Global : IDisposable
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
-		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
 
-		if (coinVerifierEnabled)
+		if (wabiSabiConfig.IsCoinVerifierEnabled)
 		{
 			try
 			{
@@ -136,7 +134,7 @@ public class Global : IDisposable
 			}
 		}
 
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? CoinVerifier : null);
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, CoinVerifier);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
 		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);

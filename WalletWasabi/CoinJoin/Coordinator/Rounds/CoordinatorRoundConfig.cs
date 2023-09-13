@@ -79,10 +79,6 @@ public class CoordinatorRoundConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "IsCoinVerifierEnabledForWW1", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool IsCoinVerifierEnabledForWW1 { get; private set; }
-
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
