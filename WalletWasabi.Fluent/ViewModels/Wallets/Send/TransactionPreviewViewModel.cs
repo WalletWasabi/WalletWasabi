@@ -279,7 +279,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
+			var x = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
+			Console.WriteLine($"FeeRate: {_info.FeeRate}");
+			return x;
 		}
 		catch (NotEnoughFundsException ex)
 		{
@@ -296,14 +298,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return result ? await BuildTransactionAsync() : null;
 		}
-		catch (InsufficientBalanceException ex)
+		catch (InsufficientBalanceException)
 		{
-			var failedTransactionFee = ex.Minimum - _info.Amount;
-			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
-			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
-
 			var canSelectMoreCoins = _wallet.Coins.Any(coin => !_info.Coins.Contains(coin));
-			var isMaxFeeRateFound = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
 			if (canSelectMoreCoins)
 			{
@@ -316,14 +313,39 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					return await BuildTransactionAsync();
 				}
 			}
-			else if (isMaxFeeRateFound)
+			else
 			{
-				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-				_info.FeeRate = maximumPossibleFeeRate;
-				_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
-					? estimate.Value
-					: TimeSpan.Zero;
-				return await BuildTransactionAsync();
+				var info = _info.Clone();
+				var lastWrongFeeRate = new FeeRate(0m);
+				var lastCorrectFeeRate = new FeeRate(0m);
+				var tolerance = new FeeRate(1m);
+
+				do
+				{
+					try
+					{
+						await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, info, tryToSign: false));
+						var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? info.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - info.FeeRate.SatoshiPerByte) / 2;
+						lastCorrectFeeRate = info.FeeRate;
+						info.FeeRate = new FeeRate(info.FeeRate.SatoshiPerByte + increaseBy);
+					}
+					catch (Exception)
+					{
+						lastWrongFeeRate = info.FeeRate;
+						var decreaseBy = (info.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
+						info.FeeRate = new FeeRate(info.FeeRate.SatoshiPerByte - decreaseBy);
+					}
+				} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > tolerance.SatoshiPerByte);
+
+				if (lastCorrectFeeRate >= new FeeRate(1m))
+				{
+					_info.MaximumPossibleFeeRate = lastCorrectFeeRate;
+					_info.FeeRate = lastCorrectFeeRate;
+					_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, _info.FeeRate, out var estimate)
+						? estimate.Value
+						: TimeSpan.Zero;
+					return await BuildTransactionAsync();
+				}
 			}
 
 			await ShowErrorAsync(
