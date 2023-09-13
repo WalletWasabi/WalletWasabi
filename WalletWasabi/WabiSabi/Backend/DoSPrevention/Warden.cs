@@ -66,13 +66,21 @@ public class Warden : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
-		while (!cancel.IsCancellationRequested)
+		try
 		{
-			await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+			while (!cancel.IsCancellationRequested)
 			{
-				var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
-				await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+				await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+				{
+					var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
+					await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+				}
 			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			throw;
 		}
 	}
 

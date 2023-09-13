@@ -104,13 +104,15 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(new WalletModel(Wallet)));
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(WalletRepository.CreateWalletModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!string.IsNullOrEmpty(Wallet.Kitchen.SaltSoup()))
 			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(Wallet);
+				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+				var pwAuthDialog = new PasswordAuthDialogViewModel(WalletRepository.CreateWalletModel(Wallet));
 				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 				if (!dialogResult.Result)
@@ -119,7 +121,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 				}
 			}
 
-			Navigate().To().WalletInfo(this);
+			Navigate().To().WalletInfo(new WalletModel(Wallet));
 		});
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(this));
@@ -130,7 +132,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, this, WalletModel);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(UiContext, WalletModel);
 
 		Tiles = GetTiles().ToList();
 
@@ -236,7 +238,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		var walletModel = new WalletModel(Wallet);
+		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
+		var walletModel = WalletRepository.CreateWalletModel(Wallet);
 		var balances = walletModel.Balances;
 
 		yield return new WalletBalanceTileViewModel(balances);

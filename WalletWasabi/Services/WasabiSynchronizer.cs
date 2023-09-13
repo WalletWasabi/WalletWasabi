@@ -40,7 +40,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private long _running;
 
-	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
+	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory)
 	{
 		RequestInterval = requestInterval;
 		MaxFiltersToSync = maxFiltersToSync;
@@ -61,8 +61,11 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
+	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
+	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
+
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public HttpClientFactory HttpClientFactory { get; }
+	public WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiClient WasabiClient { get; }
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>
@@ -119,8 +122,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 		Task.Run(async () =>
 		{
-			Logger.LogTrace("> Wasabi synchronizer thread starts.");
-
 			try
 			{
 				bool ignoreRequestInterval = false;
@@ -294,11 +295,13 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private void DoGenSocksServFail()
 	{
+		InitialRequestTcs.TrySetResult(false);
 		ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
 	}
 
 	private void DoNotGenSocksServFail()
 	{
+		InitialRequestTcs.TrySetResult(true);
 		ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 	}
 

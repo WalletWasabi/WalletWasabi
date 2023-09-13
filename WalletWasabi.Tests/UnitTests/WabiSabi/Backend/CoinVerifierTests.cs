@@ -111,7 +111,7 @@ public class CoinVerifierTests
 	[Fact]
 	public async Task HandleAuthenticationErrorTestAsync()
 	{
-		MockHttpClient mockHttpClient = new();
+		using MockHttpClient mockHttpClient = new();
 		mockHttpClient.OnSendAsync = req =>
 		{
 			string content = """{"error": "User roles access forbidden." }""";
