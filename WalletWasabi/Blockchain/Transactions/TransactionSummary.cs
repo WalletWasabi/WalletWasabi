@@ -22,11 +22,9 @@ public class TransactionSummary
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
 	public DateTimeOffset DateTime { get; set; }
 	public LabelsArray Labels { get; set; }
-	public uint256 GetHash() => Transaction.GetHash();
 	public Height Height => Transaction.Height;
 	public uint256? BlockHash => Transaction.BlockHash;
 	public int BlockIndex => Transaction.BlockIndex;
-	public bool IsOwnCoinjoin() => Transaction.IsOwnCoinjoin();
 	public bool IsCancellation => Transaction.IsCancellation;
 	public bool IsSpeedup => Transaction.IsSpeedup;
 	public bool IsCPFP => Transaction.IsCPFP;
@@ -44,4 +42,7 @@ public class TransactionSummary
 			return null;
 		}
 	}
+
+	public uint256 GetHash() => Transaction.GetHash();
+	public bool IsOwnCoinjoin() => Transaction.IsOwnCoinjoin();
 }
