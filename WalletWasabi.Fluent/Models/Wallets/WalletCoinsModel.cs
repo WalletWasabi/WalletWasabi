@@ -28,12 +28,14 @@ public partial class WalletCoinsModel
 		List =
 			initialCoinList
 				.Concat(signals.SelectMany(_ => GetCoins()))
-				.ToObservableChangeSet(x => x.Key);
+				.ToObservableChangeSet(x => x.Key)
+				.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler);
 
 		Pockets =
 			initialPocketList
 				.Concat(signals.SelectMany(_ => _wallet.GetPockets().ToObservable()))
-				.ToObservableChangeSet(x => x.Labels);
+				.ToObservableChangeSet(x => x.Labels)
+				.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler);
 	}
 
 	public IObservable<IChangeSet<ICoinModel, int>> List { get; }
