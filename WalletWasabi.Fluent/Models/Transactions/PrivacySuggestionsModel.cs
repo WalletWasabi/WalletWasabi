@@ -121,7 +121,7 @@ public class PrivacySuggestionsModel
 
 		if (labelsArray.Any())
 		{
-			return new TransactionKnownAsYoursBy(labelsArray);
+			return new TransactionKnownAsYoursByWarning(labelsArray);
 		}
 
 		return null;
