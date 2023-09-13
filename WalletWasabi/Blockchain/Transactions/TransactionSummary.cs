@@ -27,7 +27,6 @@ public class TransactionSummary
 	public uint256? BlockHash => Transaction.BlockHash;
 	public int BlockIndex => Transaction.BlockIndex;
 	public bool IsOwnCoinjoin => Transaction.IsOwnCoinjoin();
-	public int VirtualSize => Transaction.Transaction.GetVirtualSize();
 	public bool IsCancellation => Transaction.IsCancellation;
 	public bool IsSpeedUp => Transaction.IsSpeedup;
 	public bool IsCPFP => Transaction.IsCPFP;
