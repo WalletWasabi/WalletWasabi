@@ -20,12 +20,4 @@ public static class TransactionSummaryExtensions
 
 	public static bool TryGetConfirmationTime(this TransactionSummary model, [NotNullWhen(true)] out TimeSpan? estimate)
 		=> TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), Services.WalletManager.Network, model.Transaction, out estimate);
-
-	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
-		feeDisplayUnit switch
-		{
-			FeeDisplayUnit.BTC => MoneyUnit.BTC,
-			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
-			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
-		};
 }
