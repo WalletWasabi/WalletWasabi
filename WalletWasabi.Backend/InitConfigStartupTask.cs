@@ -1,7 +1,6 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend;
@@ -23,12 +22,7 @@ public class InitConfigStartupTask : IStartupTask
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-		var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
-		var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-		roundConfig.LoadFile(createIfMissing: true);
-		Logger.LogInfo("RoundConfig is successfully initialized.");
-
-		await Global.InitializeAsync(roundConfig, cancellationToken);
+		await Global.InitializeAsync(cancellationToken);
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
