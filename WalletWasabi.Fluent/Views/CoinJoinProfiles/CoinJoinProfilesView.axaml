@@ -13,7 +13,14 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
+
+    <c:ContentArea.Styles>
+      <Style Selector=":is(Control)">
+        <Setter Property="ClipToBounds" Value="False" />
+      </Style>
+    </c:ContentArea.Styles>
+
     <DockPanel>
 
       <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee + the mining fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
@@ -27,16 +34,16 @@
 
       <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
                VerticalAlignment="Center"
-               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+               ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
         <ListBox.Styles>
           <Style Selector="ListBoxItem">
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Margin" Value="15 20" />
-            <Setter Property="ClipToBounds" Value="False" />
+            <Setter Property="Margin" Value="10 15" />
+            <Setter Property="Padding" Value="0" />
           </Style>
           <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
-          </Style>
+            </Style>
 
           <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
@@ -78,8 +85,8 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <c:SuggestionItem ClipToBounds="False" MaxHeight="280">
-              <prof:CoinJoinProfileControl Margin="10 15" />
+            <c:SuggestionItem MaxHeight="280">
+              <prof:CoinJoinProfileControl Margin="10 10 10 15" />
             </c:SuggestionItem>
           </DataTemplate>
         </ListBox.ItemTemplate>
