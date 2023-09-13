@@ -100,4 +100,7 @@ public static class ObservableExtensions
 			property10,
 			(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value, c10.Value));
 	}
+
+	public static IObservable<(T1, T2, T3)> Flatten<T1, T2, T3>(this IObservable<((T1, T2), T3)> source) =>
+		source.Select(t => (t.Item1.Item1, t.Item1.Item2, t.Item2));
 }
