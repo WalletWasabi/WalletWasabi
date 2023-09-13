@@ -59,7 +59,16 @@
               </TransitioningContentControl.PageTransition>
               <TransitioningContentControl.DataTemplates>
                 <DataTemplate DataType="x:String">
-                  <TextBlock Text="{Binding .}" />
+                  <TextBlock Text="{Binding .}">
+                    <TextBlock.OpacityMask>
+                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="90%,0%">
+                        <LinearGradientBrush.GradientStops>
+                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
+                          <GradientStop Color="#FFFFFFFF" Offset="1" />
+                        </LinearGradientBrush.GradientStops>
+                      </LinearGradientBrush>
+                    </TextBlock.OpacityMask>
+                  </TextBlock>
                 </DataTemplate>
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>

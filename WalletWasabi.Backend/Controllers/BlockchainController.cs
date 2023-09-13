@@ -400,6 +400,17 @@ public class BlockchainController : ControllerBase
 			status.FilterCreationActive = true;
 		}
 
+		// Updating the status of coinjoin.
+		var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
+		if (validInterval < TimeSpan.FromHours(1))
+		{
+			validInterval = TimeSpan.FromHours(1);
+		}
+		if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
+		{
+			status.CoinJoinCreationActive = true;
+		}
+
 		// Updating the status of WabiSabi coinjoin.
 		if (Global.WabiSabiCoordinator is { } wabiSabiCoordinator)
 		{

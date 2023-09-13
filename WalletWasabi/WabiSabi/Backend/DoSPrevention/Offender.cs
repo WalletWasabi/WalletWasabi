@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
@@ -7,7 +6,6 @@ namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 public enum RoundDisruptionMethod
 {
 	DidNotConfirm,
-	DidNotSignalReadyToSign,
 	DidNotSign,
 	DoubleSpent
 }
@@ -15,7 +13,7 @@ public enum RoundDisruptionMethod
 public abstract record Offense();
 public record RoundDisruption(uint256 DisruptedRoundId, Money Value, RoundDisruptionMethod Method) : Offense;
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
-public record Inherited(OutPoint[] Ancestors) : Offense;
+public record Inherited(OutPoint Ancestor) : Offense;
 public record Cheating(uint256 RoundId) : Offense;
 
 public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Offense)
@@ -36,7 +34,6 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					yield return rd.Method switch
 					{
 						RoundDisruptionMethod.DidNotConfirm => "didn't confirm",
-						RoundDisruptionMethod.DidNotSignalReadyToSign => "didn't signal ready to sign",
 						RoundDisruptionMethod.DidNotSign => "didn't sign",
 						RoundDisruptionMethod.DoubleSpent => "double spent",
 						_ => throw new NotImplementedException("Unknown round disruption method.")
@@ -48,10 +45,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					break;
 				case Inherited inherited:
 					yield return nameof(Inherited);
-					foreach (var ancestor in inherited.Ancestors)
-					{
-						yield return ancestor.ToString();
-					}
+					yield return inherited.Ancestor.ToString();
 					break;
 				case Cheating cheating:
 					yield return nameof(Cheating);
@@ -82,7 +76,6 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					parts[5] switch
 					{
 						"didn't confirm" => RoundDisruptionMethod.DidNotConfirm,
-						"didn't signal ready to sign" => RoundDisruptionMethod.DidNotSignalReadyToSign,
 						"didn't sign" => RoundDisruptionMethod.DidNotSign,
 						"double spent" => RoundDisruptionMethod.DoubleSpent,
 						_ => throw new NotImplementedException("Unknown round disruption method.")
@@ -90,18 +83,12 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 			nameof(FailedToVerify) =>
 				new FailedToVerify(uint256.Parse(parts[3])),
 			nameof(Inherited) =>
-				ParseInheritedOffense(),
+				new Inherited(OutPoint.Parse(parts[3])),
 			nameof(Cheating) =>
 				new Cheating(uint256.Parse(parts[3])),
-		_ => throw new NotImplementedException("Cannot deserialize an unknown offense type.")
+			_ => throw new NotImplementedException("Cannot deserialize an unknown offense type.")
 		};
 
 		return new Offender(outpoint, startedTime, offense);
-
-		Offense ParseInheritedOffense()
-		{
-			var ancestors = parts.Skip(3).Select(OutPoint.Parse).ToArray();
-			return new Inherited(ancestors);
-		}
 	}
 }

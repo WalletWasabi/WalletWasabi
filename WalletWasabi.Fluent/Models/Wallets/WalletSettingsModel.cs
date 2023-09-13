@@ -7,8 +7,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class WalletSettingsModel : ReactiveObject
+public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;

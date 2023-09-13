@@ -48,10 +48,6 @@ public class WabiSabiConfig : ConfigBase
 	public double DoSPenaltyFactorForDisruptingConfirmation { get; set; } = 0.2;
 
 	[DefaultValue(1.0)]
-	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSignalReadyToSign", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingSignalReadyToSign { get; set; } = 1.0;
-
-	[DefaultValue(1.0)]
 	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double DoSPenaltyFactorForDisruptingSigning { get; set; } = 1.0;
 

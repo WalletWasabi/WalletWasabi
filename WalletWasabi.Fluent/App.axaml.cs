@@ -93,7 +93,7 @@ public class App : Application
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to recieve UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
-			new QrCodeGenerator(),
+			new QrGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
 			CreateWalletRepository(),

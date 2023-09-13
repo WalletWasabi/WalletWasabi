@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -13,10 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "Coinjoin Strategy", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
-	private readonly WalletCreationOptions? _options;
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	private CoinJoinProfilesViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions? options = null)
+	private CoinJoinProfilesViewModel(IWalletSettingsModel walletSettings)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(walletSettings));
 		EnableBack = true;
@@ -26,7 +24,6 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
 		_selectedProfile = walletSettings.IsNewWallet ? Profiles[1] : IdentifySelectedProfile(walletSettings);
-		_options = options;
 	}
 
 	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
@@ -80,7 +77,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			Navigate().To().AddedWalletPage(walletSettings, _options);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		else
 		{

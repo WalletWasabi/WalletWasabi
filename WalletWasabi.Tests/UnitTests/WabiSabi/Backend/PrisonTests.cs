@@ -38,15 +38,6 @@ public class PrisonTests
 		Assert.Equal(RoundDisruptionMethod.DidNotConfirm, disruptionNotConfirming.Method);
 		Assert.Equal(Money.Coins(1m), disruptionNotConfirming.Value);
 
-		// Fail to signal ready to sign
-		prison.FailedToSignalReadyToSign(outpoint, Money.Coins(1m), roundId);
-		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
-		var disruptionNotSignallingReadyToSign = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
-		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotSignallingReadyToSign.DisruptedRoundId);
-		Assert.Equal(RoundDisruptionMethod.DidNotSignalReadyToSign, disruptionNotSignallingReadyToSign.Method);
-		Assert.Equal(Money.Coins(1m), disruptionNotSignallingReadyToSign.Value);
-
 		// Fail to sign
 		prison.FailedToSign(outpoint, Money.Coins(2m), roundId);
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
@@ -71,20 +62,6 @@ public class PrisonTests
 		var cheating = Assert.IsType<Cheating>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
 		Assert.Equal(roundId, cheating.RoundId);
-
-		// Inherited
-		var ancestors = new[]
-		{
-			BitcoinFactory.CreateOutPoint(),
-			BitcoinFactory.CreateOutPoint()
-		};
-
-		prison.InheritPunishment(outpoint, ancestors);
-		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
-		var inherited = Assert.IsType<Inherited>(offenderToSave.Offense);
-		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(ancestors[0], inherited.Ancestors[0]);
-		Assert.Equal(ancestors[1], inherited.Ancestors[1]);
 
 		Assert.Equal(0, reader.Count);
 	}
@@ -156,17 +133,5 @@ public class PrisonTests
 		prison.FailedToConfirm(ftcOutpointBigPaid, Money.Coins(2m), roundId);
 		banningPeriodBigPaidCoin = prison.GetBanTimePeriod(ftcOutpointBigPaid);
 		Assert.Equal(TimeSpan.Zero, banningPeriodBigPaidCoin.Duration); // it is not banned second time either
-
-		// coins inherit the punishments from their ancestors
-		var ftcFailedToSign = BitcoinFactory.CreateOutPoint();
-		var ftcFailedToConfirm = BitcoinFactory.CreateOutPoint();
-		var ftcInheritFromFailedToSign = BitcoinFactory.CreateOutPoint();
-		prison.FailedToSign(ftcFailedToSign, Money.Coins(0.005m), roundId);
-		prison.FailedToConfirm(ftcFailedToConfirm, Money.Coins(0.005m), roundId);
-		prison.InheritPunishment(ftcInheritFromFailedToSign, new[] { ftcFailedToSign, ftcFailedToConfirm });
-		var failToSignBanningTime = prison.GetBanTimePeriod(ftcFailedToSign);
-		var inheritedBanningTime = prison.GetBanTimePeriod(ftcInheritFromFailedToSign);
-
-		Assert.Equal(failToSignBanningTime, inheritedBanningTime); // because fail to sign is punished harder
 	}
 }

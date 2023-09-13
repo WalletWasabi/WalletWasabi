@@ -9,8 +9,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class WalletCoinjoinModel
+public class WalletCoinjoinModel : IWalletCoinjoinModel
 {
 	private readonly Wallet _wallet;
 	private CoinJoinManager _coinJoinManager;

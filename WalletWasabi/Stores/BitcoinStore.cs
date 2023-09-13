@@ -22,19 +22,17 @@ public class BitcoinStore
 		IndexStore indexStore,
 		AllTransactionStore transactionStore,
 		MempoolService mempoolService,
-		SmartHeaderChain smartHeaderChain,
 		IRepository<uint256, Block> blockRepository)
 	{
 		IndexStore = indexStore;
 		TransactionStore = transactionStore;
 		MempoolService = mempoolService;
-		SmartHeaderChain = smartHeaderChain;
 		BlockRepository = blockRepository;
 	}
 
 	public IndexStore IndexStore { get; }
 	public AllTransactionStore TransactionStore { get; }
-	public SmartHeaderChain SmartHeaderChain { get; }
+	public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
 	public MempoolService MempoolService { get; }
 	public IRepository<uint256, Block> BlockRepository { get; }
 

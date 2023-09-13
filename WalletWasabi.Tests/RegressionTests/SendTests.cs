@@ -142,7 +142,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			Assert.Contains(res2.InnerWalletOutputs.Single(), wallet.Coins);
 
-			//// Basic
+			#region Basic
 
 			Script receive = keyManager.GetNextReceiveKey("Basic").P2wpkhScript;
 			Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
@@ -188,7 +188,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
-			//// SubtractFeeFromAmount
+			#endregion Basic
+
+			#region SubtractFeeFromAmount
 
 			receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 			amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
@@ -221,7 +223,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			}
 			Assert.True(foundReceive);
 
-			//// LowFee
+			#endregion SubtractFeeFromAmount
+
+			#region LowFee
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -252,7 +256,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			}
 			Assert.True(foundReceive);
 
-			//// MediumFee
+			#endregion LowFee
+
+			#region MediumFee
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.OneDayConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -283,7 +289,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			}
 			Assert.True(foundReceive);
 
-			//// HighFee
+			#endregion MediumFee
+
+			#region HighFee
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -319,7 +327,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
-			//// MaxAmount
+			#endregion HighFee
+
+			#region MaxAmount
 
 			receive = keyManager.GetNextReceiveKey("MaxAmount").P2wpkhScript;
 
@@ -338,7 +348,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 			await broadcaster.SendTransactionAsync(res.Transaction);
 
-			//// InputSelection
+			#endregion MaxAmount
+
+			#region InputSelection
 
 			receive = keyManager.GetNextReceiveKey("InputSelection").P2wpkhScript;
 
@@ -382,7 +394,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Single(res.Transaction.Transaction.Outputs);
 			Assert.Single(res.SpentCoins);
 
-			//// Labeling
+			#endregion InputSelection
+
+			#region Labeling
 
 			Script receive2 = keyManager.GetNextReceiveKey("foo").P2wpkhScript;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
@@ -434,7 +448,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Contains("outgoing", allKeyLabels);
 			Assert.Contains("outgoing2", allKeyLabels);
 
-			//// AllowedInputsDisallowUnconfirmed
+			#endregion Labeling
+
+			#region AllowedInputsDisallowUnconfirmed
 
 			inputCountBefore = res.SpentCoins.Count();
 
@@ -468,7 +484,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.True(inputCountBefore >= res.SpentCoins.Count());
 			Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
 
-			//// CustomChange
+			#endregion AllowedInputsDisallowUnconfirmed
+
+			#region CustomChange
 
 			// covers:
 			// customchange
@@ -485,7 +503,9 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Contains(scp1, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 			Assert.Contains(scp2, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 
-			//// FeePcHigh
+			#endregion CustomChange
+
+			#region FeePcHigh
 
 			using Key keyFeePcHigh1 = new();
 			res = wallet.BuildTransaction(
@@ -511,6 +531,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Assert.Equal(newChangeK.P2wpkhScript, changeRes.ScriptPubKey);
 			Assert.Equal(newChangeK.Labels, changeRes.HdPubKey.Labels);
 			Assert.Equal(KeyState.Clean, newChangeK.KeyState); // Still clean, because the tx wasn't yet propagated.
+
+			#endregion FeePcHigh
 		}
 		finally
 		{

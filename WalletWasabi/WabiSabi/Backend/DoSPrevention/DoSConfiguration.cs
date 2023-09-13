@@ -6,6 +6,5 @@ public record DoSConfiguration(
 	TimeSpan MinTimeForCheating,
 	TimeSpan MinTimeInPrison,
 	decimal PenaltyFactorForDisruptingConfirmation,
-	decimal PenaltyFactorForDisruptingSignalReadyToSign,
 	decimal PenaltyFactorForDisruptingSigning,
 	decimal PenaltyFactorForDisruptingByDoubleSpending);

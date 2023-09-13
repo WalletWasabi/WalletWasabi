@@ -5,7 +5,6 @@ namespace WalletWasabi.Fluent.Models.Transactions;
 public enum WarningSeverity
 {
 	Default,
-	Critical,
 	Warning,
 	Info
 }
@@ -15,11 +14,9 @@ public enum WarningSeverity
 // Revisit this after Avalonia V11 upgrade
 public abstract record PrivacyWarning(WarningSeverity Severity) : PrivacyItem();
 
-public record InterlinksLabelsWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Critical);
+public record InterlinksLabelsWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Warning);
 
-public record TransactionKnownAsYoursByWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Critical);
-
-public record NonPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Critical);
+public record NonPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 
 public record SemiPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 

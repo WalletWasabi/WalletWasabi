@@ -6,6 +6,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Daemon;
 
@@ -197,21 +198,11 @@ public static class WasabiAppExtensions
 		return await app.RunAsync(
 			async () =>
 			{
-				try
-				{
-					await app.Global!.InitializeNoWalletAsync(app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
-				}
-				catch (OperationCanceledException) when (app.TerminateService.CancellationToken.IsCancellationRequested)
-				{
-					Logger.LogInfo("User requested the application to stop. Stopping.");
-				}
+				await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
 
-				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
-				{
-					ProcessCommands();
-					await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
-				}
+				ProcessCommands();
 
+				await app.TerminateService.TerminationRequested.Task.ConfigureAwait(false);
 			}).ConfigureAwait(false);
 	}
 }

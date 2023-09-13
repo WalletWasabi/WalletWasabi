@@ -80,7 +80,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		try
 		{
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-			Navigate().To().AddedWalletPage(walletSettings, options);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{

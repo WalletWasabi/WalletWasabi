@@ -22,7 +22,6 @@ public class Prison
 	private DoSConfiguration DoSConfiguration { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
 	private List<Offender> Offenders { get; }
-
 	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
 	private object Lock { get; } = new();
 
@@ -53,11 +52,6 @@ public class Prison
 	public void DoubleSpent(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DoubleSpent)));
 
-	public void InheritPunishment(OutPoint outpoint, OutPoint[] ancestors) =>
-		Punish(new Offender(outpoint, DateTimeOffset.UtcNow, new Inherited(ancestors)));
-
-	public void FailedToSignalReadyToSign(OutPoint outPoint, Money value, uint256 roundId) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotSignalReadyToSign)));
 
 	public bool IsBanned(OutPoint outpoint, DateTimeOffset when) =>
 		GetBanTimePeriod(outpoint).Includes(when);
@@ -76,7 +70,7 @@ public class Prison
 			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForFailedToVerify),
 			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForCheating),
 			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
-			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
+			{ Offense: Inherited { Ancestor: { } ancestor } } => GetBanTimePeriod(ancestor),
 			_ => throw new NotSupportedException("Unknown offense type.")
 		};
 	}
@@ -99,7 +93,7 @@ public class Prison
 		}
 
 		List<Offender> offenderHistory;
-		lock (Lock)
+		lock (Offenders)
 		{
 			offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
 		}
@@ -110,17 +104,10 @@ public class Prison
 				{ Method: RoundDisruptionMethod.DidNotConfirm } => DoSConfiguration.PenaltyFactorForDisruptingConfirmation,
 				{ Method: RoundDisruptionMethod.DidNotSign } => DoSConfiguration.PenaltyFactorForDisruptingSigning,
 				{ Method: RoundDisruptionMethod.DoubleSpent } => DoSConfiguration.PenaltyFactorForDisruptingByDoubleSpending,
-				{ Method: RoundDisruptionMethod.DidNotSignalReadyToSign } => DoSConfiguration.PenaltyFactorForDisruptingSignalReadyToSign,
 				_ => throw new NotSupportedException("Unknown round disruption method.")
 			});
 
 		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count - 1);
 		return TimeSpan.FromHours((double)prisonTime);
 	}
-
-	private TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors) =>
-		ancestors
-			.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a)))
-			.MaxBy(x => x.BanningTime.EndTime)
-			.BanningTime;
 }

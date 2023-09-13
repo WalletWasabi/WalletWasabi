@@ -8,8 +8,7 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class PasswordFinderModel : ReactiveObject
+public class PasswordFinderModel : ReactiveObject, IPasswordFinderModel
 {
 	private readonly Subject<(int Percentage, TimeSpan RemainingTime)> _progress;
 	private readonly Wallet _wallet;

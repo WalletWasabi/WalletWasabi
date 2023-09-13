@@ -25,8 +25,7 @@ public enum EndRoundState
 	NotAllAlicesSign,
 	AbortedNotEnoughAlicesSigned,
 	AbortedNotAllAlicesConfirmed,
-	AbortedLoadBalancing,
-	AbortedDoubleSpendingDetected
+	AbortedLoadBalancing
 }
 
 public class Round
@@ -70,8 +69,6 @@ public class Round
 	public DateTimeOffset End { get; private set; }
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
-
-	public bool FastSigningPhase { get; set; }
 
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }

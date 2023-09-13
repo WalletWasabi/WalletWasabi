@@ -1,6 +1,4 @@
-using WalletWasabi.Fluent.Models.ClientConfig;
-
-namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
+namespace WalletWasabi.Fluent.Models.ClientConfig;
 
 public class NullClientConfig : IClientConfig
 {

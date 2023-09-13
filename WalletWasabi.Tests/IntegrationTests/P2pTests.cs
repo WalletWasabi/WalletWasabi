@@ -55,12 +55,11 @@ public class P2pTests
 
 		var dataDir = Common.GetWorkDir();
 
-		SmartHeaderChain smartHeaderChain = new();
-		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);
+		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, smartHeaderChain, blocks);
+		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 		await bitcoinStore.InitializeAsync();
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");

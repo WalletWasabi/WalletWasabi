@@ -22,8 +22,6 @@ using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using System.Threading;
-using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -174,14 +172,12 @@ public static class WasabiAppExtensions
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
 
-				using CancellationTokenSource stopLoadingCts = new();
-
-				AppBuilder appBuilder = AppBuilder
+				AppBuilder
 					.Configure(() => new App(
 						backendInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global!.InitializeNoWalletAsync(app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+							await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
 
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
@@ -194,18 +190,8 @@ public static class WasabiAppExtensions
 						Logger.LogInfo($"Renderer: {glInterface?.PrimaryContext.GlInterface.Renderer ?? "Avalonia Software"}");
 
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-					});
-
-				if (app.TerminateService.CancellationToken.IsCancellationRequested)
-				{
-					Logger.LogDebug("Skip starting Avalonia UI as requested the application to stop.");
-					stopLoadingCts.Cancel();
-				}
-				else
-				{
-					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
-				}
-
+					})
+					.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 				return Task.CompletedTask;
 			});
 	}

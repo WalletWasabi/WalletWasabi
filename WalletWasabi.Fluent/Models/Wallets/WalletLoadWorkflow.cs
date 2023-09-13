@@ -13,8 +13,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class WalletLoadWorkflow
+public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
@@ -107,27 +106,24 @@ public partial class WalletLoadWorkflow
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
 	{
-		if (isBackendAvailable)
+		while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
 		{
-			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
-			await Services.BitcoinStore.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
+			await Task.Delay(500).ConfigureAwait(false);
 		}
-
-		// Wait until "client tip height" is initialized.
-		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-		uint serverTipHeight = Services.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-		uint clientTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
+		if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
+			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
+		{
+			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
-		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
-		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
-
-		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
-		_filterProcessCurrentTipHeight = tipHeight;
+			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+			_filterProcessCurrentTipHeight = tipHeight;
+		}
 	}
 
 	private uint GetCurrentProcessedCount()

@@ -23,6 +23,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		ArgumentNullException.ThrowIfNull(device);
 
 		WalletName = walletName;
+		CancelCts = new CancellationTokenSource();
 
 		Type = device.WalletType;
 
@@ -39,7 +40,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		EnableAutoBusyOn(NextCommand);
 	}
 
-	public CancellationTokenSource? CancelCts { get; private set; }
+	public CancellationTokenSource CancelCts { get; }
 
 	public string WalletName { get; }
 
@@ -53,9 +54,8 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		try
 		{
-			CancelCts ??= new CancellationTokenSource();
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options, CancelCts.Token);
-			Navigate().To().AddedWalletPage(walletSettings, options);
+			Navigate().To().AddedWalletPage(walletSettings);
 		}
 		catch (Exception ex)
 		{
@@ -79,9 +79,8 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		disposables.Add(Disposable.Create(() =>
 		{
-			CancelCts?.Cancel();
-			CancelCts?.Dispose();
-			CancelCts = null;
+			CancelCts.Cancel();
+			CancelCts.Dispose();
 		}));
 	}
 }

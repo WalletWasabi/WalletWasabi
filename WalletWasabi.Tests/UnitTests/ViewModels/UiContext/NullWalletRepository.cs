@@ -1,12 +1,11 @@
 using DynamicData;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
+namespace WalletWasabi.Fluent.Models.UI;
 
 public class NullWalletRepository : IWalletRepository
 {

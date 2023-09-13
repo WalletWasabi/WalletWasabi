@@ -388,7 +388,6 @@ public static class WabiSabiFactory
 			MinTimeForCheating: TimeSpan.FromDays(1),
 			MinTimeInPrison: TimeSpan.FromHours(1),
 			PenaltyFactorForDisruptingConfirmation: 1.0m,
-			PenaltyFactorForDisruptingSignalReadyToSign: 1.5m,
 			PenaltyFactorForDisruptingSigning: 1.5m,
 			PenaltyFactorForDisruptingByDoubleSpending: 3.0m);
 

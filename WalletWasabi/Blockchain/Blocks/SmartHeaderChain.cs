@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
@@ -36,9 +35,6 @@ public class SmartHeaderChain
 	{
 		MaxChainSize = maxChainSize;
 	}
-
-	/// <summary>Task completion source that is completed once a <see cref="ServerTipHeight"/> is initialized for the first time.</summary>
-	public TaskCompletionSource ServerTipInitializedTcs { get; } = new();
 
 	/// <remarks>Useful to save memory by removing elements at the beginning of the chain.</remarks>
 	private int MaxChainSize { get; }
@@ -180,8 +176,6 @@ public class SmartHeaderChain
 			_serverTipHeight = height;
 			SetHashesLeftNoLock();
 		}
-
-		ServerTipInitializedTcs.TrySetResult();
 	}
 
 	/// <remarks>Only for tests.</remarks>

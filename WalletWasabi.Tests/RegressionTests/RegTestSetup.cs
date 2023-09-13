@@ -13,6 +13,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -33,12 +34,11 @@ public class RegTestSetup : IAsyncDisposable
 		RegTestFixture = regTestFixture;
 		ServiceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
-		SmartHeaderChain smartHeaderChain = new();
-		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
+		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, new SmartHeaderChain());
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
 		MempoolService mempoolService = new();
 		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
-		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
+		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, blocks);
 	}
 
 	public RegTestFixture RegTestFixture { get; }
@@ -48,6 +48,7 @@ public class RegTestSetup : IAsyncDisposable
 	public AllTransactionStore TransactionStore { get; }
 	public IRPCClient RpcClient => Global.RpcClient!;
 	public Network Network => RpcClient.Network;
+	public Coordinator Coordinator => Global.Coordinator!;
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string Password { get; } = "password";
 
@@ -65,6 +66,8 @@ public class RegTestSetup : IAsyncDisposable
 		{
 			await setup.RpcClient.GenerateAsync(numberOfBlocksToGenerate).ConfigureAwait(false); // Make sure everything is confirmed.
 		}
+
+		setup.Coordinator.UtxoReferee.Clear();
 
 		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
 

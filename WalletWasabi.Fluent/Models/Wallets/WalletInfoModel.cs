@@ -5,8 +5,7 @@ using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class WalletInfoModel
+public class WalletInfoModel : IWalletInfoModel
 {
 	public WalletInfoModel(Wallet wallet)
 	{

@@ -58,15 +58,23 @@ public partial class LoginViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
-		var termsAndConditionsAccepted = await TermsAndConditionsViewModel.TryShowAsync(UiContext, walletModel);
-		if (termsAndConditionsAccepted)
+		if (walletModel.Auth.IsLegalRequired)
 		{
-			walletModel.Auth.CompleteLogin();
+			var accepted = await ShowLegalAsync();
+			if (accepted)
+			{
+				await walletModel.Auth.AcceptTermsAndConditions();
+				walletModel.Auth.CompleteLogin();
+			}
+			else
+			{
+				walletModel.Auth.Logout();
+				ErrorMessage = "You must accept the Terms and Conditions!";
+			}
 		}
 		else
 		{
-			walletModel.Auth.Logout();
-			ErrorMessage = "You must accept the Terms and Conditions!";
+			walletModel.Auth.CompleteLogin();
 		}
 	}
 
@@ -79,5 +87,10 @@ public partial class LoginViewModel : RoutableViewModel
 	private void OnForgotPassword(IWalletModel wallet)
 	{
 		UiContext.Navigate().To().PasswordFinderIntroduce(wallet);
+	}
+
+	private async Task<bool> ShowLegalAsync()
+	{
+		return await Navigate().To().TermsAndConditions().GetResultAsync();
 	}
 }

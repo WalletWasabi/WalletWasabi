@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -21,7 +20,6 @@ public abstract class P2pBehavior : NodeBehavior
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 	}
 
-	public event EventHandler<Transaction>? OnTransactionArrived;
 	public MempoolService MempoolService { get; }
 
 	protected override void AttachCore()
@@ -123,7 +121,6 @@ public abstract class P2pBehavior : NodeBehavior
 	{
 		Transaction transaction = payload.Object;
 		transaction.PrecomputeHash(false, true);
-		OnTransactionArrived.SafeInvoke(this, transaction);
 		MempoolService.Process(transaction);
 	}
 }

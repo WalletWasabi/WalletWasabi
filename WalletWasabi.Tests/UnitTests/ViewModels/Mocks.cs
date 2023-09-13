@@ -9,7 +9,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 

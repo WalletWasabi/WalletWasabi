@@ -81,10 +81,6 @@
       <Setter Property="DockPanel.Dock" Value="Left" />
     </Style>
 
-    <Style Selector="Border.warning.critical PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
-    </Style>
-
     <Style Selector="Border.warning.info PathIcon">
       <Setter Property="Data" Value="{StaticResource info_regular}" />
     </Style>
@@ -113,7 +109,7 @@
       <ItemsControl.DataTemplates>
         <!-- Interlinks Labels Warning -->
         <DataTemplate DataType="{x:Type model:InterlinksLabelsWarning}">
-          <Border Classes="warning critical">
+          <Border Classes="warning">
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
@@ -123,21 +119,9 @@
           </Border>
         </DataTemplate>
 
-        <!-- Transaction Known as Yours By Warning -->
-        <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursByWarning}">
-          <Border Classes="warning critical">
-            <DockPanel>
-              <PathIcon />
-              <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
-                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter Items="{Binding Labels}" />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-
         <!-- Non-private funds Warning -->
         <DataTemplate DataType="{x:Type model:NonPrivateFundsWarning}">
-          <Border Classes="warning critical">
+          <Border Classes="warning">
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses non-private coins."
