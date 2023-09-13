@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
@@ -22,12 +22,14 @@ public partial class WalletCoinsModel
 			Observable.Defer(() => GetCoins().ToObservable())                                                        // initial coin list
 					  .Concat(walletModel.TransactionProcessed.SelectMany(_ => GetCoins()))                          // Refresh whenever there's a relevant transaction
 					  .Concat(walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => GetCoins())) // Also refresh whenever AnonScoreTarget changes
+					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .ToObservableChangeSet();
 
 		Pockets =
 			Observable.Defer(() => _wallet.GetPockets().ToObservable())                                                       // initial pocket list
 					  .Concat(walletModel.TransactionProcessed.SelectMany(_ => wallet.GetPockets()))                          // Refresh whenever there's a relevant transaction
 					  .Concat(walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).SelectMany(_ => wallet.GetPockets())) // Also refresh whenever AnonScoreTarget changes
+					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .ToObservableChangeSet();
 	}
 
