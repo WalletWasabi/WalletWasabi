@@ -18,9 +18,12 @@ public partial class CoinModel : ReactiveObject
 		Confirmations = coin.GetConfirmations();
 		AnonimitySet = (int)coin.AnonymitySet;
 		Labels = coin.GetLabels(wallet.AnonScoreTarget);
+		Key = coin.Outpoint.GetHashCode();
 	}
 
 	public Money Amount { get; }
+
+	public int Key { get; }
 
 	public PrivacyLevel PrivacyLevel { get; }
 
@@ -30,9 +33,7 @@ public partial class CoinModel : ReactiveObject
 
 	public int AnonimitySet { get; }
 
-	public LabelsArray Labels { get; }
-
-	public bool IsPrivate => PrivacyLevel == PrivacyLevel.Private;
+	public LabelsArray Labels { get; }	public bool IsPrivate => PrivacyLevel == PrivacyLevel.Private;
 
 	public bool IsSemiPrivate => PrivacyLevel == PrivacyLevel.SemiPrivate;
 
