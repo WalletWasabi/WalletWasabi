@@ -15,7 +15,10 @@ public partial class CoinModel : ReactiveObject
 	{
 		_privacyLevel = coin.GetPrivacyLevel(wallet.AnonScoreTarget);
 		Amount = coin.Amount;
+		Key = coin.Outpoint.GetHashCode();
 	}
 
 	public Money Amount { get; }
+
+	public int Key { get; }
 }
