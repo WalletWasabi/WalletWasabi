@@ -74,6 +74,7 @@
                            Text="{TemplateBinding Watermark}" />
                 <ItemsControl Name="PART_ItemsPresenter"
                               ItemsSource="{TemplateBinding Items}"
+                              ClipToBounds="False"
                               Focusable="False">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -121,7 +122,8 @@
                          Text="{TemplateBinding Watermark}" />
               <ItemsControl Name="PART_ItemsPresenter"
                             ItemsSource="{TemplateBinding Items}"
-                            Focusable="False">
+                            Focusable="False"
+                            ClipToBounds="False">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
