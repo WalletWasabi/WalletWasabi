@@ -22,28 +22,15 @@ public class TransactionSummary
 	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
 	public DateTimeOffset DateTime { get; set; }
 	public LabelsArray Labels { get; set; }
-	public uint256 TransactionId => Transaction.GetHash();
+	public uint256 GetHash() => Transaction.GetHash();
 	public Height Height => Transaction.Height;
 	public uint256? BlockHash => Transaction.BlockHash;
 	public int BlockIndex => Transaction.BlockIndex;
-	public bool IsOwnCoinjoin => Transaction.IsOwnCoinjoin();
+	public bool IsOwnCoinjoin() => Transaction.IsOwnCoinjoin();
 	public bool IsCancellation => Transaction.IsCancellation;
-	public bool IsSpeedUp => Transaction.IsSpeedup;
+	public bool IsSpeedup => Transaction.IsSpeedup;
 	public bool IsCPFP => Transaction.IsCPFP;
 	public bool IsCPFPd => Transaction.IsCPFPd;
-
-	public FeeRate? FeeRate
-	{
-		get
-		{
-			if (Transaction.TryGetFeeRate(out var feeRate))
-			{
-				return feeRate;
-			}
-
-			return null;
-		}
-	}
 
 	public Money? Fee
 	{

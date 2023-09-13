@@ -33,7 +33,7 @@ public class TransactionHistoryBuilder
 			var containingTransaction = coin.Transaction;
 
 			var dateTime = containingTransaction.FirstSeen;
-			var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
+			var found = txRecordList.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 			if (found is { }) // if found then update
 			{
 				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
@@ -51,7 +51,7 @@ public class TransactionHistoryBuilder
 			{
 				var spenderTxId = spenderTransaction.GetHash();
 				dateTime = spenderTransaction.FirstSeen;
-				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == spenderTxId);
+				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.GetHash() == spenderTxId);
 				if (foundSpenderCoin is { }) // if found
 				{
 					foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;

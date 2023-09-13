@@ -50,7 +50,7 @@ public partial class WalletModel : ReactiveObject
 		Transactions =
 			Observable.Defer(() => BuildSummary().ToObservable())
 					  .Concat(relevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.TransactionId);
+					  .ToObservableChangeSet(x => x.GetHash());
 
 		Addresses =
 			Observable.Defer(() => GetAddresses().ToObservable())
