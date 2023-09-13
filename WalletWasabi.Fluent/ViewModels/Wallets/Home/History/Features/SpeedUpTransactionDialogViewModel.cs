@@ -68,7 +68,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_triggers.TransactionsUpdateTrigger
-			.Select(_ => _wallet.GetTransactions().FirstOrDefault(s => s.GetHash() == _transactionToSpeedUp.GetHash()))
+			.Select(_ => _wallet.GetTransaction(_transactionToSpeedUp.GetHash()))
 			.WhereNotNull()
 			.Where(s => s.Confirmed)
 			.Do(_ => Navigate().Back())

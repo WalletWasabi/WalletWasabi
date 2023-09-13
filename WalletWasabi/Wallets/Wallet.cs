@@ -130,9 +130,13 @@ public class Wallet : BackgroundService, IWallet
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
+	/// <summary>
+	/// Get all the transactions associated to the wallet ordered by blockchain.
+	/// </summary>
+	/// <returns></returns>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
-		var walletTransactions = new List<SmartTransaction>();
+		var walletTransactions = new HashSet<SmartTransaction>();
 		foreach (SmartCoin coin in GetAllCoins())
 		{
 			walletTransactions.Add(coin.Transaction);
@@ -142,6 +146,28 @@ public class Wallet : BackgroundService, IWallet
 			}
 		}
 		return walletTransactions.OrderByBlockchain().ToList();
+	}
+
+	/// <summary>
+	/// Get the SmartTransaction for a given txid if this transaction is associated to the wallet.
+	/// Otherwise, returns null.
+	/// </summary>
+	public SmartTransaction? GetTransaction(uint256 txid)
+	{
+		foreach (SmartCoin coin in GetAllCoins())
+		{
+			if (coin.TransactionId == txid)
+			{
+				return coin.Transaction;
+			}
+
+			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
+			{
+				return coin.SpenderTransaction;
+			}
+		}
+
+		return null;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
@@ -406,7 +432,7 @@ public class Wallet : BackgroundService, IWallet
 			lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
 			await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 		}
-		
+
 		// Request a synchronization once all filters were downloaded.
 		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}
