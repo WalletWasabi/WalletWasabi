@@ -16,24 +16,25 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	private CoinJoinsHistoryItemViewModel(
 		int orderIndex,
-		TransactionSummary firstItem,
+		SmartTransaction firstItem,
 		WalletViewModel walletVm)
 		: base(orderIndex, firstItem)
 	{
 		_walletVm = walletVm;
 
-		CoinJoinTransactions = new List<TransactionSummary>();
+		CoinJoinTransactions = new List<SmartTransaction>();
 		IsCoinJoin = true;
 		IsCoinJoinGroup = true;
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
+		ShowDetailsCommand = ReactiveCommand.Create(
+			() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
 	}
 
-	public List<TransactionSummary> CoinJoinTransactions { get; private set; }
+	public List<SmartTransaction> CoinJoinTransactions { get; private set; }
 
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
@@ -53,7 +54,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 				balance,
 				false);
 
-			balance -= item.Amount;
+			balance -= item.GetAmount();
 
 			result.Add(transaction);
 		}
@@ -71,7 +72,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		return false;
 	}
 
-	public void Add(TransactionSummary item)
+	public void Add(SmartTransaction item)
 	{
 		if (!item.IsOwnCoinjoin())
 		{
@@ -84,20 +85,20 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	private void Refresh()
 	{
-		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
-		ConfirmedToolTip = GetConfirmedToolTip(CoinJoinTransactions.Select(x => x.GetConfirmations()).Min());
-		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
+		IsConfirmed = CoinJoinTransactions.All(x => x.Confirmed);
+		ConfirmedToolTip = GetConfirmedToolTip(CoinJoinTransactions.Select(x => x.GetConfirmations((int)Services.BitcoinStore.SmartHeaderChain.ServerTipHeight)).Min());
+		Date = CoinJoinTransactions.Select(tx => tx.FirstSeen).Max().ToLocalTime();
 
 		SetAmount(
-			CoinJoinTransactions.Sum(x => x.Amount),
-			CoinJoinTransactions.Sum(x => x.Fee ?? Money.Zero));
+			CoinJoinTransactions.Sum(x => x.GetAmount()),
+			CoinJoinTransactions.Sum(x => x.GetFee() ?? Money.Zero));
 
 		UpdateDateString();
 	}
 
 	protected void UpdateDateString()
 	{
-		var dates = CoinJoinTransactions.Select(tx => tx.DateTime).ToImmutableArray();
+		var dates = CoinJoinTransactions.Select(tx => tx.FirstSeen).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
 

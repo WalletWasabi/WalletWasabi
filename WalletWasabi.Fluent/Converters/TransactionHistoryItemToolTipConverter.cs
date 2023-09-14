@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -24,7 +25,7 @@ public class TransactionHistoryItemToolTipConverter : IValueConverter
 				return vm.ConfirmedToolTip;
 			}
 
-			if (vm.TransactionSummary.TryGetConfirmationTime(out var estimate))
+			if (vm.Transaction.TryGetConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), Services.WalletManager.Network, out var estimate))
 			{
 				var friendlyString = TextHelpers.TimeSpanToFriendlyString(estimate.Value);
 				if (friendlyString != "")

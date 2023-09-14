@@ -24,15 +24,15 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private string _confirmedToolTip;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
-	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
+	protected HistoryItemViewModelBase(int orderIndex, SmartTransaction transaction)
 	{
 		OrderIndex = orderIndex;
-		TransactionSummary = transactionSummary;
-		Id = transactionSummary.GetHash();
+		Transaction = transaction;
+		Id = transaction.GetHash();
 
-		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
+		_confirmedToolTip = GetConfirmedToolTip(transaction.GetConfirmations((int)Services.BitcoinStore.SmartHeaderChain.ServerTipHeight));
 
-		_isConfirmed = transactionSummary.IsConfirmed();
+		_isConfirmed = transaction.Confirmed;
 
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
@@ -110,7 +110,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCPFPDisplayed => IsCPFP;
 
-	public TransactionSummary TransactionSummary { get; }
+	public SmartTransaction Transaction { get; }
 
 	private async Task CopyToClipboardAsync(string text)
 	{

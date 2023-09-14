@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -11,7 +12,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Wallets;
 using Xunit;
-using TransactionSummary = WalletWasabi.Blockchain.Transactions.TransactionSummary;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
@@ -68,7 +68,7 @@ public class ReceiveViewModelTests
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
+		public IObservable<IChangeSet<SmartTransaction, uint256>> Transactions => throw new NotSupportedException();
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 		public bool IsHardwareWallet => throw new NotSupportedException();

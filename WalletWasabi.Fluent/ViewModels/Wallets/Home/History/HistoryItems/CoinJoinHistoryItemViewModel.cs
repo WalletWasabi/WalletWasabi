@@ -2,7 +2,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -11,19 +10,19 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private CoinJoinHistoryItemViewModel(
 		int orderIndex,
-		TransactionSummary transactionSummary,
+		SmartTransaction transaction,
 		WalletViewModel walletVm,
 		Money balance,
 		bool isSingleCoinJoinTransaction)
-		: base(orderIndex, transactionSummary)
+		: base(orderIndex, transaction)
 	{
-		Date = transactionSummary.DateTime.ToLocalTime();
+		Date = transaction.FirstSeen.ToLocalTime();
 		Balance = balance;
 		IsCoinJoin = true;
-		CoinJoinTransaction = transactionSummary;
+		CoinJoinTransaction = transaction;
 		IsChild = !isSingleCoinJoinTransaction;
 
-		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
+		SetAmount(transaction.GetAmount(), transaction.GetFee());
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(
@@ -32,5 +31,5 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		DateString = Date.ToLocalTime().ToUserFacingString();
 	}
 
-	public TransactionSummary CoinJoinTransaction { get; private set; }
+	public SmartTransaction CoinJoinTransaction { get; private set; }
 }

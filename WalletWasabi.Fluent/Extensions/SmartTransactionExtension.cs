@@ -1,11 +1,16 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Transactions.Summary;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Blockchain.Transactions;
+namespace WalletWasabi.Fluent.Extensions;
 
-public static class SmartTransactionExtensions
+public static class SmartTransactionExtension
 {
 	public static IEnumerable<Output> GetOutputs(this SmartTransaction smartTransaction, Network network)
 	{
@@ -78,4 +83,34 @@ public static class SmartTransactionExtensions
 		// All outputs that are not my own are the destinations.
 		return foreignOutputs.Select(x => x.DestinationAddress);
 	}
+
+	public static long GetAmount(this SmartTransaction transaction)
+	{
+		return transaction.WalletOutputs.Sum(x => x.Amount) - transaction.WalletInputs.Sum(x => x.Amount);
+	}
+
+	public static FeeRate? GetFeeRate(this SmartTransaction transaction)
+	{
+		if (transaction.TryGetFeeRate(out var feeRate))
+		{
+			return feeRate;
+		}
+
+		return null;
+	}
+
+	public static Money? GetFee(this SmartTransaction transaction)
+	{
+		if (transaction.TryGetFee(out var fee))
+		{
+			return fee;
+		}
+
+		return null;
+	}
+
+	public static int GetConfirmations(this SmartTransaction transaction, int blockchainTipHeight) => transaction.Height.Type == HeightType.Chain ? blockchainTipHeight - transaction.Height.Value + 1 : 0;
+
+	public static bool TryGetConfirmationTime(this SmartTransaction transaction, HybridFeeProvider feeProvider, Network network, [NotNullWhen(true)] out TimeSpan? estimate)
+		=> TransactionFeeHelper.TryEstimateConfirmationTime(feeProvider, network, transaction, out estimate);
 }

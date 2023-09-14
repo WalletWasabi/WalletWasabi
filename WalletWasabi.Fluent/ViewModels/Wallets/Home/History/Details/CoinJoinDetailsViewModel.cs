@@ -59,7 +59,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		Date = _coinJoin.DateString;
 		CoinJoinFeeRawString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitRawString();
 		CoinJoinFeeString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitFormattedString();
-		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
+		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations((int)Services.BitcoinStore.SmartHeaderChain.ServerTipHeight);
 		IsConfirmed = Confirmations > 0;
 
 		TransactionId = _coinJoin.CoinJoinTransaction.GetHash();

@@ -5,7 +5,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -15,30 +14,30 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private TransactionHistoryItemViewModel(
 		int orderIndex,
-		TransactionSummary transactionSummary,
+		SmartTransaction transaction,
 		WalletViewModel walletVm,
 		Money balance)
-		: base(orderIndex, transactionSummary)
+		: base(orderIndex, transaction)
 	{
-		Labels = transactionSummary.Labels;
-		Date = transactionSummary.DateTime.ToLocalTime();
+		Labels = transaction.Labels;
+		Date = transaction.FirstSeen.ToLocalTime();
 		Balance = balance;
 		WalletVm = walletVm;
 
-		IsCancellation = transactionSummary.IsCancellation;
-		IsSpeedUp = transactionSummary.IsSpeedup;
-		IsCPFP = transactionSummary.IsCPFP;
-		IsCPFPd = transactionSummary.IsCPFPd;
+		IsCancellation = transaction.IsCancellation;
+		IsSpeedUp = transaction.IsSpeedup;
+		IsCPFP = transaction.IsCPFP;
+		IsCPFPd = transaction.IsCPFPd;
 
-		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
+		SetAmount(transaction.GetAmount(), transaction.GetFee());
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 
-		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transactionSummary, walletVm));
-		CanCancelTransaction = transactionSummary.Transaction.IsCancellable(KeyManager);
-		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(KeyManager);
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transactionSummary.Transaction), Observable.Return(CanSpeedUpTransaction));
-		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transactionSummary.Transaction), Observable.Return(CanCancelTransaction));
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transaction, walletVm));
+		CanCancelTransaction = transaction.IsCancellable(KeyManager);
+		CanSpeedUpTransaction = transaction.IsSpeedupable(KeyManager);
+		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(CanSpeedUpTransaction));
+		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(CanCancelTransaction));
 	}
 
 	public bool CanCancelTransaction { get; }

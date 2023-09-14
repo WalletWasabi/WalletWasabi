@@ -17,7 +17,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
@@ -246,10 +245,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		try
 		{
-			var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
-			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
+			// TODO: Lack of pagination creates performance issue.
+			var rawHistoryList = await _walletVm.Wallet.GetTransactionsAsync();
+			var newHistoryList = GenerateHistoryList(rawHistoryList.ToList()).ToArray();
 
 			_transactionSourceList.Edit(x =>
 			{
@@ -263,18 +261,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> summaries)
+	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<SmartTransaction> transactions)
 	{
 		Money balance = Money.Zero;
 		CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
 
 		var history = new List<HistoryItemViewModelBase>();
 
-		for (var i = 0; i < summaries.Count; i++)
+		for (var i = 0; i < transactions.Count; i++)
 		{
-			var item = summaries[i];
+			var item = transactions[i];
 
-			balance += item.Amount;
+			balance += item.GetAmount();
 
 			if (!item.IsOwnCoinjoin())
 			{
@@ -294,8 +292,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin()) || // The next item is not CJ so add the group.
-				 i == summaries.Count - 1)) // There is no following item in the list so add the group.
+				((i + 1 < transactions.Count && !transactions[i + 1].IsOwnCoinjoin()) || // The next item is not CJ so add the group.
+				 i == transactions.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
@@ -318,14 +316,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// 2. Create a speed-up group with parent and children.
 		// 3. Remove the previously added items from the history (they should no longer be there, but in the group).
 		// 4. Add the group.
-		foreach (var summary in summaries)
+		foreach (var transaction in transactions)
 		{
-			if (summary.Transaction.IsCPFPd)
+			if (transaction.IsCPFPd)
 			{
 				// Group creation.
-				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
+				var childrenTxs = transaction.ChildrenPayForThisTx;
 
-				if (!TryFindHistoryItem(summary.GetHash(), history, out var parent))
+				if (!TryFindHistoryItem(transaction.GetHash(), history, out var parent))
 				{
 					continue; // If the parent transaction is not found, continue with the next summary.
 				}
@@ -346,7 +344,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					continue;
 				}
 
-				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, summary, _walletVm, parent, groupItems);
+				var speedUpGroup = new SpeedUpHistoryItemViewModel(parent.OrderIndex, transaction, _walletVm, parent, groupItems);
 
 				// Check if the last item's balance is not null before calling SetBalance.
 				var bal = groupItems.Last().Balance;

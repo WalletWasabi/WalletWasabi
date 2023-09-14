@@ -73,7 +73,7 @@ public class ReceiveAddressViewModelTests
 	{
 		public string Name => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
+		public IObservable<IChangeSet<SmartTransaction, uint256>> Transactions => throw new NotSupportedException();
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
 

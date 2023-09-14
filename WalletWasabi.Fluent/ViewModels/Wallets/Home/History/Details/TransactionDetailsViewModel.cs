@@ -31,52 +31,53 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
 
-	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(SmartTransaction transaction, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = transactionSummary.Fee;
-		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
+		Fee = transaction.GetFee();
+		IsFeeVisible = transaction.GetFee() != null && transaction.GetAmount() < Money.Zero;
+		DestinationAddresses = transaction.GetDestinationAddresses(walletVm.Wallet.Network, out _, out _).ToList();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		UpdateValues(transactionSummary);
+		UpdateValues(transaction);
 	}
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
+
 	public Money? Fee { get; }
 
-	private void UpdateValues(TransactionSummary transactionSummary)
+	private void UpdateValues(SmartTransaction transaction)
 	{
-		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
-		TransactionId = transactionSummary.GetHash().ToString();
-		Labels = transactionSummary.Labels;
-		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
-		Confirmations = transactionSummary.GetConfirmations();
+		DateString = transaction.FirstSeen.ToLocalTime().ToUserFacingString();
+		TransactionId = transaction.GetHash().ToString();
+		Labels = transaction.Labels;
+		BlockHeight = transaction.Height.Type == HeightType.Chain ? transaction.Height.Value : 0;
+		Confirmations = transaction.GetConfirmations((int)Services.BitcoinStore.SmartHeaderChain.ServerTipHeight);
 
-		TransactionFeeHelper.TryEstimateConfirmationTime(_walletVm.Wallet, transactionSummary.Transaction, out var estimate);
+		TransactionFeeHelper.TryEstimateConfirmationTime(_walletVm.Wallet, transaction, out var estimate);
 		ConfirmationTime = estimate;
 
 		IsConfirmed = Confirmations > 0;
 
-		if (transactionSummary.Amount < Money.Zero)
+		var amount = transaction.GetAmount();
+		if (amount < Money.Zero)
 		{
-			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			Amount = -amount - (transaction.GetFee() ?? Money.Zero);
 			AmountText = "Outgoing";
 		}
 		else
 		{
-			Amount = transactionSummary.Amount;
+			Amount = amount;
 			AmountText = "Incoming";
 		}
 
-		BlockHash = transactionSummary.BlockHash?.ToString();
+		BlockHash = transaction.BlockHash?.ToString();
 
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
@@ -99,14 +100,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private async Task UpdateCurrentTransactionAsync()
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-
-		var currentTransaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == TransactionId);
-
-		if (currentTransaction is { })
+		await Task.Run(() =>
 		{
-			UpdateValues(currentTransaction);
-		}
+			if (_walletVm.Wallet.BitcoinStore.TransactionStore.TryGetTransaction(uint256.Parse(TransactionId), out var currentTransaction))
+			{
+				UpdateValues(currentTransaction);
+			}
+		});
 	}
 }

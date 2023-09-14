@@ -19,14 +19,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
-	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
 	{
 		Wallet = wallet;
-
-		_historyBuilder = new TransactionHistoryBuilder(Wallet);
 
 		Auth = new WalletAuthModel(this, Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
@@ -48,8 +45,8 @@ public partial class WalletModel : ReactiveObject
 					  .ToObservableChangeSet();
 
 		Transactions =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(relevantTransactionProcessed.SelectMany(_ => BuildSummary()))
+			Observable.Defer(() => GetTransactions().ToObservable())
+					  .Concat(relevantTransactionProcessed.SelectMany(_ => GetTransactions()))
 					  .ToObservableChangeSet(x => x.GetHash());
 
 		Addresses =
@@ -104,7 +101,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IObservable<WalletState> State { get; }
 
-	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
+	public IObservable<IChangeSet<SmartTransaction, uint256>> Transactions { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
@@ -131,9 +128,9 @@ public partial class WalletModel : ReactiveObject
 		return Wallet.Coins.Select(x => new CoinModel(Wallet, x));
 	}
 
-	private IEnumerable<TransactionSummary> BuildSummary()
+	private IEnumerable<SmartTransaction> GetTransactions()
 	{
-		return _historyBuilder.BuildHistorySummary();
+		return Wallet.GetTransactions();
 	}
 
 	private IEnumerable<IAddress> GetAddresses()

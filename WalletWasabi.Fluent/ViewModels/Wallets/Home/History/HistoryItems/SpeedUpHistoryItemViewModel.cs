@@ -13,11 +13,11 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 
 	public SpeedUpHistoryItemViewModel(
 		int orderIndex,
-		TransactionSummary transactionSummary,
+		SmartTransaction transaction,
 		WalletViewModel walletVm,
 		HistoryItemViewModelBase parent,
 		IEnumerable<HistoryItemViewModelBase> children)
-		: base(orderIndex, transactionSummary)
+		: base(orderIndex, transaction)
 	{
 		_children = children.Reverse();
 		IsConfirmed = children.All(x => x.IsConfirmed);
@@ -35,8 +35,8 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 			child.IsChild = true;
 		}
 
-		CanCancelTransaction = transactionSummary.Transaction.IsCancellable(walletVm.Wallet.KeyManager);
-		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(walletVm.Wallet.KeyManager);
+		CanCancelTransaction = transaction.IsCancellable(walletVm.Wallet.KeyManager);
+		CanSpeedUpTransaction = transaction.IsSpeedupable(walletVm.Wallet.KeyManager);
 		SpeedUpTransactionCommand = parent.SpeedUpTransactionCommand;
 		CancelTransactionCommand = parent.CancelTransactionCommand;
 	}
