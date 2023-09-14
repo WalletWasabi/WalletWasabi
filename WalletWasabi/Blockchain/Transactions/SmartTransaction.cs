@@ -182,23 +182,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
-	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
-	[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
-	[Obsolete("This property exists only for json backwards compatibility. If someone tries to set it, it'll set the FirstSeen. https://stackoverflow.com/a/43715009/2061103", error: true)]
-	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "json backwards compatibility")]
-	private DateTimeOffset? FirstSeenCompatibility
-	{
-		set
-		{
-			// If it's null, let the default of FirstSeen to be set.
-			// If it's not null, then check if FirstSeen has just been recently set to UtcNow which is its default.
-			if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
-			{
-				FirstSeen = value.Value;
-			}
-		}
-	}
-
 	[JsonProperty]
 	public bool IsReplacement { get; private set; }
 
@@ -232,8 +215,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool Confirmed => Height.Type == HeightType.Chain;
 
 	public uint256 GetHash() => Transaction.GetHash();
-
-	public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
 
 	/// <summary>
 	/// A transaction can signal that is replaceable by fee in two ways:
