@@ -17,7 +17,6 @@ public class MainWindow : Window
 	{
 		AvaloniaXamlLoader.Load(this);
 #if DEBUG
-		this.AttachDevTools();
 		this.AttachCapture();
 		this.AttachDiagnostics();
 #endif
