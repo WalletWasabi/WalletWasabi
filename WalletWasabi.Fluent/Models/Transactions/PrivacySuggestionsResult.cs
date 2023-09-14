@@ -19,30 +19,13 @@ public record PrivacySuggestionsResult()
 		return this;
 	}
 
-	public async IAsyncEnumerable<PrivacyWarning> GetAllWarningsAsync()
+	public async IAsyncEnumerable<PrivacyItem> GetAllWarningsAndSuggestionsAsync()
 	{
 		foreach (var combined in _combinedResults)
 		{
 			await foreach (var item in combined)
 			{
-				if (item is PrivacyWarning warning)
-				{
-					yield return warning;
-				}
-			}
-		}
-	}
-
-	public async IAsyncEnumerable<PrivacySuggestion> GetAllSuggestionsAsync()
-	{
-		foreach (var combined in _combinedResults)
-		{
-			await foreach (var item in combined)
-			{
-				if (item is PrivacySuggestion suggestion)
-				{
-					yield return suggestion;
-				}
+				yield return item;
 			}
 		}
 	}
