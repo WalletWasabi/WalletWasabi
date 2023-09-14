@@ -61,6 +61,9 @@ public class App : Application
 		}
 
 		base.OnFrameworkInitializationCompleted();
+#if DEBUG
+		this.AttachDevTools();
+#endif
 	}
 
 	private static IWalletRepository CreateWalletRepository()

@@ -186,9 +186,8 @@ public static class WasabiAppExtensions
 						}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
-					.AfterSetup(builder =>
+					.AfterSetup(_ =>
 					{
-						builder.Instance!.AttachDevTools();
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					});
 
