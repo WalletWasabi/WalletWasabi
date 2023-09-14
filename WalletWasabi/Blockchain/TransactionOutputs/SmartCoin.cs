@@ -145,7 +145,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool IsImmature(int bestHeight)
 	{
-		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
+		return Transaction.Transaction.IsCoinBase && Height >= bestHeight - 100;
 	}
 
 	public bool RefreshAndGetIsBanned()
