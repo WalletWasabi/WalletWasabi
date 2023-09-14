@@ -55,7 +55,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
 		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
-		TransactionId = transactionSummary.TransactionId.ToString();
+		TransactionId = transactionSummary.GetHash().ToString();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
@@ -102,7 +102,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
 		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
-		var currentTransaction = txRecordList.FirstOrDefault(x => x.TransactionId.ToString() == TransactionId);
+		var currentTransaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == TransactionId);
 
 		if (currentTransaction is { })
 		{
