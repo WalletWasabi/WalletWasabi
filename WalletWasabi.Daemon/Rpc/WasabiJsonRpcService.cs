@@ -248,8 +248,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 				height = x.Height.Value,
 				amount = x.Amount.Satoshi,
 				label = x.Labels.ToString(),
-				tx = x.TransactionId,
-				islikelycoinjoin = x.IsOwnCoinjoin
+				tx = x.GetHash(),
+				islikelycoinjoin = x.IsOwnCoinjoin()
 			}).ToArray();
 	}
 

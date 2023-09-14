@@ -26,7 +26,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		WalletVm = walletVm;
 
 		IsCancellation = transactionSummary.IsCancellation;
-		IsSpeedUp = transactionSummary.IsSpeedUp;
+		IsSpeedUp = transactionSummary.IsSpeedup;
 		IsCPFP = transactionSummary.IsCPFP;
 		IsCPFPd = transactionSummary.IsCPFPd;
 
