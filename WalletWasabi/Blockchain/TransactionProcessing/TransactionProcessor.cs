@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
+using static WalletWasabi.Stores.TransactionSqliteStorage;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
@@ -195,7 +196,7 @@ public class TransactionProcessor
 				foreach (var doubleSpentTx in doubleSpentTransactions)
 				{
 					var unconfirmedDoubleSpentTxId = doubleSpentTx.GetHash();
-					if (TransactionStore.MempoolStore.TryGetTransaction(unconfirmedDoubleSpentTxId, out var replacedTx) && replacedTx.IsReplacement)
+					if (TransactionStore.TryGetMempoolTransaction(unconfirmedDoubleSpentTxId, out var replacedTx) && replacedTx.IsReplacement)
 					{
 						var (replaced, restored) = Coins.Undo(unconfirmedDoubleSpentTxId);
 
@@ -223,7 +224,7 @@ public class TransactionProcessor
 
 			foreach (var replacedTransactionId in doubleSpentTransactions.Select(x => x.GetHash()))
 			{
-				TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
+				TransactionStore.TryRemove(TransactionType.Mempool, replacedTransactionId, out _);
 			}
 		}
 

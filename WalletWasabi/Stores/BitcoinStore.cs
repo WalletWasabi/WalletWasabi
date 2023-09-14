@@ -48,12 +48,6 @@ public class BitcoinStore
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		var initTasks = new[]
-		{
-			IndexStore.InitializeAsync(cancel),
-			TransactionStore.InitializeAsync()
-		};
-
-		await Task.WhenAll(initTasks).ConfigureAwait(false);
+		await IndexStore.InitializeAsync(cancel).ConfigureAwait(false);
 	}
 }

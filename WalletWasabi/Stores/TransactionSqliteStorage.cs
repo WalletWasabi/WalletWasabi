@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
@@ -19,6 +20,13 @@ public class TransactionSqliteStorage : IDisposable
 	{
 		Connection = connection;
 		Network = network;
+	}
+
+	public enum TransactionType
+	{
+		All,
+		Mempool,
+		Confirmed
 	}
 
 	/// <remarks>Connection cannot be accessed from multiple threads at the same time.</remarks>
@@ -297,6 +305,10 @@ public class TransactionSqliteStorage : IDisposable
 		return changedRows;
 	}
 
+	/// <inheritdoc cref="BulkUpdate(IEnumerable{SmartTransaction})"/>
+	public int BulkUpdate(params SmartTransaction[] transactions)
+		=> BulkUpdate(transactions as IEnumerable<SmartTransaction>);
+
 	/// <summary>
 	/// Append transactions in bulk to the table.
 	/// </summary>
@@ -323,11 +335,10 @@ public class TransactionSqliteStorage : IDisposable
 		return deleted;
 	}
 
-	public bool TryGet(uint256 txid, out SmartTransaction? tx)
+	public bool TryGet(uint256 txid, [NotNullWhen(true)] out SmartTransaction? tx)
 	{
 		string query = $$"""
-			SELECT txid, block_height, block_hash, block_index, labels, first_seen, is_replacement, is_speedup, is_cancellation, tx
-
+			SELECT {{AllColumns}}
 			FROM "transaction"
 			WHERE txid = $txid
 			""";
@@ -336,7 +347,20 @@ public class TransactionSqliteStorage : IDisposable
 	}
 
 	public bool TryRemove(uint256 txid, out SmartTransaction? tx)
-		=> TryReadSingleRecord(txid, $$"""DELETE FROM "transaction" WHERE txid = $txid returning *""", out tx);
+		=> TryRemove(TransactionType.All, txid, out tx);
+
+	public bool TryRemove(TransactionType type, uint256 txid, out SmartTransaction? tx)
+	{
+		string query = type switch
+		{
+			TransactionType.All => $$"""DELETE FROM "transaction" WHERE txid = $txid returning *""",
+			TransactionType.Mempool => $$"""DELETE FROM "transaction" WHERE txid = $txid returning AND block_hash is NULL *""",
+			TransactionType.Confirmed => $$"""DELETE FROM "transaction" WHERE txid = $txid returning AND block_hash is not NULL *""",
+			_ => throw new NotImplementedException(),
+		};
+
+		return TryReadSingleRecord(txid, query, out tx);
+	}
 
 	private bool TryReadSingleRecord(uint256 hash, string query, out SmartTransaction? tx)
 	{
@@ -363,16 +387,26 @@ public class TransactionSqliteStorage : IDisposable
 		return true;
 	}
 
-	public IEnumerable<SmartTransaction> GetAll()
+	/// <remarks>Transactions are sorted by "blockchain".</remarks>
+	public IEnumerable<SmartTransaction> GetAll(TransactionType type)
 	{
 		using SqliteTransaction transaction = Connection.BeginTransaction();
 		using SqliteCommand command = Connection.CreateCommand();
 
+		string whereClause = type switch
+		{
+			TransactionType.All => "",
+			TransactionType.Mempool => "WHERE block_hash is NULL",
+			TransactionType.Confirmed => "WHERE block_hash is NOT NULL",
+			_ => throw new NotImplementedException(),
+		};
+
 		// Note that a transaction can be in the mempool, so it does not have any specific block height assigned. However, we assign such 
 		// transactions Int32.MaxValue-1 height and as such mempool transactions would be returned first.
 		command.CommandText = $$"""
-			SELECT txid, block_height, block_hash, block_index, labels, first_seen, is_replacement, is_speedup, is_cancellation, tx
+			SELECT {{AllColumns}}
 			FROM "transaction"
+			{{whereClause}}
 			ORDER BY block_height, block_index, first_seen
 			""";
 
@@ -385,14 +419,23 @@ public class TransactionSqliteStorage : IDisposable
 		}
 	}
 
-	public IEnumerable<uint256> GetAllTxids()
+	public IEnumerable<uint256> GetAllTxids(TransactionType type)
 	{
 		using SqliteTransaction transaction = Connection.BeginTransaction();
 		using SqliteCommand command = Connection.CreateCommand();
 
+		string whereClause = type switch
+		{
+			TransactionType.All => "",
+			TransactionType.Mempool => "WHERE block_hash is NULL",
+			TransactionType.Confirmed => "WHERE block_hash is NOT NULL",
+			_ => throw new NotImplementedException(),
+		};
+
 		command.CommandText = $$"""
 			SELECT txid
 			FROM "transaction"
+			{{whereClause}}
 			ORDER BY block_height, block_index, first_seen
 			""";
 
@@ -435,11 +478,20 @@ public class TransactionSqliteStorage : IDisposable
 		return stx;
 	}
 
-	/// <returns>Returns <c>true</c> if there are no records in the transactions table.</returns>
-	public bool IsEmpty()
+	/// <returns>Returns <c>true</c> if there are no transactions of given <paramref name="type">type</paramref> in the transactions table.</returns>
+	public bool IsEmpty(TransactionType type)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = """SELECT EXISTS (SELECT 1 FROM "transaction")""";
+
+		string query = type switch
+		{
+			TransactionType.All => """SELECT EXISTS (SELECT 1 FROM "transaction")""",
+			TransactionType.Mempool => """SELECT EXISTS (SELECT 1 FROM "transaction" WHERE block_hash is NULL)""",
+			TransactionType.Confirmed => """SELECT EXISTS (SELECT 1 FROM "transaction" WHERE block_hash is NOT NULL)""",
+			_ => throw new NotImplementedException(),
+		};
+
+		command.CommandText = query;
 		object? result = command.ExecuteScalar();
 
 		if (result is not long exists)

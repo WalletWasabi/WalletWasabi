@@ -19,6 +19,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using static WalletWasabi.Stores.TransactionSqliteStorage;
 
 namespace WalletWasabi.Wallets;
 
@@ -390,7 +391,7 @@ public class Wallet : BackgroundService, IWallet
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.GetTransactions(TransactionType.Confirmed).TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
@@ -417,7 +418,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 	private async Task LoadDummyMempoolAsync()
 	{
-		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
+		if (BitcoinStore.TransactionStore.IsEmpty(TransactionType.Mempool))
 		{
 			return;
 		}
@@ -433,7 +434,7 @@ public class Wallet : BackgroundService, IWallet
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 				var txsToProcess = new List<SmartTransaction>();
-				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+				foreach (var tx in BitcoinStore.TransactionStore.GetTransactions(TransactionType.Mempool))
 				{
 					uint256 hash = tx.GetHash();
 					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
@@ -443,7 +444,7 @@ public class Wallet : BackgroundService, IWallet
 					}
 					else
 					{
-						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
+						BitcoinStore.TransactionStore.TryRemove(TransactionType.Mempool, tx.GetHash(), out _);
 					}
 				}
 
@@ -452,14 +453,14 @@ public class Wallet : BackgroundService, IWallet
 			catch (Exception ex)
 			{
 				// When there's a connection failure do not clean the transactions, add them to processing.
-				TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
+				TransactionProcessor.Process(BitcoinStore.TransactionStore.GetTransactions(TransactionType.Mempool));
 
 				Logger.LogWarning(ex);
 			}
 		}
 		else
 		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.GetTransactions(TransactionType.Mempool));
 		}
 	}
 
