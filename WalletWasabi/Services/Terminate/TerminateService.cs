@@ -23,11 +23,21 @@ public class TerminateService
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		IsSystemEventsSubscribed = false;
+		CancellationToken = TerminationCts.Token; 
 	}
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
-	public TaskCompletionSource TerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	private TaskCompletionSource TerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+	public Task TerminationRequestedTask => TerminationRequested.Task;
+
+	/// <summary>Cancellation token source cancelled once <see cref="TerminationRequested"/> is assigned a result.</summary>
+	private CancellationTokenSource TerminationCts { get; } = new();
+
+	/// <summary>Cancellation token that denotes that user requested to stop the application.</summary>
+	/// <remarks>Assigned once so that there are no issues with <see cref="TerminationCts"/> being disposed.</remarks>
+	public CancellationToken CancellationToken { get; }
 
 	private bool IsSystemEventsSubscribed { get; set; }
 
@@ -96,6 +106,9 @@ public class TerminateService
 	{
 		if (TerminationRequested.TrySetResult())
 		{
+			TerminationCts.Cancel();
+			TerminationCts.Dispose();
+
 			// Run this callback just once.
 			_terminateApplication();
 		}
