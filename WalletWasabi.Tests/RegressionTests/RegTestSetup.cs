@@ -13,7 +13,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -49,7 +48,6 @@ public class RegTestSetup : IAsyncDisposable
 	public AllTransactionStore TransactionStore { get; }
 	public IRPCClient RpcClient => Global.RpcClient!;
 	public Network Network => RpcClient.Network;
-	public Coordinator Coordinator => Global.Coordinator!;
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string Password { get; } = "password";
 
@@ -67,8 +65,6 @@ public class RegTestSetup : IAsyncDisposable
 		{
 			await setup.RpcClient.GenerateAsync(numberOfBlocksToGenerate).ConfigureAwait(false); // Make sure everything is confirmed.
 		}
-
-		setup.Coordinator.UtxoReferee.Clear();
 
 		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
 
