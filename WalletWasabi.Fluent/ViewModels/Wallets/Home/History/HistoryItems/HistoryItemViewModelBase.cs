@@ -28,7 +28,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		OrderIndex = orderIndex;
 		TransactionSummary = transactionSummary;
-		Id = transactionSummary.TransactionId;
+		Id = transactionSummary.GetHash();
 
 		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
 

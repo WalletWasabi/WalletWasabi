@@ -33,7 +33,7 @@ public class TransactionHistoryBuilder
 			var containingTransaction = coin.Transaction;
 
 			var dateTime = containingTransaction.FirstSeen;
-			var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
+			var found = txRecordList.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 			if (found is { }) // if found then update
 			{
 				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
@@ -42,8 +42,8 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
-				var destinationAddresses = containingTransaction.GetDestinationAddresses(wallet.Network, out List<IInput> inputs, out List<Output> outputs);
-				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, inputs, outputs, destinationAddresses));
+				var destinationAddresses = containingTransaction.GetDestinationAddresses(wallet.Network, out _, out _);
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, destinationAddresses));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -51,7 +51,7 @@ public class TransactionHistoryBuilder
 			{
 				var spenderTxId = spenderTransaction.GetHash();
 				dateTime = spenderTransaction.FirstSeen;
-				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == spenderTxId);
+				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.GetHash() == spenderTxId);
 				if (foundSpenderCoin is { }) // if found
 				{
 					foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
@@ -59,8 +59,8 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
-					var destinationAddresses = spenderTransaction.GetDestinationAddresses(wallet.Network, out List<IInput> inputs, out List<Output> outputs);
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, inputs, outputs, destinationAddresses));
+					var destinationAddresses = spenderTransaction.GetDestinationAddresses(wallet.Network, out _, out _);
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, destinationAddresses));
 				}
 			}
 		}

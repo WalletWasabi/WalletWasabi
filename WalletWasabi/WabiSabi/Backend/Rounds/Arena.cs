@@ -394,7 +394,7 @@ public partial class Arena : PeriodicRunner
 			}
 			catch (RPCException ex)
 			{
-				round.LogWarning($"Transaction broadcasting failed: '{ex}'.");
+				round.LogError($"Transaction broadcasting failed: '{ex}'.");
 				EndRound(round, EndRoundState.TransactionBroadcastFailed);
 			}
 			catch (Exception ex)
