@@ -26,7 +26,7 @@ public enum EndRoundState
 	AbortedNotEnoughAlicesSigned,
 	AbortedNotAllAlicesConfirmed,
 	AbortedLoadBalancing,
-	AbortedDoubleSpendingDetected
+	AbortedDoubleSpendingDetected = AbortedNotAllAlicesConfirmed
 }
 
 public class Round
