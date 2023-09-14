@@ -29,7 +29,6 @@
     </Style>
   </Window.Styles>
   <i:Interaction.Behaviors>
-    <behaviors:RegisterNotificationHostBehavior />
     <behaviors:ContextFlyoutWorkaroundBehavior />
   </i:Interaction.Behaviors>
 
