@@ -6,10 +6,12 @@
     let
         pkgs = import nixpkgs { system = "x86_64-linux"; }; #nixpkgs.legacyPackages.x86_64-linux;
         deployScript = pkgs.writeScriptBin "deploy" (builtins.readFile ./Contrib/deploy.sh);
+        gitRev = if (builtins.hasAttr "rev" self) then self.rev else "dirty";
         backend-build = pkgs.buildDotnetModule rec {
           pname = "WalletWasabi.Backend";
-          version = "2.0.0-${builtins.substring 0 8 (self.lastModifiedDate or self.lastModified or "19700101")}-${self.shortRev or "dirty"}";
+          version = "2.0.0-${builtins.substring 0 8 (self.lastModifiedDate or self.lastModified or "19700101")}-${gitRev}";
           nugetDeps = ./deps.nix; # nix build .#packages.x86_64-linux.default.passthru.fetch-deps
+          dotnetFlags = [ "-p:CommitHash=${gitRev}" ];
           runtimeDeps = [ pkgs.openssl pkgs.zlib ];
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_7_0;
           selfContainedBuild = true;
