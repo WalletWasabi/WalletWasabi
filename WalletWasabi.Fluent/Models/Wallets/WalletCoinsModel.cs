@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
@@ -23,19 +23,20 @@ public partial class WalletCoinsModel
 		var initialPocketList = Observable.Defer(() => _wallet.GetPockets().ToObservable());
 		var transactionProcessed = walletModel.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
-		var signals = transactionProcessed.Merge(anonScoreTargetChanged);
+		var isCoinjoinRunningChanged = Observable.Defer(() => walletModel.Coinjoin.IsRunning.ToSignal());
+		var signals = transactionProcessed.Merge(anonScoreTargetChanged).Merge(isCoinjoinRunningChanged);
 
 		List =
 			initialCoinList
 				.Concat(signals.SelectMany(_ => GetCoins()))
 				.ToObservableChangeSet(x => x.Key)
-				.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler);
+				.ObserveOn(RxApp.MainThreadScheduler);
 
 		Pockets =
 			initialPocketList
 				.Concat(signals.SelectMany(_ => _wallet.GetPockets().ToObservable()))
 				.ToObservableChangeSet(x => x.Labels)
-				.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler);
+				.ObserveOn(RxApp.MainThreadScheduler);
 	}
 
 	public IObservable<IChangeSet<ICoinModel, int>> List { get; }

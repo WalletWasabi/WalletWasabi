@@ -80,6 +80,10 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
+	public string Name => Wallet.WalletName;
+
+	public Network Network => Wallet.Network;
+
 	public IWalletBalancesModel Balances { get; }
 
 	public IWalletCoinsModel Coins { get; }
@@ -97,8 +101,6 @@ public partial class WalletModel : ReactiveObject
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
-
-	public string Name => Wallet.WalletName;
 
 	public IObservable<WalletState> State { get; }
 
