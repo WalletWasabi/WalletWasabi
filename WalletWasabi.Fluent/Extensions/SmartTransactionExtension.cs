@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -82,11 +83,6 @@ public static class SmartTransactionExtension
 		// I'm sending a transaction to someone else.
 		// All outputs that are not my own are the destinations.
 		return foreignOutputs.Select(x => x.DestinationAddress);
-	}
-
-	public static long GetAmount(this SmartTransaction transaction)
-	{
-		return transaction.WalletOutputs.Sum(x => x.Amount) - transaction.WalletInputs.Sum(x => x.Amount);
 	}
 
 	public static FeeRate? GetFeeRate(this SmartTransaction transaction)

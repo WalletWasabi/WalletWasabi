@@ -125,6 +125,7 @@ public class Wallet : BackgroundService, IWallet
 	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
+	public Task<IEnumerable<TransactionWithAmount>> GetTransactionsWithAmountsAsync() => Task.FromResult(GetTransactionsWithAmounts());
 
 	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
@@ -142,6 +143,38 @@ public class Wallet : BackgroundService, IWallet
 			}
 		}
 		return walletTransactions.OrderByBlockchain().ToList();
+	}
+
+	public IEnumerable<TransactionWithAmount> GetTransactionsWithAmounts()
+	{
+		// The dictionary is temporary and used only to reduce complexity.
+		var result = new Dictionary<uint256, TransactionWithAmount>();
+
+		foreach (SmartCoin coin in GetAllCoins())
+		{
+			var transactionHash = coin.Transaction.GetHash();
+			if(!result.ContainsKey(transactionHash))
+			{
+				result.Add(transactionHash, new TransactionWithAmount(coin.Transaction, coin.Amount));
+			}
+			else
+			{
+				result[transactionHash].Amount += coin.Amount;
+			}
+			if (coin.SpenderTransaction is not null)
+			{
+				var spenderTransactionHash = coin.SpenderTransaction.GetHash();
+				if(!result.ContainsKey(spenderTransactionHash))
+				{
+					result.Add(spenderTransactionHash, new TransactionWithAmount(coin.SpenderTransaction, -coin.Amount));
+				}
+				else
+				{
+					result[spenderTransactionHash].Amount -= coin.Amount;
+				}
+			}
+		}
+		return result.Values;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
@@ -499,5 +532,10 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+
+	public record TransactionWithAmount(SmartTransaction Transaction, Money Amount)
+	{
+		public Money Amount { get; set; } = Amount;
 	}
 }

@@ -11,6 +11,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 	private CoinJoinHistoryItemViewModel(
 		int orderIndex,
 		SmartTransaction transaction,
+		Money amount,
 		WalletViewModel walletVm,
 		Money balance,
 		bool isSingleCoinJoinTransaction)
@@ -22,7 +23,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		CoinJoinTransaction = transaction;
 		IsChild = !isSingleCoinJoinTransaction;
 
-		SetAmount(transaction.GetAmount(), transaction.GetFee());
+		SetAmount(amount, transaction.GetFee());
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(

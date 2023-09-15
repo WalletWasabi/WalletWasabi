@@ -239,15 +239,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		return activeWallet.GetTransactions().Select(
+		var transactionsWithAmounts = activeWallet.GetTransactionsWithAmounts();
+		return transactionsWithAmounts.Select(
 			x => new
 			{
-				datetime = x.FirstSeen,
-				height = x.Height.Value,
-				amount = x.WalletOutputs.Sum(coin => coin.Amount) - x.WalletInputs.Sum(coin => coin.Amount),
-				label = x.Labels.ToString(),
-				tx = x.GetHash(),
-				islikelycoinjoin = x.IsOwnCoinjoin()
+				datetime = x.Transaction.FirstSeen,
+				height = x.Transaction.Height.Value,
+				amount = x.Amount,
+				label = x.Transaction.Labels.ToString(),
+				tx = x.Transaction.GetHash(),
+				islikelycoinjoin = x.Transaction.IsOwnCoinjoin()
 			}).ToArray();
 	}
 

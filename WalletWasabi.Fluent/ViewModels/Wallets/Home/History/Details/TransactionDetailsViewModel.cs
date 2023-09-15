@@ -31,24 +31,35 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
 
-	private TransactionDetailsViewModel(SmartTransaction transaction, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(SmartTransaction transaction, Money amount, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
 		Fee = transaction.GetFee();
-		IsFeeVisible = transaction.GetFee() != null && transaction.GetAmount() < Money.Zero;
 		DestinationAddresses = transaction.GetDestinationAddresses(walletVm.Wallet.Network, out _, out _).ToList();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+		if (amount < Money.Zero)
+		{
+			Amount = -amount - (Fee ?? Money.Zero);
+			AmountText = "Outgoing";
+			IsFeeVisible = Fee != null;
+		}
+		else
+		{
+			Amount = amount;
+			AmountText = "Incoming";
+		}
 
 		UpdateValues(transaction);
 	}
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
-	public bool IsFeeVisible { get; }
+	public bool IsFeeVisible { get; private set; }
 
 	public Money? Fee { get; }
 
@@ -64,18 +75,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		ConfirmationTime = estimate;
 
 		IsConfirmed = Confirmations > 0;
-
-		var amount = transaction.GetAmount();
-		if (amount < Money.Zero)
-		{
-			Amount = -amount - (transaction.GetFee() ?? Money.Zero);
-			AmountText = "Outgoing";
-		}
-		else
-		{
-			Amount = amount;
-			AmountText = "Incoming";
-		}
 
 		BlockHash = transaction.BlockHash?.ToString();
 

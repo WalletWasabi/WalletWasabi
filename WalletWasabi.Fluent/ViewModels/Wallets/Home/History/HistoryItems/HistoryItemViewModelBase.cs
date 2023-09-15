@@ -64,6 +64,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
 
 	public Money? Balance { get; protected set; }
+	public Money? Amount { get; protected set; }
 
 	public Money? OutgoingAmount { get; protected set; }
 
@@ -135,6 +136,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		{
 			IncomingAmount = amount;
 		}
+		Amount = amount;
 	}
 
 	public virtual bool HasChildren() => false;

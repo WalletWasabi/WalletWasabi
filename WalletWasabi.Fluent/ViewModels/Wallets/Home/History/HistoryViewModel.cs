@@ -21,6 +21,7 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
@@ -246,8 +247,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		try
 		{
 			// TODO: Lack of pagination creates performance issue.
-			var rawHistoryList = await _walletVm.Wallet.GetTransactionsAsync();
-			var newHistoryList = GenerateHistoryList(rawHistoryList.ToList()).ToArray();
+			var transactionsWithAmounts = await _walletVm.Wallet.GetTransactionsWithAmountsAsync();
+			var newHistoryList = GenerateHistoryList(transactionsWithAmounts.ToList()).ToArray();
 
 			_transactionSourceList.Edit(x =>
 			{
@@ -261,43 +262,44 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<SmartTransaction> transactions)
+	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(IReadOnlyList<Wallet.TransactionWithAmount> transactionsWithAmounts)
 	{
 		Money balance = Money.Zero;
 		CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
 
 		var history = new List<HistoryItemViewModelBase>();
 
-		for (var i = 0; i < transactions.Count; i++)
+		for (var i = 0; i < transactionsWithAmounts.Count; i++)
 		{
-			var item = transactions[i];
+			var item = transactionsWithAmounts[i];
 
-			balance += item.GetAmount();
+			balance += item.Amount;
 
-			if (!item.IsOwnCoinjoin())
+			if (!item.Transaction.IsOwnCoinjoin())
 			{
-				history.Add(new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance));
+				history.Add(new TransactionHistoryItemViewModel(UiContext, i, item.Transaction, item.Amount, _walletVm, balance));
 			}
 
-			if (item.IsOwnCoinjoin())
+			if (item.Transaction.IsOwnCoinjoin())
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(UiContext, i, item, _walletVm);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(UiContext, i, item.Transaction, item.Amount, _walletVm);
 				}
 				else
 				{
-					coinJoinGroup.Add(item);
+					coinJoinGroup.Add(item.Transaction, item.Amount);
 				}
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				((i + 1 < transactions.Count && !transactions[i + 1].IsOwnCoinjoin()) || // The next item is not CJ so add the group.
-				 i == transactions.Count - 1)) // There is no following item in the list so add the group.
+				((i + 1 < transactionsWithAmounts.Count && !transactionsWithAmounts[i + 1].Transaction.IsOwnCoinjoin()) || // The next item is not CJ so add the group.
+				 i == transactionsWithAmounts.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
-					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
+					var firstTransaction = cjg.CoinJoinTransactions.First();
+					var singleCjItem = new CoinJoinHistoryItemViewModel(UiContext, cjg.OrderIndex, firstTransaction, transactionsWithAmounts.First(x => x.Transaction.GetHash() == firstTransaction.GetHash()).Amount, _walletVm, balance, true);
 					history.Add(singleCjItem);
 				}
 				else
@@ -316,7 +318,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// 2. Create a speed-up group with parent and children.
 		// 3. Remove the previously added items from the history (they should no longer be there, but in the group).
 		// 4. Add the group.
-		foreach (var transaction in transactions)
+		foreach (var transaction in transactionsWithAmounts.Select(x => x.Transaction))
 		{
 			if (transaction.IsCPFPd)
 			{

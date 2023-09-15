@@ -15,6 +15,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	private TransactionHistoryItemViewModel(
 		int orderIndex,
 		SmartTransaction transaction,
+		Money amount,
 		WalletViewModel walletVm,
 		Money balance)
 		: base(orderIndex, transaction)
@@ -29,11 +30,11 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IsCPFP = transaction.IsCPFP;
 		IsCPFPd = transaction.IsCPFPd;
 
-		SetAmount(transaction.GetAmount(), transaction.GetFee());
+		SetAmount(amount, transaction.GetFee());
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 
-		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transaction, walletVm));
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(transaction, amount, walletVm));
 		CanCancelTransaction = transaction.IsCancellable(KeyManager);
 		CanSpeedUpTransaction = transaction.IsSpeedupable(KeyManager);
 		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(CanSpeedUpTransaction));

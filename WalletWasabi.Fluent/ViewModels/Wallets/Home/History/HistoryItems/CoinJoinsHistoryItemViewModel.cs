@@ -17,12 +17,14 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	private CoinJoinsHistoryItemViewModel(
 		int orderIndex,
 		SmartTransaction firstItem,
+		Money firstAmount,
 		WalletViewModel walletVm)
 		: base(orderIndex, firstItem)
 	{
 		_walletVm = walletVm;
 
 		CoinJoinTransactions = new List<SmartTransaction>();
+		Amounts = new Dictionary<uint256, Money>();
 		IsCoinJoin = true;
 		IsCoinJoinGroup = true;
 
@@ -31,10 +33,11 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
-		Add(firstItem);
+		Add(firstItem, firstAmount);
 	}
 
 	public List<SmartTransaction> CoinJoinTransactions { get; private set; }
+	private Dictionary<uint256, Money> Amounts { get; }
 
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
@@ -46,15 +49,17 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		{
 			var item = CoinJoinTransactions[i];
 
+			var amount = Amounts[item.GetHash()];
 			var transaction = new CoinJoinHistoryItemViewModel(
 				UiContext,
 				i,
 				item,
+				amount,
 				_walletVm,
 				balance,
 				false);
 
-			balance -= item.GetAmount();
+			balance -= amount;
 
 			result.Add(transaction);
 		}
@@ -72,7 +77,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		return false;
 	}
 
-	public void Add(SmartTransaction item)
+	public void Add(SmartTransaction item, Money amount)
 	{
 		if (!item.IsOwnCoinjoin())
 		{
@@ -80,6 +85,10 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		}
 
 		CoinJoinTransactions.Insert(0, item);
+		if (!Amounts.TryAdd(item.GetHash(), amount))
+		{
+			Amounts[item.GetHash()] += amount;
+		}
 		Refresh();
 	}
 
@@ -90,7 +99,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		Date = CoinJoinTransactions.Select(tx => tx.FirstSeen).Max().ToLocalTime();
 
 		SetAmount(
-			CoinJoinTransactions.Sum(x => x.GetAmount()),
+			CoinJoinTransactions.Sum(x => Amounts[x.GetHash()]),
 			CoinJoinTransactions.Sum(x => x.GetFee() ?? Money.Zero));
 
 		UpdateDateString();
