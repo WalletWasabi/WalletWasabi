@@ -11,18 +11,18 @@ namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
-	public ClipboardObserver(IWalletBalancesModel walletBalances)
-	{
-		WalletBalances = walletBalances;
-	}
+	private readonly IObservable<BtcAmount> _balances;
 
-	private IWalletBalancesModel WalletBalances { get; }
+	public ClipboardObserver(IObservable<BtcAmount> balances)
+	{
+		_balances = balances;
+	}
 
 	public IObservable<string?> ClipboardUsdContentChanged(IScheduler scheduler)
 	{
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
-				WalletBalances.Usd,
+				_balances.Select(x => x.UsdValue).Switch(),
 				(text, balanceUsd) => ParseToUsd(text)
 					.Ensure(n => n <= balanceUsd)
 					.Ensure(n => n >= 1)
@@ -34,7 +34,7 @@ internal class ClipboardObserver
 	{
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
 			.CombineLatest(
-				WalletBalances.Btc,
+				_balances.Select(x => x.Value),
 				(text, balance) => ParseToMoney(text).Ensure(m => m <= balance))
 			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
 	}

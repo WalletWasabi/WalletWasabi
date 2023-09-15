@@ -5,21 +5,21 @@ using WalletWasabi.Fluent.Infrastructure;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public class WalletBalancesModel : ReactiveObject, IWalletBalancesModel
-{
-	public WalletBalancesModel(IObservable<BtcAmount> balances)
-	{
-		ExchangeRate = balances.Select(x => x.ExchangeRate).Switch();
-		Btc = balances.Select(x => x.Value);
-		Usd = balances.Select(x => x.UsdValue).Switch();
-		HasBalance = balances.Select(money => money.Value != Money.Zero);
-	}
+//public class WalletBalancesModel : ReactiveObject, IWalletBalancesModel
+//{
+//	public WalletBalancesModel(IObservable<BtcAmount> balances)
+//	{
+//		ExchangeRate = balances.Select(x => x.ExchangeRate).Switch();
+//		Btc = balances.Select(x => x.Value);
+//		Usd = balances.Select(x => x.UsdValue).Switch();
+//		HasBalance = balances.Select(money => money.Value != Money.Zero);
+//	}
 
-	public IObservable<Money> Btc { get; }
-	public IObservable<decimal> Usd { get; }
-	public IObservable<decimal> ExchangeRate { get; }
-	public IObservable<bool> HasBalance { get; }
-}
+//	public IObservable<Money> Btc { get; }
+//	public IObservable<decimal> Usd { get; }
+//	public IObservable<decimal> ExchangeRate { get; }
+//	public IObservable<bool> HasBalance { get; }
+//}
 
 public class BtcAmount
 {

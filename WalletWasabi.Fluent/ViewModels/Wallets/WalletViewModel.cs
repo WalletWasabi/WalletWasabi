@@ -237,16 +237,15 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
 		var walletModel = new WalletModel(Wallet);
-		var balances = walletModel.Balances;
 
-		yield return new WalletBalanceTileViewModel(balances);
+		yield return new WalletBalanceTileViewModel(walletModel.Balance);
 
 		if (!IsWatchOnly)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, this);
 		}
 
-		yield return new BtcPriceTileViewModel(balances);
+		yield return new BtcPriceTileViewModel(walletModel.ExchangeRateProvider);
 	}
 
 	public int CompareTo(WalletViewModel? other)

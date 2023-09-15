@@ -4,11 +4,26 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
              x:DataType="vm:ChangeAvoidanceSuggestionViewModel"
              ClipToBounds="False"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.ChangeAvoidanceSuggestionControl">
+
+  <UserControl.Styles>
+    <Style Selector="controls|AmountControl">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <StackPanel Spacing="10" DataContext="{Binding Amount}">
+            <TextBlock Text="{Binding Value, Converter={x:Static converters:MoneyConverters.ToBtc}}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
+            <TextBlock Text="{Binding UsdValue^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
+          </StackPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
   <StackPanel Spacing="20">
     <Panel MinHeight="80" MinWidth="100">
       <StackPanel Spacing="10" VerticalAlignment="Top">
@@ -21,8 +36,7 @@
         <StackPanel Spacing="10">
           <TextBlock Text="{Binding DifferenceFiatText}" FontSize="20" HorizontalAlignment="Center"
                      Foreground="{DynamicResource SystemAccentColor}" />
-          <TextBlock Text="{Binding Amount}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
-          <TextBlock Text="{Binding AmountFiat, Converter={x:Static converters:MoneyConverters.ToUsd}}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
+          <controls:AmountControl Amount="{Binding Amount}" />
         </StackPanel>
       </StackPanel>
     </Panel>

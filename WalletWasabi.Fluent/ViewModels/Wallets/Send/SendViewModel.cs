@@ -138,7 +138,7 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		_clipboardObserver = new ClipboardObserver(Balances);
+		_clipboardObserver = new ClipboardObserver(Balance);
 	}
 
 	public IObservable<BtcAmount> Balance { get; set; }

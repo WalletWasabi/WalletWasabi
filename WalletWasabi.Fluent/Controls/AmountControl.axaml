@@ -5,12 +5,14 @@
   <Style Selector="controls|AmountControl">
     <Setter Property="Template">
       <ControlTemplate>
-        <StackPanel DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Orientation="Horizontal" Spacing="4">
-          <TextBlock Classes="monoSpaced"
-                     Text="{Binding Value, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
-          <TextBlock Classes="monoSpaced"
-                     Text="{Binding UsdValue^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
-        </StackPanel>
+        <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
+          <TextBlock.Text>
+            <MultiBinding StringFormat="{}{0} {1}">
+              <Binding Path="Value" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
+              <Binding Path="UsdValue^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
+            </MultiBinding>
+          </TextBlock.Text>
+        </TextBlock>
       </ControlTemplate>
     </Setter>
   </Style>

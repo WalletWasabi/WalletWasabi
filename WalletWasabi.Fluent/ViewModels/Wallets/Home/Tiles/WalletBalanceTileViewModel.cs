@@ -1,19 +1,20 @@
+using System.Reactive.Linq;
 using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public class WalletBalanceTileViewModel : ActivatableViewModel
 {
-	public WalletBalanceTileViewModel(IWalletBalancesModel balances)
+	private readonly IObservable<BtcAmount> _balances;
+
+	public WalletBalanceTileViewModel(IObservable<BtcAmount> balances)
 	{
-		BtcBalance = balances.Btc;
-		UsdBalance = balances.Usd;
-		HasBalance = balances.HasBalance;
+		_balances = balances;
 	}
 
-	public IObservable<bool> HasBalance { get; }
+	public IObservable<bool> HasBalance => _balances.Select(amount => amount.Value != Money.Zero);
 
-	public IObservable<decimal> UsdBalance { get; }
+	public IObservable<decimal> UsdBalance => _balances.Select(x => x.UsdValue).Switch();
 
-	public IObservable<Money> BtcBalance { get; }
+	public IObservable<Money> BtcBalance => _balances.Select(x => x.Value);
 }

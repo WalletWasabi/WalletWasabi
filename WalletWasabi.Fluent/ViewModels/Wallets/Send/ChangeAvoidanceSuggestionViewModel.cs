@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -15,8 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
-	[AutoNotify] private string _amount;
-	[AutoNotify] private decimal _amountFiat;
 	[AutoNotify] private string? _differenceFiatText;
 
 	public ChangeAvoidanceSuggestionViewModel(
@@ -32,10 +31,12 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 
-		_amountFiat = fiatTotal;
+		Amount = new BtcAmount(totalAmount, new ExchangeRateProvider(Services.Synchronizer));
+
 		_differenceFiatText = GetDifferenceFiatText(fiatDifference);
-		_amount = $"{totalAmount.ToFormattedString()} BTC";
 	}
+
+	public BtcAmount Amount { get; set; }
 
 	public BuildTransactionResult TransactionResult { get; }
 

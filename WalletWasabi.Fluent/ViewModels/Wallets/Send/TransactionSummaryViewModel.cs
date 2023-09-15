@@ -25,7 +25,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private string _fee = "";
 	[AutoNotify] private string _amount = "";
-	[AutoNotify] public BtcAmount _newAmount;
+	[AutoNotify] private BtcAmount _newAmount;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
