@@ -115,7 +115,7 @@ public class Round
 
 	public void EndRound(EndRoundState finalState)
 	{
-		CoinjoinState = Assert<SigningState>().PublishWitnesses();
+		PublishWitnessesIfPossible();
 		SetPhase(Phase.Ended);
 		EndRoundState = finalState;
 	}
@@ -167,4 +167,12 @@ public class Round
 				Parameters.CoordinationIdentifier,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
+
+	private void PublishWitnessesIfPossible()
+	{
+		if (CoinjoinState is SigningState)
+		{
+			CoinjoinState = Assert<SigningState>().PublishWitnesses();
+		}
+	}
 }
