@@ -115,6 +115,7 @@ public class Round
 
 	public void EndRound(EndRoundState finalState)
 	{
+		CoinjoinState = Assert<SigningState>().PublishWitnesses();
 		SetPhase(Phase.Ended);
 		EndRoundState = finalState;
 	}

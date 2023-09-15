@@ -20,7 +20,11 @@ public record SigningState : MultipartyTransactionState
 
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-	public bool IsFullySigned => Witnesses.Count == SortedInputs.Count;
+	[JsonIgnore]
+	private ImmutableDictionary<int, WitScript> UnpublishedWitnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
+
+
+	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
 
 	[JsonIgnore]
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
@@ -39,7 +43,7 @@ public record SigningState : MultipartyTransactionState
 			.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
 			.ToList();
 
-	public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
+	public bool IsInputSigned(int index) => Witnesses.ContainsKey(index) || UnpublishedWitnesses.ContainsKey(index);
 
 	public bool IsInputSigned(OutPoint prevout) => IsInputSigned(GetInputIndex(prevout));
 
@@ -78,7 +82,21 @@ public record SigningState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature); // TODO keep script error
 		}
 
-		return this with { Witnesses = Witnesses.Add(index, witness) };
+		return this with { UnpublishedWitnesses = UnpublishedWitnesses.Add(index, witness) };
+	}
+	public SigningState PublishWitnesses()
+	{
+		var updatedWitnesses = Witnesses;
+		foreach (var (index, witness) in UnpublishedWitnesses)
+		{
+			updatedWitnesses = updatedWitnesses.Add(index, witness);
+		}
+
+		return this with
+		{
+			Witnesses = updatedWitnesses,
+			UnpublishedWitnesses = ImmutableDictionary<int, WitScript>.Empty
+		};
 	}
 
 	public Transaction CreateUnsignedTransaction()
@@ -105,6 +123,10 @@ public record SigningState : MultipartyTransactionState
 		var tx = CreateUnsignedTransaction();
 
 		foreach (var (index, witness) in Witnesses)
+		{
+			tx.Inputs[index].WitScript = witness;
+		}
+		foreach (var (index, witness) in UnpublishedWitnesses)
 		{
 			tx.Inputs[index].WitScript = witness;
 		}
