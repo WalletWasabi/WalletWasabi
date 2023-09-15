@@ -62,6 +62,6 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 
-		TransactionId = _coinJoin.CoinJoinTransaction.TransactionId;
+		TransactionId = _coinJoin.CoinJoinTransaction.GetHash();
 	}
 }

@@ -2,7 +2,7 @@ using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public interface IWalletBalancesModel
+public interface IWalletBalancesModel : IBtcAmount
 {
 	IObservable<Money> Btc { get; }
 	IObservable<decimal> Usd { get; }

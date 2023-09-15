@@ -9,12 +9,12 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletLoadWorkflow : IWalletLoadWorkflow
+[AutoInterface]
+public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
@@ -22,6 +22,7 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 	private uint _filtersToDownloadCount;
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
+	private uint _filterProcessCurrentTipHeight;
 	private Subject<(double PercentComplete, TimeSpan TimeRemaining)> _progress;
 	[AutoNotify] private bool _isLoading;
 
@@ -33,10 +34,10 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 		LoadCompleted =
 			Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Select(x => x.EventArgs)
-					  .Where(x => x == WalletState.Started || (x == WalletState.Starting && wallet.KeyManager.SkipSynchronization))
-					  .ToSignal();
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Select(x => x.EventArgs)
+					.Where(x => x == WalletState.Started || (x == WalletState.Starting && wallet.KeyManager.SkipSynchronization))
+					.ToSignal();
 	}
 
 	public IObservable<(double PercentComplete, TimeSpan TimeRemaining)> Progress => _progress;
@@ -52,31 +53,21 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 		_stopwatch = Stopwatch.StartNew();
 		_disposables.Add(Disposable.Create(_stopwatch.Stop));
 
-		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-							 .Where(status => status == BackendStatus.Connected)
-							 .SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
-							 .DisposeWith(_disposables);
-
-		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-				  .SubscribeAsync(async _ =>
-				  {
-					  if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
-					  {
-						  return;
-					  }
-
-					  await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
-				  })
-				 .DisposeWith(_disposables);
+		Observable.FromAsync(() => Services.Synchronizer.InitialRequestTcs.Task)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.SubscribeAsync(LoadWalletAsync)
+			.DisposeWith(_disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
-				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Subscribe(_ =>
-				  {
-					  var processedCount = GetCurrentProcessedCount();
-					  UpdateProgress(processedCount);
-				  })
-				  .DisposeWith(_disposables);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(
+					_ =>
+					{
+						UpdateCurrentTipHeight();
+						var processedCount = GetCurrentProcessedCount();
+						UpdateProgress(processedCount);
+					})
+				.DisposeWith(_disposables);
 	}
 
 	public void Stop()
@@ -94,11 +85,6 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 		IsLoading = true;
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
-
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
-		{
-			await Task.Delay(1000).ConfigureAwait(false);
-		}
 
 		if (_wallet.State != WalletState.Uninitialized)
 		{
@@ -121,23 +107,27 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
 	{
-		while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+		if (isBackendAvailable)
 		{
-			await Task.Delay(500).ConfigureAwait(false);
+			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
+			await Services.BitcoinStore.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
 		}
+
+		// Wait until "client tip height" is initialized.
+		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
 		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-		if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
-			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
-		{
-			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
-			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+		uint serverTipHeight = Services.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		uint clientTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
 
-			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
-		}
+		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+
+		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+		_filterProcessCurrentTipHeight = tipHeight;
 	}
 
 	private uint GetCurrentProcessedCount()
@@ -157,6 +147,18 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 		var processedCount = downloadedFilters + processedFilters;
 
 		return processedCount;
+	}
+
+	private void UpdateCurrentTipHeight()
+	{
+		var smartHeaderChainTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
+		if (_filtersToProcessCount == 0 || smartHeaderChainTipHeight == _filterProcessCurrentTipHeight)
+		{
+			return;
+		}
+
+		_filtersToProcessCount += smartHeaderChainTipHeight - _filterProcessCurrentTipHeight;
+		_filterProcessCurrentTipHeight = smartHeaderChainTipHeight;
 	}
 
 	private void UpdateProgress(uint processedCount)

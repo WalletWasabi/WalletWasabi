@@ -24,7 +24,6 @@
         </DockPanel>
       </Button>
     </DataTemplate>
-
   </UserControl.DataTemplates>
 
   <UserControl.Styles>
@@ -41,7 +40,6 @@
     <Style Selector="FlyoutPresenter PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
-
   </UserControl.Styles>
 
   <c:ContentArea
@@ -137,14 +135,16 @@
                                   ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                  BalanceBtc="{Binding Balances.Btc^}"
+                                  BalanceUsd="{Binding Balances.Usd^}"
+                                  ValidatePasteBalance="True">
             <c:DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
                                            TrueValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedRight}"
                                            FalseValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedLeft}">
               </converters:BooleanConverter>
-
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"

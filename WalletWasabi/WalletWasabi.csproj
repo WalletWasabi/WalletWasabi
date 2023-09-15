@@ -27,6 +27,12 @@
 		<ErrorReport>none</ErrorReport>
 	</PropertyGroup>
 
+	<Target Name="WriteMetadata" BeforeTargets="PrepareForBuild">
+		<ItemGroup>
+			<AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
+		</ItemGroup>
+	</Target>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
 		<PackageReference Include="Microsoft.Data.Sqlite" />

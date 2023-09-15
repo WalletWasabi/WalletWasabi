@@ -1,13 +1,11 @@
 using DynamicData;
 using DynamicData.Binding;
-using ReactiveUI;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
@@ -15,6 +13,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 {
 	private readonly WalletViewModel _walletViewModel;
 
+	[AutoNotify] private bool _hasProgress;
 	[AutoNotify] private decimal _totalAmount;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel)
@@ -59,31 +58,15 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			return;
 		}
 
-		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
+		var segments =
+			_walletViewModel.Wallet.Coins
+								   .GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+								   .OrderBy(x => (int)x.Key)
+								   .Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+								   .ToList();
 
-		var result =
-			shouldCreateSegmentsByCoin
-			? CreateSegmentsByCoin()
-			: CreateSegmentsByPrivacyLevel();
+		HasProgress = segments.Any(x => x.PrivacyLevel != PrivacyLevel.NonPrivate);
 
-		list.AddRange(result);
-	}
-
-	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByCoin()
-	{
-		return _walletViewModel.Wallet.Coins
-			.Select(coin => new PrivacyBarItemViewModel(this, coin))
-			.OrderBy(x => x.PrivacyLevel)
-			.ThenByDescending(x => x.Amount)
-			.ToList();
-	}
-
-	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByPrivacyLevel()
-	{
-		return _walletViewModel.Wallet.Coins
-			.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-			.OrderBy(x => (int)x.Key)
-			.Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
-			.ToList();
+		list.AddRange(segments);
 	}
 }

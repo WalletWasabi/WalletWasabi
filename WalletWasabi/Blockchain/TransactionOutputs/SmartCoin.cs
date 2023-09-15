@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Extensions;
+using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -132,6 +133,10 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
 
+	/// <returns>False if external, or the tx inputs are all external.</returns>
+	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
+
 	public bool RegisterToHdPubKey()
 		=> HdPubKey.Coins.Add(this);
 
@@ -140,7 +145,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool IsImmature(int bestHeight)
 	{
-		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
+		return Transaction.Transaction.IsCoinBase && Height >= bestHeight - 100;
 	}
 
 	public bool RefreshAndGetIsBanned()

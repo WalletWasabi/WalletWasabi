@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
+[AutoInterface]
+public partial class WalletAuthModel : ReactiveObject
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
@@ -18,6 +20,17 @@ public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 
 	public bool IsLegalRequired => Services.LegalChecker.TryGetNewLegalDocs(out _);
 
+	public async Task LoginAsync(string password)
+	{
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var _));
+		if (!isPasswordCorrect)
+		{
+			throw new InvalidOperationException($"Incorrect password.");
+		}
+
+		CompleteLogin();
+	}
+
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
 		string? compatibilityPassword = null;
@@ -26,6 +39,11 @@ public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 		var compatibilityPasswordUsed = compatibilityPassword is { };
 
 		return new(isPasswordCorrect, compatibilityPasswordUsed);
+	}
+
+	public async Task<bool> TryPasswordAsync(string password)
+	{
+		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password, out _));
 	}
 
 	public async Task AcceptTermsAndConditions()

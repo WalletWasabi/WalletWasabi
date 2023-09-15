@@ -55,11 +55,12 @@ public class P2pTests
 
 		var dataDir = Common.GetWorkDir();
 
-		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
+		SmartHeaderChain smartHeaderChain = new();
+		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
+		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, smartHeaderChain, blocks);
 		await bitcoinStore.InitializeAsync();
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
@@ -97,7 +98,7 @@ public class P2pTests
 		using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
-		await using HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
+		await using WasabiHttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 

@@ -70,34 +70,34 @@
       </c:PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <StackPanel Spacing="10" IsVisible="{Binding WpkhOutputDescriptors, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <StackPanel Spacing="10" IsVisible="{Binding HasOutputDescriptors}">
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public External Output descriptor"
-                       CopyableContent="{Binding WpkhOutputDescriptors.PublicExternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PublicExternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PublicExternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PublicExternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public Internal Output descriptor"
-                       CopyableContent="{Binding WpkhOutputDescriptors.PublicInternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PublicInternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PublicInternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PublicInternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
 
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Private External Output descriptor"
-                       IsVisible="{Binding !!WpkhOutputDescriptors.PrivateExternal}"
+                       IsVisible="{Binding !!PrivateExternalOutputDescriptor}"
                        PrivacyModeEnabled="{Binding !ShowSensitiveData}"
-                       CopyableContent="{Binding WpkhOutputDescriptors.PrivateExternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PrivateExternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PrivateExternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PrivateExternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Private Internal Output descriptor"
-                       IsVisible="{Binding !!WpkhOutputDescriptors.PrivateInternal}"
+                       IsVisible="{Binding !!PrivateInternalOutputDescriptor}"
                        PrivacyModeEnabled="{Binding !ShowSensitiveData}"
-                       CopyableContent="{Binding WpkhOutputDescriptors.PrivateInternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PrivateInternal}" ForceShow="{Binding ShowSensitiveData}" />
+                       CopyableContent="{Binding PrivateInternalOutputDescriptor}">
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding PrivateInternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
       </StackPanel>
-      <Separator IsVisible="{Binding WpkhOutputDescriptors, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Separator IsVisible="{Binding HasOutputDescriptors}" />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (SegWit)"
