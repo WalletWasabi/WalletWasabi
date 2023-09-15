@@ -21,7 +21,7 @@ public partial class WalletCoinsModel
 
 		var initialCoinList = Observable.Defer(() => GetCoins().ToObservable());
 		var initialPocketList = Observable.Defer(() => _wallet.GetPockets().ToObservable());
-		var transactionProcessed = walletModel.TransactionProcessed;
+		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
 		var isCoinjoinRunningChanged = Observable.Defer(() => walletModel.Coinjoin.IsRunning.ToSignal());
 		var signals = transactionProcessed.Merge(anonScoreTargetChanged).Merge(isCoinjoinRunningChanged);

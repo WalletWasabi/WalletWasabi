@@ -69,8 +69,6 @@ public class ReceiveViewModelTests
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
-
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 		public bool IsHardwareWallet => throw new NotSupportedException();
 
@@ -96,6 +94,8 @@ public class ReceiveViewModelTests
 		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
 		public Network Network => throw new NotImplementedException();
+
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

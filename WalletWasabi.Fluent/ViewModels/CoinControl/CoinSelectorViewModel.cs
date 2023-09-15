@@ -60,7 +60,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.ToCollection()
 			.Select(GetSelectedCoins);
 
-		wallet.TransactionProcessed
+		wallet.Transactions.TransactionProcessed
 			  .CombineLatest(wallet.Coins.Pockets.ToCollection())
 			  .Select(x => x.Second)
 			  .WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))

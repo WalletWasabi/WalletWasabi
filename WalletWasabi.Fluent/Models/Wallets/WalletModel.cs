@@ -1,12 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -19,14 +16,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
-	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
 	{
 		Wallet = wallet;
-
-		_historyBuilder = new TransactionHistoryBuilder(Wallet);
 
 		Auth = new WalletAuthModel(this, Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
@@ -34,21 +28,11 @@ public partial class WalletModel : ReactiveObject
 
 		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
 
-		TransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
-					  .Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal())
-					  .Sample(TimeSpan.FromSeconds(1))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .StartWith(Unit.Default);
-
-		Transactions =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.GetHash());
+		Transactions = new WalletTransactionsModel(wallet);
 
 		Addresses =
 			Observable.Defer(() => GetAddresses().ToObservable())
-					  .Concat(TransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
+					  .Concat(Transactions.TransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
 					  .ToObservableChangeSet(x => x.Text);
 
 		State =
@@ -60,7 +44,7 @@ public partial class WalletModel : ReactiveObject
 
 		var balance =
 			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
-					  .Concat(TransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+					  .Concat(Transactions.TransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 
 		Coins = new WalletCoinsModel(wallet, this);
@@ -84,6 +68,8 @@ public partial class WalletModel : ReactiveObject
 
 	public Network Network => Wallet.Network;
 
+	public IWalletTransactionsModel Transactions { get; }
+
 	public IWalletBalancesModel Balances { get; }
 
 	public IWalletCoinsModel Coins { get; }
@@ -98,13 +84,9 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
 
-	public IObservable<Unit> TransactionProcessed { get; }
-
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public IObservable<WalletState> State { get; }
-
-	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
@@ -124,11 +106,6 @@ public partial class WalletModel : ReactiveObject
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);
-	}
-
-	private IEnumerable<TransactionSummary> BuildSummary()
-	{
-		return _historyBuilder.BuildHistorySummary();
 	}
 
 	private IEnumerable<IAddress> GetAddresses()
