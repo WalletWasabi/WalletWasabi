@@ -27,9 +27,9 @@
       <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="{Binding AmountText}"
-                     CopyableContent="{Binding Amount}">
+                     CopyableContent="{Binding NewAmount.Value}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
+          <c:AmountControl Amount="{Binding NewAmount}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 

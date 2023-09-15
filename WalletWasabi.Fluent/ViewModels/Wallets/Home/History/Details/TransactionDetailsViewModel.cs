@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -20,13 +21,13 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string _dateString;
-	[AutoNotify] private Money? _amount;
+	[AutoNotify] private string? _dateString;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
-
+	[AutoNotify] private BtcAmount? _amount;
+	
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
@@ -59,18 +60,19 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.Amount < Money.Zero)
 		{
-			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			var amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			Amount = new BtcAmount(amount, new ExchangeRateProvider(Services.Synchronizer));
 			AmountText = "Outgoing";
 		}
 		else
 		{
-			Amount = transactionSummary.Amount;
+			Amount = new BtcAmount(transactionSummary.Amount, new ExchangeRateProvider(Services.Synchronizer));
 			AmountText = "Incoming";
 		}
 
 		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
-
+	
 	private void OnNext()
 	{
 		Navigate().Clear();
