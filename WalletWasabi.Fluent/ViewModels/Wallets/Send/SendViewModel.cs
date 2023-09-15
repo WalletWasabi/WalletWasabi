@@ -67,7 +67,7 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-		Balances = WalletRepository.CreateWalletModel(_wallet).Balances;
+		Balance = WalletRepository.CreateWalletModel(_wallet).Balance;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -143,8 +143,6 @@ public partial class SendViewModel : RoutableViewModel
 	}
 
 	public IObservable<BtcAmount> Balance { get; set; }
-
-	public IWalletBalancesModel Balances { get; set; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 

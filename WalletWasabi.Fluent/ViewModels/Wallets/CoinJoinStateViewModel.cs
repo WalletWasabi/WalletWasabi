@@ -90,7 +90,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		wallet.Balances.Btc
+		wallet.Balance.Select(x => x.Value)
 					   .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
 					   .Subscribe();
 

@@ -240,18 +240,15 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
 		var walletModel = WalletRepository.CreateWalletModel(Wallet);
-		var balances = walletModel.Balances;
 
-		var exchangeRateProvider = new ExchangeRateProvider(Wallet.Synchronizer);
-		var btcAmounts = balances.Btc.Select(money => new BtcAmount(money, exchangeRateProvider: exchangeRateProvider));
-		yield return new WalletBalanceTileViewModel(btcAmounts);
+		yield return new WalletBalanceTileViewModel(walletModel.Balance);
 
 		if (!IsWatchOnly)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, this);
 		}
 
-		yield return new BtcPriceTileViewModel(exchangeRateProvider);
+		yield return new BtcPriceTileViewModel(new ExchangeRateProvider(Wallet.Synchronizer));
 	}
 
 	public int CompareTo(WalletViewModel? other)
