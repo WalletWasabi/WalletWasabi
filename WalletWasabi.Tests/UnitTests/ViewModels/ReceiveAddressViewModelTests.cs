@@ -106,6 +106,8 @@ public class ReceiveAddressViewModelTests
 
 		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
+		public Network Network => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
