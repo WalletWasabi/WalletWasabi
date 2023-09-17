@@ -5,6 +5,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -52,7 +53,7 @@ public static class ServiceFactory
 		}
 
 		var coinsView = new CoinsView(sCoins);
-		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var mockTransactionStore = new AllTransactionStore(SqliteStorageHelper.InMemoryDatabase, Network.Main);
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password, allowUnconfirmed);
 	}
 

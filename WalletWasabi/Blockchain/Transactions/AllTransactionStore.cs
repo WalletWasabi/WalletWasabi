@@ -91,6 +91,24 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
+	public virtual bool TryGetConfirmedTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? sameStx)
+	{
+		lock (Lock)
+		{
+			if (SqliteStorage.TryGet(txid, out SmartTransaction? foundTx))
+			{
+				if (foundTx.Confirmed)
+				{
+					sameStx = foundTx;
+					return true;
+				}
+			}
+
+			sameStx = null;
+			return false;
+		}
+	}
+
 	public virtual bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 	{
 		lock (Lock)
@@ -176,15 +194,23 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
-	public void ReleaseToMempoolFromBlock(uint256 blockHash)
+	public IReadOnlyList<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
 	{
 		lock (Lock)
 		{
+			List<SmartTransaction> reorgedTxs = new();
+
 			foreach (SmartTransaction tx in GetTransactionsNoLock().Where(tx => tx.BlockHash == blockHash))
 			{
 				tx.SetUnconfirmed();
-				_ = TryUpdateNoLock(tx);
+
+				if (TryUpdateNoLock(tx))
+				{
+					reorgedTxs.Add(tx);
+				}
 			}
+
+			return reorgedTxs;
 		}
 	}
 

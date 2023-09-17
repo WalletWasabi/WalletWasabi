@@ -124,7 +124,7 @@ public class TransactionSqliteStorage : IDisposable
 				INSERT INTO "transaction" ({AllColumns})
 				VALUES ({AllParameters})
 				ON CONFLICT(txid) DO UPDATE SET
-					height=excluded.height,
+					block_height=excluded.block_height,
 					block_hash=excluded.block_hash,
 					block_index=excluded.block_index,
 					labels=excluded.labels,
@@ -284,7 +284,10 @@ public class TransactionSqliteStorage : IDisposable
 		{
 			txidParameter.Value = tx.GetHash().ToBytes(lendian: true);
 			blockHeightParameter.Value = tx.Height.Value;
-			blockHashParameter.Value = tx.BlockHash?.ToBytes(lendian: true);
+
+			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: true);
+			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
+
 			blockIndexParameter.Value = tx.BlockIndex;
 			labelsParameter.Value = tx.Labels.ToString();
 			firstSeenParameter.Value = tx.FirstSeen.ToUnixTimeSeconds();
@@ -354,8 +357,8 @@ public class TransactionSqliteStorage : IDisposable
 		string query = type switch
 		{
 			TransactionType.All => $$"""DELETE FROM "transaction" WHERE txid = $txid returning *""",
-			TransactionType.Mempool => $$"""DELETE FROM "transaction" WHERE txid = $txid returning AND block_hash is NULL *""",
-			TransactionType.Confirmed => $$"""DELETE FROM "transaction" WHERE txid = $txid returning AND block_hash is not NULL *""",
+			TransactionType.Mempool => $$"""DELETE FROM "transaction" WHERE txid = $txid AND block_hash is NULL returning *""",
+			TransactionType.Confirmed => $$"""DELETE FROM "transaction" WHERE txid = $txid AND block_hash is not NULL returning *""",
 			_ => throw new NotImplementedException(),
 		};
 
