@@ -137,8 +137,7 @@ public static class TransactionFeeHelper
 				var decreaseBy = (newInfo.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
 				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte - decreaseBy);
 			}
-		} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > 0.001m &&
-		         !(lastWrongFeeRate.SatoshiPerByte < 1m && lastCorrectFeeRate.SatoshiPerByte < 1m));
+		} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > 0.001m && !(lastWrongFeeRate.SatoshiPerByte < 1m && lastCorrectFeeRate.SatoshiPerByte < 1m));
 
 		if (lastCorrectFeeRate.SatoshiPerByte >= 1m)
 		{
