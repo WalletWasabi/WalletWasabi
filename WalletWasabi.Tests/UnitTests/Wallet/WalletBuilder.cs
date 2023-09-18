@@ -29,14 +29,14 @@ public class WalletBuilder : IAsyncDisposable
 	{
 		DataDir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
 
-		IndexStore = new IndexStore(Path.Combine(DataDir, "indexStore"), node.Network, new SmartHeaderChain());
-
+		SmartHeaderChain smartHeaderChain = new();
+		IndexStore = new IndexStore(Path.Combine(DataDir, "indexStore"), node.Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(DataDir, "transactionStore"), node.Network);
 
 		Filters = node.BuildFilters();
 
 		var blockRepositoryMock = new MockBlockRepository(node.BlockChain);
-		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), blockRepositoryMock);
+		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
 	}

@@ -19,6 +19,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _isBusy;
 
 	[AutoNotify] private bool _noPrivacy;
+	[AutoNotify] private bool _badPrivacy;
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
 
@@ -34,6 +35,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
 		NoPrivacy = false;
+		BadPrivacy = false;
 		MaxPrivacy = false;
 		GoodPrivacy = false;
 		Warnings.Clear();
@@ -54,9 +56,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			Suggestions.Add(suggestion);
 		}
 
-		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		if (Warnings.Any(x => x.Severity == WarningSeverity.Critical))
 		{
 			NoPrivacy = true;
+		}
+		else if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		{
+			BadPrivacy = true;
 		}
 		else if (Warnings.Any(x => x.Severity == WarningSeverity.Info))
 		{

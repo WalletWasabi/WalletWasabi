@@ -7,6 +7,7 @@ namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 public enum RoundDisruptionMethod
 {
 	DidNotConfirm,
+	DidNotSignalReadyToSign,
 	DidNotSign,
 	DoubleSpent
 }
@@ -35,6 +36,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					yield return rd.Method switch
 					{
 						RoundDisruptionMethod.DidNotConfirm => "didn't confirm",
+						RoundDisruptionMethod.DidNotSignalReadyToSign => "didn't signal ready to sign",
 						RoundDisruptionMethod.DidNotSign => "didn't sign",
 						RoundDisruptionMethod.DoubleSpent => "double spent",
 						_ => throw new NotImplementedException("Unknown round disruption method.")
@@ -80,6 +82,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					parts[5] switch
 					{
 						"didn't confirm" => RoundDisruptionMethod.DidNotConfirm,
+						"didn't signal ready to sign" => RoundDisruptionMethod.DidNotSignalReadyToSign,
 						"didn't sign" => RoundDisruptionMethod.DidNotSign,
 						"double spent" => RoundDisruptionMethod.DoubleSpent,
 						_ => throw new NotImplementedException("Unknown round disruption method.")

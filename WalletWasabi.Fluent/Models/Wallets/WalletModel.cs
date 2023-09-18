@@ -16,7 +16,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletModel : ReactiveObject, IWalletModel
+[AutoInterface]
+public partial class WalletModel : ReactiveObject
 {
 	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
@@ -49,7 +50,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		Transactions =
 			Observable.Defer(() => BuildSummary().ToObservable())
 					  .Concat(relevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.TransactionId);
+					  .ToObservableChangeSet(x => x.GetHash());
 
 		Addresses =
 			Observable.Defer(() => GetAddresses().ToObservable())

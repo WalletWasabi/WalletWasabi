@@ -28,7 +28,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		OrderIndex = orderIndex;
 		TransactionSummary = transactionSummary;
-		Id = transactionSummary.TransactionId;
+		Id = transactionSummary.GetHash();
 
 		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
 
@@ -87,11 +87,15 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCPFPd { get; set; }
 
+	public bool IsIncomingTransactionDisplayed => !IsCPFP && IncomingAmount is { } amount && amount > Money.Zero;
+
+	public bool IsOutgoingTransactionDisplayed => !IsCPFP && OutgoingAmount is { } amount && amount > Money.Zero;
+
+	public bool IsSelfTransferTransaction => OutgoingAmount == Money.Zero;
+
 	public bool IsConfirmedDisplayed => IsConfirmed;
 
 	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
-
-	public bool IsNormalTransactionDisplayed => !IsCoinJoin;
 
 	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
 

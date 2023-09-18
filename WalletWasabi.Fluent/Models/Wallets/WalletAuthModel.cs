@@ -5,7 +5,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
+[AutoInterface]
+public partial class WalletAuthModel : ReactiveObject
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
@@ -18,6 +19,17 @@ public partial class WalletAuthModel : ReactiveObject, IWalletAuthModel
 	}
 
 	public bool IsLegalRequired => Services.LegalChecker.TryGetNewLegalDocs(out _);
+
+	public async Task LoginAsync(string password)
+	{
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var _));
+		if (!isPasswordCorrect)
+		{
+			throw new InvalidOperationException($"Incorrect password.");
+		}
+
+		CompleteLogin();
+	}
 
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{

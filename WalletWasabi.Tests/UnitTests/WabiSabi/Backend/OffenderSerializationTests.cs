@@ -47,5 +47,10 @@ public class OffenderSerializationTests
 		var offender5 = new Offender(outpoint, now, new Inherited(ancestors));
 		var offender5str = offender5.ToStringLine();
 		Assert.Equal(offender5str, Offender.FromStringLine(offender5str).ToStringLine());
+
+		// Fail to signal ready to sign
+		var offender6 = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotSignalReadyToSign));
+		var offender6str = offender6.ToStringLine();
+		Assert.Equal(offender6str, Offender.FromStringLine(offender6str).ToStringLine());
 	}
 }

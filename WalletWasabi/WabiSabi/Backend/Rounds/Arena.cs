@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
@@ -67,7 +68,8 @@ public partial class Arena : PeriodicRunner
 	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
-	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
+	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
+	private ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
 	private AsyncLock AsyncLock { get; } = new();
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
@@ -101,6 +103,8 @@ public partial class Arena : PeriodicRunner
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
+			AbortDisruptedRounds();
+
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
 		}
@@ -117,7 +121,7 @@ public partial class Arena : PeriodicRunner
 						.ThenBy(x => x.InputCount)
 						.ToList();
 
-		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0));
+		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableList();
 	}
 
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
@@ -280,7 +284,10 @@ public partial class Arena : PeriodicRunner
 
 					if (!allReady && phaseExpired)
 					{
+						// It would be better to end the round and create a blame round here, but older client would not support it.
+						// See https://github.com/zkSNACKs/WalletWasabi/pull/11028.
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
+						round.FastSigningPhase = true;
 					}
 
 					SetRoundPhase(round, Phase.TransactionSigning);
@@ -379,12 +386,19 @@ public partial class Arena : PeriodicRunner
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
 					round.LogWarning($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
-					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+					if (round.FastSigningPhase)
+					{
+						await FailFastTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+					}
 				}
 			}
 			catch (RPCException ex)
 			{
-				round.LogWarning($"Transaction broadcasting failed: '{ex}'.");
+				round.LogError($"Transaction broadcasting failed: '{ex}'.");
 				EndRound(round, EndRoundState.TransactionBroadcastFailed);
 			}
 			catch (Exception ex)
@@ -431,6 +445,31 @@ public partial class Arena : PeriodicRunner
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
+
+		if (round.InputCount >= round.Parameters.MinInputCountByRound)
+		{
+			EndRound(round, EndRoundState.NotAllAlicesSign);
+			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+		}
+		else
+		{
+			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
+		}
+	}
+
+	private async Task FailFastTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
+	{
+		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
+
+		foreach (var alice in alicesToRemove)
+		{
+			// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
+			Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+		}
+
+		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
+
+		round.LogInfo($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}");
 
 		if (round.InputCount >= round.Parameters.MinInputCountByRound)
 		{
@@ -703,6 +742,23 @@ public partial class Arena : PeriodicRunner
 	{
 		Rounds.Add(round);
 		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
+	}
+
+	public void AbortRound(uint256 roundId)
+	{
+		DisruptedRounds.Enqueue(roundId);
+	}
+
+	private void AbortDisruptedRounds()
+	{
+		while (DisruptedRounds.TryDequeue(out var disruptedRoundId))
+		{
+			var roundOrNull = Rounds.FirstOrDefault(x => x.Id == disruptedRoundId);
+			if (roundOrNull is { } nonNullRound)
+			{
+				nonNullRound.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
+			}
+		}
 	}
 
 	private void SetRoundPhase(Round round, Phase phase)

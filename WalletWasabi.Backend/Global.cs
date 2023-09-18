@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -10,8 +9,6 @@ using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.CoinJoin.Coordinator;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -38,7 +35,7 @@ public class Global : IDisposable
 		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
-		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), CoordinatorParameters.CoinJoinIdStoreFilePath);
+		CoinJoinIdStore = CoinJoinIdStore.Create(CoordinatorParameters.CoinJoinIdStoreFilePath);
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 		P2pNode = new(config.Network, config.GetBitcoinP2pEndPoint(), new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
@@ -71,13 +68,10 @@ public class Global : IDisposable
 	private HttpClient CoinVerifierHttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
 
-	public Coordinator? Coordinator { get; private set; }
 	private CoinVerifierApiClient? CoinVerifierApiClient { get; set; }
 	public CoinVerifier? CoinVerifier { get; private set; }
 
 	public Config Config { get; }
-
-	public CoordinatorRoundConfig? RoundConfig { get; private set; }
 
 	private CoordinatorParameters CoordinatorParameters { get; }
 
@@ -87,10 +81,8 @@ public class Global : IDisposable
 	private MempoolMirror MempoolMirror { get; }
 	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
-	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
+	public async Task InitializeAsync(CancellationToken cancel)
 	{
-		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-
 		// Make sure RPC works.
 		await AssertRpcNodeFullyInitializedAsync(cancel);
 
@@ -102,7 +94,7 @@ public class Global : IDisposable
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
-		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
+		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled;
 
 		if (coinVerifierEnabled)
 		{
@@ -136,39 +128,12 @@ public class Global : IDisposable
 			}
 		}
 
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? CoinVerifier : null);
-		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
-
-		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
-		if (!string.IsNullOrWhiteSpace(roundConfig.FilePath))
-		{
-			HostedServices.Register<ConfigWatcher>(() =>
-			   new ConfigWatcher(
-				   TimeSpan.FromSeconds(10), // Every 10 seconds check the config
-				   RoundConfig,
-				   () =>
-				   {
-					   try
-					   {
-						   coordinator.RoundConfig.UpdateOrDefault(RoundConfig, toFile: false);
-
-						   coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
-					   }
-					   catch (Exception ex)
-					   {
-						   Logger.LogDebug(ex);
-					   }
-				   }),
-				"Config Watcher");
-		}
-
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
 		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;
-		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
 
@@ -176,14 +141,6 @@ public class Global : IDisposable
 		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is successfully initialized and started synchronization.");
 		TaprootIndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is successfully initialized and started synchronization.");
-	}
-
-	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
-	{
-		CoinJoinIdStore!.TryAdd(transaction.GetHash());
-
-		// Trigger mempool refresh.
-		MempoolMirror.TriggerRound();
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
@@ -247,18 +204,10 @@ public class Global : IDisposable
 				{
 					var blockNotifier = HostedServices.Get<BlockNotifier>();
 					blockNotifier.OnBlock -= wabiSabiCoordinator.BanDescendant;
+					P2pNode.OnTransactionArrived -= wabiSabiCoordinator.BanDoubleSpenders;
 				}
+
 				CoinVerifierHttpClient.Dispose();
-
-				P2pNode.OnTransactionArrived -= WabiSabiCoordinator.BanDoubleSpenders;
-
-				if (Coordinator is { } coordinator)
-				{
-					coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;
-					coordinator.Dispose();
-					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
-				}
-
 				CoinJoinMempoolManager.Dispose();
 
 				var stoppingTask = Task.Run(DisposeAsync);
