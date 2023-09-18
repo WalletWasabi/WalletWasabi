@@ -200,25 +200,11 @@ public class TransactionFactory
 		{
 			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
 		}
-
 		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
-		decimal feeDecimal = fee.ToDecimal(MoneyUnit.BTC);
 
-		decimal feePercentage;
-		if (payments.ChangeStrategy == ChangeStrategy.AllRemainingCustom)
-		{
-			// In this scenario since the amount changes as the fee changes, we need to compare against the total sum / 2,
-			// as with this, we will make sure the fee cannot be higher than the amount.
-			decimal inputSumDecimal = spentCoins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
-			feePercentage = 100 * (feeDecimal / (inputSumDecimal / 2));
-		}
-		else
-		{
-			// In this scenario the amount is fixed, so we can compare against it.
-			// Cannot divide by zero, so use the closest number we have to zero.
-			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-			feePercentage = 100 * (feeDecimal / totalOutgoingAmountNoFeeDecimalDivisor);
-		}
+		// Cannot divide by zero, so use the closest number we have to zero.
+		decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
+		decimal feePercentage = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
 
 		if (feePercentage > 100)
 		{
