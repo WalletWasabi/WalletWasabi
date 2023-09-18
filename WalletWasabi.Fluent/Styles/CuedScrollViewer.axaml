@@ -122,9 +122,13 @@
           </ScrollContentPresenter>
 
           <ScrollBar Name="PART_HorizontalScrollBar"
+                     MaxHeight="10"
+                     MinHeight="2"
                      Orientation="Horizontal"
                      Grid.Row="1" />
           <ScrollBar Name="PART_VerticalScrollBar"
+                     MaxWidth="10"
+                     MinWidth="2"
                      Orientation="Vertical"
                      Grid.Column="1" />
 
