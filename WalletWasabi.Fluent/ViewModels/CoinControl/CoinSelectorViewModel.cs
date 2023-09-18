@@ -86,7 +86,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		wallet.Coins.Pockets.ToCollection()
-							.Take(1)
 							.Do(pockets =>
 							{
 								RefreshFromPockets(sourceItems, pockets);
