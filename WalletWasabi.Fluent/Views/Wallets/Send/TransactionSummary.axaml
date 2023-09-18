@@ -75,8 +75,8 @@
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="Fee"
-                       CopyableContent="{Binding Fee}">
-          <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
+                       CopyableContent="{Binding Amount.Value, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+          <c:AmountControl Classes="Fee" Amount="{Binding Amount}" />
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>

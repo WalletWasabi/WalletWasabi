@@ -17,7 +17,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
-	[AutoNotify] private string _fee = "";
+	[AutoNotify] private BtcAmount _fee;
 	[AutoNotify] private BtcAmount? _amount;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
@@ -53,7 +53,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var fee = _transaction.Fee;
 		FeeText = fee.ToFeeDisplayUnitFormattedString();
-		Fee = _transaction.Fee.ToFeeDisplayUnitRawString();
+		Fee = BtcAmount.Create(_transaction.Fee);
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
