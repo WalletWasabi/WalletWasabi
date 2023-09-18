@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -117,27 +116,41 @@ public static class TransactionFeeHelper
 		return time;
 	}
 
-	public static bool TryGetMaximumPossibleFeeRate(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
+	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
 	{
-		maximumPossibleFeeRate = FeeRate.Zero;
+		var newInfo = info.Clone();
+		var lastWrongFeeRate = new FeeRate(0m);
+		var lastCorrectFeeRate = new FeeRate(0m);
 
-		if (percentageOfOverpayment <= 0 || !TryGetFeeEstimates(wallet, out var feeEstimates))
+		do
 		{
-			return false;
+			try
+			{
+				await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, newInfo, tryToSign: false));
+				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? newInfo.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - newInfo.FeeRate.SatoshiPerByte) / 2;
+				lastCorrectFeeRate = newInfo.FeeRate;
+				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte + increaseBy);
+			}
+			catch (Exception)
+			{
+				lastWrongFeeRate = newInfo.FeeRate;
+				var decreaseBy = (newInfo.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
+				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte - decreaseBy);
+			}
+		} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > 0.001m &&
+		         !(lastWrongFeeRate.SatoshiPerByte < 1m && lastCorrectFeeRate.SatoshiPerByte < 1m));
+
+		if (lastCorrectFeeRate.SatoshiPerByte >= 1m)
+		{
+			info.MaximumPossibleFeeRate = lastCorrectFeeRate;
+			info.FeeRate = lastCorrectFeeRate;
+			info.ConfirmationTimeSpan = TryEstimateConfirmationTime(wallet, lastCorrectFeeRate, out var estimate)
+				? estimate.Value
+				: TimeSpan.Zero;
+
+			return true;
 		}
 
-		var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
-
-		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates.Estimations);
-
-		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
-		{
-			return false;
-		}
-
-		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
-		return newFeeRate <= maximumPossibleFeeRate;
+		return false;
 	}
 }

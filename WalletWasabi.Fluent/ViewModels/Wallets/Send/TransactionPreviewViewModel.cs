@@ -279,24 +279,21 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			var x = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
-			Console.WriteLine($"FeeRate: {_info.FeeRate}");
-			return x;
+			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
 		}
-		catch (NotEnoughFundsException ex)
+		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException)
 		{
-			var totalFee = _info.Amount + (Money)ex.Missing;
-			var percentage = ((decimal)totalFee.Satoshi / _info.Amount.Satoshi) * 100;
+			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
+			{
+				return await BuildTransactionAsync();
+			}
 
-			var result = await TryAdjustTransactionFeeAsync(percentage);
+			await ShowErrorAsync(
+				"Transaction Building",
+				"The transaction cannot be sent because its fee is more than the payment amount.",
+				"Wasabi was unable to create your transaction.");
 
-			return result ? await BuildTransactionAsync() : null;
-		}
-		catch (TransactionFeeOverpaymentException ex)
-		{
-			var result = await TryAdjustTransactionFeeAsync(ex.PercentageOfOverpayment);
-
-			return result ? await BuildTransactionAsync() : null;
+			return null;
 		}
 		catch (InsufficientBalanceException)
 		{
@@ -313,39 +310,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					return await BuildTransactionAsync();
 				}
 			}
-			else
+			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
 			{
-				var info = _info.Clone();
-				var lastWrongFeeRate = new FeeRate(0m);
-				var lastCorrectFeeRate = new FeeRate(0m);
-				var tolerance = new FeeRate(1m);
-
-				do
-				{
-					try
-					{
-						await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, info, tryToSign: false));
-						var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? info.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - info.FeeRate.SatoshiPerByte) / 2;
-						lastCorrectFeeRate = info.FeeRate;
-						info.FeeRate = new FeeRate(info.FeeRate.SatoshiPerByte + increaseBy);
-					}
-					catch (Exception)
-					{
-						lastWrongFeeRate = info.FeeRate;
-						var decreaseBy = (info.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
-						info.FeeRate = new FeeRate(info.FeeRate.SatoshiPerByte - decreaseBy);
-					}
-				} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > tolerance.SatoshiPerByte);
-
-				if (lastCorrectFeeRate >= new FeeRate(1m))
-				{
-					_info.MaximumPossibleFeeRate = lastCorrectFeeRate;
-					_info.FeeRate = lastCorrectFeeRate;
-					_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, _info.FeeRate, out var estimate)
-						? estimate.Value
-						: TimeSpan.Zero;
-					return await BuildTransactionAsync();
-				}
+				return await BuildTransactionAsync();
 			}
 
 			await ShowErrorAsync(
@@ -370,29 +337,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = false;
 		}
-	}
-
-	private async Task<bool> TryAdjustTransactionFeeAsync(decimal percentageOfOverpayment)
-	{
-		var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(percentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
-
-		if (!result)
-		{
-			await ShowErrorAsync(
-				"Transaction Building",
-				"The transaction cannot be sent because its fee is more than the payment amount.",
-				"Wasabi was unable to create your transaction.");
-
-			return false;
-		}
-
-		_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-		_info.FeeRate = maximumPossibleFeeRate;
-		_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
-			? estimate.Value
-			: TimeSpan.Zero;
-
-		return true;
 	}
 
 	private async Task InitialiseViewModelAsync()
