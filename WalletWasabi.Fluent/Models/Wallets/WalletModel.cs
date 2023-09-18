@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -67,7 +66,7 @@ public partial class WalletModel : ReactiveObject
 		var balance =
 			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
 					  .Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
-		Balance = balance.Select(money => new BtcAmount(money, new ExchangeRateProvider(wallet.Synchronizer)));
+		Balance = balance.Select(money => BtcAmount.Create(money));
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)

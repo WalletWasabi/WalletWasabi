@@ -30,7 +30,7 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount}">
-        <c:AmountControl Amount="{Binding NewAmount}" />
+        <c:AmountControl Amount="{Binding Amount}" />
       </c:PreviewItem>
     </DockPanel>
     <Separator />

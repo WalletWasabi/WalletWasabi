@@ -8,7 +8,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -70,12 +69,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		if (transactionSummary.Amount < Money.Zero)
 		{
 			var amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
-			Amount = new BtcAmount(amount, new ExchangeRateProvider(Services.Synchronizer));
+			Amount = BtcAmount.Create(amount);
 			AmountText = "Outgoing";
 		}
 		else
 		{
-			Amount = new BtcAmount(transactionSummary.Amount, new ExchangeRateProvider(Services.Synchronizer));
+			Amount = BtcAmount.Create(transactionSummary.Amount);
 			AmountText = "Incoming";
 		}
 

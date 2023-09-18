@@ -77,8 +77,6 @@ public class ReceiveAddressViewModelTests
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
 
-		public IWalletBalancesModel Balances => throw new NotSupportedException();
-
 		public bool IsLoggedIn => throw new NotSupportedException();
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
@@ -100,6 +98,8 @@ public class ReceiveAddressViewModelTests
 		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
+		public IObservable<BtcAmount> Balance => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
