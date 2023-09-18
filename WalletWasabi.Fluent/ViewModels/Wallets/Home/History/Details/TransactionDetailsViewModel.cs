@@ -49,7 +49,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
+
 	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
