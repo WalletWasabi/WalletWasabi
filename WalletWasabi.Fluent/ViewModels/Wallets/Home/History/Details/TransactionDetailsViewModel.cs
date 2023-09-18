@@ -29,7 +29,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
-
 	[AutoNotify] private BtcAmount? _amount;
 	
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
