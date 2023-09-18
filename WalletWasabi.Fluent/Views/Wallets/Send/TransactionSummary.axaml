@@ -75,8 +75,8 @@
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="Fee"
-                       CopyableContent="{Binding Amount.Value, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
-          <c:AmountControl Classes="Fee" Amount="{Binding Amount}" />
+                       CopyableContent="{Binding Fee.Value, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>
