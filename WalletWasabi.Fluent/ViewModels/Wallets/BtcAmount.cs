@@ -13,12 +13,12 @@ public class BtcAmount
 		ExchangeRates = exchangeRateProvider.BtcToUsdRate;
 	}
 
+	public Money Value { get; }
+	public IObservable<decimal> UsdValue { get; }
+	public IObservable<decimal> ExchangeRates { get; }
+
 	public static BtcAmount Create(Money value)
 	{
 		return new BtcAmount(value, new ExchangeRateProvider(Services.Synchronizer));
 	}
-
-	public Money Value { get; }
-	public IObservable<decimal> UsdValue { get; }
-	public IObservable<decimal> ExchangeRates { get; }
 }
