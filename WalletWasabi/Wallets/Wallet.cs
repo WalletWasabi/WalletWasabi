@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -149,25 +150,27 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	/// <summary>
-	/// Get the SmartTransaction for a given txid if this transaction is associated to the wallet.
-	/// Otherwise, returns null.
+	/// Gets the wallet transaction with the given txid, if the transaction exists.
 	/// </summary>
-	public SmartTransaction? GetTransaction(uint256 txid)
+	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
 	{
 		foreach (SmartCoin coin in GetAllCoins())
 		{
 			if (coin.TransactionId == txid)
 			{
-				return coin.Transaction;
+				smartTransaction = coin.Transaction;
+				return true;
 			}
 
 			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
 			{
-				return coin.SpenderTransaction;
+				smartTransaction = coin.SpenderTransaction;
+				return true;
 			}
 		}
 
-		return null;
+		smartTransaction = null;
+		return false;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
