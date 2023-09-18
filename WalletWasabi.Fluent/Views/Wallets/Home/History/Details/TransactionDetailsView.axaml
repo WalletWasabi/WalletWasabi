@@ -57,7 +57,7 @@
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee"
-                     CopyableContent="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding Fee.Value, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
           <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PrivacyContentControl>
