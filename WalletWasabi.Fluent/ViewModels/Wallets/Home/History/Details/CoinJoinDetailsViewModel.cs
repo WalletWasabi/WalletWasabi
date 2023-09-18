@@ -1,6 +1,5 @@
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
@@ -18,8 +17,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _updateTrigger;
 
 	[AutoNotify] private string _date = "";
-	[AutoNotify] private string _coinJoinFeeRawString = "";
-	[AutoNotify] private string _coinJoinFeeString = "";
+	[AutoNotify] private BtcAmount? _coinJoinFeeAmount;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
@@ -57,8 +55,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoin.DateString;
-		CoinJoinFeeRawString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitRawString();
-		CoinJoinFeeString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitFormattedString();
+		CoinJoinFeeAmount = BtcAmount.Create(_coinJoin.OutgoingAmount ?? Money.Zero);
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 
