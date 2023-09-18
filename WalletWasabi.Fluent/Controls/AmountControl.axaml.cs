@@ -5,7 +5,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 namespace WalletWasabi.Fluent.Controls;
 public class AmountControl : TemplatedControl
 {
-	public static readonly StyledProperty<BtcAmount> AmountProperty = AvaloniaProperty.Register<AmountControl, BtcAmount>("Amount");
+	public static readonly StyledProperty<BtcAmount> AmountProperty = AvaloniaProperty.Register<AmountControl, BtcAmount>(nameof(Amount));
 
 	public BtcAmount Amount
 	{

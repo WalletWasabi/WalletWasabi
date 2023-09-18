@@ -2,7 +2,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
@@ -29,24 +28,14 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		_transactionToCancel = transactionToCancel;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var originalFee = transactionToCancel.WalletInputs.Sum(x => x.Amount) - transactionToCancel.OutputValues.Sum(x => x);
 		var cancelFee = cancellingTransaction.Fee;
-		FeeDifference = cancelFee - originalFee;
-		TotalFee = cancelFee;
-		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
-		TotalFeeUsd = TotalFee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
+		Fee = BtcAmount.Create(cancelFee);
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));
 	}
 
-	public decimal TotalFeeUsd { get; }
-
-	public Money TotalFee { get; set; }
-
-	public decimal FeeDifferenceUsd { get; }
-
-	public Money FeeDifference { get; }
+	public BtcAmount Fee { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

@@ -32,8 +32,8 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(boostingTransaction));
 
-		FeeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
-		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
+		var feeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
+		Fee = BtcAmount.Create(feeDifference);
 
 		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
@@ -45,11 +45,9 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		AreWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 	}
 
-	public decimal FeeDifferenceUsd { get; }
+	public BtcAmount Fee { get; }
 
 	public bool AreWePayingTheFee { get; }
-
-	public Money FeeDifference { get; }
 
 	public Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
