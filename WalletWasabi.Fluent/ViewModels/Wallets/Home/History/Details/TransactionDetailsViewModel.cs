@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -16,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 [NavigationMetaData(Title = "Transaction Details")]
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
-	private readonly WalletViewModel _walletVm;
+	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
@@ -31,9 +32,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
 
-	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	private TransactionDetailsViewModel(IWalletModel wallet, TransactionSummary transactionSummary)
 	{
-		_walletVm = walletVm;
+		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
@@ -49,7 +50,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
+
 	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
@@ -60,8 +61,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 
-		TransactionFeeHelper.TryEstimateConfirmationTime(_walletVm.Wallet, transactionSummary.Transaction, out var estimate);
-		ConfirmationTime = estimate;
+		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transactionSummary);
+		if (confirmationTime is { })
+		{
+			ConfirmationTime = confirmationTime;
+		}
 
 		IsConfirmed = Confirmations > 0;
 
@@ -91,18 +95,20 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_walletVm.UiTriggers.TransactionsUpdateTrigger
-			.DoAsync(async _ => await UpdateCurrentTransactionAsync())
-			.Subscribe()
-			.DisposeWith(disposables);
+		_wallet.Transactions.TransactionProcessed
+							.DoAsync(async _ => await UpdateCurrentTransactionAsync())
+							.Subscribe()
+							.DisposeWith(disposables);
 	}
 
 	private async Task UpdateCurrentTransactionAsync()
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+		if (TransactionId is null)
+		{
+			return;
+		}
 
-		var currentTransaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == TransactionId);
+		var currentTransaction = await _wallet.Transactions.GetById(TransactionId);
 
 		if (currentTransaction is { })
 		{
