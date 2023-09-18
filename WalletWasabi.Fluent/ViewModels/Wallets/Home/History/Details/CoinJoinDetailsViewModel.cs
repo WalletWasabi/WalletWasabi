@@ -1,9 +1,6 @@
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Windows.Input;
-using Avalonia;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -30,18 +27,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		CopyCommand = ReactiveCommand.CreateFromTask<uint256>(async txid =>
-		{
-			if (Application.Current is { Clipboard: { } clipboard })
-			{
-				await clipboard.SetTextAsync(txid.ToString());
-			}
-		});
-
 		Update();
 	}
-
-	public ICommand CopyCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

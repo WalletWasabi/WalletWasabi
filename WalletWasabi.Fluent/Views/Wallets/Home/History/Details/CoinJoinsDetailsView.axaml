@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:CoinJoinsDetailsViewModel"
              x:CompileBindings="True"
@@ -43,8 +44,8 @@
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fees"
-                     CopyableContent="{Binding CoinJoinFeeRawString}">
-        <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
+                     CopyableContent="{Binding CoinJoinFeeAmount.Value, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+        <c:AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </c:PreviewItem>
 
       <Separator />
