@@ -66,7 +66,7 @@ public partial class WalletModel : ReactiveObject
 		var balance =
 			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
 					  .Concat(relevantTransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
-		Balance = balance.Select(money => BtcAmount.Create(money));
+		Balances = balance.Select(BtcAmount.Create);
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
@@ -83,7 +83,7 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
-	public IObservable<BtcAmount> Balance { get; }
+	public IObservable<BtcAmount> Balances { get; }
 
 	public IWalletAuthModel Auth { get; }
 

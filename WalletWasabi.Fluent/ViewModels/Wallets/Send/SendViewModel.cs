@@ -67,7 +67,7 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-		Balance = WalletRepository.CreateWalletModel(_wallet).Balance;
+		Balance = WalletRepository.CreateWalletModel(_wallet).Balances;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

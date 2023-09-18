@@ -86,7 +86,7 @@ public class ReceiveViewModelTests
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 
-		public IObservable<BtcAmount> Balance => throw new NotSupportedException();
+		public IObservable<BtcAmount> Balances => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

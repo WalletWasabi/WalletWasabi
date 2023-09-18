@@ -190,7 +190,7 @@ public class SuggestionLabelsViewModelTests
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
 
-		public IObservable<BtcAmount> Balance => throw new NotImplementedException();
+		public IObservable<BtcAmount> Balances => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
