@@ -59,7 +59,7 @@
                      Label="Fee"
                      CopyableContent="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithUnit}}" Classes="monoSpaced" />
+          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 

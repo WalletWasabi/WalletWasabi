@@ -17,27 +17,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
+	[AutoNotify] private BtcAmount? _amount;
+	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private int _blockHeight;
+	[AutoNotify] private int _confirmations;
+	[AutoNotify] private TimeSpan? _confirmationTime;
+	[AutoNotify] private string? _dateString;
+	[AutoNotify] private bool _isConfirmationTimeVisible;
 
 	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string? _dateString;
+	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
-	[AutoNotify] private string? _blockHash;
-	[AutoNotify] private string? _amountText = "";
-	[AutoNotify] private TimeSpan? _confirmationTime;
-	[AutoNotify] private bool _isConfirmationTimeVisible;
-	[AutoNotify] private bool _isLabelsVisible;
-	[AutoNotify] private BtcAmount? _amount;
-	
+
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = transactionSummary.Fee;
+		Fee = BtcAmount.Create(transactionSummary.Fee ?? Money.Zero);
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
 
@@ -46,11 +46,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(transactionSummary);
 	}
 
+	public BtcAmount Fee { get; set; }
+
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
-	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -82,7 +82,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
 	}
-	
+
 	private void OnNext()
 	{
 		Navigate().Clear();
