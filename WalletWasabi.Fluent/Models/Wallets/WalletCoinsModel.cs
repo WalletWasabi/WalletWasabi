@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
@@ -20,16 +21,14 @@ public partial class WalletCoinsModel
 
 		var transactionProcessed = walletModel.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
-		var signals = transactionProcessed.Merge(anonScoreTargetChanged);
+		var signals = transactionProcessed.Merge(anonScoreTargetChanged).StartWith(Unit.Default);
 
 		List = signals
 			.SelectMany(_ => GetCoins())
-			.StartWith(GetCoins())
 			.ToObservableChangeSet(x => x.Key);
 
 		Pockets = signals
 			.SelectMany(_ => GetPockets())
-			.StartWith(GetPockets())
 			.ToObservableChangeSet(x => x.Labels);
 	}
 
