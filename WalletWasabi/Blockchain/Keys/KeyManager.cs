@@ -29,7 +29,7 @@ public class KeyManager
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
-	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
+	public static readonly Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
 	private static readonly JsonConverter[] JsonConverters =
 	{
