@@ -21,15 +21,12 @@ public partial class WalletCoinsModel
 
 		var transactionProcessed = walletModel.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
-		var signals = transactionProcessed.Merge(anonScoreTargetChanged).StartWith(Unit.Default);
+		var signals =
+			transactionProcessed.Merge(anonScoreTargetChanged)
+								.StartWith(Unit.Default);
 
-		List = signals
-			.SelectMany(_ => GetCoins())
-			.ToObservableChangeSet(x => x.Key);
-
-		Pockets = signals
-			.SelectMany(_ => GetPockets())
-			.ToObservableChangeSet(x => x.Labels);
+		List = signals.ProjectList(GetCoins, x => x.Key);
+		Pockets = signals.ProjectList(GetPockets, x => x.Labels);
 	}
 
 	public IObservable<IChangeSet<ICoinModel, int>> List { get; }

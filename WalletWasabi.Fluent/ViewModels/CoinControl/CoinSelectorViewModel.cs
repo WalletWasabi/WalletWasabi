@@ -61,21 +61,20 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.ToCollection()
 			.Select(GetSelectedCoins);
 
-		wallet.TransactionProcessed
-			.CombineLatest(wallet.Coins.Pockets.ToCollection())
-			.Select(x => x.Second)
-			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-			.Do(
-				tuple =>
-				{
-					var (pockets, sl) = tuple;
-					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldExpandedItemsLabel);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
+		wallet.Coins.Pockets
+					.ToCollection()
+					.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
+					.Do(
+						tuple =>
+						{
+							var (pockets, sl) = tuple;
+							var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, sl.ToList());
+							RestoreExpandedRows(oldExpandedItemsLabel);
+						})
+					.Subscribe()
+					.DisposeWith(_disposables);
 
 		// Project selected coins to public property. Throttle for improved UI performance
 		selectedCoins
@@ -86,16 +85,16 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
 		TreeDataGridSource.DisposeWith(_disposables);
 
-		wallet.Coins.Pockets.ToCollection()
-			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
-			.Do(
-				pockets =>
-				{
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, initialCoinSelection);
-					ExpandSelectedItems();
-				})
-			.Subscribe();
+		wallet.Coins.Pockets
+					.ToCollection()
+					.Do(
+						pockets =>
+						{
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, initialCoinSelection);
+							ExpandSelectedItems();
+						})
+					.Subscribe();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
