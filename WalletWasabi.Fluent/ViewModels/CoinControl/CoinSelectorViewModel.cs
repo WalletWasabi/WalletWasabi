@@ -87,6 +87,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		wallet.Coins.Pockets
 					.ToCollection()
+					.Take(1)
 					.Do(
 						pockets =>
 						{
