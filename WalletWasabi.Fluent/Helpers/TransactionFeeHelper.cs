@@ -127,17 +127,19 @@ public static class TransactionFeeHelper
 			try
 			{
 				await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, newInfo, tryToSign: false));
-				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? newInfo.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - newInfo.FeeRate.SatoshiPerByte) / 2;
 				lastCorrectFeeRate = newInfo.FeeRate;
+				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? newInfo.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - newInfo.FeeRate.SatoshiPerByte) / 2;
 				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte + increaseBy);
 			}
 			catch (Exception)
 			{
 				lastWrongFeeRate = newInfo.FeeRate;
 				var decreaseBy = (newInfo.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
-				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte - decreaseBy);
+				var nextSatPerByteCandidate = newInfo.FeeRate.SatoshiPerByte - decreaseBy;
+				var newSatPerByte = nextSatPerByteCandidate < 1m && lastWrongFeeRate.SatoshiPerByte != 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
+				newInfo.FeeRate = new FeeRate(newSatPerByte);
 			}
-		} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > 0.001m && !(lastWrongFeeRate.SatoshiPerByte < 1m && lastCorrectFeeRate.SatoshiPerByte < 1m));
+		} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > 0.001m && newInfo.FeeRate.SatoshiPerByte >= 1m);
 
 		if (lastCorrectFeeRate.SatoshiPerByte >= 1m)
 		{
