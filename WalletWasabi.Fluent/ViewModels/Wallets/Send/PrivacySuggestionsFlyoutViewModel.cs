@@ -46,12 +46,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
 
-		await foreach (var warning in result.GetAllWarningsAsync())
+		foreach (var warning in result.OfType<PrivacyWarning>())
 		{
 			Warnings.Add(warning);
 		}
-
-		await foreach (var suggestion in result.GetAllSuggestionsAsync())
+		foreach (var suggestion in result.OfType<PrivacySuggestion>())
 		{
 			Suggestions.Add(suggestion);
 		}
