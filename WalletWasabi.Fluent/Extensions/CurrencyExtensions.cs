@@ -104,4 +104,12 @@ public static class CurrencyExtensions
 
 		return feeText;
 	}
+
+	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
+		feeDisplayUnit switch
+		{
+			FeeDisplayUnit.BTC => MoneyUnit.BTC,
+			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
+			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
+		};
 }
