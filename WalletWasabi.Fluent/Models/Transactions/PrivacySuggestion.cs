@@ -21,4 +21,6 @@ public record BetterPrivacySuggestion(BuildTransactionResult Transaction, string
 public record ChangeAvoidanceSuggestion(BuildTransactionResult Transaction, string DifferenceText, string DifferenceAmountText, bool IsMore, bool IsLess) : PrivacySuggestion(Transaction)
 {
 	public Money GetAmount(BitcoinAddress destination) => Transaction!.CalculateDestinationAmount(destination);
+
+	public bool IsSameAmount => !IsMore && !IsLess;
 }

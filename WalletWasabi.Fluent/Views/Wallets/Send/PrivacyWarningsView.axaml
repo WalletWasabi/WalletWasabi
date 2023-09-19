@@ -254,8 +254,7 @@
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceText}"
                              Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="by" />
-                  <TextBlock Text="{Binding DifferenceAmountText}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -273,8 +272,7 @@
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceText}"
                              Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="by" />
-                  <TextBlock Text="{Binding DifferenceAmountText}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -304,8 +302,7 @@
                   <TextBlock Text="Send" />
                   <TextBlock Text="{Binding DifferenceText}"
                              Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="by" />
-                  <TextBlock Text="{Binding DifferenceAmountText}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" IsVisible="{Binding !IsSameAmount}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
