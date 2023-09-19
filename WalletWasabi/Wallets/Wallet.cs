@@ -134,10 +134,10 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Get all the transactions associated to the wallet ordered by blockchain.
 	/// </summary>
-	/// <returns></returns>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new HashSet<SmartTransaction>();
+
 		foreach (SmartCoin coin in GetAllCoins())
 		{
 			walletTransactions.Add(coin.Transaction);
@@ -146,6 +146,7 @@ public class Wallet : BackgroundService, IWallet
 				walletTransactions.Add(coin.SpenderTransaction);
 			}
 		}
+
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
 
