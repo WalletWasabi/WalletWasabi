@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -100,6 +101,10 @@ public class ReceiveAddressViewModelTests
 		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
+		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
+
+		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
