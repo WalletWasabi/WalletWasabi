@@ -88,10 +88,9 @@ public class Program
 		{
 			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
 
-			MainViewModel.Instance.ClearStacks();
-			MainViewModel.Instance.StatusIcon.Dispose();
-
-			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
+			// Needed or not? CTRL+C seems to work but MainWindow might not be displayed but CTRL+C leads to cancelling an application-wide cancellation token.
+			// So in like 99.9% of case it should work OK without this command.
+			// AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
 		});
 	}
 
@@ -204,6 +203,9 @@ public static class WasabiAppExtensions
 				else
 				{
 					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+
+					MainViewModel.Instance.ClearStacks();
+					MainViewModel.Instance.StatusIcon.Dispose();
 				}
 
 				return Task.CompletedTask;
