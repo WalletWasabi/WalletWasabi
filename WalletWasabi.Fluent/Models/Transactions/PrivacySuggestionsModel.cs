@@ -44,9 +44,9 @@ public class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
+	public async Task<IEnumerable<PrivacyItem>> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
 	{
-		var result = new PrivacySuggestionsResult();
+		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
 
@@ -64,13 +64,17 @@ public class PrivacySuggestionsModel
 		{
 			try
 			{
-				result
-					.Combine(VerifyLabels(info, transactionResult))
-					.Combine(VerifyPrivacyLevel(info, transactionResult))
-					.Combine(VerifyConsolidation(transactionResult))
-					.Combine(VerifyUnconfirmedInputs(transactionResult))
-					.Combine(VerifyCoinjoiningInputs(transactionResult))
-					.Combine(VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource));
+				result.Add(VerifyLabels(info, transactionResult));
+				result.Add(VerifyPrivacyLevel(info, transactionResult));
+				result.Add(VerifyConsolidation(transactionResult));
+				result.Add(VerifyUnconfirmedInputs(transactionResult));
+				result.Add(VerifyCoinjoiningInputs(transactionResult));
+				var changeItems = new List<PrivacyItem>();
+				await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource))
+				{
+					changeItems.Add(item);
+				}
+				result.Add(changeItems);
 			}
 			catch (OperationCanceledException)
 			{
