@@ -70,7 +70,7 @@ public class PrivacySuggestionsModel
 				result.Add(VerifyUnconfirmedInputs(transactionResult));
 				result.Add(VerifyCoinjoiningInputs(transactionResult));
 				var changeItems = new List<PrivacyItem>();
-				await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource))
+				await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource).ConfigureAwait(false))
 				{
 					changeItems.Add(item);
 				}
