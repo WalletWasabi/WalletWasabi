@@ -31,16 +31,17 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var changes = sourceItems.Connect();
 
 		var coinItems = changes
-			.TransformMany(item =>
-			{
-				// When root item is a coin item
-				if (item is CoinCoinControlItemViewModel c)
+			.TransformMany(
+				item =>
 				{
-					return new[] { c };
-				}
+					// When root item is a coin item
+					if (item is CoinCoinControlItemViewModel c)
+					{
+						return new[] { c };
+					}
 
-				return item.Children;
-			})
+					return item.Children;
+				})
 			.AddKey(model => model.SmartCoin.Outpoint);
 
 		changes
@@ -61,10 +62,10 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Select(GetSelectedCoins);
 
 		wallet.TransactionProcessed
-			  .CombineLatest(wallet.Coins.Pockets.ToCollection())
-			  .Select(x => x.Second)
-			  .WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-			  .Do(
+			.CombineLatest(wallet.Coins.Pockets.ToCollection())
+			.Select(x => x.Second)
+			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
+			.Do(
 				tuple =>
 				{
 					var (pockets, sl) = tuple;
@@ -86,13 +87,15 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		wallet.Coins.Pockets.ToCollection()
-							.Do(pockets =>
-							{
-								RefreshFromPockets(sourceItems, pockets);
-								UpdateSelection(coinItemsCollection, initialCoinSelection);
-								ExpandSelectedItems();
-							})
-							.Subscribe();
+			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
+			.Do(
+				pockets =>
+				{
+					RefreshFromPockets(sourceItems, pockets);
+					UpdateSelection(coinItemsCollection, initialCoinSelection);
+					ExpandSelectedItems();
+				})
+			.Subscribe();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
