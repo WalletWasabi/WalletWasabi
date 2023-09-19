@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive;
 using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
@@ -89,6 +90,10 @@ public class ReceiveViewModelTests
 		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
+		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
+
+		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
