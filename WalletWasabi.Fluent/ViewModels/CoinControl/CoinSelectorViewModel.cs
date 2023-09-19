@@ -31,16 +31,17 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var changes = sourceItems.Connect();
 
 		var coinItems = changes
-			.TransformMany(item =>
-			{
-				// When root item is a coin item
-				if (item is CoinCoinControlItemViewModel c)
+			.TransformMany(
+				item =>
 				{
-					return new[] { c };
-				}
+					// When root item is a coin item
+					if (item is CoinCoinControlItemViewModel c)
+					{
+						return new[] { c };
+					}
 
-				return item.Children;
-			})
+					return item.Children;
+				})
 			.AddKey(model => model.SmartCoin.Outpoint);
 
 		changes
@@ -60,21 +61,20 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.ToCollection()
 			.Select(GetSelectedCoins);
 
-		wallet.TransactionProcessed
-			  .CombineLatest(wallet.Coins.Pockets.ToCollection())
-			  .Select(x => x.Second)
-			  .WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-			  .Do(
-				tuple =>
-				{
-					var (pockets, sl) = tuple;
-					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldExpandedItemsLabel);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
+		wallet.Coins.Pockets
+					.ToCollection()
+					.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
+					.Do(
+						tuple =>
+						{
+							var (pockets, sl) = tuple;
+							var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, sl.ToList());
+							RestoreExpandedRows(oldExpandedItemsLabel);
+						})
+					.Subscribe()
+					.DisposeWith(_disposables);
 
 		// Project selected coins to public property. Throttle for improved UI performance
 		selectedCoins
@@ -85,15 +85,17 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
 		TreeDataGridSource.DisposeWith(_disposables);
 
-		wallet.Coins.Pockets.ToCollection()
-							.Take(1)
-							.Do(pockets =>
-							{
-								RefreshFromPockets(sourceItems, pockets);
-								UpdateSelection(coinItemsCollection, initialCoinSelection);
-								ExpandSelectedItems();
-							})
-							.Subscribe();
+		wallet.Coins.Pockets
+					.ToCollection()
+					.Take(1)
+					.Do(
+						pockets =>
+						{
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, initialCoinSelection);
+							ExpandSelectedItems();
+						})
+					.Subscribe();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
