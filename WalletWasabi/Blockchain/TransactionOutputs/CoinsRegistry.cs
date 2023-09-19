@@ -14,6 +14,12 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> Coins { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<uint256> AllSeenTxIds { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<OutPoint, SmartCoin> AllSeenCoins { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -83,6 +89,8 @@ public class CoinsRegistry : ICoinsView
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
+				AllSeenTxIds.Add(coin.TransactionId);
+				AllSeenCoins.AddOrReplace(coin.Outpoint, coin);
 				coin.RegisterToHdPubKey();
 				if (added)
 				{
@@ -142,6 +150,8 @@ public class CoinsRegistry : ICoinsView
 
 			var removedCoinOutPoint = toRemove.Outpoint;
 
+			_ = AllSeenCoins.Remove(removedCoinOutPoint);
+
 			// If we can find it in our outpoint to coins cache.
 			if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
 			{
@@ -176,6 +186,14 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 			}
+		}
+	}
+
+	public bool Seen(uint256 txid)
+	{
+		lock (Lock)
+		{
+			return AllSeenTxIds.Contains(txid);
 		}
 	}
 
@@ -222,6 +240,11 @@ public class CoinsRegistry : ICoinsView
 			var allCoins = AsAllCoinsViewNoLock();
 			var toRemove = new List<SmartCoin>();
 			var toAdd = new List<SmartCoin>();
+
+			lock (Lock)
+			{
+				_ = AllSeenTxIds.Remove(txId);
+			}
 
 			// remove recursively the coins created by the transaction
 			foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
@@ -293,4 +316,23 @@ public class CoinsRegistry : ICoinsView
 	public ICoinsView Unspent() => AsCoinsView().Unspent();
 
 	IEnumerator IEnumerable.GetEnumerator() => AsCoinsView().GetEnumerator();
+
+	public SmartCoin[] GetMyInputs(SmartTransaction transaction)
+	{
+		var inputs = transaction.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
+
+		var myInputs = new List<SmartCoin>();
+		lock (Lock)
+		{
+			foreach (var input in inputs)
+			{
+				if (AllSeenCoins.TryGetValue(input, out var coin))
+				{
+					myInputs.Add(coin);
+				}
+			}
+		}
+
+		return myInputs.ToArray();
+	}
 }
