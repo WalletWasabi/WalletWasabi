@@ -46,7 +46,7 @@
                      HorizontalAlignment="Center"
                      IsVisible="{Binding IsReadOnly}"
                      DockPanel.Dock="Top">
-        <TextBlock Text="Settings can't be modified because you've started Wasabi Wallet with command line argument overrides." />
+        <TextBlock Text="Settings are read-only because you've started Wasabi Wallet with command line argument overrides." />
       </c:InfoMessage>
 
       <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">

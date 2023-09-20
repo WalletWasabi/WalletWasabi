@@ -22,7 +22,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly PersistentConfig _startupConfig;
-	private readonly PersistentConfig _persistenConfig;
+	private readonly PersistentConfig _persistentConfig;
 	private readonly Config _config;
 	private readonly UiConfig _uiConfig;
 
@@ -54,25 +54,25 @@ public partial class ApplicationSettings : ReactiveObject
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
 
-	public ApplicationSettings(PersistentConfig persistenConfig, Config config, UiConfig uiConfig)
+	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(persistenConfig.FilePath);
+		_startupConfig = new PersistentConfig(persistentConfig.FilePath);
 		_startupConfig.LoadFile();
 
-		_persistenConfig = persistenConfig;
+		_persistentConfig = persistentConfig;
 		_config = config;
 		_uiConfig = uiConfig;
 
 		// Advanced
-		_enableGpu = _persistenConfig.EnableGpu;
+		_enableGpu = _persistentConfig.EnableGpu;
 
 		// Bitcoin
 		_network = config.Network;
-		_startLocalBitcoinCoreOnStartup = _persistenConfig.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = _persistenConfig.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = _persistenConfig.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = _persistenConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = _persistenConfig.DustThreshold.ToString();
+		_startLocalBitcoinCoreOnStartup = _persistentConfig.StartLocalBitcoinCoreOnStartup;
+		_localBitcoinCoreDataDir = _persistentConfig.LocalBitcoinCoreDataDir;
+		_stopLocalBitcoinCoreOnShutdown = _persistentConfig.StopLocalBitcoinCoreOnShutdown;
+		_bitcoinP2PEndPoint = _persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_dustThreshold = _persistentConfig.DustThreshold.ToString();
 
 		// General
 		_darkModeEnabled = _uiConfig.DarkModeEnabled;
@@ -84,9 +84,9 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = _persistenConfig.UseTor;
-		_terminateTorOnExit = _persistenConfig.TerminateTorOnExit;
-		_downloadNewVersion = _persistenConfig.DownloadNewVersion;
+		_useTor = _persistentConfig.UseTor;
+		_terminateTorOnExit = _persistentConfig.TerminateTorOnExit;
+		_downloadNewVersion = _persistentConfig.DownloadNewVersion;
 
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
@@ -137,16 +137,6 @@ public partial class ApplicationSettings : ReactiveObject
 	}
 
 	public bool IsOverridden => GetIsOverridden();
-
-	private bool GetIsOverridden()
-	{
-		if (_persistenConfig.Network != _config.Network)
-		{
-			return true;
-		}
-
-		return false;
-	}
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 
@@ -225,5 +215,15 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
 		_uiConfig.PrivacyMode = PrivacyMode;
+	}
+
+	private bool GetIsOverridden()
+	{
+		if (_persistentConfig.Network != _config.Network)
+		{
+			return true;
+		}
+
+		return false;
 	}
 }
