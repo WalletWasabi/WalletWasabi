@@ -11,8 +11,14 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletInfoView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
-                 EnableCancel="{Binding EnableCancel}" CancelContent="{Binding ShowButtonText}"
+                 EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
+    <c:ContentArea.CancelContent>
+      <StackPanel Spacing="10" Orientation="Horizontal">
+        <PathIcon Data="{Binding LockIconString, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+        <TextBlock Text="{Binding ShowButtonText}" />
+      </StackPanel>
+    </c:ContentArea.CancelContent>
     <StackPanel Spacing="10" Margin="0 0 20 0">
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
