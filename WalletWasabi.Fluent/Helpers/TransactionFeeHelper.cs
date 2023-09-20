@@ -117,7 +117,13 @@ public static class TransactionFeeHelper
 		return time;
 	}
 
-	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
+	/// <summary>
+	/// Seeks for the maximum possible fee rate that the transaction can pay.
+	/// </summary>
+	/// <remarks>The method does not throw any exception.</remarks>
+	/// <remarks>Stores the found fee rate in the received <see cref="TransactionInfo"/> object. </remarks>
+	/// <returns>True if the seeking was successful, False if not.</returns>
+	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info, CancellationToken cancelToken)
 	{
 		var newInfo = info.Clone();
 
@@ -132,6 +138,11 @@ public static class TransactionFeeHelper
 		var stopSearching = false;
 		while (!stopSearching)
 		{
+			if (cancelToken.IsCancellationRequested)
+			{
+				return false;
+			}
+
 			try
 			{
 				await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, newInfo, tryToSign: false));

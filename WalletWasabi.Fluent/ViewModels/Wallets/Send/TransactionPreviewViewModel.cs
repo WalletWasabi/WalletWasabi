@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -34,7 +33,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly WalletViewModel _walletViewModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
-	private CancellationTokenSource? _cancellationTokenSource;
+	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
@@ -283,7 +282,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException)
 		{
-			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
+			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info, _cancellationTokenSource.Token))
 			{
 				return await BuildTransactionAsync();
 			}
@@ -310,7 +309,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					return await BuildTransactionAsync();
 				}
 			}
-			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
+			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info, _cancellationTokenSource.Token))
 			{
 				return await BuildTransactionAsync();
 			}
@@ -365,9 +364,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (!isInHistory)
 		{
-			_cancellationTokenSource?.Cancel();
-			_cancellationTokenSource?.Dispose();
-			_cancellationTokenSource = null;
+			_cancellationTokenSource.Cancel();
+			_cancellationTokenSource.Dispose();
 		}
 
 		base.OnNavigatedFrom(isInHistory);
@@ -390,7 +388,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
-				_cancellationTokenSource?.Cancel();
+				_cancellationTokenSource.Cancel();
 				Navigate().To().SendSuccess(_wallet, finalTransaction);
 			}
 		}
