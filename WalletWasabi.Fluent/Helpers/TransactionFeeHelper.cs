@@ -138,14 +138,9 @@ public static class TransactionFeeHelper
 		var stopSearching = false;
 		while (!stopSearching)
 		{
-			if (cancelToken.IsCancellationRequested)
-			{
-				return false;
-			}
-
 			try
 			{
-				await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, newInfo, tryToSign: false));
+				await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, newInfo, tryToSign: false), cancelToken);
 				lastCorrectFeeRate = newInfo.FeeRate;
 				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? newInfo.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - newInfo.FeeRate.SatoshiPerByte) / 2;
 				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte + increaseBy);
