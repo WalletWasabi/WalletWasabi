@@ -6,6 +6,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
@@ -119,10 +120,17 @@ public static class TransactionFeeHelper
 	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
 	{
 		var newInfo = info.Clone();
+
+		if (newInfo.FeeRate.SatoshiPerByte < 1m)
+		{
+			newInfo.FeeRate = new FeeRate(1m);
+		}
+
 		var lastWrongFeeRate = new FeeRate(0m);
 		var lastCorrectFeeRate = new FeeRate(0m);
 
-		do
+		var stopSearching = false;
+		while (!stopSearching)
 		{
 			try
 			{
@@ -131,7 +139,7 @@ public static class TransactionFeeHelper
 				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? newInfo.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - newInfo.FeeRate.SatoshiPerByte) / 2;
 				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte + increaseBy);
 			}
-			catch (Exception)
+			catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException)
 			{
 				lastWrongFeeRate = newInfo.FeeRate;
 				var decreaseBy = (newInfo.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
@@ -139,9 +147,17 @@ public static class TransactionFeeHelper
 				var newSatPerByte = nextSatPerByteCandidate < 1m && lastWrongFeeRate.SatoshiPerByte != 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
 				newInfo.FeeRate = new FeeRate(newSatPerByte);
 			}
-		} while (Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) > 0.001m && newInfo.FeeRate.SatoshiPerByte >= 1m);
+			catch (Exception)
+			{
+				return false;
+			}
 
-		if (lastCorrectFeeRate.SatoshiPerByte >= 1m)
+			var foundClosestSolution = Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) == 0.001m;
+			var finished = newInfo.FeeRate.SatoshiPerByte < 1m;
+			stopSearching = foundClosestSolution || finished;
+		}
+
+		if (EnsureFeeRateIsPossible(wallet, lastCorrectFeeRate))
 		{
 			info.MaximumPossibleFeeRate = lastCorrectFeeRate;
 			info.FeeRate = lastCorrectFeeRate;
@@ -153,5 +169,29 @@ public static class TransactionFeeHelper
 		}
 
 		return false;
+	}
+
+	/// <summary>
+	/// Temporary solution for making sure if a fee rate can be found in the fee chart.
+	/// It is needed otherwise we cannot predict the confirmation time and the fee chart would crash.
+	/// TODO: Remove this hack when the issues mentioned above are fixed.
+	/// </summary>
+	private static bool EnsureFeeRateIsPossible(Wallet wallet, FeeRate feeRate)
+	{
+		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
+		{
+			return false;
+		}
+
+		var feeChartViewModel = new FeeChartViewModel();
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates.Estimations);
+
+		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
+		{
+			return false;
+		}
+
+		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+		return newFeeRate <= feeRate;
 	}
 }
