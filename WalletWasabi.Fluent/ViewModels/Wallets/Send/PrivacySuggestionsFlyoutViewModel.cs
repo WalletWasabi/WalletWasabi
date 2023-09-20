@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -44,15 +45,16 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		IsBusy = true;
 
-		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
-
-		foreach (var warning in result.OfType<PrivacyWarning>())
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
 		{
-			Warnings.Add(warning);
-		}
-		foreach (var suggestion in result.OfType<PrivacySuggestion>())
-		{
-			Suggestions.Add(suggestion);
+			if (item is PrivacyWarning warning)
+			{
+				Warnings.Add(warning);
+			}
+			if (item is PrivacySuggestion suggestion)
+			{
+				Suggestions.Add(suggestion);
+			}
 		}
 
 		if (Warnings.Any(x => x.Severity == WarningSeverity.Critical))
