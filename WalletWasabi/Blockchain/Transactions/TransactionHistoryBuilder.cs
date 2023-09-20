@@ -36,7 +36,7 @@ public class TransactionHistoryBuilder
 			var found = txRecordList.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 			if (found is { }) // if found then update
 			{
-				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
+				found.FirstSeen = found.FirstSeen < dateTime ? found.FirstSeen : dateTime;
 				found.Amount += coin.Amount;
 				found.Labels = LabelsArray.Merge(found.Labels, containingTransaction.Labels);
 			}
@@ -54,7 +54,7 @@ public class TransactionHistoryBuilder
 				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.GetHash() == spenderTxId);
 				if (foundSpenderCoin is { }) // if found
 				{
-					foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
+					foundSpenderCoin.FirstSeen = foundSpenderCoin.FirstSeen < dateTime ? foundSpenderCoin.FirstSeen : dateTime;
 					foundSpenderCoin.Amount -= coin.Amount;
 				}
 				else
