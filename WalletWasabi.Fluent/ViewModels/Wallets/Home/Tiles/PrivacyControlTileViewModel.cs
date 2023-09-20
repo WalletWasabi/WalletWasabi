@@ -35,7 +35,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		if (showPrivacyBar)
 		{
-			PrivacyBar = new PrivacyBarViewModel(_walletVm);
+			PrivacyBar = new PrivacyBarViewModel(_walletVm.WalletModel);
 		}
 	}
 
