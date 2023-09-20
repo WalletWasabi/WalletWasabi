@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
@@ -123,7 +122,7 @@ public static class LinqExtensions
 			}
 		}
 	}
-	
+
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength,
