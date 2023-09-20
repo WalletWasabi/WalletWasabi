@@ -23,7 +23,7 @@
                  HorizontalAlignment="Stretch"
                  Background="Transparent">
             <Viewbox Name="PART_Icon">
-              <PathIcon Data="{StaticResource eye_show_regular}" />
+              <PathIcon Data="{StaticResource eye_hide_regular}" />
             </Viewbox>
             <controls:PrivacyTextPresenter Name="PART_PrivacyText" />
           </Panel>
