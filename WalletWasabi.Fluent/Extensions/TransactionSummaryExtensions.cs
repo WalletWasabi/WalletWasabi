@@ -16,7 +16,7 @@ public static class TransactionSummaryExtensions
 		return confirmations > 0;
 	}
 
-	public static int GetConfirmations(this TransactionSummary model) => model.Height.Type == HeightType.Chain ? (int)Services.BitcoinStore.SmartHeaderChain.ServerTipHeight - model.Height.Value + 1 : 0;
+	public static int GetConfirmations(this TransactionSummary model) => model.Height.Type == HeightType.Chain ? (int)Services.SmartHeaderChain.ServerTipHeight - model.Height.Value + 1 : 0;
 
 	public static bool TryGetConfirmationTime(this TransactionSummary model, [NotNullWhen(true)] out TimeSpan? estimate)
 		=> TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), Services.WalletManager.Network, model.Transaction, out estimate);
