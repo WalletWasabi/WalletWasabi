@@ -14,7 +14,7 @@ public static class TransactionSummaryExtensions
 	}
 
 	public static int GetConfirmations(this TransactionSummary model)
-		=> model.Transaction.GetConfirmations((int)Services.BitcoinStore.SmartHeaderChain.ServerTipHeight);
+		=> model.Transaction.GetConfirmations((int)Services.SmartHeaderChain.ServerTipHeight);
 
 	public static bool TryGetConfirmationTime(this TransactionSummary model, [NotNullWhen(true)] out TimeSpan? estimate)
 		=> TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), Services.WalletManager.Network, model.Transaction, out estimate);
