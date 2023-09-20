@@ -85,7 +85,7 @@ public class App : Application
 
 	private static IApplicationSettings CreateApplicationSettings()
 	{
-		return new ApplicationSettings(Services.PersistentConfig, Services.UiConfig);
+		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
 	}
 
 	private UiContext CreateUiContext()

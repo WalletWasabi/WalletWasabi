@@ -22,11 +22,11 @@ public partial class BroadcasterViewModel : TriggerCommandViewModel
 
 	public override ICommand TargetCommand => ReactiveCommand.CreateFromTask(async () =>
 	{
-		var dialogResult = await Navigate().To().LoadTransaction(Services.PersistentConfig.Network).GetResultAsync();
+		var dialogResult = await Navigate().To().LoadTransaction(UiContext.ApplicationSettings.Network).GetResultAsync();
 
 		if (dialogResult is { } transaction)
 		{
-			Navigate().To().BroadcastTransaction(Services.PersistentConfig.Network, transaction);
+			Navigate().To().BroadcastTransaction(UiContext.ApplicationSettings.Network, transaction);
 		}
 	});
 }

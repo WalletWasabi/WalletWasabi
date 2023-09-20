@@ -20,5 +20,7 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 		Settings = settings;
 	}
 
+	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;
+
 	public IApplicationSettings Settings { get; }
 }

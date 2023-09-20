@@ -37,6 +37,9 @@ public static class Services
 	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
 
 	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
+
+	public static Config Config { get; set; } = null!;
+
 	public static UpdateManager? UpdateManager { get; private set; }
 
 	public static bool IsInitialized { get; private set; }
@@ -75,6 +78,7 @@ public static class Services
 		SingleInstanceChecker = singleInstanceChecker;
 		TorStatusChecker = global.TorStatusChecker;
 		UpdateManager = global.UpdateManager;
+		Config = global.Config;
 
 		IsInitialized = true;
 	}

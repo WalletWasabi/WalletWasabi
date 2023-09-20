@@ -22,7 +22,8 @@ public partial class ApplicationSettings : ReactiveObject
 
 	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly PersistentConfig _startupConfig;
-	private readonly PersistentConfig _config;
+	private readonly PersistentConfig _persistenConfig;
+	private readonly Config _config;
 	private readonly UiConfig _uiConfig;
 
 	// Advanced
@@ -53,24 +54,25 @@ public partial class ApplicationSettings : ReactiveObject
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
 
-	public ApplicationSettings(PersistentConfig config, UiConfig uiConfig)
+	public ApplicationSettings(PersistentConfig persistenConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(config.FilePath);
+		_startupConfig = new PersistentConfig(persistenConfig.FilePath);
 		_startupConfig.LoadFile();
 
+		_persistenConfig = persistenConfig;
 		_config = config;
 		_uiConfig = uiConfig;
 
 		// Advanced
-		_enableGpu = _config.EnableGpu;
+		_enableGpu = _persistenConfig.EnableGpu;
 
 		// Bitcoin
-		_network = _config.Network;
-		_startLocalBitcoinCoreOnStartup = _config.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = _config.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = _config.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = _config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = _config.DustThreshold.ToString();
+		_network = config.Network;
+		_startLocalBitcoinCoreOnStartup = _persistenConfig.StartLocalBitcoinCoreOnStartup;
+		_localBitcoinCoreDataDir = _persistenConfig.LocalBitcoinCoreDataDir;
+		_stopLocalBitcoinCoreOnShutdown = _persistenConfig.StopLocalBitcoinCoreOnShutdown;
+		_bitcoinP2PEndPoint = _persistenConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_dustThreshold = _persistenConfig.DustThreshold.ToString();
 
 		// General
 		_darkModeEnabled = _uiConfig.DarkModeEnabled;
@@ -82,9 +84,9 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = _config.UseTor;
-		_terminateTorOnExit = _config.TerminateTorOnExit;
-		_downloadNewVersion = _config.DownloadNewVersion;
+		_useTor = _persistenConfig.UseTor;
+		_terminateTorOnExit = _persistenConfig.TerminateTorOnExit;
+		_downloadNewVersion = _persistenConfig.DownloadNewVersion;
 
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
@@ -132,6 +134,18 @@ public partial class ApplicationSettings : ReactiveObject
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
 			.Subscribe();
+	}
+
+	public bool IsOverridden => GetIsOverridden();
+
+	private bool GetIsOverridden()
+	{
+		if (_persistenConfig.Network != _config.Network)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;

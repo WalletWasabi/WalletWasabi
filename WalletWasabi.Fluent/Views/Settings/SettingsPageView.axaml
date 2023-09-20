@@ -41,23 +41,30 @@
           <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}" />
         </StackPanel>
       </c:InfoMessage>
+      <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
+                     Margin="0,0,0,16"
+                     HorizontalAlignment="Center"
+                     IsVisible="{Binding IsReadOnly}"
+                     DockPanel.Dock="Top">
+        <TextBlock Text="Settings can't be modified because you've started Wasabi Wallet with command line argument overrides." />
+      </c:InfoMessage>
 
       <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
         <TabItem Header="General">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" />
+            <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 
         <TabItem Header="Bitcoin">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" />
+            <v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 
         <TabItem Header="Advanced">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" />
+            <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 
