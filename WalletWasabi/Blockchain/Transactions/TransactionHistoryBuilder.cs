@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
@@ -16,19 +15,13 @@ public class TransactionHistoryBuilder
 		Wallet = wallet;
 	}
 
-	public Wallet Wallet { get; }
+	private Wallet Wallet { get; }
 
 	public List<TransactionSummary> BuildHistorySummary()
 	{
-		var wallet = Wallet;
-
 		var txRecordList = new List<TransactionSummary>();
-		if (wallet is null)
-		{
-			return txRecordList;
-		}
 
-		foreach (SmartCoin coin in wallet.GetAllCoins())
+		foreach (SmartCoin coin in Wallet.GetAllCoins())
 		{
 			var containingTransaction = coin.Transaction;
 
