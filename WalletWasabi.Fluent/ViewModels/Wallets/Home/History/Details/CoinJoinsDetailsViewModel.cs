@@ -46,7 +46,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		Date = _coinJoinGroup.DateString;
 		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFeeAmount = BtcAmount.Create(_coinJoinGroup.OutgoingAmount ?? Money.Zero);
+		CoinJoinFeeAmount = BtcAmount.Create(_coinJoinGroup.OutgoingAmount);
 
 		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.GetHash()));
 		TxCount = TransactionIds.Count;

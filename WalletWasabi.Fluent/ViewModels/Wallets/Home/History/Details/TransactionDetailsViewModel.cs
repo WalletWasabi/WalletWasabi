@@ -37,7 +37,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = BtcAmount.Create(transactionSummary.Fee ?? Money.Zero);
+		Fee = BtcAmount.Create(transactionSummary.Fee);
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
 

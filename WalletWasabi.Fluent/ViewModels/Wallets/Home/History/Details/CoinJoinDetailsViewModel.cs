@@ -42,7 +42,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoin.DateString;
-		CoinJoinFeeAmount = BtcAmount.Create(_coinJoin.OutgoingAmount ?? Money.Zero);
+		CoinJoinFeeAmount = BtcAmount.Create(_coinJoin.OutgoingAmount);
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 
