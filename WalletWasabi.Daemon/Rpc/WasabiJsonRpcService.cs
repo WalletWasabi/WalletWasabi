@@ -220,6 +220,23 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
+	[JsonRpcMethod("speeduptransaction")]
+	public string SpeedUpTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var speedUpResult = activeWallet.SpeedUpTransaction(smartTransactionToSpeedUp);
+		var speedUpSmartTransaction = speedUpResult.Transaction;
+		return speedUpSmartTransaction.Transaction.ToHex();
+	}
+
 	[JsonRpcMethod("broadcast", initializable: false)]
 	public async Task<object> SendRawTransactionAsync(string txHex)
 	{
