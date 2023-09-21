@@ -83,7 +83,6 @@ public class CoinsRegistry : ICoinsView
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
-				coin.RegisterToHdPubKey();
 				if (added)
 				{
 					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
@@ -137,8 +136,6 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Remove(toRemove.Outpoint);
 				}
 			}
-
-			toRemove.UnregisterFromHdPubKey();
 
 			var removedCoinOutPoint = toRemove.Outpoint;
 

@@ -293,7 +293,7 @@ public class TransactionProcessor
 		if (tx.Confirmed)
 		{
 			// Update for TurboSync - save spending height for internal keys if there is a spender tx and no more coins left on the key.
-			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
+			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs);
 		}
 
 		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
@@ -311,11 +311,17 @@ public class TransactionProcessor
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
 
-	private static void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
+	private static void SaveInternalKeysLatestSpendingHeight(Height txHeight, ImmutableList<SmartCoin> myInputs)
 	{
-		foreach (var spenderKey in internalKeys)
+		IEnumerable<IGrouping<HdPubKey, SmartCoin>> grouping = myInputs
+			.Where(c => c.HdPubKey.IsInternal) // Only internal ones.
+			.GroupBy(x => x.HdPubKey);
+
+		foreach (IGrouping<HdPubKey, SmartCoin> group in grouping)
 		{
-			if (spenderKey.Coins.Any(x => !x.IsSpent()))
+			HdPubKey spenderKey = group.Key;
+
+			if (group.Any(x => !x.IsSpent()))
 			{
 				// The key still has unspent coins.
 				continue;

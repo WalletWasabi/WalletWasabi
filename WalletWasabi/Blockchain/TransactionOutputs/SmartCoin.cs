@@ -137,12 +137,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
-
 	public bool IsImmature(int bestHeight)
 	{
 		return Transaction.Transaction.IsCoinBase && Height >= bestHeight - 100;
