@@ -1,4 +1,6 @@
+using DynamicData;
 using ReactiveUI;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -99,5 +101,17 @@ public static class ObservableExtensions
 			property9,
 			property10,
 			(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value, c10.Value));
+	}
+
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "ignored")]
+	public static IObservable<IChangeSet<TItem, TKey>> ProjectList<TSource, TItem, TKey>(this IObservable<TSource> source, Func<IEnumerable<TItem>> retrieve, Func<TItem, TKey> keySelector) where TKey : notnull
+	{
+		var pocketsSource = new SourceCache<TItem, TKey>(keySelector);
+		pocketsSource.AddOrUpdate(retrieve());
+		source
+			.Do(_ => pocketsSource.Edit(updater => updater.Load(retrieve())))
+			.Subscribe();
+
+		return pocketsSource.Connect();
 	}
 }

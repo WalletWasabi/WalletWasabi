@@ -10,10 +10,9 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
-using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
@@ -21,29 +20,28 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<CoinControlItemViewModelBase> _itemsCollection;
-	private readonly Wallet _wallet;
 
 	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
 
-	public CoinSelectorViewModel(WalletViewModel walletViewModel, IList<SmartCoin> initialCoinSelection)
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	public CoinSelectorViewModel(IWalletModel wallet, IList<SmartCoin> initialCoinSelection)
 	{
-		_wallet = walletViewModel.Wallet;
-		var sourceItems = new SourceList<CoinControlItemViewModelBase>();
-		sourceItems.DisposeWith(_disposables);
+		var sourceItems = new SourceList<CoinControlItemViewModelBase>().DisposeWith(_disposables);
 
 		var changes = sourceItems.Connect();
 
 		var coinItems = changes
-			.TransformMany(item =>
-			{
-				// When root item is a coin item
-				if (item is CoinCoinControlItemViewModel c)
+			.TransformMany(
+				item =>
 				{
-					return new[] { c };
-				}
+					// When root item is a coin item
+					if (item is CoinCoinControlItemViewModel c)
+					{
+						return new[] { c };
+					}
 
-				return item.Children;
-			})
+					return item.Children;
+				})
 			.AddKey(model => model.SmartCoin.Outpoint);
 
 		changes
@@ -63,18 +61,20 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.ToCollection()
 			.Select(GetSelectedCoins);
 
-		walletViewModel.UiTriggers.TransactionsUpdateTrigger
-			.WithLatestFrom(selectedCoins, (_, sc) => sc)
-			.Do(
-				sl =>
-				{
-					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems);
-					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldExpandedItemsLabel);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
+		wallet.Coins.Pockets
+					.ToCollection()
+					.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
+					.Do(
+						tuple =>
+						{
+							var (pockets, sl) = tuple;
+							var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, sl.ToList());
+							RestoreExpandedRows(oldExpandedItemsLabel);
+						})
+					.Subscribe()
+					.DisposeWith(_disposables);
 
 		// Project selected coins to public property. Throttle for improved UI performance
 		selectedCoins
@@ -85,9 +85,17 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
 		TreeDataGridSource.DisposeWith(_disposables);
 
-		RefreshFromPockets(sourceItems);
-		UpdateSelection(coinItemsCollection, initialCoinSelection);
-		ExpandSelectedItems();
+		wallet.Coins.Pockets
+					.ToCollection()
+					.Take(1)
+					.Do(
+						pockets =>
+						{
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, initialCoinSelection);
+							ExpandSelectedItems();
+						})
+					.Subscribe();
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
@@ -112,11 +120,10 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	private void RefreshFromPockets(ISourceList<CoinControlItemViewModelBase> source)
+	private void RefreshFromPockets(ISourceList<CoinControlItemViewModelBase> source, IEnumerable<Pocket> pockets)
 	{
-		var newItems = _wallet
-			.GetPockets()
-			.Select(pocket =>
+		var newItems =
+			pockets.Select(pocket =>
 			{
 				// When it's single coin pocket, return its unique coin
 				if (pocket.Coins.Count() == 1)
