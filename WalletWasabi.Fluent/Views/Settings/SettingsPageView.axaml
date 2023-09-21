@@ -42,10 +42,10 @@
         </StackPanel>
       </c:InfoMessage>
       <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
-                     Margin="0,0,0,16"
+                     Margin="0,16,0,0"
                      HorizontalAlignment="Center"
                      IsVisible="{Binding IsReadOnly}"
-                     DockPanel.Dock="Top">
+                     DockPanel.Dock="Bottom">
         <TextBlock Text="Settings are read-only because you've started Wasabi Wallet with command line argument overrides." />
       </c:InfoMessage>
 
