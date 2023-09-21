@@ -38,10 +38,10 @@ public static class SmartTransactionExtensions
 		return known.Concat(unknown);
 	}
 
-	public static IEnumerable<BitcoinAddress> GetDestinationAddresses(this SmartTransaction transaction, Network network, out List<IInput> inputs, out List<Output> outputs)
+	public static IEnumerable<BitcoinAddress> GetDestinationAddresses(this SmartTransaction transaction, Network network)
 	{
-		inputs = transaction.GetInputs().ToList();
-		outputs = transaction.GetOutputs(network).ToList();
+		List<IInput> inputs = transaction.GetInputs().ToList();
+		List<Output> outputs = transaction.GetOutputs(network).ToList();
 
 		return GetDestinationAddresses(inputs, outputs);
 	}
