@@ -54,6 +54,19 @@
                      CopyableContent="{Binding CoinJoinFeeRawString}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
+
+      <!-- Confirmation Time -->
+      <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
+                     Icon="{StaticResource timer_regular}"
+                     Label="Expected confirmation time"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
+
     </StackPanel>
   </c:ContentArea>
 </UserControl>
