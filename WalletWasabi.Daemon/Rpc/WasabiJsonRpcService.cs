@@ -229,6 +229,23 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
+	[JsonRpcMethod("canceltransaction")]
+	public string BuildCancelTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var cancellationResult = activeWallet.CancelTransaction(smartTransactionToCancel);
+		var cancellationSmartTransaction = cancellationResult.Transaction;
+		return cancellationSmartTransaction.Transaction.ToHex();
+	}
+
 	[JsonRpcMethod("speeduptransaction")]
 	public string SpeedUpTransaction(uint256 txId, string password = "")
 	{
