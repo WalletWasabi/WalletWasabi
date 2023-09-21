@@ -36,7 +36,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		_dustThreshold = settings.DustThreshold;
 	}
 
-	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;
+	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
 

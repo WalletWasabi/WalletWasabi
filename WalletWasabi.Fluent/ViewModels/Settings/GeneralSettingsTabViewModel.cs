@@ -44,7 +44,7 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 		});
 	}
 
-	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;
+	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
 
