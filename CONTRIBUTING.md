@@ -1,5 +1,13 @@
 # Wasabi Coding Conventions
 
+## How to be useful for the project
+
+- Issues labelled as `good first issue` are a good way to start contributing to Wasabi.
+- Always prefer to produce pull requests with a small diff.
+- Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
+- Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting such as [Extend Wallet Settings #11519](https://github.com/zkSNACKs/WalletWasabi/issues/11519).
+- For backend, the columns `Will Do` of the [Relevance Realization Table](https://github.com/orgs/zkSNACKs/projects/18/views/31) is a buffet that you can choose from. You can assign yourself to an issue or just make the pull request.
+
 ## Automatic code clean up
 
 **Visual Studio IDE:**
