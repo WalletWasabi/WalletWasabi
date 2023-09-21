@@ -27,8 +27,9 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
 
-	private SettingsPageViewModel()
+	public SettingsPageViewModel(UiContext uiContext)
 	{
+		UiContext = uiContext;
 		_selectedTab = 0;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
