@@ -44,9 +44,9 @@ public class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken)
+	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
 	{
-		var result = new List<PrivacyItem>();
+		var result = new PrivacySuggestionsResult();
 
 		using CancellationTokenSource singleRunCts = new();
 
@@ -62,24 +62,30 @@ public class PrivacySuggestionsModel
 
 		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
-			result.Add(VerifyLabels(info, transactionResult));
-			result.Add(VerifyPrivacyLevel(info, transactionResult));
-			result.Add(VerifyConsolidation(transactionResult));
-			result.Add(VerifyUnconfirmedInputs(transactionResult));
-			result.Add(VerifyCoinjoiningInputs(transactionResult));
-			foreach (var item in result)
+			try
 			{
-				yield return item;
+				result
+					.Combine(VerifyLabels(info, transactionResult))
+					.Combine(VerifyPrivacyLevel(info, transactionResult))
+					.Combine(VerifyConsolidation(transactionResult))
+					.Combine(VerifyUnconfirmedInputs(transactionResult))
+					.Combine(VerifyCoinjoiningInputs(transactionResult))
+					.Combine(VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource));
 			}
-			await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource).ConfigureAwait(false))
+			catch (OperationCanceledException)
 			{
-				yield return item;
+				Logger.LogTrace("Operation was cancelled.");
 			}
-			lock (_lock)
+			finally
 			{
-				_singleRunCancellationTokenSource = null;
+				lock (_lock)
+				{
+					_singleRunCancellationTokenSource = null;
+				}
 			}
 		}
+
+		return result;
 	}
 
 	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)

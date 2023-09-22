@@ -17,7 +17,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		bool isSingleCoinJoinTransaction)
 		: base(orderIndex, transactionSummary)
 	{
-		Date = transactionSummary.FirstSeen.ToLocalTime();
+		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
 		IsCoinJoin = true;
 		CoinJoinTransaction = transactionSummary;

@@ -21,7 +21,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		: base(orderIndex, transactionSummary)
 	{
 		Labels = transactionSummary.Labels;
-		Date = transactionSummary.FirstSeen.ToLocalTime();
+		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
 		WalletVm = walletVm;
 

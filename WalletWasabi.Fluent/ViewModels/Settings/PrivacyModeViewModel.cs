@@ -36,6 +36,6 @@ public partial class PrivacyModeViewModel : RoutableViewModel
 
 	public void SetIcon()
 	{
-		IconName = PrivacyMode ? "eye_hide_regular" : "eye_show_regular";
+		IconName = PrivacyMode ? "nav_incognito_24_filled" : "nav_incognito_24_regular";
 	}
 }

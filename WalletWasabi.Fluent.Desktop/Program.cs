@@ -87,6 +87,11 @@ public class Program
 		Dispatcher.UIThread.Post(() =>
 		{
 			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
+
+			MainViewModel.Instance.ClearStacks();
+			MainViewModel.Instance.StatusIcon.Dispose();
+
+			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
 		});
 	}
 

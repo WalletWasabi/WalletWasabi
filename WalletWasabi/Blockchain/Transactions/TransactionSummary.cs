@@ -7,18 +7,20 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionSummary
 {
-	public TransactionSummary(SmartTransaction tx, Money amount)
+	public TransactionSummary(SmartTransaction tx, Money amount, IEnumerable<BitcoinAddress> destinationAddresses)
 	{
 		Transaction = tx;
 		Amount = amount;
+		DestinationAddresses = destinationAddresses;
 
-		FirstSeen = tx.FirstSeen;
+		DateTime = tx.FirstSeen;
 		Labels = tx.Labels;
 	}
 
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
-	public DateTimeOffset FirstSeen { get; set; }
+	public IEnumerable<BitcoinAddress> DestinationAddresses { get; }
+	public DateTimeOffset DateTime { get; set; }
 	public LabelsArray Labels { get; set; }
 	public Height Height => Transaction.Height;
 	public uint256? BlockHash => Transaction.BlockHash;

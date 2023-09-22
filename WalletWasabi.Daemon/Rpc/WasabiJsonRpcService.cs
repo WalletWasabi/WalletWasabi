@@ -244,7 +244,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return summary.Select(
 			x => new
 			{
-				datetime = x.FirstSeen,
+				datetime = x.DateTime,
 				height = x.Height.Value,
 				amount = x.Amount.Satoshi,
 				label = x.Labels.ToString(),

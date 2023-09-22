@@ -1,4 +1,3 @@
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
@@ -18,8 +17,6 @@ public static class Services
 	public static TorSettings TorSettings { get; private set; } = null!;
 
 	public static BitcoinStore BitcoinStore { get; private set; } = null!;
-
-	public static SmartHeaderChain SmartHeaderChain => BitcoinStore.SmartHeaderChain;
 
 	public static WasabiHttpClientFactory HttpClientFactory { get; private set; } = null!;
 

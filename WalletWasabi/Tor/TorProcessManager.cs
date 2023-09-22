@@ -272,7 +272,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	internal virtual Process[] GetTorProcesses()
 	{
-		return Process.GetProcessesByName(TorSettings.TorBinaryFileName);
+		return Process.GetProcessesByName(TorSettings.GetTorBinaryFileName());
 	}
 
 	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>

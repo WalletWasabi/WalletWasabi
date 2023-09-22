@@ -39,7 +39,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = transactionSummary.Fee;
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
+		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -49,12 +49,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-
+	
 	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
+		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.GetHash().ToString();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;

@@ -46,6 +46,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 					   .CombineLatest(_wallet.Privacy.IsWalletPrivate)
 					   .CombineLatest(_wallet.Coins.List.ToCollection())
 					   .Flatten()
+					   .Throttle(TimeSpan.FromMilliseconds(250))
 					   .Do(tuple =>
 					   {
 						   var (privacyProgress, isWalletPrivate, coins) = tuple;

@@ -133,7 +133,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 					// Make the coordinator believe that the transaction is being
 					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransactionAsync` was invoked) we stop waiting
+					// (the `SendRawTransationAsync` was invoked) we stop waiting
 					// and finish the waiting tasks to finish the test successfully.
 					rpc.OnSendRawTransactionAsync = (tx) =>
 					{
@@ -318,7 +318,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				// Make the coordinator believe that the transaction is being
 				// broadcasted using the RPC interface. Once we receive this tx
-				// (the `SendRawTransactionAsync` was invoked) we stop waiting
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
 				// and finish the waiting tasks to finish the test successfully.
 				rpc.OnSendRawTransactionAsync = (tx) =>
 				{
@@ -416,14 +416,14 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 		try
 		{
-			var rpc = new TestableRpcClient((RpcClientBase)node.RpcClient);
+			var rpc = new TesteableRpcClient((RpcClientBase)node.RpcClient);
 
-			TaskCompletionSource<Transaction> coinJoinBroadcasted = new();
+			TaskCompletionSource<Transaction> coinJoinBoadcasted = new();
 			rpc.AfterSendRawTransaction = (tx) =>
 			{
 				if (tx.Inputs.Count > 1)
 				{
-					coinJoinBroadcasted.SetResult(tx);
+					coinJoinBoadcasted.SetResult(tx);
 				}
 			};
 
@@ -493,7 +493,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			try
 			{
-				var coinjoinTransactionCompletionTask = coinJoinBroadcasted.Task.WaitAsync(cts.Token);
+				var coinjoinTransactionCompletionTask = coinJoinBoadcasted.Task.WaitAsync(cts.Token);
 				var participantsFinishedTask = Task.WhenAll(tasks);
 				var finishedTask = await Task.WhenAny(participantsFinishedTask, coinjoinTransactionCompletionTask);
 				if (finishedTask == coinjoinTransactionCompletionTask)
@@ -597,9 +597,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 	}
 
-	public class TestableRpcClient : RpcClientBase
+	public class TesteableRpcClient : RpcClientBase
 	{
-		public TestableRpcClient(RpcClientBase rpc)
+		public TesteableRpcClient(RpcClientBase rpc)
 			: base(rpc.Rpc)
 		{
 		}

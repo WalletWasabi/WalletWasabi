@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
@@ -15,13 +16,19 @@ public class TransactionHistoryBuilder
 		Wallet = wallet;
 	}
 
-	private Wallet Wallet { get; }
+	public Wallet Wallet { get; }
 
 	public List<TransactionSummary> BuildHistorySummary()
 	{
-		var txRecordList = new List<TransactionSummary>();
+		var wallet = Wallet;
 
-		foreach (SmartCoin coin in Wallet.GetAllCoins())
+		var txRecordList = new List<TransactionSummary>();
+		if (wallet is null)
+		{
+			return txRecordList;
+		}
+
+		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
 			var containingTransaction = coin.Transaction;
 
@@ -29,13 +36,14 @@ public class TransactionHistoryBuilder
 			var found = txRecordList.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 			if (found is { }) // if found then update
 			{
-				found.FirstSeen = found.FirstSeen < dateTime ? found.FirstSeen : dateTime;
+				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
 				found.Amount += coin.Amount;
 				found.Labels = LabelsArray.Merge(found.Labels, containingTransaction.Labels);
 			}
 			else
 			{
-				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount));
+				var destinationAddresses = containingTransaction.GetDestinationAddresses(wallet.Network, out _, out _);
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, destinationAddresses));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -46,12 +54,13 @@ public class TransactionHistoryBuilder
 				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.GetHash() == spenderTxId);
 				if (foundSpenderCoin is { }) // if found
 				{
-					foundSpenderCoin.FirstSeen = foundSpenderCoin.FirstSeen < dateTime ? foundSpenderCoin.FirstSeen : dateTime;
+					foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
 					foundSpenderCoin.Amount -= coin.Amount;
 				}
 				else
 				{
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					var destinationAddresses = spenderTransaction.GetDestinationAddresses(wallet.Network, out _, out _);
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, destinationAddresses));
 				}
 			}
 		}
