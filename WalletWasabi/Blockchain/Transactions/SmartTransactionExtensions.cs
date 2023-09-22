@@ -82,4 +82,14 @@ public static class SmartTransactionExtensions
 
 	public static int GetConfirmations(this SmartTransaction transaction, int blockchainTipHeight)
 		=> transaction.Height.Type == HeightType.Chain ? blockchainTipHeight - transaction.Height.Value + 1 : 0;
+
+	public static Money? GetFee(this SmartTransaction transaction)
+	{
+		if (transaction.TryGetFee(out Money? fee))
+		{
+			return fee;
+		}
+
+		return null;
+	}
 }

@@ -30,19 +30,7 @@ public class TransactionSummary
 	public bool IsCPFP => Transaction.IsCPFP;
 	public bool IsCPFPd => Transaction.IsCPFPd;
 
-	public Money? Fee
-	{
-		get
-		{
-			if (Transaction.TryGetFee(out var fee))
-			{
-				return fee;
-			}
-
-			return null;
-		}
-	}
-
+	public Money? GetFee() => Transaction.GetFee();
 	public uint256 GetHash() => Transaction.GetHash();
 	public bool IsOwnCoinjoin() => Transaction.IsOwnCoinjoin();
 }
