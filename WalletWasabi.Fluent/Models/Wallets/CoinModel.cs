@@ -21,4 +21,10 @@ public partial class CoinModel : ReactiveObject
 	public Money Amount { get; }
 
 	public int Key { get; }
+
+	public bool IsPrivate => PrivacyLevel == PrivacyLevel.Private;
+
+	public bool IsSemiPrivate => PrivacyLevel == PrivacyLevel.SemiPrivate;
+
+	public bool IsNonPrivate => PrivacyLevel == PrivacyLevel.NonPrivate;
 }
