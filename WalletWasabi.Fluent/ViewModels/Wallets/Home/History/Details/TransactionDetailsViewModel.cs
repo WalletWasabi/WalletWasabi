@@ -39,7 +39,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = transactionSummary.Fee;
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
+		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -49,13 +49,13 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
+
 	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
-		TransactionId = transactionSummary.TransactionId.ToString();
+		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
+		TransactionId = transactionSummary.GetHash().ToString();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
@@ -99,10 +99,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private async Task UpdateCurrentTransactionAsync()
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_walletVm.Wallet));
 
-		var currentTransaction = txRecordList.FirstOrDefault(x => x.TransactionId.ToString() == TransactionId);
+		var currentTransaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == TransactionId);
 
 		if (currentTransaction is { })
 		{

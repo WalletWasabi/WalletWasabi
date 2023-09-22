@@ -200,7 +200,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			if (item is CoinJoinsHistoryItemViewModel cjGroup)
 			{
-				return cjGroup.CoinJoinTransactions.Any(x => x.TransactionId == txid);
+				return cjGroup.CoinJoinTransactions.Any(x => x.GetHash() == txid);
 			}
 
 			return item.Id == txid;
@@ -246,9 +246,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		try
 		{
-			var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
+			var rawHistoryList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_walletVm.Wallet));
+			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
 
 			_transactionSourceList.Edit(x =>
@@ -276,12 +275,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			balance += item.Amount;
 
-			if (!item.IsOwnCoinjoin)
+			if (!item.IsOwnCoinjoin())
 			{
 				history.Add(new TransactionHistoryItemViewModel(UiContext, i, item, _walletVm, balance));
 			}
 
-			if (item.IsOwnCoinjoin)
+			if (item.IsOwnCoinjoin())
 			{
 				if (coinJoinGroup is null)
 				{
@@ -294,7 +293,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin) || // The next item is not CJ so add the group.
+				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin()) || // The next item is not CJ so add the group.
 				 i == summaries.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
@@ -325,7 +324,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				// Group creation.
 				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
 
-				if (!TryFindHistoryItem(summary.TransactionId, history, out var parent))
+				if (!TryFindHistoryItem(summary.GetHash(), history, out var parent))
 				{
 					continue; // If the parent transaction is not found, continue with the next summary.
 				}

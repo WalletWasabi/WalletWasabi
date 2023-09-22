@@ -9,7 +9,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class WalletCoinjoinModel : IWalletCoinjoinModel
+[AutoInterface]
+public partial class WalletCoinjoinModel
 {
 	private readonly Wallet _wallet;
 	private CoinJoinManager _coinJoinManager;
@@ -51,6 +52,6 @@ public class WalletCoinjoinModel : IWalletCoinjoinModel
 
 	public async Task StopAsync()
 	{
-		await _coinJoinManager.StopAsync(CancellationToken.None);
+		await _coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 	}
 }

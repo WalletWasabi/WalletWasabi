@@ -7,7 +7,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
+[AutoInterface]
+public partial class WalletSettingsModel : ReactiveObject
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;
@@ -57,7 +58,7 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 
 	public WalletType WalletType { get; }
 
-	public bool IsCoinJoinPaused { get; }
+	public bool IsCoinJoinPaused { get; set; }
 
 	public void Save()
 	{

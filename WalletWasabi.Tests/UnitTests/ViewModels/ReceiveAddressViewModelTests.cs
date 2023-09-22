@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Input.Platform;
 using DynamicData;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -22,7 +23,7 @@ public class ReceiveAddressViewModelTests
 	[Fact]
 	public void CopyCommandShouldSetAddressInClipboard()
 	{
-		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
+		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
 		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
 		var sut = new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress"), false);
 
@@ -35,7 +36,7 @@ public class ReceiveAddressViewModelTests
 	[Fact]
 	public void AutoCopyEnabledShouldCopyToClipboard()
 	{
-		var clipboard = Mock.Of<IClipboard>(MockBehavior.Loose);
+		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
 		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
 		new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress"), true);
 		var mock = Mock.Get(clipboard);
@@ -100,6 +101,10 @@ public class ReceiveAddressViewModelTests
 		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
+		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
+
+		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

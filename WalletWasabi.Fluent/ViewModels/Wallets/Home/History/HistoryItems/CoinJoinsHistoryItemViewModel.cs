@@ -73,7 +73,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	public void Add(TransactionSummary item)
 	{
-		if (!item.IsOwnCoinjoin)
+		if (!item.IsOwnCoinjoin())
 		{
 			throw new InvalidOperationException("Not a coinjoin item!");
 		}
@@ -86,7 +86,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
 		ConfirmedToolTip = GetConfirmedToolTip(CoinJoinTransactions.Select(x => x.GetConfirmations()).Min());
-		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
+		Date = CoinJoinTransactions.Select(tx => tx.FirstSeen).Max().ToLocalTime();
 
 		SetAmount(
 			CoinJoinTransactions.Sum(x => x.Amount),
@@ -97,7 +97,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	protected void UpdateDateString()
 	{
-		var dates = CoinJoinTransactions.Select(tx => tx.DateTime).ToImmutableArray();
+		var dates = CoinJoinTransactions.Select(tx => tx.FirstSeen).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
 

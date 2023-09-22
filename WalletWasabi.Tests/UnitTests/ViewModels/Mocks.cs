@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Input.Platform;
 using Moq;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.ClientConfig;
@@ -10,6 +9,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
@@ -17,12 +17,12 @@ public static class Mocks
 {
 	public static UiContext ContextStub()
 	{
-		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig(), new NullApplicationSettings());
+		return new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IUiClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig(), new NullApplicationSettings());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
 	{
-		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig(), new NullApplicationSettings());
+		var uiContext = new UiContext(Mock.Of<IQrCodeGenerator>(x => x.Generate(It.IsAny<string>()) == Observable.Return(new bool[0, 0])), Mock.Of<IQrCodeReader>(), Mock.Of<IUiClipboard>(), new NullWalletRepository(), new NullHardwareWalletInterface(), new NullFileSystem(), new NullClientConfig(), new NullApplicationSettings());
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
 	}
