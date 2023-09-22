@@ -146,6 +146,8 @@ public class Bip21UriParser
 			: this(uri, network, address, Amount: null, Label: null, Message: null, UnknownParameters: new())
 		{
 		}
+
+		public bool PayJoinUrlFound => UnknownParameters.TryGetValue("pj", out _);
 	}
 
 	/// <summary>
