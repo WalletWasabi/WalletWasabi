@@ -315,17 +315,12 @@ public class TransactionProcessor
 	{
 		IEnumerable<IGrouping<HdPubKey, SmartCoin>> grouping = myInputs
 			.Where(c => c.HdPubKey.IsInternal) // Only internal ones.
+			.Where(c => c.IsSpent()) // Only spent coins.
 			.GroupBy(x => x.HdPubKey);
 
 		foreach (IGrouping<HdPubKey, SmartCoin> group in grouping)
 		{
 			HdPubKey spenderKey = group.Key;
-
-			if (group.Any(x => !x.IsSpent()))
-			{
-				// The key still has unspent coins.
-				continue;
-			}
 
 			// All the coins on this key were spent. Mark it as retired and store the block height.
 			if (spenderKey.LatestSpendingHeight is null)
