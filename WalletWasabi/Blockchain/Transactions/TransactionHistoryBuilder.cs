@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
@@ -11,22 +10,9 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionHistoryBuilder
 {
-	public TransactionHistoryBuilder(Wallet wallet)
+	public static List<TransactionSummary> BuildHistorySummary(Wallet wallet)
 	{
-		Wallet = wallet;
-	}
-
-	public Wallet Wallet { get; }
-
-	public List<TransactionSummary> BuildHistorySummary()
-	{
-		var wallet = Wallet;
-
 		var txRecordList = new List<TransactionSummary>();
-		if (wallet is null)
-		{
-			return txRecordList;
-		}
 
 		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
@@ -42,8 +28,7 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
-				var destinationAddresses = containingTransaction.GetDestinationAddresses(wallet.Network, out _, out _);
-				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount, destinationAddresses));
+				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -59,8 +44,7 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
-					var destinationAddresses = spenderTransaction.GetDestinationAddresses(wallet.Network, out _, out _);
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, destinationAddresses));
+					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
 				}
 			}
 		}

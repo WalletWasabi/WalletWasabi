@@ -36,7 +36,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
-		PrivacyTile = new PrivacyControlTileViewModel(UiContext, walletViewModel, false);
+		PrivacyTile = new PrivacyControlTileViewModel(UiContext, walletViewModel.WalletModel, false);
 		PrivacyTile.Activate(_disposables);
 
 		PreviewItems.Add(PrivacyTile);
