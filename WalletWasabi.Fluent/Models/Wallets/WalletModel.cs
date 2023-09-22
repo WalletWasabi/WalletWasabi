@@ -19,14 +19,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
-	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 
 	public WalletModel(Wallet wallet)
 	{
 		Wallet = wallet;
-
-		_historyBuilder = new TransactionHistoryBuilder(Wallet);
 
 		Auth = new WalletAuthModel(this, Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
@@ -37,7 +34,6 @@ public partial class WalletModel : ReactiveObject
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
 					  .Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal())
-					  .Sample(TimeSpan.FromSeconds(1))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
 
@@ -128,7 +124,7 @@ public partial class WalletModel : ReactiveObject
 
 	private IEnumerable<TransactionSummary> BuildSummary()
 	{
-		return _historyBuilder.BuildHistorySummary();
+		return TransactionHistoryBuilder.BuildHistorySummary(Wallet);
 	}
 
 	private IEnumerable<IAddress> GetAddresses()

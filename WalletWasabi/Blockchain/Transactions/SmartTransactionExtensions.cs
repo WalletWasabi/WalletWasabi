@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Transactions.Summary;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
@@ -37,10 +38,10 @@ public static class SmartTransactionExtensions
 		return known.Concat(unknown);
 	}
 
-	public static IEnumerable<BitcoinAddress> GetDestinationAddresses(this SmartTransaction transaction, Network network, out List<IInput> inputs, out List<Output> outputs)
+	public static IEnumerable<BitcoinAddress> GetDestinationAddresses(this SmartTransaction transaction, Network network)
 	{
-		inputs = transaction.GetInputs().ToList();
-		outputs = transaction.GetOutputs(network).ToList();
+		List<IInput> inputs = transaction.GetInputs().ToList();
+		List<Output> outputs = transaction.GetOutputs(network).ToList();
 
 		return GetDestinationAddresses(inputs, outputs);
 	}
@@ -77,5 +78,18 @@ public static class SmartTransactionExtensions
 		// I'm sending a transaction to someone else.
 		// All outputs that are not my own are the destinations.
 		return foreignOutputs.Select(x => x.DestinationAddress);
+	}
+
+	public static int GetConfirmations(this SmartTransaction transaction, int blockchainTipHeight)
+		=> transaction.Height.Type == HeightType.Chain ? blockchainTipHeight - transaction.Height.Value + 1 : 0;
+
+	public static Money? GetFee(this SmartTransaction transaction)
+	{
+		if (transaction.TryGetFee(out Money? fee))
+		{
+			return fee;
+		}
+
+		return null;
 	}
 }
