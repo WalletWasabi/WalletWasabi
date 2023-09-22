@@ -30,7 +30,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IsCPFP = transactionSummary.IsCPFP;
 		IsCPFPd = transactionSummary.IsCPFPd;
 
-		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
+		SetAmount(transactionSummary.Amount, transactionSummary.GetFee());
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 
