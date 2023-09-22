@@ -71,8 +71,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		_wallet.Privacy.ProgressUpdated
 					   .Merge(sizeTrigger)
-					   .CombineLatest(_wallet.Coins.List.ToCollection().Select(x => x.Distinct()))
-					   .Throttle(TimeSpan.FromMilliseconds(250))
+					   .WithLatestFrom(_wallet.Coins.List.ToCollection().Select(x => x.Distinct()))
 					   .ObserveOn(RxApp.MainThreadScheduler)
 					   .Do(t => RenderRing(itemsSourceList, t.Second))
 					   .Subscribe()
