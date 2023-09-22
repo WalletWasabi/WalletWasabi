@@ -99,8 +99,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private async Task UpdateCurrentTransactionAsync()
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_walletVm.Wallet));
 
 		var currentTransaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == TransactionId);
 
