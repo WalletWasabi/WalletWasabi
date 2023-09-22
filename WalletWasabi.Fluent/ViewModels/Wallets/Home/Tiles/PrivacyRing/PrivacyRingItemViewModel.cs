@@ -23,10 +23,10 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 		IsPrivate = coin.IsPrivate;
 		IsSemiPrivate = coin.IsSemiPrivate;
 		IsNonPrivate = coin.IsNonPrivate;
-		AmountText = $"{coin.Amount.ToFormattedString()} BTC";
+		AmountText = coin.Amount.ToBtcWithUnit();
 		Unconfirmed = !coin.IsConfirmed;
 		Confirmations = coin.Confirmations;
-		AnonymitySet = coin.AnonimitySet;
+		AnonScore = coin.AnonScore;
 		Labels = coin.Labels;
 
 		PrivacyLevelText = GetPrivacyLevelDescription();
@@ -62,7 +62,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 	public bool IsPrivate { get; }
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
-	public double AnonymitySet { get; }
+	public double AnonScore { get; }
 	public LabelsArray Labels { get; }
 	public string AmountText { get; }
 	public string PrivacyLevelText { get; }
