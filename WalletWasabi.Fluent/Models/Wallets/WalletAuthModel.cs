@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -65,5 +67,23 @@ public partial class WalletAuthModel : ReactiveObject
 	public IPasswordFinderModel GetPasswordFinder(string password)
 	{
 		return new PasswordFinderModel(_walletModel, _wallet, password);
+	}
+
+	public bool VerifyRecoveryWords(Mnemonic mnemonic)
+	{
+		var saltSoup = _wallet.Kitchen.SaltSoup();
+
+		var recovered = KeyManager.Recover(
+			mnemonic,
+			saltSoup,
+			_wallet.Network,
+			_wallet.KeyManager.SegwitAccountKeyPath,
+			null,
+			null,
+			_wallet.KeyManager.MinGapLimit);
+
+		var result = _wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey;
+
+		return result;
 	}
 }
