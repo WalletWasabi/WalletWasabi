@@ -216,6 +216,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return new
 		{
 			txid = smartTx.Transaction.GetHash(),
+			hex = txHex,
 			tx = txHex
 		};
 	}
@@ -247,6 +248,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				height = x.Height.Value,
 				amount = x.Amount.Satoshi,
 				label = x.Labels.ToString(),
+				txid = x.GetHash(),
 				tx = x.GetHash(),
 				islikelycoinjoin = x.IsOwnCoinjoin()
 			}).ToArray();
