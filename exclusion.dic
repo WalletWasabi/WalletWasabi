@@ -235,7 +235,6 @@ clearnet
 syncer
 backend's
 Cpfp
-Cpfp
 writelog
 substractasync
 jsonrpc
