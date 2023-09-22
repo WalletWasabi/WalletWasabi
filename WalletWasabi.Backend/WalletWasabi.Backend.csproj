@@ -46,9 +46,4 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <_ContentIncludedByDefault Remove="wwwroot\index.html" />
-	  <_ContentIncludedByDefault Remove="wwwroot\webpage_ui_compilation-02.png" />
-	</ItemGroup>
-
 </Project>
