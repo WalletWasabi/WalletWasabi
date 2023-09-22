@@ -37,7 +37,6 @@ public partial class WalletModel : ReactiveObject
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
 					  .Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFiltersProcessed)).ToSignal())
-					  .Sample(TimeSpan.FromSeconds(1))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
 
