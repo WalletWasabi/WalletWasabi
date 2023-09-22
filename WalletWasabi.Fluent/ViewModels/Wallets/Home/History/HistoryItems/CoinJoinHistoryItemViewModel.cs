@@ -23,7 +23,7 @@ public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		CoinJoinTransaction = transactionSummary;
 		IsChild = !isSingleCoinJoinTransaction;
 
-		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
+		SetAmount(transactionSummary.Amount, transactionSummary.GetFee());
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(

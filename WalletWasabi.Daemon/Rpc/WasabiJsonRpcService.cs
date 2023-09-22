@@ -90,6 +90,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return mnemonic.ToString();
 	}
 
+	[JsonRpcMethod("recoverwallet", initializable: false)]
+	public void RecoverWallet(string walletName, string mnemonic, string password = "")
+	{
+		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
+		walletGenerator.TipHeight = 0;
+		var (keyManager, _) = walletGenerator.GenerateWallet(walletName, password, new Mnemonic(mnemonic));
+		Global.WalletManager.AddWallet(keyManager);
+	}
+
 	[JsonRpcMethod("getwalletinfo")]
 	public object WalletInfo()
 	{
@@ -239,8 +248,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var txHistoryBuilder = new TransactionHistoryBuilder(activeWallet);
-		var summary = txHistoryBuilder.BuildHistorySummary();
+		var summary = TransactionHistoryBuilder.BuildHistorySummary(activeWallet);
 		return summary.Select(
 			x => new
 			{
