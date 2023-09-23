@@ -203,10 +203,10 @@ public class TransactionProcessor
 					}
 					else
 					{
-						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-						foreach (SmartCoin doubleSpentCoin in doubleSpentSpenders)
+						// remove double spent spenders recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
+						foreach (var doubleSpentTxid in doubleSpentSpenders.Select(x => x.TransactionId).Distinct())
 						{
-							Coins.Undo(doubleSpentCoin.TransactionId);
+							Coins.Undo(doubleSpentTxid);
 						}
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
