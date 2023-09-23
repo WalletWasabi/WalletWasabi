@@ -48,8 +48,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	public async Task<TransactionSummary?> GetById(string transactionId)
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_wallet));
 
 		var transaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == transactionId);
 		return transaction;

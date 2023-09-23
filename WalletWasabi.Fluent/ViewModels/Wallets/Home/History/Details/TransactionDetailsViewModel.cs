@@ -40,7 +40,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = transactionSummary.GetFee();
 		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
+		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -107,8 +107,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		{
 			return;
 		}
-
-		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_walletVm.Wallet));
 
 		var currentTransaction = await _wallet.Transactions.GetById(TransactionId);
 
