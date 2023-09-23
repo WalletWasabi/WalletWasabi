@@ -6,7 +6,7 @@
 - Always focus on a specific issue in your pull request and avoid unrelated/unnecessary changes.
 - Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
 - Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting such as [Extend Wallet Settings #11519](https://github.com/zkSNACKs/WalletWasabi/issues/11519).
-- Consider opening an issue or explaining under an opened issue the implementation that you want to make, and wait for ACKs to work on the implementation.
+- Consider filing a new issue or explaining in an opened issue the change that you want to make, and wait for concept ACKs to work on the implementation.
 - For backend, the columns `Will Do` of the [Relevance Realization Table](https://github.com/orgs/zkSNACKs/projects/18/views/31) is a buffet that you can choose from. You can assign yourself to an issue or just make the pull request.
 
 ## Automatic code clean up
