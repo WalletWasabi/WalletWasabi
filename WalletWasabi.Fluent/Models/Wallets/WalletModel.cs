@@ -20,6 +20,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
+	private readonly Lazy<IWalletCoinsModel> _coins;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -30,6 +31,7 @@ public partial class WalletModel : ReactiveObject
 		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
 		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
+		_coins = new(() => new WalletCoinsModel(wallet, this));
 
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
@@ -59,8 +61,6 @@ public partial class WalletModel : ReactiveObject
 					  .Concat(TransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
 		Balances = new WalletBalancesModel(balance, new ExchangeRateProvider(wallet.Synchronizer));
 
-		Coins = new WalletCoinsModel(wallet, this);
-
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.Where(x => x)
@@ -82,7 +82,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletBalancesModel Balances { get; }
 
-	public IWalletCoinsModel Coins { get; }
+	public IWalletCoinsModel Coins => _coins.Value;
 
 	public IWalletAuthModel Auth { get; }
 
