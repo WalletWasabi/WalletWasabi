@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -19,12 +19,9 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
-	private readonly TransactionHistoryBuilder _historyBuilder;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
-		_historyBuilder = new TransactionHistoryBuilder(wallet);
-
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
 					  .Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
@@ -50,6 +47,6 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	private IEnumerable<TransactionSummary> BuildSummary()
 	{
-		return _historyBuilder.BuildHistorySummary();
+		return TransactionHistoryBuilder.BuildHistorySummary(_wallet);
 	}
 }
