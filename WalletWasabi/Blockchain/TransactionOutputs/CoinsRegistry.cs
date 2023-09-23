@@ -14,6 +14,9 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> Coins { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<uint256> KnownTransactions { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -83,6 +86,8 @@ public class CoinsRegistry : ICoinsView
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
+				KnownTransactions.Add(coin.TransactionId);
+
 				if (added)
 				{
 					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
@@ -114,14 +119,6 @@ public class CoinsRegistry : ICoinsView
 		}
 
 		return added;
-	}
-
-	public ICoinsView Remove(SmartCoin coin)
-	{
-		lock (Lock)
-		{
-			return RemoveNoLock(coin);
-		}
 	}
 
 	private ICoinsView RemoveNoLock(SmartCoin coin)
@@ -191,6 +188,14 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
+	public bool IsKnown(uint256 txid)
+	{
+		lock (Lock)
+		{
+			return KnownTransactions.Contains(txid);
+		}
+	}
+
 	public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		lock (Lock)
@@ -236,6 +241,8 @@ public class CoinsRegistry : ICoinsView
 					toAdd.Add(destroyedCoin);
 				}
 			}
+
+			KnownTransactions.Remove(txId);
 
 			InvalidateSnapshot = true;
 
