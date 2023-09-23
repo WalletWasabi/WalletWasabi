@@ -188,6 +188,17 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
+	[JsonRpcMethod("getcoinjoinstatus")]
+	public CoinJoinClientState? GetCoinjoinStatus()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		_ = coinJoinManager.TryGetWalletStatus(activeWallet.WalletName, out var walletCoinjoinStatus);
+		return walletCoinjoinStatus;
+	}
+
 	[JsonRpcMethod("build")]
 	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
 	{
