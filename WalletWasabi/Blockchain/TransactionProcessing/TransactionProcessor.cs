@@ -145,7 +145,7 @@ public class TransactionProcessor
 		}
 
 		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
-		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
+		if (!tx.Transaction.IsCoinBase && !Coins.IsKnown(txId)) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpentSpenders = new List<SmartCoin>();
 			var doubleSpentCoins = new List<SmartCoin>();
@@ -207,7 +207,7 @@ public class TransactionProcessor
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpentSpenders)
 						{
-							Coins.Remove(doubleSpentCoin);
+							Coins.Undo(doubleSpentCoin.TransactionId);
 						}
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
