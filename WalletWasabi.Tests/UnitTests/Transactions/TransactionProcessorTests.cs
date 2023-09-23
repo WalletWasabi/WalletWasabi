@@ -121,7 +121,7 @@ public class TransactionProcessorTests
 		Assert.Empty(res1.ReceivedDusts);
 		Assert.Empty(res1.ReplacedCoins);
 		Assert.Empty(res1.RestoredCoins);
-		Assert.Empty(res1.SuccessfullyDoubleSpentCoins);
+		Assert.Empty(res1.SuccessfullyDoubleSpentTransactions);
 		Assert.True(res1.IsNews);
 		Assert.NotNull(res1.Transaction);
 
@@ -135,7 +135,7 @@ public class TransactionProcessorTests
 		Assert.Empty(res2.ReceivedDusts);
 		Assert.Empty(res2.ReplacedCoins);
 		Assert.Empty(res2.RestoredCoins);
-		Assert.Empty(res2.SuccessfullyDoubleSpentCoins);
+		Assert.Empty(res2.SuccessfullyDoubleSpentTransactions);
 		Assert.True(res2.IsNews);
 		Assert.NotNull(res2.Transaction);
 
@@ -149,7 +149,7 @@ public class TransactionProcessorTests
 		Assert.Empty(res3.ReceivedDusts);
 		Assert.Empty(res3.ReplacedCoins);
 		Assert.Empty(res3.RestoredCoins);
-		Assert.Empty(res3.SuccessfullyDoubleSpentCoins);
+		Assert.Empty(res3.SuccessfullyDoubleSpentTransactions);
 		Assert.True(res3.IsNews);
 		Assert.NotNull(res3.Transaction);
 
@@ -163,7 +163,7 @@ public class TransactionProcessorTests
 		Assert.Empty(res4.ReceivedDusts);
 		Assert.Empty(res4.ReplacedCoins);
 		Assert.Empty(res4.RestoredCoins);
-		Assert.Empty(res4.SuccessfullyDoubleSpentCoins);
+		Assert.Empty(res4.SuccessfullyDoubleSpentTransactions);
 		Assert.True(res4.IsNews);
 		Assert.NotNull(res4.Transaction);
 	}
@@ -246,10 +246,10 @@ public class TransactionProcessorTests
 		int doubleSpendReceived = 0;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			var doubleSpents = e.SuccessfullyDoubleSpentCoins;
+			var doubleSpents = e.SuccessfullyDoubleSpentTransactions;
 			if (doubleSpents.Any())
 			{
-				var coin = Assert.Single(doubleSpents);
+				var coin = Assert.Single(doubleSpents).WalletOutputs.Single();
 
 				// Double spend to ourselves but to a different address. So checking the address.
 				Assert.Equal(keys[1].GetAssumedScriptPubKey(), coin.ScriptPubKey);
@@ -535,7 +535,7 @@ public class TransactionProcessorTests
 			Assert.False(res2.IsNews);
 			Assert.Empty(res2.ReplacedCoins);
 			Assert.Empty(res2.RestoredCoins);
-			Assert.Empty(res2.SuccessfullyDoubleSpentCoins);
+			Assert.Empty(res2.SuccessfullyDoubleSpentTransactions);
 			Assert.Single(res2.ReceivedCoins);
 			Assert.Empty(res2.NewlyConfirmedReceivedCoins);
 			Assert.Empty(res2.ReceivedDusts);
@@ -551,7 +551,7 @@ public class TransactionProcessorTests
 		Assert.True(res3.IsNews);
 		Assert.Empty(res3.ReplacedCoins);
 		Assert.Empty(res3.RestoredCoins);
-		Assert.Empty(res3.SuccessfullyDoubleSpentCoins);
+		Assert.Empty(res3.SuccessfullyDoubleSpentTransactions);
 		Assert.Single(res3.ReceivedCoins);
 		Assert.Single(res3.NewlyConfirmedReceivedCoins);
 		Assert.Empty(res3.ReceivedDusts);

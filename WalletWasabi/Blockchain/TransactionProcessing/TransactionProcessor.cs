@@ -146,13 +146,13 @@ public class TransactionProcessor
 
 		if (!tx.Transaction.IsCoinBase && !Coins.IsKnown(txId)) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
-			var doubleSpentSpenders = new List<SmartCoin>();
+			var doubleSpentSpenders = new List<SmartTransaction>();
 			var doubleSpentCoins = new List<SmartCoin>();
 			foreach (var txIn in tx.Transaction.Inputs)
 			{
-				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txIn.PrevOut, out var coins))
+				if (Coins.TryGetSpendersByOutPoint(txIn.PrevOut, out var spenders))
 				{
-					doubleSpentSpenders.AddRange(coins);
+					doubleSpentSpenders.AddRange(spenders);
 				}
 				if (Coins.TryGetSpentCoinByOutPoint(txIn.PrevOut, out var spentCoin))
 				{
@@ -160,7 +160,7 @@ public class TransactionProcessor
 				}
 			}
 
-			var doubleSpentTransactions = doubleSpentCoins.Select(x => x.SpenderTransaction!).Concat(doubleSpentSpenders.Select(x => x.Transaction)).ToHashSet();
+			var doubleSpentTransactions = doubleSpentCoins.Select(x => x.SpenderTransaction!).Concat(doubleSpentSpenders).ToHashSet();
 
 			if (doubleSpentTransactions.Any())
 			{
@@ -172,13 +172,13 @@ public class TransactionProcessor
 				// if the received transaction is spending at least one input already
 				// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 				// spending transaction but a replacement transaction.
-				var isReplacementTx = doubleSpentSpenders.Any(x => x.IsReplaceable());
+				var isReplacementTx = doubleSpentSpenders.Any(x => x.IsRBF);
 				if (isReplacementTx)
 				{
 					// Undo the replaced transaction by removing the coins it created (if other coin
 					// spends it, remove that too and so on) and restoring those that it replaced.
 					// After undoing the replaced transaction it will process the replacement transaction.
-					var replacedTxId = doubleSpentSpenders.First().TransactionId;
+					var replacedTxId = doubleSpentSpenders.First().GetHash();
 					var (replaced, restored) = Coins.Undo(replacedTxId);
 
 					result.ReplacedCoins.AddRange(replaced);
@@ -204,12 +204,12 @@ public class TransactionProcessor
 					else
 					{
 						// remove double spent spenders recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-						foreach (var doubleSpentTxid in doubleSpentSpenders.Select(x => x.TransactionId).Distinct())
+						foreach (var doubleSpentTxid in doubleSpentSpenders.Select(x => x.GetHash()).Distinct())
 						{
 							Coins.Undo(doubleSpentTxid);
 						}
 
-						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
+						result.SuccessfullyDoubleSpentTransactions.AddRange(doubleSpentSpenders);
 					}
 				}
 			}

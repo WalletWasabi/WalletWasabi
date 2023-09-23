@@ -20,7 +20,7 @@ public class ProcessedResult
 	public SmartTransaction Transaction { get; }
 
 	public bool IsNews =>
-		SuccessfullyDoubleSpentCoins.Any()
+		SuccessfullyDoubleSpentTransactions.Any()
 		|| ReplacedCoins.Any()
 		|| RestoredCoins.Any()
 		|| NewlyReceivedCoins.Any()
@@ -72,7 +72,7 @@ public class ProcessedResult
 	/// transaction has successfully invalidated them, because it spends
 	/// some of the same inputs.
 	/// </summary>
-	public List<SmartCoin> SuccessfullyDoubleSpentCoins { get; } = new List<SmartCoin>();
+	public List<SmartTransaction> SuccessfullyDoubleSpentTransactions { get; } = new();
 
 	/// <summary>
 	/// Gets the unconfirmed coins that were replaced by the coins of the transaction.

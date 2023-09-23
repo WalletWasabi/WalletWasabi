@@ -226,8 +226,8 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(10);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
 			var eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-			var doubleSpend = Assert.Single(eventArgs.SuccessfullyDoubleSpentCoins);
-			Assert.Equal(invalidCoin.TransactionId, doubleSpend.TransactionId);
+			var doubleSpend = Assert.Single(eventArgs.SuccessfullyDoubleSpentTransactions);
+			Assert.Equal(invalidCoin.TransactionId, doubleSpend.GetHash());
 
 			var curBlockHash = await rpc.GetBestBlockHashAsync();
 			blockCount = await rpc.GetBlockCountAsync();

@@ -31,7 +31,7 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+	private Dictionary<OutPoint, HashSet<SmartTransaction>> SpendersByOutPoint { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
@@ -86,29 +86,30 @@ public class CoinsRegistry : ICoinsView
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
+				var tx = coin.Transaction;
 				KnownTransactions.Add(coin.TransactionId);
 				coin.RegisterToHdPubKey();
 				if (added)
 				{
 					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
 					{
-						var newCoinSet = new HashSet<SmartCoin> { coin };
+						var newTxSet = new HashSet<SmartTransaction> { tx };
 
 						// If we don't succeed to add a new entry to the dictionary.
-						if (!CoinsByOutPoint.TryAdd(outPoint, newCoinSet))
+						if (!SpendersByOutPoint.TryAdd(outPoint, newTxSet))
 						{
-							var previousCoinTxId = CoinsByOutPoint[outPoint].First().TransactionId;
+							var previousCoinTx = SpendersByOutPoint[outPoint].First();
 
 							// Then check if we're in the same transaction as the previous coins in the dictionary are.
-							if (coin.TransactionId == previousCoinTxId)
+							if (tx == previousCoinTx)
 							{
 								// If we are in the same transaction, then just add it to value set.
-								CoinsByOutPoint[outPoint].Add(coin);
+								SpendersByOutPoint[outPoint].Add(tx);
 							}
 							else
 							{
 								// If we aren't in the same transaction, then it's a conflict, so replace the old set with the new one.
-								CoinsByOutPoint[outPoint] = newCoinSet;
+								SpendersByOutPoint[outPoint] = newTxSet;
 							}
 						}
 					}
@@ -139,15 +140,15 @@ public class CoinsRegistry : ICoinsView
 			var removedCoinOutPoint = toRemove.Outpoint;
 
 			// If we can find it in our outpoint to coins cache.
-			if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+			if (TryGetSpendersByOutPointNoLock(removedCoinOutPoint, out var spenders))
 			{
 				// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
-				foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
+				foreach (var coinByOutPoint in spenders.Where(x => x == toRemove.Transaction))
 				{
 					// Remove the coin from the set, and if the set becomes empty as a consequence remove the key too.
-					if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
+					if (SpendersByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !SpendersByOutPoint[removedCoinOutPoint].Any())
 					{
-						CoinsByOutPoint.Remove(removedCoinOutPoint);
+						SpendersByOutPoint.Remove(removedCoinOutPoint);
 					}
 				}
 			}
@@ -198,17 +199,17 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	public bool TryGetSpendersByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartTransaction>? spenders)
 	{
 		lock (Lock)
 		{
-			return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins);
+			return TryGetSpendersByOutPointNoLock(outPoint, out spenders);
 		}
 	}
 
-	private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	private bool TryGetSpendersByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartTransaction>? spenders)
 	{
-		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
+		return SpendersByOutPoint.TryGetValue(outPoint, out spenders);
 	}
 
 	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
