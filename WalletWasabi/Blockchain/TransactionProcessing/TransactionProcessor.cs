@@ -314,8 +314,8 @@ public class TransactionProcessor
 	{
 		IEnumerable<IGrouping<HdPubKey, SmartCoin>> grouping = myInputs
 			.Where(c => c.HdPubKey.IsInternal) // Only internal ones.
-			.Where(c => c.IsSpent()) // Only spent coins.
-			.GroupBy(x => x.HdPubKey);
+			.GroupBy(x => x.HdPubKey)
+			.Where(group => group.All(x => x.IsSpent())); // No unspent coins remaining.
 
 		foreach (IGrouping<HdPubKey, SmartCoin> group in grouping)
 		{
