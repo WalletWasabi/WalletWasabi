@@ -41,7 +41,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(realWallet.GetAllCoins());
@@ -81,7 +81,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		var coins = realWallet.Coins;
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
@@ -132,7 +132,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(realWallet.Coins.Available());
@@ -171,7 +171,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Equal(3, realWallet.GetAllCoins().Count());
