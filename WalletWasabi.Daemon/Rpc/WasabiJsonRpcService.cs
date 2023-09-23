@@ -254,44 +254,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("excludefromcoinjoin")]
-	public IEnumerable<OutPoint> ExcludeFromCoinjoin(bool exclude, string? password = null, OutPoint[]? outPoints = null, string[]? labels = null)
+	public IEnumerable<OutPoint> ExcludeCoinsFromCoinjoin(IEnumerable<OutPoint> outPoints, bool exclude = true, string? password = null)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 
-		var updatedCoinsOutPoints = new List<OutPoint>();
-		foreach (var coin in activeWallet.GetAllCoins())
-		{
-			if (outPoints is not null && outPoints.Contains(coin.Outpoint))
-			{
-				coin.IsExcludedFromCoinJoin = exclude;
-				updatedCoinsOutPoints.Add(coin.Outpoint);
-				continue;
-			}
-
-			if (labels is null)
-			{
-				continue;
-			}
-
-			var coinLabels = coin.Transaction.Labels;
-			if (coin.SpenderTransaction is not null)
-			{
-				coinLabels = LabelsArray.Merge(coinLabels, coin.SpenderTransaction.Labels);
-			}
-
-			if (!coinLabels.Any(labels.Contains))
-			{
-				continue;
-			}
-
-			coin.IsExcludedFromCoinJoin = exclude;
-			updatedCoinsOutPoints.Add(coin.Outpoint);
-		}
-
-		return updatedCoinsOutPoints;
+		return activeWallet.ExcludeCoinsFromCoinjoin(outPoints.ToList(), exclude);
 	}
 
 	[JsonRpcMethod("listkeys")]

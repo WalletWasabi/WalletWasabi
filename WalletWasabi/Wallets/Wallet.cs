@@ -510,7 +510,29 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public void UpdateExcludedCoinFromCoinJoin()
+	public IEnumerable<OutPoint> ExcludeCoinsFromCoinjoin(List<OutPoint> outPointsToUpdate, bool exclude = true)
+	{
+		var updatedCoinsOutPoints = new List<OutPoint>();
+		foreach (var coin in GetAllCoins())
+		{
+			if (!outPointsToUpdate.Contains(coin.Outpoint))
+			{
+				continue;
+			}
+
+			coin.IsExcludedFromCoinJoin = exclude;
+			updatedCoinsOutPoints.Add(coin.Outpoint);
+		}
+
+		if (updatedCoinsOutPoints.Any())
+		{
+			UpdateExcludedCoinFromCoinJoin();
+		}
+
+		return updatedCoinsOutPoints;
+	}
+
+	private void UpdateExcludedCoinFromCoinJoin()
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
