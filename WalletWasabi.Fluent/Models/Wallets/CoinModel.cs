@@ -26,7 +26,7 @@ public partial class CoinModel : ReactiveObject
 		Amount = coin.Amount;
 		IsConfirmed = coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
-		AnonimitySet = (int)coin.AnonymitySet;
+		AnonScore = (int)coin.AnonymitySet;
 		Labels = coin.GetLabels(wallet.AnonScoreTarget);
 		Key = coin.Outpoint.GetHashCode();
 
@@ -51,7 +51,7 @@ public partial class CoinModel : ReactiveObject
 
 	public int Confirmations { get; }
 
-	public int AnonimitySet { get; }
+	public int AnonScore { get; }
 
 	public LabelsArray Labels { get; }
 
