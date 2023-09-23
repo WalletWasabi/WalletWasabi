@@ -21,7 +21,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		: base(orderIndex, transactionSummary)
 	{
 		Labels = transactionSummary.Labels;
-		Date = transactionSummary.DateTime.ToLocalTime();
+		Date = transactionSummary.FirstSeen.ToLocalTime();
 		Balance = balance;
 		WalletVm = walletVm;
 
@@ -30,7 +30,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IsCPFP = transactionSummary.IsCPFP;
 		IsCPFPd = transactionSummary.IsCPFPd;
 
-		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
+		SetAmount(transactionSummary.Amount, transactionSummary.GetFee());
 
 		DateString = Date.ToLocalTime().ToUserFacingString();
 

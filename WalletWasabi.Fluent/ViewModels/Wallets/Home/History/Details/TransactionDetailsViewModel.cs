@@ -38,9 +38,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = transactionSummary.Fee;
-		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
+		Fee = transactionSummary.GetFee();
+		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
+		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -55,7 +55,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
+		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.GetHash().ToString();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
@@ -71,7 +71,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.Amount < Money.Zero)
 		{
-			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
+			Amount = -transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero);
 			AmountText = "Outgoing";
 		}
 		else
@@ -107,6 +107,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		{
 			return;
 		}
+
+		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_walletVm.Wallet));
 
 		var currentTransaction = await _wallet.Transactions.GetById(TransactionId);
 
