@@ -2,7 +2,7 @@
 
 ## How to be useful for the project
 
-- Issues labelled as [good first issue](https://github.com/zkSNACKs/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are a good way to start contributing to Wasabi.
+- Any issue labelled as [good first issue](https://github.com/zkSNACKs/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is good to start contributing to Wasabi.
 - Always focus on a specific issue in your pull request and avoid unrelated/unnecessary changes.
 - Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
 - Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting such as [Extend Wallet Settings #11519](https://github.com/zkSNACKs/WalletWasabi/issues/11519).
