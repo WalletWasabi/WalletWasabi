@@ -515,7 +515,7 @@ public class Wallet : BackgroundService, IWallet
 		var updatedCoinsOutPoints = new List<OutPoint>();
 		foreach (var coin in GetAllCoins())
 		{
-			if (!outPointsToUpdate.Contains(coin.Outpoint))
+			if (!outPointsToUpdate.Contains(coin.Outpoint) || coin.IsExcludedFromCoinJoin == exclude)
 			{
 				continue;
 			}
