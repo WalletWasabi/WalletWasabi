@@ -144,8 +144,7 @@ public class TransactionProcessor
 			result = new ProcessedResult(tx);
 		}
 
-		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
-		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
+		if (!tx.Transaction.IsCoinBase && !Coins.IsKnown(txId)) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpentSpenders = new List<SmartCoin>();
 			var doubleSpentCoins = new List<SmartCoin>();
@@ -204,10 +203,10 @@ public class TransactionProcessor
 					}
 					else
 					{
-						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-						foreach (SmartCoin doubleSpentCoin in doubleSpentSpenders)
+						// remove double spent spenders recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
+						foreach (var doubleSpentTxid in doubleSpentSpenders.Select(x => x.TransactionId).Distinct())
 						{
-							Coins.Remove(doubleSpentCoin);
+							Coins.Undo(doubleSpentTxid);
 						}
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
@@ -227,7 +226,7 @@ public class TransactionProcessor
 			}
 		}
 
-		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
+		var myInputs = Coins.GetMyInputs(tx).ToArray();
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:

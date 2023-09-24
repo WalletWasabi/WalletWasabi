@@ -1,4 +1,7 @@
 using DynamicData;
+using NBitcoin;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -8,4 +11,8 @@ public static class WalletModelExtensions
 		wallet.Addresses
 			.AutoRefresh(x => x.IsUsed)
 			.Filter(x => !x.IsUsed);
+
+	public static Money TotalAmount(this IEnumerable<ICoinModel> coins) => coins.Sum(x => x.Amount);
+
+	public static decimal TotalBtcAmount(this IEnumerable<ICoinModel> coins) => coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
 }

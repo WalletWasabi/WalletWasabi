@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,6 +52,11 @@ public class TransactionFactoryTests
 
 		// The transaction cost is higher than the intended payment.
 		Assert.Throws<TransactionFeeOverpaymentException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(50m)));
+
+		// self spend case
+		var ownKey = transactionFactory.KeyManager.GetNextReceiveKey("Alice");
+		var selfSpendPayment = new PaymentIntent(ownKey.GetAddress(transactionFactory.Network), MoneyRequest.CreateAllRemaining(subtractFee: true));
+		Assert.Throws<TransactionFeeOverpaymentException>(() => transactionFactory.BuildTransaction(selfSpendPayment, new FeeRate(50m)));
 	}
 
 	[Fact]

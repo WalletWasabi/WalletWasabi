@@ -10,18 +10,11 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionHistoryBuilder
 {
-	public TransactionHistoryBuilder(Wallet wallet)
-	{
-		Wallet = wallet;
-	}
-
-	private Wallet Wallet { get; }
-
-	public List<TransactionSummary> BuildHistorySummary()
+	public static List<TransactionSummary> BuildHistorySummary(Wallet wallet)
 	{
 		var txRecordList = new List<TransactionSummary>();
 
-		foreach (SmartCoin coin in Wallet.GetAllCoins())
+		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
 			var containingTransaction = coin.Transaction;
 
