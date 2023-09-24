@@ -104,5 +104,3 @@ public partial class TransactionBroadcasterModel
 		return Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 	}
 }
-
-public record TransactionBroadcastInfo(string TransactionId, int InputCount, int OutputCount, string InputAmoutString, string OutputAmountString, string FeeString);
