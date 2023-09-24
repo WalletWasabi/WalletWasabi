@@ -7,13 +7,12 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -24,7 +23,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isMnemonicsValid;
 	private Mnemonic? _currentMnemonics;
 
-	private VerifyRecoveryWordsViewModel(Wallet wallet)
+	private VerifyRecoveryWordsViewModel(IWalletModel wallet)
 	{
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -57,7 +56,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			"The Recovery Words you entered were incorrect.");
 	}
 
-	private async Task OnNextAsync(Wallet wallet)
+	private async Task OnNextAsync(IWalletModel wallet)
 	{
 		try
 		{
@@ -69,18 +68,8 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				return;
 			}
 
-			var saltSoup = wallet.Kitchen.SaltSoup();
-
-			var recovered = KeyManager.Recover(
-				currentMnemonics,
-				saltSoup,
-				wallet.Network,
-				wallet.KeyManager.SegwitAccountKeyPath,
-				null,
-				null,
-				wallet.KeyManager.MinGapLimit);
-
-			if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
+			var verificationResult = wallet.Auth.VerifyRecoveryWords(currentMnemonics);
+			if (verificationResult)
 			{
 				Navigate().To().Success("Your Recovery Words have been verified and are correct.", navigationMode: NavigationMode.Clear);
 			}

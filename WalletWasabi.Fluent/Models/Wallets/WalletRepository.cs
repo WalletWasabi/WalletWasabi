@@ -94,7 +94,7 @@ public partial class WalletRepository : ReactiveObject
 						Services.WalletManager.WalletDirectories.WalletsDir,
 						Services.WalletManager.Network)
 					{
-						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
+						TipHeight = Services.SmartHeaderChain.TipHeight
 					};
 					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
 				});
