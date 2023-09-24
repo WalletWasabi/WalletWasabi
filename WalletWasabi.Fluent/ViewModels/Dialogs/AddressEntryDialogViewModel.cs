@@ -1,7 +1,5 @@
-using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
-using NBitcoin.Payment;
 using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -41,14 +39,13 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<Bip21UriP
 			.Subscribe(ParseToField);
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 		QrCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			ShowQrCameraDialogViewModel dialog = new(UiContext, _network);
-			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
-			if (!string.IsNullOrWhiteSpace(result.Result))
+			var result = await Navigate().To().ShowQrCameraDialog(network).GetResultAsync();
+			if (!string.IsNullOrWhiteSpace(result))
 			{
-				To = result.Result;
+				To = result;
 			}
 		});
 
@@ -91,7 +88,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<Bip21UriP
 
 	private async Task OnAutoPasteAsync()
 	{
-		var isAutoPasteEnabled = Services.UiConfig.AutoPaste;
+		var isAutoPasteEnabled = UiContext.ApplicationSettings.AutoPaste;
 
 		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
 		{
@@ -101,19 +98,16 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<Bip21UriP
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		if (Application.Current is { Clipboard: { } clipboard })
+		var text = await UiContext.Clipboard.GetTextAsync();
+
+		_parsingUrl = true;
+
+		if (!TryParseUrl(text) && pasteIfInvalid)
 		{
-			var text = await clipboard.GetTextAsync();
-
-			_parsingUrl = true;
-
-			if (!TryParseUrl(text) && pasteIfInvalid)
-			{
-				To = text;
-			}
-
-			_parsingUrl = false;
+			To = text;
 		}
+
+		_parsingUrl = false;
 	}
 
 	private bool TryParseUrl(string? text)
@@ -127,7 +121,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<Bip21UriP
 		{
 			_resultToReturn = result;
 
-			_payJoinUrlFound = result.UnknownParameters.TryGetValue("pj", out _);
+			_payJoinUrlFound = result.PayJoinUrlFound;
 
 			if (result.Address is { })
 			{
