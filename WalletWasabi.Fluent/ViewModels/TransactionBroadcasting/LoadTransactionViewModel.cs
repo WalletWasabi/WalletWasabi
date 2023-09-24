@@ -35,6 +35,10 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
 	}
 
+	public ICommand PasteCommand { get; }
+
+	public ICommand ImportTransactionCommand { get; }
+
 	private async Task OnImportTransactionAsync()
 	{
 		try
@@ -71,8 +75,4 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
 		}
 	}
-
-	public ICommand PasteCommand { get; }
-
-	public ICommand ImportTransactionCommand { get; }
 }
