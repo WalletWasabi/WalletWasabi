@@ -41,11 +41,6 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	public IObservable<IChangeSet<TransactionSummary, uint256>> List { get; }
 
-	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
-	{
-		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_wallet.KeyManager, transactionInfo, _wallet.Coins, coins, _wallet.Kitchen.SaltSoup(), out _);
-	}
-
 	public async Task<TransactionSummary?> GetById(string transactionId)
 	{
 		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_wallet));

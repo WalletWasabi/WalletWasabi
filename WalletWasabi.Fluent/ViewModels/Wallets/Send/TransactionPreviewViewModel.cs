@@ -17,6 +17,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -218,19 +219,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnChangeCoinsAsync()
 	{
-		var selectedCoins = (Transaction?.SpentCoins ?? new List<SmartCoin>()).ToList();
+		var currentCoins = _walletViewModel.WalletModel.Coins.GetSpentCoins(Transaction);
 
-		var selectCoinsDialog =
-			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel.WalletModel, selectedCoins, _info));
+		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletViewModel.WalletModel, currentCoins, _info).GetResultAsync();
 
-		if (selectCoinsDialog.Kind == DialogResultKind.Normal && selectCoinsDialog.Result is { })
+		if (selectedCoins is { })
 		{
-			if (selectedCoins.ToHashSet().SetEquals(selectCoinsDialog.Result))
+			if (currentCoins.GetSmartCoins().ToHashSet().SetEquals(selectedCoins))
 			{
 				return;
 			}
 
-			_info.Coins = selectCoinsDialog.Result;
+			_info.Coins = selectedCoins;
 			await BuildAndUpdateAsync();
 		}
 	}
