@@ -23,7 +23,7 @@ public partial class WalletCoinsModel
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
 		var signals =
 			transactionProcessed.Merge(anonScoreTargetChanged)
-								.StartWith(Unit.Default);
+				.StartWith(Unit.Default);
 
 		List = signals.ProjectList(GetCoins, x => x.Key);
 		Pockets = signals.ProjectList(GetPockets, x => x.Labels);
