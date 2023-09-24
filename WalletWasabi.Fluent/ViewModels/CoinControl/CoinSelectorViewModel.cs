@@ -9,7 +9,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -65,18 +64,18 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		wallet.Coins.Pockets
 					.ToCollection()
-			  .WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-			  .Do(
-				tuple =>
-				{
-					var (pockets, sl) = tuple;
-					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldExpandedItemsLabel);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
+					.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
+					.Do(
+						tuple =>
+						{
+							var (pockets, sl) = tuple;
+							var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+							RefreshFromPockets(sourceItems, pockets);
+							UpdateSelection(coinItemsCollection, sl.ToList());
+							RestoreExpandedRows(oldExpandedItemsLabel);
+						})
+					.Subscribe()
+					.DisposeWith(_disposables);
 
 		// Project selected coins to public property. Throttle for improved UI performance
 		selectedCoins
