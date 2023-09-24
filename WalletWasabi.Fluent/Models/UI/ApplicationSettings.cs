@@ -136,7 +136,7 @@ public partial class ApplicationSettings : ReactiveObject
 			.Subscribe();
 	}
 
-	public bool IsOverridden => GetIsOverridden();
+	public bool IsOverridden => _config.IsOverridden;
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 
@@ -215,15 +215,5 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
 		_uiConfig.PrivacyMode = PrivacyMode;
-	}
-
-	private bool GetIsOverridden()
-	{
-		if (_persistentConfig.Network != _config.Network)
-		{
-			return true;
-		}
-
-		return false;
 	}
 }
