@@ -20,19 +20,10 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> OutpointCoinCache { get; } = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private bool InvalidateSnapshot { get; set; }
-
 	private object Lock { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> SpentCoins { get; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
@@ -45,26 +36,12 @@ public class CoinsRegistry : ICoinsView
 
 	private CoinsView AsCoinsViewNoLock()
 	{
-		if (InvalidateSnapshot)
-		{
-			LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
-			InvalidateSnapshot = false;
-		}
-
-		return new CoinsView(LatestCoinsSnapshot);
+		return new CoinsView(Coins.ToList());
 	}
 
 	private CoinsView AsSpentCoinsViewNoLock()
 	{
-		if (InvalidateSnapshot)
-		{
-			LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
-			InvalidateSnapshot = false;
-		}
-
-		return new CoinsView(LatestSpentCoinsSnapshot);
+		return new CoinsView(SpentCoins.ToList());
 	}
 
 	private CoinsView AsCoinsView()
@@ -128,8 +105,6 @@ public class CoinsRegistry : ICoinsView
 							}
 						}
 					}
-
-					InvalidateSnapshot = true;
 				}
 			}
 		}
@@ -178,20 +153,17 @@ public class CoinsRegistry : ICoinsView
 			}
 		}
 
-		InvalidateSnapshot = true;
 		return coinsToRemove;
 	}
 
 	public void Spend(SmartCoin spentCoin, SmartTransaction tx)
 	{
 		tx.TryAddWalletInput(spentCoin);
-		spentCoin.SpenderTransaction = tx;
-
 		lock (Lock)
 		{
+			spentCoin.SpenderTransaction = tx;
 			if (Coins.Remove(spentCoin))
 			{
-				InvalidateSnapshot = true;
 				if (SpentCoins.Add(spentCoin))
 				{
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
@@ -272,8 +244,6 @@ public class CoinsRegistry : ICoinsView
 
 			KnownTransactions.Remove(txId);
 
-			InvalidateSnapshot = true;
-
 			return (new CoinsView(toRemove), new CoinsView(toAdd));
 		}
 	}
@@ -319,7 +289,7 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
+	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()));
 
 	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
