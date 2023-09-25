@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 
@@ -38,6 +39,9 @@ public class CoinsRegistry : ICoinsView
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -91,7 +95,15 @@ public class CoinsRegistry : ICoinsView
 				added = Coins.Add(coin);
 				KnownTransactions.Add(coin.TransactionId);
 				OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
-				coin.RegisterToHdPubKey();
+
+				if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
+				{
+					coinsOfPubKey = new();
+					CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
+				}
+
+				coinsOfPubKey.Add(coin);
+
 				if (added)
 				{
 					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
@@ -138,11 +150,18 @@ public class CoinsRegistry : ICoinsView
 				}
 			}
 
-			toRemove.UnregisterFromHdPubKey();
-
 			var removedCoinOutPoint = toRemove.Outpoint;
-
 			OutpointCoinCache.Remove(removedCoinOutPoint);
+
+			if (CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
+			{
+				coinsOfPubKey.Remove(coin);
+
+				if (coinsOfPubKey.Count == 0)
+				{
+					CoinsByPubKeys.Remove(coin.HdPubKey);
+				}
+			}
 
 			// If we can find it in our outpoint to coins cache.
 			if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
@@ -275,6 +294,20 @@ public class CoinsRegistry : ICoinsView
 		}
 
 		return myInputs;
+	}
+
+	/// <returns><c>true</c> if the coin registry contains at least one unspent coin with <paramref name="hdPubKey"/>, <c>false</c> otherwise.</returns>
+	public bool HasUnspentCoin(HdPubKey hdPubKey)
+	{
+		lock (Lock)
+		{
+			if (CoinsByPubKeys.TryGetValue(hdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
+			{
+				return coinsOfPubKey.Any(coin => !coin.IsSpent());
+			}
+
+			return false;
+		}
 	}
 
 	public ICoinsView AsAllCoinsView()

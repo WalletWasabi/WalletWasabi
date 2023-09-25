@@ -285,11 +285,11 @@ public class TransactionProcessor
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
 
-	private static void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
+	private void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
 	{
 		foreach (var spenderKey in internalKeys)
 		{
-			if (spenderKey.Coins.Any(x => !x.IsSpent()))
+			if (Coins.HasUnspentCoin(spenderKey))
 			{
 				// The key still has unspent coins.
 				continue;

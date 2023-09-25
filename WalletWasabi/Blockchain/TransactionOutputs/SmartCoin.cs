@@ -4,9 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Models;
 using WalletWasabi.Extensions;
-using System.Linq;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -136,12 +135,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <returns>False if external, or the tx inputs are all external.</returns>
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
-
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
 
 	public bool IsImmature(int bestHeight)
 	{

@@ -18,10 +18,13 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
+/// <summary>
+/// Tests for <see cref="TransactionProcessor"/>.
+/// </summary>
 public class TransactionProcessorTests
 {
 	[Fact]
-	public async Task TransactionDoesNotCointainCoinsForTheWalletAsync()
+	public async Task TransactionDoesNotContainCoinsForTheWalletAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
@@ -174,9 +177,9 @@ public class TransactionProcessorTests
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
-		// An unconfirmed segwit transaction for us
 		var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
 
+		// An unconfirmed segwit transaction for us
 		var tx = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
 		transactionProcessor.Process(tx);
 
@@ -201,6 +204,38 @@ public class TransactionProcessorTests
 		coin = Assert.Single(transactionProcessor.Coins);
 		Assert.Equal(blockHeight, coin.Height);
 		Assert.True(coin.Confirmed);
+	}
+
+	/// <summary>
+	/// Make sure that coins with <see cref="HdPubKey"/>s are tracked and that we track latest spending heights for <see cref="HdPubKey"/>s as well.
+	/// </summary>
+	[Fact]
+	public async Task RememberLatestSpendingHeightAsync()
+	{
+		// --tx0---> (A) ----tx1----> (pay to B)
+
+		await using AllTransactionStore txStore = await CreateTransactionStoreAsync();
+		TransactionProcessor transactionProcessor = CreateTransactionProcessor(txStore);
+		HdPubKey hdPubKey = transactionProcessor.NewKey("A");
+
+		Assert.False(transactionProcessor.Coins.HasUnspentCoin(hdPubKey));
+
+		SmartTransaction tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m), height: 54321);
+		transactionProcessor.Process(tx0);
+
+		Assert.True(transactionProcessor.Coins.HasUnspentCoin(hdPubKey));
+		Assert.Null(hdPubKey.LatestSpendingHeight);
+
+		SmartCoin coinA = Assert.Single(transactionProcessor.Coins);
+		Script changeScript = transactionProcessor.NewKey("B").P2wpkhScript;
+
+		using Key key = new();
+		SmartTransaction tx1 = CreateSpendingTransaction(new[] { coinA.Coin }, key.PubKey.ScriptPubKey, changeScript, height: 55555);
+		transactionProcessor.Process(tx1);
+
+		SmartCoin changeCoinB = Assert.Single(transactionProcessor.Coins);
+		Assert.False(transactionProcessor.Coins.HasUnspentCoin(hdPubKey));
+		Assert.Equal(new Height(55555), hdPubKey.LatestSpendingHeight);
 	}
 
 	[Fact]
@@ -246,10 +281,10 @@ public class TransactionProcessorTests
 		int doubleSpendReceived = 0;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			var doubleSpents = e.SuccessfullyDoubleSpentCoins;
-			if (doubleSpents.Any())
+			var doubleSpends = e.SuccessfullyDoubleSpentCoins;
+			if (doubleSpends.Any())
 			{
-				var coin = Assert.Single(doubleSpents);
+				var coin = Assert.Single(doubleSpends);
 
 				// Double spend to ourselves but to a different address. So checking the address.
 				Assert.Equal(keys[1].GetAssumedScriptPubKey(), coin.ScriptPubKey);
