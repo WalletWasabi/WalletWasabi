@@ -234,6 +234,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				if (SpentCoins.Remove(destroyedCoin))
 				{
+					destroyedCoin.SpenderTransaction = null;
 					SpentCoinsByOutPoint.Remove(destroyedCoin.Outpoint);
 					Coins.Add(destroyedCoin);
 					toAdd.Add(destroyedCoin);
