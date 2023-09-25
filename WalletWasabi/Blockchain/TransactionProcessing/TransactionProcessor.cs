@@ -150,9 +150,9 @@ public class TransactionProcessor
 			var doubleSpentCoins = new List<SmartCoin>();
 			foreach (var txIn in tx.Transaction.Inputs)
 			{
-				if (Coins.TryGetSpendersByOutPoint(txIn.PrevOut, out var spenders))
+				if (Coins.TryGetSpenderByOutPoint(txIn.PrevOut, out var spender))
 				{
-					doubleSpentSpenders.AddRange(spenders);
+					doubleSpentSpenders.Add(spender);
 				}
 				if (Coins.TryGetSpentCoinByOutPoint(txIn.PrevOut, out var spentCoin))
 				{
