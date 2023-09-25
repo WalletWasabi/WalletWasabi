@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -41,7 +40,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(realWallet.GetAllCoins());
@@ -81,7 +80,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		var coins = realWallet.Coins;
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
@@ -132,7 +131,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Single(realWallet.Coins.Available());
@@ -159,10 +158,10 @@ public class WalletSynchronizationTests
 		var walletExternalKeyScript = wallet.GetNextDestination();
 
 		// First receive.
-		await SendToAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, node);
+		await SendToAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, node, testDeadlineCts.Token);
 
 		// Send the money away.
-		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, node);
+		await SendToAsync(wallet, minerWallet, Money.Coins(1), minerFirstKeyScript, node, testDeadlineCts.Token);
 
 		// Reuse internal key + receive a standard TX in the same block.
 		await SendToMempoolAsync(minerWallet, wallet, Money.Coins(1), firstInternalKeyScript, testDeadlineCts.Token);
@@ -171,7 +170,7 @@ public class WalletSynchronizationTests
 
 		await using var builder = new WalletBuilder(node);
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
-		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token).ConfigureAwait(false);
+		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		await realWallet.PerformSynchronizationAsync(SyncType.Turbo, testDeadlineCts.Token);
 		Assert.Equal(3, realWallet.GetAllCoins().Count());
@@ -180,13 +179,13 @@ public class WalletSynchronizationTests
 		Assert.Equal(3, realWallet.GetAllCoins().Count());
 	}
 
-	private async Task SendToAsync(TestWallet spendingWallet, TestWallet receivingWallet, Money amount, IDestination destination, MockNode node, CancellationToken cancel = default)
+	private async Task SendToAsync(TestWallet spendingWallet, TestWallet receivingWallet, Money amount, IDestination destination, MockNode node, CancellationToken cancel)
 	{
 		await SendToMempoolAsync(spendingWallet, receivingWallet, amount, destination, cancel).ConfigureAwait(false);
 		await node.GenerateBlockAsync(cancel).ConfigureAwait(false);
 	}
 
-	private async Task SendToMempoolAsync(TestWallet spendingWallet, TestWallet receivingWallet, Money amount, IDestination destination, CancellationToken cancel = default)
+	private async Task SendToMempoolAsync(TestWallet spendingWallet, TestWallet receivingWallet, Money amount, IDestination destination, CancellationToken cancel)
 	{
 		var tx = await spendingWallet.SendToAsync(amount, destination.ScriptPubKey, FeeRate.Zero, cancel).ConfigureAwait(false);
 		receivingWallet.ScanTransaction(tx);
