@@ -31,21 +31,21 @@ public class TransactionProcessor
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	private static object Lock { get; } = new object();
+	private static object Lock { get; } = new();
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
 
 	public KeyManager KeyManager { get; }
 
 	public CoinsRegistry Coins { get; }
-	public BlockchainAnalyzer BlockchainAnalyzer { get; }
+	private BlockchainAnalyzer BlockchainAnalyzer { get; }
 	public Money DustThreshold { get; }
 
 	#region Progress
 
-	public int QueuedTxCount { get; private set; }
-	public int QueuedProcessedTxCount { get; private set; }
-	public MempoolService? MempoolService { get; }
+	private int QueuedTxCount { get; set; }
+	private int QueuedProcessedTxCount { get; set; }
+	private MempoolService? MempoolService { get; }
 
 	#endregion Progress
 
