@@ -5,9 +5,10 @@
 - Any issue labelled as [good first issue](https://github.com/zkSNACKs/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is good to start contributing to Wasabi.
 - Always focus on a specific issue in your pull request and avoid unrelated/unnecessary changes.
 - Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
-- Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting such as [Extend Wallet Settings #11519](https://github.com/zkSNACKs/WalletWasabi/issues/11519).
+- Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting.
 - Consider filing a new issue or explaining in an opened issue the change that you want to make, and wait for concept ACKs to work on the implementation.
-- For backend, the columns `Will Do` of the [Relevance Realization Table](https://github.com/orgs/zkSNACKs/projects/18/views/31) is a buffet that you can choose from. You can assign yourself to an issue or just make the pull request.
+- For backend, the [Relevance Realization Buffet](https://github.com/orgs/zkSNACKs/projects/18/views/48) view is a list of tasks that has to be investigated or tackled. You can assign yourself to an issue or just make the pull request.
+- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors.
 
 ## Automatic code clean up
 
