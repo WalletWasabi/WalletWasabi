@@ -226,7 +226,7 @@ public class TransactionProcessor
 			}
 		}
 
-		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
+		var myInputs = Coins.GetMyInputs(tx).ToArray();
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
