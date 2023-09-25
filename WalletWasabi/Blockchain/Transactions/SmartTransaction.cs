@@ -276,22 +276,22 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	public bool IsCpfpable(KeyManager keyManager) =>
-		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watchonly and hardware wallets are problematic. It remains a ToDo for the future.
-		&& !Confirmed // [Impossiblility] We can only speed up unconfirmed transactions.
-		&& GetWalletOutputs(keyManager).Any(x => !x.IsSpent()); // [Impossiblility] If I have an unspent wallet output, then we can CPFP it.
+		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watch-only and hardware wallets are problematic. It remains a ToDo for the future.
+		&& !Confirmed // [Impossibility] We can only speed up unconfirmed transactions.
+		&& GetWalletOutputs(keyManager).Any(x => !x.IsSpent()); // [Impossibility] If I have an unspent wallet output, then we can CPFP it.
 
 	public bool IsRbfable(KeyManager keyManager) =>
-		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watchonly and hardware wallets are problematic. It remains a ToDo for the future.
-		&& !Confirmed // [Impossiblility] We can only speed up unconfirmed transactions.
-		&& IsRBF // [Impossiblility] Otherwise it must signal RBF.
-		&& !GetForeignInputs(keyManager).Any() // [Impossiblility] Must not have foreign inputs, otherwise we couldn't do RBF.
+		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watch-only and hardware wallets are problematic. It remains a ToDo for the future.
+		&& !Confirmed // [Impossibility] We can only speed up unconfirmed transactions.
+		&& IsRBF // [Impossibility] Otherwise it must signal RBF.
+		&& !GetForeignInputs(keyManager).Any() // [Impossibility] Must not have foreign inputs, otherwise we couldn't do RBF.
 		&& WalletOutputs.All(x => !x.IsSpent()); // [Dangerous] All the outputs we know of should not be spent, otherwise we shouldn't do RBF.
 
 	public bool IsSpeedupable(KeyManager keyManager) =>
-		IsCpfpable(keyManager) || IsRbfable(keyManager) || ChildrenPayForThisTx.Any(x => x.IsSpeedupable(keyManager)); // [Impossiblility] We can only speed up if we can either CPFP or RBF or a child is speedupable.
+		IsCpfpable(keyManager) || IsRbfable(keyManager) || ChildrenPayForThisTx.Any(x => x.IsSpeedupable(keyManager)); // [Impossibility] We can only speed up if we can either CPFP or RBF or a child is speedupable.
 
 	public bool IsCancellable(KeyManager keyManager) =>
-		IsRbfable(keyManager) // [Impossiblility] We can only cancel with RBF.
+		IsRbfable(keyManager) // [Impossibility] We can only cancel with RBF.
 		&& GetForeignOutputs(keyManager).Any() // [Nonsensical] Cancellation of a transaction in which only we have outputs in, is non-sensical.
 		&& !IsCancellation; // [Nonsensical] It is non-sensical to cancel a cancellation transaction.
 
