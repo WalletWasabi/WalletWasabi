@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletCoinsModel
 {
 	private readonly Wallet _wallet;
+	private readonly IObservable<Unit> _signals;
 
 	public WalletCoinsModel(Wallet wallet, IWalletModel walletModel)
 	{
@@ -21,18 +22,15 @@ public partial class WalletCoinsModel
 
 		var transactionProcessed = walletModel.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
-		var signals =
+		_signals =
 			transactionProcessed.Merge(anonScoreTargetChanged)
 				.StartWith(Unit.Default);
-
-		List = signals.ProjectList(GetCoins, x => x.Key);
-		Pockets = signals.ProjectList(GetPockets, x => x.Labels);
 	}
 
-	public IObservable<IChangeSet<ICoinModel, int>> List { get; }
+	public IObservable<IChangeSet<ICoinModel, int>> List => _signals.ProjectList(GetCoins, x => x.Key);
 
-	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets { get; }
-
+	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets => _signals.ProjectList(GetPockets, x => x.Labels);
+	
 	private Pocket[] GetPockets()
 	{
 		return _wallet.GetPockets().ToArray();

@@ -44,7 +44,14 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		});
 
 		Update();
+
+		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
+
+	public TimeSpan? ConfirmationTime { get; set; }
+
+	public bool IsConfirmationTimeVisible { get; set; }
 
 	public ICommand CopyCommand { get; }
 
