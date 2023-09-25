@@ -34,9 +34,6 @@ public class CoinsRegistry : ICoinsView
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, SmartTransaction> SpendersByOutPoint { get; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
@@ -89,20 +86,12 @@ public class CoinsRegistry : ICoinsView
 			if (!SpentCoins.Contains(coin))
 			{
 				added = Coins.Add(coin);
-				KnownTransactions.Add(coin.TransactionId);
-				OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
-				coin.RegisterToHdPubKey();
 				if (added)
 				{
-					var tx = coin.Transaction;
-					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
-					{
-						// If we don't succeed to add a new entry to the dictionary.
-						if (!SpendersByOutPoint.TryAdd(outPoint, tx))
-						{
-							SpendersByOutPoint[outPoint] = tx;
-						}
-					}
+					coin.RegisterToHdPubKey();
+
+					KnownTransactions.Add(coin.TransactionId);
+					OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
 
 					InvalidateSnapshot = true;
 				}
@@ -128,7 +117,6 @@ public class CoinsRegistry : ICoinsView
 			toRemove.UnregisterFromHdPubKey();
 
 			var removedCoinOutPoint = toRemove.Outpoint;
-			SpendersByOutPoint.Remove(removedCoinOutPoint);
 			OutpointCoinCache.Remove(removedCoinOutPoint);
 		}
 
@@ -181,7 +169,13 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			return SpendersByOutPoint.TryGetValue(outPoint, out spender);
+			spender = null;
+			if (OutpointCoinCache.TryGetValue(outPoint, out var coin))
+			{
+				spender = coin.SpenderTransaction;
+			}
+
+			return spender is not null;
 		}
 	}
 
