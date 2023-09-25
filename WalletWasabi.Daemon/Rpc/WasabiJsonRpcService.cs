@@ -189,14 +189,21 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("getcoinjoinstatus")]
-	public CoinJoinClientState GetCoinjoinStatus()
+	public string GetCoinjoinStatus()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
 		_ = coinJoinManager.TryGetWalletStatus(activeWallet.WalletName, out var walletCoinjoinStatus);
-		return walletCoinjoinStatus ?? CoinJoinClientState.Idle;
+		return walletCoinjoinStatus switch
+		{
+			CoinJoinClientState.Idle => "Idle",
+			CoinJoinClientState.InProgress => "In progress",
+			CoinJoinClientState.InSchedule => "In schedule",
+			CoinJoinClientState.InCriticalPhase => "In critical phase",
+			_ => "Not managed"
+		};
 	}
 
 	[JsonRpcMethod("build")]
