@@ -148,7 +148,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.True(txToCancel.Fee < cancellingTx.Fee);
 			Assert.NotEqual(0, txToCancel.FeePercentOfSent);
-			Assert.Equal(0, cancellingTx.FeePercentOfSent);
+			Assert.Equal(0.00066m, cancellingTx.FeePercentOfSent);
 
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
@@ -210,7 +210,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			Assert.True(txToCancel.Fee < cancellingTx.Fee);
 			Assert.NotEqual(0, txToCancel.FeePercentOfSent);
-			Assert.Equal(0, cancellingTx.FeePercentOfSent);
+			Assert.Equal(0.0004880016104053143375373100m, cancellingTx.FeePercentOfSent);
 
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
