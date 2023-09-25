@@ -93,11 +93,6 @@ public class Prison
 	{
 		var basePunishmentInHours = DoSConfiguration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
 
-		if (CoinJoinIdStore.Contains(offender.OutPoint.Hash))
-		{
-			return TimeSpan.FromHours((double)basePunishmentInHours);
-		}
-
 		List<Offender> offenderHistory;
 		lock (Lock)
 		{
@@ -114,7 +109,12 @@ public class Prison
 				_ => throw new NotSupportedException("Unknown round disruption method.")
 			});
 
-		var prisonTime = basePunishmentInHours * maxOffense * (decimal)Math.Pow(2, offenderHistory.Count - 1);
+		var repetitions = offenderHistory.Count;
+		var repetitionFactor = CoinJoinIdStore.Contains(offender.OutPoint.Hash)
+			? repetitions                   // Linear punishment
+			: Math.Pow(2, repetitions - 1); // Exponential punishment
+
+		var prisonTime = basePunishmentInHours * maxOffense * (decimal)repetitionFactor;
 		return TimeSpan.FromHours((double)prisonTime);
 	}
 

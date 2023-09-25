@@ -49,7 +49,7 @@ public class UtxoPrisonWardenTests
 		var i4 = BitcoinFactory.CreateOutPoint();
 		var i5 = BitcoinFactory.CreateOutPoint();
 		w.Prison.FailedVerification(i1, uint256.One);
-		w.Prison.FailedToConfirm(i2, Money.Coins(0.1m), uint256.One);
+		w.Prison.FailedToConfirm(i2, Money.Coins(0.01m), uint256.One);
 		w.Prison.FailedToSign(i3, Money.Coins(0.1m), uint256.One);
 		w.Prison.DoubleSpent(i4, Money.Coins(0.1m), uint256.One);
 		w.Prison.CheatingDetected(i5, uint256.One);
