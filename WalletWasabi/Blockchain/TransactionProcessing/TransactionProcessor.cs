@@ -40,14 +40,7 @@ public class TransactionProcessor
 	public CoinsRegistry Coins { get; }
 	private BlockchainAnalyzer BlockchainAnalyzer { get; }
 	public Money DustThreshold { get; }
-
-	#region Progress
-
-	private int QueuedTxCount { get; set; }
-	private int QueuedProcessedTxCount { get; set; }
 	private MempoolService? MempoolService { get; }
-
-	#endregion Progress
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
@@ -55,19 +48,9 @@ public class TransactionProcessor
 
 		lock (Lock)
 		{
-			try
+			foreach (var tx in txs)
 			{
-				QueuedTxCount = txs.Count();
-				foreach (var tx in txs)
-				{
-					rets.Add(ProcessNoLock(tx));
-					QueuedProcessedTxCount++;
-				}
-			}
-			finally
-			{
-				QueuedTxCount = 0;
-				QueuedProcessedTxCount = 0;
+				rets.Add(ProcessNoLock(tx));
 			}
 		}
 
@@ -99,15 +82,7 @@ public class TransactionProcessor
 		lock (Lock)
 		{
 			Aware.Add(tx.GetHash());
-			try
-			{
-				QueuedTxCount = 1;
-				ret = ProcessNoLock(tx);
-			}
-			finally
-			{
-				QueuedTxCount = 0;
-			}
+			ret = ProcessNoLock(tx);
 		}
 		if (ret.IsNews)
 		{
