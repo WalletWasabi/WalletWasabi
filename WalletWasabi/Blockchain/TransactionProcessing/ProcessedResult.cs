@@ -68,7 +68,7 @@ public class ProcessedResult
 	public List<SmartCoin> NewlyConfirmedSpentCoins { get; } = new List<SmartCoin>();
 
 	/// <summary>
-	/// Gets the coins that we previously had in the mempool, but this confirmed
+	/// Gets the txs that we previously had in the mempool, but this confirmed
 	/// transaction has successfully invalidated them, because it spends
 	/// some of the same inputs.
 	/// </summary>
