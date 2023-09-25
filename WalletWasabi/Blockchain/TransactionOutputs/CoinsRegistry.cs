@@ -311,6 +311,14 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
+	public bool IsUsed(HdPubKey hdPubKey)
+	{
+		lock (Lock)
+		{
+			return CoinsByPubKeys.TryGetValue(hdPubKey, out _);
+		}
+	}
+
 	public ICoinsView AsAllCoinsView()
 	{
 		lock (Lock)

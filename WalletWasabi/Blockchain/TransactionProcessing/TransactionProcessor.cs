@@ -283,7 +283,7 @@ public class TransactionProcessor
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
-		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
+		&& Coins.IsUsed(hdPubKey); // the destination address has already been used (address reuse)
 
 	private void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
 	{
