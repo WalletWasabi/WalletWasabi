@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -132,7 +130,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!Wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(WalletModel);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
 
 		Tiles = GetTiles().ToList();
 

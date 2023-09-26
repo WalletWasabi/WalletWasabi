@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -30,13 +31,14 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private BtcAmount? _amount;
 
-	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	public TransactionDetailsViewModel(UiContext uiContext, TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
+		UiContext = uiContext;
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = UiContext.CreateAmount(transactionSummary.GetFee());
+		Fee = uiContext.CreateAmount(transactionSummary.GetFee());
 		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
 
@@ -45,7 +47,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(transactionSummary);
 	}
 
-	public BtcAmount Fee { get; set; }
+	public BtcAmount Fee { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 

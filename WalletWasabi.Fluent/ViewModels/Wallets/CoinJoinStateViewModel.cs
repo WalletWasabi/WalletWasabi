@@ -59,7 +59,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public CoinJoinStateViewModel(IWalletModel wallet)
+	private CoinJoinStateViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
 
