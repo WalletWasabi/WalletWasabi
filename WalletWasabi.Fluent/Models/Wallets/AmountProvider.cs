@@ -15,10 +15,10 @@ public class AmountProvider : ReactiveObject, IAmountProvider
 		BtcToUsdExchangeRates = this.WhenAnyValue(provider => provider._synchronizer.UsdExchangeRate);
 	}
 
+	public IObservable<decimal> BtcToUsdExchangeRates { get; }
+
 	public Amount Create(Money? money)
 	{
 		return new Amount(money ?? Money.Zero, this);
 	}
-
-	public IObservable<decimal> BtcToUsdExchangeRates { get; }
 }
