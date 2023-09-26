@@ -387,7 +387,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Script receive2 = keyManager.GetNextReceiveKey("foo").P2wpkhScript;
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
-			// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
+			// New labels will be added to the HdPubKey only when tx will be successfully broadcasted.
 			Assert.Equal("foo, my label", res.HdPubKeysWithNewLabels.Values.Single());
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Equal("foo", res.InnerWalletOutputs.Single().HdPubKey.Labels);
@@ -471,7 +471,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			//// CustomChange
 
 			// covers:
-			// customchange
+			// custom change
 			// feePc > 1
 			var scp1 = CreateSegwitScriptPubKey();
 			var scp2 = CreateSegwitScriptPubKey();

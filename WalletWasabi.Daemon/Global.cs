@@ -171,7 +171,7 @@ public class Global
 
 			try
 			{
-				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
+				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 				var updateChecker = HostedServices.Get<UpdateChecker>();
@@ -185,7 +185,7 @@ public class Global
 
 				try
 				{
-					await bstoreInitTask.ConfigureAwait(false);
+					await bitcoinStoreInitTask.ConfigureAwait(false);
 
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();
