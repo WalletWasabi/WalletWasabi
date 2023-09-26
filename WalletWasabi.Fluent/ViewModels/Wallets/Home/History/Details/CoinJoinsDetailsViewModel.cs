@@ -43,7 +43,14 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		});
 
 		Update();
+
+		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
+
+	public TimeSpan? ConfirmationTime { get; set; }
+
+	public bool IsConfirmationTimeVisible { get; set; }
 
 	public ICommand CopyCommand { get; }
 
@@ -63,7 +70,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		CoinJoinFeeRawString = _coinJoinGroup.OutgoingAmount.ToFeeDisplayUnitRawString();
 		CoinJoinFeeString = _coinJoinGroup.OutgoingAmount.ToFeeDisplayUnitFormattedString();
 
-		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.TransactionId));
+		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.GetHash()));
 		TxCount = TransactionIds.Count;
 	}
 }

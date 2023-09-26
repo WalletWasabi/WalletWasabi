@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -89,6 +90,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return mnemonic.ToString();
 	}
 
+	[JsonRpcMethod("recoverwallet", initializable: false)]
+	public void RecoverWallet(string walletName, string mnemonic, string password = "")
+	{
+		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
+		walletGenerator.TipHeight = 0;
+		var (keyManager, _) = walletGenerator.GenerateWallet(walletName, password, new Mnemonic(mnemonic));
+		Global.WalletManager.AddWallet(keyManager);
+	}
+
 	[JsonRpcMethod("getwalletinfo")]
 	public object WalletInfo()
 	{
@@ -122,7 +132,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 					: accounts,
 			balance = activeWallet.Coins
 						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-						.Sum(c => c.Amount.Satoshi)
+						.Sum(c => c.Amount.Satoshi),
+			anonScoreTarget = activeWallet.AnonScoreTarget
 		};
 	}
 
@@ -218,6 +229,40 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
+	[JsonRpcMethod("canceltransaction")]
+	public string BuildCancelTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var cancellationResult = activeWallet.CancelTransaction(smartTransactionToCancel);
+		var cancellationSmartTransaction = cancellationResult.Transaction;
+		return cancellationSmartTransaction.Transaction.ToHex();
+	}
+
+	[JsonRpcMethod("speeduptransaction")]
+	public string SpeedUpTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var speedUpResult = activeWallet.SpeedUpTransaction(smartTransactionToSpeedUp);
+		var speedUpSmartTransaction = speedUpResult.Transaction;
+		return speedUpSmartTransaction.Transaction.ToHex();
+	}
+
 	[JsonRpcMethod("broadcast", initializable: false)]
 	public async Task<object> SendRawTransactionAsync(string txHex)
 	{
@@ -237,17 +282,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var txHistoryBuilder = new TransactionHistoryBuilder(activeWallet);
-		var summary = txHistoryBuilder.BuildHistorySummary();
+		var summary = TransactionHistoryBuilder.BuildHistorySummary(activeWallet);
 		return summary.Select(
 			x => new
 			{
-				datetime = x.DateTime,
+				datetime = x.FirstSeen,
 				height = x.Height.Value,
 				amount = x.Amount.Satoshi,
 				label = x.Labels.ToString(),
-				tx = x.TransactionId,
-				islikelycoinjoin = x.IsOwnCoinjoin
+				tx = x.GetHash(),
+				islikelycoinjoin = x.IsOwnCoinjoin()
 			}).ToArray();
 	}
 
@@ -294,8 +338,19 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	[JsonRpcMethod("selectwallet", initializable: false)]
-	public void SelectWallet(string walletName)
+	[JsonRpcMethod("getfeerates", initializable: false)]
+	public object GetFeeRate()
+	{
+		if (Global.Synchronizer.LastAllFeeEstimate is { } nonNullFeeRates)
+		{
+			return nonNullFeeRates.Estimations;
+		}
+
+		return new Dictionary<int, int>();
+	}
+
+
+	private void SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try

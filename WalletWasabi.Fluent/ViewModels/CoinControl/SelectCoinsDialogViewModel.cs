@@ -26,7 +26,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		_walletViewModel = walletViewModel;
 		_transactionInfo = transactionInfo;
 
-		CoinSelector = new CoinSelectorViewModel(walletViewModel, selectedCoins);
+		CoinSelector = new CoinSelectorViewModel(walletViewModel.WalletModel, selectedCoins);
 
 		var coinsChanged = CoinSelector.WhenAnyValue(x => x.SelectedCoins);
 

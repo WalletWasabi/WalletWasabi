@@ -30,9 +30,9 @@ public class ArenaBuilder
 	public Arena Create(params Round[] rounds)
 	{
 		TimeSpan period = Period ?? TimeSpan.FromHours(1);
-		Prison prison = Prison ?? new();
+		Prison prison = Prison ?? WabiSabiFactory.CreatePrison();
 		WabiSabiConfig config = Config ?? new();
-		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
+		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient();
 		Network network = Network ?? Network.Main;
 		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
@@ -74,9 +74,6 @@ public class ArenaBuilder
 		return this;
 	}
 
-	public ArenaBuilder With(IMock<IRPCClient> rpc) =>
-		With(rpc.Object);
-
 	public ArenaBuilder With(IRPCClient rpc)
 	{
 		Rpc = rpc;
@@ -93,7 +90,7 @@ public class ArenaBuilder
 
 	public static ArenaBuilder From(WabiSabiConfig cfg, Prison prison) => new() { Config = cfg, Prison = prison };
 
-	public static ArenaBuilder From(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, Prison prison) => new() { Config = cfg, Rpc = mockRpc.Object, Prison = prison };
+	public static ArenaBuilder From(WabiSabiConfig cfg, IRPCClient mockRpc, Prison prison) => new() { Config = cfg, Rpc = mockRpc, Prison = prison };
 
 	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg, Network network) =>
 		WabiSabiFactory.CreateRoundParametersFactory(cfg, network, maxVsizeAllocationPerAlice: 11 + 31 + MultipartyTransactionParameters.SharedOverhead);

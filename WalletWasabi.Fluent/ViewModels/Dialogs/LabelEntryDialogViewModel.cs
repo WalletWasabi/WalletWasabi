@@ -8,19 +8,19 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Recipient")]
+[NavigationMetaData(Title = "Recipient", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray?>
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, LabelsArray labels)
+	public LabelEntryDialogViewModel(IWalletModel wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
-		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
+
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Send, 3)
 		{
 			Labels = { labels.AsEnumerable() }
 		};
@@ -48,7 +48,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+		_wallet.Coins.List
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())

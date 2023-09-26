@@ -40,8 +40,15 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			}
 		});
 
+		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
+
 		Update();
 	}
+
+	public TimeSpan? ConfirmationTime { get; set; }
+
+	public bool IsConfirmationTimeVisible { get; set; }
 
 	public ICommand CopyCommand { get; }
 
@@ -62,6 +69,6 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 
-		TransactionId = _coinJoin.CoinJoinTransaction.TransactionId;
+		TransactionId = _coinJoin.CoinJoinTransaction.GetHash();
 	}
 }
