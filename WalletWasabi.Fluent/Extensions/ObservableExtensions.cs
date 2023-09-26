@@ -1,6 +1,7 @@
 using DynamicData;
 using ReactiveUI;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -110,10 +111,16 @@ public static class ObservableExtensions
 	public static IObservable<IChangeSet<TItem, TKey>> ProjectList<TSource, TItem, TKey>(this IObservable<TSource> source, Func<IEnumerable<TItem>> retrieve, Func<TItem, TKey> keySelector) where TKey : notnull
 	{
 		var pocketsSource = new SourceCache<TItem, TKey>(keySelector);
-		pocketsSource.AddOrUpdate(retrieve());
+		var initialItems = retrieve().ToList();
+		pocketsSource.AddOrUpdate(initialItems);
 		source
 			.Do(_ => pocketsSource.Edit(updater => updater.Load(retrieve())))
 			.Subscribe();
+
+		if (!initialItems.Any())
+		{
+			return pocketsSource.Connect().StartWithEmpty();
+		}
 
 		return pocketsSource.Connect();
 	}
