@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class BtcAmount
 {
-	private BtcAmount(Money value, IExchangeRateProvider exchangeRateProvider)
+	public BtcAmount(Money value, IExchangeRateProvider exchangeRateProvider)
 	{
 		Value = value;
 		UsdValue = exchangeRateProvider.BtcToUsdRate.Select(x => x * Value.ToDecimal(MoneyUnit.BTC));
@@ -16,9 +16,4 @@ public class BtcAmount
 	public Money Value { get; }
 	public IObservable<decimal> UsdValue { get; }
 	public IObservable<decimal> ExchangeRates { get; }
-
-	public static BtcAmount Create(Money? value)
-	{
-		return new BtcAmount(value ?? Money.Zero, new ExchangeRateProvider(Services.Synchronizer));
-	}
 }

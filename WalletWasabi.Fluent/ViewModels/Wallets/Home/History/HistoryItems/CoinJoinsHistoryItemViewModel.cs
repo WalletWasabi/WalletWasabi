@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -14,12 +15,13 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private readonly WalletViewModel _walletVm;
 
-	private CoinJoinsHistoryItemViewModel(
+	public CoinJoinsHistoryItemViewModel(UiContext uiContext,
 		int orderIndex,
 		TransactionSummary firstItem,
 		WalletViewModel walletVm)
 		: base(orderIndex, firstItem)
 	{
+		UiContext = uiContext;
 		_walletVm = walletVm;
 
 		CoinJoinTransactions = new List<TransactionSummary>();
@@ -28,7 +30,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
+				new CoinJoinsDetailsViewModel(UiContext, this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
 	}

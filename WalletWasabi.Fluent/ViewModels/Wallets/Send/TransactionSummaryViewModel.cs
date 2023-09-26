@@ -49,8 +49,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 
-		Amount = BtcAmount.Create(destinationAmount);
-		Fee = BtcAmount.Create(_transaction.Fee);
+		Amount = UiContext.CreateAmount(destinationAmount);
+		Fee = UiContext.CreateAmount(_transaction.Fee);
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;

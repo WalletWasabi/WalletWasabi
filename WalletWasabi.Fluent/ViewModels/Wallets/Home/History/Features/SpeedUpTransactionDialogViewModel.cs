@@ -33,7 +33,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(boostingTransaction));
 
 		var feeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
-		Fee = BtcAmount.Create(feeDifference);
+		Fee = UiContext.CreateAmount(feeDifference);
 
 		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();

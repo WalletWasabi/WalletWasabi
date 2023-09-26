@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -22,8 +23,9 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
 
-	public CoinJoinsDetailsViewModel(CoinJoinsHistoryItemViewModel coinJoinGroup, IObservable<Unit> updateTrigger)
+	public CoinJoinsDetailsViewModel(UiContext uiContext, CoinJoinsHistoryItemViewModel coinJoinGroup, IObservable<Unit> updateTrigger)
 	{
+		UiContext = uiContext;
 		_coinJoinGroup = coinJoinGroup;
 		_updateTrigger = updateTrigger;
 
@@ -46,7 +48,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		Date = _coinJoinGroup.DateString;
 		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFeeAmount = BtcAmount.Create(_coinJoinGroup.OutgoingAmount);
+		CoinJoinFeeAmount = UiContext.CreateAmount(_coinJoinGroup.OutgoingAmount);
 
 		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.GetHash()));
 		TxCount = TransactionIds.Count;

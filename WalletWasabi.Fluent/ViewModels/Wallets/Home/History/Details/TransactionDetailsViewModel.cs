@@ -37,7 +37,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = BtcAmount.Create(transactionSummary.Fee);
+		Fee = UiContext.CreateAmount(transactionSummary.Fee);
 		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
 
@@ -68,12 +68,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		if (transactionSummary.Amount < Money.Zero)
 		{
 			var amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
-			Amount = BtcAmount.Create(amount);
+			Amount = UiContext.CreateAmount(amount);
 			AmountText = "Outgoing";
 		}
 		else
 		{
-			Amount = BtcAmount.Create(transactionSummary.Amount);
+			Amount = UiContext.CreateAmount(transactionSummary.Amount);
 			AmountText = "Incoming";
 		}
 

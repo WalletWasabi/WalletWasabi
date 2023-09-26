@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -19,8 +20,9 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 
-	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
+	public CoinJoinDetailsViewModel(UiContext uiContext, CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
 	{
+		UiContext = uiContext;
 		_coinJoin = coinJoin;
 		_updateTrigger = updateTrigger;
 
@@ -42,7 +44,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoin.DateString;
-		CoinJoinFeeAmount = BtcAmount.Create(_coinJoin.OutgoingAmount);
+		CoinJoinFeeAmount = UiContext.CreateAmount(_coinJoin.OutgoingAmount);
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 

@@ -16,7 +16,7 @@ public class BitcoinAmountTests
 	public void Value()
 	{
 		var money = Money.FromUnit(1, MoneyUnit.BTC);
-		var btcAmount = BtcAmount.Create(money);
+		var btcAmount = new BtcAmount(money, null);
 		Assert.Equal(money, btcAmount.Value);
 	}
 
@@ -29,7 +29,7 @@ public class BitcoinAmountTests
 		using var rates = new Subject<decimal>();
 		var exchangeProvider = Mock.Of<IExchangeRateProvider>(x => x.BtcToUsdRate == rates);
 		var destination = new List<decimal>();
-		var sut = BtcAmount.Create(money);
+		var sut = new BtcAmount(money, exchangeProvider);
 		using var usdValues = sut.UsdValue.Dump(destination);
 
 		// ACT

@@ -24,6 +24,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Userfacing.Bip21;
 
@@ -56,7 +57,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	private SendViewModel(WalletViewModel walletVm)
+	public SendViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
 		_to = "";
 		_wallet = walletVm.Wallet;
@@ -67,7 +68,7 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-		Balance = WalletRepository.CreateWalletModel(_wallet).Balances;
+		Balance = WalletRepository.CreateWalletModel(_wallet).Balances.Select(uiContext.CreateAmount);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
