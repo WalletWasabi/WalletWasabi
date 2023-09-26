@@ -1,4 +1,3 @@
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -21,7 +20,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private Amount? _amount;
 
-	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
+	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
 		Parent = parent;
 		_wallet = wallet;
