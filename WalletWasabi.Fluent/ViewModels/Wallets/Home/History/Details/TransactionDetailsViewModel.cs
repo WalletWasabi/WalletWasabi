@@ -17,7 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
-	[AutoNotify] private BtcAmount? _amount;
 	[AutoNotify] private string? _amountText = "";
 	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private int _blockHeight;
@@ -25,11 +24,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string? _dateString;
 	[AutoNotify] private bool _isConfirmationTimeVisible;
-
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
+	[AutoNotify] private BtcAmount? _amount;
 
 	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
