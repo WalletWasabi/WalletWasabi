@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.Rpc;
 
-public class JsonRpcResponse
+public record JsonRpcResponse
 {
 	// Default error messages for standard JsonRpcErrorCodes
 	private static Dictionary<JsonRpcErrorCodes, string> Messages = new()
@@ -15,51 +15,59 @@ public class JsonRpcResponse
 		[JsonRpcErrorCodes.InternalError] = "Internal error",
 	};
 
-	private JsonRpcResponse(string id, object? result, object? error)
-	{
-		Id = id;
-		Result = result;
-		Error = error;
-	}
-
 	[JsonProperty("jsonrpc", Order = 0)]
 	public string JsonRpc => "2.0";
-
-	[JsonProperty("result", Order = 1)]
-	public object? Result { get; }
-
-	[JsonProperty("error", Order = 1)]
-	public object? Error { get; }
 
 	[JsonProperty("id", Order = 3)]
 	public string Id { get; }
 
-	public static JsonRpcResponse CreateResultResponse(string id, object result)
+	protected JsonRpcResponse(string id)
 	{
-		return new JsonRpcResponse(id, result, null);
+		Id = id;
 	}
 
-	public static JsonRpcResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string? message = null)
+	public static JsonRpcSuccessResponse CreateResultResponse(string id, object result)
 	{
-		var error = new
-		{
-			code,
-			message = message ?? GetMessage(code)
-		};
-		return new JsonRpcResponse(id, null, error);
+		return new JsonRpcSuccessResponse(id, result);
 	}
 
-	private static string GetMessage(JsonRpcErrorCodes code)
+	public static JsonRpcErrorResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string? customMessage = null)
 	{
-		if (Messages.TryGetValue(code, out var message))
-		{
-			return message;
-		}
-		return "Server error";
+		var defaultMessage = Messages.TryGetValue(code, out var rpcErrorMessage)
+			? rpcErrorMessage
+			: "Server error";
+
+		return new JsonRpcErrorResponse(id, code, customMessage ?? defaultMessage);
 	}
 
 	public string ToJson(JsonSerializerSettings serializerSettings)
 	{
 		return JsonConvert.SerializeObject(this, serializerSettings);
 	}
+}
+
+public record JsonRpcSuccessResponse : JsonRpcResponse
+{
+	public JsonRpcSuccessResponse(string id, object result)
+		: base(id)
+	{
+		Result = result;
+	}
+
+	[JsonProperty("result", Order = 1)]
+	public object Result { get; }
+}
+
+public record JsonRpcErrorResponse : JsonRpcResponse
+{
+	public record ErrorObject(JsonRpcErrorCodes code, string message);
+
+	public JsonRpcErrorResponse(string id, JsonRpcErrorCodes code, string message)
+		: base(id)
+	{
+		Error = new ErrorObject(code, message);
+	}
+
+	[JsonProperty("error", Order = 1)]
+	public ErrorObject Error { get; }
 }
