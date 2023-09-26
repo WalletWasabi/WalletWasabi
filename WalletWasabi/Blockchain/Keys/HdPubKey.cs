@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
@@ -67,8 +66,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		get => _anonymitySet;
 		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 	}
-
-	public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
 
 	[JsonProperty(Order = 1)]
 	[JsonConverter(typeof(PubKeyJsonConverter))]
