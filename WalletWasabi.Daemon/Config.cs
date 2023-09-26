@@ -24,6 +24,7 @@ public class Config
 		PersistentConfig.Network,
 		x => Network.GetNetwork(x) ?? throw new ArgumentException("Network", $"Unknown network {x}"),
 		key: "Network");
+
 	public string MainNetBackendUri => GetEffectiveString(PersistentConfig.MainNetBackendUri, key: "MainNetBackendUri");
 	public string TestNetBackendUri => GetEffectiveString(PersistentConfig.TestNetBackendUri, key: "TestNetBackendUri");
 	public string RegTestBackendUri => GetEffectiveString(PersistentConfig.RegTestBackendUri, key: "RegTestBackendUri");
@@ -43,6 +44,7 @@ public class Config
 	public string JsonRpcUser => GetEffectiveString(PersistentConfig.JsonRpcUser, key: "JsonRpcUser");
 	public string JsonRpcPassword => GetEffectiveString(PersistentConfig.JsonRpcPassword, key: "JsonRpcPassword");
 	public string[] JsonRpcServerPrefixes => GetEffectiveValue(PersistentConfig.JsonRpcServerPrefixes, x => new[] { x }, key: "JsonRpcServerPrefixes");
+
 	public Money DustThreshold => GetEffectiveValue(PersistentConfig.DustThreshold, x =>
 		{
 			if (Money.TryParse(x, out var money))
@@ -110,10 +112,10 @@ public class Config
 		}
 
 		var envKey = "WASABI-" + key.ToUpperInvariant();
-		var envVars = Environment.GetEnvironmentVariables();
-		if (envVars.Contains(envKey))
+		var environmentVariables = Environment.GetEnvironmentVariables();
+		if (environmentVariables.Contains(envKey))
 		{
-			if (envVars[envKey] is string envVar)
+			if (environmentVariables[envKey] is string envVar)
 			{
 				return converter(envVar);
 			}
