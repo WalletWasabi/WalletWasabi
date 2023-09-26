@@ -40,11 +40,6 @@ public class UiContext
 	public IApplicationSettings ApplicationSettings { get; }
 	public IAmountProvider AmountProvider { get; }
 
-	public Amount CreateAmount(Money? money)
-	{
-		return AmountProvider.GetAmount(money);
-	}
-
 	public void RegisterNavigation(INavigate navigate)
 	{
 		_navigate ??= navigate;

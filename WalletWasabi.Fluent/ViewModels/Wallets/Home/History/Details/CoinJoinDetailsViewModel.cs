@@ -50,7 +50,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoin.DateString;
-		CoinJoinFeeAmount = UiContext.CreateAmount(_coinJoin.OutgoingAmount);
+		CoinJoinFeeAmount = UiContext.AmountProvider.GetAmount(_coinJoin.OutgoingAmount);
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 

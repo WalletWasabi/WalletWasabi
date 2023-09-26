@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
@@ -31,7 +32,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var cancelFee = cancellingTransaction.Fee;
-		Fee = uiContext.CreateAmount(cancelFee);
+		Fee = uiContext.AmountProvider.GetAmount(cancelFee);
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));

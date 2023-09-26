@@ -1,3 +1,4 @@
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -49,8 +50,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 
-		Amount = UiContext.CreateAmount(destinationAmount);
-		Fee = UiContext.CreateAmount(_transaction.Fee);
+		Amount = UiContext.AmountProvider.GetAmount(destinationAmount);
+		Fee = UiContext.AmountProvider.GetAmount(_transaction.Fee);
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;

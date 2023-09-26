@@ -34,7 +34,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(boostingTransaction));
 
-		Fee = uiContext.CreateAmount(GetFeeDifference(transactionToSpeedUp, boostingTransaction));
+		Fee = uiContext.AmountProvider.GetAmount(GetFeeDifference(transactionToSpeedUp, boostingTransaction));
 
 		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
