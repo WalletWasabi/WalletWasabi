@@ -1,6 +1,8 @@
 using System.Linq;
-using Avalonia.Controls;
+using Avalonia;
 using Avalonia.Media;
+using Avalonia.Platform;
+using Avalonia.Skia;
 using Avalonia.Threading;
 using SkiaSharp;
 
@@ -8,58 +10,52 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControlState
 {
-	public const int NumBins = 64;
-	public const double TextureHeight = 32;
-	public const double TextureWidth = 32;
+	private const int NumBins = 64;
+	private const double TextureHeight = 32;
+	private const double TextureWidth = 32;
+	private const double Fps = 15.0;
 
-	internal SKColor _lineColor;
-	internal SKSurface? _surface;
-
+	private SKColor _pathColor;
+	private SKSurface? _surface;
 	private readonly SpectrumDataSource[] _sources;
-
-	internal readonly SKPaint _blur = new()
+	private readonly SKPaint _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
 		FilterQuality = SKFilterQuality.Low
 	};
-
-	internal IBrush? _lineBrush;
-
-	internal float[] _data;
-
+	private float[] _data;
 	private bool _isGenerating;
-
-	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
-	internal readonly SplashEffectDataSource _splashEffectDataSource;
-
 	private readonly DispatcherTimer _invalidationTimer;
+	private readonly SpectrumControl _control;
 
 	public SpectrumControlState(SpectrumControl control)
 	{
-		Control = control;
-
+		_control = control;
 		_data = new float[NumBins];
-		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
-		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
 
-		_auraSpectrumDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
-		_splashEffectDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
+		AuraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
+		SplashEffectDataSource = new SplashEffectDataSource(NumBins);
 
-		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
+		AuraSpectrumDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
+		SplashEffectDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
+
+		_sources = new SpectrumDataSource[] { AuraSpectrumDataSource, SplashEffectDataSource };
 
 		_invalidationTimer = new DispatcherTimer
 		{
-			Interval = TimeSpan.FromMilliseconds(1000.0 / 15.0)
+			Interval = TimeSpan.FromMilliseconds(1000.0 / Fps)
 		};
 
-		_invalidationTimer.Tick += (sender, args) => Control.InvalidateVisual();
+		_invalidationTimer.Tick += (_, _) => _control.InvalidateVisual();
 	}
 
-	private SpectrumControl Control { get; }
+	public AuraSpectrumDataSource AuraSpectrumDataSource { get; }
+
+	public SplashEffectDataSource SplashEffectDataSource { get; }
 
 	private void OnGeneratingDataStateChanged(object? sender, EventArgs e)
 	{
-		_isGenerating = _auraSpectrumDataSource.IsGenerating || _splashEffectDataSource.IsGenerating;
+		_isGenerating = AuraSpectrumDataSource.IsGenerating || SplashEffectDataSource.IsGenerating;
 
 		if (_isGenerating)
 		{
@@ -67,15 +63,20 @@ public class SpectrumControlState
 		}
 	}
 
+	public void OnForegroundChanged(SKColor color)
+	{
+		_pathColor = color;
+	}
+
 	public void OnIsActiveChanged()
 	{
-		if (Control.IsActive)
+		if (_control.IsActive)
 		{
-			_auraSpectrumDataSource.Start();
+			AuraSpectrumDataSource.Start();
 		}
 		else
 		{
-			_auraSpectrumDataSource.Stop();
+			AuraSpectrumDataSource.Stop();
 		}
 	}
 
@@ -98,6 +99,83 @@ public class SpectrumControlState
 			_invalidationTimer.Stop();
 		}
 
-		context.Custom(new SpectrumDrawOperation(Control.Bounds, this));
+		var custom = new SpectrumDrawOperation(_control.Bounds, Draw);
+
+		context.Custom(custom);
+	}
+
+	private void Draw(ImmediateDrawingContext context, Rect bounds)
+	{
+		using var skia = context.TryGetFeature<ISkiaSharpApiLeaseFeature>()?.Lease();
+		if (skia == null)
+		{
+			return;
+		}
+
+		if (_surface is null)
+		{
+			if (skia.GrContext is not null)
+			{
+				_surface =
+					SKSurface.Create(skia.GrContext, false,
+						new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+			}
+			else
+			{
+				_surface = SKSurface.Create(
+					new SKImageInfo(
+						(int)Math.Ceiling(TextureWidth),
+						(int)Math.Ceiling(TextureHeight),
+						SKImageInfo.PlatformColorType,
+						SKAlphaType.Premul));
+			}
+		}
+
+		RenderBars(_surface.Canvas);
+
+		using var snapshot = _surface.Snapshot();
+
+		skia.SkCanvas.DrawImage(
+			snapshot,
+			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
+			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height),
+			_blur);
+	}
+
+	private void RenderBars(SKCanvas context)
+	{
+		context.Clear();
+
+		var width = TextureWidth;
+		var height = TextureHeight;
+		var thickness = width / NumBins;
+		var center = (width / 2);
+
+		double x = 0;
+
+		using var pathPaint = new SKPaint()
+		{
+			Color = _pathColor,
+			IsAntialias = false,
+			Style = SKPaintStyle.Fill
+		};
+
+		using var path = new SKPath();
+
+		for (int i = 0; i < NumBins; i++)
+		{
+			var dCenter = Math.Abs(x - center);
+			var multiplier = 1 - (dCenter / center);
+			var rect = new SKRect(
+				(float)x,
+				(float)height,
+				(float)(x + thickness),
+				(float)(height - multiplier * _data[i] * (height * 0.8)));
+			path.AddRect(rect);
+
+			x += thickness;
+		}
+
+		context.DrawPath(path, pathPaint);
 	}
 }

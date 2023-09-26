@@ -54,16 +54,16 @@ public class SpectrumControl : TemplatedControl
 		{
 			if (change.GetNewValue<bool>() && !IsActive)
 			{
-				_state._splashEffectDataSource.Start();
+				_state.SplashEffectDataSource.Start();
 			}
 		}
 		else if (change.Property == ForegroundProperty)
 		{
-			_state._lineBrush = Foreground ?? Brushes.Magenta;
+			var foreground = Foreground ?? Brushes.Magenta;
 
-			if (_state._lineBrush is ImmutableSolidColorBrush brush)
+			if (foreground is ImmutableSolidColorBrush brush)
 			{
-				_state._lineColor = brush.Color.ToSKColor();
+				_state.OnForegroundChanged(brush.Color.ToSKColor());
 			}
 		}
 	}
