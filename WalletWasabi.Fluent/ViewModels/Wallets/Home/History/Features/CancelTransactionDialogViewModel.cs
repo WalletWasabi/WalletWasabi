@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -21,15 +22,16 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	private readonly SmartTransaction _transactionToCancel;
 
-	private CancelTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
+	public CancelTransactionDialogViewModel(UiContext uiContext, UiTriggers triggers, Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
 	{
+		UiContext = uiContext;
 		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToCancel = transactionToCancel;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var cancelFee = cancellingTransaction.Fee;
-		Fee = UiContext.CreateAmount(cancelFee);
+		Fee = uiContext.CreateAmount(cancelFee);
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));

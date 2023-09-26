@@ -5,7 +5,6 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -61,7 +60,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet)
+	public CoinJoinStateViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
 
@@ -91,7 +90,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		wallet.Balances.Select(uiContext.CreateAmount)
+		wallet.Balances
 					   .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
 					   .Subscribe();
 

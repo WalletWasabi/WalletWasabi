@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -22,8 +23,9 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	private readonly UiTriggers _triggers;
 	private readonly Wallet _wallet;
 
-	private SpeedUpTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
+	public SpeedUpTransactionDialogViewModel(UiContext uiContext, UiTriggers triggers, Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
+		UiContext = uiContext;
 		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToSpeedUp = transactionToSpeedUp;
@@ -32,8 +34,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(boostingTransaction));
 
-		var feeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
-		Fee = UiContext.CreateAmount(feeDifference);
+		Fee = uiContext.CreateAmount(GetFeeDifference(transactionToSpeedUp, boostingTransaction));
 
 		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
