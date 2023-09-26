@@ -5,6 +5,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public interface IAmountProvider
 {
-	public Amount GetAmount(Money? money);
+	public Amount Create(Money? money);
 	public IObservable<decimal> BtcToUsdExchangeRates { get; }
 }

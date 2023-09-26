@@ -32,7 +32,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		var cancelFee = cancellingTransaction.Fee;
-		Fee = uiContext.AmountProvider.GetAmount(cancelFee);
+		Fee = uiContext.AmountProvider.Create(cancelFee);
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));

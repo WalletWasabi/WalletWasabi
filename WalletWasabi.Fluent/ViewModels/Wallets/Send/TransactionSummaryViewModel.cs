@@ -50,8 +50,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 
-		Amount = UiContext.AmountProvider.GetAmount(destinationAmount);
-		Fee = UiContext.AmountProvider.GetAmount(_transaction.Fee);
+		Amount = UiContext.AmountProvider.Create(destinationAmount);
+		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;

@@ -38,7 +38,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = uiContext.AmountProvider.GetAmount(transactionSummary.GetFee());
+		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
 		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
 
@@ -68,12 +68,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.Amount < Money.Zero)
 		{
-			Amount = UiContext.AmountProvider.GetAmount(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
+			Amount = UiContext.AmountProvider.Create(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
 			AmountText = "Outgoing";
 		}
 		else
 		{
-			Amount = UiContext.AmountProvider.GetAmount(transactionSummary.Amount);
+			Amount = UiContext.AmountProvider.Create(transactionSummary.Amount);
 			AmountText = "Incoming";
 		}
 

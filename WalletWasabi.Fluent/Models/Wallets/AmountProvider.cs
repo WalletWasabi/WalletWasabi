@@ -15,7 +15,7 @@ public class AmountProvider : ReactiveObject, IAmountProvider
 		BtcToUsdExchangeRates = this.WhenAnyValue(provider => provider._synchronizer.UsdExchangeRate);
 	}
 
-	public Amount GetAmount(Money? money)
+	public Amount Create(Money? money)
 	{
 		return new Amount(money ?? Money.Zero, this);
 	}

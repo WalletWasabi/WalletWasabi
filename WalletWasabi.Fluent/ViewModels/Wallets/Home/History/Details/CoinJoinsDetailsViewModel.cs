@@ -55,7 +55,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		Date = _coinJoinGroup.DateString;
 		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFeeAmount = UiContext.AmountProvider.GetAmount(_coinJoinGroup.OutgoingAmount);
+		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_coinJoinGroup.OutgoingAmount);
 
 		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.GetHash()));
 		TxCount = TransactionIds.Count;

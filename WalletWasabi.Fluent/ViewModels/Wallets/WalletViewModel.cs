@@ -239,7 +239,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
 		var walletModel = WalletRepository.CreateWalletModel(Wallet);
 
-		yield return new WalletBalanceTileViewModel(walletModel.Balances.Select(money => UiContext.AmountProvider.GetAmount(money)));
+		yield return new WalletBalanceTileViewModel(walletModel.Balances.Select(money => UiContext.AmountProvider.Create(money)));
 
 		if (!IsWatchOnly)
 		{
