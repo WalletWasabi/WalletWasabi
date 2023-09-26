@@ -41,9 +41,9 @@ public class UiContext
 	public IApplicationSettings ApplicationSettings { get; }
 	public IExchangeRateProvider ExchangeRateProvider { get; }
 
-	public BtcAmount CreateAmount(Money money)
+	public BtcAmount CreateAmount(Money? money)
 	{
-		return new BtcAmount(money, ExchangeRateProvider);
+		return new BtcAmount(money ?? Money.Zero, ExchangeRateProvider);
 	}
 
 	public void RegisterNavigation(INavigate navigate)
