@@ -6,14 +6,12 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
-using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
@@ -59,6 +57,8 @@ public partial class SendViewModel : RoutableViewModel
 
 	public SendViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
+		UiContext = uiContext;
+		WalletVm = walletVm;
 		_to = "";
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
@@ -110,7 +110,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
+				var labelDialog = new LabelEntryDialogViewModel(WalletVm.WalletModel, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 				if (result.Result is not { } label)
 				{
@@ -144,6 +144,8 @@ public partial class SendViewModel : RoutableViewModel
 	}
 
 	public IObservable<BtcAmount> Balance { get; }
+
+	public WalletViewModel WalletVm { get; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 

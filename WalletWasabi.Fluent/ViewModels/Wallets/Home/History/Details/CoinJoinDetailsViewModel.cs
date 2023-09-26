@@ -29,8 +29,14 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
+        ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+        IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		Update();
 	}
+
+	public TimeSpan? ConfirmationTime { get; set; }
+
+	public bool IsConfirmationTimeVisible { get; set; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

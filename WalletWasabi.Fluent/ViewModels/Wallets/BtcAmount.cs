@@ -10,10 +10,8 @@ public class BtcAmount
 	{
 		Value = value;
 		UsdValue = exchangeRateProvider.BtcToUsdRate.Select(x => x * Value.ToDecimal(MoneyUnit.BTC));
-		ExchangeRates = exchangeRateProvider.BtcToUsdRate;
 	}
 
 	public Money Value { get; }
 	public IObservable<decimal> UsdValue { get; }
-	public IObservable<decimal> ExchangeRates { get; }
 }

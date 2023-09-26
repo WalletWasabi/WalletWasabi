@@ -33,7 +33,14 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 
 		Update();
+
+		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
+
+	public TimeSpan? ConfirmationTime { get; set; }
+
+	public bool IsConfirmationTimeVisible { get; set; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
