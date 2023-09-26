@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -130,9 +131,13 @@ public class Wallet : BackgroundService, IWallet
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
+	/// <summary>
+	/// Get all the transactions associated to the wallet ordered by blockchain.
+	/// </summary>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
-		var walletTransactions = new List<SmartTransaction>();
+		var walletTransactions = new HashSet<SmartTransaction>();
+
 		foreach (SmartCoin coin in GetAllCoins())
 		{
 			walletTransactions.Add(coin.Transaction);
@@ -141,7 +146,32 @@ public class Wallet : BackgroundService, IWallet
 				walletTransactions.Add(coin.SpenderTransaction);
 			}
 		}
+
 		return walletTransactions.OrderByBlockchain().ToList();
+	}
+
+	/// <summary>
+	/// Gets the wallet transaction with the given txid, if the transaction exists.
+	/// </summary>
+	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
+	{
+		foreach (SmartCoin coin in GetAllCoins())
+		{
+			if (coin.TransactionId == txid)
+			{
+				smartTransaction = coin.Transaction;
+				return true;
+			}
+
+			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
+			{
+				smartTransaction = coin.SpenderTransaction;
+				return true;
+			}
+		}
+
+		smartTransaction = null;
+		return false;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
@@ -406,7 +436,7 @@ public class Wallet : BackgroundService, IWallet
 			lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
 			await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 		}
-		
+
 		// Request a synchronization once all filters were downloaded.
 		await PerformSynchronizationAsync(KeyManager.UseTurboSync ? SyncType.Turbo : SyncType.Complete, cancel).ConfigureAwait(false);
 	}

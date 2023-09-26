@@ -36,9 +36,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = UiContext.CreateAmount(transactionSummary.Fee);
-		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
+		Fee = UiContext.CreateAmount(transactionSummary.GetFee());
+		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
+		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(walletVm.Wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -53,7 +53,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
+		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.GetHash().ToString();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
@@ -66,8 +66,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.Amount < Money.Zero)
 		{
-			var amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
-			Amount = UiContext.CreateAmount(amount);
+			Amount = UiContext.CreateAmount(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
 			AmountText = "Outgoing";
 		}
 		else
@@ -99,8 +98,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private async Task UpdateCurrentTransactionAsync()
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_walletVm.Wallet));
 
 		var currentTransaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == TransactionId);
 

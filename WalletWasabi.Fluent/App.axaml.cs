@@ -50,6 +50,11 @@ public class App : Application
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+				desktop.Exit += (sender, args) =>
+				{
+					MainViewModel.Instance.ClearStacks();
+					MainViewModel.Instance.StatusIcon.Dispose();
+				};
 
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
@@ -92,7 +97,7 @@ public class App : Application
 	private UiContext CreateUiContext()
 	{
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
-		// Once all ViewModels have been refactored to recieve UiContext as a constructor parameter, this static singleton property can be removed.
+		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
 			new QrCodeGenerator(),
 			new QrCodeReader(),

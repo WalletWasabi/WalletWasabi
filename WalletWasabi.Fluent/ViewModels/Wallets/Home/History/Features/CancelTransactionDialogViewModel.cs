@@ -40,7 +40,11 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_triggers.TransactionsUpdateTrigger
-			.Select(_ => _wallet.GetTransactions().FirstOrDefault(s => s.GetHash() == _transactionToCancel.GetHash()))
+			.Select(x =>
+			{
+				_ = _wallet.TryGetTransaction(_transactionToCancel.GetHash(), out SmartTransaction? tx);
+				return tx;
+			})
 			.WhereNotNull()
 			.Where(s => s.Confirmed)
 			.Do(_ => Navigate().Back())

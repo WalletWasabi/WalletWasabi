@@ -245,7 +245,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		if (!IsWatchOnly)
 		{
-			yield return new PrivacyControlTileViewModel(UiContext, this);
+			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
 
 		yield return new BtcPriceTileViewModel(UiContext.ExchangeRateProvider);

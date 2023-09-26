@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reactive;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
@@ -184,11 +186,13 @@ public class SuggestionLabelsViewModelTests
 
 		public IWalletSettingsModel Settings => throw new NotImplementedException();
 
-		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotImplementedException();
+		public IWalletCoinsModel Coins => throw new NotImplementedException();
 
 		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+
+		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
 		public IObservable<Money> Balances => throw new NotImplementedException();
 
