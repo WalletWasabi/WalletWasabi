@@ -29,7 +29,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private string? _transactionId;
-	[AutoNotify] private BtcAmount? _amount;
+	[AutoNotify] private Amount? _amount;
 
 	public TransactionDetailsViewModel(UiContext uiContext, TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -47,7 +47,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(transactionSummary);
 	}
 
-	public BtcAmount Fee { get; }
+	public Amount Fee { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 

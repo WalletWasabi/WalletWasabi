@@ -106,7 +106,6 @@ public class App : Application
 			CreateHardwareWalletInterface(),
 			CreateFileSystem(),
 			CreateConfig(),
-			CreateApplicationSettings(),
-			new ExchangeRateProvider(Services.Synchronizer));
+			CreateApplicationSettings());
 	}
 }

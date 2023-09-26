@@ -37,7 +37,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));
 	}
 
-	public BtcAmount Fee { get; }
+	public Amount Fee { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

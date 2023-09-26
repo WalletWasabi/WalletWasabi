@@ -27,7 +27,7 @@
       <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="{Binding AmountText}"
-                     CopyableContent="{Binding Amount.Value}">
+                     CopyableContent="{Binding Amount.Btc}">
         <c:PrivacyContentControl>
           <c:AmountControl Amount="{Binding Amount}" />
         </c:PrivacyContentControl>
@@ -57,7 +57,7 @@
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee"
-                     CopyableContent="{Binding Fee.Value, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
           <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PrivacyContentControl>

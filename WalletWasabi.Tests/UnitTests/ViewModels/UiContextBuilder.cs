@@ -36,7 +36,7 @@ public class UiContextBuilder
 
 	public UiContext Build()
 	{
-		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface, FileSystem, ClientConfig, new NullApplicationSettings(), new ExchangeRateProvider(Fluent.Services.Synchronizer));
+		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface, FileSystem, ClientConfig, new NullApplicationSettings());
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
 	}

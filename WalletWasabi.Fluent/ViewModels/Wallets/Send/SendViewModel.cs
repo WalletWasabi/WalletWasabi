@@ -143,7 +143,7 @@ public partial class SendViewModel : RoutableViewModel
 		_clipboardObserver = new ClipboardObserver(Balance);
 	}
 
-	public IObservable<BtcAmount> Balance { get; }
+	public IObservable<Amount> Balance { get; }
 
 	public WalletViewModel WalletVm { get; }
 

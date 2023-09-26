@@ -1,12 +1,12 @@
-using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public class BtcPriceTileViewModel : ActivatableViewModel
 {
-	public BtcPriceTileViewModel(IExchangeRateProvider exchangeRate)
+	public BtcPriceTileViewModel(IAmountProvider amountProvider)
 	{
-		UsdPerBtc = exchangeRate.BtcToUsdRate;
+		UsdPerBtc = amountProvider.BtcToUsdExchangeRates;
 	}
 
 	public IObservable<decimal> UsdPerBtc { get; }

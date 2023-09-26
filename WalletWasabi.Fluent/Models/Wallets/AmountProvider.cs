@@ -1,0 +1,24 @@
+using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Services;
+
+namespace WalletWasabi.Fluent.Models.Wallets;
+
+public class AmountProvider : ReactiveObject, IAmountProvider
+{
+	private readonly WasabiSynchronizer _synchronizer;
+
+	public AmountProvider(WasabiSynchronizer synchronizer)
+	{
+		_synchronizer = synchronizer;
+		BtcToUsdExchangeRates = this.WhenAnyValue(provider => provider._synchronizer.UsdExchangeRate);
+	}
+
+	public Amount GetAmount(Money? money)
+	{
+		return new Amount(money ?? Money.Zero, this);
+	}
+
+	public IObservable<decimal> BtcToUsdExchangeRates { get; }
+}

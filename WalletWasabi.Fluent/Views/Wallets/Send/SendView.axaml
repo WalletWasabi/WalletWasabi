@@ -136,8 +136,8 @@
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
-                                  BalanceBtc="{Binding Balance^.Value}"
-                                  BalanceUsd="{Binding Balance^.UsdValue^}"
+                                  BalanceBtc="{Binding Balance^.Btc}"
+                                  BalanceUsd="{Binding Balance^.Usd^}"
                                   ValidatePasteBalance="True">
             <c:DualCurrencyEntryBox.Resources>
 

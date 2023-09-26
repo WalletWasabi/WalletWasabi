@@ -17,8 +17,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
-	[AutoNotify] private BtcAmount? _fee;
-	[AutoNotify] private BtcAmount? _amount;
+	[AutoNotify] private Amount? _fee;
+	[AutoNotify] private Amount? _amount;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{

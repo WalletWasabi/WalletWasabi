@@ -46,7 +46,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		AreWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 	}
 
-	public BtcAmount Fee { get; }
+	public Amount Fee { get; }
 
 	public bool AreWePayingTheFee { get; }
 

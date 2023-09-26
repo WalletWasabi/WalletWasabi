@@ -1,5 +1,4 @@
 using NBitcoin;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -18,7 +17,7 @@ public class UiContext
 
 	private INavigate? _navigate;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IUiClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings, ExchangeRateProvider exchangeRateProvider)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IUiClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -28,7 +27,7 @@ public class UiContext
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
-		ExchangeRateProvider = exchangeRateProvider;
+		AmountProvider = new AmountProvider(Services.Synchronizer);
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -39,11 +38,11 @@ public class UiContext
 	public IFileSystem FileSystem { get; }
 	public IClientConfig Config { get; }
 	public IApplicationSettings ApplicationSettings { get; }
-	public IExchangeRateProvider ExchangeRateProvider { get; }
+	public IAmountProvider AmountProvider { get; }
 
-	public BtcAmount CreateAmount(Money? money)
+	public Amount CreateAmount(Money? money)
 	{
-		return new BtcAmount(money ?? Money.Zero, ExchangeRateProvider);
+		return AmountProvider.GetAmount(money);
 	}
 
 	public void RegisterNavigation(INavigate navigate)

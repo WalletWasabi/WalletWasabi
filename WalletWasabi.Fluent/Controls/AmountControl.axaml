@@ -8,8 +8,8 @@
         <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
           <TextBlock.Text>
             <MultiBinding StringFormat="{}{0} {1}">
-              <Binding Path="Value" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-              <Binding Path="UsdValue^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
+              <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
+              <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
             </MultiBinding>
           </TextBlock.Text>
         </TextBlock>
@@ -23,8 +23,8 @@
         <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
           <TextBlock.Text>
             <MultiBinding StringFormat="{}{0} {1}">
-              <Binding Path="Value" Converter="{x:Static converters:MoneyConverters.ToFeeWithUnit}" />
-              <Binding Path="UsdValue^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
+              <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToFeeWithUnit}" />
+              <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
             </MultiBinding>
           </TextBlock.Text>
         </TextBlock>

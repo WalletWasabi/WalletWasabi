@@ -15,7 +15,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _updateTrigger;
 
 	[AutoNotify] private string _date = "";
-	[AutoNotify] private BtcAmount? _coinJoinFeeAmount;
+	[AutoNotify] private Amount? _coinJoinFeeAmount;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;

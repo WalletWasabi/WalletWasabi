@@ -19,7 +19,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string _status = "";
 	[AutoNotify] private string _coinJoinFeeRawString = "";
 	[AutoNotify] private string _coinJoinFeeString = "";
-	[AutoNotify] private BtcAmount? _coinJoinFeeAmount;
+	[AutoNotify] private Amount? _coinJoinFeeAmount;
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
 

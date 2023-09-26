@@ -44,7 +44,7 @@
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fees"
-                     CopyableContent="{Binding CoinJoinFeeAmount.Value, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </c:PreviewItem>
 

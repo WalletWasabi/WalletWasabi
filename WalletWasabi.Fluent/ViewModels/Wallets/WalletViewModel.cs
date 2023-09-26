@@ -246,7 +246,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
 
-		yield return new BtcPriceTileViewModel(UiContext.ExchangeRateProvider);
+		yield return new BtcPriceTileViewModel(UiContext.AmountProvider);
 	}
 
 	public int CompareTo(WalletViewModel? other)
