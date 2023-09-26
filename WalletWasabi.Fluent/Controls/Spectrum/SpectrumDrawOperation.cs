@@ -1,14 +1,16 @@
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
+using Avalonia.Skia;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumDrawOperation : ICustomDrawOperation
 {
-	private readonly Action<ImmediateDrawingContext, Rect> _draw;
+	private readonly Action<ISkiaSharpApiLease, Rect> _draw;
 
-	public SpectrumDrawOperation(Rect bounds, Action<ImmediateDrawingContext, Rect> draw)
+	public SpectrumDrawOperation(Rect bounds, Action<ISkiaSharpApiLease, Rect> draw)
 	{
 		_draw = draw;
 		Bounds = bounds;
@@ -25,5 +27,13 @@ public class SpectrumDrawOperation : ICustomDrawOperation
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;
 
-	void ICustomDrawOperation.Render(ImmediateDrawingContext context) => _draw(context, Bounds);
+	void ICustomDrawOperation.Render(ImmediateDrawingContext context)
+	{
+		using var skia = context.TryGetFeature<ISkiaSharpApiLeaseFeature>()?.Lease();
+		if (skia is null)
+		{
+			return;
+		}
+		_draw(skia, Bounds);
+	}
 }

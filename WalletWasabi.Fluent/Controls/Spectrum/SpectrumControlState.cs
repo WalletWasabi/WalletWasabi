@@ -41,12 +41,13 @@ public class SpectrumControlState
 
 		_sources = new SpectrumDataSource[] { AuraSpectrumDataSource, SplashEffectDataSource };
 
+		//*
 		_invalidationTimer = new DispatcherTimer
 		{
 			Interval = TimeSpan.FromMilliseconds(1000.0 / Fps)
 		};
-
 		_invalidationTimer.Tick += (_, _) => _control.InvalidateVisual();
+		//*/
 	}
 
 	public AuraSpectrumDataSource AuraSpectrumDataSource { get; }
@@ -60,6 +61,7 @@ public class SpectrumControlState
 		if (_isGenerating)
 		{
 			_invalidationTimer.Start();
+			// _control.Start();
 		}
 	}
 
@@ -82,6 +84,13 @@ public class SpectrumControlState
 
 	public void Render(DrawingContext context)
 	{
+		var custom = new SpectrumDrawOperation(_control.Bounds, Draw);
+
+		context.Custom(custom);
+	}
+
+	public void Draw(ISkiaSharpApiLease skia, Rect bounds)
+	{
 		for (int i = 0; i < NumBins; i++)
 		{
 			_data[i] = 0;
@@ -97,19 +106,7 @@ public class SpectrumControlState
 		if (!_isGenerating && _data.All(f => f <= 0))
 		{
 			_invalidationTimer.Stop();
-		}
-
-		var custom = new SpectrumDrawOperation(_control.Bounds, Draw);
-
-		context.Custom(custom);
-	}
-
-	private void Draw(ImmediateDrawingContext context, Rect bounds)
-	{
-		using var skia = context.TryGetFeature<ISkiaSharpApiLeaseFeature>()?.Lease();
-		if (skia == null)
-		{
-			return;
+			// _control.Stop();
 		}
 
 		if (_surface is null)

@@ -1,7 +1,10 @@
+using System.Numerics;
 using Avalonia;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Rendering.Composition;
 using Avalonia.Skia;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
@@ -15,6 +18,7 @@ public class SpectrumControl : TemplatedControl
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsDockEffectVisible));
 
 	private readonly SpectrumControlState _state;
+	private CompositionCustomVisual? _customVisual;
 
 	public SpectrumControl()
 	{
@@ -68,10 +72,72 @@ public class SpectrumControl : TemplatedControl
 		}
 	}
 
+	/*
+    protected override void OnLoaded(RoutedEventArgs routedEventArgs)
+    {
+        base.OnLoaded(routedEventArgs);
+
+        var elemVisual = ElementComposition.GetElementVisual(this);
+        var compositor = elemVisual?.Compositor;
+        if (compositor is null)
+        {
+            return;
+        }
+
+        _customVisual = compositor.CreateCustomVisual(new DrawCompositionCustomVisualHandler());
+        ElementComposition.SetElementChildVisual(this, _customVisual);
+
+        LayoutUpdated += OnLayoutUpdated;
+
+        _customVisual.Size = new Vector2((float)Bounds.Size.Width, (float)Bounds.Size.Height);
+        _customVisual.SendHandlerMessage(new DrawPayload(HandlerCommand.Update, _state));
+
+        // TODO: Start();
+    }
+
+    protected override void OnUnloaded(RoutedEventArgs routedEventArgs)
+    {
+        base.OnUnloaded(routedEventArgs);
+
+        LayoutUpdated -= OnLayoutUpdated;
+
+        Stop();
+        DisposeImpl();
+    }
+
+    private void OnLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (_customVisual == null)
+        {
+            return;
+        }
+
+        _customVisual.Size = new Vector2((float)Bounds.Size.Width, (float)Bounds.Size.Height);
+        _customVisual.SendHandlerMessage(new DrawPayload(HandlerCommand.Update));
+    }
+
+    public void Start()
+    {
+        _customVisual?.SendHandlerMessage(new DrawPayload(HandlerCommand.Start, _state, Bounds));
+    }
+
+    public void Stop()
+    {
+        _customVisual?.SendHandlerMessage(new DrawPayload(HandlerCommand.Stop));
+    }
+
+    private void DisposeImpl()
+    {
+        _customVisual?.SendHandlerMessage(new DrawPayload(HandlerCommand.Dispose));
+    }
+	//*/
+
+	///*
 	public override void Render(DrawingContext context)
 	{
 		base.Render(context);
 
 		_state.Render(context);
 	}
+	//*/
 }
