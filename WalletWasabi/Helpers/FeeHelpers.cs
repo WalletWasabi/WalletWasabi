@@ -21,8 +21,7 @@ public static class FeeHelpers
 		IEnumerable<SmartCoin> coins,
 		[NotNullWhen(true)] out FeeRate? maxFeeRate,
 		bool allowDoubleSpend = false,
-		bool tryToSign = true
-	)
+		bool tryToSign = true)
 	{
 		maxFeeRate = SeekMaxFeeRate(
 			startingFeeRate,
@@ -40,8 +39,7 @@ public static class FeeHelpers
 		IEnumerable<SmartCoin> coins,
 		bool subtractFee,
 		[NotNullWhen(true)] out FeeRate? maxFeeRate,
-		bool tryToSign = true
-	)
+		bool tryToSign = true)
 	{
 		maxFeeRate = SeekMaxFeeRate(
 			startingFeeRate,
