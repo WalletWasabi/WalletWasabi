@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class CoinModel : ReactiveObject
 {
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
-	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _isCoinJoinInProgress;
 	[AutoNotify] private bool _isBanned;
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
@@ -23,13 +22,12 @@ public partial class CoinModel : ReactiveObject
 		Coin = coin;
 		PrivacyLevel = coin.GetPrivacyLevel(wallet.AnonScoreTarget);
 		Amount = coin.Amount;
-		IsConfirmed = coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
 		Labels = coin.GetLabels(wallet.AnonScoreTarget);
 		Key = coin.Outpoint.GetHashCode();
 
 		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin);
-		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.Confirmed);
+		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed);
 		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore);
 		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress);
 		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned);

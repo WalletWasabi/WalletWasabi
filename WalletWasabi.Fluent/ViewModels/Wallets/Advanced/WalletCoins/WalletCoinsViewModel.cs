@@ -103,7 +103,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			return 2;
 		}
 
-		if (!x.Model.Confirmed)
+		if (!x.Model.IsConfirmed)
 		{
 			return 3;
 		}
