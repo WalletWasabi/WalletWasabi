@@ -332,17 +332,6 @@ public class WalletManager : IWalletProvider
 		CancelAllTasks.Dispose();
 	}
 
-	public void ProcessCoinJoin(SmartTransaction tx)
-	{
-		lock (Lock)
-		{
-			foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started && !x.TransactionProcessor.IsAware(tx.GetHash())))
-			{
-				wallet.TransactionProcessor.Process(tx);
-			}
-		}
-	}
-
 	public void Process(SmartTransaction transaction)
 	{
 		lock (Lock)
@@ -368,23 +357,6 @@ public class WalletManager : IWalletProvider
 			}
 
 			return res;
-		}
-	}
-
-	public ISet<uint256> FilterUnknownCoinjoins(IEnumerable<uint256> cjs)
-	{
-		lock (Lock)
-		{
-			var unknowns = new HashSet<uint256>();
-			foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started))
-			{
-				// If a wallet service doesn't know about the tx, then we add it for processing.
-				foreach (var tx in cjs.Where(x => !wallet.TransactionProcessor.IsAware(x)))
-				{
-					unknowns.Add(tx);
-				}
-			}
-			return unknowns;
 		}
 	}
 
