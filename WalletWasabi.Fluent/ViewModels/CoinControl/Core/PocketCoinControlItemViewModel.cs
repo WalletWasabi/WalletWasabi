@@ -29,7 +29,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Labels = pocket.Labels;
 		Children =
 			pocketCoins.Select(wallet.Coins.GetCoinModel)
-					   .OrderByDescending(x => x.AnonymitySet)
+					   .OrderByDescending(x => x.AnonScore)
 					   .Select(coin => new CoinCoinControlItemViewModel(pocket.Labels, coin))
 					   .ToList();
 

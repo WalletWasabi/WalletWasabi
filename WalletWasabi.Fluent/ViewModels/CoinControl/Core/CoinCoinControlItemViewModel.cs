@@ -11,13 +11,13 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		Labels = labels;
 		Coin = coin;
 		Amount = coin.Amount;
-		IsConfirmed = coin.Confirmed;
+		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;
 		IsCoinjoining = coin.IsCoinJoinInProgress;
 		var confirmationCount = coin.Confirmations;
 		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
 		BannedUntilUtcToolTip = coin.BannedUntilUtcToolTip;
-		AnonymityScore = coin.AnonymitySet;
+		AnonymityScore = coin.AnonScore;
 		BannedUntilUtc = coin.BannedUntilUtc;
 		IsSelected = false;
 		ScriptType = coin.ScriptType;
