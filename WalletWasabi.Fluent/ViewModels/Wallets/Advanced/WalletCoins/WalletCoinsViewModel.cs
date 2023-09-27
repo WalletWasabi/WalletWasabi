@@ -103,7 +103,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			return 2;
 		}
 
-		if (!x.Model.Confirmed)
+		if (!x.Model.IsConfirmed)
 		{
 			return 3;
 		}
@@ -227,8 +227,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => x.Model.AnonymitySet),
-				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => x.Model.AnonymitySet)
+				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => x.Model.AnonScore),
+				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => x.Model.AnonScore)
 			},
 			width: new GridLength(55, GridUnitType.Pixel));
 	}
