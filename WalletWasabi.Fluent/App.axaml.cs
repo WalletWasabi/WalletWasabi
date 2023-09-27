@@ -1,4 +1,5 @@
 using System.Reactive.Concurrency;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,6 +19,14 @@ public class App : Application
 	private readonly bool _startInBg;
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
+
+	public static bool EnableFeatureHideOnClose { get; private set; }
+
+	static App()
+	{
+		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
+		EnableFeatureHideOnClose = !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+	}
 
 	public App()
 	{
