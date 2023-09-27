@@ -11,13 +11,13 @@
 
     <Panel>
       <!-- Confirmed -->
-      <PathIcon IsVisible="{Binding Model.Confirmed}"
+      <PathIcon IsVisible="{Binding Model.IsConfirmed}"
                 Data="{StaticResource checkmark_filled}"
                 Foreground="{DynamicResource SystemAccentColor}"
                 Height="11"
                 ToolTip.Tip="{Binding Model.ConfirmedToolTip}" />
       <!-- Pending -->
-      <PathIcon IsVisible="{Binding !Model.Confirmed}"
+      <PathIcon IsVisible="{Binding !Model.IsConfirmed}"
                 Data="{StaticResource clock_regular}"
                 Height="14"
                 Opacity="0.6"

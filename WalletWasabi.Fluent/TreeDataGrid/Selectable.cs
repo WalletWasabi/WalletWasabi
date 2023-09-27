@@ -22,10 +22,10 @@ public partial class Selectable<T> : ReactiveObject
 		if (onSelected is { } action)
 		{
 			this.WhenAnyValue(x => x.IsSelected)
-			.CombineLatest(canSelect)
-			.Where(x => x.Second)
-			.Do(_ => action(Model))
-			.Subscribe();
+				.CombineLatest(canSelect)
+				.Where(x => x.Second)
+				.Do(_ => action(Model))
+				.Subscribe();
 		}
 
 		canSelect.BindTo(this, x => x.CanSelect);
