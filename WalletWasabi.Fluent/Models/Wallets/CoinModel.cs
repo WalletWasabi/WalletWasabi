@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class CoinModel : ReactiveObject
 {
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
-	[AutoNotify] private int _anonymitySet;
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _isCoinJoinInProgress;
 	[AutoNotify] private bool _isBanned;
@@ -26,13 +25,12 @@ public partial class CoinModel : ReactiveObject
 		Amount = coin.Amount;
 		IsConfirmed = coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
-		AnonScore = (int)coin.AnonymitySet;
 		Labels = coin.GetLabels(wallet.AnonScoreTarget);
 		Key = coin.Outpoint.GetHashCode();
 
 		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin);
 		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.Confirmed);
-		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x);
+		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore);
 		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress);
 		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}");
