@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Moq;
 using NBitcoin;
@@ -9,13 +10,13 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
-public class BitcoinAmountTests
+public class AmountTests
 {
 	[Fact]
-	public void Value()
+	public void BtcShouldMatch()
 	{
 		var money = Money.FromUnit(1, MoneyUnit.BTC);
-		var btcAmount = new Amount(money, (IAmountProvider) null);
+		var btcAmount = new Amount(money, Mock.Of<IAmountProvider>(provider => provider.BtcToUsdExchangeRates == Observable.Empty<decimal>()));
 		Assert.Equal(money, btcAmount.Btc);
 	}
 
