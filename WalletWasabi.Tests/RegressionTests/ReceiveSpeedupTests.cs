@@ -23,6 +23,7 @@ using Xunit;
 using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -288,12 +289,12 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			// Can only speed up not too small, but not too large transaction once.
 			cpfp = wallet.SpeedUpTransaction(txJustEnoughToSpeedUp);
 			await broadcaster.SendTransactionAsync(cpfp.Transaction);
-			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(cpfp.Transaction));
+			Assert.Throws<TransactionFeeOverpaymentException>(() => wallet.SpeedUpTransaction(cpfp.Transaction));
 
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txIdTooSmallToSpeedUp, out var txTooSmallToSpeedUp));
 
 			// Can't speed too small transaction.
-			Assert.Throws<InvalidOperationException>(() => wallet.SpeedUpTransaction(txTooSmallToSpeedUp));
+			Assert.Throws<TransactionFeeOverpaymentException>(() => wallet.SpeedUpTransaction(txTooSmallToSpeedUp));
 
 			#endregion CantSpeedUpTooSmall
 		}
