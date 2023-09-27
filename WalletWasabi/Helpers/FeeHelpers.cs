@@ -1,0 +1,91 @@
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Wallets;
+
+namespace WalletWasabi.Helpers;
+
+public static class FeeHelpers
+{
+	public static bool TryGetMaxFeeRateForChangeless(
+		Wallet wallet,
+		IDestination destination,
+		LabelsArray labels,
+		FeeRate startingFeeRate,
+		IEnumerable<SmartCoin> coins,
+		[NotNullWhen(true)] out FeeRate? maxFeeRate,
+		bool allowDoubleSpend = false,
+		bool tryToSign = true
+	)
+	{
+		maxFeeRate = SeekMaxFeeRate(
+			startingFeeRate,
+			feeRate => wallet.BuildChangelessTransaction(destination, labels, feeRate, coins, allowDoubleSpend, tryToSign));
+
+		return maxFeeRate is not null;
+	}
+
+	public static bool TryGetMaxFeeRate(
+		Wallet wallet,
+		IDestination destination,
+		Money amount,
+		LabelsArray labels,
+		FeeRate startingFeeRate,
+		IEnumerable<SmartCoin> coins,
+		bool subtractFee,
+		[NotNullWhen(true)] out FeeRate? maxFeeRate,
+		bool tryToSign = true
+	)
+	{
+		maxFeeRate = SeekMaxFeeRate(
+			startingFeeRate,
+			feeRate => wallet.BuildTransaction(destination, amount, labels, feeRate, coins, subtractFee, null, tryToSign));
+
+		return maxFeeRate is not null;
+	}
+
+	private static FeeRate? SeekMaxFeeRate(FeeRate feeRate, Action<FeeRate> buildTransaction)
+	{
+		if (feeRate.SatoshiPerByte < 1m)
+		{
+			feeRate = new FeeRate(1m);
+		}
+
+		var lastWrongFeeRate = new FeeRate(0m);
+		var lastCorrectFeeRate = new FeeRate(0m);
+
+		var stopSearching = false;
+		while (!stopSearching)
+		{
+			try
+			{
+				buildTransaction(feeRate);
+				lastCorrectFeeRate = feeRate;
+				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? feeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - feeRate.SatoshiPerByte) / 2;
+				feeRate = new FeeRate(feeRate.SatoshiPerByte + increaseBy);
+			}
+			catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException or InvalidTxException)
+			{
+				lastWrongFeeRate = feeRate;
+				var decreaseBy = (feeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
+				var nextSatPerByteCandidate = feeRate.SatoshiPerByte - decreaseBy;
+				var newSatPerByte = nextSatPerByteCandidate < 1m && lastWrongFeeRate.SatoshiPerByte != 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
+				feeRate = new FeeRate(newSatPerByte);
+			}
+			catch (Exception)
+			{
+				return null;
+			}
+
+			var foundClosestSolution = Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) == 0.001m;
+			var noSolution = feeRate.SatoshiPerByte < 1m;
+			stopSearching = foundClosestSolution || noSolution;
+		}
+
+		return lastCorrectFeeRate.SatoshiPerByte >= 1m ? lastCorrectFeeRate : null;
+	}
+}

@@ -6,8 +6,8 @@ using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -123,51 +123,21 @@ public static class TransactionFeeHelper
 	/// <remarks>The method does not throw any exception.</remarks>
 	/// <remarks>Stores the found fee rate in the received <see cref="TransactionInfo"/> object. </remarks>
 	/// <returns>True if the seeking was successful, False if not.</returns>
-	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info, CancellationToken cancelToken)
+	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
 	{
-		var newInfo = info.Clone();
-
-		if (newInfo.FeeRate.SatoshiPerByte < 1m)
-		{
-			newInfo.FeeRate = new FeeRate(1m);
-		}
-
-		var lastWrongFeeRate = new FeeRate(0m);
-		var lastCorrectFeeRate = new FeeRate(0m);
-
-		var stopSearching = false;
-		while (!stopSearching)
-		{
-			try
+		var maxFeeRate =
+			await Task.Run(() =>
 			{
-				await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, newInfo, tryToSign: false), cancelToken);
-				lastCorrectFeeRate = newInfo.FeeRate;
-				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? newInfo.FeeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - newInfo.FeeRate.SatoshiPerByte) / 2;
-				newInfo.FeeRate = new FeeRate(newInfo.FeeRate.SatoshiPerByte + increaseBy);
-			}
-			catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException)
-			{
-				lastWrongFeeRate = newInfo.FeeRate;
-				var decreaseBy = (newInfo.FeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
-				var nextSatPerByteCandidate = newInfo.FeeRate.SatoshiPerByte - decreaseBy;
-				var newSatPerByte = nextSatPerByteCandidate < 1m && lastWrongFeeRate.SatoshiPerByte != 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
-				newInfo.FeeRate = new FeeRate(newSatPerByte);
-			}
-			catch (Exception)
-			{
-				return false;
-			}
+				var found = FeeHelpers.TryGetMaxFeeRate(wallet, info.Destination, info.Amount, info.Recipient, info.FeeRate, info.Coins, info.SubtractFee, out var maxFeeRate, false);
 
-			var foundClosestSolution = Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) == 0.001m;
-			var finished = newInfo.FeeRate.SatoshiPerByte < 1m;
-			stopSearching = foundClosestSolution || finished;
-		}
+				return found ? maxFeeRate! : new FeeRate(0m);
+			});
 
-		if (EnsureFeeRateIsPossible(wallet, lastCorrectFeeRate))
+		if (EnsureFeeRateIsPossible(wallet, maxFeeRate))
 		{
-			info.MaximumPossibleFeeRate = lastCorrectFeeRate;
-			info.FeeRate = lastCorrectFeeRate;
-			info.ConfirmationTimeSpan = TryEstimateConfirmationTime(wallet, lastCorrectFeeRate, out var estimate)
+			info.MaximumPossibleFeeRate = maxFeeRate;
+			info.FeeRate = maxFeeRate;
+			info.ConfirmationTimeSpan = TryEstimateConfirmationTime(wallet, maxFeeRate, out var estimate)
 				? estimate.Value
 				: TimeSpan.Zero;
 

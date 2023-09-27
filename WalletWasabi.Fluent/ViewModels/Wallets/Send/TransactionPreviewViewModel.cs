@@ -282,7 +282,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException)
 		{
-			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info, _cancellationTokenSource.Token))
+			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
 			{
 				return await BuildTransactionAsync();
 			}
@@ -309,7 +309,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					return await BuildTransactionAsync();
 				}
 			}
-			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info, _cancellationTokenSource.Token))
+			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
 			{
 				return await BuildTransactionAsync();
 			}
