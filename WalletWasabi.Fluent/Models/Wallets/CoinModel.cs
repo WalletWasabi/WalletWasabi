@@ -16,6 +16,9 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private bool _isBanned;
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
 	[AutoNotify] private string? _confirmedToolTip;
+	[AutoNotify] private int _anonScore;
+	[AutoNotify] private int _confirmations;
+	[AutoNotify] private bool _isConfirmed;
 
 	public CoinModel(Wallet wallet, SmartCoin coin)
 	{
@@ -32,7 +35,12 @@ public partial class CoinModel : ReactiveObject
 		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress);
 		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}");
-		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}");
+
+		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x =>
+		{
+			Confirmations = x;
+			ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}";
+		});
 	}
 
 	internal SmartCoin Coin { get; }
@@ -42,12 +50,6 @@ public partial class CoinModel : ReactiveObject
 	public int Key { get; }
 
 	public PrivacyLevel PrivacyLevel { get; }
-
-	public bool IsConfirmed { get; }
-
-	public int Confirmations { get; }
-
-	public int AnonScore { get; }
 
 	public LabelsArray Labels { get; }
 
