@@ -135,9 +135,9 @@ public class TransactionFactory
 
 		HdPubKey? changeHdPubKey;
 
-		if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
+		if (payments.TryGetCustomRequest(out DestinationRequest? customChange))
 		{
-			var changeScript = custChange.Destination.ScriptPubKey;
+			var changeScript = customChange.Destination.ScriptPubKey;
 			KeyManager.TryGetKeyForScriptPubKey(changeScript, out HdPubKey? hdPubKey);
 			changeHdPubKey = hdPubKey;
 
@@ -278,12 +278,12 @@ public class TransactionFactory
 			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
-				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinlabel.
+				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinLabel.
 				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 
-		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
+		// New labels will be added to the HdPubKey only when tx will be successfully broadcasted.
 		Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels = new();
 
 		foreach (var coin in smartTransaction.WalletOutputs)
@@ -291,8 +291,8 @@ public class TransactionFactory
 			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
 			// If change then we concatenate all the labels.
-			// The foundkeylabel has already been added previously, so no need to concatenate.
-			if (foundPaymentRequest is null) // Then it's autochange.
+			// The foundKeyLabel has already been added previously, so no need to concatenate.
+			if (foundPaymentRequest is null) // Then it's auto-change.
 			{
 				hdPubKeysWithNewLabels.Add(coin.HdPubKey, label);
 			}

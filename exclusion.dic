@@ -9,6 +9,20 @@ murch
 erhardt
 coinselection
 
+# Non-Words
+xffffffff
+Nmæo
+ufffd
+pczvf
+fced
+ebcdc
+dcfd
+feea
+effffffff
+adfacaab
+edcaeba
+afca
+
 # Words
 coinjoin
 coinjoins
@@ -111,7 +125,6 @@ lontivero
 ipynb
 stackoverflow
 unix
-xffffffff
 typeof
 segwittaproot
 estimatesmartfee
@@ -134,8 +147,6 @@ startcoinjoin
 stopcoinjoin
 selectwallet
 Userfacing
-Nmæo
-ufffd
 serializer
 regtest
 newtonsoft
@@ -152,7 +163,6 @@ cdelivery
 bitcoind
 chmod
 sudo
-pczvf
 hicolor
 wasabiwallet
 zksnacks
@@ -269,13 +279,5 @@ bitcoind'
 optin
 getfeerates
 Middlewares
-fced
-ebcdc
-dcfd
-feea
-effffffff
-adfacaab
-edcaeba
-afca
 unregistration
 legaldocuments

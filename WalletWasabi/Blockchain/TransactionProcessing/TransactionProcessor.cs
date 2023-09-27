@@ -31,23 +31,16 @@ public class TransactionProcessor
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	private static object Lock { get; } = new object();
+	private static object Lock { get; } = new();
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
 
 	public KeyManager KeyManager { get; }
 
 	public CoinsRegistry Coins { get; }
-	public BlockchainAnalyzer BlockchainAnalyzer { get; }
+	private BlockchainAnalyzer BlockchainAnalyzer { get; }
 	public Money DustThreshold { get; }
-
-	#region Progress
-
-	public int QueuedTxCount { get; private set; }
-	public int QueuedProcessedTxCount { get; private set; }
-	public MempoolService? MempoolService { get; }
-
-	#endregion Progress
+	private MempoolService? MempoolService { get; }
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
@@ -55,19 +48,9 @@ public class TransactionProcessor
 
 		lock (Lock)
 		{
-			try
+			foreach (var tx in txs)
 			{
-				QueuedTxCount = txs.Count();
-				foreach (var tx in txs)
-				{
-					rets.Add(ProcessNoLock(tx));
-					QueuedProcessedTxCount++;
-				}
-			}
-			finally
-			{
-				QueuedTxCount = 0;
-				QueuedProcessedTxCount = 0;
+				rets.Add(ProcessNoLock(tx));
 			}
 		}
 
@@ -99,15 +82,7 @@ public class TransactionProcessor
 		lock (Lock)
 		{
 			Aware.Add(tx.GetHash());
-			try
-			{
-				QueuedTxCount = 1;
-				ret = ProcessNoLock(tx);
-			}
-			finally
-			{
-				QueuedTxCount = 0;
-			}
+			ret = ProcessNoLock(tx);
 		}
 		if (ret.IsNews)
 		{
@@ -226,7 +201,7 @@ public class TransactionProcessor
 			}
 		}
 
-		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
+		var myInputs = Coins.GetMyInputs(tx).ToArray();
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
@@ -308,13 +283,13 @@ public class TransactionProcessor
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
-		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
+		&& Coins.IsUsed(hdPubKey); // the destination address has already been used (address reuse)
 
-	private static void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
+	private void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
 	{
 		foreach (var spenderKey in internalKeys)
 		{
-			if (spenderKey.Coins.Any(x => !x.IsSpent()))
+			if (Coins.HasUnspentCoin(spenderKey))
 			{
 				// The key still has unspent coins.
 				continue;
