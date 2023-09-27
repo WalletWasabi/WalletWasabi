@@ -145,11 +145,11 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 				public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);
 			""");
 
-		var routeableClass = compilation.GetTypeByMetadataName(RoutableViewModelDisplayString);
+		var routableClass = compilation.GetTypeByMetadataName(RoutableViewModelDisplayString);
 
-		if (routeableClass is { })
+		if (routableClass is { })
 		{
-			bool addRouteableMetaData = false;
+			bool addRoutableMetaData = false;
 			var baseType = classSymbol.BaseType;
 			while (true)
 			{
@@ -158,16 +158,16 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 					break;
 				}
 
-				if (SymbolEqualityComparer.Default.Equals(baseType, routeableClass))
+				if (SymbolEqualityComparer.Default.Equals(baseType, routableClass))
 				{
-					addRouteableMetaData = true;
+					addRoutableMetaData = true;
 					break;
 				}
 
 				baseType = baseType.BaseType;
 			}
 
-			if (addRouteableMetaData)
+			if (addRoutableMetaData)
 			{
 				if (attributeData.NamedArguments.Any(x => x.Key == "NavigationTarget"))
 				{

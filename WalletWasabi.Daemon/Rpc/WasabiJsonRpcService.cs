@@ -99,6 +99,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Global.WalletManager.AddWallet(keyManager);
 	}
 
+	[JsonRpcMethod("loadwallet", initializable: false)]
+	public void LoadWallet(string walletName)
+	{
+		SelectWallet(walletName);
+	}
+
 	[JsonRpcMethod("getwalletinfo")]
 	public object WalletInfo()
 	{
@@ -227,6 +233,40 @@ public class WasabiJsonRpcService : IJsonRpcService
 			txid = smartTx.Transaction.GetHash(),
 			tx = txHex
 		};
+	}
+
+	[JsonRpcMethod("canceltransaction")]
+	public string BuildCancelTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var cancellationResult = activeWallet.CancelTransaction(smartTransactionToCancel);
+		var cancellationSmartTransaction = cancellationResult.Transaction;
+		return cancellationSmartTransaction.Transaction.ToHex();
+	}
+
+	[JsonRpcMethod("speeduptransaction")]
+	public string SpeedUpTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var speedUpResult = activeWallet.SpeedUpTransaction(smartTransactionToSpeedUp);
+		var speedUpSmartTransaction = speedUpResult.Transaction;
+		return speedUpSmartTransaction.Transaction.ToHex();
 	}
 
 	[JsonRpcMethod("broadcast", initializable: false)]
