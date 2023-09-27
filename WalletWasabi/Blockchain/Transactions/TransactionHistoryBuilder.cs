@@ -12,7 +12,7 @@ public class TransactionHistoryBuilder
 {
 	public static List<TransactionSummary> BuildHistorySummary(Wallet wallet)
 	{
-		Dictionary<uint256, TransactionSummary> txRecordList = new();
+		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
 		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
@@ -20,7 +20,7 @@ public class TransactionHistoryBuilder
 
 			var dateTime = containingTransaction.FirstSeen;
 			
-			if (txRecordList.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
+			if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
 			{
 				found.FirstSeen = found.FirstSeen < dateTime ? found.FirstSeen : dateTime;
 				found.Amount += coin.Amount;
@@ -28,7 +28,7 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
-				txRecordList.Add(coin.TransactionId, new TransactionSummary(containingTransaction, coin.Amount));
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(containingTransaction, coin.Amount));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -37,18 +37,18 @@ public class TransactionHistoryBuilder
 				var spenderTxId = spenderTransaction.GetHash();
 				dateTime = spenderTransaction.FirstSeen;
 				
-				if (txRecordList.TryGetValue(spenderTxId, out TransactionSummary? foundSpenderCoin)) // If found then update.
+				if (mapByTxid.TryGetValue(spenderTxId, out TransactionSummary? foundSpenderCoin)) // If found then update.
 				{
 					foundSpenderCoin.FirstSeen = foundSpenderCoin.FirstSeen < dateTime ? foundSpenderCoin.FirstSeen : dateTime;
 					foundSpenderCoin.Amount -= coin.Amount;
 				}
 				else
 				{
-					txRecordList.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
 				}
 			}
 		}
 
-		return txRecordList.Values.OrderByBlockchain().ToList();
+		return mapByTxid.Values.OrderByBlockchain().ToList();
 	}	
 }
