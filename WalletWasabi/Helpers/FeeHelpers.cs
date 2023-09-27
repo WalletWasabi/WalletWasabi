@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using NBitcoin;
+using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -68,7 +70,7 @@ public static class FeeHelpers
 				var increaseBy = lastWrongFeeRate.SatoshiPerByte == 0 ? feeRate.SatoshiPerByte : (lastWrongFeeRate.SatoshiPerByte - feeRate.SatoshiPerByte) / 2;
 				feeRate = new FeeRate(feeRate.SatoshiPerByte + increaseBy);
 			}
-			catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException or InvalidTxException)
+			catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 			{
 				lastWrongFeeRate = feeRate;
 				var decreaseBy = (feeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;

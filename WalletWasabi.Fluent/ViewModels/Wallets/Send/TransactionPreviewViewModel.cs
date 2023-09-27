@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
+using NBitcoin.Policy;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -280,7 +281,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
 		}
-		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException)
+		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 		{
 			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
 			{

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -143,7 +144,7 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 					wallet.BuildTransaction(destination, amount, "", failingFeeRate, wallet.Coins, false);
 					Assert.Fail();
 				}
-				catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException or InvalidTxException)
+				catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 				{
 				}
 				catch (Exception)
