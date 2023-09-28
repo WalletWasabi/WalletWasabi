@@ -91,11 +91,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("recoverwallet", initializable: false)]
-	public void RecoverWallet(string walletName, string mnemonic, string password = "")
+	public void RecoverWallet(string walletName, string mnemonicStr, string password = "")
 	{
 		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
 		walletGenerator.TipHeight = 0;
-		var (keyManager, _) = walletGenerator.GenerateWallet(walletName, password, new Mnemonic(mnemonic));
+		if (!TryParseMnemonic(mnemonicStr, out var mnemonic))
+		{
+			throw new ArgumentException("Invalid value for mnemonic");
+		}
+
+		var (keyManager, _) = walletGenerator.GenerateWallet(walletName, password, mnemonic);
 		Global.WalletManager.AddWallet(keyManager);
 	}
 
@@ -407,6 +412,20 @@ public class WasabiJsonRpcService : IJsonRpcService
 		else
 		{
 			throw new InvalidOperationException("Wallet name is invalid or not allowed.");
+		}
+	}
+
+	static bool TryParseMnemonic(string mnemonicStr, [NotNullWhen(true)] out Mnemonic? mnemonic)
+	{
+		try
+		{
+			mnemonic = new Mnemonic(mnemonicStr);
+			return true;
+		}
+		catch (Exception)
+		{
+			mnemonic = null;
+			return false;
 		}
 	}
 }
