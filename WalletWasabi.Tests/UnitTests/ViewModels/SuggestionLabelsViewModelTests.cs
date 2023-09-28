@@ -196,6 +196,8 @@ public class SuggestionLabelsViewModelTests
 
 		public IObservable<Money> Balances => throw new NotImplementedException();
 
+		public IObservable<bool> HasBalance => throw new NotSupportedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();

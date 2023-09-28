@@ -90,6 +90,8 @@ public class ReceiveAddressViewModelTests
 
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
 
+		public IObservable<bool> HasBalance => throw new NotSupportedException();
+
 		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotSupportedException();
 
 		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
