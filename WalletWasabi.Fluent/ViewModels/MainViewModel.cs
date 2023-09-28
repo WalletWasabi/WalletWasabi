@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -339,7 +338,8 @@ public partial class MainViewModel : ViewModelBase
 		var source = new CompositeSearchSource(
 			new ActionsSearchSource(UiContext, filterChanged),
 			new SettingsSearchSource(UiContext, filterChanged),
-			new TransactionsSearchSource(filterChanged));
+			new TransactionsSearchSource(filterChanged),
+			UiContext.CustomSearch);
 
 		var searchBar = new SearchBarViewModel(source.Changes);
 

@@ -1,14 +1,22 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletPageViewModel : ViewModelBase
+public partial class WalletPageViewModel : ViewModelBase, ISearchSource
 {
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isSelected;
@@ -55,8 +63,27 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Subscribe();
 
 		SetIcon();
+
+		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (b, a) => a && b)
+			.Do(
+				shouldShow =>
+				{
+					if (shouldShow)
+					{
+						UiContext.CustomSearch.Add(new ActionableItem("Wallet Info", "Display wallet info", async () => UiContext.Navigate().To().WalletInfo(WalletModel), "Wallet") { Icon = "nav_wallet_24_regular"} );
+					}
+					else
+					{
+						UiContext.CustomSearch.Remove(new ComposedKey("Wallet Info"));
+					}
+				}).Subscribe();
+			
+
+		SourceCache<ISearchItem, ComposedKey> searchItems = new(x => x.Key);
+		Changes = searchItems.Connect();
 	}
 
+	
 	public IWalletModel WalletModel { get; }
 	public Wallet Wallet { get; set; }
 
@@ -95,4 +122,6 @@ public partial class WalletPageViewModel : ViewModelBase
 		IconName = $"nav_{baseResourceName}_regular";
 		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
+
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 }
