@@ -1,4 +1,4 @@
-# Wasabi Coding Conventions
+# Contributing to Wasabi Wallet
 
 ## How to be useful for the project
 
