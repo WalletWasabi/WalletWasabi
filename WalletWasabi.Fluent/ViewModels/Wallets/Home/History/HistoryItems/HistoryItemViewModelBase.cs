@@ -117,14 +117,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			return HistoryItemStatus.Confirmed;
 		}
 
-		if (!IsConfirmed && !IsSpeedUp)
-		{
-			return HistoryItemStatus.Pending;
-		}
-
 		if (!IsConfirmed && (IsSpeedUp || IsCPFPd))
 		{
 			return HistoryItemStatus.SpeedUp;
+		}
+
+		if (!IsConfirmed && !IsSpeedUp)
+		{
+			return HistoryItemStatus.Pending;
 		}
 
 		return HistoryItemStatus.Unknown;
