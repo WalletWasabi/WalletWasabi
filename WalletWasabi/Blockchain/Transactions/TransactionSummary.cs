@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Models;
 
@@ -11,15 +10,12 @@ public class TransactionSummary
 	{
 		Transaction = tx;
 		Amount = amount;
-
-		FirstSeen = tx.FirstSeen;
-		Labels = tx.Labels;
 	}
 
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
-	public DateTimeOffset FirstSeen { get; set; }
-	public LabelsArray Labels { get; set; }
+	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
+    public LabelsArray Labels => Transaction.Labels;
 	public Height Height => Transaction.Height;
 	public uint256? BlockHash => Transaction.BlockHash;
 	public int BlockIndex => Transaction.BlockIndex;
