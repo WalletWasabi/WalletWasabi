@@ -1,4 +1,5 @@
 // Based on: https://github.com/AvaloniaUI/Avalonia/blob/master/src/Avalonia.Controls/Converters/EnumToBoolConverter.cs
+
 using System.Globalization;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
@@ -14,7 +15,7 @@ namespace WalletWasabi.Fluent.Converters;
 /// </remarks>
 public class EnumToBoolConverter : IValueConverter
 {
-	public static EnumToBoolConverter Instance = new ();
+	public static EnumToBoolConverter Instance = new();
 
 	/// <inheritdoc/>
 	public object? Convert(
@@ -23,20 +24,17 @@ public class EnumToBoolConverter : IValueConverter
 		object? parameter,
 		CultureInfo culture)
 	{
-		if (value == null &&
-		    parameter == null)
+		if (value == null && parameter == null)
 		{
 			return true;
 		}
-		else if (value == null ||
-		         parameter == null)
+
+		if (value == null || parameter == null)
 		{
 			return false;
 		}
-		else
-		{
-			return value!.Equals(parameter);
-		}
+
+		return value.Equals(parameter);
 	}
 
 	/// <inheritdoc/>
@@ -46,12 +44,6 @@ public class EnumToBoolConverter : IValueConverter
 		object? parameter,
 		CultureInfo culture)
 	{
-		if (value is bool boolValue &&
-		    boolValue == true)
-		{
-			return parameter;
-		}
-
-		return BindingOperations.DoNothing;
+		return value is true ? parameter : BindingOperations.DoNothing;
 	}
 }
