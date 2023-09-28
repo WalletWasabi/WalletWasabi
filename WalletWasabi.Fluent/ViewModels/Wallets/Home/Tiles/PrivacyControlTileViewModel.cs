@@ -26,7 +26,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		_wallet = wallet;
 		_showPrivacyBar = showPrivacyBar;
 
-		var canShowDetails = this.WhenAnyObservable(x => x._wallet.Balances).Select(x => x != Money.Zero);
+		var canShowDetails = _wallet.HasBalance;
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, canShowDetails);
 

@@ -54,6 +54,8 @@ public partial class WalletModel : ReactiveObject
 
 		Balances = Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount())).Concat(TransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
 
+		HasBalance = Balances.Select(x => x != Money.Zero);
+
 		Coins = new WalletCoinsModel(wallet, this);
 
 		// Start the Loader after wallet is logged in
@@ -72,6 +74,8 @@ public partial class WalletModel : ReactiveObject
 	internal Wallet Wallet { get; }
 
 	public IObservable<Money> Balances { get; }
+
+	public IObservable<bool> HasBalance { get; }
 
 	public IWalletCoinsModel Coins { get; }
 

@@ -14,4 +14,5 @@ public class Amount
 
 	public Money Btc { get; }
 	public IObservable<decimal> Usd { get; }
+	public bool HasBalance => Btc != Money.Zero;
 }
