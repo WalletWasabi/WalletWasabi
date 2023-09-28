@@ -82,9 +82,9 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			return HistoryItemType.OutgoingTransaction;
 		}
 
-		if (OutgoingAmount == Money.Zero)
+		if (IsCancellation)
 		{
-			return HistoryItemType.SelfTransferTransaction;
+			return HistoryItemType.Cancellation;
 		}
 
 		if (IsCoinJoin && !IsCoinJoinGroup)
@@ -97,14 +97,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			return HistoryItemType.CoinjoinGroup;
 		}
 
-		if (IsCancellation)
-		{
-			return HistoryItemType.Cancellation;
-		}
-
 		if (IsCPFP)
 		{
 			return HistoryItemType.CPFP;
+		}
+
+		if (OutgoingAmount == Money.Zero)
+		{
+			return HistoryItemType.SelfTransferTransaction;
 		}
 
 		return HistoryItemType.Unknown;
