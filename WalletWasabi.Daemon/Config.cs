@@ -149,10 +149,10 @@ public class Config
 
 	private static string GetString(string valueInConfigFile, string[] args, string key)
 	{
-		return GetEffectiveValue(valueInConfigFile, x => x, args, key);
+		return GetEffectiveValueCore(valueInConfigFile, x => x, args, key);
 	}
 
-	private static T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, string key)
+	private static T GetEffectiveValueCore<T>(T valueInConfigFile, Func<string, T> converter, string[] args, string key)
 	{
 		if (ArgumentHelpers.TryGetValue(key, args, converter, out var cliArg))
 		{
@@ -160,16 +160,28 @@ public class Config
 		}
 
 		var envKey = "WASABI-" + key.ToUpperInvariant();
-		var envVars = Environment.GetEnvironmentVariables();
-		if (envVars.Contains(envKey))
+		var environmentVariables = Environment.GetEnvironmentVariables();
+		if (environmentVariables.Contains(envKey))
 		{
-			if (envVars[envKey] is string envVar)
+			if (environmentVariables[envKey] is string envVar)
 			{
 				return converter(envVar);
 			}
 		}
 
 		return valueInConfigFile;
+	}
+
+	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, string key)
+	{
+		var effectiveValue = GetEffectiveValueCore(valueInConfigFile, converter, args, key);
+
+		if (!Equals(effectiveValue, valueInConfigFile))
+		{
+			IsOverridden = true;
+		}
+
+		return effectiveValue;
 	}
 
 	private EndPoint GetEffectiveEndPoint(EndPoint valueInConfigFile, string key)
@@ -213,13 +225,6 @@ public class Config
 
 	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string key)
 	{
-		var effectiveValue = GetEffectiveValue(valueInConfigFile, converter, Args, key);
-
-		if (!Equals(effectiveValue, valueInConfigFile))
-		{
-			IsOverridden = true;
-		}
-
-		return effectiveValue;
+		return GetEffectiveValue(valueInConfigFile, converter, Args, key);
 	}
 }
