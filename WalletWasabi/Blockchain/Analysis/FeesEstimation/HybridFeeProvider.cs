@@ -1,10 +1,12 @@
 using Microsoft.Extensions.Hosting;
+using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
+using WalletWasabi.WebClients.MempoolSpace;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
@@ -14,15 +16,21 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 /// </summary>
 public class HybridFeeProvider : IHostedService
 {
-	public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider)
+	public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider, TransactionFeeFetcher? transactionFeeFetcher)
 	{
 		ThirdPartyFeeProvider = thirdPartyFeeProvider;
 		RpcFeeProvider = rpcFeeProvider;
+		TransactionFeeFetcher = transactionFeeFetcher;
+	}
+
+	public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider) : this(thirdPartyFeeProvider, rpcFeeProvider, null)
+	{
 	}
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 	public RpcFeeProvider? RpcFeeProvider { get; }
+	public TransactionFeeFetcher? TransactionFeeFetcher { get; }
 	public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
 	private object Lock { get; } = new();
 	public AllFeeEstimate? AllFeeEstimate { get; private set; }
@@ -157,5 +165,15 @@ public class HybridFeeProvider : IHostedService
 		}
 		AllFeeEstimate = fees;
 		return true;
+	}
+
+	public async Task<int?> FetchTransactionFeeAsync(uint256 txId)
+	{
+		if (TransactionFeeFetcher is not null)
+		{
+			return await TransactionFeeFetcher.FetchTransactionFeeAsync(txId).ConfigureAwait(false);
+		}
+
+		return null;
 	}
 }
