@@ -155,7 +155,7 @@ public class PrisonTests
 
 		prison.FailedToConfirm(ftcOutpointBigPaid, Money.Coins(2m), roundId);
 		banningPeriodBigPaidCoin = prison.GetBanTimePeriod(ftcOutpointBigPaid);
-		Assert.Equal(TimeSpan.Zero, banningPeriodBigPaidCoin.Duration); // it is not banned second time either
+		Assert.NotEqual(TimeSpan.Zero, banningPeriodBigPaidCoin.Duration); // it IS banned second time
 
 		// coins inherit the punishments from their ancestors
 		var ftcFailedToSign = BitcoinFactory.CreateOutPoint();
