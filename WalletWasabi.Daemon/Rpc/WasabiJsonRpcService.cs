@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -195,15 +196,22 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
-		_ = coinJoinManager.TryGetWalletStatus(activeWallet.WalletName, out var walletCoinjoinStatus);
-		return walletCoinjoinStatus switch
+		try
 		{
-			CoinJoinClientState.Idle => "Idle",
-			CoinJoinClientState.InProgress => "In progress",
-			CoinJoinClientState.InSchedule => "In schedule",
-			CoinJoinClientState.InCriticalPhase => "In critical phase",
-			_ => "Not managed"
-		};
+			var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(activeWallet.WalletName);
+			return walletCoinjoinClientState switch
+			{
+				CoinJoinClientState.Idle => "Idle",
+				CoinJoinClientState.InProgress => "In progress",
+				CoinJoinClientState.InSchedule => "In schedule",
+				CoinJoinClientState.InCriticalPhase => "In critical phase",
+				_ => throw new Exception($"The state {walletCoinjoinClientState.FriendlyName()} is unknown.")
+			};
+		}
+		catch(KeyNotFoundException)
+		{
+			throw new Exception($"Wallet {activeWallet.WalletName} is active but isn't in the wallets tracked by the Coinjoin Manager");
+		}
 	}
 
 	[JsonRpcMethod("build")]

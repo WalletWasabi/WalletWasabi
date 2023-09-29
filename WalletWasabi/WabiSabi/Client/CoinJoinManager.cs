@@ -82,11 +82,9 @@ public class CoinJoinManager : BackgroundService
 		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
-	public bool TryGetWalletStatus(string walletName, [NotNullWhen(true)] out CoinJoinClientState? walletCoinjoinStatus)
+	public CoinJoinClientState GetCoinjoinClientState(string walletName)
 	{
-		var result = CoinJoinClientStates.TryGetValue(walletName, out var walletCoinjoinStateHolder);
-		walletCoinjoinStatus = walletCoinjoinStateHolder?.CoinJoinClientState;
-		return result;
+		return CoinJoinClientStates[walletName].CoinJoinClientState;
 	}
 
 	#endregion Public API (Start | Stop | )
