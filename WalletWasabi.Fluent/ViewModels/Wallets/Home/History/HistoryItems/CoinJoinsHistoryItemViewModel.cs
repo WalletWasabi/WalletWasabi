@@ -31,6 +31,9 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
+
+		ItemType = GetItemType();
+		ItemStatus = GetItemStatus();
 	}
 
 	public List<TransactionSummary> CoinJoinTransactions { get; private set; }
