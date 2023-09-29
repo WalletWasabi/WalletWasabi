@@ -32,6 +32,7 @@ using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WebClients.MempoolSpace;
 
 namespace WalletWasabi.Daemon;
 
@@ -318,7 +319,7 @@ public class Global
 	{
 		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>(), new TransactionFeeFetcher(new MempoolSpaceApiClient(HttpClientFactory, Network))), "Hybrid Fee Provider");
 	}
 
 	private void RegisterCoinJoinComponents()
