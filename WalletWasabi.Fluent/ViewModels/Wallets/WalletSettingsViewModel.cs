@@ -15,7 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Settings", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
