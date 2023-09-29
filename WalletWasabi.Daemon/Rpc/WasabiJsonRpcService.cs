@@ -99,6 +99,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Global.WalletManager.AddWallet(keyManager);
 	}
 
+	[JsonRpcMethod("loadwallet", initializable: false)]
+	public void LoadWallet(string walletName)
+	{
+		SelectWallet(walletName);
+	}
+
 	[JsonRpcMethod("getwalletinfo")]
 	public object WalletInfo()
 	{

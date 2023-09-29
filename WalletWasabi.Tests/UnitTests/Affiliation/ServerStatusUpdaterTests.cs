@@ -59,13 +59,15 @@ public class AffiliateServerStatusUpdaterTests
 			return response;
 		}
 
-		var client1Mock = CreateIMockHttpClient(jsonContent: "{}",
+		var client1Mock = CreateIMockHttpClient(
+			jsonContent: "{}",
 			Ok(),
 			Ok(),
 			Error(HttpStatusCode.InternalServerError),
 			Ok());
 
-		var client2Mock = CreateIMockHttpClient(jsonContent: "{}",
+		var client2Mock = CreateIMockHttpClient(
+			jsonContent: "{}",
 			Ok(),
 			Error(HttpStatusCode.NotFound),
 			Error(HttpStatusCode.Forbidden),

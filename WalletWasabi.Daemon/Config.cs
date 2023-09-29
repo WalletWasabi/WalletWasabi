@@ -160,10 +160,10 @@ public class Config
 		}
 
 		var envKey = "WASABI-" + key.ToUpperInvariant();
-		var envVars = Environment.GetEnvironmentVariables();
-		if (envVars.Contains(envKey))
+		var environmentVariables = Environment.GetEnvironmentVariables();
+		if (environmentVariables.Contains(envKey))
 		{
-			if (envVars[envKey] is string envVar)
+			if (environmentVariables[envKey] is string envVar)
 			{
 				return converter(envVar);
 			}

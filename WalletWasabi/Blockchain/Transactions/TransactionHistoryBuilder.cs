@@ -12,15 +12,15 @@ public class TransactionHistoryBuilder
 {
 	public static List<TransactionSummary> BuildHistorySummary(Wallet wallet)
 	{
-		var txRecordList = new List<TransactionSummary>();
+		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
 		foreach (SmartCoin coin in wallet.GetAllCoins())
 		{
 			var containingTransaction = coin.Transaction;
 
 			var dateTime = containingTransaction.FirstSeen;
-			var found = txRecordList.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
-			if (found is { }) // if found then update
+			
+			if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
 			{
 				found.FirstSeen = found.FirstSeen < dateTime ? found.FirstSeen : dateTime;
 				found.Amount += coin.Amount;
@@ -28,7 +28,7 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
-				txRecordList.Add(new TransactionSummary(containingTransaction, coin.Amount));
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(containingTransaction, coin.Amount));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -36,19 +36,19 @@ public class TransactionHistoryBuilder
 			{
 				var spenderTxId = spenderTransaction.GetHash();
 				dateTime = spenderTransaction.FirstSeen;
-				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.GetHash() == spenderTxId);
-				if (foundSpenderCoin is { }) // if found
+				
+				if (mapByTxid.TryGetValue(spenderTxId, out TransactionSummary? foundSpenderCoin)) // If found then update.
 				{
 					foundSpenderCoin.FirstSeen = foundSpenderCoin.FirstSeen < dateTime ? foundSpenderCoin.FirstSeen : dateTime;
 					foundSpenderCoin.Amount -= coin.Amount;
 				}
 				else
 				{
-					txRecordList.Add(new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
 				}
 			}
 		}
-		txRecordList = txRecordList.OrderByBlockchain().ToList();
-		return txRecordList;
+
+		return mapByTxid.Values.OrderByBlockchain().ToList();
 	}	
 }
