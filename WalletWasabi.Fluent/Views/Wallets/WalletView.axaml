@@ -62,6 +62,11 @@
                       <PathIcon Data="{StaticResource settings_wallet_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
+                  <MenuItem Header="Wallet Coins" Command="{Binding WalletCoinsCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource btc_logo}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
                   <MenuItem Header="Wallet Stats" Command="{Binding WalletStatsCommand}">
                     <MenuItem.Icon>
                       <PathIcon Data="{StaticResource stats_wallet_regular}" />
