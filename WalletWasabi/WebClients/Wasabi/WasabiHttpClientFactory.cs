@@ -19,7 +19,7 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 	/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
 	public WasabiHttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
 	{
-		HttpClient = CreateLongLivedHttpClient(automaticDecompression: DecompressionMethods.GZip);
+		HttpClient = CreateLongLivedHttpClient(automaticDecompression: DecompressionMethods.GZip | DecompressionMethods.Brotli);
 
 		TorEndpoint = torEndPoint;
 		BackendUriGetter = backendUriGetter;

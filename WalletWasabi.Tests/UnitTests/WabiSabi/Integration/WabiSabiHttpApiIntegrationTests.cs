@@ -468,7 +468,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 			mockHttpClientFactory.OnNewHttpClientWithDefaultCircuit = () => httpClientWrapper;
 
-
 			// Total test timeout.
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
