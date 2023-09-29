@@ -339,13 +339,17 @@ public partial class MainViewModel : ViewModelBase
 			new ActionsSearchSource(UiContext, filterChanged),
 			new SettingsSearchSource(UiContext, filterChanged),
 			new TransactionsSearchSource(filterChanged),
-			UiContext.CustomSearch);
+			UiContext.EditableSearchSource);
 
 		var searchBar = new SearchBarViewModel(source.Changes);
 
-		searchBar
+		var queries = searchBar
 			.WhenAnyValue(a => a.SearchText)
-			.WhereNotNull()
+			.WhereNotNull();
+
+		UiContext.EditableSearchSource.SetQueries(queries);
+
+		queries
 			.Subscribe(filterChanged);
 
 		return searchBar;

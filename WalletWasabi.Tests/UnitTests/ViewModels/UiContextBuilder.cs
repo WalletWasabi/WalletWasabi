@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
@@ -35,7 +36,7 @@ public class UiContextBuilder
 
 	public UiContext Build()
 	{
-		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface, FileSystem, ClientConfig, new NullApplicationSettings());
+		var uiContext = new UiContext(QrGenerator, QrReader, Clipboard, WalletRepository, HardwareWalletInterface, FileSystem, ClientConfig, new NullApplicationSettings(), new EditableSearchSourceSource());
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
 	}

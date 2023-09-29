@@ -1,11 +1,8 @@
 using System.Threading.Tasks;
-using DynamicData;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
-using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 namespace WalletWasabi.Fluent.Models.UI;
@@ -14,7 +11,7 @@ public class UiContext
 {
 	private INavigate? _navigate;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IUiClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings)
+	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IUiClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings, IEditableSearchSource editableSearchSource)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -24,7 +21,7 @@ public class UiContext
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
-		CustomSearch = new CustomSearch();
+		EditableSearchSource = editableSearchSource;
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -35,7 +32,7 @@ public class UiContext
 	public IFileSystem FileSystem { get; }
 	public IClientConfig Config { get; }
 	public IApplicationSettings ApplicationSettings { get; }
-	public ICustomSearch CustomSearch { get; set; }
+	public IEditableSearchSource EditableSearchSource { get; }
 	
 	/// <summary>
 	/// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
@@ -57,33 +54,5 @@ public class UiContext
 		return
 			_navigate?.Navigate(target)
 			?? throw new InvalidOperationException($"{GetType().Name} {nameof(_navigate)} hasn't been initialized.");
-	}
-}
-
-public interface ICustomSearch : ISearchSource
-{
-	void Remove(ComposedKey key);
-	void Add(ISearchItem searchItem);
-}
-
-public class CustomSearch : ICustomSearch
-{
-	private readonly SourceCache<ISearchItem, ComposedKey> _actions;
-
-	public CustomSearch()
-	{
-		_actions = new SourceCache<ISearchItem, ComposedKey>(x => x.Key);
-		Changes = _actions.Connect();
-	}
-
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
-	public void Remove(ComposedKey key)
-	{
-		_actions.RemoveKey(key);
-	}
-
-	public void Add(ISearchItem searchItem)
-	{
-		_actions.AddOrUpdate(searchItem);
 	}
 }

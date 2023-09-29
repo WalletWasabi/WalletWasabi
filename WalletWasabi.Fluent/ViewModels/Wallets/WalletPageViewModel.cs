@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -11,7 +8,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -64,26 +60,47 @@ public partial class WalletPageViewModel : ViewModelBase, ISearchSource
 
 		SetIcon();
 
-		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (b, a) => a && b)
-			.Do(
-				shouldShow =>
-				{
-					if (shouldShow)
-					{
-						UiContext.CustomSearch.Add(new ActionableItem("Wallet Info", "Display wallet info", async () => UiContext.Navigate().To().WalletInfo(WalletModel), "Wallet") { Icon = "nav_wallet_24_regular"} );
-					}
-					else
-					{
-						UiContext.CustomSearch.Remove(new ComposedKey("Wallet Info"));
-					}
-				}).Subscribe();
-			
-
 		SourceCache<ISearchItem, ComposedKey> searchItems = new(x => x.Key);
 		Changes = searchItems.Connect();
+
+		SearchItems = CreateSearchItems();
+
+		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (selected, loggedIn) => selected && loggedIn)
+			.Do(selectedAndLogged => HandleSearchItems(selectedAndLogged))
+			.Subscribe();
 	}
 
-	
+	private ISearchItem[] CreateSearchItems()
+	{
+		return new ISearchItem[]
+		{
+			new ActionableItem("Wallet Info", "Display wallet info", async () => UiContext.Navigate().To().WalletInfo(WalletModel), "Wallet", new[] { "Wallet", "Info", }) { Icon = "nav_wallet_24_regular" },
+			new ActionableItem("Wallet Coins (UTXOs)", "Display wallet coins", async () => UiContext.Navigate().To().WalletCoins(WalletViewModel!), "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "nav_wallet_24_regular" },
+			new ActionableItem("Wallet Stats", "Display wallet stats", async () => UiContext.Navigate().To().WalletStats(WalletViewModel!), "Wallet", new[] { "Wallet", "Stats", }) { Icon = "nav_wallet_24_regular" },
+			new ActionableItem("Receive", "Display wallet receive dialog", async () => UiContext.Navigate().To().Receive(WalletModel), "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive" },
+			new ActionableItem("Send", "Display wallet send dialog", async () => UiContext.Navigate().To().Send(WalletViewModel!), "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send" },
+			new ActionableItem("Wallet Settings", "Display wallet settings", async () => UiContext.Navigate().To().WalletSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "nav_wallet_24_regular" },
+			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", async () => UiContext.Navigate().To().CoinJoinSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "nav_wallet_24_regular" }
+		};
+	}
+
+	private void HandleSearchItems(bool selectedAndLogged)
+	{
+		if (selectedAndLogged)
+		{
+			UiContext.EditableSearchSource.Add(SearchItems);
+		}
+		else
+		{
+			UiContext.EditableSearchSource.Remove(SearchItems);
+		}
+	}
+
+	private ISearchItem[] SearchItems
+	{
+		get; 
+	}
+
 	public IWalletModel WalletModel { get; }
 	public Wallet Wallet { get; set; }
 
