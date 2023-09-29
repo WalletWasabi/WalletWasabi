@@ -38,7 +38,7 @@ public class TransactionBroadcaster
 
 	public void Initialize(NodesGroup nodes, IRPCClient? rpcClient)
 	{
-		Nodes = Guard.NotNull(nameof(nodes), nodes);
+		Nodes = nodes;
 		RpcClient = rpcClient;
 	}
 
