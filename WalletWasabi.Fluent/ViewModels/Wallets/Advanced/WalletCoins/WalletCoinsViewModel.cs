@@ -30,7 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Coins", "UTXO", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
