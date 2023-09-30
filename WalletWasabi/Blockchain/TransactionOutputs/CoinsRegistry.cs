@@ -34,12 +34,12 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
+	/// <summary>Maps each outpoint to smart coins (i.e. UTXOs) that exist thanks to the outpoint. The same hash-set (reference) is also stored in <see cref="CoinsByTransactionId"/>.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	/// <remarks>Share values with <see cref="CoinsByTransactionId"/>.</remarks>
 	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
 
+	/// <summary>Maps each TXID to smart coins (i.e. UTXOs). The same hash-set (reference) is also stored in <see cref="CoinsByOutPoint"/>.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	/// <remarks>Share values with <see cref="CoinsByOutPoint"/>.</remarks>
 	private Dictionary<uint256, HashSet<SmartCoin>> CoinsByTransactionId { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -113,15 +113,16 @@ public class CoinsRegistry : ICoinsView
 				{
 					if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
 					{
-						hashSet = new HashSet<SmartCoin>();
+						hashSet = new();
 						CoinsByTransactionId.Add(coin.TransactionId, hashSet);
 					}
 
 					hashSet.Add(coin);
 
-					foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
+					// Each prevOut of the transaction contributes to the existence of coins.
+					foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 					{
-						CoinsByOutPoint.AddOrReplace(outPoint, hashSet);
+						CoinsByOutPoint[input.PrevOut] = hashSet;
 					}
 
 					InvalidateSnapshot = true;
