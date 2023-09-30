@@ -5,7 +5,8 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class AmountProvider : ReactiveObject, IAmountProvider
+[AutoInterface]
+public partial class AmountProvider : ReactiveObject
 {
 	private readonly WasabiSynchronizer _synchronizer;
 
