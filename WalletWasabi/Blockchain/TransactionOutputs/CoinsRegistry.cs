@@ -160,6 +160,32 @@ public class CoinsRegistry : ICoinsView
 			}
 		}
 
+		foreach (var txId in coinsToRemove.Select(x => x.TransactionId).Distinct())
+		{
+			if (!CoinsByTransactionId.TryGetValue(txId, out var coins))
+			{
+				continue;
+			}
+
+			coins.RemoveWhere(x => coinsToRemove.Contains(x));
+
+			if (coins.Any())
+			{
+				continue;
+			}
+
+			// No more coins were created by this transaction.
+			KnownTransactions.Remove(txId);
+			CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved);
+			foreach (var kvp in CoinsByOutPoint.ToList())
+			{
+				if (ReferenceEquals(kvp.Value, referenceHashSetRemoved))
+				{
+					CoinsByOutPoint.Remove(kvp.Key);
+				}
+			}
+		}
+
 		InvalidateSnapshot = true;
 		return coinsToRemove;
 	}
@@ -240,15 +266,6 @@ public class CoinsRegistry : ICoinsView
 				toRemove.AddRange(RemoveNoLock(createdCoin));
 			}
 
-			CoinsByTransactionId.Remove(txId, out var hashSetRemoved);
-			foreach (var kvp in CoinsByOutPoint.ToList())
-			{
-				if (kvp.Value.Equals(hashSetRemoved))
-				{
-					CoinsByOutPoint.Remove(kvp.Key);
-				}
-			}
-
 			// destroyed (spent) coins are now (unspent)
 			foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
 			{
@@ -260,8 +277,6 @@ public class CoinsRegistry : ICoinsView
 					toAdd.Add(destroyedCoin);
 				}
 			}
-
-			KnownTransactions.Remove(txId);
 
 			InvalidateSnapshot = true;
 
