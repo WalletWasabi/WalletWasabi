@@ -12,7 +12,6 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
-
 public class UtxoPrisonWardenTests
 {
 	[Fact]
@@ -72,4 +71,3 @@ public class UtxoPrisonWardenTests
 		await w2.StopAsync(CancellationToken.None);
 	}
 }
-

@@ -13,6 +13,26 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
+public enum HistoryItemType
+{
+	Unknown,
+	IncomingTransaction,
+	OutgoingTransaction,
+	SelfTransferTransaction,
+	Coinjoin,
+	CoinjoinGroup,
+	Cancellation,
+	CPFP
+}
+
+public enum HistoryItemStatus
+{
+	Unknown,
+	Confirmed,
+	Pending,
+	SpeedUp,
+}
+
 public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
 	[AutoNotify] private bool _isFlashing;
@@ -22,6 +42,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private bool _isExpanded;
 	[AutoNotify] private string _confirmedToolTip;
+	[AutoNotify] private HistoryItemType _itemType;
+	[AutoNotify] private HistoryItemStatus _itemStatus;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
@@ -46,6 +68,66 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 		IsCancellation = false;
 		IsSpeedUp = false;
+	}
+
+	protected HistoryItemType GetItemType()
+	{
+		if (!IsCPFP && IncomingAmount is { } incomingAmount && incomingAmount > Money.Zero && !IsCoinJoin)
+		{
+			return HistoryItemType.IncomingTransaction;
+		}
+
+		if (!IsCPFP && OutgoingAmount is { } outgoingAmount && outgoingAmount > Money.Zero && !IsCoinJoin)
+		{
+			return HistoryItemType.OutgoingTransaction;
+		}
+
+		if (IsCancellation)
+		{
+			return HistoryItemType.Cancellation;
+		}
+
+		if (IsCoinJoin && !IsCoinJoinGroup)
+		{
+			return HistoryItemType.Coinjoin;
+		}
+
+		if (IsCoinJoin && IsCoinJoinGroup)
+		{
+			return HistoryItemType.CoinjoinGroup;
+		}
+
+		if (IsCPFP)
+		{
+			return HistoryItemType.CPFP;
+		}
+
+		if (OutgoingAmount == Money.Zero)
+		{
+			return HistoryItemType.SelfTransferTransaction;
+		}
+
+		return HistoryItemType.Unknown;
+	}
+
+	protected HistoryItemStatus GetItemStatus()
+	{
+		if (IsConfirmed)
+		{
+			return HistoryItemStatus.Confirmed;
+		}
+
+		if (!IsConfirmed && (IsSpeedUp || IsCPFPd))
+		{
+			return HistoryItemStatus.SpeedUp;
+		}
+
+		if (!IsConfirmed && !IsSpeedUp)
+		{
+			return HistoryItemStatus.Pending;
+		}
+
+		return HistoryItemStatus.Unknown;
 	}
 
 	protected string GetConfirmedToolTip(int confirmations)
@@ -86,29 +168,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public bool IsCPFP { get; set; }
 
 	public bool IsCPFPd { get; set; }
-
-	public bool IsIncomingTransactionDisplayed => !IsCPFP && IncomingAmount is { } amount && amount > Money.Zero && !IsCoinJoin;
-
-	public bool IsOutgoingTransactionDisplayed => !IsCPFP && OutgoingAmount is { } amount && amount > Money.Zero && !IsCoinJoin;
-
-	public bool IsSelfTransferTransaction => OutgoingAmount == Money.Zero;
-
-	public bool IsConfirmedDisplayed => IsConfirmed;
-
-	public bool IsPendingDisplayed => !IsConfirmed && !IsSpeedUp;
-
-	public bool IsCoinjoinDisplayed => IsCoinJoin && !IsCoinJoinGroup;
-
-	public bool IsCoinjoinGroupDisplayed => IsCoinJoin && IsCoinJoinGroup;
-
-	public bool IsCancellationDisplayed => IsCancellation;
-
-	/// <remarks>
-	/// CPFPd transactions are not SpeedUp transactions, but they are sped up as well.
-	/// </remarks>
-	public bool IsSpeedUpDisplayed => !IsConfirmed && (IsSpeedUp || IsCPFPd);
-
-	public bool IsCPFPDisplayed => IsCPFP;
 
 	public TransactionSummary TransactionSummary { get; }
 
