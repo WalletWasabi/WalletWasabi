@@ -20,7 +20,6 @@ public static class NotificationHelpers
 
 	public static void SetNotificationManager(Visual host)
 	{
-
 		var notificationManager = new WindowNotificationManager(TopLevel.GetTopLevel(host))
 		{
 			Position = NotificationPosition.BottomRight,
