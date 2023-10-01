@@ -63,7 +63,7 @@ public class SpectrumControlState
 #if false
 			_invalidationTimer.Start();
 #else
-			Dispatcher.UIThread.Invoke(() => _control.Start());
+			Dispatcher.UIThread.Post(() => _control.Start());
 #endif
 		}
 	}
@@ -111,7 +111,7 @@ public class SpectrumControlState
 #if false
 			_invalidationTimer.Stop();
 #else
-			Dispatcher.UIThread.Invoke(() => _control.Stop());
+			Dispatcher.UIThread.Post(() => _control.Stop());
 #endif
 		}
 
