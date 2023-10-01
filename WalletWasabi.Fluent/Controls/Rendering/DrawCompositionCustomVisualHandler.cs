@@ -71,6 +71,7 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 			return;
 		}
 
+		// TODO: This is fixed at 15 FPS for spectrum control.
 		if (_count % 4 == 0)
 		{
 			Invalidate();
