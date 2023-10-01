@@ -19,7 +19,7 @@ public class TransactionHistoryItemToolTipConverter : IValueConverter
 	{
 		if (value is HistoryItemViewModelBase vm)
 		{
-			if (vm.IsConfirmedDisplayed)
+			if (vm.ItemStatus == HistoryItemStatus.Confirmed)
 			{
 				return vm.ConfirmedToolTip;
 			}
@@ -29,24 +29,24 @@ public class TransactionHistoryItemToolTipConverter : IValueConverter
 				var friendlyString = TextHelpers.TimeSpanToFriendlyString(estimate.Value);
 				if (friendlyString != "")
 				{
-					if (vm.IsSpeedUpDisplayed)
+					if (vm.ItemStatus == HistoryItemStatus.SpeedUp)
 					{
 						return $"Pending (accelerated, confirming in ≈ {friendlyString})";
 					}
 
-					if (vm.IsPendingDisplayed)
+					if (vm.ItemStatus == HistoryItemStatus.Pending)
 					{
 						return $"Pending (confirming in ≈ {friendlyString})";
 					}
 				}
 			}
 
-			if (vm.IsSpeedUpDisplayed)
+			if (vm.ItemStatus == HistoryItemStatus.SpeedUp)
 			{
 				return "Pending (accelerated)";
 			}
 
-			if (vm.IsPendingDisplayed)
+			if (vm.ItemStatus == HistoryItemStatus.Pending)
 			{
 				return "Pending";
 			}
