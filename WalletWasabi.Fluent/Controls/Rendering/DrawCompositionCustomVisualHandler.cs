@@ -25,12 +25,12 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 			case
 			{
 				HandlerCommand: HandlerCommand.Start,
-				State: { } state,
+				Handler: { } handler,
 				Bounds: var bounds,
 			}:
 			{
 				_running = true;
-				_drawHandler = state;
+				_drawHandler = handler;
 				_bounds = bounds;
 				RegisterForNextAnimationFrameUpdate();
 				break;

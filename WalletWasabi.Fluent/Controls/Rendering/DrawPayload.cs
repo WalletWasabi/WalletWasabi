@@ -5,5 +5,5 @@ namespace WalletWasabi.Fluent.Controls.Rendering;
 
 internal record struct DrawPayload(
 	HandlerCommand HandlerCommand,
-	IDrawHandler? State = null,
+	IDrawHandler? Handler = null,
 	Rect Bounds = default);
