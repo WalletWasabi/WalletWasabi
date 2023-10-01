@@ -72,7 +72,14 @@ public class SpectrumControl : TemplatedControl
 		}
 	}
 
-	/*
+#if true
+	public override void Render(DrawingContext context)
+	{
+		base.Render(context);
+
+		_state.Render(context);
+	}
+#else
     protected override void OnLoaded(RoutedEventArgs routedEventArgs)
     {
         base.OnLoaded(routedEventArgs);
@@ -130,14 +137,5 @@ public class SpectrumControl : TemplatedControl
     {
         _customVisual?.SendHandlerMessage(new DrawPayload(HandlerCommand.Dispose));
     }
-	//*/
-
-	///*
-	public override void Render(DrawingContext context)
-	{
-		base.Render(context);
-
-		_state.Render(context);
-	}
-	//*/
+#endif
 }
