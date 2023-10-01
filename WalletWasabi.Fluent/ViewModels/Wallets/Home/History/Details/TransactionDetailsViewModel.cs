@@ -33,7 +33,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private Amount? _amount;
 
-	private TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
+	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
