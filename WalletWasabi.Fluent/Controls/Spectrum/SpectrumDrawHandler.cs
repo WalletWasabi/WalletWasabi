@@ -5,10 +5,11 @@ using Avalonia.Platform;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using SkiaSharp;
+using WalletWasabi.Fluent.Controls.Rendering;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
 
-public class SpectrumControlState
+public class SpectrumDrawHandler : IDrawHandler
 {
 	private const int NumBins = 64;
 	private const double TextureHeight = 32;
@@ -18,7 +19,7 @@ public class SpectrumControlState
 	private SKColor _pathColor;
 	private SKSurface? _surface;
 	private readonly SpectrumDataSource[] _sources;
-	private readonly SKPaint _blur = new()
+	private SKPaint? _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
 		FilterQuality = SKFilterQuality.Low
@@ -28,7 +29,7 @@ public class SpectrumControlState
 	private readonly DispatcherTimer _invalidationTimer;
 	private readonly SpectrumControl _control;
 
-	public SpectrumControlState(SpectrumControl control)
+	public SpectrumDrawHandler(SpectrumControl control)
 	{
 		_control = control;
 		_data = new float[NumBins];
@@ -180,5 +181,13 @@ public class SpectrumControlState
 		}
 
 		context.DrawPath(path, pathPaint);
+	}
+
+	public void Dispose()
+	{
+		_surface?.Dispose();
+		_blur?.Dispose();
+		_surface = null;
+		_blur = null;
 	}
 }

@@ -4,25 +4,12 @@ using Avalonia.Platform;
 using Avalonia.Rendering.Composition;
 using Avalonia.Skia;
 
-namespace WalletWasabi.Fluent.Controls.Spectrum;
-
-internal enum HandlerCommand
-{
-    Start,
-    Stop,
-    Update,
-    Dispose
-}
-
-internal record struct DrawPayload(
-	HandlerCommand HandlerCommand,
-	SpectrumControlState? State = null,
-	Rect Bounds = default);
+namespace WalletWasabi.Fluent.Controls.Rendering;
 
 internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandler
 {
 	private bool _running;
-	private SpectrumControlState? _state;
+	private IDrawHandler? _drawHandler;
 	private Rect _bounds;
 	private readonly object _sync = new();
 
@@ -43,7 +30,7 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 			}:
 			{
 				_running = true;
-				_state = state;
+				_drawHandler = state;
 				_bounds = bounds;
 				RegisterForNextAnimationFrameUpdate();
 				break;
@@ -97,7 +84,7 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 	{
 		lock (_sync)
 		{
-			// TODO:
+			_drawHandler?.Dispose();
 		}
 	}
 
@@ -116,7 +103,7 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 				return;
 			}
 
-			_state?.Draw(lease, _bounds);
+			_drawHandler?.Draw(lease, _bounds);
 		}
 	}
 }

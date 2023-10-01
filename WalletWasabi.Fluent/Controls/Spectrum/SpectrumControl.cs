@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Rendering.Composition;
 using Avalonia.Skia;
+using WalletWasabi.Fluent.Controls.Rendering;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
 
@@ -17,12 +18,12 @@ public class SpectrumControl : TemplatedControl
 	public static readonly StyledProperty<bool> IsDockEffectVisibleProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsDockEffectVisible));
 
-	private readonly SpectrumControlState _state;
+	private readonly SpectrumDrawHandler _spectrumDrawHandler;
 	private CompositionCustomVisual? _customVisual;
 
 	public SpectrumControl()
 	{
-		_state = new SpectrumControlState(this);
+		_spectrumDrawHandler = new SpectrumDrawHandler(this);
 
 		Background = new RadialGradientBrush()
 		{
@@ -52,13 +53,13 @@ public class SpectrumControl : TemplatedControl
 
 		if (change.Property == IsActiveProperty)
 		{
-			_state.OnIsActiveChanged();
+			_spectrumDrawHandler.OnIsActiveChanged();
 		}
 		else if (change.Property == IsDockEffectVisibleProperty)
 		{
 			if (change.GetNewValue<bool>() && !IsActive)
 			{
-				_state.SplashEffectDataSource.Start();
+				_spectrumDrawHandler.SplashEffectDataSource.Start();
 			}
 		}
 		else if (change.Property == ForegroundProperty)
@@ -67,7 +68,7 @@ public class SpectrumControl : TemplatedControl
 
 			if (foreground is ImmutableSolidColorBrush brush)
 			{
-				_state.OnForegroundChanged(brush.Color.ToSKColor());
+				_spectrumDrawHandler.OnForegroundChanged(brush.Color.ToSKColor());
 			}
 		}
 	}
@@ -97,7 +98,7 @@ public class SpectrumControl : TemplatedControl
         LayoutUpdated += OnLayoutUpdated;
 
         _customVisual.Size = new Vector2((float)Bounds.Size.Width, (float)Bounds.Size.Height);
-        _customVisual.SendHandlerMessage(new DrawPayload(HandlerCommand.Update, _state));
+        _customVisual.SendHandlerMessage(new DrawPayload(HandlerCommand.Update, _spectrumDrawHandler));
 
         // TODO: Start();
     }
@@ -125,7 +126,7 @@ public class SpectrumControl : TemplatedControl
 
     public void Start()
     {
-        _customVisual?.SendHandlerMessage(new DrawPayload(HandlerCommand.Start, _state, Bounds));
+        _customVisual?.SendHandlerMessage(new DrawPayload(HandlerCommand.Start, _spectrumDrawHandler, Bounds));
     }
 
     public void Stop()
