@@ -170,9 +170,7 @@ public class SuggestionLabelsViewModelTests
 
 		public string Name => throw new NotSupportedException();
 
-
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
-
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 
@@ -201,6 +199,8 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<Money> Balances => throw new NotImplementedException();
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
+
+		public IAmountProvider AmountProvider => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

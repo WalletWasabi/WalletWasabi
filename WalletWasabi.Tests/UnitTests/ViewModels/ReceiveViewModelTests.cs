@@ -76,7 +76,7 @@ public class ReceiveViewModelTests
 		public IWalletAuthModel Auth => throw new NotSupportedException();
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
-		
+
 		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
 
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
@@ -94,6 +94,8 @@ public class ReceiveViewModelTests
 		public Network Network => throw new NotImplementedException();
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
+
+		public IAmountProvider AmountProvider => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

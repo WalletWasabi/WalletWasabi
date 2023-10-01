@@ -28,7 +28,8 @@ public static class Mocks
 			new NullFileSystem(),
 			new NullClientConfig(),
 			new NullApplicationSettings(),
-			Mock.Of<ITransactionBroadcasterModel>());
+			Mock.Of<ITransactionBroadcasterModel>(),
+			Mock.Of<IAmountProvider>());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
@@ -42,7 +43,8 @@ public static class Mocks
 			new NullFileSystem(),
 			new NullClientConfig(),
 			new NullApplicationSettings(),
-			Mock.Of<ITransactionBroadcasterModel>());
+			Mock.Of<ITransactionBroadcasterModel>(),
+			Mock.Of<IAmountProvider>());
 
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
