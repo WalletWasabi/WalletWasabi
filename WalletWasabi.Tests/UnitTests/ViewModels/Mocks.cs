@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Moq;
 using WalletWasabi.Fluent;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;

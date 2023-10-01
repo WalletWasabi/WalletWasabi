@@ -10,7 +10,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
 	private BuildTransactionResult? _transaction;
-	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string _feeText = "";
@@ -18,10 +17,10 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private LabelsArray _labels = LabelsArray.Empty;
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
-	[AutoNotify] private string _fee = "";
-	[AutoNotify] private string _amount = "";
+	[AutoNotify] private Amount? _fee;
+	[AutoNotify] private Amount? _amount;
 
-	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
+	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
 		Parent = parent;
 		_wallet = wallet;
@@ -49,22 +48,9 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTime = estimate;
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
-		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
-		Amount = destinationAmount.ToString();
 
-		var fee = _transaction.Fee;
-		FeeText = fee.ToFeeDisplayUnitFormattedString();
-		Fee = _transaction.Fee.ToFeeDisplayUnitRawString();
-
-		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-		if (exchangeRate != 0)
-		{
-			var fiatAmountText = destinationAmount.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
-			AmountText += $" {fiatAmountText}";
-
-			var fiatFeeText = fee.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
-			FeeText += $" {fiatFeeText}";
-		}
+		Amount = UiContext.AmountProvider.Create(destinationAmount);
+		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;

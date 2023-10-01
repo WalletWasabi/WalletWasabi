@@ -51,8 +51,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		var coinChanges =
 			_wallet.Coins.List
-				.AsObservableCache() // TODO: SuperJMN: is this required?
-				.Connect()
 				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
 				.Replay(1)
 				.RefCount();

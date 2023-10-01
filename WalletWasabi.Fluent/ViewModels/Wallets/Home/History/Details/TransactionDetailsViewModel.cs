@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -20,25 +21,26 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string? _dateString;
-	[AutoNotify] private Money? _amount;
-	[AutoNotify] private LabelsArray? _labels;
-	[AutoNotify] private string? _transactionId;
-	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private int _blockHeight;
+	[AutoNotify] private int _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
+	[AutoNotify] private string? _dateString;
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
+	[AutoNotify] private LabelsArray? _labels;
+	[AutoNotify] private string? _transactionId;
+	[AutoNotify] private Amount? _amount;
 
-	private TransactionDetailsViewModel(IWalletModel wallet, TransactionSummary transactionSummary)
+	private TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
 	{
+		UiContext = uiContext;
 		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		Fee = transactionSummary.GetFee();
+		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
 		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
 
@@ -47,11 +49,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(transactionSummary);
 	}
 
+	public Amount Fee { get; }
+
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-
-	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -71,12 +73,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (transactionSummary.Amount < Money.Zero)
 		{
-			Amount = -transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero);
+			Amount = UiContext.AmountProvider.Create(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
 			AmountText = "Outgoing";
 		}
 		else
 		{
-			Amount = transactionSummary.Amount;
+			Amount = UiContext.AmountProvider.Create(transactionSummary.Amount);
 			AmountText = "Incoming";
 		}
 

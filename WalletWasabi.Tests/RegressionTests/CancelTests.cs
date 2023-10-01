@@ -239,7 +239,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			#region CantCancel
 
-			// Can't cancel cancelled transacion.
+			// Can't cancel cancelled transaction.
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(cancellingTx.Transaction));
 
 			// Can't cancel cancellation transaction.
