@@ -103,6 +103,11 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 
 	public override void OnRender(ImmediateDrawingContext context)
 	{
+		if (!_running)
+		{
+			return;
+		}
+
 		lock (_sync)
 		{
 			using var lease = context.TryGetFeature<ISkiaSharpApiLeaseFeature>()?.Lease();
