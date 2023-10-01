@@ -16,9 +16,11 @@ public class SpectrumDrawHandler : IDrawHandler
 	private const double TextureWidth = 32;
 	private const double Fps = 15.0;
 
+	private readonly SpectrumDataSource[] _sources;
+	private readonly DispatcherTimer _invalidationTimer;
+	private readonly SpectrumControl _control;
 	private SKColor _pathColor;
 	private SKSurface? _surface;
-	private readonly SpectrumDataSource[] _sources;
 	private SKPaint? _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
@@ -26,8 +28,6 @@ public class SpectrumDrawHandler : IDrawHandler
 	};
 	private float[] _data;
 	private bool _isGenerating;
-	private readonly DispatcherTimer _invalidationTimer;
-	private readonly SpectrumControl _control;
 
 	public SpectrumDrawHandler(SpectrumControl control)
 	{
