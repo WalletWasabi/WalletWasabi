@@ -170,19 +170,15 @@ public class SuggestionLabelsViewModelTests
 
 		public string Name => throw new NotSupportedException();
 
-		public IWalletBalancesModel Balances => throw new NotSupportedException();
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
 
-		public bool IsLoggedIn => throw new NotSupportedException();
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
 
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
-
-		public WalletType WalletType => throw new NotSupportedException();
 
 		public IWalletAuthModel Auth => throw new NotImplementedException();
 
@@ -202,6 +198,10 @@ public class SuggestionLabelsViewModelTests
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
+		public IObservable<Money> Balances => throw new NotImplementedException();
+
+		public IObservable<bool> HasBalance => throw new NotSupportedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
@@ -212,24 +212,9 @@ public class SuggestionLabelsViewModelTests
 			return _mostUsedLabels;
 		}
 
-		public Task<WalletLoginResult> TryLoginAsync(string password)
-		{
-			throw new NotSupportedException();
-		}
-
-		public void Login()
-		{
-			throw new NotSupportedException();
-		}
-
-		public void Logout()
-		{
-			throw new NotSupportedException();
-		}
-
 		public IWalletInfoModel GetWalletInfo()
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 	}
 }
