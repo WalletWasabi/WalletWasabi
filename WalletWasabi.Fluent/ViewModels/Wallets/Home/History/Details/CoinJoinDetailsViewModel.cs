@@ -1,11 +1,8 @@
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Windows.Input;
-using Avalonia;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -18,39 +15,28 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _updateTrigger;
 
 	[AutoNotify] private string _date = "";
-	[AutoNotify] private string _coinJoinFeeRawString = "";
-	[AutoNotify] private string _coinJoinFeeString = "";
+	[AutoNotify] private Amount? _coinJoinFeeAmount;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 
-	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
+	public CoinJoinDetailsViewModel(UiContext uiContext, CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
 	{
+		UiContext = uiContext;
 		_coinJoin = coinJoin;
 		_updateTrigger = updateTrigger;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		CopyCommand = ReactiveCommand.CreateFromTask<uint256>(async txid =>
-		{
-			if (Application.Current is { Clipboard: { } clipboard })
-			{
-				await clipboard.SetTextAsync(txid.ToString());
-			}
-		});
-
-		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
-		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
-
+        ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+        IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		Update();
 	}
 
 	public TimeSpan? ConfirmationTime { get; set; }
 
 	public bool IsConfirmationTimeVisible { get; set; }
-
-	public ICommand CopyCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -64,8 +50,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoin.DateString;
-		CoinJoinFeeRawString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitRawString();
-		CoinJoinFeeString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitFormattedString();
+		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_coinJoin.OutgoingAmount);
 		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 
