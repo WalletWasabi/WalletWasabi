@@ -1,5 +1,6 @@
 using Moq;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;

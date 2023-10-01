@@ -1,12 +1,20 @@
+using NBitcoin;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
 public class UiContext
 {
+	/// <summary>
+	///     The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be
+	///     testable)
+	/// </summary>
+	public static UiContext Default;
+
 	private INavigate? _navigate;
 
 	public UiContext(
@@ -29,6 +37,7 @@ public class UiContext
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
+		AmountProvider = new AmountProvider(Services.Synchronizer);
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -41,10 +50,7 @@ public class UiContext
 	public IApplicationSettings ApplicationSettings { get; }
 	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
 
-	/// <summary>
-	/// The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be testable)
-	/// </summary>
-	public static UiContext Default;
+	public IAmountProvider AmountProvider { get; }
 
 	public void RegisterNavigation(INavigate navigate)
 	{

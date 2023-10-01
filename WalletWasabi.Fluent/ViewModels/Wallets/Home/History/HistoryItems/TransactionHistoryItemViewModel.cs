@@ -39,6 +39,9 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(KeyManager);
 		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transactionSummary.Transaction), Observable.Return(CanSpeedUpTransaction));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transactionSummary.Transaction), Observable.Return(CanCancelTransaction));
+
+		ItemType = GetItemType();
+		ItemStatus = GetItemStatus();
 	}
 
 	public bool CanCancelTransaction { get; }
