@@ -41,7 +41,7 @@ public class SpectrumControlState
 
 		_sources = new SpectrumDataSource[] { AuraSpectrumDataSource, SplashEffectDataSource };
 
-#if true
+#if false
 		_invalidationTimer = new DispatcherTimer
 		{
 			Interval = TimeSpan.FromMilliseconds(1000.0 / Fps)
@@ -60,7 +60,7 @@ public class SpectrumControlState
 
 		if (_isGenerating)
 		{
-#if true
+#if false
 			_invalidationTimer.Start();
 #else
 			Dispatcher.UIThread.Invoke(() => _control.Start());
@@ -108,7 +108,7 @@ public class SpectrumControlState
 		// Only stop the rendering once it fully disappeared. (== there is nothing to render)
 		if (!_isGenerating && _data.All(f => f <= 0))
 		{
-#if true
+#if false
 			_invalidationTimer.Stop();
 #else
 			Dispatcher.UIThread.Invoke(() => _control.Stop());

@@ -72,7 +72,7 @@ public class SpectrumControl : TemplatedControl
 		}
 	}
 
-#if true
+#if false
 	public override void Render(DrawingContext context)
 	{
 		base.Render(context);
