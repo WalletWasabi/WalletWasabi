@@ -121,7 +121,9 @@ public class SpectrumDrawHandler : IDrawHandler
 			if (skia.GrContext is not null)
 			{
 				_surface =
-					SKSurface.Create(skia.GrContext, false,
+					SKSurface.Create(
+						skia.GrContext,
+						false,
 						new SKImageInfo((int)TextureWidth, (int)TextureHeight));
 			}
 			else
