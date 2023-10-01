@@ -21,6 +21,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBox.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBoxAutoCompleteBox.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AmountControl.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>

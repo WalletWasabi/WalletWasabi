@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
@@ -29,7 +30,7 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount}">
-        <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
+        <c:AmountControl Amount="{Binding Amount}" />
       </c:PreviewItem>
     </DockPanel>
     <Separator />
@@ -74,8 +75,8 @@
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="Fee"
-                       CopyableContent="{Binding Fee}">
-          <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
+                       CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>
