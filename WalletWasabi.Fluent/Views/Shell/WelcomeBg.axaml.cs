@@ -25,4 +25,3 @@ public partial class WelcomeBg : UserControl
 		AvaloniaXamlLoader.Load(this);
 	}
 }
-
