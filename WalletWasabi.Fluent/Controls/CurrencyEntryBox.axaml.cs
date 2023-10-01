@@ -133,7 +133,7 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		base.OnGotFocus(e);
 
-		CaretIndex = Text?.Length ?? 0;
+		SetCurrentValue(CaretIndexProperty, Text?.Length ?? 0);
 
 		Dispatcher.UIThread.Post(SelectAll);
 	}
@@ -196,7 +196,7 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		var finalText = "0" + e.Text;
 		SetCurrentValue(TextProperty, "");
-		CaretIndex = finalText.Length;
+		SetCurrentValue(CaretIndexProperty, finalText.Length);
 		ClearSelection();
 		return new TextInputEventArgs { Text = finalText };
 	}
@@ -205,7 +205,7 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		var prependText = "0" + e.Text;
 		SetCurrentValue(TextProperty, Text.Insert(0, prependText));
-		CaretIndex += prependText.Length;
+		SetCurrentValue(CaretIndexProperty, CaretIndex + prependText.Length);
 		return new TextInputEventArgs { Text = "" };
 	}
 
