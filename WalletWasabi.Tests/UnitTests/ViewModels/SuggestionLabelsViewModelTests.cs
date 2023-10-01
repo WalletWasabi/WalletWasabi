@@ -196,7 +196,7 @@ public class SuggestionLabelsViewModelTests
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
-		public IObservable<Money> Balances => throw new NotImplementedException();
+		public IObservable<Amount> Balances => throw new NotImplementedException();
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 

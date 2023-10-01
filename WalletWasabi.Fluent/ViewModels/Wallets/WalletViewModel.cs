@@ -235,7 +235,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		yield return new WalletBalanceTileViewModel(WalletModel.Balances.Select(money => UiContext.AmountProvider.Create(money)));
+		yield return new WalletBalanceTileViewModel(WalletModel.Balances);
 
 		if (!IsWatchOnly)
 		{
