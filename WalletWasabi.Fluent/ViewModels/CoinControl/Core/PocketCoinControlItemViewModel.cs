@@ -30,7 +30,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Children =
 			pocketCoins.Select(wallet.Coins.GetCoinModel)
 					   .OrderByDescending(x => x.AnonScore)
-					   .Select(coin => new CoinCoinControlItemViewModel(pocket.Labels, coin))
+					   .Select(coin => new CoinCoinControlItemViewModel("", coin))
 					   .ToList();
 
 		CanBeSelected = true;
