@@ -20,12 +20,12 @@ public class EditableSearchSourceSource : IEditableSearchSource
 			.Filter(filter);
 	}
 
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+
 	public void SetQueries(IObservable<string> queries)
 	{
 		queries.Subscribe(_queriesSubject);
 	}
-
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; set; }
 
 	public void Remove(params ISearchItem[] searchItems)
 	{
