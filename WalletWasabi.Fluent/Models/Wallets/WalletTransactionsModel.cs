@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -43,6 +44,22 @@ public partial class WalletTransactionsModel : ReactiveObject
 	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
 	{
 		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_wallet.KeyManager, transactionInfo, _wallet.Coins, coins, _wallet.Kitchen.SaltSoup(), out _);
+	}
+
+	public async Task<TransactionSummary?> GetById(string transactionId)
+	{
+		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_wallet));
+
+		var transaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == transactionId);
+		return transaction;
+	}
+
+	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
+	{
+		return
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionSummary.Transaction, out var estimate)
+			? estimate
+			: null;
 	}
 
 	private IEnumerable<TransactionSummary> BuildSummary()
