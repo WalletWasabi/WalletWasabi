@@ -17,7 +17,16 @@ public class UiContext
 
 	private INavigate? _navigate;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator, IQrCodeReader qrCodeReader, IUiClipboard clipboard, IWalletRepository walletRepository, IHardwareWalletInterface hardwareWalletInterface, IFileSystem fileSystem, IClientConfig config, IApplicationSettings applicationSettings)
+	public UiContext(
+		IQrCodeGenerator qrCodeGenerator,
+		IQrCodeReader qrCodeReader,
+		IUiClipboard clipboard,
+		IWalletRepository walletRepository,
+		IHardwareWalletInterface hardwareWalletInterface,
+		IFileSystem fileSystem,
+		IClientConfig config,
+		IApplicationSettings applicationSettings,
+		ITransactionBroadcasterModel transactionBroadcaster)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -27,6 +36,7 @@ public class UiContext
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
+		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
 		AmountProvider = new AmountProvider(Services.Synchronizer);
 	}
 
@@ -38,6 +48,8 @@ public class UiContext
 	public IFileSystem FileSystem { get; }
 	public IClientConfig Config { get; }
 	public IApplicationSettings ApplicationSettings { get; }
+	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
+
 	public IAmountProvider AmountProvider { get; }
 
 	public void RegisterNavigation(INavigate navigate)
