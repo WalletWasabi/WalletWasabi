@@ -17,7 +17,7 @@ public partial class WalletModel : ReactiveObject
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
 
-	public WalletModel(Wallet wallet)
+	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
 		Wallet = wallet;
 
@@ -57,6 +57,8 @@ public partial class WalletModel : ReactiveObject
 		State.Where(x => x == WalletState.Started)
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
+
+		AmountProvider = amountProvider;
 	}
 
 	internal Wallet Wallet { get; }
@@ -86,6 +88,8 @@ public partial class WalletModel : ReactiveObject
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public IObservable<WalletState> State { get; }
+
+	public IAmountProvider AmountProvider { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{

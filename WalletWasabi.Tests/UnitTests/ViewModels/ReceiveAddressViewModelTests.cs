@@ -106,6 +106,8 @@ public class ReceiveAddressViewModelTests
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
+		public IAmountProvider AmountProvider => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
