@@ -30,7 +30,8 @@
                 </MultiBinding>
               </controls:ClipboardCopyButton.IsVisible>
             </controls:ClipboardCopyButton>
-          </Grid></Border>
+          </Grid>
+        </Border>
       </ControlTemplate>
     </Setter>
   </Style>
