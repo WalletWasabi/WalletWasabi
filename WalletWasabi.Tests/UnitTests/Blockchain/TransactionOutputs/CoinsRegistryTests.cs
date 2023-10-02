@@ -49,8 +49,8 @@ public class CoinsRegistryTests
 			tx0Coin = tx0.Transaction.Outputs.AsCoins().First();
 
 			IReadOnlyList<SmartCoin> tx0Coins = ProcessTransaction(tx0);
-			_ = Assert.Single(tx0Coins);
-			_ = Assert.Single(Coins);
+			Assert.Single(tx0Coins);
+			Assert.Single(Coins);
 			Assert.Equal(tx0Coins[0], Coins.First());
 		}
 
