@@ -19,13 +19,13 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 
-	public CoinModel(IWalletModel wallet, SmartCoin coin)
+	public CoinModel(SmartCoin coin, int anonScoreTarget)
 	{
 		Coin = coin;
-		PrivacyLevel = coin.GetPrivacyLevel(wallet.Settings.AnonScoreTarget);
+		PrivacyLevel = coin.GetPrivacyLevel(anonScoreTarget);
 		Amount = coin.Amount;
 
-		Labels = coin.GetLabels(wallet.Settings.AnonScoreTarget);
+		Labels = coin.GetLabels(anonScoreTarget);
 		Key = coin.Outpoint.GetHashCode();
 		BannedUntilUtc = coin.BannedUntilUtc;
 		ScriptType = ScriptType.FromEnum(coin.ScriptType);
