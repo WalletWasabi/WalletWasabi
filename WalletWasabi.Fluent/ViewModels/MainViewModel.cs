@@ -333,12 +333,12 @@ public partial class MainViewModel : ViewModelBase
 	private SearchBarViewModel CreateSearchBar()
 	{
 		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
-		var filterChanged = new Subject<string>();
+		var querySubject = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSearchSource(UiContext, filterChanged),
-			new SettingsSearchSource(UiContext, filterChanged),
-			new TransactionsSearchSource(filterChanged),
+			new ActionsSearchSource(UiContext, querySubject),
+			new SettingsSearchSource(UiContext, querySubject),
+			new TransactionsSearchSource(querySubject),
 			UiContext.EditableSearchSource);
 
 		var searchBar = new SearchBarViewModel(source.Changes);
@@ -350,7 +350,7 @@ public partial class MainViewModel : ViewModelBase
 		UiContext.EditableSearchSource.SetQueries(queries);
 
 		queries
-			.Subscribe(filterChanged);
+			.Subscribe(querySubject);
 
 		return searchBar;
 	}
