@@ -16,7 +16,7 @@
                            UseOpacity="False"
                            MinWidth="100"
                            Margin="0 0 7 0">
-    <c:LabelsItemsPresenter ItemsSource="{Binding Labels}"
+    <c:LabelsItemsPresenter ItemsSource="{Binding Model.Labels}"
                             InfiniteWidthMeasure="True"
                             Margin="0 0 0 0" />
   </c:PrivacyContentControl>

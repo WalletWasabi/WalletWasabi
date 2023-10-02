@@ -16,7 +16,7 @@ using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Address")]
+[NavigationMetaData(Title = "Address", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class AddressEntryDialogViewModel : DialogViewModelBase<Bip21UriParser.Result?>
 {
 	private readonly Network _network;

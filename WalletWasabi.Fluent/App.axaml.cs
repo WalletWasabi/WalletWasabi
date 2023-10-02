@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
@@ -96,6 +97,12 @@ public class App : Application
 		return new ApplicationSettings(Services.PersistentConfig, Services.UiConfig);
 	}
 
+	private static ITransactionBroadcasterModel CreateBroadcaster()
+	{
+		// TODO: SuperJMN: Replace this by the effective network
+		return new TransactionBroadcasterModel(Services.PersistentConfig.Network);
+	}
+
 	private UiContext CreateUiContext()
 	{
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
@@ -108,6 +115,7 @@ public class App : Application
 			CreateHardwareWalletInterface(),
 			CreateFileSystem(),
 			CreateConfig(),
-			CreateApplicationSettings());
+			CreateApplicationSettings(),
+			CreateBroadcaster());
 	}
 }
