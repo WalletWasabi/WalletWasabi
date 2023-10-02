@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -63,8 +64,7 @@ public class CoinJoinManager : BackgroundService
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
-	#region Public API (Start | Stop | )
-
+	#region Public API (Start | Stop | TryGetWalletStatus)
 	public async Task StartAsync(IWallet wallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken)
 	{
 		if (overridePlebStop && !wallet.IsUnderPlebStop)
@@ -80,6 +80,15 @@ public class CoinJoinManager : BackgroundService
 	public async Task StopAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
+	}
+
+	public CoinJoinClientState GetCoinjoinClientState(string walletName)
+	{
+		if (CoinJoinClientStates.TryGetValue(walletName, out var coinJoinClientStateHolder))
+		{
+			return coinJoinClientStateHolder.CoinJoinClientState;
+		}
+		throw new ArgumentException($"Wallet {walletName} is not tracked.");
 	}
 
 	#endregion Public API (Start | Stop | )
