@@ -64,18 +64,6 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Subscribe();
 	}
 
-	private void HandleSearchItems(bool shouldAdd)
-	{
-		if (shouldAdd)
-		{
-			UiContext.EditableSearchSource.Add(SearchItems);
-		}
-		else
-		{
-			UiContext.EditableSearchSource.Remove(SearchItems);
-		}
-	}
-
 	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
@@ -133,5 +121,17 @@ public partial class WalletPageViewModel : ViewModelBase
 			new ActionableItem("Wallet Settings", "Display wallet settings", async () => UiContext.Navigate().To().WalletSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "nav_wallet_24_regular", IsDefault = true },
 			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", async () => UiContext.Navigate().To().CoinJoinSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "nav_wallet_24_regular", IsDefault = true }
 		};
+	}
+
+	private void HandleSearchItems(bool shouldAdd)
+	{
+		if (shouldAdd)
+		{
+			UiContext.EditableSearchSource.Add(SearchItems);
+		}
+		else
+		{
+			UiContext.EditableSearchSource.Remove(SearchItems);
+		}
 	}
 }
