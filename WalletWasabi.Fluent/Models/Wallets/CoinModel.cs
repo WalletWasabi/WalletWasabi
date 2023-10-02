@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -20,14 +19,16 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 
-	public CoinModel(Wallet wallet, SmartCoin coin)
+	public CoinModel(SmartCoin coin, int anonScoreTarget)
 	{
 		Coin = coin;
-		PrivacyLevel = coin.GetPrivacyLevel(wallet.AnonScoreTarget);
+		PrivacyLevel = coin.GetPrivacyLevel(anonScoreTarget);
 		Amount = coin.Amount;
-		Confirmations = coin.GetConfirmations();
-		Labels = coin.GetLabels(wallet.AnonScoreTarget);
+
+		Labels = coin.GetLabels(anonScoreTarget);
 		Key = coin.Outpoint.GetHashCode();
+		BannedUntilUtc = coin.BannedUntilUtc;
+		ScriptType = ScriptType.FromEnum(coin.ScriptType);
 
 		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin);
 		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed);
@@ -53,6 +54,10 @@ public partial class CoinModel : ReactiveObject
 
 	public LabelsArray Labels { get; }
 
+	public ScriptType ScriptType { get; }
+
+	public DateTimeOffset? BannedUntilUtc { get; }
+
 	public bool IsPrivate => PrivacyLevel == PrivacyLevel.Private;
 
 	public bool IsSemiPrivate => PrivacyLevel == PrivacyLevel.SemiPrivate;
@@ -62,5 +67,5 @@ public partial class CoinModel : ReactiveObject
 	public bool IsSameAddress(ICoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.HdPubKey == Coin.HdPubKey;
 
 	// TODO: Leaky abstraction. This shouldn't exist.
-	public SmartCoin GetCoin() => Coin;
+	public SmartCoin GetSmartCoin() => Coin;
 }

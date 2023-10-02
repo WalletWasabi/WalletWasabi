@@ -116,7 +116,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var selectedSmartCoins =
 			Source.Items
 				  .Where(x => x.IsSelected)
-				  .Select(x => x.Model.GetCoin())
+				  .Select(x => x.Model.GetSmartCoin())
 				  .ToImmutableArray();
 
 		var addressResult = await Navigate().To().AddressEntryDialog(_wallet.Network).GetResultAsync();
