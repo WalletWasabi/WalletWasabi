@@ -20,7 +20,7 @@ public partial class WalletCoinsModel
 	{
 		_wallet = wallet;
 
-		var transactionProcessed = walletModel.TransactionProcessed;
+		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
 

@@ -221,7 +221,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var selectedCoins = (Transaction?.SpentCoins ?? new List<SmartCoin>()).ToList();
 
 		var selectCoinsDialog =
-			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, selectedCoins, _info));
+			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel.WalletModel, selectedCoins, _info));
 
 		if (selectCoinsDialog.Kind == DialogResultKind.Normal && selectCoinsDialog.Result is { })
 		{

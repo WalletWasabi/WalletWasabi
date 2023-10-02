@@ -170,8 +170,6 @@ public class SuggestionLabelsViewModelTests
 
 		public string Name => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
-
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
@@ -195,6 +193,8 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
 		public Network Network => throw new NotImplementedException();
+
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
 		public IObservable<Money> Balances => throw new NotImplementedException();
 

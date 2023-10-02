@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -18,19 +19,13 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	private readonly TransactionInfo _transactionInfo;
-	private readonly WalletViewModel _walletViewModel;
-
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IList<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
+	public SelectCoinsDialogViewModel(IWalletModel wallet, IList<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
 	{
-		_walletViewModel = walletViewModel;
-		_transactionInfo = transactionInfo;
-
-		CoinSelector = new CoinSelectorViewModel(walletViewModel.WalletModel, selectedCoins);
+		CoinSelector = new CoinSelectorViewModel(wallet, selectedCoins);
 
 		var coinsChanged = CoinSelector.WhenAnyValue(x => x.SelectedCoins);
 
-		EnoughSelected = coinsChanged.Select(AreEnoughToCreateTransaction);
+		EnoughSelected = coinsChanged.Select(c => wallet.Transactions.AreEnoughToCreateTransaction(transactionInfo, c));
 		EnableBack = true;
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, CoinSelector.SelectedCoins), EnoughSelected);
 
@@ -46,10 +41,5 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		CoinSelector.Dispose();
 
 		base.OnNavigatedFrom(isInHistory);
-	}
-
-	private bool AreEnoughToCreateTransaction(IEnumerable<SmartCoin> coins)
-	{
-		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out _);
 	}
 }
