@@ -9,23 +9,24 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
-public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
+public class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<CoinControlItemViewModelBase> _itemsCollection;
-
-	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
+	private readonly IWalletModel _wallet;
+	private IReadOnlyCollection<ICoinModel> _selectedCoins = ImmutableList<ICoinModel>.Empty;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinSelectorViewModel(IWalletModel wallet, IList<SmartCoin> initialCoinSelection)
+	public CoinSelectorViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection)
 	{
+		_wallet = wallet;
+
 		var sourceItems = new SourceList<CoinControlItemViewModelBase>().DisposeWith(_disposables);
 
 		var changes = sourceItems.Connect();
@@ -42,7 +43,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 					return item.Children;
 				})
-			.AddKey(model => model.SmartCoin.Outpoint);
+			.AddKey(model => model.Coin.Key);
 
 		changes
 			.Sort(SortExpressionComparer<CoinControlItemViewModelBase>.Descending(x => x.AnonymityScore ?? x.Children.Min(c => c.AnonymityScore) ?? 0))
@@ -96,23 +97,32 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 							ExpandSelectedItems();
 						})
 					.Subscribe();
+		_wallet = wallet;
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
+
+	public IReadOnlyCollection<ICoinModel> SelectedCoins
+	{
+		get => _selectedCoins;
+		set => this.RaiseAndSetIfChanged(ref _selectedCoins, value);
+	}
 
 	public void Dispose()
 	{
 		_disposables.Dispose();
 	}
 
-	private static ReadOnlyCollection<SmartCoin> GetSelectedCoins(IReadOnlyCollection<CoinCoinControlItemViewModel> list)
+	private static ReadOnlyCollection<ICoinModel> GetSelectedCoins(IReadOnlyCollection<CoinCoinControlItemViewModel> list)
 	{
-		return new ReadOnlyCollection<SmartCoin>(list.Where(item => item.IsSelected == true).Select(x => x.SmartCoin).ToList());
+		return new ReadOnlyCollection<ICoinModel>(list.Where(item => item.IsSelected == true).Select(x => x.Coin).ToList());
 	}
 
-	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<SmartCoin> selectedCoins)
+	private static void UpdateSelection(IEnumerable<CoinCoinControlItemViewModel> coinItems, IList<ICoinModel> selectedCoins)
 	{
-		var coinsToSelect = coinItems.Where(x => selectedCoins.Contains(x.SmartCoin));
+		var selectedSmartCoins = selectedCoins.GetSmartCoins().ToList();
+
+		var coinsToSelect = coinItems.Where(x => selectedSmartCoins.Contains(x.Coin.GetSmartCoin()));
 
 		foreach (var coinItem in coinsToSelect)
 		{
@@ -128,10 +138,13 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				// When it's single coin pocket, return its unique coin
 				if (pocket.Coins.Count() == 1)
 				{
-					return (CoinControlItemViewModelBase)new CoinCoinControlItemViewModel(pocket);
+					var coin = pocket.Coins.First();
+					var coinModel = _wallet.Coins.GetCoinModel(coin);
+
+					return (CoinControlItemViewModelBase)new CoinCoinControlItemViewModel(pocket.Labels, coinModel);
 				}
 
-				return new PocketCoinControlItemViewModel(pocket);
+				return new PocketCoinControlItemViewModel(_wallet, pocket);
 			});
 
 		source.Edit(

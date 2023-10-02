@@ -12,7 +12,7 @@ public partial class WalletPrivacyModel
 	public WalletPrivacyModel(IWalletModel walletModel, Wallet wallet)
 	{
 		ProgressUpdated =
-			walletModel.TransactionProcessed
+			walletModel.Transactions.TransactionProcessed
 					   .Merge(walletModel.Settings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal())
 					   .ObserveOn(RxApp.MainThreadScheduler)
 					   .Skip(1);

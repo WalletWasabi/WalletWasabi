@@ -1,37 +1,27 @@
-using System.Linq;
-using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
-	public CoinCoinControlItemViewModel(Pocket pocket) : this(pocket.Coins.First())
+	public CoinCoinControlItemViewModel(LabelsArray labels, ICoinModel coin)
 	{
-		if (pocket.Coins.Count() != 1)
-		{
-			throw new InvalidOperationException("The pocket must contain only one coin.");
-		}
-
-		Labels = pocket.Labels;
-	}
-
-	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
-	{
-		SmartCoin = smartCoin;
-		Amount = smartCoin.Amount;
-		IsConfirmed = smartCoin.Confirmed;
-		IsBanned = smartCoin.IsBanned;
-		IsCoinjoining = smartCoin.CoinJoinInProgress;
-		var confirmationCount = smartCoin.GetConfirmations();
+		Labels = labels;
+		Coin = coin;
+		Amount = coin.Amount;
+		IsConfirmed = coin.IsConfirmed;
+		IsBanned = coin.IsBanned;
+		IsCoinjoining = coin.IsCoinJoinInProgress;
+		var confirmationCount = coin.Confirmations;
 		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
-		BannedUntilUtcToolTip = smartCoin.BannedUntilUtc.HasValue ? $"Can't participate in coinjoin until: {smartCoin.BannedUntilUtc:g}" : null;
-		AnonymityScore = (int)smartCoin.AnonymitySet;
-		BannedUntilUtc = smartCoin.BannedUntilUtc;
+		BannedUntilUtcToolTip = coin.BannedUntilUtcToolTip;
+		AnonymityScore = coin.AnonScore;
+		BannedUntilUtc = coin.BannedUntilUtc;
 		IsSelected = false;
-		ScriptType = ScriptType.FromEnum(smartCoin.ScriptType);
+		ScriptType = coin.ScriptType;
 	}
 
-	public SmartCoin SmartCoin { get; }
+	public ICoinModel Coin { get; }
 }
