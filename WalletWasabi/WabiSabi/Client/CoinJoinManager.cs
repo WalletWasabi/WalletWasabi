@@ -84,7 +84,11 @@ public class CoinJoinManager : BackgroundService
 
 	public CoinJoinClientState GetCoinjoinClientState(string walletName)
 	{
-		return CoinJoinClientStates[walletName].CoinJoinClientState;
+		if (CoinJoinClientStates.TryGetValue(walletName, out var coinJoinClientStateHolder))
+		{
+			return coinJoinClientStateHolder.CoinJoinClientState;
+		}
+		throw new ArgumentException($"Wallet {walletName} is not tracked.");
 	}
 
 	#endregion Public API (Start | Stop | )
