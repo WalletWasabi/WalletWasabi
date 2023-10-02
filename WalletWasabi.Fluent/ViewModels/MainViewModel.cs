@@ -236,7 +236,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new WalletCoinsViewModel(UiContext, walletViewModel);
+				return new WalletCoinsViewModel(UiContext, walletViewModel.WalletModel);
 			}
 
 			return null;

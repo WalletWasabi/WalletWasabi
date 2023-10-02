@@ -18,6 +18,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
+	private readonly Lazy<IWalletCoinsModel> _coins;
 
 	public WalletModel(Wallet wallet)
 	{
@@ -28,6 +29,7 @@ public partial class WalletModel : ReactiveObject
 		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
 		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
+		_coins = new(() => new WalletCoinsModel(wallet, this));
 
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(Wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).ToSignal()
@@ -56,8 +58,6 @@ public partial class WalletModel : ReactiveObject
 
 		HasBalance = Balances.Select(x => x != Money.Zero);
 
-		Coins = new WalletCoinsModel(wallet, this);
-
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.Where(x => x)
@@ -73,11 +73,15 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
+	public string Name => Wallet.WalletName;
+
+	public Network Network => Wallet.Network;
+
 	public IObservable<Money> Balances { get; }
 
 	public IObservable<bool> HasBalance { get; }
 
-	public IWalletCoinsModel Coins { get; }
+	public IWalletCoinsModel Coins => _coins.Value;
 
 	public IWalletAuthModel Auth { get; }
 
@@ -92,8 +96,6 @@ public partial class WalletModel : ReactiveObject
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
-
-	public string Name => Wallet.WalletName;
 
 	public IObservable<WalletState> State { get; }
 

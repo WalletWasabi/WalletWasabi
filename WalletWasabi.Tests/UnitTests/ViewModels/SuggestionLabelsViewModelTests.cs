@@ -194,6 +194,8 @@ public class SuggestionLabelsViewModelTests
 
 		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
+		public Network Network => throw new NotImplementedException();
+
 		public IObservable<Money> Balances => throw new NotImplementedException();
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();

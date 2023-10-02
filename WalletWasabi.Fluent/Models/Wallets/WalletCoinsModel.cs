@@ -22,15 +22,19 @@ public partial class WalletCoinsModel
 
 		var transactionProcessed = walletModel.TransactionProcessed;
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
+		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
+
 		_signals =
-			transactionProcessed.Merge(anonScoreTargetChanged)
+			transactionProcessed
+				.Merge(anonScoreTargetChanged)
+				.Merge(isCoinjoinRunningChanged)
 				.StartWith(Unit.Default);
 	}
 
 	public IObservable<IChangeSet<ICoinModel, int>> List => _signals.ProjectList(GetCoins, x => x.Key);
 
 	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets => _signals.ProjectList(GetPockets, x => x.Labels);
-	
+
 	private Pocket[] GetPockets()
 	{
 		return _wallet.GetPockets().ToArray();
