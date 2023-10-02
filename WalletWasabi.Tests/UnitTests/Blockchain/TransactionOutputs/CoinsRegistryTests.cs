@@ -113,6 +113,8 @@ public class CoinsRegistryTests
 				Assert.Equal("E", finalCoin.HdPubKey.Labels);
 
 				Assert.Empty(Coins.AsAllCoinsView().Where(coin => coin.HdPubKey.Labels == "B"));
+				Assert.Empty(Coins.AsAllCoinsView().Where(coin => coin.HdPubKey.Labels == "C"));
+				Assert.Empty(Coins.AsAllCoinsView().Where(coin => coin.HdPubKey.Labels == "D"));
 
 				// Replaced transactions tx1 and tx2 have to be removed because tx3 replaced tx1.
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
