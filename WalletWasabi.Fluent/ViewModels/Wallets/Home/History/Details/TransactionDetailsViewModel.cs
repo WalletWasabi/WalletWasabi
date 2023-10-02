@@ -31,7 +31,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
-	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private Amount? _amount;
 
 	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
@@ -42,12 +41,15 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
 		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
+		TransactionId = transactionSummary.GetHash();
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
+
+	public uint256 TransactionId { get; }
 
 	public Amount Fee { get; }
 
@@ -58,7 +60,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
 		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
-		TransactionId = transactionSummary.GetHash();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
