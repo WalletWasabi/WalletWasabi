@@ -81,7 +81,7 @@ public class CoinsRegistryTests
 			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
 
 			IReadOnlyList<SmartCoin> tx2Coins = ProcessTransaction(tx2);
-			_ = Assert.Single(tx2Coins);
+			Assert.Single(tx2Coins);
 
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
 			Assert.True(Coins.IsKnown(tx2.GetHash()));
