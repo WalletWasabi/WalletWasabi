@@ -58,7 +58,7 @@ public class CoinsRegistryTests
 		{
 			tx1 = CreateSpendingTransaction(tx0Coin, NewInternalKey(label: "B").P2wpkhScript);
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
-			tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
+			tx1.Transaction.Outputs[0].Value = Money.Coins(0.85m);
 			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript);
 
 			IReadOnlyList<SmartCoin> tx1Coins = ProcessTransaction(tx1);
