@@ -100,7 +100,7 @@ public class CoinsRegistryTests
 
 				Assert.True(Coins.IsKnown(tx0.GetHash()));
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
-				// Assert.False(Coins.IsKnown(tx2.GetHash())); // Bug as of now.
+				Assert.False(Coins.IsKnown(tx2.GetHash()));
 			}
 
 			// .. then create and process tx3.
@@ -118,7 +118,7 @@ public class CoinsRegistryTests
 
 				// Replaced transactions tx1 and tx2 have to be removed because tx3 replaced tx1.
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
-				// Assert.False(Coins.IsKnown(tx2.GetHash())); // Bug as of now.
+				Assert.False(Coins.IsKnown(tx2.GetHash()));
 				Assert.True(Coins.IsKnown(tx3.GetHash()));
 			}
 		}
