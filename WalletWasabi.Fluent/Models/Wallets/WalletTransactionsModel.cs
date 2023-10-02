@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -23,6 +24,8 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
+		_wallet = wallet;
+
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
 					  .Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
@@ -30,28 +33,27 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
 
-		List =
+		var transactionChanges =
 			Observable.Defer(() => BuildSummary().ToObservable())
 					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
 					  .ToObservableChangeSet(x => x.GetHash());
-		_wallet = wallet;
+
+		transactionChanges.Bind(out var collection).Subscribe();
+		Transactions = collection;
 	}
 
-	public IObservable<Unit> TransactionProcessed { get; }
+	public ReadOnlyObservableCollection<TransactionSummary> Transactions { get; }
 
-	public IObservable<IChangeSet<TransactionSummary, uint256>> List { get; }
+	public IObservable<Unit> TransactionProcessed { get; }
 
 	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
 	{
 		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_wallet.KeyManager, transactionInfo, _wallet.Coins, coins, _wallet.Kitchen.SaltSoup(), out _);
 	}
 
-	public async Task<TransactionSummary?> GetById(string transactionId)
+	public TransactionSummary? GetById(uint256 transactionId)
 	{
-		var txRecordList = await Task.Run(() => TransactionHistoryBuilder.BuildHistorySummary(_wallet));
-
-		var transaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == transactionId);
-		return transaction;
+		return Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
 	}
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
