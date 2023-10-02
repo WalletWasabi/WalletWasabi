@@ -132,8 +132,8 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 		var fieldName = fieldSymbol.Name;
 		var fieldType = fieldSymbol.Type;
 		var attributeData = fieldSymbol.GetAttributes().Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
-		var overridenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
-		var propertyName = ChooseName(fieldName, overridenNameOpt);
+		var overriddenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
+		var propertyName = ChooseName(fieldName, overriddenNameOpt);
 
 		if (propertyName is null || propertyName.Length == 0 || propertyName == fieldName)
 		{
@@ -141,8 +141,8 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 			return;
 		}
 
-		var overridenSetterModifierOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "SetterModifier").Value;
-		var setterModifier = ChooseSetterModifier(overridenSetterModifierOpt);
+		var overriddenSetterModifierOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "SetterModifier").Value;
+		var setterModifier = ChooseSetterModifier(overriddenSetterModifierOpt);
 		if (setterModifier is null)
 		{
 			source.Append(
@@ -167,11 +167,11 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 				""");
 		}
 
-		static string? ChooseSetterModifier(TypedConstant overridenSetterModifierOpt)
+		static string? ChooseSetterModifier(TypedConstant overriddenSetterModifierOpt)
 		{
-			if (!overridenSetterModifierOpt.IsNull && overridenSetterModifierOpt.Value is not null)
+			if (!overriddenSetterModifierOpt.IsNull && overriddenSetterModifierOpt.Value is not null)
 			{
-				var value = (int)overridenSetterModifierOpt.Value;
+				var value = (int)overriddenSetterModifierOpt.Value;
 				return value switch
 				{
 					0 => null,// None
@@ -188,11 +188,11 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 			}
 		}
 
-		static string? ChooseName(string fieldName, TypedConstant overridenNameOpt)
+		static string? ChooseName(string fieldName, TypedConstant overriddenNameOpt)
 		{
-			if (!overridenNameOpt.IsNull)
+			if (!overriddenNameOpt.IsNull)
 			{
-				return overridenNameOpt.Value?.ToString();
+				return overriddenNameOpt.Value?.ToString();
 			}
 
 			fieldName = fieldName.TrimStart('_');
