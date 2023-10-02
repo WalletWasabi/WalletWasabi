@@ -1,18 +1,15 @@
 using System.Linq;
 using System.Reactive.Linq;
-using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
-using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletPageViewModel : ViewModelBase, ISearchSource
+public partial class WalletPageViewModel : ViewModelBase
 {
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isSelected;
@@ -60,13 +57,10 @@ public partial class WalletPageViewModel : ViewModelBase, ISearchSource
 
 		SetIcon();
 
-		SourceCache<ISearchItem, ComposedKey> searchItems = new(x => x.Key);
-		Changes = searchItems.Connect();
-
 		SearchItems = CreateSearchItems();
 
 		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (selected, loggedIn) => selected && loggedIn)
-			.Do(selectedAndLogged => HandleSearchItems(selectedAndLogged))
+			.Do(HandleSearchItems)
 			.Subscribe();
 	}
 
@@ -84,9 +78,9 @@ public partial class WalletPageViewModel : ViewModelBase, ISearchSource
 		};
 	}
 
-	private void HandleSearchItems(bool selectedAndLogged)
+	private void HandleSearchItems(bool shouldAdd)
 	{
-		if (selectedAndLogged)
+		if (shouldAdd)
 		{
 			UiContext.EditableSearchSource.Add(SearchItems);
 		}
@@ -96,15 +90,16 @@ public partial class WalletPageViewModel : ViewModelBase, ISearchSource
 		}
 	}
 
+	public IWalletModel WalletModel { get; }
+
+	public Wallet Wallet { get; }
+
+	public string Title => WalletModel.Name;
+
 	private ISearchItem[] SearchItems
 	{
 		get; 
 	}
-
-	public IWalletModel WalletModel { get; }
-	public Wallet Wallet { get; set; }
-
-	public string Title => WalletModel.Name;
 
 	private void ShowLogin()
 	{
@@ -139,6 +134,4 @@ public partial class WalletPageViewModel : ViewModelBase, ISearchSource
 		IconName = $"nav_{baseResourceName}_regular";
 		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
-
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 }
