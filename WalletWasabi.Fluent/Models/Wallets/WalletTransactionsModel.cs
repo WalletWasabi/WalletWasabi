@@ -46,11 +46,6 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<SmartCoin> coins)
-	{
-		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_wallet.KeyManager, transactionInfo, _wallet.Coins, coins, _wallet.Kitchen.SaltSoup(), out _);
-	}
-
 	public TransactionSummary? GetById(uint256 transactionId)
 	{
 		return Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
