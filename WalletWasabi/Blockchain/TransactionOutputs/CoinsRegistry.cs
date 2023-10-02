@@ -176,7 +176,10 @@ public class CoinsRegistry : ICoinsView
 
 			// No more coins were created by this transaction.
 			KnownTransactions.Remove(txId);
-			CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved);
+			if (!CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved))
+			{
+				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
+			}
 			foreach (var kvp in CoinsByOutPoint.ToList())
 			{
 				if (ReferenceEquals(kvp.Value, referenceHashSetRemoved))
