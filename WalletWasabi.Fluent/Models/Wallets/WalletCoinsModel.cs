@@ -48,7 +48,7 @@ public partial class WalletCoinsModel
 
 	public ICoinModel GetCoinModel(SmartCoin smartCoin)
 	{
-		return new CoinModel(_walletModel, smartCoin);
+		return new CoinModel(smartCoin, _walletModel.Settings.AnonScoreTarget);
 	}
 
 	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<ICoinModel> coins)
