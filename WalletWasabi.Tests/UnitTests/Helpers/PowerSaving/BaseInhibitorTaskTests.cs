@@ -47,7 +47,6 @@ public class BaseInhibitorTaskTests
 	}
 }
 
-
 public class MockProcessAsync : ProcessAsync
 {
 	public Func<CancellationToken, Task>? OnWaitForExitAsync { get; set; }
@@ -77,5 +76,4 @@ public class MockProcessAsync : ProcessAsync
 	public override nint Handle =>
 		OnHandle?.Invoke()
 		?? throw new NotImplementedException($"{nameof(Handle)} was invoked but never assigned.");
-
 }
