@@ -70,10 +70,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	public string Title => WalletModel.Name;
 
-	private ISearchItem[] SearchItems
-	{
-		get; 
-	}
+	private ISearchItem[] SearchItems { get; }
 
 	private void ShowLogin()
 	{
