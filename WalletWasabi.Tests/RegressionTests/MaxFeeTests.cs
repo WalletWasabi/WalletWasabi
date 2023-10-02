@@ -163,14 +163,15 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 				try
 				{
 					wallet.BuildChangelessTransaction(destination, "", failingFeeRate, wallet.Coins);
-					Assert.Fail();
+					Assert.Fail("Build should have failed due to high fee.");
 				}
 				catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException or InvalidTxException)
 				{
+					// Ignored. This is what we expect.
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
-					Assert.Fail();
+					Assert.Fail($"Unexpected exception: {ex.GetType} - {ex.Message}");
 				}
 			}
 		}
