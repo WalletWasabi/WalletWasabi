@@ -284,16 +284,15 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	public IEnumerable<SmartCoin> GetMyInputs(SmartTransaction transaction)
+	public IReadOnlyList<SmartCoin> GetMyInputs(SmartTransaction transaction)
 	{
-		var inputs = transaction.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
-
 		var myInputs = new List<SmartCoin>();
+
 		lock (Lock)
 		{
-			foreach (var input in inputs)
+			foreach (TxIn input in transaction.Transaction.Inputs)
 			{
-				if (OutpointCoinCache.TryGetValue(input, out var coin))
+				if (OutpointCoinCache.TryGetValue(input.PrevOut, out SmartCoin? coin))
 				{
 					myInputs.Add(coin);
 				}
@@ -314,6 +313,14 @@ public class CoinsRegistry : ICoinsView
 			}
 
 			return false;
+		}
+	}
+
+	public bool IsUsed(HdPubKey hdPubKey)
+	{
+		lock (Lock)
+		{
+			return CoinsByPubKeys.TryGetValue(hdPubKey, out _);
 		}
 	}
 

@@ -39,6 +39,9 @@ internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(walletVm.Wallet.KeyManager);
 		SpeedUpTransactionCommand = parent.SpeedUpTransactionCommand;
 		CancelTransactionCommand = parent.CancelTransactionCommand;
+
+		ItemType = GetItemType();
+		ItemStatus = GetItemStatus();
 	}
 
 	public bool CanSpeedUpTransaction { get; }

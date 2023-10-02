@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -17,6 +16,8 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -41,7 +42,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	private TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
+	public TransactionPreviewViewModel(UiContext uiContext, WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = walletViewModel.Wallet;
@@ -51,8 +52,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(_wallet);
-		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, _wallet, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, _wallet, _info, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
 		{
@@ -218,19 +219,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnChangeCoinsAsync()
 	{
-		var selectedCoins = (Transaction?.SpentCoins ?? new List<SmartCoin>()).ToList();
+		var currentCoins = _walletViewModel.WalletModel.Coins.GetSpentCoins(Transaction);
 
-		var selectCoinsDialog =
-			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, selectedCoins, _info));
+		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletViewModel.WalletModel, currentCoins, _info).GetResultAsync();
 
-		if (selectCoinsDialog.Kind == DialogResultKind.Normal && selectCoinsDialog.Result is { })
+		if (selectedCoins is { })
 		{
-			if (selectedCoins.ToHashSet().SetEquals(selectCoinsDialog.Result))
+			if (currentCoins.GetSmartCoins().ToHashSet().SetEquals(selectedCoins))
 			{
 				return;
 			}
 
-			_info.Coins = selectCoinsDialog.Result;
+			_info.Coins = selectedCoins;
 			await BuildAndUpdateAsync();
 		}
 	}
@@ -451,7 +451,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return true;
 		}
 
-		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
+		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_walletViewModel.WalletModel, transactionAuthorizationInfo);
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 		return authDialogResult.Result;

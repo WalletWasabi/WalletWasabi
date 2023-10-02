@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
+namespace WalletWasabi.Fluent.Models.Wallets;
 
 public record ScriptType(string Name, string ShortName)
 {
