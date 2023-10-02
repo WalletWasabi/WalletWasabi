@@ -142,14 +142,15 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 				try
 				{
 					wallet.BuildTransaction(destination, amount, "", failingFeeRate, wallet.Coins, false);
-					Assert.Fail();
+					Assert.Fail("Build should have failed due to high fee.");
 				}
 				catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 				{
+					// Ignored. This is what we expect.
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
-					Assert.Fail();
+					Assert.Fail($"Unexpected exception: {ex.GetType} - {ex.Message}");
 				}
 			}
 
@@ -165,7 +166,7 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 					wallet.BuildChangelessTransaction(destination, "", failingFeeRate, wallet.Coins);
 					Assert.Fail("Build should have failed due to high fee.");
 				}
-				catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException or InvalidTxException)
+				catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 				{
 					// Ignored. This is what we expect.
 				}
