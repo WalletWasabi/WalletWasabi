@@ -21,8 +21,6 @@ public class App : Application
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
-	public static bool EnableFeatureHide { get; private set; }
-
 	static App()
 	{
 		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
@@ -33,6 +31,8 @@ public class App : Application
 	{
 		Name = "Wasabi Wallet";
 	}
+
+	public static bool EnableFeatureHide { get; private set; }
 
 	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
 	{
