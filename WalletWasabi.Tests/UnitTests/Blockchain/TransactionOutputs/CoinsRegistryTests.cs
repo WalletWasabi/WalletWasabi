@@ -38,10 +38,10 @@ public class CoinsRegistryTests
 		//                  +--tx3 (replacement)---> (E)
 
 		Coin? tx0Coin;
-		SmartTransaction tx0;
-		SmartTransaction tx1;
-		SmartTransaction tx2;
-		SmartTransaction tx3;
+		SmartTransaction tx0; // The transaction has 2 inputs and 1 output.
+		SmartTransaction tx1; // The transaction has 1 input and 2 outputs.
+		SmartTransaction tx2; // The transaction has 1 input and 1 output.
+		SmartTransaction tx3; // The transaction has 1 input and 1 output.
 
 		// Create and process transaction tx0.
 		{
@@ -52,13 +52,19 @@ public class CoinsRegistryTests
 			Assert.Single(tx0Coins);
 			Assert.Single(Coins);
 			Assert.Equal(tx0Coins[0], Coins.First());
+
+			// Verify that both tx0 inputs' prevOuts are set to be spent by the single tx0's coin.
+			foreach (var input in tx0.Transaction.Inputs)
+			{
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingTx0PrevOuts));
+				Assert.Single(coinsSpendingTx0PrevOuts);
+			}
 		}
 
 		// Create and process transaction tx1 that fully spends tx0.
 		{
-			tx1 = CreateSpendingTransaction(tx0Coin, NewInternalKey(label: "B").P2wpkhScript);
+			tx1 = CreateSpendingTransaction(tx0Coin, txOut: new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript));
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
-			tx1.Transaction.Outputs[0].Value = Money.Coins(0.85m);
 			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript);
 
 			IReadOnlyList<SmartCoin> tx1Coins = ProcessTransaction(tx1);
@@ -71,20 +77,54 @@ public class CoinsRegistryTests
 
 			Assert.True(Coins.IsKnown(tx0.GetHash()));
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
+
+			// Verify that we cache properly the coins spending inputs' prevOuts of tx0 and tx1.
+			{
+				// Check both tx0 inputs.
+				foreach (var input in tx0.Transaction.Inputs)
+				{
+					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingTx0PrevOuts));
+					Assert.Single(coinsSpendingTx0PrevOuts);
+				}
+
+				// Check the input of tx1. Both tx1's outputs should be found.
+				TxIn tx1Input = Assert.Single(tx1.Transaction.Inputs);
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
+				Assert.Equal(2, coinsSpendingTx1PrevOut.Count);
+			}
 		}
 
 		// Create and process transaction tx2 that partially spends tx1.
 		{
 			SmartCoin coin = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
 
-			tx2 = CreateSpendingTransaction(coin.Coin, NewInternalKey("D").P2wpkhScript);
-			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
+			tx2 = CreateSpendingTransaction(coin.Coin, txOut: new TxOut(Money.Coins(0.7m), NewInternalKey("D").P2wpkhScript));
 
 			IReadOnlyList<SmartCoin> tx2Coins = ProcessTransaction(tx2);
 			Assert.Single(tx2Coins);
 
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
 			Assert.True(Coins.IsKnown(tx2.GetHash()));
+
+			// Verify that we cache properly the coins spending inputs' prevOuts of tx0, tx1 and tx2.
+			{
+				// No change for tx0 inputs is expected.
+				foreach (TxIn input in tx0.Transaction.Inputs)
+				{
+					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingTx0PrevOuts));
+					Assert.Single(coinsSpendingTx0PrevOuts);
+				}
+
+				// No change for the tx1's input is expected.
+				TxIn tx1Input = Assert.Single(tx1.Transaction.Inputs);
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
+				Assert.Equal(2, coinsSpendingTx1PrevOut.Count);
+
+				// Input of tx2 must be processed correctly.
+				TxIn tx2Input = Assert.Single(tx2.Transaction.Inputs);
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx2Input.PrevOut, out var coinsSpendingTx2PrevOut));
+				Assert.Single(coinsSpendingTx2PrevOut);
+			}
 		}
 
 		// Create and process REPLACEMENT transaction tx3 that fully spends tx0.
@@ -100,13 +140,26 @@ public class CoinsRegistryTests
 
 				Assert.True(Coins.IsKnown(tx0.GetHash()));
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
-				// Assert.False(Coins.IsKnown(tx2.GetHash())); // Bug as of now.
+				Assert.False(Coins.IsKnown(tx2.GetHash()));
+
+				foreach (var input in tx0.Transaction.Inputs)
+				{
+					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingPrevOut));
+					Assert.Single(coinsSpendingPrevOut);
+				}
+
+				TxIn tx1Input = Assert.Single(tx1.Transaction.Inputs);
+				Assert.False(Coins.TryGetSpenderSmartCoinsByOutPoint(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
+				Assert.Null(coinsSpendingTx1PrevOut);
+
+				TxIn tx2Input = Assert.Single(tx2.Transaction.Inputs);
+				Assert.False(Coins.TryGetSpenderSmartCoinsByOutPoint(tx2Input.PrevOut, out var coinsSpendingTx2PrevOut));
+				Assert.Null(coinsSpendingTx2PrevOut);
 			}
 
 			// .. then create and process tx3.
 			{
-				tx3 = CreateSpendingTransaction(tx0Coin, NewInternalKey("E").P2wpkhScript);
-				tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
+				tx3 = CreateSpendingTransaction(tx0Coin, txOut: new TxOut(Money.Coins(0.9m), NewInternalKey("E").P2wpkhScript));
 				IReadOnlyList<SmartCoin> tx3Coins = ProcessTransaction(tx3);
 
 				SmartCoin finalCoin = Assert.Single(Coins);
@@ -118,8 +171,12 @@ public class CoinsRegistryTests
 
 				// Replaced transactions tx1 and tx2 have to be removed because tx3 replaced tx1.
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
-				// Assert.False(Coins.IsKnown(tx2.GetHash())); // Bug as of now.
+				Assert.False(Coins.IsKnown(tx2.GetHash()));
 				Assert.True(Coins.IsKnown(tx3.GetHash()));
+
+				TxIn tx3Input = Assert.Single(tx3.Transaction.Inputs);
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx3Input.PrevOut, out var coinsSpendingTx3PrevOut));
+				Assert.Single(coinsSpendingTx3PrevOut);
 			}
 		}
 	}
@@ -163,12 +220,12 @@ public class CoinsRegistryTests
 		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
 	}
 
-	/// <summary>Fully spends the given coin.</summary>
-	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
+	/// <summary>Creates a transaction that fully spends the given coin to a single outpoint (leaving rest for fees).</summary>
+	private static SmartTransaction CreateSpendingTransaction(Coin coin, TxOut txOut, int height = 0)
 	{
 		var tx = Network.Main.CreateTransaction();
 		tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
-		tx.Outputs.Add(coin.Amount, scriptPubKey ?? Script.Empty);
+		tx.Outputs.Add(txOut);
 		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
 	}
 
