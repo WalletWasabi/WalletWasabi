@@ -21,12 +21,12 @@ public class App : Application
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
-	public static bool EnableFeatureHideOnClose { get; private set; }
+	public static bool EnableFeatureHide { get; private set; }
 
 	static App()
 	{
 		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
-		EnableFeatureHideOnClose = !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+		EnableFeatureHide = !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 	}
 
 	public App()

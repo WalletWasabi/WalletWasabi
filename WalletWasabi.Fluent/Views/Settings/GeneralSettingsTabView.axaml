@@ -21,7 +21,7 @@
       <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
     </DockPanel>
 
-    <DockPanel IsVisible="{x:Static local:App.EnableFeatureHideOnClose}">
+    <DockPanel IsVisible="{x:Static local:App.EnableFeatureHide}">
       <TextBlock Text="Run in background when window closed" />
       <ToggleSwitch IsChecked="{Binding Settings.HideOnClose}" />
     </DockPanel>

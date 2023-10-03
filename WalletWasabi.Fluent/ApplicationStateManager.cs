@@ -137,7 +137,7 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				// _hideRequest flag is used to distinguish what is the user's intent.
 				// It is only true when the request comes from the Tray.
-				if ((Services.UiConfig.HideOnClose && App.EnableFeatureHideOnClose)
+				if ((Services.UiConfig.HideOnClose && App.EnableFeatureHide)
 				    || _hideRequest)
 				{
 					_hideRequest = false; // request processed, set it back to the default.

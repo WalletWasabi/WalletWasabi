@@ -35,7 +35,7 @@ public class SettingsSearchSource : ISearchSource
 		yield return new NonActionableSearchItem(Setting(x => x.DarkModeEnabled), "Dark mode", "Appearance", new List<string> { "Black", "White", "Theme", "Dark", "Light" }, "nav_settings_regular") { IsDefault = false };
 		yield return new NonActionableSearchItem(Setting(x => x.AutoCopy), "Auto copy addresses", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false };
 		yield return new NonActionableSearchItem(Setting(x => x.AutoPaste), "Auto paste addresses", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false };
-		if (App.EnableFeatureHideOnClose)
+		if (App.EnableFeatureHide)
 		{
 			yield return new NonActionableSearchItem(Setting(x => x.HideOnClose), "Run in background when closed", "Settings", new List<string>() { "hide", "tray" }, "nav_settings_regular") { IsDefault = false };
 		}
