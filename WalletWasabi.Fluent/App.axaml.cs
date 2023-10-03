@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -72,10 +73,25 @@ public class App : Application
 
 						MainViewModel.Instance.Initialize();
 					});
+
+				InitializeTrayIcons();
 			}
 		}
 
 		base.OnFrameworkInitializationCompleted();
+	}
+
+	private void InitializeTrayIcons()
+	{
+		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
+		var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
+		if (trayIcon is not null)
+		{
+			if (this.TryFindResource(EnableFeatureHide ? "DefaultNativeMenu" : "MacOsNativeMenu", out var nativeMenu))
+			{
+				trayIcon.Menu = nativeMenu as NativeMenu;
+			}
+		}
 	}
 
 	// It begins to show that we're re-inventing DI, aren't we?
