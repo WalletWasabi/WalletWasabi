@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -29,8 +30,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-        ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
-        IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
+		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 
 		Update();
 	}

@@ -96,7 +96,7 @@ public class ReceiveAddressViewModelTests
 
 		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 
-		public IObservable<Money> Balances => throw new NotSupportedException();
+		public IObservable<Amount> Balances => throw new NotSupportedException();
 
 		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
 
@@ -105,6 +105,8 @@ public class ReceiveAddressViewModelTests
 		public Network Network => throw new NotImplementedException();
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
+
+		public IAmountProvider AmountProvider => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
