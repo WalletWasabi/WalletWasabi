@@ -71,6 +71,19 @@ public class CoinsRegistryTests
 
 			Assert.True(Coins.IsKnown(tx0.GetHash()));
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
+
+			// Verify that CoinsByOutpoint cache has been updated with inputs prevOut from tx0 and tx1.
+			foreach (var input in tx0.Transaction.Inputs)
+			{
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+				Assert.Single(coinsByInputPrevOut);
+			}
+
+			foreach (var input in tx1.Transaction.Inputs)
+			{
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+				Assert.Equal(2, coinsByInputPrevOut.Count);
+			}
 		}
 
 		// Create and process transaction tx2 that partially spends tx1.
@@ -85,6 +98,26 @@ public class CoinsRegistryTests
 
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
 			Assert.True(Coins.IsKnown(tx2.GetHash()));
+
+			// CoinsByOutpoint shouldn't have been modified for inputs from tx0 and tx1.
+			foreach (var input in tx0.Transaction.Inputs)
+			{
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+				Assert.Single(coinsByInputPrevOut);
+			}
+
+			foreach (var input in tx1.Transaction.Inputs)
+			{
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+				Assert.Equal(2, coinsByInputPrevOut.Count);
+			}
+
+			// Inputs from tx2 should've been added to CoinsByOutpoint cache.
+			foreach (var input in tx2.Transaction.Inputs)
+			{
+				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+				Assert.Single(coinsByInputPrevOut);
+			}
 		}
 
 		// Create and process REPLACEMENT transaction tx3 that fully spends tx0.
@@ -101,6 +134,22 @@ public class CoinsRegistryTests
 				Assert.True(Coins.IsKnown(tx0.GetHash()));
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
 				Assert.False(Coins.IsKnown(tx2.GetHash()));
+
+				foreach (var input in tx0.Transaction.Inputs)
+				{
+					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+					Assert.Single(coinsByInputPrevOut);
+				}
+
+				foreach (var input in tx1.Transaction.Inputs)
+				{
+					Assert.False(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out _));
+				}
+
+				foreach (var input in tx2.Transaction.Inputs)
+				{
+					Assert.False(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out _));
+				}
 			}
 
 			// .. then create and process tx3.
@@ -120,6 +169,12 @@ public class CoinsRegistryTests
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
 				Assert.False(Coins.IsKnown(tx2.GetHash()));
 				Assert.True(Coins.IsKnown(tx3.GetHash()));
+
+				foreach (var input in tx3.Transaction.Inputs)
+				{
+					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsByInputPrevOut));
+					Assert.Single(coinsByInputPrevOut);
+				}
 			}
 		}
 	}
