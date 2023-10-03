@@ -58,7 +58,6 @@ public class BlockchainController : ControllerBase
 	[HttpGet("all-fees")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
 	{
 		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
