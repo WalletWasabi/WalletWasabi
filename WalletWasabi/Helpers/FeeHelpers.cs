@@ -81,8 +81,9 @@ public static class FeeHelpers
 				var newSatPerByte = nextSatPerByteCandidate < 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
 				feeRate = new FeeRate(newSatPerByte);
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+			        Logger.LogWarning(ex);
 				return null;
 			}
 
