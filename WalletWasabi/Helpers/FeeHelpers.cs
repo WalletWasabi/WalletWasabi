@@ -49,6 +49,17 @@ public static class FeeHelpers
 		return maxFeeRate is not null;
 	}
 
+	/// <summary>
+	/// SeekMaxFeeRate iteratively searches for the highest feasible fee rate
+	/// that allows the provided 'buildTransaction' action to succeed.
+	/// If the action succeeded it increases the fee rate to try, if fails, it reduces.
+	/// It repeats it until the difference between the last succeeded and last wrong fee rate is 0.001.
+	/// </summary>
+	/// <param name="feeRate">The initial fee rate to start the search from.</param>
+	/// <param name="buildTransaction">The action to build a transaction with the given fee rate.</param>
+	/// <returns>
+	/// The maximum feasible fee rate discovered, or null if no suitable fee rate is found.
+	/// </returns>
 	private static FeeRate? SeekMaxFeeRate(FeeRate feeRate, Action<FeeRate> buildTransaction)
 	{
 		if (feeRate.SatoshiPerByte < 1m)
