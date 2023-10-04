@@ -12,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 public class CoinsRegistry : ICoinsView
 {
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<uint256, Dictionary<OutPoint, SmartCoin>> CoinsByTransactionIds { get; } = new();
+	private Dictionary<uint256, Dictionary<OutPoint, SmartCoin>> CoinsByTransactionsIds { get; } = new();
 
 	/// <summary>
 	/// Cache the prevOut of all inputs of transactions that created some coins./// </summary>
@@ -70,7 +70,7 @@ public class CoinsRegistry : ICoinsView
 
 		var newCoinsSnapshot = new HashSet<SmartCoin>();
 		var newSpentCoinsSnapshot = new HashSet<SmartCoin>();
-		foreach (var coin in CoinsByTransactionIds.Values.SelectMany(x => x.Values))
+		foreach (var coin in CoinsByTransactionsIds.Values.SelectMany(x => x.Values))
 		{
 			if (coin.SpenderTransaction is null)
 			{
@@ -101,18 +101,18 @@ public class CoinsRegistry : ICoinsView
 
 			coinsOfPubKey.Add(coin);
 
-			if (CoinsByTransactionIds.TryGetValue(coin.TransactionId, out var coinByOutpoints))
+			if (CoinsByTransactionsIds.TryGetValue(coin.TransactionId, out var coinsByOutpoints))
 			{
-				return coinByOutpoints.TryAdd(coin.Outpoint, coin);
+				return coinsByOutpoints.TryAdd(coin.Outpoint, coin);
 			}
 
-			CoinsByTransactionIds.Add(
+			CoinsByTransactionsIds.Add(
 				coin.TransactionId,
 				new Dictionary<OutPoint, SmartCoin>() { { coin.Outpoint, coin } });
 
-			foreach (var inputPrevOut in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
+			foreach (var input in coin.Transaction.Transaction.Inputs)
 			{
-				TxIdsByInputsPrevOut.AddOrReplace(inputPrevOut, coin.TransactionId);
+				TxIdsByInputsPrevOut.AddOrReplace(input.PrevOut, coin.TransactionId);
 			}
 
 			InvalidateSnapshot = true;
@@ -146,19 +146,19 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			return CoinsByTransactionIds.ContainsKey(txid);
+			return CoinsByTransactionsIds.ContainsKey(txid);
 		}
 	}
 
-	public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	public bool TryGetCoinsByInputPrevOut(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		lock (Lock)
 		{
-			return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins);
+			return TryGetCoinsByInputPrevOutNoLock(outPoint, out coins);
 		}
 	}
 
-	private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		coins = null;
 		lock (Lock)
@@ -168,12 +168,12 @@ public class CoinsRegistry : ICoinsView
 				return false;
 			}
 
-			if (!CoinsByTransactionIds.TryGetValue(txId, out var coinByOutpoints))
+			if (!CoinsByTransactionsIds.TryGetValue(txId, out var coinsByOutpoints))
 			{
 				return false;
 			}
 
-			coins = coinByOutpoints.Values.ToHashSet();
+			coins = coinsByOutpoints.Values.ToHashSet();
 		}
 		return true;
 	}
@@ -183,7 +183,7 @@ public class CoinsRegistry : ICoinsView
 		coin = null;
 		lock (Lock)
 		{
-			if (!CoinsByTransactionIds.TryGetValue(outPoint.Hash, out var coinsByOutpoint))
+			if (!CoinsByTransactionsIds.TryGetValue(outPoint.Hash, out var coinsByOutpoint))
 			{
 				return false;
 			}
@@ -240,7 +240,7 @@ public class CoinsRegistry : ICoinsView
 				}
 
 				// Remove the transaction from CoinsByTransactionIds cache.
-				if (CoinsByTransactionIds.Remove(txIdToRemove, out var coinsRemovedByOutpoint))
+				if (CoinsByTransactionsIds.Remove(txIdToRemove, out var coinsRemovedByOutpoint))
 				{
 					foreach (var removedCoin in coinsRemovedByOutpoint.Values)
 					{
@@ -271,6 +271,7 @@ public class CoinsRegistry : ICoinsView
 			{
 				toAdd.Remove(coin);
 			}
+
 			InvalidateSnapshot = true;
 
 			return (new CoinsView(toRemove), new CoinsView(toAdd));
@@ -285,12 +286,12 @@ public class CoinsRegistry : ICoinsView
 		{
 			foreach (TxIn input in transaction.Transaction.Inputs)
 			{
-				if (!CoinsByTransactionIds.TryGetValue(input.PrevOut.Hash, out var coinByOutpoints))
+				if (!CoinsByTransactionsIds.TryGetValue(input.PrevOut.Hash, out var coinsByOutpoints))
 				{
 					continue;
 				}
 
-				if (coinByOutpoints.TryGetValue(input.PrevOut, out var coin))
+				if (coinsByOutpoints.TryGetValue(input.PrevOut, out var coin))
 				{
 					myInputs.Add(coin);
 				}
