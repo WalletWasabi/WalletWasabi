@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 

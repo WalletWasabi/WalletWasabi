@@ -30,7 +30,8 @@ public static class Mocks
 			new NullClientConfig(),
 			new NullApplicationSettings(),
 			Mock.Of<ITransactionBroadcasterModel>(),
-            new EditableSearchSourceSource());
+			Mock.Of<IAmountProvider>(),
+			new EditableSearchSourceSource());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
@@ -45,7 +46,8 @@ public static class Mocks
 			new NullClientConfig(),
 			new NullApplicationSettings(),
 			Mock.Of<ITransactionBroadcasterModel>(),
-            new EditableSearchSourceSource());
+			Mock.Of<IAmountProvider>(),
+			new EditableSearchSourceSource());
 
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;

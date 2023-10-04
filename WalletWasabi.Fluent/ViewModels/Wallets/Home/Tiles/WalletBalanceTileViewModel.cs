@@ -1,3 +1,5 @@
+using WalletWasabi.Fluent.Models.Wallets;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public class WalletBalanceTileViewModel : ActivatableViewModel
