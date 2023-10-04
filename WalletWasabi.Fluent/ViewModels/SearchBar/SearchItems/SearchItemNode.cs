@@ -39,7 +39,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	public bool IsDefault { get; }
 	public int Priority { get; set; }
 
-	private void AddOrRemoveNestedItems(TProperty property)
+	private void AddOrRemoveNestedItems(TProperty? property)
 	{
 		foreach (var nestedItem in _nestedItems)
 		{
