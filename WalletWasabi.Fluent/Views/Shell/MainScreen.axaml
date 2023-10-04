@@ -14,11 +14,14 @@
              x:CompileBindings="True">
 
   <DockPanel IsEnabled="{Binding IsMainContentEnabled^}">
-    <shell:TitleBar DockPanel.Dock="Top" />
+    <shell:TitleBar DockPanel.Dock="Top"
+                    RenderOptions.TextRenderingMode="Antialias"/>
     <DockPanel>
-      <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
+      <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}"
+                     RenderOptions.TextRenderingMode="Antialias" />
       <Border x:Name="ContentPart" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0"
-              CornerRadius="10 0 0 0" ClipToBounds="True">
+              CornerRadius="10 0 0 0" ClipToBounds="True"
+              RenderOptions.TextRenderingMode="SubpixelAntialias">
         <Panel>
           <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True"
                   IsHitTestVisible="False" />
