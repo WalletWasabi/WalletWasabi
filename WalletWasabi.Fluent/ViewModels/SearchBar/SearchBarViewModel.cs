@@ -3,10 +3,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
-using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
