@@ -57,7 +57,7 @@ public record SigningState : MultipartyTransactionState
 		Coin registeredCoin = SortedInputs[index];
 
 		// 2. Check the witness is not too long.
-		if (ScriptSizeHelpers.VirtualSize(Constants.InputBaseSizeInBytes, witness.ToBytes().Length) > registeredCoin.ScriptPubKey.EstimateInputVsize())
+		if (VirtualSizeHelpers.VirtualSize(Constants.InputBaseSizeInBytes, witness.ToBytes().Length) > registeredCoin.ScriptPubKey.EstimateInputVsize())
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SignatureTooLong);
 		}

@@ -1,6 +1,6 @@
 namespace WalletWasabi.Helpers;
 
-public static class ScriptSizeHelpers
+public static class VirtualSizeHelpers
 {
 	public const int NonSegwitByteInWeightUnits = 4;
 	public const int SegwitByteInWeightUnits = 1;
