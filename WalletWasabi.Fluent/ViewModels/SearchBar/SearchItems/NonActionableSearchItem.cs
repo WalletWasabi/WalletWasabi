@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
-public class NonActionableSearchItem : ISearchItem
+public class NonActionableSearchItem : INonActionableSearchItem
 {
 	public NonActionableSearchItem(object content, string name, string category, IEnumerable<string> keywords, string? icon)
 	{
@@ -22,4 +22,5 @@ public class NonActionableSearchItem : ISearchItem
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; set; }
+	public int Priority { get; set; }
 }

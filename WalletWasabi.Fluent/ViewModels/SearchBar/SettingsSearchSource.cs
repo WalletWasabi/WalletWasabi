@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -29,31 +27,12 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			.ToObservable()
 			.ToObservableChangeSet(x => x.Key)
 			.Filter(filter);
-
-		var isVisible = this.WhenAnyValue(x => x._applicationSettings.StartLocalBitcoinCoreOnStartup);
-
-		isVisible?
-			.Do(
-				visible =>
-				{
-					var item = new NonActionableSearchItem(Setting(x => x.StopLocalBitcoinCoreOnShutdown), "Stop Bitcoin Knots on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false };
-					if (visible)
-					{
-						uiContext.EditableSearchSource.Add(item);
-					}
-					else
-					{
-						uiContext.EditableSearchSource.Remove(item);
-					}
-				})
-			.Subscribe();
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
 	private IEnumerable<ISearchItem> GetSettingsItems()
 	{
-		IObservable<bool> isVisible = this.WhenAnyValue(x => x._applicationSettings.StartLocalBitcoinCoreOnStartup);
 		return new ISearchItem[]
 		{
 			new NonActionableSearchItem(Setting(x => x.DarkModeEnabled), "Dark mode", "Appearance", new List<string> { "Black", "White", "Theme", "Dark", "Light" }, "nav_settings_regular") { IsDefault = false },
@@ -63,8 +42,27 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			new NonActionableSearchItem(Setting(x => x.RunOnSystemStartup), "Run Wasabi when computer starts", "Settings", new List<string>() { "startup", "boot" }, "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(Setting(x => x.UseTor), "Network anonymization (Tor)", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(Setting(x => x.TerminateTorOnExit), "Terminate Tor when Wasabi shuts down", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(Setting(x => x.StartLocalBitcoinCoreOnStartup), "Run Bitcoin Knots on startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(Setting(x => x.EnableGpu), "Enable GPU", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
+			NonActionableSearchItemNode.Create(
+				_uiContext.EditableSearchSource,
+				Setting(x => x.StartLocalBitcoinCoreOnStartup),
+				"Run Bitcoin Knots on startup",
+				"Settings",
+				new List<string>(),
+				"nav_settings_regular",
+				1,
+				new NestedItemConfiguration<bool>(
+					isActivated => isActivated,
+					new NonActionableSearchItem(
+						Setting(x => x.StopLocalBitcoinCoreOnShutdown),
+						"Stop Bitcoin Knots on shutdown",
+						"Settings",
+						new List<string>(),
+						"nav_settings_regular")
+					{
+						IsDefault = false,
+						Priority = 2
+					}))
 		};
 	}
 

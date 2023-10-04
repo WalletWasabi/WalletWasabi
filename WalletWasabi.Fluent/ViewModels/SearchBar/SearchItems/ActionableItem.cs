@@ -28,4 +28,5 @@ public class ActionableItem : IActionableItem
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; set; }
+	public int Priority { get; set; }
 }
