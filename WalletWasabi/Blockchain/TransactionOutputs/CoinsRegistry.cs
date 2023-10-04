@@ -15,9 +15,14 @@ public class CoinsRegistry : ICoinsView
 	private Dictionary<uint256, Dictionary<OutPoint, SmartCoin>> CoinsByTransactionsIds { get; } = new();
 
 	/// <summary>
-	/// Cache the prevOut of all inputs of transactions that created some coins./// </summary>
+	/// Cache the prevOut of all inputs of transactions that created some coins.
+	/// The values of this cache match the keys of CoinsByTransactionsIds.
+	/// </summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, uint256> TxIdsByInputsPrevOut { get; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
@@ -27,9 +32,6 @@ public class CoinsRegistry : ICoinsView
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
 	private object Lock { get; } = new();
 
@@ -178,7 +180,7 @@ public class CoinsRegistry : ICoinsView
 		return true;
 	}
 
-	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
+	public bool TryGetCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
 		coin = null;
 		lock (Lock)
@@ -192,12 +194,8 @@ public class CoinsRegistry : ICoinsView
 			{
 				return false;
 			}
-
-			if (coin.SpenderTransaction is null)
-			{
-				return false;
-			}
 		}
+
 		return true;
 	}
 
@@ -226,19 +224,6 @@ public class CoinsRegistry : ICoinsView
 
 			foreach (var txIdToRemove in txIdsToRemove)
 			{
-				// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
-				// This cache can be really big and it's better to avoid .ToList() as much as possible.
-				var keysToRemove = new HashSet<OutPoint>();
-				foreach (var removedTxIdByInputPrevOut in TxIdsByInputsPrevOut.Where(x => x.Value.Equals(txIdToRemove)))
-				{
-					keysToRemove.Add(removedTxIdByInputPrevOut.Key);
-				}
-
-				foreach (var keyToRemove in keysToRemove)
-				{
-					TxIdsByInputsPrevOut.Remove(keyToRemove);
-				}
-
 				// Remove the transaction from CoinsByTransactionIds cache.
 				if (CoinsByTransactionsIds.Remove(txIdToRemove, out var coinsRemovedByOutpoint))
 				{
@@ -255,6 +240,19 @@ public class CoinsRegistry : ICoinsView
 							// There are no more coins on the PubKey, remove the entry.
 							CoinsByPubKeys.Remove(coinsByPubKey.Key);
 						}
+					}
+
+					// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
+					// This cache can be really big and it's better to avoid .ToList().
+					var keysToRemove = new HashSet<OutPoint>();
+					foreach (var removedTxIdByInputPrevOut in TxIdsByInputsPrevOut.Where(x => x.Value.Equals(txIdToRemove)))
+					{
+						keysToRemove.Add(removedTxIdByInputPrevOut.Key);
+					}
+
+					foreach (var keyToRemove in keysToRemove)
+					{
+						TxIdsByInputsPrevOut.Remove(keyToRemove);
 					}
 				}
 
