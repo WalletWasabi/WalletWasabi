@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Helpers;
@@ -83,7 +84,7 @@ public static class FeeHelpers
 			}
 			catch (Exception ex)
 			{
-			        Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 				return null;
 			}
 
