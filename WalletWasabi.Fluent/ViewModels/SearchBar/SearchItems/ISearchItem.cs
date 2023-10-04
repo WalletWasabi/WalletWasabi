@@ -12,5 +12,5 @@ public interface ISearchItem
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; }
-	public int Priority { get; set; }
+	public int Priority { get; }
 }

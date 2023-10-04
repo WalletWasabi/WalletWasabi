@@ -3,9 +3,9 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
-public class NonActionableSearchItem : INonActionableSearchItem
+public class ContentSearchItem : IContentSearchItem
 {
-	public NonActionableSearchItem(object content, string name, string category, IEnumerable<string> keywords, string? icon)
+	public ContentSearchItem(object content, string name, string category, IEnumerable<string> keywords, string? icon)
 	{
 		Name = name;
 		Content = content;

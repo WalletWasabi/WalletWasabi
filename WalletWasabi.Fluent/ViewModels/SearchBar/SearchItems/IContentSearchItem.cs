@@ -1,6 +1,6 @@
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
-public interface INonActionableSearchItem : ISearchItem
+public interface IContentSearchItem : ISearchItem
 {
 	object Content { get; }
 }
