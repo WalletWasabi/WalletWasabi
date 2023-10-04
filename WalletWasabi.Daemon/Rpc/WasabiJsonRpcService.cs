@@ -308,7 +308,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var summary = TransactionHistoryBuilder.BuildHistorySummary(activeWallet);
+		var summary = activeWallet.BuildHistorySummary();
 		return summary.Select(
 			x => new
 			{
