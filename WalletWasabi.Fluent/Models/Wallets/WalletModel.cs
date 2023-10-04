@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -17,9 +18,10 @@ public partial class WalletModel : ReactiveObject
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
 
-	public WalletModel(Wallet wallet)
+	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
 		Wallet = wallet;
+		AmountProvider = amountProvider;
 
 		Auth = new WalletAuthModel(this, Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
@@ -42,9 +44,13 @@ public partial class WalletModel : ReactiveObject
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
-		Balances = Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount())).Concat(Transactions.TransactionProcessed.Select(_ => Wallet.Coins.TotalAmount()));
+		Balances =
+			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
+					  .Concat(Transactions.TransactionProcessed
+					  .Select(_ => Wallet.Coins.TotalAmount()))
+					  .Select(AmountProvider.Create);
 
-		HasBalance = Balances.Select(x => x != Money.Zero);
+		HasBalance = Balances.Select(x => x.HasBalance);
 
 		// Start the Loader after wallet is logged in
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
@@ -67,7 +73,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletTransactionsModel Transactions { get; }
 
-	public IObservable<Money> Balances { get; }
+	public IObservable<Amount> Balances { get; }
 
 	public IObservable<bool> HasBalance { get; }
 
@@ -86,6 +92,8 @@ public partial class WalletModel : ReactiveObject
 	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public IObservable<WalletState> State { get; }
+
+	public IAmountProvider AmountProvider { get; }
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{

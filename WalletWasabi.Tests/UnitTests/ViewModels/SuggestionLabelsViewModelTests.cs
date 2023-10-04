@@ -196,9 +196,11 @@ public class SuggestionLabelsViewModelTests
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
-		public IObservable<Money> Balances => throw new NotImplementedException();
+		public IObservable<Amount> Balances => throw new NotImplementedException();
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
+
+		public IAmountProvider AmountProvider => throw new NotImplementedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

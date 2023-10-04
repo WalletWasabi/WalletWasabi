@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
-	[AutoNotify] private bool _isMnemonicsValid;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 
 	private VerifyRecoveryWordsViewModel(IWalletModel wallet)
@@ -32,7 +31,6 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			.Subscribe(x =>
 			{
 				CurrentMnemonics = x;
-				IsMnemonicsValid = x is { IsValidChecksum: true };
 				this.RaisePropertyChanged(nameof(Mnemonics));
 			});
 
@@ -47,6 +45,8 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 	}
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
+
+	private bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
 
 	private async Task ShowErrorAsync()
 	{

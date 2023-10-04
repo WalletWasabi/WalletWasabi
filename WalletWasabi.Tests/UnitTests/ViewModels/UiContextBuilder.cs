@@ -49,7 +49,8 @@ public class UiContextBuilder
 			ClientConfig,
 			new NullApplicationSettings(),
 			TransactionBroadcaster,
-            new EditableSearchSourceSource());
+            Mock.Of<IAmountProvider>(),
+			new EditableSearchSourceSource());
 
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;

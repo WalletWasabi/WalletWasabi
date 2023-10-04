@@ -26,6 +26,7 @@ public class UiContext
 		IClientConfig config,
 		IApplicationSettings applicationSettings,
 		ITransactionBroadcasterModel transactionBroadcaster,
+		IAmountProvider amountProvider,
 		IEditableSearchSource editableSearchSource)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
@@ -37,8 +38,8 @@ public class UiContext
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
-		AmountProvider = new AmountProvider(Services.Synchronizer);
-		EditableSearchSource = editableSearchSource;
+		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
+		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
 	}
 
 	public IUiClipboard Clipboard { get; }
