@@ -5,7 +5,6 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
@@ -16,6 +15,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
+	private readonly ObservableAsPropertyHelper<bool> _hasResults;
 
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
@@ -28,10 +28,10 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		HasResults = itemsObservable
+		_hasResults = itemsObservable
 			.ToCollection()
 			.Select(x => x.Any())
-			.ReplayLastActive();
+			.ToProperty(this, x => x.HasResults);
 
 		ActivateFirstItemCommand = ReactiveCommand.Create(
 			() =>
@@ -46,11 +46,11 @@ public partial class SearchBarViewModel : ReactiveObject
 		ResetCommand = ReactiveCommand.Create(ClearAndHideSearchList);
 	}
 
+	public bool HasResults => _hasResults.Value;
+
 	public ICommand ResetCommand { get; }
 
 	public ICommand ActivateFirstItemCommand { get; set; }
-
-	public IObservable<bool> HasResults { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 
