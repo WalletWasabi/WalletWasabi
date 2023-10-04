@@ -48,6 +48,9 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<uint256, TransactionSummary> TransactionAmountsByTxid { get; } = new();
+
 	private CoinsView AsCoinsViewNoLock()
 	{
 		UpdateSnapshotsNoLock();
@@ -124,6 +127,16 @@ public class CoinsRegistry : ICoinsView
 					}
 
 					InvalidateSnapshot = true;
+				}
+
+				// Update transaction amount value.
+				if (TransactionAmountsByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found))
+				{
+					found.Amount += coin.Amount;
+				}
+				else
+				{
+					TransactionAmountsByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
 				}
 			}
 		}
@@ -204,6 +217,15 @@ public class CoinsRegistry : ICoinsView
 				if (SpentCoins.Add(spentCoin))
 				{
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
+				}
+
+				if (TransactionAmountsByTxid.TryGetValue(tx.GetHash(), out TransactionSummary? summary))
+				{
+					summary.Amount -= spentCoin.Amount;
+				}
+				else
+				{
+					TransactionAmountsByTxid.Add(tx.GetHash(), new TransactionSummary(tx, Money.Zero - spentCoin.Amount));
 				}
 			}
 		}
