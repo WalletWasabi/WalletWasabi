@@ -58,8 +58,8 @@ public static class FeeHelpers
 		var lastWrongFeeRate = new FeeRate(0m);
 		var lastCorrectFeeRate = new FeeRate(0m);
 
-		var stopSearching = false;
-		while (!stopSearching)
+		var foundClosestSolution = false;
+		while (!foundClosestSolution)
 		{
 			try
 			{
@@ -70,10 +70,15 @@ public static class FeeHelpers
 			}
 			catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException or InsufficientBalanceException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 			{
+				if (feeRate.SatoshiPerByte == 1m)
+				{
+					break;
+				}
+
 				lastWrongFeeRate = feeRate;
 				var decreaseBy = (feeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) / 2;
 				var nextSatPerByteCandidate = feeRate.SatoshiPerByte - decreaseBy;
-				var newSatPerByte = nextSatPerByteCandidate < 1m && lastWrongFeeRate.SatoshiPerByte != 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
+				var newSatPerByte = nextSatPerByteCandidate < 1m ? 1m : nextSatPerByteCandidate; // make sure to always try 1 sat/vbyte as a last chance.
 				feeRate = new FeeRate(newSatPerByte);
 			}
 			catch (Exception)
@@ -81,11 +86,9 @@ public static class FeeHelpers
 				return null;
 			}
 
-			var foundClosestSolution = Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) == 0.001m;
-			var noSolution = feeRate.SatoshiPerByte < 1m;
-			stopSearching = foundClosestSolution || noSolution;
+			foundClosestSolution = Math.Abs(lastWrongFeeRate.SatoshiPerByte - lastCorrectFeeRate.SatoshiPerByte) == 0.001m;
 		}
 
-		return lastCorrectFeeRate.SatoshiPerByte >= 1m ? lastCorrectFeeRate : null;
+		return foundClosestSolution ? lastCorrectFeeRate : null;
 	}
 }

@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -83,12 +84,11 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 		walletManager.Initialize();
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo");
-		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+		var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("A").GetP2wpkhAddress(network), Money.Coins(1m));
 		Assert.NotNull(txId);
-		txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.5m));
+		txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("B").GetP2wpkhAddress(network), Money.Coins(0.5m));
 		Assert.NotNull(txId);
-		txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.25m));
+		txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("C").GetP2wpkhAddress(network), Money.Coins(0.25m));
 		Assert.NotNull(txId);
 		await rpc.GenerateAsync(1);
 
@@ -174,6 +174,16 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 				{
 					Assert.Fail($"Unexpected exception: {ex.GetType} - {ex.Message}");
 				}
+			}
+
+			// Normal - No solution test
+			{
+				var singleCoinRegistry = new CoinsRegistry();
+				singleCoinRegistry.TryAdd(wallet.Coins.First());
+				amount = singleCoinRegistry.First().Amount;
+
+				var foundSolution = FeeHelpers.TryGetMaxFeeRate(wallet, destination, amount, "", new FeeRate(2.5m), singleCoinRegistry, false, out _);
+				Assert.False(foundSolution);
 			}
 		}
 		finally
