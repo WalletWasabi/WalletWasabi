@@ -23,7 +23,7 @@
         Focusable="{Binding SearchBar.IsSearchListVisible}"
         Icon="/Assets/WasabiLogo.ico"
         RenderOptions.BitmapInterpolationMode="HighQuality"
-        RenderOptions.TextRenderingMode="Antialias">
+        RenderOptions.TextRenderingMode="SubpixelAntialias">
   <Window.Styles>
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
