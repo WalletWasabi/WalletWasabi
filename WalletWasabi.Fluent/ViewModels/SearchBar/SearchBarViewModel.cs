@@ -5,6 +5,7 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
@@ -30,7 +31,7 @@ public partial class SearchBarViewModel : ReactiveObject
 		HasResults = itemsObservable
 			.ToCollection()
 			.Select(x => x.Any())
-			.Merge(this.WhenAnyValue(x => x.SearchText, string.IsNullOrEmpty));
+			.ReplayLastActive();
 
 		ActivateFirstItemCommand = ReactiveCommand.Create(
 			() =>
