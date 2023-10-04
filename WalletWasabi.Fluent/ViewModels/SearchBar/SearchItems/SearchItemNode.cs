@@ -25,7 +25,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 		Icon = icon;
 		IsDefault = isDefault;
 		this.WhenAnyValue(item => item._setting.Value)
-			.Do(HandleNested)
+			.Do(AddOrRemoveNestedItems)
 			.Subscribe();
 	}
 
@@ -39,7 +39,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	public bool IsDefault { get; }
 	public int Priority { get; set; }
 
-	private void HandleNested(TProperty property)
+	private void AddOrRemoveNestedItems(TProperty property)
 	{
 		foreach (var nestedItem in _nestedItems)
 		{

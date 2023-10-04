@@ -60,7 +60,7 @@ public partial class WalletPageViewModel : ViewModelBase
 		SearchItems = CreateSearchItems();
 
 		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (selected, loggedIn) => selected && loggedIn)
-			.Do(HandleSearchItems)
+			.Do(AddOrRemoveSearchItems)
 			.Subscribe();
 	}
 
@@ -120,7 +120,7 @@ public partial class WalletPageViewModel : ViewModelBase
 		};
 	}
 
-	private void HandleSearchItems(bool shouldAdd)
+	private void AddOrRemoveSearchItems(bool shouldAdd)
 	{
 		if (shouldAdd)
 		{
