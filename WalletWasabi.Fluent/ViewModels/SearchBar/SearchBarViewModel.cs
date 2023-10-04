@@ -28,9 +28,9 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Subscribe();
 
 		HasResults = itemsObservable
-			.StartWithEmpty()
 			.ToCollection()
-			.Select(x => x.Any());
+			.Select(x => x.Any())
+			.Merge(this.WhenAnyValue(x => x.SearchText, string.IsNullOrEmpty));
 
 		ActivateFirstItemCommand = ReactiveCommand.Create(
 			() =>
