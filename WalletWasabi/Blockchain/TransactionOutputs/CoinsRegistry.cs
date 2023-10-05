@@ -50,25 +50,13 @@ public class CoinsRegistry : ICoinsView
 
 	private CoinsView AsCoinsViewNoLock()
 	{
-		if (InvalidateSnapshot)
-		{
-			LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
-			InvalidateSnapshot = false;
-		}
-
+		UpdateSnapshotsNoLock();
 		return new CoinsView(LatestCoinsSnapshot);
 	}
 
 	private CoinsView AsSpentCoinsViewNoLock()
 	{
-		if (InvalidateSnapshot)
-		{
-			LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
-			InvalidateSnapshot = false;
-		}
-
+		UpdateSnapshotsNoLock();
 		return new CoinsView(LatestSpentCoinsSnapshot);
 	}
 
@@ -86,6 +74,18 @@ public class CoinsRegistry : ICoinsView
 		{
 			return AsSpentCoinsViewNoLock();
 		}
+	}
+
+	private void UpdateSnapshotsNoLock()
+	{
+		if (!InvalidateSnapshot)
+		{
+			return;
+		}
+
+		LatestCoinsSnapshot = Coins.ToHashSet();
+		LatestSpentCoinsSnapshot = SpentCoins.ToHashSet();
+		InvalidateSnapshot = false;
 	}
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin) => AsCoinsView().TryGetByOutPoint(outpoint, out coin);
