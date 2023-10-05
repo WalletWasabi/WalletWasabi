@@ -22,7 +22,7 @@ public record MultipartyTransactionParameters
 			1 + // marker
 			1;  // flag
 
-		return VirtualSizeHelpers.VirtualSize(nonSegwitData, segwitData);
+		return VirtualSizeHelpers.WeightUnits(nonSegwitData, segwitData);
 	}
 
 	private static int VarIntLength(long value) =>
