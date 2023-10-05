@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 namespace WalletWasabi.Fluent;
 
@@ -147,6 +148,7 @@ public class App : Application
 			CreateConfig(),
 			CreateApplicationSettings(),
 			CreateBroadcaster(),
-			amountProvider);
+			amountProvider,
+			new EditableSearchSourceSource());
 	}
 }
