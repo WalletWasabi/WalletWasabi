@@ -50,7 +50,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.HdPubKey.Labels.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
-				address = x.HdPubKey.GetAddress(Global.Network).ToString()
+				address = x.HdPubKey.GetAddress(Global.Network).ToString(),
+				excludedFromCoinjoin = x.IsExcludedFromCoinJoin
 			}).ToArray();
 	}
 
@@ -254,14 +255,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("excludefromcoinjoin")]
-	public IEnumerable<OutPoint> ExcludeCoinsFromCoinjoin(IEnumerable<OutPoint> outPoints, bool exclude = true, string? password = null)
+	public void ExcludeCoinsFromCoinjoin(uint256 transactionId, int n, bool exclude = true)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 
-		return activeWallet.ExcludeCoinsFromCoinjoin(outPoints.ToList(), exclude);
+		activeWallet.ExcludeCoinFromCoinJoin(new OutPoint(transactionId, n), exclude);
 	}
 
 	[JsonRpcMethod("listkeys")]
