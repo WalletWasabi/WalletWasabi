@@ -42,6 +42,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			});
 	}
 
+	public string WalletName { get; set; }
+
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
