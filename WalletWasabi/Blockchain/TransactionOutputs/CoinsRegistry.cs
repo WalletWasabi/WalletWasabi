@@ -201,8 +201,8 @@ public class CoinsRegistry : ICoinsView
 		lock (Lock)
 		{
 			var allCoins = AsAllCoinsViewNoLock();
-			var toRemove = new HashSet<SmartCoin>();
-			var toAdd = new HashSet<SmartCoin>();
+			HashSet<SmartCoin> toRemove = new ();
+			HashSet<SmartCoin> toAdd = new ();
 
 			// The transactions that needs to be removed are txId and its descendants.
 			HashSet<uint256> txIdsToRemove = new () { txId };
@@ -262,7 +262,7 @@ public class CoinsRegistry : ICoinsView
 			}
 
 			// Remove from results coins that have been unspent but removed afterwards.
-			foreach (var coin in toAdd.ToList().Where(coin => toRemove.Contains(coin)))
+			foreach (var coin in toAdd.Where(coin => toRemove.Contains(coin)).ToList())
 			{
 				toAdd.Remove(coin);
 			}
