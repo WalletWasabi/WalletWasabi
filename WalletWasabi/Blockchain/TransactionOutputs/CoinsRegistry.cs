@@ -49,7 +49,7 @@ public class CoinsRegistry : ICoinsView
 	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<uint256, TransactionSummary> TransactionAmountsByTxid { get; } = new();
+	private Dictionary<uint256, Money> TransactionAmountsByTxid { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
 	{
@@ -130,13 +130,13 @@ public class CoinsRegistry : ICoinsView
 				}
 
 				// Update transaction amount value.
-				if (TransactionAmountsByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found))
+				if (TransactionAmountsByTxid.TryGetValue(coin.TransactionId, out Money? amount))
 				{
-					found.Amount += coin.Amount;
+					TransactionAmountsByTxid[coin.TransactionId] = amount + coin.Amount;
 				}
 				else
 				{
-					TransactionAmountsByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
+					TransactionAmountsByTxid.Add(coin.TransactionId, coin.Amount);
 				}
 			}
 		}
@@ -227,13 +227,13 @@ public class CoinsRegistry : ICoinsView
 				}
 
 				// Update transaction amount value.
-				if (TransactionAmountsByTxid.TryGetValue(tx.GetHash(), out TransactionSummary? summary))
+				if (TransactionAmountsByTxid.TryGetValue(tx.GetHash(), out Money? amount))
 				{
-					summary.Amount -= spentCoin.Amount;
+					TransactionAmountsByTxid[tx.GetHash()] = amount - spentCoin.Amount;
 				}
 				else
 				{
-					TransactionAmountsByTxid.Add(tx.GetHash(), new TransactionSummary(tx, Money.Zero - spentCoin.Amount));
+					TransactionAmountsByTxid[tx.GetHash()] = Money.Zero - spentCoin.Amount;
 				}
 			}
 		}
@@ -367,18 +367,10 @@ public class CoinsRegistry : ICoinsView
 	/// <returns>The same value as <see cref="TransactionSummary.Amount"/>.</returns>
 	public bool TryGetTxAmount(uint256 txid, [NotNullWhen(true)] out Money? amount)
 	{
-		amount = null;
-
 		lock (Lock)
 		{
-			if (TransactionAmountsByTxid.TryGetValue(txid, out TransactionSummary? summary))
-			{
-				amount = summary.Amount;
-				return true;
-			}
+			return TransactionAmountsByTxid.TryGetValue(txid, out amount);
 		}
-
-		return false;
 	}
 
 	/// <summary>Gets total balance as a sum of unspent coins.</summary>
@@ -387,7 +379,7 @@ public class CoinsRegistry : ICoinsView
 		lock (Lock)
 		{
 			// Amount can be hold as a variable that is updated every time to avoid summing it.
-			return TransactionAmountsByTxid.Values.Sum(tx => tx.Amount);
+			return TransactionAmountsByTxid.Values.Sum();
 		}
 	}
 
