@@ -235,6 +235,12 @@
                        Color="{StaticResource SystemBaseMediumLowColor}"
                        Opacity="0.4" />
 
+      <!-- ScrollBar -->
+      <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#66000000" />
+      <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#ff8ca6b7" />
+      <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#99000000" />
+      <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
+
     </ResourceDictionary>
 
     <!-- Dark -->
@@ -467,6 +473,12 @@
       <SolidColorBrush x:Key="TreeDataGridGridLinesBrush"
                        Color="{StaticResource SystemBaseMediumLowColor}"
                        Opacity="0.4" />
+
+      <!-- ScrollBar -->
+      <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#66FFFFFF" />
+      <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#ff8d95a3" />
+      <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#99ffffff" />
+      <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
 
     </ResourceDictionary>
 
