@@ -51,7 +51,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.HdPubKey.Labels.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
-				address = x.HdPubKey.GetAddress(Global.Network).ToString()
+				address = x.HdPubKey.GetAddress(Global.Network).ToString(),
+				excludedFromCoinjoin = x.IsExcludedFromCoinJoin
 			}).ToArray();
 	}
 
@@ -308,7 +309,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var summary = TransactionHistoryBuilder.BuildHistorySummary(activeWallet);
+		var summary = activeWallet.BuildHistorySummary();
 		return summary.Select(
 			x => new
 			{
@@ -319,6 +320,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 				tx = x.GetHash(),
 				islikelycoinjoin = x.IsOwnCoinjoin()
 			}).ToArray();
+	}
+
+	[JsonRpcMethod("excludefromcoinjoin")]
+	public void ExcludeCoinsFromCoinjoin(uint256 transactionId, int n, bool exclude = true)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+
+		activeWallet.ExcludeCoinFromCoinJoin(new OutPoint(transactionId, n), exclude);
 	}
 
 	[JsonRpcMethod("listkeys")]

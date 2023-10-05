@@ -56,7 +56,7 @@ public class CoinsRegistryTests
 			// Verify that both tx0 inputs' prevOuts are set to be spent by the single tx0's coin.
 			foreach (var input in tx0.Transaction.Inputs)
 			{
-				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingTx0PrevOuts));
+				Assert.True(Coins.TryGetCoinsByInputPrevOut(input.PrevOut, out var coinsSpendingTx0PrevOuts));
 				Assert.Single(coinsSpendingTx0PrevOuts);
 			}
 		}
@@ -83,13 +83,13 @@ public class CoinsRegistryTests
 				// Check both tx0 inputs.
 				foreach (var input in tx0.Transaction.Inputs)
 				{
-					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingTx0PrevOuts));
+					Assert.True(Coins.TryGetCoinsByInputPrevOut(input.PrevOut, out var coinsSpendingTx0PrevOuts));
 					Assert.Single(coinsSpendingTx0PrevOuts);
 				}
 
 				// Check the input of tx1. Both tx1's outputs should be found.
 				TxIn tx1Input = Assert.Single(tx1.Transaction.Inputs);
-				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
+				Assert.True(Coins.TryGetCoinsByInputPrevOut(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
 				Assert.Equal(2, coinsSpendingTx1PrevOut.Count);
 			}
 		}
@@ -111,18 +111,18 @@ public class CoinsRegistryTests
 				// No change for tx0 inputs is expected.
 				foreach (TxIn input in tx0.Transaction.Inputs)
 				{
-					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingTx0PrevOuts));
+					Assert.True(Coins.TryGetCoinsByInputPrevOut(input.PrevOut, out var coinsSpendingTx0PrevOuts));
 					Assert.Single(coinsSpendingTx0PrevOuts);
 				}
 
 				// No change for the tx1's input is expected.
 				TxIn tx1Input = Assert.Single(tx1.Transaction.Inputs);
-				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
+				Assert.True(Coins.TryGetCoinsByInputPrevOut(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
 				Assert.Equal(2, coinsSpendingTx1PrevOut.Count);
 
 				// Input of tx2 must be processed correctly.
 				TxIn tx2Input = Assert.Single(tx2.Transaction.Inputs);
-				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx2Input.PrevOut, out var coinsSpendingTx2PrevOut));
+				Assert.True(Coins.TryGetCoinsByInputPrevOut(tx2Input.PrevOut, out var coinsSpendingTx2PrevOut));
 				Assert.Single(coinsSpendingTx2PrevOut);
 			}
 		}
@@ -144,16 +144,16 @@ public class CoinsRegistryTests
 
 				foreach (var input in tx0.Transaction.Inputs)
 				{
-					Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(input.PrevOut, out var coinsSpendingPrevOut));
+					Assert.True(Coins.TryGetCoinsByInputPrevOut(input.PrevOut, out var coinsSpendingPrevOut));
 					Assert.Single(coinsSpendingPrevOut);
 				}
 
 				TxIn tx1Input = Assert.Single(tx1.Transaction.Inputs);
-				Assert.False(Coins.TryGetSpenderSmartCoinsByOutPoint(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
+				Assert.False(Coins.TryGetCoinsByInputPrevOut(tx1Input.PrevOut, out var coinsSpendingTx1PrevOut));
 				Assert.Null(coinsSpendingTx1PrevOut);
 
 				TxIn tx2Input = Assert.Single(tx2.Transaction.Inputs);
-				Assert.False(Coins.TryGetSpenderSmartCoinsByOutPoint(tx2Input.PrevOut, out var coinsSpendingTx2PrevOut));
+				Assert.False(Coins.TryGetCoinsByInputPrevOut(tx2Input.PrevOut, out var coinsSpendingTx2PrevOut));
 				Assert.Null(coinsSpendingTx2PrevOut);
 			}
 
@@ -175,7 +175,7 @@ public class CoinsRegistryTests
 				Assert.True(Coins.IsKnown(tx3.GetHash()));
 
 				TxIn tx3Input = Assert.Single(tx3.Transaction.Inputs);
-				Assert.True(Coins.TryGetSpenderSmartCoinsByOutPoint(tx3Input.PrevOut, out var coinsSpendingTx3PrevOut));
+				Assert.True(Coins.TryGetCoinsByInputPrevOut(tx3Input.PrevOut, out var coinsSpendingTx3PrevOut));
 				Assert.Single(coinsSpendingTx3PrevOut);
 			}
 		}

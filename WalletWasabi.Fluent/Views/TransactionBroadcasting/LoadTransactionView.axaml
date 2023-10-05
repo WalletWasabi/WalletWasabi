@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.LoadTransactionView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Import or paste the transaction and broadcast it to the network."
+                 Caption="Import or paste the transaction hex and broadcast it to the network."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">

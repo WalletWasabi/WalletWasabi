@@ -50,25 +50,13 @@ public class CoinsRegistry : ICoinsView
 
 	private CoinsView AsCoinsViewNoLock()
 	{
-		if (InvalidateSnapshot)
-		{
-			LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
-			InvalidateSnapshot = false;
-		}
-
+		UpdateSnapshotsNoLock();
 		return new CoinsView(LatestCoinsSnapshot);
 	}
 
 	private CoinsView AsSpentCoinsViewNoLock()
 	{
-		if (InvalidateSnapshot)
-		{
-			LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-			LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
-			InvalidateSnapshot = false;
-		}
-
+		UpdateSnapshotsNoLock();
 		return new CoinsView(LatestSpentCoinsSnapshot);
 	}
 
@@ -86,6 +74,18 @@ public class CoinsRegistry : ICoinsView
 		{
 			return AsSpentCoinsViewNoLock();
 		}
+	}
+
+	private void UpdateSnapshotsNoLock()
+	{
+		if (!InvalidateSnapshot)
+		{
+			return;
+		}
+
+		LatestCoinsSnapshot = Coins.ToHashSet();
+		LatestSpentCoinsSnapshot = SpentCoins.ToHashSet();
+		InvalidateSnapshot = false;
 	}
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin) => AsCoinsView().TryGetByOutPoint(outpoint, out coin);
@@ -234,17 +234,17 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	public bool TryGetCoinsByInputPrevOut(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		lock (Lock)
 		{
-			return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins);
+			return TryGetCoinsByInputPrevOutNoLock(prevOut, out coins);
 		}
 	}
 
-	private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		return CoinsByOutPoint.TryGetValue(outPoint, out coins);
+		return CoinsByOutPoint.TryGetValue(prevOut, out coins);
 	}
 
 	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)

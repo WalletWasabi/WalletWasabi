@@ -3,6 +3,7 @@
              xmlns:local="using:WalletWasabi.Fluent"
              xmlns:models="using:WalletWasabi.Models"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App"
@@ -13,6 +14,20 @@
       <TextBlock x:CompileBindings="True" Text="{Binding Message}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" TextWrapping="Wrap" />
     </DataTemplate>
   </Application.DataTemplates>
+
+  <Application.Resources>
+    <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
+    <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
+    <NativeMenu x:Key="DefaultNativeMenu">
+      <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
+      <NativeMenuItemSeparator />
+      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
+    </NativeMenu>
+    <NativeMenu x:Key="MacOsNativeMenu">
+      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
+    </NativeMenu>
+  </Application.Resources>
+
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
@@ -31,13 +46,14 @@
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
-        <NativeMenu.Menu>
+        <!-- TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed. -->
+        <!--<NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
-        </NativeMenu.Menu>
+        </NativeMenu.Menu>-->
       </TrayIcon>
     </TrayIcons>
   </TrayIcon.Icons>

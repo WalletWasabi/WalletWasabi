@@ -112,8 +112,8 @@
   </UserControl.DataTemplates>
 
   <Panel VerticalAlignment="Center">
-    <TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">No results</TextBlock>
-    <ItemsControl IsVisible="{Binding HasResults^}" ItemsSource="{Binding Groups}">
+    <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}" Margin="10">No results</TextBlock>
+    <ItemsControl IsVisible="{Binding HasResults}" ItemsSource="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
           <DockPanel Margin="0 0 0 10">

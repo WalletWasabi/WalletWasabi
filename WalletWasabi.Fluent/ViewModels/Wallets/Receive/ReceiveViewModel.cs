@@ -19,7 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Receive", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class ReceiveViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
