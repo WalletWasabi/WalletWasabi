@@ -152,31 +152,28 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	public bool TryGetCoinsByInputPrevOut(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	public bool TryGetCoinsByInputPrevOut(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		lock (Lock)
 		{
-			return TryGetCoinsByInputPrevOutNoLock(outPoint, out coins);
+			return TryGetCoinsByInputPrevOutNoLock(prevOut, out coins);
 		}
 	}
 
-	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
+	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
 		coins = null;
-		lock (Lock)
+		if (!TxIdsByInputsPrevOut.TryGetValue(prevOut, out var txId))
 		{
-			if (!TxIdsByInputsPrevOut.TryGetValue(outPoint, out var txId))
-			{
-				return false;
-			}
-
-			if (!CoinsByTransactionsIds.TryGetValue(txId, out var coinsByOutpoints))
-			{
-				return false;
-			}
-
-			coins = coinsByOutpoints.Values.ToHashSet();
+			return false;
 		}
+
+		if (!CoinsByTransactionsIds.TryGetValue(txId, out var coinsByOutpoints))
+		{
+			return false;
+		}
+
+		coins = coinsByOutpoints.Values.ToHashSet();
 		return true;
 	}
 

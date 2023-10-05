@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -8,6 +7,7 @@ using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -117,27 +117,57 @@ public static class TransactionFeeHelper
 		return time;
 	}
 
-	public static bool TryGetMaximumPossibleFeeRate(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
+	/// <summary>
+	/// Seeks for the maximum possible fee rate that the transaction can pay.
+	/// </summary>
+	/// <remarks>The method does not throw any exception.</remarks>
+	/// <remarks>Stores the found fee rate in the received <see cref="TransactionInfo"/> object. </remarks>
+	/// <returns>True if the seeking was successful, False if not.</returns>
+	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
 	{
-		maximumPossibleFeeRate = FeeRate.Zero;
+		var maxFeeRate =
+			await Task.Run(() =>
+			{
+				var found = FeeHelpers.TryGetMaxFeeRate(wallet, info.Destination, info.Amount, info.Recipient, info.FeeRate, info.Coins, info.SubtractFee, out var maxFeeRate);
 
-		if (percentageOfOverpayment <= 0 || !TryGetFeeEstimates(wallet, out var feeEstimates))
+				return found ? maxFeeRate! : new FeeRate(0m);
+			});
+
+		if (EnsureFeeRateIsPossible(wallet, maxFeeRate))
+		{
+			info.MaximumPossibleFeeRate = maxFeeRate;
+			info.FeeRate = maxFeeRate;
+			info.ConfirmationTimeSpan = TryEstimateConfirmationTime(wallet, maxFeeRate, out var estimate)
+				? estimate.Value
+				: TimeSpan.Zero;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Temporary solution for making sure if a fee rate can be found in the fee chart.
+	/// It is needed otherwise we cannot predict the confirmation time and the fee chart would crash.
+	/// TODO: Remove this hack when the issues mentioned above are fixed.
+	/// </summary>
+	private static bool EnsureFeeRateIsPossible(Wallet wallet, FeeRate feeRate)
+	{
+		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
 			return false;
 		}
 
-		var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
-
 		var feeChartViewModel = new FeeChartViewModel();
 		feeChartViewModel.UpdateFeeEstimates(feeEstimates.Estimations);
 
-		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
+		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
 		{
 			return false;
 		}
 
 		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
-		return newFeeRate <= maximumPossibleFeeRate;
+		return newFeeRate <= feeRate;
 	}
 }
