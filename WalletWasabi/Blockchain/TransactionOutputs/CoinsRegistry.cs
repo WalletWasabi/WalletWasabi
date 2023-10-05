@@ -187,16 +187,23 @@ public class CoinsRegistry : ICoinsView
 
 			// No more coins were created by this transaction.
 			KnownTransactions.Remove(txId);
+
 			if (!CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved))
 			{
 				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
 			}
+
 			foreach (var kvp in CoinsByOutPoint.ToList())
 			{
 				if (ReferenceEquals(kvp.Value, referenceHashSetRemoved))
 				{
 					CoinsByOutPoint.Remove(kvp.Key);
 				}
+			}
+
+			if (!TransactionAmountsByTxid.Remove(txId))
+			{
+				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(TransactionAmountsByTxid)}.");
 			}
 		}
 
@@ -219,6 +226,7 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 
+				// Update transaction amount value.
 				if (TransactionAmountsByTxid.TryGetValue(tx.GetHash(), out TransactionSummary? summary))
 				{
 					summary.Amount -= spentCoin.Amount;
@@ -352,6 +360,34 @@ public class CoinsRegistry : ICoinsView
 		lock (Lock)
 		{
 			return CoinsByPubKeys.TryGetValue(hdPubKey, out _);
+		}
+	}
+
+	/// <summary>Gets transaction amount representing change in wallet balance for the wallet the transaction belongs to.</summary>
+	/// <returns>The same value as <see cref="TransactionSummary.Amount"/>.</returns>
+	public bool TryGetTxAmount(uint256 txid, [NotNullWhen(true)] out Money? amount)
+	{
+		amount = null;
+
+		lock (Lock)
+		{
+			if (TransactionAmountsByTxid.TryGetValue(txid, out TransactionSummary? summary))
+			{
+				amount = summary.Amount;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>Gets total balance as a sum of unspent coins.</summary>
+	public Money GetTotalBalance()
+	{
+		lock (Lock)
+		{
+			// Amount can be hold as a variable that is updated every time to avoid summing it.
+			return TransactionAmountsByTxid.Values.Sum(tx => tx.Amount);
 		}
 	}
 

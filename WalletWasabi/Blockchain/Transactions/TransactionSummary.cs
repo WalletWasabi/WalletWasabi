@@ -6,14 +6,35 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionSummary
 {
+	private Money _amount;
+
 	public TransactionSummary(SmartTransaction tx, Money amount)
 	{
 		Transaction = tx;
-		Amount = amount;
+		_amount = amount;
 	}
 
 	public SmartTransaction Transaction { get; }
-	public Money Amount { get; set; }
+	public Money Amount
+	{
+		get
+		{
+			lock (Lock)
+			{
+				return _amount;
+			}
+		}
+
+		set
+		{
+			lock (Lock)
+			{
+				_amount = value;
+			}
+		}
+	}
+
+	private object Lock { get; } = new();
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
     public LabelsArray Labels => Transaction.Labels;
 	public Height Height => Transaction.Height;
