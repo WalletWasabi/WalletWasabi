@@ -63,10 +63,10 @@ public class CoinsRegistryTests
 
 		// Create and process transaction tx1 that fully spends tx0.
 		{
-			tx1 = CreateSpendingTransaction(tx0Coin,
+			tx1 = CreateSpendingTransaction(
+				tx0Coin,
 				new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript),
-				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript)
-			);
+				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript));
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 
 			IReadOnlyList<SmartCoin> tx1Coins = ProcessTransaction(tx1);
@@ -228,10 +228,10 @@ public class CoinsRegistryTests
 
 		// Create and process transaction tx1 that fully spends tx0.
 		{
-			tx1 = CreateSpendingTransaction(tx0Coin,
+			tx1 = CreateSpendingTransaction(
+				tx0Coin,
 				new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript),
-				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript)
-			);
+				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript));
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 
 			IReadOnlyList<SmartCoin> tx1Coins = ProcessTransaction(tx1);
