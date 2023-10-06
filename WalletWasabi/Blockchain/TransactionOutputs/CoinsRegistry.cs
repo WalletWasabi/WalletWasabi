@@ -88,8 +88,6 @@ public class CoinsRegistry : ICoinsView
 		InvalidateSnapshot = false;
 	}
 
-	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin) => AsCoinsView().TryGetByOutPoint(outpoint, out coin);
-
 	public bool TryAdd(SmartCoin coin)
 	{
 		var added = false;
@@ -233,6 +231,9 @@ public class CoinsRegistry : ICoinsView
 			return KnownTransactions.Contains(txid);
 		}
 	}
+
+	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
+		=> AsCoinsView().TryGetByOutPoint(outpoint, out coin);
 
 	public bool TryGetCoinsByInputPrevOut(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
