@@ -200,7 +200,8 @@ public class TransactionProcessor
 			}
 		}
 
-		var myInputs = Coins.GetMyInputs(tx).ToArray();
+		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
+
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
