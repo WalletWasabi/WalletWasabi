@@ -9,7 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
-[NavigationMetaData(Title = "Coinjoin Details")]
+[NavigationMetaData(Title = "Coinjoin Details", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinDetailsViewModel : RoutableViewModel
 {
 	private readonly CoinJoinHistoryItemViewModel _coinJoin;
@@ -50,11 +50,11 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _coinJoin.DateString;
-		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_coinJoin.OutgoingAmount);
-		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
+		Date = _coinJoin.Transaction.DateString;
+		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_coinJoin.Transaction.OutgoingAmount);
+		Confirmations = _coinJoin.Transaction.Confirmations;
 		IsConfirmed = Confirmations > 0;
 
-		TransactionId = _coinJoin.CoinJoinTransaction.GetHash();
+		TransactionId = _coinJoin.Transaction.Id;
 	}
 }

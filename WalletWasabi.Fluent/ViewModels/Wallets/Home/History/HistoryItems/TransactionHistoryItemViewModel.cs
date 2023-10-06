@@ -6,6 +6,8 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -13,35 +15,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
-	private TransactionHistoryItemViewModel(
-		int orderIndex,
-		TransactionSummary transactionSummary,
-		WalletViewModel walletVm,
-		Money balance)
-		: base(orderIndex, transactionSummary)
+	public TransactionHistoryItemViewModel(UiContext uiContext, TransactionModel transaction, WalletViewModel walletVm) : base(uiContext, transaction)
 	{
-		Labels = transactionSummary.Labels;
-		Date = transactionSummary.FirstSeen.ToLocalTime();
-		Balance = balance;
 		WalletVm = walletVm;
-
-		IsCancellation = transactionSummary.IsCancellation;
-		IsSpeedUp = transactionSummary.IsSpeedup;
-		IsCPFP = transactionSummary.IsCPFP;
-		IsCPFPd = transactionSummary.IsCPFPd;
-
-		SetAmount(transactionSummary.Amount, transactionSummary.GetFee());
-
-		DateString = Date.ToLocalTime().ToUserFacingString();
-
-		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(walletVm.WalletModel, transactionSummary));
-		CanCancelTransaction = transactionSummary.Transaction.IsCancellable(KeyManager);
-		CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(KeyManager);
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transactionSummary.Transaction), Observable.Return(CanSpeedUpTransaction));
-		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transactionSummary.Transaction), Observable.Return(CanCancelTransaction));
-
-		ItemType = GetItemType();
-		ItemStatus = GetItemStatus();
 	}
 
 	public bool CanCancelTransaction { get; }

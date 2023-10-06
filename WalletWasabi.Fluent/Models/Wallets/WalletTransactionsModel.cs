@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -20,26 +18,24 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
+	private readonly TransactionTreeBuilder _treeBuilder;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
+		_wallet = wallet;
+		_treeBuilder = new TransactionTreeBuilder(wallet.KeyManager);
+
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
 					  .Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
 					  .Sample(TimeSpan.FromSeconds(1))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
-
-		List =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.GetHash());
-		_wallet = wallet;
 	}
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public IObservable<IChangeSet<TransactionSummary, uint256>> List { get; }
+	public IObservable<IChangeSet<TransactionModel, uint256>> List => TransactionProcessed.ProjectList(BuildSummary, x => x.Id);
 
 	public async Task<TransactionSummary?> GetById(string transactionId)
 	{
@@ -57,8 +53,16 @@ public partial class WalletTransactionsModel : ReactiveObject
 			: null;
 	}
 
-	private IEnumerable<TransactionSummary> BuildSummary()
+	private IEnumerable<TransactionModel> BuildSummary()
 	{
-		return TransactionHistoryBuilder.BuildHistorySummary(_wallet);
+		var rawHistoryList = TransactionHistoryBuilder.BuildHistorySummary(_wallet);
+
+		var orderedRawHistoryList =
+			rawHistoryList.OrderBy(x => x.FirstSeen)
+						  .ThenBy(x => x.Height)
+						  .ThenBy(x => x.BlockIndex)
+						  .ToList();
+
+		return _treeBuilder.Build(orderedRawHistoryList);
 	}
 }

@@ -19,30 +19,30 @@
     <ContextMenu x:Key="TransactionContextMenu" x:DataType="historyItems:TransactionHistoryItemViewModel">
       <MenuItem Header="Copy Transaction ID"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Id, StringFormat={}{0}}">
+                CommandParameter="{Binding Transaction.Id, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource transaction_id}" />
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Copy Label"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Labels, StringFormat={}{0}}">
+                CommandParameter="{Binding Transaction.Labels, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource entities_regular}" />
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding IncomingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding IncomingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                CommandParameter="{Binding Transaction.IncomingAmount, StringFormat={}{0}}"
+                IsVisible="{Binding Transaction.IncomingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding OutgoingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding OutgoingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                CommandParameter="{Binding Transaction.OutgoingAmount, StringFormat={}{0}}"
+                IsVisible="{Binding Transaction.OutgoingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
@@ -72,7 +72,7 @@
     <ContextMenu x:Key="CoinJoinContextMenu" x:DataType="historyItems:CoinJoinHistoryItemViewModel">
       <MenuItem Header="Copy Transaction ID"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Id, StringFormat={}{0}}">
+                CommandParameter="{Binding Transaction.Id, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource transaction_id}" />
         </MenuItem.Icon>
@@ -96,13 +96,13 @@
     </ContextMenu>
 
     <ContextMenu x:Key="SpeedUpContextMenu" x:DataType="historyItems:SpeedUpHistoryItemViewModel">
-      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanSpeedUpTransaction}"
+      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding Transaction.CanSpeedUpTransaction}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanCancelTransaction}"
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
