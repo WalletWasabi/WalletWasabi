@@ -233,7 +233,12 @@ public class CoinsRegistry : ICoinsView
 	}
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
-		=> AsCoinsView().TryGetByOutPoint(outpoint, out coin);
+	{
+		lock (Lock)
+		{
+			return OutpointCoinCache.TryGetValue(outpoint, out coin);
+		}
+	}
 
 	public bool TryGetCoinsByInputPrevOut(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
