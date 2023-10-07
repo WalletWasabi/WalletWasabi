@@ -24,6 +24,7 @@ public class Warden : BackgroundService
 			MinTimeForFailedToVerify: config.DoSMinTimeForFailedToVerify,
 			MinTimeForCheating: config.DoSMinTimeForCheating,
 			PenaltyFactorForDisruptingConfirmation: (decimal) config.DoSPenaltyFactorForDisruptingConfirmation,
+			PenaltyFactorForDisruptingSignalReadyToSign: (decimal) config.DoSPenaltyFactorForDisruptingSignalReadyToSign,
 			PenaltyFactorForDisruptingSigning: (decimal) config.DoSPenaltyFactorForDisruptingSigning,
 			PenaltyFactorForDisruptingByDoubleSpending: (decimal) config.DoSPenaltyFactorForDisruptingByDoubleSpending,
 			MinTimeInPrison: config.DoSMinTimeInPrison);
@@ -66,13 +67,25 @@ public class Warden : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
-		while (!cancel.IsCancellationRequested)
+		try
 		{
-			await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+			while (!cancel.IsCancellationRequested)
 			{
-				var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
-				await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+				await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+				{
+					var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
+					await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+				}
 			}
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogInfo("Warden was requested to stop.");
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			throw;
 		}
 	}
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -12,7 +13,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -33,11 +33,12 @@ public class RegTestSetup : IAsyncDisposable
 		RegTestFixture = regTestFixture;
 		ServiceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
-		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, new SmartHeaderChain());
+		SmartHeaderChain smartHeaderChain = new();
+		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
 		MempoolService mempoolService = new();
 		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
-		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, blocks);
+		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
 	}
 
 	public RegTestFixture RegTestFixture { get; }
@@ -47,7 +48,6 @@ public class RegTestSetup : IAsyncDisposable
 	public AllTransactionStore TransactionStore { get; }
 	public IRPCClient RpcClient => Global.RpcClient!;
 	public Network Network => RpcClient.Network;
-	public Coordinator Coordinator => Global.Coordinator!;
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string Password { get; } = "password";
 
@@ -65,8 +65,6 @@ public class RegTestSetup : IAsyncDisposable
 		{
 			await setup.RpcClient.GenerateAsync(numberOfBlocksToGenerate).ConfigureAwait(false); // Make sure everything is confirmed.
 		}
-
-		setup.Coordinator.UtxoReferee.Clear();
 
 		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
 
@@ -109,9 +107,12 @@ public class RegTestSetup : IAsyncDisposable
 		}
 	}
 
-	public void Wallet_NewFilterProcessed(object? sender, FilterModel e)
+	public void Wallet_NewFiltersProcessed(object? sender, IEnumerable<FilterModel> filters)
 	{
-		Interlocked.Increment(ref FiltersProcessedByWalletCount);
+		foreach (var _ in filters)
+		{
+			Interlocked.Increment(ref FiltersProcessedByWalletCount);
+		}
 	}
 
 	public async ValueTask DisposeAsync()

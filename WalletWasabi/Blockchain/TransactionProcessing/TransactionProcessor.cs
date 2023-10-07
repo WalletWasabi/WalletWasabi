@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -31,23 +30,16 @@ public class TransactionProcessor
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	private static object Lock { get; } = new object();
+	private static object Lock { get; } = new();
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
 
 	public KeyManager KeyManager { get; }
 
 	public CoinsRegistry Coins { get; }
-	public BlockchainAnalyzer BlockchainAnalyzer { get; }
+	private BlockchainAnalyzer BlockchainAnalyzer { get; }
 	public Money DustThreshold { get; }
-
-	#region Progress
-
-	public int QueuedTxCount { get; private set; }
-	public int QueuedProcessedTxCount { get; private set; }
-	public MempoolService? MempoolService { get; }
-
-	#endregion Progress
+	private MempoolService? MempoolService { get; }
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
@@ -55,19 +47,9 @@ public class TransactionProcessor
 
 		lock (Lock)
 		{
-			try
+			foreach (var tx in txs)
 			{
-				QueuedTxCount = txs.Count();
-				foreach (var tx in txs)
-				{
-					rets.Add(ProcessNoLock(tx));
-					QueuedProcessedTxCount++;
-				}
-			}
-			finally
-			{
-				QueuedTxCount = 0;
-				QueuedProcessedTxCount = 0;
+				rets.Add(ProcessNoLock(tx));
 			}
 		}
 
@@ -99,15 +81,7 @@ public class TransactionProcessor
 		lock (Lock)
 		{
 			Aware.Add(tx.GetHash());
-			try
-			{
-				QueuedTxCount = 1;
-				ret = ProcessNoLock(tx);
-			}
-			finally
-			{
-				QueuedTxCount = 0;
-			}
+			ret = ProcessNoLock(tx);
 		}
 		if (ret.IsNews)
 		{
@@ -144,20 +118,19 @@ public class TransactionProcessor
 			result = new ProcessedResult(tx);
 		}
 
-		// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
-		if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
+		if (!tx.Transaction.IsCoinBase && !Coins.IsKnown(txId)) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpentSpenders = new List<SmartCoin>();
 			var doubleSpentCoins = new List<SmartCoin>();
 			foreach (var txIn in tx.Transaction.Inputs)
 			{
-				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txIn.PrevOut, out var coins))
+				if (Coins.TryGetCoinsByInputPrevOut(txIn.PrevOut, out var coins))
 				{
 					doubleSpentSpenders.AddRange(coins);
 				}
-				if (Coins.TryGetSpenderSpentSmartCoinsByOutPoint(txIn.PrevOut, out var spentCoins))
+				if (Coins.TryGetSpentCoinByOutPoint(txIn.PrevOut, out var spentCoin))
 				{
-					doubleSpentCoins.AddRange(spentCoins);
+					doubleSpentCoins.Add(spentCoin);
 				}
 			}
 
@@ -204,10 +177,10 @@ public class TransactionProcessor
 					}
 					else
 					{
-						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-						foreach (SmartCoin doubleSpentCoin in doubleSpentSpenders)
+						// remove double spent spenders recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
+						foreach (var doubleSpentTxid in doubleSpentSpenders.Select(x => x.TransactionId).Distinct())
 						{
-							Coins.Remove(doubleSpentCoin);
+							Coins.Undo(doubleSpentTxid);
 						}
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpentSpenders);
@@ -227,7 +200,8 @@ public class TransactionProcessor
 			}
 		}
 
-		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
+		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
+
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
@@ -309,13 +283,13 @@ public class TransactionProcessor
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
-		&& Coins.Any(c => c.HdPubKey == hdPubKey); // the destination address has already been used (address reuse)
+		&& Coins.IsUsed(hdPubKey); // the destination address has already been used (address reuse)
 
-	private static void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
+	private void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
 	{
 		foreach (var spenderKey in internalKeys)
 		{
-			if (spenderKey.Coins.Any(x => !x.IsSpent()))
+			if (Coins.HasUnspentCoin(spenderKey))
 			{
 				// The key still has unspent coins.
 				continue;

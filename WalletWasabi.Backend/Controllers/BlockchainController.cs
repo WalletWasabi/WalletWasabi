@@ -48,29 +48,6 @@ public class BlockchainController : ControllerBase
 
 	public Global Global { get; }
 
-	/// <summary>
-	/// Get all fees.
-	/// </summary>
-	/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
-	/// <returns>A dictionary of fee targets and estimations.</returns>
-	/// <response code="200">A dictionary of fee targets and estimations.</response>
-	/// <response code="400">Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.</response>
-	[HttpGet("all-fees")]
-	[ProducesResponseType(200)]
-	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
-	{
-		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
-		{
-			return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
-		}
-
-		AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode, cancellationToken);
-
-		return Ok(estimation.Estimations);
-	}
-
 	internal Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode, CancellationToken cancellationToken = default)
 	{
 		var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
@@ -92,7 +69,7 @@ public class BlockchainController : ControllerBase
 	[HttpGet("mempool-hashes")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
+	[ResponseCache(Duration = 5)]
 	public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64, CancellationToken cancellationToken = default)
 	{
 		if (compactness is < 1 or > 64)
@@ -285,6 +262,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
+	[ResponseCache(Duration = 60)]
 	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
 	{
 		if (count <= 0)
@@ -397,17 +375,6 @@ public class BlockchainController : ControllerBase
 		else
 		{
 			status.FilterCreationActive = true;
-		}
-
-		// Updating the status of coinjoin.
-		var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
-		if (validInterval < TimeSpan.FromHours(1))
-		{
-			validInterval = TimeSpan.FromHours(1);
-		}
-		if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
-		{
-			status.CoinJoinCreationActive = true;
 		}
 
 		// Updating the status of WabiSabi coinjoin.

@@ -13,28 +13,28 @@ Todo:
 
 1. Install [Bitcoin Knots](https://bitcoinknots.org/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
 2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
-```
-Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
-macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
-Linux:
-```
+    ```
+    Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
+    macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
+    Linux:  ~/bitcoin-[version number]/bin/bitcoin-qt -regtest
+    ```
 3. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
-```
-Windows: %APPDATA%\Bitcoin\
-macOS: $HOME/Library/Application Support/Bitcoin/
-Linux: $HOME/.bitcoin/
-```
+    ```
+    Windows: %APPDATA%\Bitcoin\
+    macOS: $HOME/Library/Application Support/Bitcoin/
+    Linux: $HOME/.bitcoin/
+    ```
 4. Add a file called **bitcoin.conf** and add these lines:
-```C#
-regtest.server = 1
-regtest.listen = 1
-regtest.txindex = 1
-regtest.whitebind = 127.0.0.1:18444
-regtest.rpchost = 127.0.0.1
-regtest.rpcport = 18443
-regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
-regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
-```
+    ```C#
+    regtest.server = 1
+    regtest.listen = 1
+    regtest.txindex = 1
+    regtest.whitebind = 127.0.0.1:18444
+    regtest.rpchost = 127.0.0.1
+    regtest.rpcport = 18443
+    regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
+    regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
+    ```
 5. Save it.
 6. Start Bitcoin Knots with: bitcoin-qt.exe -regtest.
 7. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
@@ -59,30 +59,30 @@ Todo:
 `dotnet run`
 3. You will get some errors, but the data directory will be created. Stop the backend if it is still running with CTRL-C.
 4. Go to the Backend folder:
-```
-Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
-macOS: "/Users/{your username}/.walletwasabi/backend"
-Linux: "/home/{your username}/.walletwasabi/backend"
-```
+    ```
+    Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
+    macOS: "/Users/{your username}/.walletwasabi/backend"
+    Linux: "/home/{your username}/.walletwasabi/backend"
+    ```
 5. Edit `Config.json` file by replacing everything with:
-```json
-{
-  "Network": "RegTest",
-  "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
-  "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
-  "TestNetBitcoinP2pEndPoint": "127.0.0.1:18333",
-  "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
-  "MainNetBitcoinCoreRpcEndPoint": "127.0.0.1:8332",
-  "TestNetBitcoinCoreRpcEndPoint": "127.0.0.1:18332",
-  "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443"
-}
-```
+    ```json
+    {
+      "Network": "RegTest",
+      "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
+      "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
+      "TestNetBitcoinP2pEndPoint": "127.0.0.1:18333",
+      "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
+      "MainNetBitcoinCoreRpcEndPoint": "127.0.0.1:8332",
+      "TestNetBitcoinCoreRpcEndPoint": "127.0.0.1:18332",
+      "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443"
+    }
+    ```
 6. Edit some lines in `WabiSabiConfig.json`. For example, make the `InputRegistrationPhase` faster and allow rounds to have between 2 and 100 inputs:
-```
-"StandardInputRegistrationTimeout": "0d 0h 2m 0s",
-"MaxInputCountByRound": 100,
-"MinInputCountByRoundMultiplier": 0.02,
-```
+    ```
+    "StandardInputRegistrationTimeout": "0d 0h 2m 0s",
+    "MaxInputCountByRound": 100,
+    "MinInputCountByRoundMultiplier": 0.02,
+    ```
 7. Start Bitcoin Knots in RegTest (command to run is explained above).
 8. Go to WalletWasabi folder
 9. Open the command line and enter. This will build all the projects under this directory. 

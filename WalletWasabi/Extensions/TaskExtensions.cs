@@ -53,20 +53,4 @@ public static class TaskExtensions
 			throw new OperationCanceledException("Timed out.", innerException: e);
 		}
 	}
-
-	/// <summary>
-	/// Implements method that behaves as <see cref="Task.WaitAsync(TimeSpan)"/> but
-	/// it throws <see cref="OperationCanceledException"/> instead of <see cref="TimeoutException"/>.
-	/// </summary>
-	public static async Task WithAwaitCancellationAsync(this Task task, TimeSpan timeout)
-	{
-		try
-		{
-			await task.WaitAsync(timeout).ConfigureAwait(false);
-		}
-		catch (TimeoutException e)
-		{
-			throw new OperationCanceledException("Timed out.", innerException: e);
-		}
-	}
 }

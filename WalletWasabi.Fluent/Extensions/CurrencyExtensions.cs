@@ -48,9 +48,9 @@ public static class CurrencyExtensions
 		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
 	}
 
-	public static string ToUsdAprox(this decimal n) => $"≈{ToUsd(n)}";
+	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsd(n)}" : "";
 
-	public static string ToUsdAproxBetweenParens(this decimal n) => $"({ToUsdAprox(n)})";
+	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
 
 	public static string ToUsd(this decimal n)
 	{
@@ -104,4 +104,12 @@ public static class CurrencyExtensions
 
 		return feeText;
 	}
+
+	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
+		feeDisplayUnit switch
+		{
+			FeeDisplayUnit.BTC => MoneyUnit.BTC,
+			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
+			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
+		};
 }

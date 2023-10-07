@@ -64,7 +64,7 @@ public class CoinJoinCoinSelector
 		// Sanity check.
 		if (!filteredCoins.Any())
 		{
-			Logger.LogInfo("No suitable coins for this round.");
+			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -82,7 +82,7 @@ public class CoinJoinCoinSelector
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			Logger.LogInfo("No suitable coins for this round.");
+			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 

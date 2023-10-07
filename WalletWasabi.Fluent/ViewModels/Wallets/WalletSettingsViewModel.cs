@@ -15,35 +15,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Settings", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
-	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
-	private WalletSettingsViewModel(IWalletModel walletModel)
+	private WalletSettingsViewModel(IWalletModel wallet)
 	{
-		_wallet = walletModel;
-		Title = $"{_wallet.Name} - Wallet Settings";
-		_preferPsbtWorkflow = _wallet.Settings.PreferPsbtWorkflow;
-		IsHardwareWallet = _wallet.IsHardwareWallet;
-		IsWatchOnly = _wallet.IsWatchOnlyWallet;
+		Title = $"{wallet.Name} - Wallet Settings";
+		_preferPsbtWorkflow = wallet.Settings.PreferPsbtWorkflow;
+		IsHardwareWallet = wallet.IsHardwareWallet;
+		IsWatchOnly = wallet.IsWatchOnlyWallet;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 
-		// TODO: Finish partial refactor
-		// this must be removed after VerifyRecoveryWords has been decoupled
-		var wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
 		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(wallet));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
 			.Subscribe(value =>
 			{
-				_wallet.Settings.PreferPsbtWorkflow = value;
-				_wallet.Settings.Save();
+				wallet.Settings.PreferPsbtWorkflow = value;
+				wallet.Settings.Save();
 			});
 	}
 

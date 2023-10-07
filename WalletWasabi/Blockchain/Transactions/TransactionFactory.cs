@@ -135,9 +135,9 @@ public class TransactionFactory
 
 		HdPubKey? changeHdPubKey;
 
-		if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
+		if (payments.TryGetCustomRequest(out DestinationRequest? customChange))
 		{
-			var changeScript = custChange.Destination.ScriptPubKey;
+			var changeScript = customChange.Destination.ScriptPubKey;
 			KeyManager.TryGetKeyForScriptPubKey(changeScript, out HdPubKey? hdPubKey);
 			changeHdPubKey = hdPubKey;
 
@@ -200,12 +200,25 @@ public class TransactionFactory
 		{
 			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
 		}
+
 		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+		decimal feeDecimal = fee.ToDecimal(MoneyUnit.BTC);
 
-		// Cannot divide by zero, so use the closest number we have to zero.
-		decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-		decimal feePercentage = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
-
+		decimal feePercentage;
+		if (payments.ChangeStrategy == ChangeStrategy.AllRemainingCustom)
+		{
+			// In this scenario since the amount changes as the fee changes, we need to compare against the total sum / 2,
+			// as with this, we will make sure the fee cannot be higher than the amount.
+			decimal inputSumDecimal = spentCoins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
+			feePercentage = 100 * (feeDecimal / (inputSumDecimal / 2));
+		}
+		else
+		{
+			// In this scenario the amount is fixed, so we can compare against it.
+			// Cannot divide by zero, so use the closest number we have to zero.
+			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
+			feePercentage = 100 * (feeDecimal / totalOutgoingAmountNoFeeDecimalDivisor);
+		}
 		if (feePercentage > 100)
 		{
 			throw new TransactionFeeOverpaymentException(feePercentage);
@@ -265,12 +278,12 @@ public class TransactionFactory
 			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
-				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinlabel.
+				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinLabel.
 				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 
-		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
+		// New labels will be added to the HdPubKey only when tx will be successfully broadcasted.
 		Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels = new();
 
 		foreach (var coin in smartTransaction.WalletOutputs)
@@ -278,8 +291,8 @@ public class TransactionFactory
 			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
 			// If change then we concatenate all the labels.
-			// The foundkeylabel has already been added previously, so no need to concatenate.
-			if (foundPaymentRequest is null) // Then it's autochange.
+			// The foundKeyLabel has already been added previously, so no need to concatenate.
+			if (foundPaymentRequest is null) // Then it's auto-change.
 			{
 				hdPubKeysWithNewLabels.Add(coin.HdPubKey, label);
 			}

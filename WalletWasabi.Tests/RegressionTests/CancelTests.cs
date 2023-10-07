@@ -47,7 +47,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilter += setup.Wallet_NewFilterProcessed;
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -60,7 +60,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
@@ -80,8 +80,8 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, serviceConfiguration);
-		walletManager.RegisterServices(feeProvider, blockProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
+		walletManager.Initialize();
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo");
@@ -97,10 +97,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			synchronizer.Start(); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
+			// Start wallet and filter processing service
+			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-			var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 			wallet.Kitchen.Cook(password);
 
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
@@ -122,7 +124,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 			var externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
 			var txToCancel = wallet.BuildTransaction(password, new PaymentIntent(externalAddr, amountToSend, label: "bar"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
+
+			SetHighInputAnonsets(txToCancel);
+
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+
+			AssertAllAnonsets1(txToCancel);
 
 			Assert.Equal("bar", txToCancel.Transaction.Labels.Single());
 			foreach (var op in txToCancel.InnerWalletOutputs)
@@ -140,14 +147,14 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.OuterWalletOutputs);
 
 			Assert.True(txToCancel.Fee < cancellingTx.Fee);
-			Assert.NotEqual(0, txToCancel.FeePercentOfSent);
-			Assert.Equal(0, cancellingTx.FeePercentOfSent);
 
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
 
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
+
+			AssertAllAnonsets1(cancellingTx);
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCPFP);
@@ -178,7 +185,12 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			externalAddr = await rpc.GetNewAddressAsync(CancellationToken.None);
 			txToCancel = wallet.BuildChangelessTransaction(externalAddr, "foo", new FeeRate(1m), cancellingTx.InnerWalletOutputs);
+
+			SetHighInputAnonsets(txToCancel);
+
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
+
+			AssertAllAnonsets1(txToCancel);
 
 			Assert.Equal("foo", txToCancel.Transaction.Labels.Single());
 			foreach (var op in txToCancel.InnerWalletOutputs)
@@ -195,14 +207,14 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.OuterWalletOutputs);
 
 			Assert.True(txToCancel.Fee < cancellingTx.Fee);
-			Assert.NotEqual(0, txToCancel.FeePercentOfSent);
-			Assert.Equal(0, cancellingTx.FeePercentOfSent);
 
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
 			await broadcaster.SendTransactionAsync(cancellingTx.Transaction);
 
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(txToCancel.Transaction.GetHash(), out _));
+
+			AssertAllAnonsets1(cancellingTx);
 
 			Assert.False(txToCancel.Transaction.IsReplacement);
 			Assert.False(txToCancel.Transaction.IsCPFP);
@@ -227,7 +239,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			#region CantCancel
 
-			// Can't cancel cancelled transacion.
+			// Can't cancel cancelled transaction.
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(cancellingTx.Transaction));
 
 			// Can't cancel cancellation transaction.
@@ -313,12 +325,32 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilter -= setup.Wallet_NewFilterProcessed;
+			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			await synchronizer.StopAsync();
 			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
+		}
+	}
+
+	private static void AssertAllAnonsets1(BuildTransactionResult txToCancel)
+	{
+		foreach (var input in txToCancel.SpentCoins)
+		{
+			Assert.Equal(1, input.AnonymitySet);
+		}
+		foreach (var output in txToCancel.InnerWalletOutputs)
+		{
+			Assert.Equal(1, output.AnonymitySet);
+		}
+	}
+
+	private static void SetHighInputAnonsets(BuildTransactionResult tx)
+	{
+		foreach (var input in tx.SpentCoins)
+		{
+			input.HdPubKey.SetAnonymitySet(999);
 		}
 	}
 }

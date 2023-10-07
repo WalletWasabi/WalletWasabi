@@ -52,7 +52,7 @@ public class StartWasabiOnSystemStartupTests
 		}
 		finally
 		{
-			// Restore original setting for devs.
+			// Restore original setting for developers.
 			await StartupHelper.ModifyStartupSettingAsync(originalConfig.RunOnSystemStartup);
 		}
 	}
@@ -60,7 +60,7 @@ public class StartWasabiOnSystemStartupTests
 	[Fact]
 	public void RunOnSystemStartupGetsSetCorrectly()
 	{
-		// Immitate fresh UiConfig file
+		// Imitate fresh UiConfig file
 		string workDir = Common.GetWorkDir();
 		IoHelpers.EnsureDirectoryExists(workDir);
 		UiConfig config = new(Path.Combine(workDir, "UiConfig.json"));

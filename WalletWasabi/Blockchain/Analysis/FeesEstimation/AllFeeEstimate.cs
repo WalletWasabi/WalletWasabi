@@ -141,11 +141,11 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 	}
 
-	public FeeRate GetFeeRate(int feeTarget)
+	public FeeRate GetFeeRate(int confirmationTarget)
 	{
 		// Where the target is still under or equal to the requested target.
 		decimal satoshiPerByte = Estimations
-			.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
+			.Last(x => x.Key <= confirmationTarget) // The last should be the largest confirmation target.
 			.Value;
 
 		return new FeeRate(satoshiPerByte);

@@ -76,7 +76,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		var node = RegTestFixture.BackendRegTestNode;
 
-		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 
 		try
@@ -112,31 +112,12 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 			tip = await rpc.GetBestBlockHashAsync();
 			Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
 
-			var filterList = new List<FilterModel>();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
-				testDeadlineCts.Token);
-			var filterTip = filterList.Last();
+			FilterModel[] filters = await bitcoinStore.IndexStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
+			var filterTip = filters.Last();
 			Assert.Equal(tip, filterTip.Header.BlockHash);
 
 			// Test filter block hashes are correct after fork.
 			var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
-
-			filterList.Clear();
-			await bitcoinStore.IndexStore.ForeachFiltersAsync(
-				async x =>
-				{
-					filterList.Add(x);
-					await Task.CompletedTask;
-				},
-				new Height(0),
-				testDeadlineCts.Token);
-			FilterModel[] filters = filterList.ToArray();
 
 			for (int i = 0; i < blockCountIncludingGenesis; i++)
 			{

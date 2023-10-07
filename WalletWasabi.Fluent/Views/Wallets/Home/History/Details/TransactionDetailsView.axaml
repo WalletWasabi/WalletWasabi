@@ -27,9 +27,9 @@
       <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="{Binding AmountText}"
-                     CopyableContent="{Binding Amount}">
+                     CopyableContent="{Binding Amount.Btc}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, Converter={x:Static conv:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
+          <c:AmountControl Amount="{Binding Amount}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
@@ -57,9 +57,9 @@
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee"
-                     CopyableContent="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithUnit}}" Classes="monoSpaced" />
+          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
@@ -82,8 +82,8 @@
       <!-- Confirmation Time -->
       <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
-                     Label="Confirmation time"
-                     CopyableContent="{Binding ConfirmationTime}">
+                     Label="Expected confirmation time"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
