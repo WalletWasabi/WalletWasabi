@@ -308,9 +308,10 @@ public class DualCurrencyEntryBox : TemplatedControl
 		{
 			_canUpdateDisplay = false;
 
-			// TODO: Disable for now as it doesn't maintain CaretIndex properly.
 			var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
 			SetCurrentValue(TextProperty, text);
+			// TODO: Maintain CaretIndex properly.
+			Dispatcher.UIThread.Post(() => LeftEntryBox?.SetCurrentValue(TextBox.CaretIndexProperty, text.Length));
 
 			_canUpdateDisplay = true;
 		}
@@ -334,9 +335,10 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		if (updateTextField)
 		{
-			// TODO: Disable for now as it doesn't maintain CaretIndex properly.
 			var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
 			SetCurrentValue(ConversionTextProperty, text);
+			// TODO: Maintain CaretIndex properly.
+			Dispatcher.UIThread.Post(() => RightEntryBox?.SetCurrentValue(TextBox.CaretIndexProperty, text.Length));
 		}
 
 		_canUpdateFiat = true;
