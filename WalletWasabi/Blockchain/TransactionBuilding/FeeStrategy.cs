@@ -30,6 +30,10 @@ public class FeeStrategy
 		_feeRate = feeRate;
 	}
 
+	public static FeeStrategy TwentyMinutesConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.TwentyMinutesConfirmationTarget);
+	public static FeeStrategy OneDayConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.OneDayConfirmationTarget);
+	public static FeeStrategy SevenDaysConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.SevenDaysConfirmationTarget);
+
 	public FeeStrategyType Type { get; }
 
 	public bool TryGetTarget([NotNullWhen(true)] out int? target)
@@ -55,10 +59,6 @@ public class FeeStrategy
 		rate = null;
 		return false;
 	}
-
-	public static FeeStrategy TwentyMinutesConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.TwentyMinutesConfirmationTarget);
-	public static FeeStrategy OneDayConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.OneDayConfirmationTarget);
-	public static FeeStrategy SevenDaysConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.SevenDaysConfirmationTarget);
 
 	public static FeeStrategy CreateFromConfirmationTarget(int confirmationTarget)
 		=> new(confirmationTarget: confirmationTarget);
