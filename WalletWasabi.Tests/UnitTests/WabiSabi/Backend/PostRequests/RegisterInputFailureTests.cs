@@ -224,7 +224,7 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		var mockRpc = new MockRpcClient();
-		mockRpc.OnGetTxOutAsync = (_,_,_) =>
+		mockRpc.OnGetTxOutAsync = (_, _, _) =>
 			new NBitcoin.RPC.GetTxOutResponse { Confirmations = 0 };
 
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync(round);
@@ -249,7 +249,7 @@ public class RegisterInputFailureTests
 		var callCounter = 1;
 		rpc.OnGetTxOutAsync = (_, _, _) =>
 		{
-			var ret = new NBitcoin.RPC.GetTxOutResponse {Confirmations = callCounter, IsCoinBase = true};
+			var ret = new NBitcoin.RPC.GetTxOutResponse { Confirmations = callCounter, IsCoinBase = true };
 			callCounter++;
 			return ret;
 		};

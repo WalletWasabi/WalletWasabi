@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class ArenaClientTests
 {
-	public MempoolMirror DummyMempoolMirror { get; } = new (TimeSpan.Zero, null!, null!);
+	public MempoolMirror DummyMempoolMirror { get; } = new(TimeSpan.Zero, null!, null!);
 
 	[Fact]
 	public async Task FullP2wpkhCoinjoinTestAsync()
@@ -160,7 +160,7 @@ public class ArenaClientTests
 		using var key = new Key();
 		var outpoint = BitcoinFactory.CreateOutPoint();
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
-		mockRpc.OnGetTxOutAsync = (_,_,_) =>
+		mockRpc.OnGetTxOutAsync = (_, _, _) =>
 			new GetTxOutResponse
 			{
 				IsCoinBase = false,
@@ -178,7 +178,7 @@ public class ArenaClientTests
 			{
 				MinRelayTxFee = 1
 			});
-		mockRpc.OnGetRawTransactionAsync = (_,_) =>
+		mockRpc.OnGetRawTransactionAsync = (_, _) =>
 			Task.FromResult(BitcoinFactory.CreateTransaction());
 
 		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
