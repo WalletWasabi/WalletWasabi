@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
@@ -23,7 +24,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 	public WalletTransactionsModel(Wallet wallet)
 	{
 		_wallet = wallet;
-		_treeBuilder = new TransactionTreeBuilder(wallet.KeyManager);
+		_treeBuilder = new TransactionTreeBuilder(wallet);
 
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
@@ -51,6 +52,28 @@ public partial class WalletTransactionsModel : ReactiveObject
 			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionSummary.Transaction, out var estimate)
 			? estimate
 			: null;
+	}
+
+	public (SmartTransaction TransactionToSpeedUp, BuildTransactionResult BoostingTransaction) CreateSpeedUpTransaction(TransactionModel transaction)
+	{
+		var transactionToSpeedUp = transaction.TransactionSummary.Transaction;
+
+		// If the transaction has CPFPs, then we want to speed them up instead of us.
+		// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
+		if (transactionToSpeedUp.TryGetLargestCPFP(_wallet.KeyManager, out var largestCpfp))
+		{
+			transactionToSpeedUp = largestCpfp;
+		}
+		var boostingTransaction = _wallet.SpeedUpTransaction(transactionToSpeedUp);
+
+		return (transactionToSpeedUp, boostingTransaction);
+	}
+
+	public BuildTransactionResult CreateCancellingTransaction(TransactionModel transaction)
+	{
+		var transactionToCancel = transaction.TransactionSummary.Transaction;
+		var cancellingTransaction = _wallet.CancelTransaction(transactionToCancel);
+		return cancellingTransaction;
 	}
 
 	private IEnumerable<TransactionModel> BuildSummary()

@@ -11,8 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
-	private TransactionHistoryItemViewModel(TransactionModel transaction, WalletViewModel walletVm) : base(transaction)
+	private IWalletModel _wallet;
+
+	// TODO: Remove the WalletViewModel parameter
+	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction, WalletViewModel walletVm) : base(transaction)
 	{
+		_wallet = wallet;
 		WalletVm = walletVm;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(walletVm.WalletModel, transaction.TransactionSummary));
@@ -26,11 +30,11 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	public Wallet Wallet => WalletVm.Wallet;
 	public KeyManager KeyManager => Wallet.KeyManager;
 
-	private void OnSpeedUpTransaction(ITransactionModel transaction)
+	private void OnSpeedUpTransaction(TransactionModel transaction)
 	{
 		try
 		{
-			var (transactionToSpeedUp, boostingTransaction) = transaction.CreateSpeedUpTransaction();
+			var (transactionToSpeedUp, boostingTransaction) = _wallet.Transactions.CreateSpeedUpTransaction(transaction);
 			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.UiTriggers, WalletVm.Wallet, transactionToSpeedUp, boostingTransaction);
 		}
 		catch (Exception ex)
@@ -40,11 +44,11 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		}
 	}
 
-	private void OnCancelTransaction(ITransactionModel transaction)
+	private void OnCancelTransaction(TransactionModel transaction)
 	{
 		try
 		{
-			var cancellingTransaction = transaction.CreateCancellingTransaction();
+			var cancellingTransaction = _wallet.Transactions.CreateCancellingTransaction(transaction);
 			UiContext.Navigate().To().CancelTransactionDialog(WalletVm.UiTriggers, Wallet, transaction.TransactionSummary.Transaction, cancellingTransaction);
 		}
 		catch (Exception ex)

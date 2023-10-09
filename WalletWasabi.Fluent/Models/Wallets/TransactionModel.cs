@@ -28,16 +28,9 @@ public enum TransactionStatus
 	SpeedUp,
 }
 
-[AutoInterface]
 public partial class TransactionModel : ReactiveObject
 {
 	private readonly List<TransactionModel> _children = new();
-	private readonly Wallet _wallet;
-
-	public TransactionModel(Wallet wallet)
-	{
-		_wallet = wallet;
-	}
 
 	public int OrderIndex { get; init; }
 
@@ -88,26 +81,5 @@ public partial class TransactionModel : ReactiveObject
 	public void Add(TransactionModel child)
 	{
 		_children.Add(child);
-	}
-
-	public (SmartTransaction TransactionToSpeedUp, BuildTransactionResult BoostingTransaction) CreateSpeedUpTransaction()
-	{
-		var transactionToSpeedUp = TransactionSummary.Transaction;
-
-		// If the transaction has CPFPs, then we want to speed them up instead of us.
-		// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
-		if (transactionToSpeedUp.TryGetLargestCPFP(_wallet.KeyManager, out var largestCpfp))
-		{
-			transactionToSpeedUp = largestCpfp;
-		}
-		var boostingTransaction = _wallet.SpeedUpTransaction(transactionToSpeedUp);
-
-		return (transactionToSpeedUp, boostingTransaction);
-	}
-
-	public BuildTransactionResult CreateCancellingTransaction()
-	{
-		var cancellingTransaction = Wallet.CancelTransaction(transactionToCancel);
-		return cancellingTransaction;
 	}
 }
