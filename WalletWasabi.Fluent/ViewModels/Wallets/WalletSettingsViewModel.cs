@@ -1,9 +1,13 @@
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -18,10 +22,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
+	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
 	private WalletSettingsViewModel(IWalletModel wallet)
 	{
+		_wallet = wallet;
 		Title = $"{wallet.Name} - Wallet Settings";
 		_preferPsbtWorkflow = wallet.Settings.PreferPsbtWorkflow;
 		IsHardwareWallet = wallet.IsHardwareWallet;
@@ -40,9 +46,36 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.Settings.PreferPsbtWorkflow = value;
 				wallet.Settings.Save();
 			});
+
+		this.ValidateProperty(x => x.WalletName,
+			errors =>
+			{
+				try
+				{
+					new FileInfo(WalletName);
+				}
+				catch
+				{
+					errors.Add(ErrorSeverity.Error, "Invalid path");
+				}
+			});
 	}
 
-	public string WalletName { get; set; }
+	public string WalletName
+	{
+		get => _wallet.Name;
+		set
+		{
+			try
+			{
+				new FileInfo(WalletName);
+				_wallet.Name = value;
+			}
+			catch
+			{
+			}
+		}
+	}
 
 	public bool IsHardwareWallet { get; }
 

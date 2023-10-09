@@ -231,7 +231,19 @@ public class KeyManager
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
 	private HdPubKeyGenerator? TaprootInternalKeyGenerator { get; }
 
-	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
+	public string WalletName
+	{
+		get => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
+		set
+		{
+			var newPath = Path.Combine(Path.GetDirectoryName(FilePath)!, value + ".json");
+			if (FilePath != null)
+			{
+				File.Move(FilePath, newPath);
+				SetFilePath(newPath);
+			}
+		}
+	}
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{

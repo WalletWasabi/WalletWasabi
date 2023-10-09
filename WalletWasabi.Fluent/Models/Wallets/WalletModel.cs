@@ -6,7 +6,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -67,7 +66,11 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
-	public string Name => Wallet.WalletName;
+	public string Name
+	{
+		get => Wallet.WalletName;
+		set => Wallet.WalletName = value;
+	}
 
 	public Network Network => Wallet.Network;
 

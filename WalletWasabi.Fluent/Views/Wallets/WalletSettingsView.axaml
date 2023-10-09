@@ -19,10 +19,11 @@
       <StackPanel Classes="settingsLayout">
         <DockPanel>
           <TextBlock Text="Wallet name" />
-          <TextBox MaxLength="50" Text="{Binding WalletName, Mode=TwoWay}" Watermark="Type in a wallet name">
+          <TextBox MaxLength="50" Watermark="Type in a wallet name">
             <Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
               <behaviors:TextBoxSelectAllTextBehavior />
+              <behaviors:LostFocusUpdateBindingBehavior Text="{Binding WalletName}"/>
             </Interaction.Behaviors>
           </TextBox>
         </DockPanel>
