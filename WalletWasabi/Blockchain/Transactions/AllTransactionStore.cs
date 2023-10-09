@@ -209,5 +209,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		await MempoolStore.DisposeAsync().ConfigureAwait(false);
 		await ConfirmedStore.DisposeAsync().ConfigureAwait(false);
-	}
+        GC.SuppressFinalize(this);
+    }
 }

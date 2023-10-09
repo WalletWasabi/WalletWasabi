@@ -76,5 +76,6 @@ public class ConnectedNode : IDisposable
 		}
 
 		DisconnectedCts.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

@@ -77,6 +77,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 	public void Dispose()
 	{
 		_disposables.Dispose();
+		GC.SuppressFinalize(this);
 	}
 
 	private static int? GetAnonScore(IEnumerable<SmartCoin> pocketCoins)

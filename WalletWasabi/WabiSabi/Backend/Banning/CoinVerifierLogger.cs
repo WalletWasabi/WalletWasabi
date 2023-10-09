@@ -147,7 +147,8 @@ public class CoinVerifierLogger : IAsyncDisposable
 	public async ValueTask DisposeAsync()
 	{
 		await SaveAuditsAsync().ConfigureAwait(false);
-	}
+        GC.SuppressFinalize(this);
+    }
 
 	public record AuditEvent(DateTimeOffset DateTimeOffset, AuditEventType AuditEventType, string LogMessage);
 }

@@ -29,6 +29,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 	{
 		_isDisposed = true;
 		CancelPriorAnimation();
+		GC.SuppressFinalize(this);
 	}
 
 	private void CancelPriorAnimation()

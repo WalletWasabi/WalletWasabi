@@ -665,5 +665,6 @@ public class TorHttpPool : IAsyncDisposable
 		}
 
 		LoopCts.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

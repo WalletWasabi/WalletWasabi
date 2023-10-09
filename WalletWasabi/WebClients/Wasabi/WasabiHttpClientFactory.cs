@@ -133,5 +133,7 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 		{
 			await TorHttpPool.DisposeAsync().ConfigureAwait(false);
 		}
-	}
+
+        GC.SuppressFinalize(this);
+    }
 }

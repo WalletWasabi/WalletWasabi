@@ -55,5 +55,6 @@ public class PersonCircuit : INamedCircuit, IDisposable
 	public void Dispose()
 	{
 		_isActive = false;
-	}
+        GC.SuppressFinalize(this);
+    }
 }

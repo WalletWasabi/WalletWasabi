@@ -137,5 +137,7 @@ public class AffiliateDataUpdater : BackgroundService
 		RoundNotificationSource.Dispose();
 		Signer.Dispose();
 		base.Dispose();
-	}
+
+        GC.SuppressFinalize(this);
+    }
 }

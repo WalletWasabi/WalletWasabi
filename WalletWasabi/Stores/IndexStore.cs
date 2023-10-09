@@ -358,6 +358,8 @@ public class IndexStore : IAsyncDisposable
 	public ValueTask DisposeAsync()
 	{
 		IndexStorage.Dispose();
-		return ValueTask.CompletedTask;
+        GC.SuppressFinalize(this);
+
+        return ValueTask.CompletedTask;
 	}
 }

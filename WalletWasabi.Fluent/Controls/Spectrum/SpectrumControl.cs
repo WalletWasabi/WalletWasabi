@@ -195,7 +195,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	void IDisposable.Dispose()
 	{
-		// nothing to do.
+		GC.SuppressFinalize(this);
 	}
 
 	bool IDrawOperation.HitTest(Point p) => Bounds.Contains(p);

@@ -119,5 +119,6 @@ public class RegTestSetup : IAsyncDisposable
 	{
 		await IndexStore.DisposeAsync().ConfigureAwait(false);
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
-	}
+        GC.SuppressFinalize(this);
+    }
 }

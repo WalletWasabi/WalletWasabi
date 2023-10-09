@@ -172,5 +172,6 @@ public class WabiSabiCoordinator : BackgroundService
 		Warden.Dispose();
 		AffiliationManager.Dispose();
 		base.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

@@ -421,5 +421,7 @@ public class TorProcessManager : IAsyncDisposable
 
 		// Dispose Tor process resources (does not stop/kill Tor process).
 		process?.Dispose();
-	}
+
+        GC.SuppressFinalize(this);
+    }
 }

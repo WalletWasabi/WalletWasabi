@@ -40,6 +40,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	public void Dispose()
 	{
 		_disposables.Dispose();
+		GC.SuppressFinalize(this);
 	}
 
 	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }

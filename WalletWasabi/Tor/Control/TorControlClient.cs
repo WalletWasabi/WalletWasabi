@@ -477,5 +477,6 @@ public class TorControlClient : IAsyncDisposable
 
 		ReaderCts.Dispose();
 		TcpClient?.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

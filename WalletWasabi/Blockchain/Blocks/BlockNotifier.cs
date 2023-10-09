@@ -226,6 +226,8 @@ public class BlockNotifier : PeriodicRunner
 		{
 			P2pNode.BlockInv -= P2pNode_BlockInv;
 		}
+
 		base.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

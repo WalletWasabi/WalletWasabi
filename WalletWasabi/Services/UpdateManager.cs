@@ -360,5 +360,7 @@ public class UpdateManager : IDisposable
 		{
 			updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 		}
-	}
+
+        GC.SuppressFinalize(this);
+    }
 }

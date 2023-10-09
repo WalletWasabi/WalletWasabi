@@ -207,5 +207,6 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	public void Dispose()
 	{
 		Disposables.Dispose();
+		GC.SuppressFinalize(this);
 	}
 }

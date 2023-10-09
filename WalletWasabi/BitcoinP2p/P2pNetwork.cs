@@ -191,5 +191,6 @@ public class P2pNetwork : BackgroundService
 
 		Nodes.Dispose();
 		base.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

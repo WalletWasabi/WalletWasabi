@@ -33,5 +33,6 @@ public class AffiliationMessageSigner : IDisposable
 	public void Dispose()
 	{
 		ECDsa.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

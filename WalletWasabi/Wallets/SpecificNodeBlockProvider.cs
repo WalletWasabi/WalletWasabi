@@ -197,5 +197,6 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 		await LoopTask.ConfigureAwait(false);
 
 		LoopCts.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

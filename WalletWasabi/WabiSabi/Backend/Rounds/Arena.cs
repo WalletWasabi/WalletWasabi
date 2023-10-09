@@ -805,6 +805,8 @@ public partial class Arena : PeriodicRunner
 		{
 			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
 		}
+
 		base.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

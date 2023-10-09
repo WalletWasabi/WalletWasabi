@@ -294,8 +294,9 @@ public class CoinVerifier : IAsyncDisposable
 		}
 	}
 
-	public ValueTask DisposeAsync()
+	public async ValueTask DisposeAsync()
 	{
-		return VerifierAuditArchiver.DisposeAsync();
-	}
+		await VerifierAuditArchiver.DisposeAsync().ConfigureAwait(false);
+        GC.SuppressFinalize(this);
+    }
 }

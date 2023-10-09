@@ -205,7 +205,8 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		await StopAsync(CancellationToken.None).ConfigureAwait(false);
 
 		DisposeCts.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 
 	public override void Dispose()
 	{
@@ -227,5 +228,6 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		}
 
 		DisposeCts.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

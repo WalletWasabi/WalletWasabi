@@ -47,5 +47,6 @@ public class UpdateChecker : PeriodicRunner
 	{
 		Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 		base.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }

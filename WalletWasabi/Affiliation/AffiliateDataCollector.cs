@@ -97,5 +97,6 @@ public class AffiliateDataCollector : IRoundNotifier
 	public void Dispose()
 	{
 		RemoveHandlers();
+		GC.SuppressFinalize(this);
 	}
 }

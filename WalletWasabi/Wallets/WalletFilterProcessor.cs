@@ -313,7 +313,8 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		SynchronizationRequestsSemaphore.Dispose();
 		base.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 
 	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
 	public record Priority(SyncType SyncType);

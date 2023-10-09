@@ -71,7 +71,8 @@ public class WalletBuilder : IAsyncDisposable
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();
-	}
+        GC.SuppressFinalize(this);
+    }
 }
 
 public class MockBlockRepository : IRepository<uint256, Block>

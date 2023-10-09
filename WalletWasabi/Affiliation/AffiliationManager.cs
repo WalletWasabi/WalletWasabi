@@ -54,7 +54,9 @@ public class AffiliationManager : BackgroundService
 		AffiliateDataUpdater.Dispose();
 		Signer.Dispose();
 		base.Dispose();
-	}
+
+        GC.SuppressFinalize(this);
+    }
 
 	public AffiliateInformation GetAffiliateInformation()
 	{

@@ -111,6 +111,7 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 	public void Dispose()
 	{
 		_disposables.Dispose();
+		GC.SuppressFinalize(this);
 	}
 
 	private static ReadOnlyCollection<ICoinModel> GetSelectedCoins(IReadOnlyCollection<CoinCoinControlItemViewModel> list)

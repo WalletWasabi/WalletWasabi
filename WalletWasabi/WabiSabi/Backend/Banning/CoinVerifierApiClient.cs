@@ -110,7 +110,8 @@ public class CoinVerifierApiClient : IAsyncDisposable
 	public ValueTask DisposeAsync()
 	{
 		ThrottlingSemaphore.Dispose();
+        GC.SuppressFinalize(this);
 
-		return ValueTask.CompletedTask;
+        return ValueTask.CompletedTask;
 	}
 }
