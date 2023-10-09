@@ -59,8 +59,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
 		// Labels			LabelsColumnView			Labels			*			75				-			true
-		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		145				210			true
-		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		145				210			true
+		// Received			ReceivedColumnView			Received (BTC)	Auto		145				210			true
+		// Sent				SentColumnView				Sent (BTC)		Auto		145				210			true
 		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
@@ -72,8 +72,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 				IndicatorsColumn(),
 				DateColumn(),
 				LabelsColumn(),
-				IncomingColumn(),
-				OutgoingColumn(),
+				ReceivedColumn(),
+				SentColumn(),
 				BalanceColumn(),
 			}
 		};
@@ -140,10 +140,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 			width: new GridLength(1, GridUnitType.Star));
 	}
 
-	private static IColumn<HistoryItemViewModelBase> IncomingColumn()
+	private static IColumn<HistoryItemViewModelBase> ReceivedColumn()
 	{
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Incoming (BTC)",
+			"Received (BTC)",
 			x => x.IncomingAmount?.ToFormattedString(),
 			options: new ColumnOptions<HistoryItemViewModelBase>
 			{
@@ -158,10 +158,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 			numberOfPrivacyChars: 9);
 	}
 
-	private static IColumn<HistoryItemViewModelBase> OutgoingColumn()
+	private static IColumn<HistoryItemViewModelBase> SentColumn()
 	{
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Outgoing (BTC)",
+			"Sent (BTC)",
 			x => x.OutgoingAmount?.ToFormattedString(),
 			options: new ColumnOptions<HistoryItemViewModelBase>
 			{
