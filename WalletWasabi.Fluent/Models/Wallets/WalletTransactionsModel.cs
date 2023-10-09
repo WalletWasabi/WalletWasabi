@@ -68,6 +68,6 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	private IEnumerable<TransactionSummary> BuildSummary()
 	{
-		return TransactionHistoryBuilder.BuildHistorySummary(_wallet);
+		return _wallet.BuildHistorySummary();
 	}
 }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
+using NBitcoin.Policy;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -35,7 +36,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly WalletViewModel _walletViewModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
-	private CancellationTokenSource? _cancellationTokenSource;
+	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
@@ -281,30 +282,23 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
 		}
-		catch (NotEnoughFundsException ex)
+		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 		{
-			// TODO: Any other scenario when this exception happens?
-			var totalFee = _info.Amount + (Money)ex.Missing;
-			var percentage = ((decimal)totalFee.Satoshi / _info.Amount.Satoshi) * 100;
+			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
+			{
+				return await BuildTransactionAsync();
+			}
 
-			var result = await TryAdjustTransactionFeeAsync(percentage);
+			await ShowErrorAsync(
+				"Transaction Building",
+				"The transaction cannot be sent because its fee is more than the payment amount.",
+				"Wasabi was unable to create your transaction.");
 
-			return result ? await BuildTransactionAsync() : null;
+			return null;
 		}
-		catch (TransactionFeeOverpaymentException ex)
+		catch (InsufficientBalanceException)
 		{
-			var result = await TryAdjustTransactionFeeAsync(ex.PercentageOfOverpayment);
-
-			return result ? await BuildTransactionAsync() : null;
-		}
-		catch (InsufficientBalanceException ex)
-		{
-			var failedTransactionFee = ex.Minimum - _info.Amount;
-			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
-			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
-
 			var canSelectMoreCoins = _wallet.Coins.Any(coin => !_info.Coins.Contains(coin));
-			var isMaxFeeRateFound = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
 			if (canSelectMoreCoins)
 			{
@@ -317,13 +311,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					return await BuildTransactionAsync();
 				}
 			}
-			else if (isMaxFeeRateFound)
+			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(_wallet, _info))
 			{
-				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-				_info.FeeRate = maximumPossibleFeeRate;
-				_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
-					? estimate.Value
-					: TimeSpan.Zero;
 				return await BuildTransactionAsync();
 			}
 
@@ -349,29 +338,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = false;
 		}
-	}
-
-	private async Task<bool> TryAdjustTransactionFeeAsync(decimal percentageOfOverpayment)
-	{
-		var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(percentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
-
-		if (!result)
-		{
-			await ShowErrorAsync(
-				"Transaction Building",
-				"The transaction cannot be sent because its fee is more than the payment amount.",
-				"Wasabi was unable to create your transaction.");
-
-			return false;
-		}
-
-		_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-		_info.FeeRate = maximumPossibleFeeRate;
-		_info.ConfirmationTimeSpan = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, maximumPossibleFeeRate, out var estimate)
-			? estimate.Value
-			: TimeSpan.Zero;
-
-		return true;
 	}
 
 	private async Task InitialiseViewModelAsync()
@@ -400,9 +366,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (!isInHistory)
 		{
-			_cancellationTokenSource?.Cancel();
-			_cancellationTokenSource?.Dispose();
-			_cancellationTokenSource = null;
+			_cancellationTokenSource.Cancel();
+			_cancellationTokenSource.Dispose();
 		}
 
 		base.OnNavigatedFrom(isInHistory);
@@ -425,7 +390,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
-				_cancellationTokenSource?.Cancel();
+				_cancellationTokenSource.Cancel();
 				Navigate().To().SendSuccess(_wallet, finalTransaction);
 			}
 		}
@@ -451,7 +416,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return true;
 		}
 
-		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
+		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_walletViewModel.WalletModel, transactionAuthorizationInfo);
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 		return authDialogResult.Result;

@@ -47,7 +47,8 @@ public class UiContextBuilder
 			FileSystem,
 			ClientConfig,
 			new NullApplicationSettings(),
-			TransactionBroadcaster);
+			TransactionBroadcaster,
+			Mock.Of<IAmountProvider>());
 
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;

@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -115,7 +116,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		AssertWalletIsLoaded();
 		var km = activeWallet.KeyManager;
 		var accounts = new[]
 		{
@@ -126,26 +126,41 @@ public class WasabiJsonRpcService : IJsonRpcService
 				keyPath = $"m/{km.SegwitAccountKeyPath}"
 			}
 		};
-		return new
+		var info = new
 		{
 			walletName = activeWallet.WalletName,
 			walletFile = km.FilePath,
 			state = activeWallet.State.ToString(),
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
+			anonScoreTarget = activeWallet.AnonScoreTarget,
 			accounts = km.TaprootExtPubKey is { } taprootExtPubKey
-					? accounts.Append(
-						new
-						{
-							name = "taproot",
-							publicKey = taprootExtPubKey.ToString(Global.Network),
-							keyPath = $"m/{km.TaprootAccountKeyPath}"
-						})
-					: accounts,
-			balance = activeWallet.Coins
-						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-						.Sum(c => c.Amount.Satoshi),
-			anonScoreTarget = activeWallet.AnonScoreTarget
+				? accounts.Append(
+					new
+					{
+						name = "taproot",
+						publicKey = taprootExtPubKey.ToString(Global.Network),
+						keyPath = $"m/{km.TaprootAccountKeyPath}"
+					})
+				: accounts
 		};
+
+		return activeWallet.State != WalletState.Started
+			? info
+			: new
+			{
+				info.walletName,
+				info.walletFile,
+				info.state,
+				info.masterKeyFingerprint,
+				info.anonScoreTarget,
+				info.accounts,
+
+				// The following elements are valid only after the wallet is fully synchronized
+				balance = activeWallet.Coins
+					.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
+					.Sum(c => c.Amount.Satoshi),
+				coinjoinStatus = GetCoinjoinStatus(activeWallet)
+			};
 	}
 
 	[JsonRpcMethod("getnewaddress")]
@@ -293,7 +308,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var summary = TransactionHistoryBuilder.BuildHistorySummary(activeWallet);
+		var summary = activeWallet.BuildHistorySummary();
 		return summary.Select(
 			x => new
 			{
@@ -349,6 +364,20 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
+	private string GetCoinjoinStatus(Wallet wallet)
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletName);
+		return walletCoinjoinClientState switch
+		{
+			CoinJoinClientState.Idle => "Idle",
+			CoinJoinClientState.InProgress => "In progress",
+			CoinJoinClientState.InSchedule => "In schedule",
+			CoinJoinClientState.InCriticalPhase => "In critical phase",
+			_ => throw new Exception($"The state {walletCoinjoinClientState.FriendlyName()} is unknown.")
+		};
+	}
+
 	[JsonRpcMethod("getfeerates", initializable: false)]
 	public object GetFeeRate()
 	{
@@ -359,7 +388,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		return new Dictionary<int, int>();
 	}
-
 
 	private void SelectWallet(string walletName)
 	{

@@ -26,7 +26,8 @@ public class UiContext
 		IFileSystem fileSystem,
 		IClientConfig config,
 		IApplicationSettings applicationSettings,
-		ITransactionBroadcasterModel transactionBroadcaster)
+		ITransactionBroadcasterModel transactionBroadcaster,
+		IAmountProvider amountProvider)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -37,7 +38,7 @@ public class UiContext
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
-		AmountProvider = new AmountProvider(Services.Synchronizer);
+		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
 	}
 
 	public IUiClipboard Clipboard { get; }
