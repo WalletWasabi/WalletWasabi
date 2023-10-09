@@ -36,10 +36,11 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public HistoryViewModel(UiContext uiContext, IWalletModel wallet)
 	{
+		UiContext = uiContext;
 		_wallet = wallet;
 
 		// TODO: Remove this
-		_walletVm = MainViewModel.Instance.NavBar.Wallets.First(x => x.WalletModel.Name == _wallet.Name).WalletViewModel;
+		_walletVm = MainViewModel.Instance.NavBar.Wallets.First(x => x.WalletModel.Name == _wallet.Name).WalletViewModel!;
 
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
