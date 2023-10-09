@@ -547,7 +547,18 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public void UpdateExcludedCoinFromCoinJoin()
+	public void ExcludeCoinFromCoinJoin(OutPoint outpoint, bool exclude = true)
+	{
+		if (!Coins.TryGetByOutPoint(outpoint, out var coin))
+		{
+			throw new InvalidOperationException($"Coin '{outpoint}' doesn't belong to the wallet or is spent.");
+		}
+
+		coin.IsExcludedFromCoinJoin = exclude;
+		UpdateExcludedCoinFromCoinJoin();
+	}
+
+	private void UpdateExcludedCoinFromCoinJoin()
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);

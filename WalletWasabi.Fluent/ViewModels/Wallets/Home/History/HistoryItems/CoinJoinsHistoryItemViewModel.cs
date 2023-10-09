@@ -88,6 +88,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	private void Refresh()
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
+		ItemStatus = GetItemStatus();
 		ConfirmedToolTip = GetConfirmedToolTip(CoinJoinTransactions.Select(x => x.GetConfirmations()).Min());
 		Date = CoinJoinTransactions.Select(tx => tx.FirstSeen).Max().ToLocalTime();
 

@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
@@ -48,7 +49,8 @@ public class UiContextBuilder
 			ClientConfig,
 			new NullApplicationSettings(),
 			TransactionBroadcaster,
-			Mock.Of<IAmountProvider>());
+            Mock.Of<IAmountProvider>(),
+			new EditableSearchSourceSource());
 
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
