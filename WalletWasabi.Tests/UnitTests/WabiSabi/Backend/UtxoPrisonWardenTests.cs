@@ -52,6 +52,7 @@ public class UtxoPrisonWardenTests
 		w.Prison.FailedToSign(i3, Money.Coins(0.1m), uint256.One);
 		w.Prison.DoubleSpent(i4, Money.Coins(0.1m), uint256.One);
 		w.Prison.CheatingDetected(i5, uint256.One);
+
 		// Wait until serializes.
 		await w.StopAsync(CancellationToken.None);
 

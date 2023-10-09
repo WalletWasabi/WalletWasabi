@@ -34,13 +34,13 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public static bool EnableFeatureHide { get; private set; }
-
 	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
 	{
 		_startInBg = startInBg;
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
+
+	public static bool EnableFeatureHide { get; private set; }
 
 	public override void Initialize()
 	{

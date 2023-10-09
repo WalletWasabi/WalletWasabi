@@ -76,12 +76,13 @@ public class WalletBuilder : IAsyncDisposable
 
 public class MockBlockRepository : IRepository<uint256, Block>
 {
-	public Dictionary<uint256, Block> Blocks { get; }
-
 	public MockBlockRepository(Dictionary<uint256, Block> blocks)
 	{
 		Blocks = blocks;
 	}
+
+	public Dictionary<uint256, Block> Blocks { get; }
+
 	public Task<Block?> TryGetAsync(uint256 id, CancellationToken cancel) =>
 		Task.FromResult(Blocks.GetValueOrDefault(id));
 

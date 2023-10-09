@@ -91,7 +91,7 @@ public class StepTransactionSigningTests
 
 		var now = DateTimeOffset.UtcNow;
 		Assert.All(
-			new [] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
+			new[] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
 			prevOut => Assert.False(prison.IsBanned(prevOut, now)));
 
 		await arena.StopAsync(token);
@@ -138,7 +138,7 @@ public class StepTransactionSigningTests
 		// the cost of spending the UTXO is the punishment instead.
 		var now = DateTimeOffset.UtcNow;
 		Assert.All(
-			new [] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
+			new[] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
 			prevOut => Assert.False(prison.IsBanned(prevOut, now)));
 
 		await arena.StopAsync(token);
