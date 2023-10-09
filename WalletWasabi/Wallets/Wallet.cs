@@ -151,6 +151,43 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	/// <summary>
+	/// Get all wallet transactions along with corresponding amounts ordered by blockchain.
+	/// </summary>
+	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
+	public List<TransactionSummary> BuildHistorySummary()
+	{
+		Dictionary<uint256, TransactionSummary> mapByTxid = new();
+
+		foreach (SmartCoin coin in GetAllCoins())
+		{
+			if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
+			{
+				found.Amount += coin.Amount;
+			}
+			else
+			{
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
+			}
+
+			if (coin.SpenderTransaction is { } spenderTransaction)
+			{
+				var spenderTxId = spenderTransaction.GetHash();
+
+				if (mapByTxid.TryGetValue(spenderTxId, out TransactionSummary? foundSpenderCoin)) // If found then update.
+				{
+					foundSpenderCoin.Amount -= coin.Amount;
+				}
+				else
+				{
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+				}
+			}
+		}
+
+		return mapByTxid.Values.OrderByBlockchain().ToList();
+	}
+
+	/// <summary>
 	/// Gets the wallet transaction with the given txid, if the transaction exists.
 	/// </summary>
 	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
@@ -510,7 +547,18 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public void UpdateExcludedCoinFromCoinJoin()
+	public void ExcludeCoinFromCoinJoin(OutPoint outpoint, bool exclude = true)
+	{
+		if (!Coins.TryGetByOutPoint(outpoint, out var coin))
+		{
+			throw new InvalidOperationException($"Coin '{outpoint}' doesn't belong to the wallet or is spent.");
+		}
+
+		coin.IsExcludedFromCoinJoin = exclude;
+		UpdateExcludedCoinFromCoinJoin();
+	}
+
+	private void UpdateExcludedCoinFromCoinJoin()
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);

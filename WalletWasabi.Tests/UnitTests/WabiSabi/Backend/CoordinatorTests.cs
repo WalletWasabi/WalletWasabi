@@ -70,7 +70,7 @@ public class CoordinatorTests
 	private static IRPCClient NewMockRpcClient()
 	{
 		var mockRpcClient = new MockRpcClient { Network = Network.Main };
-		mockRpcClient.OnEstimateSmartFeeAsync = (_,_) =>
+		mockRpcClient.OnEstimateSmartFeeAsync = (_, _) =>
 			Task.FromResult(new EstimateSmartFeeResponse { Blocks = 5, FeeRate = new FeeRate(100m) });
 		mockRpcClient.OnGetMempoolInfoAsync = () =>
 			Task.FromResult(new MemPoolInfo { MemPoolMinFee = 0.00001000 });

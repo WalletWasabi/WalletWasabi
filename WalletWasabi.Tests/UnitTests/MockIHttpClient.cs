@@ -9,12 +9,13 @@ public class MockIHttpClient : IHttpClient
 {
 	public MockIHttpClient()
 		: this("https://fake.domain.com")
-	{}
+	{ }
 
 	public MockIHttpClient(string uri)
 	{
 		BaseUriGetter = () => new Uri(uri);
 	}
+
 	public Func<Uri>? BaseUriGetter { get; }
 	public Func<HttpRequestMessage, Task<HttpResponseMessage>>? OnSendAsync { get; set; }
 

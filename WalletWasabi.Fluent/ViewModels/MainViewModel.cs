@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -333,19 +332,24 @@ public partial class MainViewModel : ViewModelBase
 	private SearchBarViewModel CreateSearchBar()
 	{
 		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
-		var filterChanged = new Subject<string>();
+		var querySubject = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSearchSource(UiContext, filterChanged),
-			new SettingsSearchSource(UiContext, filterChanged),
-			new TransactionsSearchSource(filterChanged));
+			new ActionsSearchSource(UiContext, querySubject),
+			new SettingsSearchSource(UiContext, querySubject),
+			new TransactionsSearchSource(querySubject),
+			UiContext.EditableSearchSource);
 
 		var searchBar = new SearchBarViewModel(source.Changes);
 
-		searchBar
+		var queries = searchBar
 			.WhenAnyValue(a => a.SearchText)
-			.WhereNotNull()
-			.Subscribe(filterChanged);
+			.WhereNotNull();
+
+		UiContext.EditableSearchSource.SetQueries(queries);
+
+		queries
+			.Subscribe(querySubject);
 
 		return searchBar;
 	}

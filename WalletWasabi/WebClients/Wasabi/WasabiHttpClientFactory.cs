@@ -49,7 +49,7 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 	[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
 	public bool IsTorEnabled => TorEndpoint is not null;
 
-	/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
+	/// <summary>The .NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
 	private HttpClient HttpClient { get; }
 
 	/// <summary>Available only when Tor is enabled in User settings.</summary>
