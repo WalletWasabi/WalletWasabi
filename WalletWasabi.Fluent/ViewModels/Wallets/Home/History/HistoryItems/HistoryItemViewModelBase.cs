@@ -14,7 +14,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
 	[AutoNotify] private bool _isFlashing;
 	[AutoNotify] private bool _isExpanded;
-	private ObservableCollection<HistoryItemViewModelBase>? _children = new();
 
 	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction)
 	{
@@ -34,7 +33,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public TransactionModel Transaction { get; }
 
-	public IReadOnlyList<HistoryItemViewModelBase> Children => _children;
+	public ObservableCollection<HistoryItemViewModelBase> Children { get; } = new();
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
@@ -44,7 +43,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 
-	public virtual bool HasChildren() => _children.Count > 0;
+	public bool HasChildren() => Children.Count > 0;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{

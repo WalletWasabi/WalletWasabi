@@ -192,7 +192,7 @@
                                               ElementFactory="{TemplateBinding ElementFactory}"
                                               Items="{TemplateBinding Columns}"
                                               Rows="{TemplateBinding Rows}"
-                                              Classes.isChild="{Binding IsChild}"
+                                              Classes.isChild="{Binding Transaction.IsChild}"
                                               x:CompileBindings="False" />
                   <Rectangle Name="PART_Separator"
                              Margin="-2,0,0,0"

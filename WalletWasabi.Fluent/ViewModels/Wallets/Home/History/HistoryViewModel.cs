@@ -252,7 +252,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		try
 		{
 			var newHistoryList =
-				transactions.Select(CreateViewModel)
+				transactions.Select(x => CreateViewModel(x))
 							.ToList();
 
 			_transactionSourceList.Edit(x =>
@@ -267,9 +267,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction)
+	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
 	{
-		return transaction.Type switch
+		HistoryItemViewModelBase viewModel = transaction.Type switch
 		{
 			TransactionType.IncomingTransaction => new TransactionHistoryItemViewModel(UiContext, transaction, _walletVm),
 			TransactionType.OutgoingTransaction => new TransactionHistoryItemViewModel(UiContext, transaction, _walletVm),
@@ -277,8 +277,17 @@ public partial class HistoryViewModel : ActivatableViewModel
 			TransactionType.Coinjoin => new CoinJoinHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, transaction, _walletVm),
-			//TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, ),
+			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent ?? throw new ArgumentNullException(nameof(parent))),
 			_ => throw new NotImplementedException($"Unsupported Transaction Type: {transaction.Type}"),
 		};
+
+		var children = transaction.Children.Reverse();
+
+		foreach (var child in children)
+		{
+			viewModel.Children.Add(CreateViewModel(child, viewModel));
+		}
+
+		return viewModel;
 	}
 }
