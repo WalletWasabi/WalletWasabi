@@ -2,13 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -51,7 +49,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public uint256 TransactionId { get; }
 
-	public Amount Fee { get; }
+	public Amount? Fee { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
@@ -106,11 +104,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateCurrentTransaction()
 	{
-		if (TransactionId is null)
-		{
-			return;
-		}
-
 		if (_wallet.Transactions.TryGetById(TransactionId, out var transactionSummary))
 		{
 			UpdateValues(transactionSummary!);
