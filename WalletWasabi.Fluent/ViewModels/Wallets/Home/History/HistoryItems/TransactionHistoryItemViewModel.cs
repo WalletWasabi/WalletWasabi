@@ -1,11 +1,7 @@
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
@@ -15,30 +11,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public TransactionHistoryItemViewModel(UiContext uiContext, TransactionModel transaction, WalletViewModel walletVm) : base(uiContext, transaction)
+	private TransactionHistoryItemViewModel(TransactionModel transaction, WalletViewModel walletVm) : base(transaction)
 	{
 		WalletVm = walletVm;
+
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(walletVm.WalletModel, transaction.TransactionSummary));
+		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(transaction.CanSpeedUpTransaction));
+		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
 	}
 
-	public bool CanCancelTransaction { get; }
-	public bool CanSpeedUpTransaction { get; }
-	public bool TransactionOperationsVisible => CanCancelTransaction || CanSpeedUpTransaction;
+	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction;
 
 	public WalletViewModel WalletVm { get; }
 	public Wallet Wallet => WalletVm.Wallet;
 	public KeyManager KeyManager => Wallet.KeyManager;
 
-	private void OnSpeedUpTransaction(SmartTransaction transactionToSpeedUp)
+	private void OnSpeedUpTransaction(ITransactionModel transaction)
 	{
 		try
 		{
-			// If the transaction has CPFPs, then we want to speed them up instead of us.
-			// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
-			if (transactionToSpeedUp.TryGetLargestCPFP(WalletVm.Wallet.KeyManager, out var largestCpfp))
-			{
-				transactionToSpeedUp = largestCpfp;
-			}
-			var boostingTransaction = Wallet.SpeedUpTransaction(transactionToSpeedUp);
+			var (transactionToSpeedUp, boostingTransaction) = transaction.CreateSpeedUpTransaction();
 			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.UiTriggers, WalletVm.Wallet, transactionToSpeedUp, boostingTransaction);
 		}
 		catch (Exception ex)
@@ -48,12 +40,12 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		}
 	}
 
-	private void OnCancelTransaction(SmartTransaction transactionToCancel)
+	private void OnCancelTransaction(ITransactionModel transaction)
 	{
 		try
 		{
-			var cancellingTransaction = Wallet.CancelTransaction(transactionToCancel);
-			UiContext.Navigate().To().CancelTransactionDialog(WalletVm.UiTriggers, Wallet, transactionToCancel, cancellingTransaction);
+			var cancellingTransaction = transaction.CreateCancellingTransaction();
+			UiContext.Navigate().To().CancelTransactionDialog(WalletVm.UiTriggers, Wallet, transaction.TransactionSummary.Transaction, cancellingTransaction);
 		}
 		catch (Exception ex)
 		{

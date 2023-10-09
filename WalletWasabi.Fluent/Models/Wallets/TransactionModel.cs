@@ -2,7 +2,9 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -26,33 +28,40 @@ public enum TransactionStatus
 	SpeedUp,
 }
 
-public class TransactionModel : ReactiveObject
+[AutoInterface]
+public partial class TransactionModel : ReactiveObject
 {
-	private List<TransactionModel> _children = new();
+	private readonly List<TransactionModel> _children = new();
+	private readonly Wallet _wallet;
 
-	public required int OrderIndex { get; init; }
+	public TransactionModel(Wallet wallet)
+	{
+		_wallet = wallet;
+	}
 
-	public required uint256 Id { get; init; }
+	public int OrderIndex { get; init; }
 
-	public required LabelsArray Labels { get; init; }
+	public uint256 Id { get; init; }
 
-	public required DateTimeOffset Date { get; set; }
+	public LabelsArray Labels { get; init; }
 
-	public required string DateString { get; set; }
+	public DateTimeOffset Date { get; set; }
 
-	public required int Confirmations { get; init; }
+	public string DateString { get; set; }
 
-	public required string ConfirmedTooltip { get; set; }
+	public int Confirmations { get; init; }
 
-	public required TransactionType Type { get; init; }
+	public string ConfirmedTooltip { get; set; }
 
-	public required TransactionStatus Status { get; set; }
+	public TransactionType Type { get; init; }
 
-	public required TransactionSummary TransactionSummary { get; init; }
+	public TransactionStatus Status { get; set; }
+
+	public TransactionSummary TransactionSummary { get; init; }
 
 	public bool IsChild { get; set; }
 
-	public Money Balance { get; set; }
+	public Money? Balance { get; set; }
 
 	public Money? IncomingAmount { get; set; }
 
@@ -79,5 +88,26 @@ public class TransactionModel : ReactiveObject
 	public void Add(TransactionModel child)
 	{
 		_children.Add(child);
+	}
+
+	public (SmartTransaction TransactionToSpeedUp, BuildTransactionResult BoostingTransaction) CreateSpeedUpTransaction()
+	{
+		var transactionToSpeedUp = TransactionSummary.Transaction;
+
+		// If the transaction has CPFPs, then we want to speed them up instead of us.
+		// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
+		if (transactionToSpeedUp.TryGetLargestCPFP(_wallet.KeyManager, out var largestCpfp))
+		{
+			transactionToSpeedUp = largestCpfp;
+		}
+		var boostingTransaction = _wallet.SpeedUpTransaction(transactionToSpeedUp);
+
+		return (transactionToSpeedUp, boostingTransaction);
+	}
+
+	public BuildTransactionResult CreateCancellingTransaction()
+	{
+		var cancellingTransaction = Wallet.CancelTransaction(transactionToCancel);
+		return cancellingTransaction;
 	}
 }

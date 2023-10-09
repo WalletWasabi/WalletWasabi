@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-internal class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
+public partial class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 {
 	public SpeedUpHistoryItemViewModel(UiContext uiContext, TransactionModel transaction, HistoryItemViewModelBase parent) : base(uiContext, transaction)
 	{

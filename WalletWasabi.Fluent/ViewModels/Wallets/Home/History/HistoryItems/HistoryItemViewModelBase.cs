@@ -15,12 +15,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private bool _isFlashing;
 	[AutoNotify] private bool _isExpanded;
 
-	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction)
+	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
-		UiContext = uiContext;
 		Transaction = transaction;
 
-		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(UiContext.Clipboard.SetTextAsync);
+		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -29,6 +28,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				await Task.Delay(1260);
 				IsFlashing = false;
 			});
+	}
+
+	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : this(transaction)
+	{
+		UiContext = uiContext;
 	}
 
 	public TransactionModel Transaction { get; }

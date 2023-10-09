@@ -4,28 +4,28 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class TransactionTreeBuilder
 {
-	private readonly KeyManager _keyManager;
+	private readonly Wallet _wallet;
 
-	public TransactionTreeBuilder(KeyManager keyManager)
+	public TransactionTreeBuilder(Wallet wallet)
 	{
-		_keyManager = keyManager;
+		_wallet = wallet;
 	}
 
-	public IEnumerable<TransactionModel> Build(List<TransactionSummary> summaries)
+	public IEnumerable<ITransactionModel> Build(List<TransactionSummary> summaries)
 	{
 		Money balance = Money.Zero;
-		TransactionModel? coinJoinGroup = default;
+		ITransactionModel? coinJoinGroup = default;
 
-		var result = new List<TransactionModel>();
+		var result = new List<ITransactionModel>();
 
 		for (var i = 0; i < summaries.Count; i++)
 		{
@@ -121,13 +121,13 @@ public class TransactionTreeBuilder
 		return result;
 	}
 
-	private bool TryFindHistoryItem(uint256 txid, IEnumerable<TransactionModel> history, [NotNullWhen(true)] out TransactionModel? found)
+	private bool TryFindHistoryItem(uint256 txid, IEnumerable<ITransactionModel> history, [NotNullWhen(true)] out ITransactionModel? found)
 	{
 		found = history.SingleOrDefault(x => x.Id == txid);
 		return found is not null;
 	}
 
-	private TransactionModel CreateRegular(int index, TransactionSummary transactionSummary, Money balance)
+	private ITransactionModel CreateRegular(int index, TransactionSummary transactionSummary, Money balance)
 	{
 		var amounts = GetAmounts(transactionSummary);
 		var itemType = TransactionType.Unknown;
@@ -160,7 +160,7 @@ public class TransactionTreeBuilder
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 
-		return new TransactionModel
+		return new TransactionModel(_wallet)
 		{
 			TransactionSummary = transactionSummary,
 			Id = transactionSummary.GetHash(),
@@ -171,8 +171,8 @@ public class TransactionTreeBuilder
 			Balance = balance,
 			IncomingAmount = amounts.IncomingAmount,
 			OutgoingAmount = amounts.OutgoingAmount,
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_keyManager),
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_keyManager),
+			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
+			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 			Type = itemType,
 			Status = GetItemStatus(transactionSummary),
 			Confirmations = confirmations,
@@ -186,7 +186,7 @@ public class TransactionTreeBuilder
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 
-		return new TransactionModel
+		return new TransactionModel(_wallet)
 		{
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
@@ -207,7 +207,7 @@ public class TransactionTreeBuilder
 
 		var isConfirmed = children.All(x => x.IsConfirmed);
 
-		var result = new TransactionModel
+		var result = new TransactionModel(_wallet)
 		{
 			Id = transactionSummary.GetHash(),
 			TransactionSummary = transactionSummary,
@@ -219,8 +219,8 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			IncomingAmount = parent.IncomingAmount,
 			OutgoingAmount = parent.OutgoingAmount,
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_keyManager),
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_keyManager),
+			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
+			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 
 			Type = TransactionType.CPFP,
 			Status =
@@ -279,13 +279,13 @@ public class TransactionTreeBuilder
 			: $"{firstDate.ToUserFacingString(withTime: false)} - {lastDate.ToUserFacingString(withTime: false)}";
 	}
 
-	private TransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary, Money balance)
+	private ITransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary, Money balance)
 	{
 		var amounts = GetAmounts(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 
-		return new TransactionModel
+		return new TransactionModel(_wallet)
 		{
 			Id = transactionSummary.GetHash(),
 			TransactionSummary = transactionSummary,

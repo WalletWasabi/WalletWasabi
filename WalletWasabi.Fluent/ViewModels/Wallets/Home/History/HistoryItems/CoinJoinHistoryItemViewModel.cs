@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public CoinJoinHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext, transaction)
+	private CoinJoinHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
 	{
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().CoinJoinDetails(this, wallet.Transactions.TransactionProcessed));
 	}
