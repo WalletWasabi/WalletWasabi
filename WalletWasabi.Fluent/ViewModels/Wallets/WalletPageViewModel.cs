@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
@@ -110,13 +111,13 @@ public partial class WalletPageViewModel : ViewModelBase
 	{
 		return new ISearchItem[]
 		{
-			new ActionableItem("Send", "Display wallet send dialog", async () => UiContext.Navigate().To().Send(WalletViewModel!), "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true },
-			new ActionableItem("Receive", "Display wallet receive dialog", async () => UiContext.Navigate().To().Receive(WalletModel), "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true },
-			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", async () => UiContext.Navigate().To().CoinJoinSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true },
-			new ActionableItem("Wallet Settings", "Display wallet settings", async () => UiContext.Navigate().To().WalletSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true },
-			new ActionableItem("Wallet Coins", "Display wallet coins", async () => UiContext.Navigate().To().WalletCoins(WalletModel), "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true },
-			new ActionableItem("Wallet Stats", "Display wallet stats", async () => UiContext.Navigate().To().WalletStats(WalletViewModel!), "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true },
-			new ActionableItem("Wallet Info", "Display wallet info", async () => UiContext.Navigate().To().WalletInfo(WalletModel), "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true },
+			new ActionableItem("Send", "Display wallet send dialog", () => { UiContext.Navigate().To().Send(WalletViewModel!); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true },
+			new ActionableItem("Receive", "Display wallet receive dialog", () => { UiContext.Navigate().To().Receive(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true },
+			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { UiContext.Navigate().To().CoinJoinSettings(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true },
+			new ActionableItem("Wallet Settings", "Display wallet settings", () => { UiContext.Navigate().To().WalletSettings(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true },
+			new ActionableItem("Wallet Coins", "Display wallet coins", () => { UiContext.Navigate().To().WalletCoins(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true },
+			new ActionableItem("Wallet Stats", "Display wallet stats", () => { UiContext.Navigate().To().WalletStats(WalletViewModel!); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true },
+			new ActionableItem("Wallet Info", "Display wallet info", () => { UiContext.Navigate().To().WalletInfo(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true },
 		};
 	}
 
