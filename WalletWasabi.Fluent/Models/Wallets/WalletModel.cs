@@ -66,10 +66,16 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
+	public int Id => Wallet.Id;
+
 	public string Name
 	{
 		get => Wallet.WalletName;
-		set => Wallet.WalletName = value;
+		set
+		{
+			Wallet.WalletName = value;
+			this.RaisePropertyChanged();
+		}
 	}
 
 	public Network Network => Wallet.Network;

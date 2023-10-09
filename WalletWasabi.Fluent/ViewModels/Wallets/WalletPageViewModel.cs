@@ -17,6 +17,7 @@ public partial class WalletPageViewModel : ViewModelBase
 	[AutoNotify] private string? _iconNameFocused;
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
+	[AutoNotify] private string? _title;
 
 	private WalletPageViewModel(IWalletModel walletModel)
 	{
@@ -55,12 +56,12 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Subscribe();
 
 		SetIcon();
+
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
 
 	public IWalletModel WalletModel { get; }
 	public Wallet Wallet { get; set; }
-
-	public string Title => WalletModel.Name;
 
 	private void ShowLogin()
 	{

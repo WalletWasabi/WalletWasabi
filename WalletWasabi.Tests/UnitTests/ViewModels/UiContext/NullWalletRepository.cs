@@ -13,10 +13,10 @@ public class NullWalletRepository : IWalletRepository
 	public NullWalletRepository()
 	{
 		Wallets = Array.Empty<IWalletModel>()
-			.AsObservableChangeSet(x => x.Name);
+			.AsObservableChangeSet(x => x.Id);
 	}
 
-	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
+	public IObservable<IChangeSet<IWalletModel, int>> Wallets { get; }
 
 	public string? DefaultWalletName => null;
 

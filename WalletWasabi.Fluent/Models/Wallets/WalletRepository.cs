@@ -36,14 +36,14 @@ public partial class WalletRepository : ReactiveObject
 					  .StartWith(Unit.Default)
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
-					  .ToObservableChangeSet(x => x.WalletName)
+					  .ToObservableChangeSet(x => x.Id)
 					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
 					  .Transform(x => x as IWalletModel);
 
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
-	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
+	public IObservable<IChangeSet<IWalletModel, int>> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();

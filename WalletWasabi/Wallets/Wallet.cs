@@ -26,7 +26,8 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
-
+	private static int WalletId;
+	
 	public Wallet(
 		string dataDir,
 		Network network,
@@ -58,6 +59,7 @@ public class Wallet : BackgroundService, IWallet
 		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
 		Coins = TransactionProcessor.Coins;
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
+		Id = ++WalletId;
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -123,6 +125,8 @@ public class Wallet : BackgroundService, IWallet
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
+
+	public int Id { get; }
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 

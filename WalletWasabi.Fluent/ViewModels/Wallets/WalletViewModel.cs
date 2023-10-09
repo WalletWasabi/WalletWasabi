@@ -40,14 +40,15 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private bool _isCoinJoining;
 
+	private string _title = "";
+	[AutoNotify] private string _walletName = "";
+
 	public WalletViewModel(UiContext uiContext, WalletPageViewModel parent)
 	{
 		_parent = parent;
 		Wallet = parent.Wallet;
 		WalletModel = parent.WalletModel;
 		UiContext = uiContext;
-
-		_title = WalletName;
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
@@ -136,18 +137,17 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
+
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.WalletName);
 	}
 
 	public WalletState WalletState => Wallet.State;
-
-	private string _title;
 
 	// TODO: Rename this to "Wallet" after this ViewModel is decoupled and the current "Wallet" property is removed.
 	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
-
-	public string WalletName => Wallet.WalletName;
 
 	public bool IsLoggedIn => Wallet.IsLoggedIn;
 
@@ -221,7 +221,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public override string Title
 	{
 		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+		protected set
+		{
+			_title = value;
+			this.RaiseAndSetIfChanged(ref _title, value);
+		}
 	}
 
 	public void SelectTransaction(uint256 txid)

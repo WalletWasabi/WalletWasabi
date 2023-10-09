@@ -64,7 +64,13 @@ public class ReceiveViewModelTests
 			Addresses = addresses.Connect();
 		}
 
-		public string Name => throw new NotSupportedException();
+		public int Id { get; }
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotImplementedException();
+		}
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 

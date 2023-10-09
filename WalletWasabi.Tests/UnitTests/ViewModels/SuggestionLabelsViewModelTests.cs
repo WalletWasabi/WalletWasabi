@@ -168,7 +168,13 @@ public class SuggestionLabelsViewModelTests
 			_mostUsedLabels = mostUsedLabels;
 		}
 
-		public string Name => throw new NotSupportedException();
+		public int Id { get; }
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotImplementedException();
+		}
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
 
