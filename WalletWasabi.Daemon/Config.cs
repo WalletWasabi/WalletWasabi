@@ -1,7 +1,11 @@
+using NBitcoin;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
-using NBitcoin;
+using System.Runtime.CompilerServices;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -11,118 +15,91 @@ namespace WalletWasabi.Daemon;
 
 public class Config
 {
-	public PersistentConfig PersistentConfig { get; }
-	private string[] Args { get; }
-
-	public Config(PersistentConfig persistentConfig, string[] args)
+	public Config(PersistentConfig persistentConfig, string[] cliArgs)
 	{
 		PersistentConfig = persistentConfig;
-		Args = args;
+		CliArgs = cliArgs;
+
+		Data = new()
+		{
+			{ nameof(Network), GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs) },
+			{ nameof(MainNetBackendUri), GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs) },
+			{ nameof(TestNetBackendUri), GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs) },
+			{ nameof(RegTestBackendUri), GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs) },
+			{ nameof(MainNetCoordinatorUri), GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs) },
+			{ nameof(TestNetCoordinatorUri), GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)},
+			{ nameof(RegTestCoordinatorUri), GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)},
+			{ nameof(UseTor), GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs) },
+			{ nameof(TerminateTorOnExit), GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs) },
+			{ nameof(DownloadNewVersion), GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs) },
+			{ nameof(StartLocalBitcoinCoreOnStartup), GetBoolValue("StartLocalBitcoinCoreOnStartup", PersistentConfig.StartLocalBitcoinCoreOnStartup, cliArgs) },
+			{ nameof(StopLocalBitcoinCoreOnShutdown), GetBoolValue("StopLocalBitcoinCoreOnShutdown", PersistentConfig.StopLocalBitcoinCoreOnShutdown, cliArgs) },
+			{ nameof(LocalBitcoinCoreDataDir), GetStringValue("LocalBitcoinCoreDataDir", PersistentConfig.LocalBitcoinCoreDataDir, cliArgs) },
+			{ nameof(MainNetBitcoinP2pEndPoint), GetEndPointValue("MainNetBitcoinP2pEndPoint", PersistentConfig.MainNetBitcoinP2pEndPoint, cliArgs) },
+			{ nameof(TestNetBitcoinP2pEndPoint), GetEndPointValue("TestNetBitcoinP2pEndPoint", PersistentConfig.TestNetBitcoinP2pEndPoint, cliArgs) },
+			{ nameof(RegTestBitcoinP2pEndPoint), GetEndPointValue("RegTestBitcoinP2pEndPoint", PersistentConfig.RegTestBitcoinP2pEndPoint, cliArgs) },
+			{ nameof(JsonRpcServerEnabled), GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs) },
+			{ nameof(JsonRpcUser), GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs) },
+			{ nameof(JsonRpcPassword), GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs) },
+			{ nameof(JsonRpcServerPrefixes), GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs) },
+			{ nameof(DustThreshold), GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs) },
+			{ nameof(BlockOnlyMode), GetBoolValue("BlockOnly", value: false, cliArgs) },
+			{ nameof(LogLevel), GetStringValue("LogLevel", value: "", cliArgs) },
+			{ nameof(EnableGpu), GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs) },
+			{ nameof(CoordinatorIdentifier), GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs) },
+		};
+
+		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
+		foreach (IValue optionValue in Data.Values)
+		{
+			if (optionValue.Overridden)
+			{
+				IsOverridden = true;
+				break;
+			}
+		}
+
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
-	public Network Network => GetEffectiveValue<Network>(
-		PersistentConfig.Network,
-		x => Network.GetNetwork(x) ?? throw new ArgumentException("Network", $"Unknown network {x}"),
-		key: "Network");
+	private Dictionary<string, IValue> Data { get; }
+	public PersistentConfig PersistentConfig { get; }
+	public string[] CliArgs { get; }
+	public Network Network => GetEffectiveValue<NetworkValue, Network>();
 
-	public string MainNetBackendUri => GetEffectiveString(PersistentConfig.MainNetBackendUri, key: "MainNetBackendUri");
-	public string TestNetBackendUri => GetEffectiveString(PersistentConfig.TestNetBackendUri, key: "TestNetBackendUri");
-	public string RegTestBackendUri => GetEffectiveString(PersistentConfig.RegTestBackendUri, key: "RegTestBackendUri");
-	public string? MainNetCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.MainNetCoordinatorUri, key: "MainNetCoordinatorUri");
-	public string? TestNetCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.TestNetCoordinatorUri, key: "TestNetCoordinatorUri");
-	public string? RegTestCoordinatorUri => GetEffectiveOptionalString(PersistentConfig.RegTestCoordinatorUri, key: "RegTestCoordinatorUri");
-	public bool UseTor => GetEffectiveBool(PersistentConfig.UseTor, key: "UseTor");
-	public bool TerminateTorOnExit => GetEffectiveBool(PersistentConfig.TerminateTorOnExit, key: "TerminateTorOnExit");
-	public bool DownloadNewVersion => GetEffectiveBool(PersistentConfig.DownloadNewVersion, key: "DownloadNewVersion");
-	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveBool(PersistentConfig.StartLocalBitcoinCoreOnStartup, key: "StartLocalBitcoinCoreOnStartup");
-	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveBool(PersistentConfig.StopLocalBitcoinCoreOnShutdown, key: "StopLocalBitcoinCoreOnShutdown");
-	public string LocalBitcoinCoreDataDir => GetEffectiveString(PersistentConfig.LocalBitcoinCoreDataDir, key: "LocalBitcoinCoreDataDir");
-	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.MainNetBitcoinP2pEndPoint, key: "MainNetBitcoinP2pEndPoint");
-	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.TestNetBitcoinP2pEndPoint, key: "TestNetBitcoinP2pEndPoint");
-	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveEndPoint(PersistentConfig.RegTestBitcoinP2pEndPoint, key: "RegTestBitcoinP2pEndPoint");
-	public bool JsonRpcServerEnabled => GetEffectiveBool(PersistentConfig.JsonRpcServerEnabled, key: "JsonRpcServerEnabled");
-	public string JsonRpcUser => GetEffectiveString(PersistentConfig.JsonRpcUser, key: "JsonRpcUser");
-	public string JsonRpcPassword => GetEffectiveString(PersistentConfig.JsonRpcPassword, key: "JsonRpcPassword");
-	public string[] JsonRpcServerPrefixes => GetEffectiveValue(PersistentConfig.JsonRpcServerPrefixes, x => new[] { x }, key: "JsonRpcServerPrefixes");
+	public string MainNetBackendUri => GetEffectiveValue<StringValue, string>();
+	public string TestNetBackendUri => GetEffectiveValue<StringValue, string>();
+	public string RegTestBackendUri => GetEffectiveValue<StringValue, string>();
+	public string? MainNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>();
+	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>();
+	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>();
+	public bool UseTor => GetEffectiveValue<BoolValue, bool>();
+	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>();
+	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>();
+	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>();
+	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveValue<BoolValue, bool>();
+	public string LocalBitcoinCoreDataDir => GetEffectiveValue<StringValue, string>();
+	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>();
+	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>();
+	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>();
+	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>();
+	public string JsonRpcUser => GetEffectiveValue<StringValue, string>();
+	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>();
+	public string[] JsonRpcServerPrefixes => GetEffectiveValue<StringArrayValue, string[]>();
+	public Money DustThreshold => GetEffectiveValue<MoneyValue, Money>();
+	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>();
+	public string LogLevel => GetEffectiveValue<StringValue, string>();
 
-	public Money DustThreshold => GetEffectiveValue(PersistentConfig.DustThreshold, x =>
-		{
-			if (Money.TryParse(x, out var money))
-			{
-				return money;
-			}
-			throw new ArgumentNullException("DustThreshold", "Not a valid money");
-		},
-		key: "DustThreshold");
+	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>();
+	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>();
+	public ServiceConfiguration ServiceConfiguration { get; }
 
-	public bool BlockOnlyMode => GetEffectiveBool(false, "BlockOnly");
-	public string LogLevel => GetEffectiveString("", "LogLevel");
-
-	public static string DataDir => GetString(
+	public static string DataDir { get; } = GetStringValue(
+		"datadir",
 		EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")),
-		Environment.GetCommandLineArgs(),
-		"datadir");
+		Environment.GetCommandLineArgs()).EffectiveValue;
 
-	public bool EnableGpu => GetEffectiveBool(PersistentConfig.EnableGpu, key: "EnableGpu");
-	public string CoordinatorIdentifier => GetEffectiveString(PersistentConfig.CoordinatorIdentifier, key: "CoordinatorIdentifier");
-	public ServiceConfiguration ServiceConfiguration => new(GetBitcoinP2pEndPoint(), DustThreshold);
-
-	private EndPoint GetEffectiveEndPoint(EndPoint valueInConfigFile, string key) =>
-		GetEffectiveValue(
-			valueInConfigFile,
-			x =>
-			{
-				if (EndPointParser.TryParse(x, 0, out var endpoint))
-				{
-					return endpoint;
-				}
-
-				throw new ArgumentNullException(key, "Not a valid endpoint");
-			},
-			Args,
-			key);
-
-	private bool GetEffectiveBool(bool valueInConfigFile, string key) =>
-		GetEffectiveValue(
-			valueInConfigFile,
-			x =>
-				bool.TryParse(x, out var value)
-				? value
-				: throw new ArgumentException("must be 'true' or 'false'.", key),
-			Args,
-			key);
-
-	private string GetEffectiveString(string valueInConfigFile, string key) =>
-		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
-
-	private string? GetEffectiveOptionalString(string? valueInConfigFile, string key) =>
-		GetEffectiveValue(valueInConfigFile, x => x, Args, key);
-
-	private T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string key) =>
-		GetEffectiveValue(valueInConfigFile, converter, Args, key);
-
-	private static string GetString(string valueInConfigFile, string[] args, string key) =>
-		GetEffectiveValue(valueInConfigFile, x => x, args, key);
-
-	private static T GetEffectiveValue<T>(T valueInConfigFile, Func<string, T> converter, string[] args, string key)
-	{
-		if (ArgumentHelpers.TryGetValue(key, args, converter, out var cliArg))
-		{
-			return cliArg;
-		}
-
-		var envKey = "WASABI-" + key.ToUpperInvariant();
-		var environmentVariables = Environment.GetEnvironmentVariables();
-		if (environmentVariables.Contains(envKey))
-		{
-			if (environmentVariables[envKey] is string envVar)
-			{
-				return converter(envVar);
-			}
-		}
-
-		return valueInConfigFile;
-	}
+	public bool IsOverridden { get; }
 
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
@@ -130,14 +107,17 @@ public class Config
 		{
 			return MainNetBitcoinP2pEndPoint;
 		}
+
 		if (Network == Network.TestNet)
 		{
 			return TestNetBitcoinP2pEndPoint;
 		}
+
 		if (Network == Network.RegTest)
 		{
 			return RegTestBitcoinP2pEndPoint;
 		}
+
 		throw new NotSupportedNetworkException(Network);
 	}
 
@@ -147,14 +127,17 @@ public class Config
 		{
 			return new Uri(MainNetBackendUri);
 		}
+
 		if (Network == Network.TestNet)
 		{
 			return new Uri(TestNetBackendUri);
 		}
+
 		if (Network == Network.RegTest)
 		{
 			return new Uri(RegTestBackendUri);
 		}
+
 		throw new NotSupportedNetworkException(Network);
 	}
 
@@ -170,4 +153,183 @@ public class Config
 
 		return result is null ? GetBackendUri() : new Uri(result);
 	}
+
+	private EndPointValue GetEndPointValue(string key, EndPoint value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!EndPointParser.TryParse(overrideValue, 0, out var endpoint))
+			{
+				throw new ArgumentNullException(key, "Not a valid endpoint");
+			}
+
+			return new EndPointValue(value, endpoint, valueSource.Value);
+		}
+
+		return new EndPointValue(value, value, ValueSource.Disk);
+	}
+
+	private MoneyValue GetMoneyValue(string key, Money value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!Money.TryParse(overrideValue, out var money))
+			{
+				throw new ArgumentNullException("DustThreshold", "Not a valid money");
+			}
+
+			return new MoneyValue(value, money, valueSource.Value);
+		}
+
+		return new MoneyValue(value, value, ValueSource.Disk);
+	}
+
+	private NetworkValue GetNetworkValue(string key, string value, string[] cliArgs)
+	{
+		StringValue stringValue = GetStringValue(key, value, cliArgs);
+
+		return new NetworkValue(
+			Value: Network.GetNetwork(stringValue.Value) ?? throw new ArgumentException("Network", $"Unknown network '{stringValue.Value}'"),
+			EffectiveValue: Network.GetNetwork(stringValue.EffectiveValue) ?? throw new ArgumentException("Network", $"Unknown network '{stringValue.EffectiveValue}'"),
+			stringValue.ValueSource);
+	}
+
+	private BoolValue GetBoolValue(string key, bool value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!bool.TryParse(overrideValue, out bool argsBoolValue))
+			{
+				throw new ArgumentException("must be 'true' or 'false'.", key);
+			}
+
+			return new BoolValue(value, argsBoolValue, valueSource.Value);
+		}
+
+		return new BoolValue(value, value, ValueSource.Disk);
+	}
+
+	private static StringValue GetStringValue(string key, string value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			return new StringValue(value, overrideValue, valueSource.Value);
+		}
+
+		return new StringValue(value, value, ValueSource.Disk);
+	}
+
+	private static NullableStringValue GetNullableStringValue(string key, string? value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			return new NullableStringValue(value, overrideValue, valueSource.Value);
+		}
+
+		return new NullableStringValue(value, value, ValueSource.Disk);
+	}
+
+	private static StringArrayValue GetStringArrayValue(string key, string[] arrayValues, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			return new StringArrayValue(arrayValues, new string[] { overrideValue }, valueSource.Value);
+		}
+
+		return new StringArrayValue(arrayValues, arrayValues, ValueSource.Disk);
+	}
+
+	private static bool GetOverrideValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? overrideValue, [NotNullWhen(true)] out ValueSource? valueSource)
+	{
+		// CLI arguments have higher precedence than environment variables.
+		if (GetCliArgsValue(key, cliArgs, out string? argsValue))
+		{
+			valueSource = ValueSource.CommandLineArgument;
+			overrideValue = argsValue;
+			return true;
+		}
+
+		if (GetEnvironmentVariable(key, out string? envVarValue))
+		{
+			valueSource = ValueSource.EnvironmentVariable;
+			overrideValue = envVarValue;
+			return true;
+		}
+
+		valueSource = null;
+		overrideValue = null;
+		return false;
+	}
+
+	private static bool GetCliArgsValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? cliArgsValue)
+	{
+		if (ArgumentHelpers.TryGetValue(key, cliArgs, x => x, out cliArgsValue))
+		{
+			return true;
+		}
+
+		cliArgsValue = null;
+		return false;
+	}
+
+	private static bool GetEnvironmentVariable(string key, [NotNullWhen(true)] out string? envValue)
+	{
+		string envKey = "WASABI-" + key.ToUpperInvariant();
+		IDictionary environmentVariables = Environment.GetEnvironmentVariables();
+
+		if (environmentVariables.Contains(envKey))
+		{
+			if (environmentVariables[envKey] is string envVar)
+			{
+				envValue = envVar;
+				return true;
+			}
+		}
+
+		envValue = null;
+		return false;
+	}
+
+	private TValue GetEffectiveValue<TStorage, TValue>([CallerMemberName] string key = "") where TStorage : ITypedValue<TValue>
+	{
+		if (Data.TryGetValue(key, out IValue? valueObject) && valueObject is ITypedValue<TValue> typedValue)
+		{
+			return typedValue.EffectiveValue;
+		}
+
+		throw new InvalidOperationException($"Failed to find key '{key}' in config storage.");
+	}
+
+	/// <summary>Source of application config value.</summary>
+	private enum ValueSource
+	{
+		/// <summary>Value stored in JSON config on disk.</summary>
+		Disk,
+
+		/// <summary>CLI argument passed by user to override disk config value.</summary>
+		CommandLineArgument,
+
+		/// <summary>Environment variable overriding disk config value.</summary>
+		EnvironmentVariable
+	}
+
+	private interface IValue
+	{
+		ValueSource ValueSource { get; }
+		bool Overridden => ValueSource != ValueSource.Disk;
+	}
+
+	private interface ITypedValue<T> : IValue
+	{
+		T Value { get; }
+		T EffectiveValue { get; }
+	}
+
+	private record BoolValue(bool Value, bool EffectiveValue, ValueSource ValueSource) : ITypedValue<bool>;
+	private record StringValue(string Value, string EffectiveValue, ValueSource ValueSource) : ITypedValue<string>;
+	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
+	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;
+	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
+	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
+	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;
 }
