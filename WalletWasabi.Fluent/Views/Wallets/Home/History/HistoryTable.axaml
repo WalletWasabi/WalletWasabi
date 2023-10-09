@@ -48,13 +48,13 @@
         </MenuItem.Icon>
       </MenuItem>
       <Separator IsVisible="{Binding TransactionOperationsVisible}" />
-      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanSpeedUpTransaction}"
+      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding Transaction.CanSpeedUpTransaction}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanCancelTransaction}"
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />

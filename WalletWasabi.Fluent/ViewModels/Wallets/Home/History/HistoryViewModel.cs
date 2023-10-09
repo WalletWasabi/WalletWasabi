@@ -34,13 +34,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	public HistoryViewModel(UiContext uiContext, IWalletModel wallet)
+	// TODO: Remove walletViewModel parameter
+	public HistoryViewModel(UiContext uiContext, WalletViewModel walletViewModel, IWalletModel wallet)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
 
 		// TODO: Remove this
-		_walletVm = MainViewModel.Instance.NavBar.Wallets.First(x => x.WalletModel.Name == _wallet.Name).WalletViewModel!;
+		_walletVm = walletViewModel;
 
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
