@@ -74,12 +74,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		if (transactionSummary.Amount < Money.Zero)
 		{
 			Amount = UiContext.AmountProvider.Create(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
-			AmountText = "Outgoing";
+			AmountText = "Amount sent";
 		}
 		else
 		{
 			Amount = UiContext.AmountProvider.Create(transactionSummary.Amount);
-			AmountText = "Incoming";
+			AmountText = "Amount received";
 		}
 
 		BlockHash = transactionSummary.BlockHash?.ToString();
