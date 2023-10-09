@@ -111,11 +111,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 			return;
 		}
 
-		var currentTransaction = _wallet.Transactions.GetById(TransactionId);
-
-		if (currentTransaction is { })
+		if (_wallet.Transactions.TryGetById(TransactionId, out var transactionSummary))
 		{
-			UpdateValues(currentTransaction);
+			UpdateValues(transactionSummary!);
 		}
 	}
 }

@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -46,9 +44,18 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public TransactionSummary? GetById(uint256 transactionId)
+	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
 	{
-		return Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
+		var tryGetById = Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
+
+		if (tryGetById is null)
+		{
+			transactionSummary = default;
+			return false;
+		}
+
+		transactionSummary = tryGetById;
+		return true;
 	}
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
