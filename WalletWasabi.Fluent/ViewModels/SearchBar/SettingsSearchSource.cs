@@ -33,17 +33,17 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 
 	private IEnumerable<ISearchItem> GetSettingsItems()
 	{
-		yield return new ContentSearchItem(content: Setting(selector: x => x.DarkModeEnabled), name: "Dark mode", category: "Appearance", keywords: new List<string> { "Black", "White", "Theme", "Dark", "Light" }, icon: "nav_settings_regular") { IsDefault = false };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoCopy), name: "Auto copy addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular") { IsDefault = false };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoPaste), name: "Auto paste addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular") { IsDefault = false };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.DarkModeEnabled), name: "Dark mode", category: "Appearance", keywords: new List<string> { "Black", "White", "Theme", "Dark", "Light" }, icon: "nav_settings_regular") { IsDefault = false, Priority = 1 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoCopy), name: "Auto copy addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular") { IsDefault = false, Priority = 2 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoPaste), name: "Auto paste addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular") { IsDefault = false, Priority = 3 };
 
 		if (App.EnableFeatureHide)
 		{
-			yield return new ContentSearchItem(content: Setting(selector: x => x.HideOnClose), name: "Run in background when closed", category: "Settings", keywords: new List<string>() { "hide", "tray" }, icon: "nav_settings_regular") { IsDefault = false };
+			yield return new ContentSearchItem(content: Setting(selector: x => x.HideOnClose), name: "Run in background when closed", category: "Settings", keywords: new List<string>() { "hide", "tray" }, icon: "nav_settings_regular") { IsDefault = false , Priority = 4 };
 		}
 
-		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: "Run Wasabi when computer starts", category: "Settings", keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular") { IsDefault = false };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular") { IsDefault = false };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: "Run Wasabi when computer starts", category: "Settings", keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular") { IsDefault = false, Priority = 5 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular") { IsDefault = false, Priority = 6 };
 
 		yield return ContentSearchItemNode.Create(
 			searchSource: _uiContext.EditableSearchSource,
@@ -53,7 +53,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			isDefault: false,
 			keywords: new List<string>(),
 			icon: "nav_settings_regular",
-			priority: 1,
+			priority: 7,
 			nestedItemConfiguration: new NestedItemConfiguration<bool>(
 				isVisibleSelector: isEnabled => isEnabled,
 				item: new ContentSearchItem(
@@ -64,7 +64,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 					icon: "nav_settings_regular")
 				{
 					IsDefault = false,
-					Priority = 2
+					Priority = 8
 				}));
 
 		yield return ContentSearchItemNode.Create(
@@ -75,7 +75,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			isDefault: false,
 			keywords: new List<string>(),
 			icon: "nav_settings_regular",
-			priority: 1,
+			priority: 7,
 			nestedItemConfiguration: new NestedItemConfiguration<bool>(
 				isVisibleSelector: isEnabled => isEnabled,
 				item: new ContentSearchItem(
@@ -86,7 +86,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 					icon: "nav_settings_regular")
 				{
 					IsDefault = false,
-					Priority = 2
+					Priority = 8
 				}));
 	}
 
