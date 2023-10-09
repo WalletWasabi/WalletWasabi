@@ -19,6 +19,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
+	private readonly ReadOnlyObservableCollection<TransactionSummary> _transactions;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
@@ -36,11 +37,10 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
 					  .ToObservableChangeSet(x => x.GetHash());
 
-		transactionChanges.Bind(out var collection).Subscribe();
-		Transactions = collection;
+		transactionChanges.Bind(out _transactions).Subscribe();
 	}
 
-	public ReadOnlyObservableCollection<TransactionSummary> Transactions { get; }
+	public ReadOnlyObservableCollection<TransactionSummary> Transactions => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
