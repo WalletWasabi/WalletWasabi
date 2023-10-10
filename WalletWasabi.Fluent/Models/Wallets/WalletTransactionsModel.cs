@@ -78,14 +78,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	private IEnumerable<TransactionModel> BuildSummary()
 	{
-		var rawHistoryList = _wallet.BuildHistorySummary();
-
-		var orderedRawHistoryList =
-			rawHistoryList.OrderBy(x => x.FirstSeen)
-						  .ThenBy(x => x.Height)
-						  .ThenBy(x => x.BlockIndex)
-						  .ToList();
-
+		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true));
 		return _treeBuilder.Build(orderedRawHistoryList);
 	}
 }
