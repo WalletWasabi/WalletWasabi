@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
-using System.Runtime.CompilerServices;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -65,33 +64,33 @@ public class Config
 	private Dictionary<string, IValue> Data { get; }
 	public PersistentConfig PersistentConfig { get; }
 	public string[] CliArgs { get; }
-	public Network Network => GetEffectiveValue<NetworkValue, Network>();
+	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
 
-	public string MainNetBackendUri => GetEffectiveValue<StringValue, string>();
-	public string TestNetBackendUri => GetEffectiveValue<StringValue, string>();
-	public string RegTestBackendUri => GetEffectiveValue<StringValue, string>();
-	public string? MainNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>();
-	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>();
-	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>();
-	public bool UseTor => GetEffectiveValue<BoolValue, bool>();
-	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>();
-	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>();
-	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>();
-	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveValue<BoolValue, bool>();
-	public string LocalBitcoinCoreDataDir => GetEffectiveValue<StringValue, string>();
-	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>();
-	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>();
-	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>();
-	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>();
-	public string JsonRpcUser => GetEffectiveValue<StringValue, string>();
-	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>();
-	public string[] JsonRpcServerPrefixes => GetEffectiveValue<StringArrayValue, string[]>();
-	public Money DustThreshold => GetEffectiveValue<MoneyValue, Money>();
-	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>();
-	public string LogLevel => GetEffectiveValue<StringValue, string>();
+	public string MainNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(MainNetBackendUri));
+	public string TestNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(TestNetBackendUri));
+	public string RegTestBackendUri => GetEffectiveValue<StringValue, string>(nameof(RegTestBackendUri));
+	public string? MainNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(MainNetCoordinatorUri));
+	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
+	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
+	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor));
+	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
+	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
+	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>(nameof(StartLocalBitcoinCoreOnStartup));
+	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveValue<BoolValue, bool>(nameof(StopLocalBitcoinCoreOnShutdown));
+	public string LocalBitcoinCoreDataDir => GetEffectiveValue<StringValue, string>(nameof(LocalBitcoinCoreDataDir));
+	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(MainNetBitcoinP2pEndPoint));
+	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(TestNetBitcoinP2pEndPoint));
+	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(RegTestBitcoinP2pEndPoint));
+	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>(nameof(JsonRpcServerEnabled));
+	public string JsonRpcUser => GetEffectiveValue<StringValue, string>(nameof(JsonRpcUser));
+	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>(nameof(JsonRpcPassword));
+	public string[] JsonRpcServerPrefixes => GetEffectiveValue<StringArrayValue, string[]>(nameof(JsonRpcServerPrefixes));
+	public Money DustThreshold => GetEffectiveValue<MoneyValue, Money>(nameof(DustThreshold));
+	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>(nameof(BlockOnlyMode));
+	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
 
-	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>();
-	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>();
+	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
+	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
 	public ServiceConfiguration ServiceConfiguration { get; }
 
 	public static string DataDir { get; } = GetStringValue(
@@ -290,7 +289,7 @@ public class Config
 		return false;
 	}
 
-	private TValue GetEffectiveValue<TStorage, TValue>([CallerMemberName] string key = "") where TStorage : ITypedValue<TValue>
+	private TValue GetEffectiveValue<TStorage, TValue>(string key) where TStorage : ITypedValue<TValue>
 	{
 		if (Data.TryGetValue(key, out IValue? valueObject) && valueObject is ITypedValue<TValue> typedValue)
 		{
