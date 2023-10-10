@@ -1,8 +1,9 @@
+using NBitcoin;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using NBitcoin;
+using WabiSabi.Helpers;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -129,15 +130,7 @@ public class CoinsRegistry : ICoinsView
 					InvalidateSnapshot = true;
 				}
 
-				// Update transaction amount value.
-				if (TransactionAmountsByTxid.TryGetValue(coin.TransactionId, out Money? amount))
-				{
-					TransactionAmountsByTxid[coin.TransactionId] = amount + coin.Amount;
-				}
-				else
-				{
-					TransactionAmountsByTxid.Add(coin.TransactionId, coin.Amount);
-				}
+				UpdateTransactionAmountLocked(coin.TransactionId, add: true, coin.Amount);
 			}
 		}
 
@@ -226,17 +219,16 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 
-				// Update transaction amount value.
-				if (TransactionAmountsByTxid.TryGetValue(tx.GetHash(), out Money? amount))
-				{
-					TransactionAmountsByTxid[tx.GetHash()] = amount - spentCoin.Amount;
-				}
-				else
-				{
-					TransactionAmountsByTxid[tx.GetHash()] = Money.Zero - spentCoin.Amount;
-				}
+				UpdateTransactionAmountLocked(tx.GetHash(), add: false, spentCoin.Amount);
 			}
 		}
+	}
+
+	private void UpdateTransactionAmountLocked(uint256 txid, bool add, Money amount)
+	{
+		Guard.MinimumAndNotNull(nameof(amount), amount, Money.Zero);
+		amount = add ? amount : Money.Zero - amount;
+		TransactionAmountsByTxid[txid] = TransactionAmountsByTxid.TryGetValue(txid, out Money? current) ? current + amount : amount;
 	}
 
 	public void SwitchToUnconfirmFromBlock(Height blockHeight)
