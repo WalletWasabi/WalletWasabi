@@ -272,12 +272,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		HistoryItemViewModelBase viewModel = transaction.Type switch
 		{
-			TransactionType.IncomingTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
-			TransactionType.OutgoingTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
-			TransactionType.SelfTransferTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
+			TransactionType.IncomingTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
+			TransactionType.OutgoingTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
+			TransactionType.SelfTransferTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.Coinjoin => new CoinJoinHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
+			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent ?? throw new ArgumentNullException(nameof(parent))),
 			_ => throw new NotImplementedException($"Unsupported Transaction Type: {transaction.Type}"),
 		};
