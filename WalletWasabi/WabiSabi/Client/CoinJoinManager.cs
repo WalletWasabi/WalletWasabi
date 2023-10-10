@@ -197,20 +197,25 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
 				}
 
-				// If all coins are already private, then don't mix.
-				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
-				{
-					walletToStart.LogTrace("All mixed!");
-
-					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
-				}
-
 				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
 
-				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
-				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
+				// If there are pending payments, ignore already achieved privacy.
+				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
 				{
-					throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
+					// If all coins are already private, then don't mix.
+					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
+					{
+						walletToStart.LogTrace("All mixed!");
+						throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
+					}
+
+
+					// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
+					if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
+					{
+						throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix,
+							$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
+					}
 				}
 
 				NotifyWalletStartedCoinJoin(walletToStart);

@@ -74,6 +74,8 @@ public class PaymentBatch
 	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, p => p.ToPending());
 
+	public bool AreTherePendingPayments => PendingPayments.Any();
+
 	private void MovePaymentsTo<TOldState, TNewState>(
 		IEnumerable<TOldState> payments,
 		Func<TOldState, TNewState> move) where TOldState : Payment where TNewState : Payment
