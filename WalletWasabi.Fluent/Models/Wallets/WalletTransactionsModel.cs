@@ -78,7 +78,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	private IEnumerable<TransactionModel> BuildSummary()
 	{
-		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true));
+		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true);
 		return _treeBuilder.Build(orderedRawHistoryList);
 	}
 }
