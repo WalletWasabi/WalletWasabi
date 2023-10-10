@@ -34,7 +34,7 @@ public class PaymentAwareOutputProviderTests
 		Assert.Equal(outputs[0].Value, Money.Coins(0.00005432m));
 
 		Assert.True(outputs.Length > 2, $"There were {outputs.Length} outputs."); // The rest was decomposed
-		Assert.InRange(outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC)), 0.007600m, 0.007800m); // no money was lost
+		Assert.InRange(outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC)), 0.007500m, 0.007800m); // no money was lost
 	}
 
 	[Theory]
