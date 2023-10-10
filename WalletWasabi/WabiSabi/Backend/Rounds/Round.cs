@@ -170,9 +170,9 @@ public class Round
 
 	private void PublishWitnessesIfPossible()
 	{
-		if (CoinjoinState is SigningState)
+		if (CoinjoinState is SigningState signingState)
 		{
-			CoinjoinState = Assert<SigningState>().PublishWitnesses();
+			CoinjoinState = signingState.PublishWitnesses();
 		}
 	}
 }

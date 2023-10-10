@@ -19,12 +19,9 @@ public record SigningState : MultipartyTransactionState
 	}
 
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
-
-	[JsonIgnore]
+	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
 	private ImmutableDictionary<int, WitScript> UnpublishedWitnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-
-	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
 
 	[JsonIgnore]
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
@@ -86,15 +83,9 @@ public record SigningState : MultipartyTransactionState
 	}
 	public SigningState PublishWitnesses()
 	{
-		var updatedWitnesses = Witnesses;
-		foreach (var (index, witness) in UnpublishedWitnesses)
-		{
-			updatedWitnesses = updatedWitnesses.Add(index, witness);
-		}
-
 		return this with
 		{
-			Witnesses = updatedWitnesses,
+			Witnesses = Witnesses.AddRange(UnpublishedWitnesses),
 			UnpublishedWitnesses = ImmutableDictionary<int, WitScript>.Empty
 		};
 	}
@@ -122,11 +113,7 @@ public record SigningState : MultipartyTransactionState
 	{
 		var tx = CreateUnsignedTransaction();
 
-		foreach (var (index, witness) in Witnesses)
-		{
-			tx.Inputs[index].WitScript = witness;
-		}
-		foreach (var (index, witness) in UnpublishedWitnesses)
+		foreach (var (index, witness) in Witnesses.Concat(UnpublishedWitnesses))
 		{
 			tx.Inputs[index].WitScript = witness;
 		}
