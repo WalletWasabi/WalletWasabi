@@ -2,31 +2,9 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
-
-public enum TransactionType
-{
-	Unknown,
-	IncomingTransaction,
-	OutgoingTransaction,
-	SelfTransferTransaction,
-	Coinjoin,
-	CoinjoinGroup,
-	Cancellation,
-	CPFP
-}
-
-public enum TransactionStatus
-{
-	Unknown,
-	Confirmed,
-	Pending,
-	SpeedUp,
-}
 
 public partial class TransactionModel : ReactiveObject
 {
