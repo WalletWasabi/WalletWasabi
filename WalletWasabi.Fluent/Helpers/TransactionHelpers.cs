@@ -101,7 +101,7 @@ public static class TransactionHelpers
 		}
 		catch
 		{
-			// Couldn't parse to PSTB with bytes, try parsing with string.
+			// Couldn't parse to PSBT with bytes, try parsing with string.
 			var text = await File.ReadAllTextAsync(path);
 			text = text.Trim();
 			try
