@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using WabiSabi.Helpers;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -130,7 +129,7 @@ public class CoinsRegistry : ICoinsView
 					InvalidateSnapshot = true;
 				}
 
-				UpdateTransactionAmountLocked(coin.TransactionId, add: true, coin.Amount);
+				UpdateTransactionAmountLocked(coin.TransactionId, coin.Amount);
 			}
 		}
 
@@ -219,16 +218,14 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 
-				UpdateTransactionAmountLocked(tx.GetHash(), add: false, spentCoin.Amount);
+				UpdateTransactionAmountLocked(tx.GetHash(), Money.Zero - spentCoin.Amount);
 			}
 		}
 	}
 
-	private void UpdateTransactionAmountLocked(uint256 txid, bool add, Money amount)
+	private void UpdateTransactionAmountLocked(uint256 txid, Money diff)
 	{
-		Guard.MinimumAndNotNull(nameof(amount), amount, Money.Zero);
-		amount = add ? amount : Money.Zero - amount;
-		TransactionAmountsByTxid[txid] = TransactionAmountsByTxid.TryGetValue(txid, out Money? current) ? current + amount : amount;
+		TransactionAmountsByTxid[txid] = TransactionAmountsByTxid.TryGetValue(txid, out Money? current) ? current + diff : diff;
 	}
 
 	public void SwitchToUnconfirmFromBlock(Height blockHeight)
