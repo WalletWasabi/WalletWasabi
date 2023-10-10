@@ -99,12 +99,9 @@ public static class TransactionHelpers
 		{
 			psbt = PSBT.Load(psbtBytes, network);
 		}
-		catch (FormatException ex)
-		{
-			throw new FormatException("An error occurred while loading the PSBT file.", ex);
-		}
 		catch
 		{
+			// Couldn't parse to PSTB with bytes, try parsing with string.
 			var text = await File.ReadAllTextAsync(path);
 			text = text.Trim();
 			try
@@ -113,6 +110,7 @@ public static class TransactionHelpers
 			}
 			catch
 			{
+				// Couldn't parse to PSBT with string. All else failed, try to build SmartTransaction and broadcast that.
 				return new SmartTransaction(Transaction.Parse(text, network), Height.Unknown);
 			}
 		}
