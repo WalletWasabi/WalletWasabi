@@ -50,5 +50,7 @@ public static class WabiSabiProtocolErrorCodeExtension
 			or WabiSabiProtocolErrorCode.DeltaNotZero
 			or WabiSabiProtocolErrorCode.WrongNumberOfCreds
 			or WabiSabiProtocolErrorCode.NonUniqueInputs
-			or WabiSabiProtocolErrorCode.CryptoException;
+			or WabiSabiProtocolErrorCode.CryptoException
+			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection;
+
 }
