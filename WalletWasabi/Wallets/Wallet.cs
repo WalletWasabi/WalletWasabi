@@ -80,24 +80,24 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	public BitcoinStore BitcoinStore { get; private set; }
+	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
-	public WasabiSynchronizer Synchronizer { get; private set; }
-	public ServiceConfiguration ServiceConfiguration { get; private set; }
+	public WasabiSynchronizer Synchronizer { get; }
+	public ServiceConfiguration ServiceConfiguration { get; }
 	public string WalletName => KeyManager.WalletName;
 
-	public CoinsRegistry Coins { get; private set; }
+	public CoinsRegistry Coins { get; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
 	public Network Network { get; }
-	public TransactionProcessor TransactionProcessor { get; private set; }
+	public TransactionProcessor TransactionProcessor { get; }
 
-	public HybridFeeProvider FeeProvider { get; private set; }
+	public HybridFeeProvider FeeProvider { get; }
 
-	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
+	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
-	public IBlockProvider BlockProvider { get; private set; }
+	public IBlockProvider BlockProvider { get; }
 
 	public bool IsLoggedIn { get; private set; }
 
