@@ -191,25 +191,7 @@ public class Wallet : BackgroundService, IWallet
 	/// Gets the wallet transaction with the given txid, if the transaction exists.
 	/// </summary>
 	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
-	{
-		foreach (SmartCoin coin in GetAllCoins())
-		{
-			if (coin.TransactionId == txid)
-			{
-				smartTransaction = coin.Transaction;
-				return true;
-			}
-
-			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
-			{
-				smartTransaction = coin.SpenderTransaction;
-				return true;
-			}
-		}
-
-		smartTransaction = null;
-		return false;
-	}
+		=> BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction);
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
