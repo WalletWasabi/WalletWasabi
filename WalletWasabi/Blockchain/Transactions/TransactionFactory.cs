@@ -19,16 +19,19 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionFactory
 {
-	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false, bool allowDoubleSpend = false)
+	/// <param name="parameters.allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, TransactionFactoryParameters parameters, string password = "")
 	{
 		Network = network;
 		KeyManager = keyManager;
 		Coins = coins;
 		TransactionStore = transactionStore;
 		Password = password;
-		AllowUnconfirmed = allowUnconfirmed;
-		AllowDoubleSpend = allowDoubleSpend;
+		AllowUnconfirmed = parameters.AllowUnconfirmed;
+		AllowDoubleSpend = parameters.AllowDoubleSpend;
+		AllowedInputs = parameters.AllowedInputs;
+		TryToSign = parameters.TryToSign;
+		FeeRateFetcher = parameters.FeeRateFetcher;
 	}
 
 	public Network Network { get; }
@@ -37,26 +40,24 @@ public class TransactionFactory
 	public string Password { get; }
 	public bool AllowUnconfirmed { get; }
 	public bool AllowDoubleSpend { get; }
+	public IEnumerable<OutPoint>? AllowedInputs { get; }
+	public bool TryToSign { get; }
+	public Func<FeeRate> FeeRateFetcher { get; }
 	private ITransactionStore TransactionStore { get; }
 
-	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
+	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{LockTime}?, IPayjoinClient?)"/>
 	public BuildTransactionResult BuildTransaction(
 		PaymentIntent payments,
-		FeeRate feeRate,
-		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null)
-		=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
+		=> BuildTransaction(payments, () => LockTime.Zero, payjoinClient);
 
 	/// <exception cref="ArgumentException"/>
 	/// <exception cref="ArgumentNullException"/>
 	/// <exception cref="ArgumentOutOfRangeException"/>
 	public BuildTransactionResult BuildTransaction(
 		PaymentIntent payments,
-		Func<FeeRate> feeRateFetcher,
-		IEnumerable<OutPoint>? allowedInputs = null,
 		Func<LockTime>? lockTimeSelector = null,
-		IPayjoinClient? payjoinClient = null,
-		bool tryToSign = true)
+		IPayjoinClient? payjoinClient = null)
 	{
 		lockTimeSelector ??= () => LockTime.Zero;
 
@@ -68,10 +69,10 @@ public class TransactionFactory
 
 		// Get allowed coins to spend.
 		var availableCoinsView = Coins.Unspent();
-		if (AllowDoubleSpend && allowedInputs is not null)
+		if (AllowDoubleSpend && AllowedInputs is not null)
 		{
 			var doubleSpends = new List<SmartCoin>();
-			foreach (var input in allowedInputs)
+			foreach (var input in AllowedInputs)
 			{
 				if (((CoinsRegistry)Coins).AsAllCoinsView().TryGetByOutPoint(input, out var coin)
 					&& coin.SpenderTransaction is not null
@@ -86,15 +87,15 @@ public class TransactionFactory
 		List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
-		if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
+		if (AllowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 		{
-			if (!allowedInputs.Any())
+			if (!AllowedInputs.Any())
 			{
-				throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+				throw new ArgumentException($"{nameof(AllowedInputs)} is not null, but empty.");
 			}
 
 			allowedSmartCoinInputs = allowedSmartCoinInputs
-				.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
+				.Where(x => AllowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 				.ToList();
 
 			// Add those that have the same script, because common ownership is already exposed.
@@ -164,7 +165,7 @@ public class TransactionFactory
 
 		builder.OptInRBF = true;
 
-		builder.SendEstimatedFees(feeRateFetcher());
+		builder.SendEstimatedFees(FeeRateFetcher());
 
 		var psbt = builder.BuildPSBT(false);
 
@@ -231,7 +232,7 @@ public class TransactionFactory
 		psbt.AddPrevTxs(TransactionStore);
 
 		Transaction tx;
-		if (KeyManager.IsWatchOnly || !tryToSign)
+		if (KeyManager.IsWatchOnly || !TryToSign)
 		{
 			tx = psbt.GetGlobalTransaction();
 		}
