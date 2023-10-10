@@ -52,5 +52,4 @@ public static class WabiSabiProtocolErrorCodeExtension
 			or WabiSabiProtocolErrorCode.NonUniqueInputs
 			or WabiSabiProtocolErrorCode.CryptoException
 			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection;
-
 }
