@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -125,7 +124,7 @@ public class TransactionProcessor
 			var doubleSpentCoins = new List<SmartCoin>();
 			foreach (var txIn in tx.Transaction.Inputs)
 			{
-				if (Coins.TryGetSpenderSmartCoinsByOutPoint(txIn.PrevOut, out var coins))
+				if (Coins.TryGetCoinsByInputPrevOut(txIn.PrevOut, out var coins))
 				{
 					doubleSpentSpenders.AddRange(coins);
 				}
@@ -201,7 +200,8 @@ public class TransactionProcessor
 			}
 		}
 
-		var myInputs = Coins.GetMyInputs(tx).ToArray();
+		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
+
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:

@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -90,9 +89,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		wallet.Balances.Btc
-					   .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
-					   .Subscribe();
+		wallet.Balances
+			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
+			  .Subscribe();
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{

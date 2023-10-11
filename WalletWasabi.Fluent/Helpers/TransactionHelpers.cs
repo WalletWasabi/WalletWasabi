@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -11,9 +10,9 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -99,12 +98,10 @@ public static class TransactionHelpers
 		{
 			psbt = PSBT.Load(psbtBytes, network);
 		}
-		catch (FormatException ex)
-		{
-			throw new FormatException("An error occurred while loading the PSBT file.", ex);
-		}
 		catch
 		{
+			// Couldn't parse to PSBT with bytes, try parsing with string.
+			Logger.LogWarning("Failed to load PSBT by bytes. Trying with string.");
 			var text = await File.ReadAllTextAsync(path);
 			text = text.Trim();
 			try
@@ -113,6 +110,8 @@ public static class TransactionHelpers
 			}
 			catch
 			{
+				// Couldn't parse to PSBT with string. All else failed, try to build SmartTransaction and broadcast that.
+				Logger.LogWarning("Failed to parse PSBT by string. Fall back to building SmartTransaction from the string.");
 				return new SmartTransaction(Transaction.Parse(text, network), Height.Unknown);
 			}
 		}

@@ -17,6 +17,14 @@
   <Application.Resources>
     <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
     <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
+    <NativeMenu x:Key="DefaultNativeMenu">
+      <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
+      <NativeMenuItemSeparator />
+      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
+    </NativeMenu>
+    <NativeMenu x:Key="MacOsNativeMenu">
+      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
+    </NativeMenu>
   </Application.Resources>
 
   <Application.Styles>
@@ -43,6 +51,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CopyableItem.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AmountControl.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
@@ -52,13 +61,14 @@
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
-        <NativeMenu.Menu>
+        <!-- TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed. -->
+        <!--<NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
-        </NativeMenu.Menu>
+        </NativeMenu.Menu>-->
       </TrayIcon>
     </TrayIcons>
   </TrayIcon.Icons>

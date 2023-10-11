@@ -21,10 +21,15 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletRepository : ReactiveObject
 {
+	// TODO: make this field non-static after CancelTransactionDialogViewModel and SpeedUpTransactionDialogViewModel are decoupled.
+	private static IAmountProvider AmountProvider;
+
 	private static Dictionary<string, WalletModel> WalletDictionary = new();
 
-	public WalletRepository()
+	public WalletRepository(IAmountProvider amountProvider)
 	{
+		AmountProvider = amountProvider;
+
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
 			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded)).Select(_ => Unit.Default)
@@ -194,8 +199,8 @@ public partial class WalletRepository : ReactiveObject
 
 		var result =
 			wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletModel(wallet)
-			: new WalletModel(wallet);
+			? new HardwareWalletModel(wallet, AmountProvider)
+			: new WalletModel(wallet, AmountProvider);
 
 		WalletDictionary[wallet.WalletName] = result;
 
