@@ -182,6 +182,67 @@ public class MultipartyTransactionTests
 		// Witness can only be accepted once per input
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.WitnessAlreadyProvided, () => alice1Sig.AddWitness(alice1SignedInput.Index, alice1SignedInput.Input.WitScript));
 	}
+	[Fact]
+	public void PublishWitnessesTest()
+	{
+		using Key key1 = new();
+		using Key key2 = new();
+
+		(var alice1Coin, var alice1OwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key1);
+		(var alice2Coin, var alice2OwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key2);
+		var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
+		var bob2 = new TxOut(Money.Coins(1), alice2Coin.ScriptPubKey);
+
+		var noFeeTx = new ConstructionState(DefaultParameters)
+			.AddInput(alice1Coin, alice1OwnershipProof, CommitmentData)
+			.AddInput(alice2Coin, alice2OwnershipProof, CommitmentData)
+			.AddOutput(bob1)
+			.AddOutput(bob2)
+			.Finalize();
+
+		Assert.Empty(noFeeTx.Witnesses);
+
+		var tx = noFeeTx.CreateUnsignedTransaction();
+		var alice1Tx = tx.Clone();
+		alice1Tx.Sign(key1.GetBitcoinSecret(Network.Main), alice1Coin);
+
+		var alice1SignedInput = alice1Tx.Inputs.Select((x, i) => (Input: x, Index: i)).Single(x => x.Input.HasWitScript());
+		var alice1Sig = noFeeTx.AddWitness(alice1SignedInput.Index, alice1SignedInput.Input.WitScript);
+
+		// First part: Publish witnesses one by one
+		Assert.Empty(alice1Sig.Witnesses);
+		Assert.False(alice1Sig.IsFullySigned);
+
+		// Publish first witness
+		var alice1SigPub = alice1Sig.PublishWitnesses();
+		Assert.Single(alice1SigPub.Witnesses);
+		Assert.False(alice1SigPub.IsFullySigned);
+
+		var alice2Tx = tx.Clone();
+		alice2Tx.Sign(key2.GetBitcoinSecret(Network.Main), alice2Coin);
+		var alice2SignedInput = alice2Tx.Inputs.Select((x, i) => (Input: x, Index: i)).Single(x => x.Input.HasWitScript());
+		var alice2Sig = alice1SigPub.AddWitness(alice2SignedInput.Index, alice2SignedInput.Input.WitScript);
+		Assert.Single(alice2Sig.Witnesses);
+		Assert.True(alice2Sig.IsFullySigned);
+
+		//Publish second witness
+		var alice2SigPub = alice2Sig.PublishWitnesses();
+		Assert.Equal(2, alice2SigPub.Witnesses.Count);
+		Assert.True(alice2SigPub.IsFullySigned);
+
+		// Second part: Publish two witnesses at once
+		var alice3Sig = alice1Sig.AddWitness(alice2SignedInput.Index, alice2SignedInput.Input.WitScript);
+		Assert.Empty(alice3Sig.Witnesses);
+		Assert.True(alice3Sig.IsFullySigned);
+
+		// Publish both witnesses
+		var alice3SigPub = alice3Sig.PublishWitnesses();
+		Assert.Equal(2, alice3SigPub.Witnesses.Count);
+		Assert.True(alice3SigPub.IsFullySigned);
+
+		var signed = alice3SigPub.CreateTransaction();
+		Assert.True(signed.Inputs.All(x => x.HasWitScript()));
+	}
 
 	[Fact]
 	public void FeeRateValidation()

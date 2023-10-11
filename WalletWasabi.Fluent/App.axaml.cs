@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 namespace WalletWasabi.Fluent;
 
@@ -33,13 +34,13 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public static bool EnableFeatureHide { get; private set; }
-
 	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
 	{
 		_startInBg = startInBg;
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
+
+	public static bool EnableFeatureHide { get; private set; }
 
 	public override void Initialize()
 	{
@@ -147,6 +148,7 @@ public class App : Application
 			CreateConfig(),
 			CreateApplicationSettings(),
 			CreateBroadcaster(),
-			amountProvider);
+			amountProvider,
+			new EditableSearchSourceSource());
 	}
 }

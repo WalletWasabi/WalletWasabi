@@ -1,9 +1,8 @@
-using NBitcoin;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -27,7 +26,8 @@ public class UiContext
 		IClientConfig config,
 		IApplicationSettings applicationSettings,
 		ITransactionBroadcasterModel transactionBroadcaster,
-		IAmountProvider amountProvider)
+		IAmountProvider amountProvider,
+		IEditableSearchSource editableSearchSource)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -39,6 +39,7 @@ public class UiContext
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
 		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
+		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -50,9 +51,9 @@ public class UiContext
 	public IClientConfig Config { get; }
 	public IApplicationSettings ApplicationSettings { get; }
 	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
-
 	public IAmountProvider AmountProvider { get; }
-
+	public IEditableSearchSource EditableSearchSource { get; }
+	
 	public void RegisterNavigation(INavigate navigate)
 	{
 		_navigate ??= navigate;

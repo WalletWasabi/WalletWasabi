@@ -90,29 +90,24 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	public BitcoinStore BitcoinStore { get; private set; }
-
+	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
-
-	public WasabiSynchronizer Synchronizer { get; private set; }
-
-	public ServiceConfiguration ServiceConfiguration { get; private set; }
-
-	public CoinsRegistry Coins { get; private set; }
+	public WasabiSynchronizer Synchronizer { get; }
+	public ServiceConfiguration ServiceConfiguration { get; }
+	
+	public CoinsRegistry Coins { get; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+	public CoinjoinSkipFactors CoinjoinSkipFactors => KeyManager.CoinjoinSkipFactors;
 
 	public Network Network { get; }
+	public TransactionProcessor TransactionProcessor { get; }
 
-	public TransactionProcessor TransactionProcessor { get; private set; }
+	public HybridFeeProvider FeeProvider { get; }
 
-	public HybridFeeProvider FeeProvider { get; private set; }
-
-	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
-
+	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
-
-	public IBlockProvider BlockProvider { get; private set; }
+	public IBlockProvider BlockProvider { get; }
 
 	public bool IsLoggedIn { get; private set; }
 
@@ -171,8 +166,9 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Get all wallet transactions along with corresponding amounts ordered by blockchain.
 	/// </summary>
+	/// <param name="sortForUI"><c>true</c> to sort by "first seen", "height", and "block index", <c>false</c> to sort by "height", "block index", and "first seen".</param>
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
-	public List<TransactionSummary> BuildHistorySummary()
+	public List<TransactionSummary> BuildHistorySummary(bool sortForUI = false)
 	{
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
@@ -202,7 +198,9 @@ public class Wallet : BackgroundService, IWallet
 			}
 		}
 
-		return mapByTxid.Values.OrderByBlockchain().ToList();
+		return sortForUI
+			? mapByTxid.Values.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
+			: mapByTxid.Values.OrderByBlockchain().ToList();
 	}
 
 	/// <summary>
@@ -566,7 +564,18 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public void UpdateExcludedCoinFromCoinJoin()
+	public void ExcludeCoinFromCoinJoin(OutPoint outpoint, bool exclude = true)
+	{
+		if (!Coins.TryGetByOutPoint(outpoint, out var coin))
+		{
+			throw new InvalidOperationException($"Coin '{outpoint}' doesn't belong to the wallet or is spent.");
+		}
+
+		coin.IsExcludedFromCoinJoin = exclude;
+		UpdateExcludedCoinFromCoinJoin();
+	}
+
+	private void UpdateExcludedCoinFromCoinJoin()
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
 		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);

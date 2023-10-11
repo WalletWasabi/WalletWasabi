@@ -78,6 +78,10 @@ public class Warden : BackgroundService
 				}
 			}
 		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogInfo("Warden was requested to stop.");
+		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
