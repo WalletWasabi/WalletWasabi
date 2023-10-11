@@ -216,22 +216,21 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("build")]
-	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
+	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
 		password = Guard.Correct(password);
-		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		static bool InRange<T>(IComparable<T> val, T min, T max) =>
 			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
 
-		var feeRateK = feeRate is {} nonNullFeeRate ? new FeeRate(Money.Satoshis(nonNullFeeRate * 1_000L)) : FeeRate.Zero;
+		var satsPerByte = feeRate is {} nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
 
 		var feeStrategy = (feeRate, feeTarget) switch
 		{
-			(not null, null) when InRange(feeRateK, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
-				FeeStrategy.CreateFromFeeRate(feeRateK),
+			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
+				FeeStrategy.CreateFromFeeRate(satsPerByte),
 			(null, {} argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
 				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
 			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
@@ -241,7 +240,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			payments.Select(
 				p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
-		var result = activeWallet.BuildTransaction(
+		var result = ActiveWallet!.BuildTransaction(
 			password,
 			payment,
 			feeStrategy,

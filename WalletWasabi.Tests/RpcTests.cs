@@ -111,7 +111,7 @@ public class RpcTests
 			Label = "Cesar"
 		};
 
-		void BuildTransaction(int? feeTarget = null, int? feeRate = null) =>
+		void BuildTransaction(int? feeTarget = null, decimal? feeRate = null) =>
 			service.BuildTransaction(new[] { paymentInfo }, Array.Empty<OutPoint>(), feeTarget, feeRate);
 
 		// No fee information is provided
