@@ -236,11 +236,17 @@ public class KeyManager
 		get => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 		set
 		{
-			var newPath = Path.Combine(Path.GetDirectoryName(FilePath)!, value + ".json");
+			var newPath = new FileInfo(Path.Combine(Path.GetDirectoryName(FilePath)!, value + ".json"));
+
+			if (Path.GetDirectoryName(FilePath) != newPath.DirectoryName)
+			{
+				throw new InvalidOperationException("The new name is invalid");
+			}
+
 			if (FilePath != null)
 			{
-				File.Move(FilePath, newPath);
-				SetFilePath(newPath);
+				File.Move(FilePath, newPath.FullName);
+				SetFilePath(newPath.FullName);
 			}
 		}
 	}

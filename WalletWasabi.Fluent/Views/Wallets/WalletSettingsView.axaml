@@ -6,6 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="wallets:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
@@ -19,11 +20,13 @@
       <StackPanel Classes="settingsLayout">
         <DockPanel>
           <TextBlock Text="Wallet name" />
-          <TextBox MaxLength="50" Watermark="Type in a wallet name">
+          <Button Command="{Binding RenameCommand}"
+            Opacity="{Binding CanRename^, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+            VerticalAlignment="Top" Margin="10 4" Content="Rename" DockPanel.Dock="Right" />
+          <TextBox MaxLength="50" Text="{Binding NewWalletName}" Watermark="Type in a wallet name">
             <Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
               <behaviors:TextBoxSelectAllTextBehavior />
-              <behaviors:LostFocusUpdateBindingBehavior Text="{Binding WalletName}"/>
             </Interaction.Behaviors>
           </TextBox>
         </DockPanel>

@@ -1,9 +1,11 @@
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Daemon;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -24,6 +26,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
+	[AutoNotify] private string _newWalletName;
 
 	private WalletSettingsViewModel(IWalletModel wallet)
 	{
@@ -47,39 +50,48 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.Settings.Save();
 			});
 
-		this.ValidateProperty(x => x.WalletName,
+		this.ValidateProperty(x => x.NewWalletName,
 			errors =>
 			{
-				try
+				if (string.IsNullOrWhiteSpace(NewWalletName))
 				{
-					new FileInfo(WalletName);
-				}
-				catch
-				{
-					errors.Add(ErrorSeverity.Error, "Invalid path");
+					errors.Add(ErrorSeverity.Error, "The name cannot be empty");
 				}
 			});
+
+		NewWalletName = _wallet.Name;
+
+		CanRename = this.WhenAnyValue(x => x.NewWalletName, s => s != _wallet.Name);
+		RenameCommand = ReactiveCommand.Create(OnRenameWallet, CanRename);
 	}
 
-	public string WalletName
+	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		get => _wallet.Name;
-		set
-		{
-			try
-			{
-				new FileInfo(WalletName);
-				_wallet.Name = value;
-			}
-			catch
-			{
-			}
-		}
+		NewWalletName = _wallet.Name;
+		base.OnNavigatedFrom(isInHistory);
 	}
+
+	public IObservable<bool> CanRename { get; }
+
+	public ICommand RenameCommand { get; set; }
 
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	private void OnRenameWallet()
+	{
+		try
+		{
+			_wallet.Name = NewWalletName;
+			this.RaisePropertyChanged(nameof(CanRename));
+		}
+		catch
+		{
+			UiContext.Navigate().To().ShowErrorDialog($"The wallet cannot be renamed to {NewWalletName}", "Invalid name", "Cannot rename the wallet", NavigationTarget.CompactDialogScreen);
+			NewWalletName = _wallet.Name;
+		}
+	}
 }
