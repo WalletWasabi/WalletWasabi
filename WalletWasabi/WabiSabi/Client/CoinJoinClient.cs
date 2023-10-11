@@ -91,8 +91,6 @@ public class CoinJoinClient
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
-					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
-					&& !SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundState.CoinjoinState.Parameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians)
 					&& roundState.Id != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
@@ -144,6 +142,15 @@ public class CoinJoinClient
 
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
+
+			if (!IsRoundEconomic(roundParameters.MiningFeeRate))
+			{
+				throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, "Uneconomical round skipped.");
+			}
+			if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
+			{
+				throw new CoinJoinClientException(CoinjoinError.RandomlySkippedRound, "Round skipped randomly for better privacy.");
+			}
 
 			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
 

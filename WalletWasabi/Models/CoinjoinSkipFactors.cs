@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,8 @@ public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 	public double Weekly { get; }
 	public double Monthly { get; }
 
+	private (uint256 roundId, bool judgement) LastJudgement { get; set; } = (uint256.Zero, true);
+
 	public static CoinjoinSkipFactors FromString(string str)
 	{
 		var parts = str.Split('_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -51,8 +54,13 @@ public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 		return factors;
 	}
 
-	public bool ShouldSkipRoundRandomly(WasabiRandom random, FeeRate roundFeeRate, IDictionary<TimeSpan, FeeRate> coinJoinFeeRateMedians)
+	public bool ShouldSkipRoundRandomly(WasabiRandom random, FeeRate roundFeeRate, IDictionary<TimeSpan, FeeRate> coinJoinFeeRateMedians, uint256? roundId = null)
 	{
+		if (roundId is not null && roundId == LastJudgement.roundId)
+		{
+			return LastJudgement.judgement;
+		}
+
 		var day = TimeSpan.FromHours(24);
 		var week = TimeSpan.FromHours(168);
 		var month = TimeSpan.FromHours(720);
@@ -82,7 +90,12 @@ public sealed class CoinjoinSkipFactors : IEquatable<CoinjoinSkipFactors>
 		var averageProbabilityPercentage = (int)(100 * (dailyProbability + weeklyProbability + monthlyProbability) / 3d);
 		var rand = random.GetInt(1, 101);
 
-		return averageProbabilityPercentage < rand;
+		var judgement = averageProbabilityPercentage < rand;
+		if (roundId is not null)
+		{
+			LastJudgement = (roundId, judgement);
+		}
+		return judgement;
 	}
 
 	public override string ToString() => $"{Daily}_{Weekly}_{Monthly}";
