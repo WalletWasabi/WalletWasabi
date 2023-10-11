@@ -26,8 +26,9 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
+
 	private static int WalletId;
-	
+
 	public Wallet(
 		string dataDir,
 		Network network,
@@ -63,9 +64,16 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
+
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
+
+	public string WalletName
+	{
+		get => KeyManager.WalletName;
+		set => KeyManager.WalletName = value;
+	}
 
 	public WalletState State
 	{
@@ -83,27 +91,27 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public BitcoinStore BitcoinStore { get; private set; }
-	public KeyManager KeyManager { get; }
-	public WasabiSynchronizer Synchronizer { get; private set; }
-	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
-	public string WalletName
-	{
-		get => KeyManager.WalletName;
-		set => KeyManager.WalletName = value;
-	}
+	public KeyManager KeyManager { get; }
+
+	public WasabiSynchronizer Synchronizer { get; private set; }
+
+	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 	public CoinsRegistry Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
 	public Network Network { get; }
+
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
 	public HybridFeeProvider FeeProvider { get; private set; }
 
 	public WalletFilterProcessor WalletFilterProcessor { get; private set; }
+
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
+
 	public IBlockProvider BlockProvider { get; private set; }
 
 	public bool IsLoggedIn { get; private set; }
@@ -115,6 +123,7 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
+
 	public bool ConsolidationMode => false;
 
 	public bool IsMixable =>
@@ -491,6 +500,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
+
 	private async Task LoadDummyMempoolAsync()
 	{
 		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
