@@ -355,7 +355,8 @@ public class TransactionFactoryTests
 			new[]
 		{
 			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
-		}, () => new FeeRate(20m));
+		},
+			() => new FeeRate(20m));
 
 		using Key key1 = new();
 		using Key key2 = new();

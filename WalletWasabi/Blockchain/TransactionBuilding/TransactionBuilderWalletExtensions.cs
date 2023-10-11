@@ -56,8 +56,7 @@ public static class TransactionBuilderWalletExtensions
 				var currentTipHeight = wallet.BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient
-			);
+			payjoinClient);
 	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(
