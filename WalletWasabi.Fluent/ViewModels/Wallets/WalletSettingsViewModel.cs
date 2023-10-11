@@ -51,7 +51,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.Settings.Save();
 			});
 
-		this.ValidateProperty(x => x.NewWalletName,
+		this.ValidateProperty(
+			x => x.NewWalletName,
 			errors =>
 			{
 				if (string.IsNullOrWhiteSpace(NewWalletName))
@@ -60,16 +61,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				}
 			});
 
-		NewWalletName = _wallet.Name;
-
+		_newWalletName = _wallet.Name;
 		CanRename = this.WhenAnyValue(x => x.NewWalletName, s => s != _wallet.Name);
 		RenameCommand = ReactiveCommand.Create(OnRenameWallet, CanRename);
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		NewWalletName = _wallet.Name;
-		base.OnNavigatedFrom(isInHistory);
 	}
 
 	public IObservable<bool> CanRename { get; }
@@ -81,6 +75,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsWatchOnly { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		NewWalletName = _wallet.Name;
+		base.OnNavigatedFrom(isInHistory);
+	}
 
 	private void OnRenameWallet()
 	{
