@@ -48,6 +48,7 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
+	/// <summary>Maps each TXIDs to a balance change that is caused by the corresponding wallet transaction.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<uint256, Money> TransactionAmountsByTxid { get; } = new();
 
@@ -129,7 +130,7 @@ public class CoinsRegistry : ICoinsView
 					InvalidateSnapshot = true;
 				}
 
-				UpdateTransactionAmountLocked(coin.TransactionId, coin.Amount);
+				UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 			}
 		}
 
@@ -218,12 +219,12 @@ public class CoinsRegistry : ICoinsView
 					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
 				}
 
-				UpdateTransactionAmountLocked(tx.GetHash(), Money.Zero - spentCoin.Amount);
+				UpdateTransactionAmountNoLock(tx.GetHash(), Money.Zero - spentCoin.Amount);
 			}
 		}
 	}
 
-	private void UpdateTransactionAmountLocked(uint256 txid, Money diff)
+	private void UpdateTransactionAmountNoLock(uint256 txid, Money diff)
 	{
 		TransactionAmountsByTxid[txid] = TransactionAmountsByTxid.TryGetValue(txid, out Money? current) ? current + diff : diff;
 	}
