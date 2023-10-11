@@ -32,7 +32,7 @@
     }
   },
   {
-    "Name": "Not enough money",
+    "Name": "Not enough money - with external amounts",
     "Request": {
       "InputSize": 58,
       "OutputSize": 43,
@@ -49,6 +49,29 @@
         30000,
         20000
       ]
+    },
+    "ExpectedStatusCode": 500,
+    "ExpectedResponse": {
+      "Description": "Not enough coins registered to participate in the coinjoin."
+    }
+  },
+  {
+    "Name": "Not enough money - without external amounts",
+    "Request": {
+      "InputSize": 58,
+      "OutputSize": 43,
+      "AvailableVsize": 394,
+      "MiningFeeRate": 129000,
+      "AllowedOutputAmounts": {
+        "Min": 5000,
+        "Max": 4300000000000
+      },
+      "InternalAmounts": [
+        4942,
+        4942,
+        4942
+      ],
+      "ExternalAmounts": []
     },
     "ExpectedStatusCode": 500,
     "ExpectedResponse": {
