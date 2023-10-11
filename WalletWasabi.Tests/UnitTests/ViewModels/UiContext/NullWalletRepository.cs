@@ -24,7 +24,7 @@ public class NullWalletRepository : IWalletRepository
 
 	public IWalletModel GetExistingWallet(HwiEnumerateEntry device)
 	{
-		throw new NotImplementedException();
+		throw new NotSupportedException();
 	}
 
 	public string GetNextWalletName()

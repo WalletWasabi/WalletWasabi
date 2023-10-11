@@ -173,7 +173,7 @@ public class SuggestionLabelsViewModelTests
 		public string Name
 		{
 			get => throw new NotSupportedException();
-			set => throw new NotImplementedException();
+			set => throw new NotSupportedException();
 		}
 
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
@@ -184,29 +184,29 @@ public class SuggestionLabelsViewModelTests
 
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
 
-		public IWalletAuthModel Auth => throw new NotImplementedException();
+		public IWalletAuthModel Auth => throw new NotSupportedException();
 
-		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
+		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
 
-		public IWalletSettingsModel Settings => throw new NotImplementedException();
+		public IWalletSettingsModel Settings => throw new NotSupportedException();
 
-		public IWalletCoinsModel Coins => throw new NotImplementedException();
+		public IWalletCoinsModel Coins => throw new NotSupportedException();
 
-		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
+		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
 
-		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 
-		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
+		public IObservable<Unit> TransactionProcessed => throw new NotSupportedException();
 
-		public Network Network => throw new NotImplementedException();
+		public Network Network => throw new NotSupportedException();
 
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 
-		public IObservable<Amount> Balances => throw new NotImplementedException();
+		public IObservable<Amount> Balances => throw new NotSupportedException();
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 
-		public IAmountProvider AmountProvider => throw new NotImplementedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

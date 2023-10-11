@@ -69,7 +69,7 @@ public class ReceiveViewModelTests
 		public string Name
 		{
 			get => throw new NotSupportedException();
-			set => throw new NotImplementedException();
+			set => throw new NotSupportedException();
 		}
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
@@ -83,7 +83,7 @@ public class ReceiveViewModelTests
 
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 
-		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
+		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
 
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
 
@@ -93,15 +93,15 @@ public class ReceiveViewModelTests
 
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 
-		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
+		IWalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
 
-		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
+		public IObservable<Unit> TransactionProcessed => throw new NotSupportedException();
 
-		public Network Network => throw new NotImplementedException();
+		public Network Network => throw new NotSupportedException();
 
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 
-		public IAmountProvider AmountProvider => throw new NotImplementedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
