@@ -17,7 +17,7 @@ public static class ServiceFactory
 	bool watchOnly = false,
 	bool allowDoubleSpend = false,
 	string[]? allowedInputsKeys = null,
-	bool tryToSign = false)
+	bool tryToSign = true)
 	{
 		var password = "foo";
 		var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
