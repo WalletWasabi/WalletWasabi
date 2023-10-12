@@ -7,14 +7,14 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
 using Avalonia.Media;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private static readonly List<TreeDataGridPrivacyTextCell> Realized = new();
-	private static IDisposable? Subscription;
-	private static bool IsContentVisible = true;
+	private IDisposable? Subscription;
+	private bool IsContentVisible = true;
 	private string? _value;
 	private FormattedText? _formattedText;
 	private int _numberOfPrivacyChars;
@@ -64,26 +64,18 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		base.OnAttachedToVisualTree(e);
 
-		if (Realized.Count == 0)
-		{
-			Subscription = Services.UiConfig
-				.WhenAnyValue(x => x.PrivacyMode)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => SetContentVisible(!x));
-		}
-
-		Realized.Add(this);
+		Subscription = PrivacyModeHelper.DelayedRevealAndHide(
+			this.WhenAnyValue(x => x.IsPointerOver),
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(SetContentVisible)
+			.Subscribe();
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		Realized.Remove(this);
-
-		if (Realized.Count == 0)
-		{
-			Subscription?.Dispose();
-			Subscription = null;
-		}
+		Subscription?.Dispose();
+		Subscription = null;
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
@@ -114,14 +106,12 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		return new Size(_formattedText.Width, _formattedText.Height);
 	}
 
-	private static void SetContentVisible(bool value)
+	private void SetContentVisible(bool value)
 	{
 		IsContentVisible = value;
 
-		foreach (var c in Realized)
-		{
-			c._formattedText = null;
-			c.InvalidateMeasure();
-		}
+		_formattedText = null;
+		InvalidateMeasure();
+		InvalidateVisual();
 	}
 }
