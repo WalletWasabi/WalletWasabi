@@ -72,7 +72,7 @@
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
 
-    <DataTemplate DataType="searchItems:NonActionableSearchItem">
+    <DataTemplate DataType="searchItems:IContentSearchItem">
 
       <DockPanel Background="Transparent" Margin="10">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
