@@ -66,14 +66,9 @@ public partial class LineChart : Control
 	{
 		var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, null)
 		{
-			TextAlignment = alignment
+			TextAlignment = alignment,
+			Trimming = TextTrimming.None
 		};
-
-		if (constraint != default)
-		{
-			ft.MaxTextHeight = constraint.Height;
-			ft.MaxTextWidth = constraint.Width;
-		}
 
 		return ft;
 	}
