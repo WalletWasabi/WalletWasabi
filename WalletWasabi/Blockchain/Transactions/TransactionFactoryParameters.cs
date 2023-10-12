@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-public class TransactionFactoryParameters
+public record TransactionFactoryParameters
 {
 	public TransactionFactoryParameters(Func<FeeRate> feeRateFetcher, bool allowUnconfirmed = false, bool allowDoubleSpend = false, IEnumerable<OutPoint>? allowedInputs = null, bool tryToSign = true)
 	{
