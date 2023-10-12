@@ -394,4 +394,27 @@ public class BlockchainController : ControllerBase
 
 		return status;
 	}
+
+	[HttpGet("get-transaction-fee")]
+	[ProducesResponseType(200)]
+	[ProducesResponseType(400)]
+	public async Task<IActionResult> GetTransactionFeeAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	{
+		uint256 txID = new(transactionId);
+
+		List<Coin> inputs = new();
+
+		var tx = await RpcClient.GetRawTransactionAsync(txID, true, cancellationToken);
+
+		foreach (var input in tx.Inputs)
+		{
+			var parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
+			TxOut txOut = parentTx.Outputs[input.PrevOut.N];
+			inputs.Add(new Coin(input.PrevOut, txOut));
+		}
+
+		Money fee = tx.GetFee(inputs.ToArray());
+
+		return Ok(fee);
+	}
 }
