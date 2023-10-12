@@ -40,13 +40,13 @@ public partial class WalletTransactionsModel : ReactiveObject
 		transactionChanges.Bind(out _transactions).Subscribe();
 	}
 
-	public ReadOnlyObservableCollection<TransactionSummary> Transactions => _transactions;
+	public ReadOnlyObservableCollection<TransactionSummary> List => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
 	{
-		var result = Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
+		var result = List.FirstOrDefault(x => x.GetHash() == transactionId);
 
 		if (result is null)
 		{
