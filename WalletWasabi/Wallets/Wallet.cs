@@ -35,7 +35,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		IBlockProvider blockProvider,
+		TransactionFeeProvider transactionFeeProvider)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -45,6 +46,7 @@ public class Wallet : BackgroundService, IWallet
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
+		TransactionFeeProvider = transactionFeeProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
 
@@ -61,6 +63,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
+
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
@@ -98,7 +101,7 @@ public class Wallet : BackgroundService, IWallet
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; }
-
+	public TransactionFeeProvider TransactionFeeProvider { get; }
 	public bool IsLoggedIn { get; private set; }
 
 	public Kitchen Kitchen { get; } = new();
@@ -485,6 +488,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
+
 	private async Task LoadDummyMempoolAsync()
 	{
 		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
@@ -543,9 +547,9 @@ public class Wallet : BackgroundService, IWallet
 		State = WalletState.WaitingForInit;
 	}
 
-	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider, TransactionFeeProvider transactionFeeProvider)
 	{
-		var wallet = new Wallet(dataDir, network, keyManager, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		var wallet = new Wallet(dataDir, network, keyManager, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider, transactionFeeProvider);
 		wallet.Initialize();
 		return wallet;
 	}
