@@ -46,15 +46,15 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
 	{
-		var tryGetById = Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
+		var result = Transactions.FirstOrDefault(x => x.GetHash() == transactionId);
 
-		if (tryGetById is null)
+		if (result is null)
 		{
 			transactionSummary = default;
 			return false;
 		}
 
-		transactionSummary = tryGetById;
+		transactionSummary = result;
 		return true;
 	}
 
