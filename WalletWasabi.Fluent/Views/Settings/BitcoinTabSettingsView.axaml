@@ -23,6 +23,11 @@
       <ToggleSwitch IsChecked="{Binding Settings.StartLocalBitcoinCoreOnStartup}" />
     </DockPanel>
 
+    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
+      <TextBlock Text="Stop Bitcoin Knots on shutdown" />
+      <ToggleSwitch IsChecked="{Binding Settings.StopLocalBitcoinCoreOnShutdown}" />
+    </DockPanel>
+
     <StackPanel Spacing="10" IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
       <TextBlock Text="Bitcoin Core/Knots Data Folder" />
       <TextBox Text="{Binding Settings.LocalBitcoinCoreDataDir}" />
@@ -31,11 +36,6 @@
     <DockPanel>
       <TextBlock VerticalAlignment="Center" Text="Local Bitcoin Core/Knots version" />
       <Label Content="{Binding BitcoinCoreVersion}" />
-    </DockPanel>
-
-    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Stop Bitcoin Knots on shutdown" />
-      <ToggleSwitch IsChecked="{Binding Settings.StopLocalBitcoinCoreOnShutdown}" />
     </DockPanel>
 
     <DockPanel IsVisible="{Binding !Settings.StartLocalBitcoinCoreOnStartup}"
