@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -85,7 +86,15 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWallet()
 	{
-		WalletViewModel = WalletViewModel.Create(UiContext, this);
+		WalletViewModel =
+			WalletModel.IsHardwareWallet
+			? new HardwareWalletViewModel(UiContext, WalletModel, Wallet)
+			: new WalletViewModel(UiContext, WalletModel, Wallet);
+
+		// Pass IsSelected down to WalletViewModel.IsSelected
+		this.WhenAnyValue(x => x.IsSelected)
+			.BindTo(WalletViewModel, x => x.IsSelected);
+
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
 	}

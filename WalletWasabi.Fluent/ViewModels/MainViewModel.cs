@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -277,14 +278,10 @@ public partial class MainViewModel : ViewModelBase
 			{
 				async Task<RoutableViewModel?> AuthorizeWalletInfo()
 				{
-					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
+					if (walletViewModel.WalletModel.Auth.HasPassword)
 					{
-						// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-						// TODO: Why is this code duplicated?
-						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.WalletModel);
-						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
-
-						if (!dialogResult.Result)
+						var dialogResult = await UiContext.Navigate().To().PasswordAuthDialog(walletViewModel.WalletModel).GetResultAsync();
+						if (!dialogResult)
 						{
 							return null;
 						}

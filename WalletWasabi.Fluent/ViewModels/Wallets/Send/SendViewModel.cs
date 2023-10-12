@@ -61,6 +61,7 @@ public partial class SendViewModel : RoutableViewModel
 		UiContext = uiContext;
 		WalletVm = walletVm;
 		_to = "";
+
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 

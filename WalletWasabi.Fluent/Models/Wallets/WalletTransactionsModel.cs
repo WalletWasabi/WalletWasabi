@@ -48,6 +48,12 @@ public partial class WalletTransactionsModel : ReactiveObject
 		return transaction;
 	}
 
+	public async Task<SmartTransaction> LoadFromFileAsync(string path)
+	{
+		var txn = await TransactionHelpers.ParseTransactionAsync(path, _wallet.Network);
+		return txn;
+	}
+
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
 	{
 		return
