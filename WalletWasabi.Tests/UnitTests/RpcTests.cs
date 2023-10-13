@@ -132,6 +132,19 @@ public class RpcTests
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
 	}
 
+	[Fact]
+	public void CanParseRequest()
+	{
+		var request = "['{jsonrpc:2.0,id:1,method:getwalletinfo}']";
+
+		var result = JsonRpcRequest.TryParse(request, out var requests, out var isBatch);
+
+		Assert.True(result);
+		Assert.NotNull(requests);
+		Assert.Single(requests);
+		Assert.False(isBatch);
+	}
+
 	private static string Request(string id, string methodName, params object[] parameters)
 	{
 		return ToJson(new
