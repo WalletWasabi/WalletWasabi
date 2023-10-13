@@ -109,18 +109,6 @@ public class CoinsRegistry : ICoinsView
 			return false;
 		}
 
-		var added = InitializeSmartCoinDataNoLock(coin);
-
-		if (added)
-		{
-			UpdateCoinMappingsNoLock(coin);
-		}
-		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
-		return added;
-	}
-
-	private bool InitializeSmartCoinDataNoLock(SmartCoin coin)
-	{
 		var added = Coins.Add(coin);
 		KnownTransactions.Add(coin.TransactionId);
 		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
@@ -131,26 +119,28 @@ public class CoinsRegistry : ICoinsView
 			CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
 		}
 		coinsOfPubKey.Add(coin);
+
+		if (added)
+		{
+			if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
+			{
+				hashSet = new();
+				CoinsByTransactionId.Add(coin.TransactionId, hashSet);
+			}
+
+			hashSet.Add(coin);
+
+			// Each prevOut of the transaction contributes to the existence of coins.
+			foreach (TxIn input in coin.Transaction.Transaction.Inputs)
+			{
+				CoinsByOutPoint[input.PrevOut] = hashSet;
+			}
+
+			InvalidateSnapshot = true;
+		}
+
+		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 		return added;
-	}
-
-	private void UpdateCoinMappingsNoLock(SmartCoin coin)
-	{
-		if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
-		{
-			hashSet = new();
-			CoinsByTransactionId.Add(coin.TransactionId, hashSet);
-		}
-
-		hashSet.Add(coin);
-
-		// Each prevOut of the transaction contributes to the existence of coins.
-		foreach (TxIn input in coin.Transaction.Transaction.Inputs)
-		{
-			CoinsByOutPoint[input.PrevOut] = hashSet;
-		}
-
-		InvalidateSnapshot = true;
 	}
 
 	private ICoinsView RemoveNoLock(SmartCoin coin)
