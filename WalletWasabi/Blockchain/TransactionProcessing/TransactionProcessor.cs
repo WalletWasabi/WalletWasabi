@@ -1,5 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -9,6 +11,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
@@ -30,6 +33,7 @@ public class TransactionProcessor
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
+	/// <remarks>Intentionally, <c>static</c> to avoid modifying smart transactions from multiple threads.</remarks>
 	private static object Lock { get; } = new();
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
@@ -59,6 +63,27 @@ public class TransactionProcessor
 		}
 
 		return rets;
+	}
+
+	/// <summary>
+	/// Gets the wallet transaction with the given txid, if the transaction exists.
+	/// </summary>
+	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
+	{
+		// The lock is necessary to make sure that coins registry and transaction store do not change in this code block.
+		// The assumption is that the transaction processor is the only component modifying coins registry and transaction store.
+		lock (Lock)
+		{
+			smartTransaction = null;
+			bool isKnown = Coins.IsKnown(txid);
+
+			if (isKnown && !TransactionStore.TryGetTransaction(txid, out smartTransaction))
+			{
+				throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
+			}
+
+			return isKnown;
+		}
 	}
 
 	public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)

@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -196,17 +195,7 @@ public class Wallet : BackgroundService, IWallet
 	/// Gets the wallet transaction with the given txid, if the transaction exists.
 	/// </summary>
 	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
-	{
-		smartTransaction = null;
-		bool result = Coins.IsKnown(txid);
-
-		if (result && !BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction))
-		{
-			throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
-		}
-
-		return result;
-	}
+		=> TransactionProcessor.TryGetTransaction(txid, out smartTransaction);
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
