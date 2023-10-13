@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -49,7 +51,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.HdPubKey.Labels.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
-				address = x.HdPubKey.GetAddress(Global.Network).ToString()
+				address = x.HdPubKey.GetAddress(Global.Network).ToString(),
+				excludedFromCoinjoin = x.IsExcludedFromCoinJoin
 			}).ToArray();
 	}
 
@@ -89,12 +92,31 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return mnemonic.ToString();
 	}
 
+	[JsonRpcMethod("recoverwallet", initializable: false)]
+	public void RecoverWallet(string walletName, string mnemonicStr, string password = "")
+	{
+		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
+		walletGenerator.TipHeight = 0;
+		if (!TryParseMnemonic(mnemonicStr, out var mnemonic))
+		{
+			throw new ArgumentException("Invalid value for mnemonic");
+		}
+
+		var (keyManager, _) = walletGenerator.GenerateWallet(walletName, password, mnemonic);
+		Global.WalletManager.AddWallet(keyManager);
+	}
+
+	[JsonRpcMethod("loadwallet", initializable: false)]
+	public void LoadWallet(string walletName)
+	{
+		SelectWallet(walletName);
+	}
+
 	[JsonRpcMethod("getwalletinfo")]
 	public object WalletInfo()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		AssertWalletIsLoaded();
 		var km = activeWallet.KeyManager;
 		var accounts = new[]
 		{
@@ -105,25 +127,41 @@ public class WasabiJsonRpcService : IJsonRpcService
 				keyPath = $"m/{km.SegwitAccountKeyPath}"
 			}
 		};
-		return new
+		var info = new
 		{
 			walletName = activeWallet.WalletName,
 			walletFile = km.FilePath,
 			state = activeWallet.State.ToString(),
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
+			anonScoreTarget = activeWallet.AnonScoreTarget,
 			accounts = km.TaprootExtPubKey is { } taprootExtPubKey
-					? accounts.Append(
-						new
-						{
-							name = "taproot",
-							publicKey = taprootExtPubKey.ToString(Global.Network),
-							keyPath = $"m/{km.TaprootAccountKeyPath}"
-						})
-					: accounts,
-			balance = activeWallet.Coins
-						.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-						.Sum(c => c.Amount.Satoshi)
+				? accounts.Append(
+					new
+					{
+						name = "taproot",
+						publicKey = taprootExtPubKey.ToString(Global.Network),
+						keyPath = $"m/{km.TaprootAccountKeyPath}"
+					})
+				: accounts
 		};
+
+		return activeWallet.State != WalletState.Started
+			? info
+			: new
+			{
+				info.walletName,
+				info.walletFile,
+				info.state,
+				info.masterKeyFingerprint,
+				info.anonScoreTarget,
+				info.accounts,
+
+				// The following elements are valid only after the wallet is fully synchronized
+				balance = activeWallet.Coins
+					.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
+					.Sum(c => c.Amount.Satoshi),
+				coinjoinStatus = GetCoinjoinStatus(activeWallet)
+			};
 	}
 
 	[JsonRpcMethod("getnewaddress")]
@@ -178,21 +216,31 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("build")]
-	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
+	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
-		Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
 		password = Guard.Correct(password);
-		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
+		static bool InRange<T>(IComparable<T> val, T min, T max) =>
+			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+
+		var satsPerByte = feeRate is {} nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
+
+		var feeStrategy = (feeRate, feeTarget) switch
+		{
+			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
+				FeeStrategy.CreateFromFeeRate(satsPerByte),
+			(null, {} argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
+				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
+			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
+		};
 		AssertWalletIsLoaded();
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
-		var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
-		var result = activeWallet.BuildTransaction(
+		var result = ActiveWallet!.BuildTransaction(
 			password,
 			payment,
 			feeStrategy,
@@ -204,10 +252,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("send")]
-	public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
+	public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
 	{
 		password = Guard.Correct(password);
-		var txHex = BuildTransaction(payments, coins, feeTarget, password);
+		var txHex = BuildTransaction(payments, coins, feeTarget, feeRate, password);
 		var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
 		await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
@@ -216,6 +264,40 @@ public class WasabiJsonRpcService : IJsonRpcService
 			txid = smartTx.Transaction.GetHash(),
 			tx = txHex
 		};
+	}
+
+	[JsonRpcMethod("canceltransaction")]
+	public string BuildCancelTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var cancellationResult = activeWallet.CancelTransaction(smartTransactionToCancel);
+		var cancellationSmartTransaction = cancellationResult.Transaction;
+		return cancellationSmartTransaction.Transaction.ToHex();
+	}
+
+	[JsonRpcMethod("speeduptransaction")]
+	public string SpeedUpTransaction(uint256 txId, string password = "")
+	{
+		Guard.NotNull(nameof(txId), txId);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		activeWallet.Kitchen.Cook(password);
+		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
+		{
+			throw new NotSupportedException($"Unknown transaction {txId}");
+		}
+
+		var speedUpResult = activeWallet.SpeedUpTransaction(smartTransactionToSpeedUp);
+		var speedUpSmartTransaction = speedUpResult.Transaction;
+		return speedUpSmartTransaction.Transaction.ToHex();
 	}
 
 	[JsonRpcMethod("broadcast", initializable: false)]
@@ -237,18 +319,27 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var txHistoryBuilder = new TransactionHistoryBuilder(activeWallet);
-		var summary = txHistoryBuilder.BuildHistorySummary();
+		var summary = activeWallet.BuildHistorySummary();
 		return summary.Select(
 			x => new
 			{
-				datetime = x.DateTime,
+				datetime = x.FirstSeen,
 				height = x.Height.Value,
 				amount = x.Amount.Satoshi,
 				label = x.Labels.ToString(),
-				tx = x.TransactionId,
-				islikelycoinjoin = x.IsOwnCoinjoin
+				tx = x.GetHash(),
+				islikelycoinjoin = x.IsOwnCoinjoin()
 			}).ToArray();
+	}
+
+	[JsonRpcMethod("excludefromcoinjoin")]
+	public void ExcludeCoinsFromCoinjoin(uint256 transactionId, int n, bool exclude = true)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+
+		activeWallet.ExcludeCoinFromCoinJoin(new OutPoint(transactionId, n), exclude);
 	}
 
 	[JsonRpcMethod("listkeys")]
@@ -294,8 +385,32 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	[JsonRpcMethod("selectwallet", initializable: false)]
-	public void SelectWallet(string walletName)
+	private string GetCoinjoinStatus(Wallet wallet)
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletName);
+		return walletCoinjoinClientState switch
+		{
+			CoinJoinClientState.Idle => "Idle",
+			CoinJoinClientState.InProgress => "In progress",
+			CoinJoinClientState.InSchedule => "In schedule",
+			CoinJoinClientState.InCriticalPhase => "In critical phase",
+			_ => throw new Exception($"The state {walletCoinjoinClientState.FriendlyName()} is unknown.")
+		};
+	}
+
+	[JsonRpcMethod("getfeerates", initializable: false)]
+	public object GetFeeRate()
+	{
+		if (Global.Synchronizer.LastAllFeeEstimate is { } nonNullFeeRates)
+		{
+			return nonNullFeeRates.Estimations;
+		}
+
+		return new Dictionary<int, int>();
+	}
+
+	private void SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try
@@ -352,6 +467,20 @@ public class WasabiJsonRpcService : IJsonRpcService
 		else
 		{
 			throw new InvalidOperationException("Wallet name is invalid or not allowed.");
+		}
+	}
+
+	static bool TryParseMnemonic(string mnemonicStr, [NotNullWhen(true)] out Mnemonic? mnemonic)
+	{
+		try
+		{
+			mnemonic = new Mnemonic(mnemonicStr);
+			return true;
+		}
+		catch (Exception)
+		{
+			mnemonic = null;
+			return false;
 		}
 	}
 }

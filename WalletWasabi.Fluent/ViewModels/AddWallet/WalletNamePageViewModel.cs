@@ -34,6 +34,11 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
 		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
+
+		if (!UiContext.WalletRepository.HasWallet && NextCommand.CanExecute(default))
+		{
+			NextCommand.Execute(default);
+		}
 	}
 
 	private async Task OnNextAsync()
@@ -75,7 +80,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		try
 		{
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-			Navigate().To().AddedWalletPage(walletSettings);
+			Navigate().To().AddedWalletPage(walletSettings, options);
 		}
 		catch (Exception ex)
 		{
@@ -96,6 +101,11 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		if (isInHistory && !UiContext.WalletRepository.HasWallet)
+		{
+			Navigate().Back();
+		}
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);

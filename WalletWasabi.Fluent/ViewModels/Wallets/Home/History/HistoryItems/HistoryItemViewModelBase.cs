@@ -9,8 +9,29 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+
+public enum HistoryItemType
+{
+	Unknown,
+	IncomingTransaction,
+	OutgoingTransaction,
+	SelfTransferTransaction,
+	Coinjoin,
+	CoinjoinGroup,
+	Cancellation,
+	CPFP
+}
+
+public enum HistoryItemStatus
+{
+	Unknown,
+	Confirmed,
+	Pending,
+	SpeedUp,
+}
 
 public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
@@ -21,13 +42,19 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private bool _isExpanded;
 	[AutoNotify] private string _confirmedToolTip;
+	[AutoNotify] private HistoryItemType _itemType;
+	[AutoNotify] private HistoryItemStatus _itemStatus;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
-		Id = transactionSummary.TransactionId;
-		_confirmedToolTip = "Confirmed";
+		TransactionSummary = transactionSummary;
+		Id = transactionSummary.GetHash();
+
+		_confirmedToolTip = GetConfirmedToolTip(transactionSummary.GetConfirmations());
+
+		_isConfirmed = transactionSummary.IsConfirmed();
 
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
@@ -38,6 +65,74 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				await Task.Delay(1260);
 				IsFlashing = false;
 			});
+
+		IsCancellation = false;
+		IsSpeedUp = false;
+	}
+
+	protected HistoryItemType GetItemType()
+	{
+		if (!IsCPFP && IncomingAmount is { } incomingAmount && incomingAmount > Money.Zero && !IsCoinJoin)
+		{
+			return HistoryItemType.IncomingTransaction;
+		}
+
+		if (!IsCPFP && OutgoingAmount is { } outgoingAmount && outgoingAmount > Money.Zero && !IsCoinJoin)
+		{
+			return HistoryItemType.OutgoingTransaction;
+		}
+
+		if (IsCancellation)
+		{
+			return HistoryItemType.Cancellation;
+		}
+
+		if (IsCoinJoin && !IsCoinJoinGroup)
+		{
+			return HistoryItemType.Coinjoin;
+		}
+
+		if (IsCoinJoin && IsCoinJoinGroup)
+		{
+			return HistoryItemType.CoinjoinGroup;
+		}
+
+		if (IsCPFP)
+		{
+			return HistoryItemType.CPFP;
+		}
+
+		if (OutgoingAmount == Money.Zero)
+		{
+			return HistoryItemType.SelfTransferTransaction;
+		}
+
+		return HistoryItemType.Unknown;
+	}
+
+	protected HistoryItemStatus GetItemStatus()
+	{
+		if (IsConfirmed)
+		{
+			return HistoryItemStatus.Confirmed;
+		}
+
+		if (!IsConfirmed && (IsSpeedUp || IsCPFPd))
+		{
+			return HistoryItemStatus.SpeedUp;
+		}
+
+		if (!IsConfirmed && !IsSpeedUp)
+		{
+			return HistoryItemStatus.Pending;
+		}
+
+		return HistoryItemStatus.Unknown;
+	}
+
+	protected string GetConfirmedToolTip(int confirmations)
+	{
+		return $"Confirmed ({confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)})";
 	}
 
 	public uint256 Id { get; }
@@ -58,9 +153,23 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
+	public bool IsChild { get; set; }
+
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+
+	public ICommand? CancelTransactionCommand { get; protected set; }
+
+	public bool IsCancellation { get; set; }
+
+	public bool IsSpeedUp { get; set; }
+
+	public bool IsCPFP { get; set; }
+
+	public bool IsCPFPd { get; set; }
+
+	public TransactionSummary TransactionSummary { get; }
 
 	private async Task CopyToClipboardAsync(string text)
 	{

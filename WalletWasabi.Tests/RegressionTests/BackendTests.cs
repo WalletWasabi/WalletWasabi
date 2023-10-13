@@ -45,20 +45,6 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	#region BackendTests
 
 	[Fact]
-	public async Task GetExchangeRatesAsync()
-	{
-		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, "btc/offchain/exchange-rates");
-		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
-		Assert.Single(exchangeRates);
-
-		var rate = exchangeRates[0];
-		Assert.Equal("USD", rate.Ticker);
-		Assert.True(rate.Rate > 0);
-	}
-
-	[Fact]
 	public async Task GetClientVersionAsync()
 	{
 		WasabiClient client = new(BackendHttpClient);
@@ -110,7 +96,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
@@ -180,7 +166,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
-		Backend.Global global = setup.Global;
+		using Backend.Global global = setup.Global;
 
 		var requestUri = "btc/Blockchain/status";
 

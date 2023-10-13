@@ -6,14 +6,12 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
-using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
@@ -24,7 +22,9 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -36,7 +36,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Send", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class SendViewModel : RoutableViewModel
 {
 	private readonly object _parsingLock = new();
@@ -55,8 +56,9 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	private SendViewModel(WalletViewModel walletVm)
+	public SendViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
+		UiContext = uiContext;
 		WalletVm = walletVm;
 		_to = "";
 		_wallet = walletVm.Wallet;
@@ -66,7 +68,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balances = new WalletModel(_wallet).Balances;
+		Balance = walletVm.WalletModel.Balances;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -108,7 +110,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
+				var labelDialog = new LabelEntryDialogViewModel(WalletVm.WalletModel, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 				if (result.Result is not { } label)
 				{
@@ -138,10 +140,12 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		_clipboardObserver = new ClipboardObserver(Balances);
+		_clipboardObserver = new ClipboardObserver(Balance);
 	}
 
-	public IWalletBalancesModel Balances { get; set; }
+	public IObservable<Amount> Balance { get; }
+
+	public WalletViewModel WalletVm { get; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 
@@ -156,10 +160,6 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand InsertMaxCommand { get; }
-
-	public WalletBalanceTileViewModel Balance { get; }
-
-	public WalletViewModel WalletVm { get; }
 
 	private async Task OnAutoPasteAsync()
 	{
@@ -272,22 +272,22 @@ public partial class SendViewModel : RoutableViewModel
 
 		bool result = false;
 
-		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
+		if (AddressStringParser.TryParse(text, _wallet.Network, out Bip21UriParser.Result? parserResult))
 		{
 			result = true;
 
-			_parsedLabel = url.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
+			_parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
 
-			PayJoinEndPoint = url.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
+			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
-			if (url.Address is { })
+			if (parserResult.Address is { })
 			{
-				To = url.Address.ToString();
+				To = parserResult.Address.ToString();
 			}
 
-			if (url.Amount is { })
+			if (parserResult.Amount is { })
 			{
-				AmountBtc = url.Amount.ToDecimal(MoneyUnit.BTC);
+				AmountBtc = parserResult.Amount.ToDecimal(MoneyUnit.BTC);
 				IsFixedAmount = true;
 			}
 			else

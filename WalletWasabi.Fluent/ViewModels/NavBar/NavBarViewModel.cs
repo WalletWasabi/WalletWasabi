@@ -9,6 +9,8 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar;
@@ -30,7 +32,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 				 .Wallets
 				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
 				 .AutoRefresh(x => x.IsLoggedIn)
-				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.WalletModel.Auth.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
+				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
 				 .Bind(out var wallets)
 				 .Subscribe();
 
@@ -62,7 +64,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 			})
 			.Subscribe();
 
-		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWallet?.Name);
+		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName);
 	}
 
 	public async Task InitialiseAsync()

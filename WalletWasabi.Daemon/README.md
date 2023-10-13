@@ -63,3 +63,7 @@ $ wasabi.daemon --wallet=AliceWallet --wallet=BobWallet
 $ wasabi.daemon --version
 Wasabi Daemon 2.0.3.0
 ```
+
+### Usage
+
+To interact with the daemon, use the [RPC server](https://docs.wasabiwallet.io/using-wasabi/RPC.html) or the [wcli script](https://github.com/zkSNACKs/WalletWasabi/tree/master/Contrib/CLI).

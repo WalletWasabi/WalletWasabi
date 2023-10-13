@@ -11,6 +11,7 @@ using WalletWasabi.Tests.Helpers;
 using Xunit;
 using Moq;
 using System.Threading;
+using SQLitePCL;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -137,46 +138,46 @@ public class AllFeeEstimateTests
 	[Fact]
 	public async Task RpcNotEnoughEstimationsAsync()
 	{
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new BlockchainInfo
+		var mockRpc = new MockRpcClient();
+		mockRpc.Network = Network.Main;
+		mockRpc.OnGetBlockchainInfoAsync = () =>
+			Task.FromResult(new BlockchainInfo
 			{
 				Blocks = 100,
 				Headers = 100
 			});
-		mockRpc.Setup(rpc => rpc.GetPeersInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(Array.Empty<PeerInfo>());
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo
+		mockRpc.OnGetPeersInfoAsync = () =>
+			Task.FromResult(Array.Empty<PeerInfo>());
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 			});
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new NoEstimationException(1));
-		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
+			throw new NoEstimationException(1);
 
-		await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.Object.EstimateAllFeeAsync());
+		await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.EstimateAllFeeAsync());
 	}
 
 	[Fact]
 	public async Task RpcFailuresAsync()
 	{
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync(It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-GetBlockchainInfo", null));
+		var mockRpc = new MockRpcClient();
+		mockRpc.Network = Network.Main;
+		mockRpc.OnGetBlockchainInfoAsync = () =>
+			Task.FromException<BlockchainInfo>(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-GetBlockchainInfo", null));
 
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null));
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
+			Task.FromException<EstimateSmartFeeResponse>(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null));
 
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 			});
 
-		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-
-		var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.Object.EstimateAllFeeAsync());
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(500));
+		var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.EstimateAllFeeAsync());
 		Assert.Equal(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, ex.RPCCode);
 		Assert.Equal("Error-EstimateSmartFee", ex.Message);
 	}
@@ -185,15 +186,19 @@ public class AllFeeEstimateTests
 	public async Task ToleratesRpcFailuresAsync()
 	{
 		var mockRpc = CreateAndConfigureRpcClient();
-		var any = EstimateSmartFeeMode.Conservative;
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 100m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any, It.IsAny<CancellationToken>())).ThrowsAsync(new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(5, 89m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(6, 75m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(8, 70m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
+		mockRpc.Network = Network.Main;
+		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
+			target switch
+			{
+				2 => Task.FromResult(FeeRateResponse(2, 100m)),
+				3 => Task.FromException<EstimateSmartFeeResponse>(new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null)),
+				5 => Task.FromResult(FeeRateResponse(5, 89m)),
+				6 => Task.FromResult(FeeRateResponse(6, 75m)),
+				8 => Task.FromResult(FeeRateResponse(8, 70m)),
+				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
+			};
 
-		var allFee = await mockRpc.Object.EstimateAllFeeAsync();
+		var allFee = await mockRpc.EstimateAllFeeAsync();
 		Assert.Equal(2, allFee.Estimations.Count);
 		Assert.False(allFee.Estimations.ContainsKey(3));
 		Assert.False(allFee.Estimations.ContainsKey(5));
@@ -204,20 +209,23 @@ public class AllFeeEstimateTests
 	public async Task AccurateEstimationsAsync()
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var any = EstimateSmartFeeMode.Conservative;
+		mockRpc.Network = Network.Main;
+		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
+			target switch
+			{
+				2 => Task.FromResult(FeeRateResponse(2, 99m)),
+				3 => Task.FromResult(FeeRateResponse(3, 99m)),
+				5 => Task.FromResult(FeeRateResponse(5, 89m)),
+				6 => Task.FromResult(FeeRateResponse(6, 75m)),
+				8 => Task.FromResult(FeeRateResponse(8, 30m)),
+				11 => Task.FromResult(FeeRateResponse(11, 30m)),
+				13 => Task.FromResult(FeeRateResponse(13, 30m)),
+				15 => Task.FromResult(FeeRateResponse(15, 30m)),
+				1008 => Task.FromResult(FeeRateResponse(1008, 31m)),
+				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
+			};
 
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 99m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(3, 99m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(5, 89m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(6, 75m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(8, 30m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(11, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(11, 30m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(13, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(13, 30m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(15, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(15, 30m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(1008, 31m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
-
-		var allFee = await mockRpc.Object.EstimateAllFeeAsync();
+		var allFee = await mockRpc.EstimateAllFeeAsync();
 		Assert.True(allFee.IsAccurate);
 		Assert.Equal(3, allFee.Estimations.Count);
 		Assert.Equal(99, allFee.Estimations[2]);
@@ -229,10 +237,9 @@ public class AllFeeEstimateTests
 	public async Task FixObviouslyWrongEstimationsAsync()
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var any = EstimateSmartFeeMode.Conservative;
 
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-			new MemPoolInfo
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000, // 1 s/b (default value)
 				Histogram = MempoolInfoGenerator.FeeRanges.Select((x, i) => new FeeRateGroup
@@ -245,15 +252,20 @@ public class AllFeeEstimateTests
 					Group = x.from
 				}).ToArray()
 			});
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 3_500m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(3, 500m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(6, 10m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(18, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(18, 5m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(36, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(36, 5m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(1008, 1m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
-		var allFee = await mockRpc.Object.EstimateAllFeeAsync();
+		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
+			target switch
+			{
+				2 => Task.FromResult(FeeRateResponse(2, 3_500m)),
+				3 => Task.FromResult(FeeRateResponse(3, 500m)),
+				6 => Task.FromResult(FeeRateResponse(6, 10m)),
+				18 => Task.FromResult(FeeRateResponse(18, 5m)),
+				36 => Task.FromResult(FeeRateResponse(36, 5m)),
+				1008 => Task.FromResult(FeeRateResponse(1008, 1m)),
+				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
+			};
+
+		var allFee = await mockRpc.EstimateAllFeeAsync();
 		Assert.Equal(3_000, allFee.Estimations[2]);
 		Assert.True(allFee.Estimations[3] > 500);
 		Assert.True(allFee.Estimations[1008] > 1);
@@ -263,13 +275,16 @@ public class AllFeeEstimateTests
 	public async Task WorksWithBitcoinCoreEstimationsAsync()
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var any = EstimateSmartFeeMode.Conservative;
 
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 120m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
+		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
+			target switch
+			{
+				2 => Task.FromResult(FeeRateResponse(2, 120m)),
+				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
+			};
 
 		// Do not throw exception
-		await mockRpc.Object.EstimateAllFeeAsync();
+		await mockRpc.EstimateAllFeeAsync();
 	}
 
 	[Fact]
@@ -279,9 +294,9 @@ public class AllFeeEstimateTests
 		{
 			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 			var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 120m));
-			var feeRates = await mockRpc.Object.EstimateAllFeeAsync();
+			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
+			mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 120m));
+			var feeRates = await mockRpc.EstimateAllFeeAsync();
 			var estimations = feeRates.Estimations;
 
 			Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
@@ -296,10 +311,9 @@ public class AllFeeEstimateTests
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealMempoolInfo();
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(FeeRateResponse(2, 0m)); // all estimations a 0 s/b so, only estimations based on mempool.
-		var feeRates = await mockRpc.Object.EstimateAllFeeAsync();
+		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
+		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value);
 
@@ -314,10 +328,9 @@ public class AllFeeEstimateTests
 		// This test is for making sure we don't underpay the network fee.
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(FeeRateResponse(2, 0m)); // all estimations a 0 s/b so, only estimations based on mempool.
-		var feeRates = await mockRpc.Object.EstimateAllFeeAsync();
+		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
+		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value);
 
@@ -332,15 +345,19 @@ public class AllFeeEstimateTests
 		// This test is for making sure we don't overpay the network fee.
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
-		var any = EstimateSmartFeeMode.Conservative;
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 1_000m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(5, 89m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(18, 75m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(144, 10m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 5, 6, 8), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
-		var feeRates = await mockRpc.Object.EstimateAllFeeAsync();
+		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
+		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
+			target switch
+			{
+				2 => Task.FromResult(FeeRateResponse(2, 1_000m)),
+				5 => Task.FromResult(FeeRateResponse(5, 89m)),
+				6 => Task.FromResult(FeeRateResponse(18, 75m)),
+				8 => Task.FromResult(FeeRateResponse(144, 10m)),
+				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
+			};
+
+		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
 		var maxFee = estimations.Max(x => x.Value);
 
@@ -384,27 +401,27 @@ public class AllFeeEstimateTests
 		Assert.Equal(TimeSpan.FromHours(3), allFee.EstimateConfirmationTime(new FeeRate(0.1m)));
 	}
 
-	private static Mock<IRPCClient> CreateAndConfigureRpcClient(bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
+	private static MockRpcClient CreateAndConfigureRpcClient(bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
 	{
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-			new BlockchainInfo
+		var mockRpc = new MockRpcClient();
+		mockRpc.OnGetBlockchainInfoAsync = () =>
+			Task.FromResult(new BlockchainInfo
 			{
 				Blocks = isSynchronized ? 100_000UL : 89_765UL,
 				Headers = 100_000L
 			});
-		mockRpc.Setup(rpc => rpc.GetPeersInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-			hasPeersInfo
+		mockRpc.OnGetPeersInfoAsync = () =>
+			Task.FromResult(hasPeersInfo
 				? new[] { new PeerInfo() }
 				: Array.Empty<PeerInfo>());
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-			new MemPoolInfo
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MemPoolMinFee = memPoolMinFee, // 1 s/b (default value)
 				Histogram = Array.Empty<FeeRateGroup>()
 			});
-		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-		mockRpc.Setup(rpc => rpc.UptimeAsync(It.IsAny<CancellationToken>())).ReturnsAsync(TimeSpan.FromDays(500));
+
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(500));
 		return mockRpc;
 	}
 

@@ -29,7 +29,7 @@ public class KeyManager
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
-	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
+	public static readonly Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
 	private static readonly JsonConverter[] JsonConverters =
 	{
@@ -38,7 +38,8 @@ public class KeyManager
 		new HDFingerprintJsonConverter(),
 		new ExtPubKeyJsonConverter(),
 		new KeyPathJsonConverter(),
-		new MoneyBtcJsonConverter()
+		new MoneyBtcJsonConverter(),
+		new CoinjoinSkipFactorsJsonConverter()
 	};
 
 	[JsonConstructor]
@@ -203,6 +204,9 @@ public class KeyManager
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
+	[JsonProperty(PropertyName = "CoinjoinSkipFactors")]
+	public CoinjoinSkipFactors CoinjoinSkipFactors { get; set; } = CoinjoinSkipFactors.SpeedMaximizing;
+
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();
 
@@ -257,9 +261,9 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null)
+	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
-		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, Network network, string? filePath = null)
@@ -672,16 +676,21 @@ public class KeyManager
 		}
 	}
 
-	public void SetMaxBestHeight(Height height)
+	public void SetMaxBestHeight(Height newHeight)
 	{
 		lock (CriticalStateLock)
 		{
 			var prevHeight = BlockchainState.Height;
-			var newHeight = Math.Min(prevHeight, height);
-			if (prevHeight != newHeight)
+			var prevTurboSyncHeight = BlockchainState.TurboSyncHeight;
+			if (newHeight < prevHeight)
 			{
 				SetBestHeights(newHeight, newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
+			}
+			else if (newHeight < prevTurboSyncHeight)
+			{
+				SetBestTurboSyncHeight(newHeight);
+				Logger.LogWarning($"Wallet ({WalletName}) turbo sync height has been set back by {prevTurboSyncHeight - (int)newHeight}. From {prevTurboSyncHeight} to {newHeight}.");
 			}
 		}
 	}

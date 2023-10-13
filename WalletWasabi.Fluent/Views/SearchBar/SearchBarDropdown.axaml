@@ -39,7 +39,6 @@
         </Setter.Value>
       </Setter>
     </Style>
-
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -72,7 +71,7 @@
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
 
-    <DataTemplate DataType="searchItems:NonActionableSearchItem">
+    <DataTemplate DataType="searchItems:IContentSearchItem">
 
       <DockPanel Background="Transparent" Margin="10">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
@@ -83,7 +82,6 @@
                         VerticalContentAlignment="Stretch"
                         Content="{Binding Content}" />
       </DockPanel>
-
     </DataTemplate>
 
     <DataTemplate DataType="searchItems:ActionableItem">
@@ -91,15 +89,15 @@
       <Button Command="{Binding Command}" ClickMode="Press" Classes="searchItem" Background="Transparent"
               Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
-        <Grid ColumnDefinitions="16 Auto *" Background="Transparent" Margin="10">
-          <PathIcon Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center" Foreground="{DynamicResource AcrylicTrimForeground}"
+        <DockPanel Background="Transparent" Margin="10">
+          <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center" Foreground="{DynamicResource AcrylicTrimForeground}"
                     Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-          <TextBlock Grid.Column="1" Margin="10 0 10 0" Text="{Binding Name}"
+          <TextBlock Margin="10 0 10 0" Text="{Binding Name}"
                      ToolTip.Tip="{Binding Name}"
                      VerticalAlignment="Center"  TextTrimming="CharacterEllipsis" MaxWidth="150" />
-          <TextBlock Grid.Column="2" Opacity="0.5" VerticalAlignment="Center" ToolTip.Tip="{Binding Description}" Text="{Binding Description}"
+          <TextBlock Opacity="0.5" VerticalAlignment="Center" ToolTip.Tip="{Binding Description}" Text="{Binding Description}"
                      TextTrimming="CharacterEllipsis" />
-        </Grid>
+        </DockPanel>
 
         <i:Interaction.Behaviors>
           <EventTriggerBehavior EventName="Click">
@@ -107,15 +105,13 @@
             <InvokeCommandAction Command="{Binding $parent[searchBar:SearchBar].((sb:SearchBarViewModel)DataContext).ResetCommand}" />
           </EventTriggerBehavior>
         </i:Interaction.Behaviors>
-
       </Button>
     </DataTemplate>
-
   </UserControl.DataTemplates>
 
   <Panel VerticalAlignment="Center">
-    <TextBlock IsVisible="{Binding !HasResults^, FallbackValue=False}" Margin="10">No results</TextBlock>
-    <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Groups}">
+    <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}" Margin="10">No results</TextBlock>
+    <ItemsControl IsVisible="{Binding HasResults}" Items="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
           <DockPanel Margin="0 0 0 10">
@@ -126,5 +122,4 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
   </Panel>
-
 </UserControl>

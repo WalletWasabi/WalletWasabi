@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -11,63 +10,19 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionHelpers
 {
-	public static BuildTransactionResult BuildChangelessTransaction(Wallet wallet, BitcoinAddress address, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool tryToSign = true)
-	{
-		var intent = new PaymentIntent(
-			address,
-			MoneyRequest.CreateAllRemaining(subtractFee: true),
-			labels);
-
-		var txRes = wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
-			intent,
-			FeeStrategy.CreateFromFeeRate(feeRate),
-			allowUnconfirmed: true,
-			allowedInputs: coins.Select(coin => coin.Outpoint),
-			tryToSign: tryToSign);
-
-		return txRes;
-	}
-
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, LabelsArray labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
-	{
-		if (payJoinClient is { } && subtractFee)
-		{
-			throw new InvalidOperationException("Not possible to subtract the fee.");
-		}
-
-		var intent = new PaymentIntent(
-			destination: address,
-			amount: amount,
-			subtractFee: subtractFee,
-			label: labels);
-
-		var txRes = wallet.BuildTransaction(
-			password: wallet.Kitchen.SaltSoup(),
-			payments: intent,
-			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
-			allowUnconfirmed: true,
-			allowedInputs: coins.Select(coin => coin.Outpoint),
-			payjoinClient: payJoinClient,
-			tryToSign: tryToSign);
-
-		return txRes;
-	}
-
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
 		if (transactionInfo.IsOptimized)
 		{
-			return BuildChangelessTransaction(
-				wallet,
+			return wallet.BuildChangelessTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
@@ -80,8 +35,7 @@ public static class TransactionHelpers
 			throw new InvalidOperationException("Not possible to subtract the fee.");
 		}
 
-		return BuildTransaction(
-			wallet,
+		return wallet.BuildTransaction(
 			transactionInfo.Destination,
 			transactionInfo.Amount,
 			transactionInfo.Recipient,
@@ -144,20 +98,20 @@ public static class TransactionHelpers
 		{
 			psbt = PSBT.Load(psbtBytes, network);
 		}
-		catch (FormatException ex)
+		catch (Exception ex)
 		{
-			throw new FormatException("An error occurred while loading the PSBT file.", ex);
-		}
-		catch
-		{
+			// Couldn't parse to PSBT with bytes, try parsing with string.
+			Logger.LogWarning($"Failed to load PSBT by bytes. Trying with string. {ex}");
 			var text = await File.ReadAllTextAsync(path);
 			text = text.Trim();
 			try
 			{
 				psbt = PSBT.Parse(text, network);
 			}
-			catch
+			catch (Exception exc)
 			{
+				// Couldn't parse to PSBT with string. All else failed, try to build SmartTransaction and broadcast that.
+				Logger.LogWarning($"Failed to parse PSBT by string. Fall back to building SmartTransaction from the string. {exc}");
 				return new SmartTransaction(Transaction.Parse(text, network), Height.Unknown);
 			}
 		}

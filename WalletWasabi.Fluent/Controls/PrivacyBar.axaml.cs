@@ -43,7 +43,7 @@ public class PrivacyBar : ItemsPresenter
 			children.Select(segment =>
 			{
 				var amount = (double)segment.Amount;
-				var width = Math.Abs(usableWidth * amount / (double)totalAmount);
+				var width = totalAmount == 0m ? 0d : Math.Abs(usableWidth * amount / (double)totalAmount);
 
 				return (Coin: segment, Width: width);
 			}).ToArray();

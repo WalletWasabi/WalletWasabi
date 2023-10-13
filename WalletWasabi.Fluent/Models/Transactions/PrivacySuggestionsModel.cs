@@ -25,7 +25,7 @@ public class PrivacySuggestionsModel
 	private const decimal MaximumDifferenceTolerance = 0.25m;
 	private const int ConsolidationTolerance = 10;
 
-	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
+	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
 	private readonly object _lock = new();
 
 	/// <summary>Allow at most one suggestion generation run.</summary>
@@ -33,7 +33,9 @@ public class PrivacySuggestionsModel
 
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager _cjManager;
-	private CancellationTokenSource? _suggestionCancellationTokenSource;
+
+	private CancellationTokenSource? _singleRunCancellationTokenSource;
+	private CancellationTokenSource? _linkedCancellationTokenSource;
 
 	public PrivacySuggestionsModel(Wallet wallet)
 	{
@@ -42,73 +44,85 @@ public class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
+	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var result = new PrivacySuggestionsResult();
+		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
 
 		lock (_lock)
 		{
-			_suggestionCancellationTokenSource?.Cancel();
-			_suggestionCancellationTokenSource = singleRunCts;
+			_singleRunCancellationTokenSource?.Cancel();
+			_linkedCancellationTokenSource?.Cancel();
+			_singleRunCancellationTokenSource = singleRunCts;
+			CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
+			CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
+			_linkedCancellationTokenSource = linkedCts;
 		}
-
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
 
 		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
-			try
+			result.Add(VerifyLabels(info, transactionResult));
+			result.Add(VerifyPrivacyLevel(info, transactionResult));
+			result.Add(VerifyConsolidation(transactionResult));
+			result.Add(VerifyUnconfirmedInputs(transactionResult));
+			result.Add(VerifyCoinjoiningInputs(transactionResult));
+			foreach (var item in result)
 			{
-				result = result
-					.Combine(VerifyLabels(info, transactionResult))
-					.Combine(VerifyPrivacyLevel(info, transactionResult))
-					.Combine(VerifyConsolidation(transactionResult))
-					.Combine(VerifyUnconfirmedInputs(transactionResult))
-					.Combine(VerifyCoinjoiningInputs(transactionResult))
-					.Combine(await VerifyChangeAsync(info, transactionResult, linkedCts));
+				yield return item;
 			}
-			catch (OperationCanceledException)
+			await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource).ConfigureAwait(false))
 			{
-				Logger.LogTrace("Operation was cancelled.");
+				yield return item;
 			}
-			finally
+			lock (_lock)
 			{
-				lock (_lock)
-				{
-					_suggestionCancellationTokenSource = null;
-				}
+				_singleRunCancellationTokenSource = null;
 			}
 		}
-
-		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
+	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
-		var result = new PrivacySuggestionsResult();
+		var warning = GetLabelWarning(transactionResult, info.Recipient);
 
-		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
+		if (warning is not null)
+		{
+			yield return warning;
+
+			if (info.IsOtherPocketSelectionPossible)
+			{
+				yield return new LabelManagementSuggestion();
+			}
+		}
+	}
+
+	private PrivacyItem? GetLabelWarning(BuildTransactionResult transactionResult, LabelsArray recipient)
+	{
+		var pockets = _wallet.GetPockets();
+		var spentCoins = transactionResult.SpentCoins;
+		var nonPrivateSpentCoins = spentCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate).ToList();
+		var usedPockets = pockets.Where(x => x.Coins.Any(coin => nonPrivateSpentCoins.Contains(coin))).ToList();
+
+		if (usedPockets.Count > 1)
+		{
+			var pocketLabels = usedPockets.SelectMany(x => x.Labels).Distinct().ToArray();
+			return new InterlinksLabelsWarning(new LabelsArray(pocketLabels));
+		}
+
+		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(recipient);
 		var labelsArray = new LabelsArray(labels);
 
 		if (labelsArray.Any())
 		{
-			result.Warnings.Add(new InterlinksLabelsWarning(labelsArray));
-
-			if (info.IsOtherPocketSelectionPossible)
-			{
-				result.Suggestions.Add(new LabelManagementSuggestion());
-			}
+			return new TransactionKnownAsYoursByWarning(labelsArray);
 		}
 
-		return result;
+		return null;
 	}
 
-	private PrivacySuggestionsResult VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
+	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
 	{
-		var result = new PrivacySuggestionsResult();
-
 		var canModifyTransactionAmount = !transactionInfo.IsPayJoin && !transactionInfo.IsFixedAmount;
 
 		var transactionLabels = originalTransaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
@@ -123,12 +137,12 @@ public class PrivacySuggestionsModel
 
 		if (foundNonPrivate)
 		{
-			result.Warnings.Add(new NonPrivateFundsWarning());
+			yield return new NonPrivateFundsWarning();
 		}
 
 		if (foundSemiPrivate)
 		{
-			result.Warnings.Add(new SemiPrivateFundsWarning());
+			yield return new SemiPrivateFundsWarning();
 		}
 
 		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletName];
@@ -162,7 +176,7 @@ public class PrivacySuggestionsModel
 				var differenceFiat = GetDifferenceFiat(transactionInfo, newTransaction, usdExchangeRate);
 				var differenceFiatText = GetDifferenceFiatText(differenceFiat);
 				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText, allPrivateCoin, isChangeless);
-				result.Suggestions.Add(fullPrivacySuggestion);
+				yield return fullPrivacySuggestion;
 			}
 		}
 
@@ -170,7 +184,7 @@ public class PrivacySuggestionsModel
 		// This is only possible if the user makes a silly selection with coin control.
 		if (fullPrivacySuggestion is { } sug && sug.Difference == 0m)
 		{
-			return result;
+			yield break;
 		}
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
@@ -184,68 +198,54 @@ public class PrivacySuggestionsModel
 			{
 				var differenceFiat = GetDifferenceFiat(transactionInfo, newTransaction, usdExchangeRate);
 				var differenceFiatText = GetDifferenceFiatText(differenceFiat);
-				result.Suggestions.Add(new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins, isChangeless));
+				yield return new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins, isChangeless);
 			}
 		}
-
-		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyConsolidation(BuildTransactionResult originalTransaction)
+	private IEnumerable<PrivacyItem> VerifyConsolidation(BuildTransactionResult originalTransaction)
 	{
-		var result = new PrivacySuggestionsResult();
-
 		var consolidatedCoins = originalTransaction.SpentCoins.Count();
 
 		if (consolidatedCoins > ConsolidationTolerance)
 		{
-			result.Warnings.Add(new ConsolidationWarning(ConsolidationTolerance));
+			yield return new ConsolidationWarning(ConsolidationTolerance);
 		}
-
-		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyUnconfirmedInputs(BuildTransactionResult transaction)
+	private IEnumerable<PrivacyItem> VerifyUnconfirmedInputs(BuildTransactionResult transaction)
 	{
-		var result = new PrivacySuggestionsResult();
-
 		if (transaction.SpendsUnconfirmed)
 		{
-			result.Warnings.Add(new UnconfirmedFundsWarning());
+			yield return new UnconfirmedFundsWarning();
 		}
-
-		return result;
 	}
 
-	private PrivacySuggestionsResult VerifyCoinjoiningInputs(BuildTransactionResult transaction)
+	private IEnumerable<PrivacyItem> VerifyCoinjoiningInputs(BuildTransactionResult transaction)
 	{
-		var result = new PrivacySuggestionsResult();
-
 		if (transaction.SpendsCoinjoining)
 		{
-			result.Warnings.Add(new CoinjoiningFundsWarning());
+			yield return new CoinjoiningFundsWarning();
 		}
-
-		return result;
 	}
 
-	private async Task<PrivacySuggestionsResult> VerifyChangeAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationTokenSource linkedCts)
+	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationTokenSource linkedCts)
 	{
-		var result = new PrivacySuggestionsResult();
-
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
 		if (hasChange)
 		{
-			result.Warnings.Add(new CreatesChangeWarning());
+			yield return new CreatesChangeWarning();
 
 			if (!info.IsFixedAmount && !info.IsPayJoin)
 			{
-				result.Suggestions.AddRange(await CreateChangeAvoidanceSuggestionsAsync(info, transaction, linkedCts));
+				var suggestions = await CreateChangeAvoidanceSuggestionsAsync(info, transaction, linkedCts).ConfigureAwait(false);
+				foreach (var suggestion in suggestions)
+				{
+					yield return suggestion;
+				}
 			}
 		}
-
-		return result;
 	}
 
 	private async Task<List<ChangeAvoidanceSuggestion>> CreateChangeAvoidanceSuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationTokenSource linkedCts)
@@ -269,7 +269,7 @@ public class PrivacySuggestionsModel
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
 		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : coinsToUse.Except(coinsToExclude).ToImmutableArray();
 
-		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
+		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
 
 		await foreach (var suggestion in suggestions)
 		{
@@ -317,8 +317,7 @@ public class PrivacySuggestionsModel
 
 			try
 			{
-				transaction = TransactionHelpers.BuildChangelessTransaction(
-					_wallet,
+				transaction = _wallet.BuildChangelessTransaction(
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
@@ -349,8 +348,7 @@ public class PrivacySuggestionsModel
 
 		try
 		{
-			txn = TransactionHelpers.BuildTransaction(
-				_wallet,
+			txn = _wallet.BuildTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Amount,
 				transactionInfo.Recipient,
@@ -364,8 +362,7 @@ public class PrivacySuggestionsModel
 		{
 			try
 			{
-				txn = TransactionHelpers.BuildChangelessTransaction(
-					_wallet,
+				txn = _wallet.BuildChangelessTransaction(
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,

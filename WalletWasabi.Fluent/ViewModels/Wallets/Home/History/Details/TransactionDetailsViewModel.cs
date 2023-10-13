@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -16,64 +17,68 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 [NavigationMetaData(Title = "Transaction Details")]
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
-	private readonly WalletViewModel _walletVm;
+	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private string? _dateString;
-	[AutoNotify] private Money? _amount;
-	[AutoNotify] private LabelsArray? _labels;
-	[AutoNotify] private string? _transactionId;
-	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private int _blockHeight;
+	[AutoNotify] private int _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
+	[AutoNotify] private string? _dateString;
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private bool _isLabelsVisible;
+	[AutoNotify] private LabelsArray? _labels;
+	[AutoNotify] private Amount? _amount;
 
-	private TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
+	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
 	{
-		_walletVm = walletVm;
+		UiContext = uiContext;
+		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-
-		Fee = transactionSummary.Fee;
-		IsFeeVisible = transactionSummary.Fee != null && transactionSummary.Amount < Money.Zero;
-		DestinationAddresses = transactionSummary.DestinationAddresses.ToList();
+		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
+		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
+		TransactionId = transactionSummary.GetHash();
+		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
 
+	public uint256 TransactionId { get; }
+
+	public Amount? Fee { get; }
+
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
 	public bool IsFeeVisible { get; }
-	
-	public Money? Fee { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
-		TransactionId = transactionSummary.TransactionId.ToString();
+		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 
-		TransactionFeeHelper.TryEstimateConfirmationTime(_walletVm.Wallet, transactionSummary.Transaction, out var estimate);
-		ConfirmationTime = estimate;
+		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transactionSummary);
+		if (confirmationTime is { })
+		{
+			ConfirmationTime = confirmationTime;
+		}
 
 		IsConfirmed = Confirmations > 0;
 
 		if (transactionSummary.Amount < Money.Zero)
 		{
-			Amount = -transactionSummary.Amount - (transactionSummary.Fee ?? Money.Zero);
-			AmountText = "Outgoing";
+			Amount = UiContext.AmountProvider.Create(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
+			AmountText = "Amount sent";
 		}
 		else
 		{
-			Amount = transactionSummary.Amount;
-			AmountText = "Incoming";
+			Amount = UiContext.AmountProvider.Create(transactionSummary.Amount);
+			AmountText = "Amount received";
 		}
 
 		BlockHash = transactionSummary.BlockHash?.ToString();
@@ -91,22 +96,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_walletVm.UiTriggers.TransactionsUpdateTrigger
-			.DoAsync(async _ => await UpdateCurrentTransactionAsync())
-			.Subscribe()
-			.DisposeWith(disposables);
+		_wallet.Transactions.TransactionProcessed
+							.Do(_ => UpdateCurrentTransaction())
+							.Subscribe()
+							.DisposeWith(disposables);
 	}
 
-	private async Task UpdateCurrentTransactionAsync()
+	private void UpdateCurrentTransaction()
 	{
-		var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
-		var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-
-		var currentTransaction = txRecordList.FirstOrDefault(x => x.TransactionId.ToString() == TransactionId);
-
-		if (currentTransaction is { })
+		if (_wallet.Transactions.TryGetById(TransactionId, out var transactionSummary))
 		{
-			UpdateValues(currentTransaction);
+			UpdateValues(transactionSummary);
 		}
 	}
 }
