@@ -66,7 +66,7 @@ public static class TransactionHelpers
 				label: transactionInfo.Recipient);
 
 			var network = keyManager.GetNetwork();
-			TransactionFactoryParameters parameters = new(feeRateFetcher: () => transactionInfo.FeeRate, allowUnconfirmed: false, allowDoubleSpend: false, allowedInputs: allowedCoins.Select(x => x.Outpoint), tryToSign: false);
+			TransactionFactoryParameters parameters = new(FeeRateFetcher: () => transactionInfo.FeeRate, AllowUnconfirmed: false, AllowDoubleSpend: false, AllowedInputs: allowedCoins.Select(x => x.Outpoint), TryToSign: false);
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), parameters, password);
 
 			builder.BuildTransaction(

@@ -64,7 +64,7 @@ public static class ServiceFactory
 
 		feeRateFetcher ??= () => new FeeRate(2m);
 
-		TransactionFactoryParameters parameters = new(feeRateFetcher: feeRateFetcher, allowUnconfirmed: allowUnconfirmed, allowDoubleSpend: allowDoubleSpend, allowedInputs: allowedInputs?.Select(c => c.Outpoint), tryToSign: tryToSign);
+		TransactionFactoryParameters parameters = new(FeeRateFetcher: feeRateFetcher, AllowUnconfirmed: allowUnconfirmed, AllowDoubleSpend: allowDoubleSpend, AllowedInputs: allowedInputs?.Select(c => c.Outpoint), TryToSign: tryToSign);
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, parameters, password);
 	}
 
