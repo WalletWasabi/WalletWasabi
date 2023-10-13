@@ -216,21 +216,31 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("build")]
-	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
+	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
-		Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
 		password = Guard.Correct(password);
-		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
+		static bool InRange<T>(IComparable<T> val, T min, T max) =>
+			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+
+		var satsPerByte = feeRate is {} nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
+
+		var feeStrategy = (feeRate, feeTarget) switch
+		{
+			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
+				FeeStrategy.CreateFromFeeRate(satsPerByte),
+			(null, {} argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
+				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
+			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
+		};
 		AssertWalletIsLoaded();
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
-		var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
-		var result = activeWallet.BuildTransaction(
+		var result = ActiveWallet!.BuildTransaction(
 			password,
 			payment,
 			feeStrategy,
@@ -242,10 +252,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("send")]
-	public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
+	public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
 	{
 		password = Guard.Correct(password);
-		var txHex = BuildTransaction(payments, coins, feeTarget, password);
+		var txHex = BuildTransaction(payments, coins, feeTarget, feeRate, password);
 		var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
 		await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
