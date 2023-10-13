@@ -63,7 +63,7 @@ public partial class WalletCoinjoinModel
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		await _coinJoinManager.StartAsync(_wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
+		await _coinJoinManager.StartAsync(_wallet, _wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
 
 	public async Task StopAsync()

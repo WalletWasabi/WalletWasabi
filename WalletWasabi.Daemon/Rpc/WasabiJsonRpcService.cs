@@ -386,7 +386,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
 		}
-		await coinJoinManager.StartAsync(activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+		await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]
