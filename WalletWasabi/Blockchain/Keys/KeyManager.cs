@@ -240,17 +240,13 @@ public class KeyManager
 		get => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 		set
 		{
-			var newPath = new FileInfo(Path.Combine(Path.GetDirectoryName(FilePath)!, value + ".json"));
-
-			if (Path.GetDirectoryName(FilePath) != newPath.DirectoryName)
-			{
-				throw new InvalidOperationException("The new name is invalid");
-			}
+			var currentDirectory = Path.GetDirectoryName(FilePath);
+			var newPath = WalletGenerator.GetWalletFilePath(value, currentDirectory!);
 
 			if (FilePath != null)
 			{
-				File.Move(FilePath, newPath.FullName);
-				SetFilePath(newPath.FullName);
+				File.Move(FilePath, newPath);
+				SetFilePath(newPath);
 			}
 		}
 	}
