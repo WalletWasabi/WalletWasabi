@@ -1,17 +1,16 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -20,9 +19,12 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
+	private readonly ReadOnlyObservableCollection<TransactionSummary> _transactions;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
+		_wallet = wallet;
+
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
 					  .Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
@@ -30,23 +32,30 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
 
-		List =
+		var transactionChanges =
 			Observable.Defer(() => BuildSummary().ToObservable())
 					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
 					  .ToObservableChangeSet(x => x.GetHash());
-		_wallet = wallet;
+
+		transactionChanges.Bind(out _transactions).Subscribe();
 	}
+
+	public ReadOnlyObservableCollection<TransactionSummary> List => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public IObservable<IChangeSet<TransactionSummary, uint256>> List { get; }
-
-	public async Task<TransactionSummary?> GetById(string transactionId)
+	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
 	{
-		var txRecordList = await Task.Run(() => _wallet.BuildHistorySummary());
+		var result = List.FirstOrDefault(x => x.GetHash() == transactionId);
 
-		var transaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == transactionId);
-		return transaction;
+		if (result is null)
+		{
+			transactionSummary = default;
+			return false;
+		}
+
+		transactionSummary = result;
+		return true;
 	}
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
