@@ -98,20 +98,20 @@ public static class TransactionHelpers
 		{
 			psbt = PSBT.Load(psbtBytes, network);
 		}
-		catch
+		catch (Exception ex)
 		{
 			// Couldn't parse to PSBT with bytes, try parsing with string.
-			Logger.LogWarning("Failed to load PSBT by bytes. Trying with string.");
+			Logger.LogWarning($"Failed to load PSBT by bytes. Trying with string. {ex}");
 			var text = await File.ReadAllTextAsync(path);
 			text = text.Trim();
 			try
 			{
 				psbt = PSBT.Parse(text, network);
 			}
-			catch
+			catch (Exception exc)
 			{
 				// Couldn't parse to PSBT with string. All else failed, try to build SmartTransaction and broadcast that.
-				Logger.LogWarning("Failed to parse PSBT by string. Fall back to building SmartTransaction from the string.");
+				Logger.LogWarning($"Failed to parse PSBT by string. Fall back to building SmartTransaction from the string. {exc}");
 				return new SmartTransaction(Transaction.Parse(text, network), Height.Unknown);
 			}
 		}
