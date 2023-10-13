@@ -28,9 +28,12 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			UiContext.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
+				new CoinJoinsDetailsViewModel(UiContext, this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
+
+		ItemType = GetItemType();
+		ItemStatus = GetItemStatus();
 	}
 
 	public List<TransactionSummary> CoinJoinTransactions { get; private set; }
@@ -85,6 +88,7 @@ public partial class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	private void Refresh()
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
+		ItemStatus = GetItemStatus();
 		ConfirmedToolTip = GetConfirmedToolTip(CoinJoinTransactions.Select(x => x.GetConfirmations()).Min());
 		Date = CoinJoinTransactions.Select(tx => tx.FirstSeen).Max().ToLocalTime();
 

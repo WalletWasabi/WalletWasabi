@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -22,8 +23,9 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	private readonly UiTriggers _triggers;
 	private readonly Wallet _wallet;
 
-	private SpeedUpTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
+	public SpeedUpTransactionDialogViewModel(UiContext uiContext, UiTriggers triggers, Wallet wallet, SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
+		UiContext = uiContext;
 		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToSpeedUp = transactionToSpeedUp;
@@ -32,8 +34,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnSpeedUpTransactionAsync(boostingTransaction));
 
-		FeeDifference = GetFeeDifference(transactionToSpeedUp, boostingTransaction);
-		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
+		Fee = uiContext.AmountProvider.Create(GetFeeDifference(transactionToSpeedUp, boostingTransaction));
 
 		var originalForeignAmounts = transactionToSpeedUp.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
@@ -45,11 +46,9 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		AreWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 	}
 
-	public decimal FeeDifferenceUsd { get; }
+	public Amount Fee { get; }
 
 	public bool AreWePayingTheFee { get; }
-
-	public Money FeeDifference { get; }
 
 	public Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
 	{
@@ -111,7 +110,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	{
 		if (!string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup()))
 		{
-			var result = UiContext.Navigate().To().PasswordAuthDialog(new WalletModel(_wallet));
+			var result = UiContext.Navigate().To().PasswordAuthDialog(WalletRepository.CreateWalletModel(_wallet));
 			var dialogResult = await result.GetResultAsync();
 			return dialogResult;
 		}

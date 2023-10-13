@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
@@ -41,9 +42,24 @@ public partial class WalletCoinjoinModel
 					}
 				})
 				.Subscribe();
+
+		var coinjoinStarted =
+			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
+						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
+						 .Select(x => true);
+
+		var coinjoinCompleted =
+			StatusUpdated.OfType<CompletedEventArgs>()
+						 .Select(x => false);
+
+		IsRunning =
+			coinjoinStarted.Merge(coinjoinCompleted)
+						   .ObserveOn(RxApp.MainThreadScheduler);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
+
+	public IObservable<bool> IsRunning { get; }
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{

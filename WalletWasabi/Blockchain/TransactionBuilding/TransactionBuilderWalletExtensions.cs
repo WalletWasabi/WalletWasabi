@@ -37,13 +37,13 @@ public static class TransactionBuilderWalletExtensions
 			payments,
 			feeRateFetcher: () =>
 			{
-				if (feeStrategy.Type == FeeStrategyType.Target)
+				if (feeStrategy.TryGetTarget(out int? target))
 				{
-					return wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
+					return wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
 				}
-				else if (feeStrategy.Type == FeeStrategyType.Rate)
+				else if (feeStrategy.TryGetFeeRate(out FeeRate? feeRate))
 				{
-					return feeStrategy.Rate;
+					return feeRate;
 				}
 				else
 				{

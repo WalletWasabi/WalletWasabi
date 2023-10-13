@@ -48,9 +48,9 @@ public static class CurrencyExtensions
 		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
 	}
 
-	public static string ToUsdAprox(this decimal n) => $"≈{ToUsd(n)}";
+	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsd(n)}" : "";
 
-	public static string ToUsdAproxBetweenParens(this decimal n) => $"({ToUsdAprox(n)})";
+	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
 
 	public static string ToUsd(this decimal n)
 	{

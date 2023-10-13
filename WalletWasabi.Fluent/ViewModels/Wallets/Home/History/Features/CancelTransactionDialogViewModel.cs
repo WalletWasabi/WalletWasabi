@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -22,31 +23,22 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	private readonly SmartTransaction _transactionToCancel;
 
-	private CancelTransactionDialogViewModel(UiTriggers triggers, Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
+	public CancelTransactionDialogViewModel(UiContext uiContext, UiTriggers triggers, Wallet wallet, SmartTransaction transactionToCancel, BuildTransactionResult cancellingTransaction)
 	{
+		UiContext = uiContext;
 		_triggers = triggers;
 		_wallet = wallet;
 		_transactionToCancel = transactionToCancel;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var originalFee = transactionToCancel.WalletInputs.Sum(x => x.Amount) - transactionToCancel.OutputValues.Sum(x => x);
 		var cancelFee = cancellingTransaction.Fee;
-		FeeDifference = cancelFee - originalFee;
-		TotalFee = cancelFee;
-		FeeDifferenceUsd = FeeDifference.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
-		TotalFeeUsd = TotalFee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate;
+		Fee = uiContext.AmountProvider.Create(cancelFee);
 
 		EnableBack = false;
 		NextCommand = ReactiveCommand.CreateFromTask(() => OnCancelTransactionAsync(cancellingTransaction));
 	}
 
-	public decimal TotalFeeUsd { get; }
-
-	public Money TotalFee { get; set; }
-
-	public decimal FeeDifferenceUsd { get; }
-
-	public Money FeeDifference { get; }
+	public Amount Fee { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -96,7 +88,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	{
 		if (!string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup()))
 		{
-			var result = UiContext.Navigate().To().PasswordAuthDialog(new WalletModel(_wallet));
+			var result = UiContext.Navigate().To().PasswordAuthDialog(WalletRepository.CreateWalletModel(_wallet));
 			var dialogResult = await result.GetResultAsync();
 			return dialogResult;
 		}
