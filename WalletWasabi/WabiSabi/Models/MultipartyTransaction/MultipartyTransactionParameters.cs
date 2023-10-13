@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 // standard transaction subject to constraints.
 public record MultipartyTransactionParameters
 {
-	public static int SharedOverhead =  SharedOverheadFn(255, 255);
+	public static readonly int SharedOverhead = SharedOverheadFn(255, 255);
 
 	// version, locktime, two 3 byte varints are non-witness data, marker and flags are witness data.
 	private static int SharedOverheadFn(long minInputCount, long minOutputCount)
