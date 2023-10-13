@@ -382,11 +382,22 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private async Task StartCoinjoiningAsync(bool stopWhenAllMixed, bool overridePlebStop, CoinJoinManager coinJoinManager, Wallet activeWallet, Wallet outputWallet)
 	{
+		// If output wallet isn't initialized, then load it.
 		if (outputWallet.State == WalletState.Uninitialized)
 		{
 			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
 		}
-		await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+
+		// Do normal coinjoining until all coins are mixed.
+		// ToDo: stopWhenAllMixed is incompatible with different output wallets?
+		await coinJoinManager.StartAsync(activeWallet, activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+
+		// If we have different output wallet, then do coinjoining until all coins are in the output wallet. Do it in consolidation mode.
+		if (outputWallet.WalletName != activeWallet.WalletName)
+		{
+			activeWallet.ConsolidationMode = true;
+			await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+		}
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]

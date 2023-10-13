@@ -61,6 +61,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
+
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
@@ -109,7 +110,7 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
-	public bool ConsolidationMode => false;
+	public bool ConsolidationMode { get; set; } = false;
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
@@ -486,6 +487,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
+
 	private async Task LoadDummyMempoolAsync()
 	{
 		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
