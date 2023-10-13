@@ -97,44 +97,60 @@ public class CoinsRegistry : ICoinsView
 		var added = false;
 		lock (Lock)
 		{
-			if (!SpentCoins.Contains(coin))
-			{
-				added = Coins.Add(coin);
-				KnownTransactions.Add(coin.TransactionId);
-				OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
+			added = TryAddNoLock(coin);
+		}
+		return added;
+	}
 
-				if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
-				{
-					coinsOfPubKey = new();
-					CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
-				}
-
-				coinsOfPubKey.Add(coin);
-
-				if (added)
-				{
-					if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
-					{
-						hashSet = new();
-						CoinsByTransactionId.Add(coin.TransactionId, hashSet);
-					}
-
-					hashSet.Add(coin);
-
-					// Each prevOut of the transaction contributes to the existence of coins.
-					foreach (TxIn input in coin.Transaction.Transaction.Inputs)
-					{
-						CoinsByOutPoint[input.PrevOut] = hashSet;
-					}
-
-					InvalidateSnapshot = true;
-				}
-
-				UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
-			}
+	private bool TryAddNoLock(SmartCoin coin)
+	{
+		if (SpentCoins.Contains(coin))
+		{
+			return false;
 		}
 
+		var added = InitializeSmartCoinDataNoLock(coin);
+
+		if (added)
+		{
+			UpdateCoinMappingsNoLock(coin);
+		}
+		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 		return added;
+	}
+
+	private bool InitializeSmartCoinDataNoLock(SmartCoin coin)
+	{
+		var added = Coins.Add(coin);
+		KnownTransactions.Add(coin.TransactionId);
+		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
+
+		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
+		{
+			coinsOfPubKey = new();
+			CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
+		}
+		coinsOfPubKey.Add(coin);
+		return added;
+	}
+
+	private void UpdateCoinMappingsNoLock(SmartCoin coin)
+	{
+		if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
+		{
+			hashSet = new();
+			CoinsByTransactionId.Add(coin.TransactionId, hashSet);
+		}
+
+		hashSet.Add(coin);
+
+		// Each prevOut of the transaction contributes to the existence of coins.
+		foreach (TxIn input in coin.Transaction.Transaction.Inputs)
+		{
+			CoinsByOutPoint[input.PrevOut] = hashSet;
+		}
+
+		InvalidateSnapshot = true;
 	}
 
 	private ICoinsView RemoveNoLock(SmartCoin coin)
