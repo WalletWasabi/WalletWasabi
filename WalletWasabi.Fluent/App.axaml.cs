@@ -124,7 +124,6 @@ public class App : Application
 
 	private static ITransactionBroadcasterModel CreateBroadcaster(Network network)
 	{
-		// TODO: SuperJMN: Replace this by the effective network
 		return new TransactionBroadcasterModel(network);
 	}
 
