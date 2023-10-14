@@ -364,40 +364,46 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("startcoinjoin")]
-	public void StartCoinJoining(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true, string? outputWalletName = null)
+	public void StartCoinJoining(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
 	{
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
+		coinJoinManager.StartAsync(activeWallet, activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+	}
+
+	[JsonRpcMethod("startcoinjoinsweep")]
+	public void StartCoinjoinSweeping(string? password = null, string? outputWalletName = null)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 
-		var outputWallet = activeWallet;
-		if (outputWalletName is not null)
+		if (outputWalletName is null || outputWalletName == activeWallet.WalletName)
 		{
-			outputWallet = Global.WalletManager.GetWalletByName(outputWalletName);
+			throw new InvalidOperationException("Output wallet name is invalid.");
 		}
 
-		StartCoinjoiningAsync(stopWhenAllMixed, overridePlebStop, coinJoinManager, activeWallet, outputWallet).ConfigureAwait(false);
+		var outputWallet = Global.WalletManager.GetWalletByName(outputWalletName);
+
+		StartCoinjoinSweepAsync(activeWallet, outputWallet).ConfigureAwait(false);
 	}
 
-	private async Task StartCoinjoiningAsync(bool stopWhenAllMixed, bool overridePlebStop, CoinJoinManager coinJoinManager, Wallet activeWallet, Wallet outputWallet)
+	private async Task StartCoinjoinSweepAsync(Wallet activeWallet, Wallet outputWallet)
 	{
+		activeWallet.ConsolidationMode = true;
+
 		// If output wallet isn't initialized, then load it.
 		if (outputWallet.State == WalletState.Uninitialized)
 		{
 			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
 		}
 
-		// Do normal coinjoining until all coins are mixed.
-		// ToDo: stopWhenAllMixed is incompatible with different output wallets?
-		await coinJoinManager.StartAsync(activeWallet, activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
-
-		// If we have different output wallet, then do coinjoining until all coins are in the output wallet. Do it in consolidation mode.
-		if (outputWallet.WalletName != activeWallet.WalletName)
-		{
-			activeWallet.ConsolidationMode = true;
-			await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
-		}
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop: true, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]
