@@ -16,11 +16,11 @@ public class HardwareWalletViewModel : WalletViewModel
 		{
 			try
 			{
-				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
+				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "txn", "*" });
 				if (path is { })
 				{
 					var txn = await TransactionHelpers.ParseTransactionAsync(path, parent.Wallet.Network);
-					Navigate().To().BroadcastTransaction(parent.Wallet.Network, txn);
+					Navigate().To().BroadcastTransaction(txn);
 				}
 			}
 			catch (Exception ex)

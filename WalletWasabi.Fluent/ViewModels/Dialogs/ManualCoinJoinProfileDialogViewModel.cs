@@ -3,6 +3,7 @@ using System.Linq;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
@@ -10,6 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private CoinjoinSkipFactors _skipFactors;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
@@ -17,6 +19,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
 		_redCoinIsolation = current.RedCoinIsolation;
+		_skipFactors = current.SkipFactors;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
@@ -39,8 +42,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var isolateRed = RedCoinIsolation;
 			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
+			var skipFactors = SkipFactors;
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed)));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors)));
 		});
 	}
 

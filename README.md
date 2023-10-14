@@ -62,7 +62,7 @@
 
 <br>
 
-![](/WalletWasabi.Backend/wwwroot/webpage_ui_compilation-02.png)
+![](/ui-ww.png)
 
 # Build From Source Code
 

@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -236,7 +235,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				return new WalletCoinsViewModel(UiContext, walletViewModel);
+				return new WalletCoinsViewModel(UiContext, walletViewModel.WalletModel);
 			}
 
 			return null;
@@ -282,7 +281,7 @@ public partial class MainViewModel : ViewModelBase
 					{
 						// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
 						// TODO: Why is this code duplicated?
-						var pwAuthDialog = new PasswordAuthDialogViewModel(WalletRepository.CreateWalletModel(walletViewModel.Wallet));
+						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.WalletModel);
 						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
@@ -291,7 +290,7 @@ public partial class MainViewModel : ViewModelBase
 						}
 					}
 
-					return new WalletInfoViewModel(UiContext, new WalletModel(walletViewModel.Wallet));
+					return new WalletInfoViewModel(UiContext, walletViewModel.WalletModel);
 				}
 
 				return AuthorizeWalletInfo();
@@ -317,8 +316,7 @@ public partial class MainViewModel : ViewModelBase
 		{
 			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
 			{
-				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-				return new ReceiveViewModel(UiContext, WalletRepository.CreateWalletModel(walletViewModel.Wallet));
+				return new ReceiveViewModel(UiContext, walletViewModel.WalletModel);
 			}
 
 			return null;
@@ -334,19 +332,24 @@ public partial class MainViewModel : ViewModelBase
 	private SearchBarViewModel CreateSearchBar()
 	{
 		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
-		var filterChanged = new Subject<string>();
+		var querySubject = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSearchSource(UiContext, filterChanged),
-			new SettingsSearchSource(UiContext, filterChanged),
-			new TransactionsSearchSource(filterChanged));
+			new ActionsSearchSource(UiContext, querySubject),
+			new SettingsSearchSource(UiContext, querySubject),
+			new TransactionsSearchSource(querySubject),
+			UiContext.EditableSearchSource);
 
 		var searchBar = new SearchBarViewModel(source.Changes);
 
-		searchBar
+		var queries = searchBar
 			.WhenAnyValue(a => a.SearchText)
-			.WhereNotNull()
-			.Subscribe(filterChanged);
+			.WhereNotNull();
+
+		UiContext.EditableSearchSource.SetQueries(queries);
+
+		queries
+			.Subscribe(querySubject);
 
 		return searchBar;
 	}

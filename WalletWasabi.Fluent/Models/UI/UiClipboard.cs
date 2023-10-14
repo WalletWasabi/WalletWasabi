@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.Models.UI;
 [AutoInterface]
 public partial class UiClipboard
 {
-	public async Task<string?> GetTextAsync()
+	public async Task<string> GetTextAsync()
 	{
 		if (Application.Current?.Clipboard is { } clipboard)
 		{
