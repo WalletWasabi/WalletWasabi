@@ -39,11 +39,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	public async Task UpdatePreviewWarningsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
 		var previewWarningList = new List<PrivacyWarning>();
-		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
 
-		await foreach (var warning in result.GetAllWarningsAsync())
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
 		{
-			previewWarningList.Add(warning);
+			if (item is PrivacyWarning warning)
+			{
+				previewWarningList.Add(warning);
+			}
 		}
 
 		_previewWarnings.OnNext(previewWarningList);

@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
@@ -34,6 +35,7 @@ public class PrivacyWarningFadeOutBehavior : AttachedToVisualTreeBehavior<Contro
 
 		this.WhenAnyValue(x => x.PreviewWarnings)
 			.WhereNotNull()
+			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
 			.Do(_ =>
 			{
 				var fadeOut = !PreviewWarnings.Any(p => p == current);
