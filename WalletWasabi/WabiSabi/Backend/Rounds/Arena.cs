@@ -336,8 +336,8 @@ public partial class Arena : PeriodicRunner
 
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
 					round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
-					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
-					round.LogInfo($"VSize: {coinjoin.GetVirtualSize() / 1024} KB.");
+					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024.0} KB.");
+					round.LogInfo($"VSize: {coinjoin.GetVirtualSize() / 1024.0} KB.");
 					var indistinguishableOutputs = coinjoin.GetIndistinguishableOutputs(includeSingle: true);
 					foreach (var (value, count) in indistinguishableOutputs.Where(x => x.count > 1))
 					{
