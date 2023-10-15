@@ -24,6 +24,85 @@ public class CoinsRegistryTests
 	private CoinsRegistry Coins { get; } = new();
 
 	/// <summary>
+	/// Tests <see cref="CoinsRegistry.DescendantOfAndSelf(SmartCoin)"/> method.
+	/// </summary>
+	[Fact]
+	public void DescendantsOfAndSelf()
+	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
+
+		// --tx0---> (A) --tx1---> (B) --tx2---> (D)
+		//                          |
+		//                          +--> (C)
+
+		SmartTransaction tx0; // The transaction has 2 inputs and 1 output.
+		SmartTransaction tx1; // The transaction has 1 input and 2 outputs.
+		SmartTransaction tx2; // The transaction has 1 input and 1 output.
+
+		SmartCoin tx0Coin;
+		SmartCoin tx1Coin1;
+		SmartCoin tx1Coin2;
+		SmartCoin tx2Coin;
+
+		IReadOnlyList<SmartCoin> tx0Coins;
+		IReadOnlyList<SmartCoin> tx1Coins;
+		IReadOnlyList<SmartCoin> tx2Coins;
+
+		// Create and process transaction tx0, tx1, and tx2.
+		{
+			// Tx0.
+			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
+			tx0Coins = ProcessTransaction(tx0);
+			tx0Coin = Assert.Single(tx0Coins);
+
+			// Tx1.
+			tx1 = CreateSpendingTransaction(
+				tx0Coin.Coin,
+				new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript),
+				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript));
+			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			tx1Coins = ProcessTransaction(tx1);
+			Assert.Equal(2, tx1Coins.Count);
+			tx1Coin1 = tx1Coins[0];
+			tx1Coin2 = tx1Coins[1];
+
+			// Tx2.
+			SmartCoin coin = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
+			tx2 = CreateSpendingTransaction(coin.Coin, txOuts: new TxOut(Money.Coins(0.7m), NewInternalKey("D").P2wpkhScript));
+			tx2Coins = ProcessTransaction(tx2);
+			tx2Coin = Assert.Single(tx2Coins);
+		}
+
+		// Descendants of tx0-0 coin.
+		{
+			IReadOnlySet<SmartCoin> allCoins = tx0Coins.Concat(tx1Coins).Concat(tx2Coins).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx0Coin).ToHashSet();
+			Assert.Equal(allCoins, actualCoins);
+		}
+
+		// Descendants of tx1-0 coin.
+		{
+			IReadOnlySet<SmartCoin> expectedCoins = tx2Coins.Concat(new HashSet<SmartCoin>() { tx1Coin1 }).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx1Coin1).ToHashSet();
+			Assert.Equal(expectedCoins, actualCoins);
+		}
+
+		// Descendants of tx1-1 coin.
+		{
+			IReadOnlySet<SmartCoin> expectedCoins = new HashSet<SmartCoin>() { tx1Coin2 };
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx1Coin2).ToHashSet();
+			Assert.Equal(expectedCoins, actualCoins);
+		}
+
+		// Descendants of tx2-0 coin.
+		{
+			IReadOnlySet<SmartCoin> expectedCoins = new HashSet<SmartCoin>() { tx2Coin };
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx2Coin).ToHashSet();
+			Assert.Equal(expectedCoins, actualCoins);
+		}
+	}
+
+	/// <summary>
 	/// Tests <see cref="CoinsRegistry.Undo(uint256)"/> method with respect to caching of prevOuts properly.
 	/// </summary>
 	[Fact]

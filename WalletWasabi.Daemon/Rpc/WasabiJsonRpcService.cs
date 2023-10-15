@@ -225,13 +225,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 		static bool InRange<T>(IComparable<T> val, T min, T max) =>
 			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
 
-		var satsPerByte = feeRate is {} nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
+		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
 
 		var feeStrategy = (feeRate, feeTarget) switch
 		{
 			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
 				FeeStrategy.CreateFromFeeRate(satsPerByte),
-			(null, {} argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
+			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
 				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
 			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
 		};
@@ -371,7 +371,39 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password ?? "");
-		coinJoinManager.StartAsync(activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+		coinJoinManager.StartAsync(activeWallet, activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+	}
+
+	[JsonRpcMethod("startcoinjoinsweep")]
+	public void StartCoinjoinSweeping(string? password = null, string? outputWalletName = null)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
+
+		if (outputWalletName is null || outputWalletName == activeWallet.WalletName)
+		{
+			throw new InvalidOperationException("Output wallet name is invalid.");
+		}
+
+		var outputWallet = Global.WalletManager.GetWalletByName(outputWalletName);
+
+		StartCoinjoinSweepAsync(activeWallet, outputWallet).ConfigureAwait(false);
+	}
+
+	private async Task StartCoinjoinSweepAsync(Wallet activeWallet, Wallet outputWallet)
+	{
+		activeWallet.ConsolidationMode = true;
+
+		// If output wallet isn't initialized, then load it.
+		if (outputWallet.State == WalletState.Uninitialized)
+		{
+			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
+		}
+
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop: true, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]
@@ -470,7 +502,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 	}
 
-	static bool TryParseMnemonic(string mnemonicStr, [NotNullWhen(true)] out Mnemonic? mnemonic)
+	private static bool TryParseMnemonic(string mnemonicStr, [NotNullWhen(true)] out Mnemonic? mnemonic)
 	{
 		try
 		{

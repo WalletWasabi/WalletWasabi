@@ -395,9 +395,9 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView DescendantOf(SmartCoin coin) => AsCoinsView().DescendantOf(coin);
 
-	private ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin) => AsCoinsViewNoLock().DescendantOfAndSelf(coin);
+	private ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin) => AsAllCoinsViewNoLock().DescendantOfAndSelf(coin);
 
-	public ICoinsView DescendantOfAndSelf(SmartCoin coin) => AsCoinsView().DescendantOfAndSelf(coin);
+	public ICoinsView DescendantOfAndSelf(SmartCoin coin) => AsAllCoinsView().DescendantOfAndSelf(coin);
 
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
 
