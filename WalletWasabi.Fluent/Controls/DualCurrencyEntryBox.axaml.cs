@@ -339,7 +339,15 @@ public class DualCurrencyEntryBox : TemplatedControl
 		if (updateTextField)
 		{
 			var oldText = RightEntryBox?.Text;
-			var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
+			// var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
+			var formatInfo = new NumberFormatInfo()
+			{
+				CurrencyGroupSeparator = "",
+				NumberGroupSeparator = "",
+				CurrencyDecimalSeparator = ".",
+				NumberDecimalSeparator = "."
+			};
+			var text = AmountBtc > 0 ? conversion.ToString("N2", formatInfo) : string.Empty;
 			SetCurrentValue(ConversionTextProperty, text);
 
 			// TODO: Maintain CaretIndex properly.
