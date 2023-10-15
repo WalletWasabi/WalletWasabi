@@ -403,10 +403,6 @@ public class CoinsRegistry : ICoinsView
 
 	public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
-	public ICoinsView OutPoints(ISet<OutPoint> outPoints) => AsCoinsView().OutPoints(outPoints);
-
-	public ICoinsView OutPoints(TxInList txIns) => AsCoinsView().OutPoints(txIns);
-
 	public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
 	public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);

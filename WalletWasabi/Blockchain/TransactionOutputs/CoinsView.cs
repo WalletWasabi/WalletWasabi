@@ -61,15 +61,6 @@ public class CoinsView : ICoinsView
 
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
-	public ICoinsView OutPoints(ISet<OutPoint> outPoints) => new CoinsView(Coins.Where(x => outPoints.Contains(x.Outpoint)));
-
-	public ICoinsView OutPoints(TxInList txIns)
-	{
-		var outPointSet = txIns.Select(x => x.PrevOut).ToHashSet();
-		var smartCoins = Coins.Where(x => outPointSet.Contains(x.Outpoint));
-		return new CoinsView(smartCoins);
-	}
-
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
 		coin = Coins.FirstOrDefault(x => x.Outpoint == outpoint);
