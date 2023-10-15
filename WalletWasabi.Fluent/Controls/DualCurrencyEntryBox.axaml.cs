@@ -313,7 +313,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 			SetCurrentValue(TextProperty, text);
 
 			// TODO: Maintain CaretIndex properly.
-			SetCaretIndex(LeftEntryBox, text, oldText);
+			// SetCaretIndex(LeftEntryBox, text, oldText);
 
 			_canUpdateDisplay = true;
 		}
@@ -342,7 +342,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 			SetCurrentValue(ConversionTextProperty, text);
 
 			// TODO: Maintain CaretIndex properly.
-			SetCaretIndex(RightEntryBox, text, oldText);
+			// SetCaretIndex(RightEntryBox, text, oldText);
 		}
 
 		_canUpdateFiat = true;
