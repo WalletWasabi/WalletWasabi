@@ -309,7 +309,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 			_canUpdateDisplay = false;
 
 			var oldText = LeftEntryBox?.Text;
-			var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+			// var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+			var text = AmountBtc > 0 ? AmountBtc.ToString(CultureInfo.InvariantCulture) : string.Empty;
 			SetCurrentValue(TextProperty, text);
 
 			// TODO: Maintain CaretIndex properly.
