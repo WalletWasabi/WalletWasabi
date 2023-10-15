@@ -308,10 +308,12 @@ public class DualCurrencyEntryBox : TemplatedControl
 		{
 			_canUpdateDisplay = false;
 
+			var oldText = LeftEntryBox?.Text;
 			var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
 			SetCurrentValue(TextProperty, text);
+
 			// TODO: Maintain CaretIndex properly.
-			Dispatcher.UIThread.Post(() => LeftEntryBox?.SetCurrentValue(TextBox.CaretIndexProperty, text.Length));
+			SetCaretIndex(LeftEntryBox, text, oldText);
 
 			_canUpdateDisplay = true;
 		}
@@ -335,13 +337,28 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		if (updateTextField)
 		{
+			var oldText = RightEntryBox?.Text;
 			var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
 			SetCurrentValue(ConversionTextProperty, text);
+
 			// TODO: Maintain CaretIndex properly.
-			Dispatcher.UIThread.Post(() => RightEntryBox?.SetCurrentValue(TextBox.CaretIndexProperty, text.Length));
+			SetCaretIndex(RightEntryBox, text, oldText);
 		}
 
 		_canUpdateFiat = true;
+	}
+
+	private void SetCaretIndex(CurrencyEntryBox? entryBox, string newText, string? oldText)
+	{
+		if (entryBox is not null)
+		{
+			var oldTextLength = oldText?.Length ?? 0;
+			var newTextLength = newText.Length;
+			// var oldCaretIndex = entryBox.CaretIndex;
+			var newCaretIndex = entryBox.CaretIndex + (newTextLength - oldTextLength);
+			// Console.WriteLine($"oldText='{oldText}', newText='{newText}', oldCaretIndex={oldCaretIndex}, newCaretIndex={newCaretIndex}, oldTextLength={oldTextLength}, newTextLength={newTextLength}");
+			Dispatcher.UIThread.Post(() => entryBox?.SetCurrentValue(TextBox.CaretIndexProperty, newCaretIndex + 1));
+		}
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
