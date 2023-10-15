@@ -94,12 +94,10 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryAdd(SmartCoin coin)
 	{
-		var added = false;
 		lock (Lock)
 		{
-			added = TryAddNoLock(coin);
+			return TryAddNoLock(coin);
 		}
-		return added;
 	}
 
 	private bool TryAddNoLock(SmartCoin coin)
