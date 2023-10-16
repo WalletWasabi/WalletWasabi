@@ -447,12 +447,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("listwallets", initializable: false)]
-	public async Task<string[]> ListWalletsAsync()
+	public async Task<object[]> ListWalletsAsync()
 	{
 		var wallets = await Global.WalletManager.GetWalletsAsync().ConfigureAwait(false);
 		return wallets
 			.Cast<Wallet>()
-			.Select(x => x.WalletName)
+			.Select(x => new { walletName = x.WalletName})
 			.ToArray();
 	}
 
