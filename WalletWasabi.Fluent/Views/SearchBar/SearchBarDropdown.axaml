@@ -76,14 +76,14 @@
     <settings:SettingSelector>
       <settings:SettingSelector.DataTemplates>
         <DataTemplate DataType="x:Boolean">
-          <ToggleSwitch x:CompileBindings="False" x:Name="ToggleSwitch" HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
+          <ToggleSwitch x:CompileBindings="False" HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
         </DataTemplate>
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
 
     <DataTemplate DataType="searchItems:IContentSearchItem">
 
-      <DockPanel Background="Transparent" x:Name="MainPane" Margin="10" IsEnabled="{Binding IsEnabled}">
+      <DockPanel Background="Transparent" Margin="10" IsEnabled="{Binding IsEnabled}">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
           <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
         </Panel>
@@ -92,7 +92,6 @@
                         VerticalContentAlignment="Stretch"
                         Content="{Binding Content}" />
       </DockPanel>
-
     </DataTemplate>
 
     <DataTemplate DataType="searchItems:ActionableItem">
