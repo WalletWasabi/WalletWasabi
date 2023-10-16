@@ -14,7 +14,7 @@ public class CoinsView : ICoinsView
 
 	public CoinsView(IEnumerable<SmartCoin> coins)
 	{
-		Coins = Guard.NotNull(nameof(coins), coins);
+		Coins = coins;
 	}
 
 	private IEnumerable<SmartCoin> Coins { get; }
@@ -34,34 +34,6 @@ public class CoinsView : ICoinsView
 	public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
 
 	public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransaction is { } && x.SpenderTransaction.GetHash() == txid));
-
-	public ICoinsView ChildrenOf(SmartCoin coin) => coin.SpenderTransaction is null
-		? EmptyCoinsView
-		: new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransaction.GetHash()));
-
-	public ICoinsView DescendantOf(SmartCoin coin)
-	{
-		IEnumerable<SmartCoin> Generator(SmartCoin sCoin)
-		{
-			foreach (var child in ChildrenOf(sCoin))
-			{
-				foreach (var childDescendant in Generator(child))
-				{
-					yield return childDescendant;
-				}
-
-				yield return child;
-			}
-		}
-
-		return new CoinsView(Generator(coin));
-	}
-
-	public ICoinsView DescendantOfAndSelf(SmartCoin coin) => new CoinsView(DescendantOf(coin)
-		.Concat(new[]
-		{
-				coin
-		}));
 
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
