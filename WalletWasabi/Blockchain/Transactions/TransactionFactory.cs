@@ -38,7 +38,7 @@ public class TransactionFactory
 	public Network Network { get; }
 	public KeyManager KeyManager { get; }
 	public ICoinsView Coins { get; }
-	public string Password { get; }
+	private string Password { get; }
 	private TransactionFactoryParameters Parameters { get; }
 	private ITransactionStore TransactionStore { get; }
 
