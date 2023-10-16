@@ -134,6 +134,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 			state = activeWallet.State.ToString(),
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 			anonScoreTarget = activeWallet.AnonScoreTarget,
+			isWatchOnly = activeWallet.KeyManager.IsWatchOnly,
+			isHardwareWallet = activeWallet.KeyManager.IsHardwareWallet,
+			isAutoCoinjoin = activeWallet.KeyManager.AutoCoinJoin,
+			isRedCoinIsolation = activeWallet.KeyManager.RedCoinIsolation,
 			accounts = km.TaprootExtPubKey is { } taprootExtPubKey
 				? accounts.Append(
 					new
