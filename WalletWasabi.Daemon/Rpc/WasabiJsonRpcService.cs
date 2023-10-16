@@ -443,32 +443,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("listwallets", initializable: false)]
-	public async Task<object[]> ListWalletsAsync()
+	public async Task<string[]> ListWalletsAsync()
 	{
 		var wallets = await Global.WalletManager.GetWalletsAsync().ConfigureAwait(false);
 		return wallets
 			.Cast<Wallet>()
-			.Select(x => new
-			{
-				name = x.WalletName,
-				path = x.KeyManager.FilePath,
-				isWatchOnly = x.KeyManager.IsWatchOnly,
-				isHardwareWallet = x.KeyManager.IsHardwareWallet,
-				isLoggedIn = x.IsLoggedIn,
-				masterFingerprint = x.KeyManager.MasterFingerprint?.ToString() ?? "<readonly>",
-				isAutoCoinjoin = x.KeyManager.AutoCoinJoin,
-				isRedCoinIsolation = x.KeyManager.RedCoinIsolation,
-				state = x.State switch
-				{
-					WalletState.Initialized => "initialized",
-					WalletState.Started => "started",
-					WalletState.Starting => "starting",
-					WalletState.Stopped => "stopped",
-					WalletState.Uninitialized => "uninitialized",
-					WalletState.WaitingForInit => "waiting for initialization",
-					_ => "unknown wallet state"
-				}
-			}).ToArray();
+			.Select(x => x.WalletName)
+			.ToArray();
 	}
 
 	private void SelectWallet(string walletName)
