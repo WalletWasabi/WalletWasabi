@@ -27,4 +27,7 @@ public static class MoneyConverters
 
 	public static readonly IValueConverter ToFeeWithoutUnit =
 		new FuncValueConverter<Money?, string?>(n => n?.ToFeeDisplayUnitRawString());
+
+	public static readonly IValueConverter PercentageDifferenceConverter =
+			new FuncValueConverter<double, string>(n => n.ToString("+#0.##%;-#0.##%;0%"));
 }

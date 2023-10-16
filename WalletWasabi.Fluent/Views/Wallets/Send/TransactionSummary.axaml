@@ -30,7 +30,10 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount}">
-        <c:AmountControl Amount="{Binding Amount}" />
+        <StackPanel Orientation="Horizontal">
+          <c:AmountControl Amount="{Binding Amount}" />
+          <TextBlock Foreground="Orange" Margin="8 0" IsVisible="{Binding !!AmountDiff}" VerticalAlignment="Bottom" Text="{Binding AmountDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
+        </StackPanel>
       </c:PreviewItem>
     </DockPanel>
     <Separator />
@@ -76,7 +79,10 @@
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="Fee"
                        CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
-          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
+          <StackPanel Orientation="Horizontal">
+            <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
+            <TextBlock Foreground="Orange" Margin="8 0" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
+          </StackPanel>
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>

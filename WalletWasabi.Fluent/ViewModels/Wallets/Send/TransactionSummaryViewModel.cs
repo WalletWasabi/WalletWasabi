@@ -20,6 +20,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private Amount? _amount;
+	[AutoNotify] private double? _amountDiff;
+	[AutoNotify] private double? _feeDiff;
 
 	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
@@ -56,5 +58,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
+		AmountDiff = Parent.CurrentTransactionSummary.Amount is not null ? (double)Amount.Btc.Satoshi / Parent.CurrentTransactionSummary.Amount.Btc.Satoshi - 1 : null;
+		FeeDiff = Parent.CurrentTransactionSummary.Fee is not null ? (double)Fee.Btc.Satoshi / Parent.CurrentTransactionSummary.Fee.Btc.Satoshi - 1 : null;
 	}
 }
