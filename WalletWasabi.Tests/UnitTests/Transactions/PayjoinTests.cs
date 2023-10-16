@@ -93,7 +93,7 @@ public class PayjoinTests
 		using Key key = new();
 		PaymentIntent payment = new(key.PubKey, amount);
 
-		var tx = transactionFactory.BuildTransaction(payment, payjoinClient: null);
+		var tx = transactionFactory.BuildTransaction(payment, payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.True(tx.Signed);
