@@ -158,6 +158,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 				info.state,
 				info.masterKeyFingerprint,
 				info.anonScoreTarget,
+				info.isWatchOnly,
+				info.isHardwareWallet,
+				info.isAutoCoinjoin,
+				info.isRedCoinIsolation,
 				info.accounts,
 
 				// The following elements are valid only after the wallet is fully synchronized
