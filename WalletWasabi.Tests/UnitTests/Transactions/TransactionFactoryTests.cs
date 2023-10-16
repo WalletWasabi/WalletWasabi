@@ -445,7 +445,8 @@ public class TransactionFactoryTests
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Jack",  2, 0.04m, confirmed: true, anonymitySet: 1),
 				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
-			}, allowedInputsKeys: new[] { "Maria", "Jack" });
+			},
+			allowedInputsKeys: new[] { "Maria", "Jack" });
 
 		using Key key = new();
 		var payment = new PaymentIntent(key, Money.Coins(0.095m));
