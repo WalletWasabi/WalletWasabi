@@ -94,46 +94,50 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryAdd(SmartCoin coin)
 	{
-		var added = false;
 		lock (Lock)
 		{
-			if (!SpentCoins.Contains(coin))
-			{
-				added = Coins.Add(coin);
-				KnownTransactions.Add(coin.TransactionId);
-				OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
+			return TryAddNoLock(coin);
+		}
+	}
 
-				if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
-				{
-					coinsOfPubKey = new();
-					CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
-				}
-
-				coinsOfPubKey.Add(coin);
-
-				if (added)
-				{
-					if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
-					{
-						hashSet = new();
-						CoinsByTransactionId.Add(coin.TransactionId, hashSet);
-					}
-
-					hashSet.Add(coin);
-
-					// Each prevOut of the transaction contributes to the existence of coins.
-					foreach (TxIn input in coin.Transaction.Transaction.Inputs)
-					{
-						CoinsByOutPoint[input.PrevOut] = hashSet;
-					}
-
-					InvalidateSnapshot = true;
-				}
-
-				UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
-			}
+	private bool TryAddNoLock(SmartCoin coin)
+	{
+		if (SpentCoins.Contains(coin))
+		{
+			return false;
 		}
 
+		var added = Coins.Add(coin);
+		KnownTransactions.Add(coin.TransactionId);
+		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
+
+		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
+		{
+			coinsOfPubKey = new();
+			CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
+		}
+		coinsOfPubKey.Add(coin);
+
+		if (added)
+		{
+			if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
+			{
+				hashSet = new();
+				CoinsByTransactionId.Add(coin.TransactionId, hashSet);
+			}
+
+			hashSet.Add(coin);
+
+			// Each prevOut of the transaction contributes to the existence of coins.
+			foreach (TxIn input in coin.Transaction.Transaction.Inputs)
+			{
+				CoinsByOutPoint[input.PrevOut] = hashSet;
+			}
+
+			InvalidateSnapshot = true;
+		}
+
+		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 		return added;
 	}
 
