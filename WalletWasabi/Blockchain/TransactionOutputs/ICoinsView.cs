@@ -23,8 +23,6 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView FilterBy(Func<SmartCoin, bool> expression);
 
-	ICoinsView OutPoints(ISet<OutPoint> outPoints);
-
 	ICoinsView CreatedBy(uint256 txid);
 
 	ICoinsView SpentBy(uint256 txid);
