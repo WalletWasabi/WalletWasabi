@@ -47,7 +47,14 @@ public static class TransactionBuilderWalletExtensions
 				throw new NotSupportedException(feeStrategy.Type.ToString());
 			}
 		};
-		TransactionFactoryParameters parameters = new(FeeRateFetcher: feeRateFetcher, AllowUnconfirmed: allowUnconfirmed, AllowDoubleSpend: allowDoubleSpend, AllowedInputs: allowedInputs, TryToSign: tryToSign);
+
+		TransactionFactoryParameters parameters = new(
+			FeeRateFetcher: feeRateFetcher,
+			AllowUnconfirmed: allowUnconfirmed,
+			AllowDoubleSpend: allowDoubleSpend,
+			AllowedInputs: allowedInputs,
+			TryToSign: tryToSign);
+
 		var builder = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, parameters, password);
 		return builder.BuildTransaction(
 			payments,
