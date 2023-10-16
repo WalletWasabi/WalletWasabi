@@ -118,8 +118,7 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
-
-	public bool ConsolidationMode => false;
+	public bool ConsolidationMode { get; set; } = false;
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
