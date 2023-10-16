@@ -14,6 +14,7 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> Coins { get; } = new();
 
+	/// <summary>Set of all coins' transactions (for both spent and unspent coins).</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<uint256> KnownTransactions { get; } = new();
 
@@ -248,6 +249,7 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
+	/// <returns><c>true</c> if the transaction given by the txid contains at least one of our coins (either spent or unspent), <c>false</c> otherwise.</returns>
 	public bool IsKnown(uint256 txid)
 	{
 		lock (Lock)
