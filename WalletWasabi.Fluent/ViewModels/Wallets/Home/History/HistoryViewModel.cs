@@ -241,20 +241,20 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		_wallet.Transactions.List
-							.ToCollection()
+		_wallet.Transactions.TransactionProcessed
 							.Do(Update)
 							.Subscribe()
 							.DisposeWith(disposables);
 	}
 
-	private void Update(IEnumerable<TransactionModel> transactions)
+	private void Update()
 	{
 		try
 		{
 			var newHistoryList =
-				transactions.Select(x => CreateViewModel(x))
-							.ToList();
+				_wallet.Transactions.List
+									.Select(x => CreateViewModel(x))
+									.ToList();
 
 			_transactionSourceList.Edit(x =>
 			{

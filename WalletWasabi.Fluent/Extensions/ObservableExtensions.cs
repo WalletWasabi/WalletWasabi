@@ -22,6 +22,8 @@ public static class ObservableExtensions
 			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
 			.Concat();
 
+	public static IObservable<Unit> Do(this IObservable<Unit> source, Action onNext) => source.Do(_ => onNext());
+
 	public static IObservable<Unit> ToSignal<T>(this IObservable<T> source) => source.Select(_ => Unit.Default);
 
 	public static IObservable<T> ReplayLastActive<T>(this IObservable<T> observable)

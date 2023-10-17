@@ -7,7 +7,6 @@ using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -22,7 +21,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
-	private readonly ReadOnlyObservableCollection<TransactionSummary> _transactions;
+	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
@@ -39,26 +38,26 @@ public partial class WalletTransactionsModel : ReactiveObject
 		var transactionChanges =
 			Observable.Defer(() => BuildSummary().ToObservable())
 					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.GetHash());
+					  .ToObservableChangeSet(x => x.Id);
 
 		transactionChanges.Bind(out _transactions).Subscribe();
 	}
 
-	public ReadOnlyObservableCollection<TransactionSummary> List => _transactions;
+	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
+	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
-		var result = List.FirstOrDefault(x => x.GetHash() == transactionId);
+		var result = List.FirstOrDefault(x => x.Id == transactionId);
 
 		if (result is null)
 		{
-			transactionSummary = default;
+			transaction = default;
 			return false;
 		}
 
-		transactionSummary = result;
+		transaction = result;
 		return true;
 	}
 
