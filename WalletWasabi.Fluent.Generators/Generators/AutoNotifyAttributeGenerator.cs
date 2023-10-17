@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.Fluent.Generators.Abstractions;
 
 namespace WalletWasabi.Fluent.Generators.Generators;
 
