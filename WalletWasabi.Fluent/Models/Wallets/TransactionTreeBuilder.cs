@@ -98,7 +98,7 @@ public class TransactionTreeBuilder
 					continue;
 				}
 
-				var speedUpGroup = CreateSpeedUp(summary, parent, groupItems);
+				var speedUpGroup = CreateSpeedUpGroup(summary, parent, groupItems);
 
 				// Check if the last item's balance is not null before calling SetBalance.
 				var bal = groupItems.Last().Balance;
@@ -130,33 +130,7 @@ public class TransactionTreeBuilder
 	private TransactionModel CreateRegular(int index, TransactionSummary transactionSummary, Money balance)
 	{
 		var amounts = GetAmounts(transactionSummary);
-		var itemType = TransactionType.Unknown;
-
-		if (!transactionSummary.IsCPFP && amounts.IncomingAmount is { } incomingAmount && incomingAmount > Money.Zero)
-		{
-			itemType = TransactionType.IncomingTransaction;
-		}
-
-		if (!transactionSummary.IsCPFP && amounts.OutgoingAmount is { } outgoingAmount && outgoingAmount > Money.Zero)
-		{
-			itemType = TransactionType.OutgoingTransaction;
-		}
-
-		if (transactionSummary.IsCancellation)
-		{
-			itemType = TransactionType.Cancellation;
-		}
-
-		if (transactionSummary.IsCPFP)
-		{
-			itemType = TransactionType.CPFP;
-		}
-
-		if (amounts.OutgoingAmount == Money.Zero)
-		{
-			itemType = TransactionType.SelfTransferTransaction;
-		}
-
+		var itemType = GetItemType(transactionSummary, amounts.IncomingAmount, amounts.OutgoingAmount);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 
@@ -201,7 +175,7 @@ public class TransactionTreeBuilder
 		};
 	}
 
-	private TransactionModel CreateSpeedUp(TransactionSummary transactionSummary, TransactionModel parent, IEnumerable<TransactionModel> children)
+	private TransactionModel CreateSpeedUpGroup(TransactionSummary transactionSummary, TransactionModel parent, IEnumerable<TransactionModel> children)
 	{
 		children = children.Reverse();
 
@@ -222,7 +196,7 @@ public class TransactionTreeBuilder
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 
-			Type = TransactionType.CPFP,
+			Type = GetItemType(transactionSummary, parent.IncomingAmount, parent.OutgoingAmount),
 			Status =
 				isConfirmed
 				? TransactionStatus.Confirmed
@@ -304,6 +278,36 @@ public class TransactionTreeBuilder
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
 			Fee = transactionSummary.GetFee()
 		};
+	}
+
+	private TransactionType GetItemType(TransactionSummary transactionSummary, Money? incomingAmount, Money? outgoingAmount)
+	{
+		if (!transactionSummary.IsCPFP && incomingAmount is { } && incomingAmount > Money.Zero)
+		{
+			return TransactionType.IncomingTransaction;
+		}
+
+		if (!transactionSummary.IsCPFP && outgoingAmount is { } && outgoingAmount > Money.Zero)
+		{
+			return TransactionType.OutgoingTransaction;
+		}
+
+		if (transactionSummary.IsCancellation)
+		{
+			return TransactionType.Cancellation;
+		}
+
+		if (transactionSummary.IsCPFP)
+		{
+			return TransactionType.CPFP;
+		}
+
+		if (outgoingAmount == Money.Zero)
+		{
+			return TransactionType.SelfTransferTransaction;
+		}
+
+		return TransactionType.Unknown;
 	}
 
 	private TransactionStatus GetItemStatus(TransactionSummary transactionSummary)
