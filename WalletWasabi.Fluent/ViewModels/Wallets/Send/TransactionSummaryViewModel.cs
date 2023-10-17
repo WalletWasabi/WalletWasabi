@@ -58,17 +58,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
-		AmountDiff = Diff(Amount, Parent.CurrentTransactionSummary.Amount);
-		FeeDiff = Diff(Fee, Parent.CurrentTransactionSummary.Fee);
-	}
-
-	private static double? Diff(Amount? current, Amount? previous)
-	{
-		if (current is null || previous is null)
-		{
-			return null;
-		}
-
-		return (double) previous.Btc.Satoshi / current.Btc.Satoshi - 1;
+		AmountDiff = Amount.Diff(Parent.CurrentTransactionSummary.Amount);
+		FeeDiff = Fee.Diff(Parent.CurrentTransactionSummary.Fee);
 	}
 }
