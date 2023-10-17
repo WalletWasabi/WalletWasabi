@@ -134,6 +134,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 			state = activeWallet.State.ToString(),
 			masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 			anonScoreTarget = activeWallet.AnonScoreTarget,
+			isWatchOnly = activeWallet.KeyManager.IsWatchOnly,
+			isHardwareWallet = activeWallet.KeyManager.IsHardwareWallet,
+			isAutoCoinjoin = activeWallet.KeyManager.AutoCoinJoin,
+			isRedCoinIsolation = activeWallet.KeyManager.RedCoinIsolation,
 			accounts = km.TaprootExtPubKey is { } taprootExtPubKey
 				? accounts.Append(
 					new
@@ -154,6 +158,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 				info.state,
 				info.masterKeyFingerprint,
 				info.anonScoreTarget,
+				info.isWatchOnly,
+				info.isHardwareWallet,
+				info.isAutoCoinjoin,
+				info.isRedCoinIsolation,
 				info.accounts,
 
 				// The following elements are valid only after the wallet is fully synchronized
@@ -440,6 +448,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		return new Dictionary<int, int>();
+	}
+
+	[JsonRpcMethod("listwallets", initializable: false)]
+	public async Task<object[]> ListWalletsAsync()
+	{
+		var wallets = await Global.WalletManager.GetWalletsAsync().ConfigureAwait(false);
+		return wallets
+			.Cast<Wallet>()
+			.Select(x => new { walletName = x.WalletName})
+			.ToArray();
 	}
 
 	private void SelectWallet(string walletName)

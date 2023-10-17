@@ -38,9 +38,9 @@ public class CoinsRegistry : ICoinsView
 
 	/// <summary>Maps each outpoint to smart coins (i.e. UTXOs) that exist thanks to the outpoint. The same hash-set (reference) is also stored in <see cref="CoinsByTransactionId"/>.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; } = new();
+	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByPrevOuts { get; } = new();
 
-	/// <summary>Maps each TXID to smart coins (i.e. UTXOs). The same hash-set (reference) is also stored in <see cref="CoinsByOutPoint"/>.</summary>
+	/// <summary>Maps each TXID to smart coins (i.e. UTXOs). The same hash-set (reference) is also stored in <see cref="CoinsByPrevOuts"/>.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<uint256, HashSet<SmartCoin>> CoinsByTransactionId { get; } = new();
 
@@ -133,7 +133,7 @@ public class CoinsRegistry : ICoinsView
 			// Each prevOut of the transaction contributes to the existence of coins.
 			foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 			{
-				CoinsByOutPoint[input.PrevOut] = hashSet;
+				CoinsByPrevOuts[input.PrevOut] = hashSet;
 			}
 
 			InvalidateSnapshot = true;
@@ -192,11 +192,11 @@ public class CoinsRegistry : ICoinsView
 				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
 			}
 
-			foreach (var kvp in CoinsByOutPoint.ToList())
+			foreach (var kvp in CoinsByPrevOuts.ToList())
 			{
 				if (ReferenceEquals(kvp.Value, referenceHashSetRemoved))
 				{
-					CoinsByOutPoint.Remove(kvp.Key);
+					CoinsByPrevOuts.Remove(kvp.Key);
 				}
 			}
 
@@ -277,7 +277,7 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		return CoinsByOutPoint.TryGetValue(prevOut, out coins);
+		return CoinsByPrevOuts.TryGetValue(prevOut, out coins);
 	}
 
 	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
@@ -398,7 +398,7 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
-	public ImmutableArray<SmartCoin> DescendantOf(SmartCoin coin, bool includeSelf = true)
+	public ImmutableArray<SmartCoin> DescendantOf(SmartCoin coin, bool includeSelf)
 	{
 		lock (Lock)
 		{
@@ -442,10 +442,6 @@ public class CoinsRegistry : ICoinsView
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
 
 	public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
-
-	public ICoinsView OutPoints(ISet<OutPoint> outPoints) => AsCoinsView().OutPoints(outPoints);
-
-	public ICoinsView OutPoints(TxInList txIns) => AsCoinsView().OutPoints(txIns);
 
 	public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 

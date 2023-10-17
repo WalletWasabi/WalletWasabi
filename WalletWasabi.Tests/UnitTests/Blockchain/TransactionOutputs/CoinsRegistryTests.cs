@@ -27,7 +27,7 @@ public class CoinsRegistryTests
 	/// Tests <see cref="CoinsRegistry.DescendantOf(SmartCoin)"/> method.
 	/// </summary>
 	[Fact]
-	public void DescendantsOfAndSelf()
+	public void DescendantsOf()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
 
@@ -76,28 +76,28 @@ public class CoinsRegistryTests
 		// Descendants of tx0-0 coin.
 		{
 			IReadOnlySet<SmartCoin> allCoins = tx0Coins.Concat(tx1Coins).Concat(tx2Coins).ToHashSet();
-			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx0Coin).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx0Coin, includeSelf: true).ToHashSet();
 			Assert.Equal(allCoins, actualCoins);
 		}
 
 		// Descendants of tx1-0 coin.
 		{
 			IReadOnlySet<SmartCoin> expectedCoins = tx2Coins.Concat(new HashSet<SmartCoin>() { tx1Coin1 }).ToHashSet();
-			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx1Coin1).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx1Coin1, includeSelf: true).ToHashSet();
 			Assert.Equal(expectedCoins, actualCoins);
 		}
 
 		// Descendants of tx1-1 coin.
 		{
 			IReadOnlySet<SmartCoin> expectedCoins = new HashSet<SmartCoin>() { tx1Coin2 };
-			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx1Coin2).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx1Coin2, includeSelf: true).ToHashSet();
 			Assert.Equal(expectedCoins, actualCoins);
 		}
 
 		// Descendants of tx2-0 coin.
 		{
 			IReadOnlySet<SmartCoin> expectedCoins = new HashSet<SmartCoin>() { tx2Coin };
-			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx2Coin).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOf(tx2Coin, includeSelf: true).ToHashSet();
 			Assert.Equal(expectedCoins, actualCoins);
 		}
 	}
