@@ -196,22 +196,54 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Gets the wallet transaction with the given txid, if the transaction exists.
 	/// </summary>
-	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
+	public bool TryGetTransactionSummary(uint256 txid, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
 	{
-		// The lock is necessary to make sure that coins registry and transaction store do not change in this code block.
-		// The assumption is that the transaction processor is the only component modifying coins registry and transaction store.
 		lock (TransactionProcessor.Lock)
 		{
-			smartTransaction = null;
-			bool isKnown = Coins.IsKnown(txid);
-
-			if (isKnown && !BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction))
+			if (TryGetTransactionNoLock(txid, out SmartTransaction? smartTransaction))
 			{
-				throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
+				if (!Coins.TryGetTxAmount(txid, out Money? money))
+				{
+					throw new UnreachableException($"{nameof(Coins)} should contain money for '{txid}'.");
+				}
+
+				transactionSummary = new TransactionSummary(smartTransaction, money);
+				return true;
 			}
 
-			return isKnown;
+			transactionSummary = null;
+			return false;
 		}
+	}
+
+	/// <inheritdoc cref="TryGetTransactionNoLock(uint256, out SmartTransaction?)"/>
+	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
+	{
+		lock (TransactionProcessor.Lock)
+		{
+			return TryGetTransactionNoLock(txid, out smartTransaction);
+		}
+	}
+
+	/// <summary>
+	/// Gets the wallet transaction with the given txid, if the transaction exists.
+	/// </summary>
+	/// <remarks>
+	/// Caller must acquire <see cref="TransactionProcessor.Lock"/> to call this method.
+	/// The lock is necessary to make sure that coins registry and transaction store do not change in this code block.
+	/// The assumption is that the transaction processor is the only component modifying coins registry and transaction store.
+	/// </remarks>
+	public bool TryGetTransactionNoLock(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
+	{
+		smartTransaction = null;
+		bool isKnown = Coins.IsKnown(txid);
+
+		if (isKnown && !BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction))
+		{
+			throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
+		}
+
+		return isKnown;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
