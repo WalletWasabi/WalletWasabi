@@ -410,8 +410,7 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Callers must acquire <see cref="Lock"/> before calling this method.</remarks>
 	private ImmutableArray<SmartCoin> DescendantOfNoLock(SmartCoin coin, bool includeSelf)
 	{
-		HashSet<SmartCoin> allCoins = new(Coins);
-		allCoins.UnionWith(SpentCoins);
+		ICoinsView allCoins = AsAllCoinsViewNoLock();
 
 		IEnumerable<SmartCoin> Generator(SmartCoin parentCoin, bool addSelf)
 		{
