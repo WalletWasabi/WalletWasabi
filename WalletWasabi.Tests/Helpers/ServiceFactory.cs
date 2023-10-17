@@ -70,7 +70,8 @@ public static class ServiceFactory
 
 		feeRateFetcher ??= () => new FeeRate(2m);
 
-		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password, allowUnconfirmed);
+		TransactionFactoryParameters parameters = new(FeeRateFetcher: feeRateFetcher, AllowUnconfirmed: allowUnconfirmed, AllowDoubleSpend: allowDoubleSpend, AllowedInputs: allowedInputs?.Select(c => c.Outpoint), TryToSign: tryToSign);
+		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, parameters, password);
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)
