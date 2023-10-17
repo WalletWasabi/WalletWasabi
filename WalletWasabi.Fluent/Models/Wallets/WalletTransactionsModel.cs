@@ -40,7 +40,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
 					  .ToObservableChangeSet(x => x.Id);
 
-		transactionChanges.Bind(out _transactions).Subscribe();
+		transactionChanges.Bind(out _transactions).Subscribe(set => { });
 	}
 
 	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;

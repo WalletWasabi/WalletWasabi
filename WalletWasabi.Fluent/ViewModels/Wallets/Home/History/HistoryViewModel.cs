@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -12,27 +10,24 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 public partial class HistoryViewModel : ActivatableViewModel
 {
-	private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
 	private readonly IWalletModel _wallet;
 	private readonly WalletViewModel _walletVm; // TODO: Remove this
-	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
-	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
+
+	private readonly ReadOnlyObservableCollection<HistoryItemViewModelBase> _transactions;
 
 	// TODO: Remove walletViewModel parameter
 	public HistoryViewModel(UiContext uiContext, WalletViewModel walletViewModel, IWalletModel wallet)
@@ -43,22 +38,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// TODO: Remove this
 		_walletVm = walletViewModel;
 
-		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
-		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
+		var transactionChanges = wallet.Transactions.List
+			.ToObservableChangeSet(model => model.Id);
 
-		this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
-			.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
-
-		_transactionSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
-				.Ascending(x => x.Transaction.IsConfirmed)
-				.ThenByDescending(x => x.Transaction.OrderIndex))
-			.Bind(_unfilteredTransactions)
-			.Bind(_transactions)
+		transactionChanges
+			.Transform(x => CreateViewModel(x))
+			.Bind(out _transactions)
 			.Subscribe();
+
+		transactionChanges
+			.ToCollection()
+			.Select(models => !models.Any())
+			.BindTo(this, x => x.IsTransactionHistoryEmpty);
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
@@ -86,9 +77,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		Source.RowSelection!.SingleSelect = true;
 	}
 
-	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
-
-	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+	public ReadOnlyObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
 	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
@@ -237,36 +226,36 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	protected override void OnActivated(CompositeDisposable disposables)
-	{
-		base.OnActivated(disposables);
+	//protected override void OnActivated(CompositeDisposable disposables)
+	//{
+	//	base.OnActivated(disposables);
 
-		_wallet.Transactions.TransactionProcessed
-							.Do(Update)
-							.Subscribe()
-							.DisposeWith(disposables);
-	}
+	//	_wallet.Transactions.TransactionProcessed
+	//						.Do(Update)
+	//						.Subscribe()
+	//						.DisposeWith(disposables);
+	//}
 
-	private void Update()
-	{
-		try
-		{
-			var newHistoryList =
-				_wallet.Transactions.List
-									.Select(x => CreateViewModel(x))
-									.ToList();
+	//private void Update()
+	//{
+	//	try
+	//	{
+	//		var newHistoryList =
+	//			_wallet.Transactions.List
+	//								.Select(x => CreateViewModel(x))
+	//								.ToList();
 
-			_transactionSourceList.Edit(x =>
-			{
-				x.Clear();
-				x.AddRange(newHistoryList);
-			});
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-		}
-	}
+	//		_transactionSourceList.Edit(x =>
+	//		{
+	//			x.Clear();
+	//			x.AddRange(newHistoryList);
+	//		});
+	//	}
+	//	catch (Exception ex)
+	//	{
+	//		Logger.LogError(ex);
+	//	}
+	//}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
 	{
