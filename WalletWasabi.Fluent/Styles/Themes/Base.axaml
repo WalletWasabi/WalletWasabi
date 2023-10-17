@@ -64,6 +64,10 @@
     <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#3E992F" />
     <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#B8B8B8" />
 
+    <SolidColorBrush x:Key="PositiveBrush" Color="#5BB626" />
+    <SolidColorBrush x:Key="NegativeBrush" Color="#C3983B" />
+    <SolidColorBrush x:Key="ZeroBrush" Color="#C3983B" />
+
     <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
     <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
 
