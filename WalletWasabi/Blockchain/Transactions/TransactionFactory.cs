@@ -39,23 +39,15 @@ public class TransactionFactory
 	public bool AllowDoubleSpend { get; }
 	private ITransactionStore TransactionStore { get; }
 
-	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
-	public BuildTransactionResult BuildTransaction(
-		PaymentIntent payments,
-		FeeRate feeRate,
-		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null)
-		=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
-
 	/// <exception cref="ArgumentException"/>
 	/// <exception cref="ArgumentNullException"/>
 	/// <exception cref="ArgumentOutOfRangeException"/>
 	public BuildTransactionResult BuildTransaction(
 		PaymentIntent payments,
-		Func<FeeRate> feeRateFetcher,
+		FeeRate feeRate,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		Func<LockTime>? lockTimeSelector = null,
 		IPayjoinClient? payjoinClient = null,
+		Func<LockTime>? lockTimeSelector = null,
 		bool tryToSign = true)
 	{
 		lockTimeSelector ??= () => LockTime.Zero;
@@ -164,7 +156,7 @@ public class TransactionFactory
 
 		builder.OptInRBF = true;
 
-		builder.SendEstimatedFees(feeRateFetcher());
+		builder.SendEstimatedFees(feeRate);
 
 		var psbt = builder.BuildPSBT(false);
 
