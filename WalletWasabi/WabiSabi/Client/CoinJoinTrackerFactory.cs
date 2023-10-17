@@ -30,7 +30,7 @@ public class CoinJoinTrackerFactory
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
@@ -40,7 +40,7 @@ public class CoinJoinTrackerFactory
 		}
 
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
-		var outputProvider = new OutputProvider(wallet.DestinationProvider, InsecureRandom.Instance);
+		var outputProvider = new OutputProvider(outputWallet.DestinationProvider, InsecureRandom.Instance);
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			wallet.KeyChain,
@@ -50,8 +50,9 @@ public class CoinJoinTrackerFactory
 			coinSelector,
 			LiquidityClueProvider,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
+			skipFactors: wallet.CoinjoinSkipFactors,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
-		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, CancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, CancellationToken);
 	}
 }

@@ -3,8 +3,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Fluent.Generators.Abstractions;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 {
@@ -91,11 +92,15 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 
 				var parameters =
 					from parameter in method.Parameters
+					let declaration = parameter.DeclaringSyntaxReferences.First().GetSyntax()
+					let attributeList = declaration.DescendantNodes().OfType<AttributeListSyntax>().FirstOrDefault()
+					let attributeTypes = parameter.GetAttributes().Select(attr => attr.AttributeClass?.SimplifyType(namespaces)).ToList()
+					let refKind = parameter.RefKind == RefKind.Out ? "out " : ""
 					let type = parameter.Type.SimplifyType(namespaces)
 					let name = parameter.Name
 					let defaultValue = parameter.GetExplicitDefaultValueString()
 					let defaultValueString = defaultValue != null ? " = " + defaultValue : null
-					select $"{type} {name}{defaultValueString}";
+					select $"{attributeList?.ToFullString()}{refKind}{type} {name}{defaultValueString}";
 
 				signature += string.Join(", ", parameters);
 

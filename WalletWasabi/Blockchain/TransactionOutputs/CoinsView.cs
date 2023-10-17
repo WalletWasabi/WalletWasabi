@@ -10,6 +10,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsView : ICoinsView
 {
+	private static readonly ICoinsView EmptyCoinsView = new CoinsView(Array.Empty<SmartCoin>());
+
 	public CoinsView(IEnumerable<SmartCoin> coins)
 	{
 		Coins = Guard.NotNull(nameof(coins), coins);
@@ -33,7 +35,9 @@ public class CoinsView : ICoinsView
 
 	public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransaction is { } && x.SpenderTransaction.GetHash() == txid));
 
-	public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => coin.SpenderTransaction is { } && x.TransactionId == coin.SpenderTransaction.GetHash()));
+	public ICoinsView ChildrenOf(SmartCoin coin) => coin.SpenderTransaction is null
+		? EmptyCoinsView
+		: new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransaction.GetHash()));
 
 	public ICoinsView DescendantOf(SmartCoin coin)
 	{
@@ -60,15 +64,6 @@ public class CoinsView : ICoinsView
 		}));
 
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
-
-	public ICoinsView OutPoints(ISet<OutPoint> outPoints) => new CoinsView(Coins.Where(x => outPoints.Contains(x.Outpoint)));
-
-	public ICoinsView OutPoints(TxInList txIns)
-	{
-		var outPointSet = txIns.Select(x => x.PrevOut).ToHashSet();
-		var smartCoins = Coins.Where(x => outPointSet.Contains(x.Outpoint));
-		return new CoinsView(smartCoins);
-	}
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{

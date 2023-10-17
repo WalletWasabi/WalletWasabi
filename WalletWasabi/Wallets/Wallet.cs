@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -61,6 +62,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
+
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
@@ -89,6 +91,7 @@ public class Wallet : BackgroundService, IWallet
 	public CoinsRegistry Coins { get; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+	public CoinjoinSkipFactors CoinjoinSkipFactors => KeyManager.CoinjoinSkipFactors;
 
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
@@ -108,7 +111,7 @@ public class Wallet : BackgroundService, IWallet
 	public IDestinationProvider DestinationProvider { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
-	public bool ConsolidationMode => false;
+	public bool ConsolidationMode { get; set; } = false;
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
@@ -195,23 +198,20 @@ public class Wallet : BackgroundService, IWallet
 	/// </summary>
 	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
 	{
-		foreach (SmartCoin coin in GetAllCoins())
+		// The lock is necessary to make sure that coins registry and transaction store do not change in this code block.
+		// The assumption is that the transaction processor is the only component modifying coins registry and transaction store.
+		lock (TransactionProcessor.Lock)
 		{
-			if (coin.TransactionId == txid)
+			smartTransaction = null;
+			bool isKnown = Coins.IsKnown(txid);
+
+			if (isKnown && !BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction))
 			{
-				smartTransaction = coin.Transaction;
-				return true;
+				throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
 			}
 
-			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
-			{
-				smartTransaction = coin.SpenderTransaction;
-				return true;
-			}
+			return isKnown;
 		}
-
-		smartTransaction = null;
-		return false;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
@@ -485,6 +485,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
+
 	private async Task LoadDummyMempoolAsync()
 	{
 		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())

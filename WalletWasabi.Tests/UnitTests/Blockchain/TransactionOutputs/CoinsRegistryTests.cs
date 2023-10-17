@@ -24,10 +24,89 @@ public class CoinsRegistryTests
 	private CoinsRegistry Coins { get; } = new();
 
 	/// <summary>
-	/// Tests <see cref="CoinsRegistry.Undo(uint256)"/> method.
+	/// Tests <see cref="CoinsRegistry.DescendantOfAndSelf(SmartCoin)"/> method.
 	/// </summary>
 	[Fact]
-	public void UndoTransaction()
+	public void DescendantsOfAndSelf()
+	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
+
+		// --tx0---> (A) --tx1---> (B) --tx2---> (D)
+		//                          |
+		//                          +--> (C)
+
+		SmartTransaction tx0; // The transaction has 2 inputs and 1 output.
+		SmartTransaction tx1; // The transaction has 1 input and 2 outputs.
+		SmartTransaction tx2; // The transaction has 1 input and 1 output.
+
+		SmartCoin tx0Coin;
+		SmartCoin tx1Coin1;
+		SmartCoin tx1Coin2;
+		SmartCoin tx2Coin;
+
+		IReadOnlyList<SmartCoin> tx0Coins;
+		IReadOnlyList<SmartCoin> tx1Coins;
+		IReadOnlyList<SmartCoin> tx2Coins;
+
+		// Create and process transaction tx0, tx1, and tx2.
+		{
+			// Tx0.
+			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
+			tx0Coins = ProcessTransaction(tx0);
+			tx0Coin = Assert.Single(tx0Coins);
+
+			// Tx1.
+			tx1 = CreateSpendingTransaction(
+				tx0Coin.Coin,
+				new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript),
+				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript));
+			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			tx1Coins = ProcessTransaction(tx1);
+			Assert.Equal(2, tx1Coins.Count);
+			tx1Coin1 = tx1Coins[0];
+			tx1Coin2 = tx1Coins[1];
+
+			// Tx2.
+			SmartCoin coin = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
+			tx2 = CreateSpendingTransaction(coin.Coin, txOuts: new TxOut(Money.Coins(0.7m), NewInternalKey("D").P2wpkhScript));
+			tx2Coins = ProcessTransaction(tx2);
+			tx2Coin = Assert.Single(tx2Coins);
+		}
+
+		// Descendants of tx0-0 coin.
+		{
+			IReadOnlySet<SmartCoin> allCoins = tx0Coins.Concat(tx1Coins).Concat(tx2Coins).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx0Coin).ToHashSet();
+			Assert.Equal(allCoins, actualCoins);
+		}
+
+		// Descendants of tx1-0 coin.
+		{
+			IReadOnlySet<SmartCoin> expectedCoins = tx2Coins.Concat(new HashSet<SmartCoin>() { tx1Coin1 }).ToHashSet();
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx1Coin1).ToHashSet();
+			Assert.Equal(expectedCoins, actualCoins);
+		}
+
+		// Descendants of tx1-1 coin.
+		{
+			IReadOnlySet<SmartCoin> expectedCoins = new HashSet<SmartCoin>() { tx1Coin2 };
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx1Coin2).ToHashSet();
+			Assert.Equal(expectedCoins, actualCoins);
+		}
+
+		// Descendants of tx2-0 coin.
+		{
+			IReadOnlySet<SmartCoin> expectedCoins = new HashSet<SmartCoin>() { tx2Coin };
+			IReadOnlySet<SmartCoin> actualCoins = Coins.DescendantOfAndSelf(tx2Coin).ToHashSet();
+			Assert.Equal(expectedCoins, actualCoins);
+		}
+	}
+
+	/// <summary>
+	/// Tests <see cref="CoinsRegistry.Undo(uint256)"/> method with respect to caching of prevOuts properly.
+	/// </summary>
+	[Fact]
+	public void UndoTransaction_PrevOutCache()
 	{
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
 
@@ -63,9 +142,11 @@ public class CoinsRegistryTests
 
 		// Create and process transaction tx1 that fully spends tx0.
 		{
-			tx1 = CreateSpendingTransaction(tx0Coin, txOut: new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript));
+			tx1 = CreateSpendingTransaction(
+				tx0Coin,
+				new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript),
+				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript));
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
-			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript);
 
 			IReadOnlyList<SmartCoin> tx1Coins = ProcessTransaction(tx1);
 			AssertEqualCoinSets(Coins, tx1Coins);
@@ -98,7 +179,7 @@ public class CoinsRegistryTests
 		{
 			SmartCoin coin = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
 
-			tx2 = CreateSpendingTransaction(coin.Coin, txOut: new TxOut(Money.Coins(0.7m), NewInternalKey("D").P2wpkhScript));
+			tx2 = CreateSpendingTransaction(coin.Coin, txOuts: new TxOut(Money.Coins(0.7m), NewInternalKey("D").P2wpkhScript));
 
 			IReadOnlyList<SmartCoin> tx2Coins = ProcessTransaction(tx2);
 			Assert.Single(tx2Coins);
@@ -159,7 +240,7 @@ public class CoinsRegistryTests
 
 			// .. then create and process tx3.
 			{
-				tx3 = CreateSpendingTransaction(tx0Coin, txOut: new TxOut(Money.Coins(0.9m), NewInternalKey("E").P2wpkhScript));
+				tx3 = CreateSpendingTransaction(tx0Coin, txOuts: new TxOut(Money.Coins(0.9m), NewInternalKey("E").P2wpkhScript));
 				IReadOnlyList<SmartCoin> tx3Coins = ProcessTransaction(tx3);
 
 				SmartCoin finalCoin = Assert.Single(Coins);
@@ -177,6 +258,108 @@ public class CoinsRegistryTests
 				TxIn tx3Input = Assert.Single(tx3.Transaction.Inputs);
 				Assert.True(Coins.TryGetCoinsByInputPrevOut(tx3Input.PrevOut, out var coinsSpendingTx3PrevOut));
 				Assert.Single(coinsSpendingTx3PrevOut);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tests <see cref="CoinsRegistry.Undo(uint256)"/> method with respect to reporting proper transaction amounts.
+	/// </summary>
+	[Fact]
+	public void UndoTransaction_TransactionAmounts()
+	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
+
+		// --tx0---> (A) --tx1 (replaceable)-+--> (B) --tx2---> (D)
+		//                  |                |
+		//                  |                +--> (C)
+		//                  |
+		//                  +--tx3 (replacement)---> (E)
+
+		Coin? tx0Coin;
+		SmartTransaction tx0; // The transaction has 2 inputs and 1 output.
+		SmartTransaction tx1; // The transaction has 1 input and 2 outputs.
+		SmartTransaction tx2; // The transaction has 1 input and 1 output.
+		SmartTransaction tx3; // The transaction has 1 input and 1 output.
+
+		Money tx0CreditingAmount = Money.Coins(1.0m);
+		Money expectedTx1Amount = Money.Coins(-0.05m); // 0.05 BTC was spent (on fees).
+		Money expectedTx2Amount = Money.Coins(-0.15m); // 0.15 BTC was spent (on fees).
+		Money expectedTx3Amount = Money.Coins(-0.10m); // 0.10 BTC was spent (on fees).
+
+		// Create and process transaction tx0.
+		{
+			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, tx0CreditingAmount, height: 54321);
+			tx0Coin = tx0.Transaction.Outputs.AsCoins().First();
+
+			Assert.Equal(Money.Zero, Coins.GetTotalBalance());
+
+			// Now process tx0.
+			IReadOnlyList<SmartCoin> tx0Coins = ProcessTransaction(tx0);
+			Assert.Single(tx0Coins);
+			Assert.Single(Coins);
+			Assert.Equal(tx0Coins[0], Coins.First());
+
+			// Tx0's inputs are made up. So money appears out of thin air, but the result is correct.
+			AssertTransactionAmount(tx0, expectedAmount: tx0CreditingAmount);
+			Assert.Equal(tx0CreditingAmount, Coins.GetTotalBalance());
+		}
+
+		// Create and process transaction tx1 that fully spends tx0.
+		{
+			tx1 = CreateSpendingTransaction(
+				tx0Coin,
+				new TxOut(Money.Coins(0.85m), NewInternalKey(label: "B").P2wpkhScript),
+				new TxOut(Money.Coins(0.1m), NewInternalKey("C").P2wpkhScript));
+			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+
+			IReadOnlyList<SmartCoin> tx1Coins = ProcessTransaction(tx1);
+			AssertEqualCoinSets(Coins, tx1Coins);
+
+			AssertTransactionAmount(tx0, expectedAmount: tx0CreditingAmount);
+			AssertTransactionAmount(tx1, expectedAmount: expectedTx1Amount); // +0.85 [tx1-0] + 0.1 [tx1-1] - 1 [tx0] = -0.05.
+			Assert.Equal(Money.Coins(0.95m), Coins.GetTotalBalance()); // 1.0 [initially] - 0.05 [tx1] = 0.95 [after-tx1]
+		}
+
+		// Create and process transaction tx2 that partially spends tx1.
+		{
+			SmartCoin coin = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
+
+			tx2 = CreateSpendingTransaction(coin.Coin, txOuts: new TxOut(Money.Coins(0.7m), NewInternalKey("D").P2wpkhScript));
+
+			IReadOnlyList<SmartCoin> tx2Coins = ProcessTransaction(tx2);
+			Assert.Single(tx2Coins);
+
+			AssertTransactionAmount(tx0, expectedAmount: tx0CreditingAmount);
+			AssertTransactionAmount(tx1, expectedAmount: expectedTx1Amount);
+			AssertTransactionAmount(tx2, expectedAmount: expectedTx2Amount); // +0.7 [tx2-0] - 0.85 [tx1] = -0.15.
+			Assert.Equal(Money.Coins(0.8m), Coins.GetTotalBalance()); // 0.95 [after-tx1] - 0.15 [tx2] = 0.8.
+		}
+
+		// Create and process REPLACEMENT transaction tx3 that fully spends tx0.
+		{
+			// Undo tx1.
+			{
+				// First undo tx1 which should transitively undo tx2.
+				(ICoinsView toRemove, ICoinsView toAdd) = Coins.Undo(tx1.GetHash());
+
+				AssertTransactionAmount(tx0, expectedAmount: tx0CreditingAmount);
+				AssertNoTransactionAmount(tx1);
+				AssertNoTransactionAmount(tx2);
+				Assert.Equal(tx0CreditingAmount, Coins.GetTotalBalance()); // 1.0 [initially].
+			}
+
+			// .. then create and process tx3.
+			{
+				tx3 = CreateSpendingTransaction(tx0Coin, txOuts: new TxOut(Money.Coins(0.9m), NewInternalKey("E").P2wpkhScript));
+				IReadOnlyList<SmartCoin> tx3Coins = ProcessTransaction(tx3);
+
+				SmartCoin finalCoin = Assert.Single(Coins);
+				Assert.Equal("E", finalCoin.HdPubKey.Labels);
+
+				AssertTransactionAmount(tx0, expectedAmount: tx0CreditingAmount);
+				AssertTransactionAmount(tx3, expectedAmount: expectedTx3Amount); // +0.9 [tx3-0] - 1.0 [tx0] = -0.1.
+				Assert.Equal(Money.Coins(0.9m), Coins.GetTotalBalance()); // 1.0 [initially] - 0.1 [tx3] = 0.9 [after-tx3]
 			}
 		}
 	}
@@ -221,12 +404,17 @@ public class CoinsRegistryTests
 	}
 
 	/// <summary>Creates a transaction that fully spends the given coin to a single outpoint (leaving rest for fees).</summary>
-	private static SmartTransaction CreateSpendingTransaction(Coin coin, TxOut txOut, int height = 0)
+	private static SmartTransaction CreateSpendingTransaction(Coin coin, params TxOut[] txOuts)
 	{
 		var tx = Network.Main.CreateTransaction();
 		tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
-		tx.Outputs.Add(txOut);
-		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
+
+		foreach (TxOut txOut in txOuts)
+		{
+			tx.Outputs.Add(txOut);
+		}
+
+		return new SmartTransaction(tx, Height.Mempool);
 	}
 
 	private static OutPoint GetRandomOutPoint()
@@ -238,4 +426,14 @@ public class CoinsRegistryTests
 	/// <summary>Compare coins registry and actual coins as two sets (disregarding ordering).</summary>
 	private void AssertEqualCoinSets(CoinsRegistry coins, IEnumerable<SmartCoin> actualCoins)
 		=> Assert.Equal(new HashSet<SmartCoin>(coins), new HashSet<SmartCoin>(actualCoins));
+
+	/// <summary>Asserts that the transaction is assigned specified amount (representing a balance change for a wallet) in the coins registry.</summary>
+	private void AssertTransactionAmount(SmartTransaction tx, Money expectedAmount)
+	{
+		Assert.True(Coins.TryGetTxAmount(tx.GetHash(), out Money? actualAmount));
+		Assert.Equal(expectedAmount, actualAmount);
+	}
+
+	private void AssertNoTransactionAmount(SmartTransaction tx)
+		=> Assert.False(Coins.TryGetTxAmount(tx.GetHash(), out Money? _));
 }

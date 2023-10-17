@@ -1,11 +1,13 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,6 +22,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
+	private readonly ReadOnlyObservableCollection<TransactionSummary> _transactions;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
@@ -32,18 +35,31 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .Sample(TimeSpan.FromSeconds(1))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
+
+		var transactionChanges =
+			Observable.Defer(() => BuildSummary().ToObservable())
+					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
+					  .ToObservableChangeSet(x => x.GetHash());
+
+		transactionChanges.Bind(out _transactions).Subscribe();
 	}
+
+	public ReadOnlyObservableCollection<TransactionSummary> List => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public IObservable<IChangeSet<TransactionModel, uint256>> List => TransactionProcessed.ProjectList(BuildSummary, x => x.Id);
-
-	public async Task<TransactionSummary?> GetById(string transactionId)
+	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
 	{
-		var txRecordList = await Task.Run(() => _wallet.BuildHistorySummary());
+		var result = List.FirstOrDefault(x => x.GetHash() == transactionId);
 
-		var transaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == transactionId);
-		return transaction;
+		if (result is null)
+		{
+			transactionSummary = default;
+			return false;
+		}
+
+		transactionSummary = result;
+		return true;
 	}
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
