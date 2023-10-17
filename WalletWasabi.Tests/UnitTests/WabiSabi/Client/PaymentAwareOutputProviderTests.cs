@@ -42,11 +42,11 @@ public class PaymentAwareOutputProviderTests
 	[InlineData(new[] { "0.1", "0.30" }, "0.176", 1_000, 1)] // It is only possible to make one payment.
 	[InlineData(new[] { "0.1", "0.05" }, "0.176", 1_000, 2)] // It is possible to make the two payments.
 	[InlineData(new[] { "0.1", "0.05" }, "0.150", 1_000, 1)] // It is only possible one payments. Not enough for fees.
-	[InlineData(new[] { "0.1", "0.05", "0.025", "0.001", "0.001" }, "0.176", 1_000, 4)] //Four is the maximum number of payments.
-	[InlineData(new[] { "0.1", "0.30" }, "0.176", 43 + 31, 1)] //It is only possible to make one payment.
-	[InlineData(new[] { "0.1", "0.05" }, "0.176", 43 + 31, 1)] //It is possible to make the two payments.
-	[InlineData(new[] { "0.1", "0.05" }, "0.176", 20, 0)] //It is possible to make the two payments.
-	[InlineData(new[] { "0.1", "0.05" }, "0.14", 40 + 31, 0)] //Not enough vsize to register the payment and the change.
+	[InlineData(new[] { "0.1", "0.05", "0.025", "0.001", "0.001" }, "0.176", 1_000, 4)] // Four is the maximum number of payments.
+	[InlineData(new[] { "0.1", "0.30" }, "0.176", 43 + 31, 1)] // It is only possible to make one payment.
+	[InlineData(new[] { "0.1", "0.05" }, "0.176", 43 + 31, 1)] // It is possible to make the two payments.
+	[InlineData(new[] { "0.1", "0.05" }, "0.176", 20, 0)] // It is possible to make the two payments.
+	[InlineData(new[] { "0.1", "0.05" }, "0.14", 40 + 31, 0)] // Not enough vsize to register the payment and the change.
 	public void BestPaymentSetTest(string[] amountsToPay, string availableAmountStr, int availableVsize, int expectedOutputs)
 	{
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
