@@ -145,7 +145,7 @@ public class CoinsRegistry : ICoinsView
 
 	private IEnumerable<SmartCoin> RemoveNoLock(SmartCoin coin)
 	{
-		var coinsToRemove = DescendantOfAndSelfNoLock(coin);
+		var coinsToRemove = DescendantOfNoLock(coin, includeSelf: true);
 		foreach (var toRemove in coinsToRemove)
 		{
 			if (!Coins.Remove(toRemove))
@@ -241,7 +241,7 @@ public class CoinsRegistry : ICoinsView
 		{
 			foreach (var coin in AsCoinsViewNoLock().AtBlockHeight(blockHeight))
 			{
-				var descendantCoins = DescendantOfAndSelfNoLock(coin);
+				var descendantCoins = DescendantOfNoLock(coin, includeSelf: true);
 				foreach (var toSwitch in descendantCoins)
 				{
 					toSwitch.Height = Height.Mempool;
@@ -398,17 +398,17 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
-	public ImmutableArray<SmartCoin> DescendantOfAndSelf(SmartCoin coin)
+	public ImmutableArray<SmartCoin> DescendantOf(SmartCoin coin, bool includeSelf = true)
 	{
 		lock (Lock)
 		{
-			return DescendantOfAndSelfNoLock(coin);
+			return DescendantOfNoLock(coin, includeSelf);
 		}
 	}
 
 	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>
 	/// <remarks>Callers must acquire <see cref="Lock"/> before calling this method.</remarks>
-	private ImmutableArray<SmartCoin> DescendantOfAndSelfNoLock(SmartCoin coin)
+	private ImmutableArray<SmartCoin> DescendantOfNoLock(SmartCoin coin, bool includeSelf)
 	{
 		HashSet<SmartCoin> allCoins = new(Coins);
 		allCoins.UnionWith(SpentCoins);
@@ -436,7 +436,7 @@ public class CoinsRegistry : ICoinsView
 			}
 		}
 
-		return Generator(coin, addSelf: true).ToImmutableArray();
+		return Generator(coin, addSelf: includeSelf).ToImmutableArray();
 	}
 
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
