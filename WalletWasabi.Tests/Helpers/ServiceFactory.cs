@@ -61,7 +61,7 @@ public static class ServiceFactory
 			allowedInputs = new List<SmartCoin>();
 			foreach (var i in allowedInputsIndexes)
 			{
-				allowedInputs.Append(sCoins[i]);
+				allowedInputs = allowedInputs.Append(sCoins[i]);
 			}
 		}
 
