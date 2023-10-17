@@ -54,7 +54,7 @@ public class TorProcessManager : IAsyncDisposable
 	private ProcessAsync? TorProcess { get; set; }
 
 	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
-	private TorControlClient? TorControlClient { get; set; }
+	public TorControlClient? TorControlClient { get; private set; }
 
 	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
 	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken)
