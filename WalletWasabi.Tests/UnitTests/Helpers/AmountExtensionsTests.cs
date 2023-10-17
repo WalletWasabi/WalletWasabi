@@ -20,7 +20,6 @@ public class AmountExtensionsTests
 
 		var expected = -0.5m;
 		decimal tolerance = 0.01m;
-		Assert.NotNull(result);
 		var areApproximatelyEqual = Math.Abs((decimal)result - expected) < tolerance;
 		Assert.True(areApproximatelyEqual, $"Result is not the expected by the given tolerance. Result: {result}, Expected: {expected}, Tolerance: {tolerance}");
 	}
