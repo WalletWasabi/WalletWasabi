@@ -60,6 +60,16 @@
     <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="{DynamicResource AcrylicTrimForeground}" />
     <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="{DynamicResource AcrylicTrimForeground}" />
     <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="{DynamicResource AcrylicTrimForeground}" />
+
+    <!--Disabled overrides-->
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchHeaderForegroundDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchStrokeOffDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchKnobFillOffDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchKnobFillOnDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchFillOnDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchStrokeOnDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <!--Disabled overrides-->
+
   </UserControl.Resources>
 
   <UserControl.DataTemplates>
@@ -74,7 +84,7 @@
 
     <DataTemplate DataType="searchItems:IContentSearchItem">
 
-      <DockPanel Background="Transparent" Margin="10">
+      <DockPanel Background="Transparent" Margin="10" IsEnabled="{Binding IsEnabled}">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
           <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
         </Panel>

@@ -57,6 +57,8 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 				 .Subscribe();
 	}
 
+	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;
+
 	public ICommand RestartCommand { get; }
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }

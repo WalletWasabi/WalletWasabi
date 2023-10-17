@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -197,23 +198,20 @@ public class Wallet : BackgroundService, IWallet
 	/// </summary>
 	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
 	{
-		foreach (SmartCoin coin in GetAllCoins())
+		// The lock is necessary to make sure that coins registry and transaction store do not change in this code block.
+		// The assumption is that the transaction processor is the only component modifying coins registry and transaction store.
+		lock (TransactionProcessor.Lock)
 		{
-			if (coin.TransactionId == txid)
+			smartTransaction = null;
+			bool isKnown = Coins.IsKnown(txid);
+
+			if (isKnown && !BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction))
 			{
-				smartTransaction = coin.Transaction;
-				return true;
+				throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
 			}
 
-			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
-			{
-				smartTransaction = coin.SpenderTransaction;
-				return true;
-			}
+			return isKnown;
 		}
-
-		smartTransaction = null;
-		return false;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
