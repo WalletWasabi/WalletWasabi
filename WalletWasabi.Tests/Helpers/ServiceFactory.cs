@@ -16,7 +16,7 @@ public static class ServiceFactory
 		bool allowUnconfirmed = true,
 		bool watchOnly = false,
 		bool allowDoubleSpend = false,
-		string[]? allowedInputsKeys = null,
+		int[]? allowedInputsIndexes = null,
 		bool tryToSign = true)
 	{
 		var password = "foo";
@@ -56,9 +56,13 @@ public static class ServiceFactory
 		}
 
 		IEnumerable<SmartCoin>? allowedInputs = null;
-		if (allowedInputsKeys is not null)
+		if (allowedInputsIndexes is not null)
 		{
-			allowedInputs = sCoins.Where(coin => allowedInputsKeys.Contains(coin.HdPubKey.Labels.ToString()));
+			allowedInputs = new List<SmartCoin>();
+			foreach (var i in allowedInputsIndexes)
+			{
+				allowedInputs.Append(sCoins[i]);
+			}
 		}
 
 		var coinsView = new CoinsView(sCoins);
