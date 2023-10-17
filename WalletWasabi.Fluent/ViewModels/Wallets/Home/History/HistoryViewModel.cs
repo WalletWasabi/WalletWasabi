@@ -279,7 +279,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
 			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent ?? throw new ArgumentNullException(nameof(parent))),
-			_ => throw new NotImplementedException($"Unsupported Transaction Type: {transaction.Type}"),
+			_ => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
 		};
 
 		var children = transaction.Children.Reverse();

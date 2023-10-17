@@ -82,4 +82,9 @@ public partial class TransactionModel : ReactiveObject
 	{
 		_children.Add(child);
 	}
+
+	public override string ToString()
+	{
+		return $"{Type} {Status} {DateString} {Amount} {Balance}";
+	}
 }
