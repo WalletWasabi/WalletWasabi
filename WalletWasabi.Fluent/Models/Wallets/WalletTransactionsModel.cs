@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
+using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
@@ -19,7 +15,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
-	private readonly ReadOnlyObservableCollection<TransactionSummary> _transactions;
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
@@ -31,32 +26,12 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .Sample(TimeSpan.FromSeconds(1))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
-
-		var transactionChanges =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.GetHash());
-
-		transactionChanges.Bind(out _transactions).Subscribe();
 	}
-
-	public ReadOnlyObservableCollection<TransactionSummary> List => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
-	{
-		var result = List.FirstOrDefault(x => x.GetHash() == transactionId);
-
-		if (result is null)
-		{
-			transactionSummary = default;
-			return false;
-		}
-
-		transactionSummary = result;
-		return true;
-	}
+		=> _wallet.TryGetTransactionSummary(transactionId, out transactionSummary);
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
 	{
@@ -64,10 +39,5 @@ public partial class WalletTransactionsModel : ReactiveObject
 			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionSummary.Transaction, out var estimate)
 			? estimate
 			: null;
-	}
-
-	private IEnumerable<TransactionSummary> BuildSummary()
-	{
-		return _wallet.BuildHistorySummary();
 	}
 }
