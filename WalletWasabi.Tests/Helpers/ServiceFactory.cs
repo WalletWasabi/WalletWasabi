@@ -12,8 +12,12 @@ public static class ServiceFactory
 {
 	public static TransactionFactory CreateTransactionFactory(
 		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
+		Func<FeeRate>? feeRateFetcher = null,
 		bool allowUnconfirmed = true,
-		bool watchOnly = false)
+		bool watchOnly = false,
+		bool allowDoubleSpend = false,
+		string[]? allowedInputsKeys = null,
+		bool tryToSign = true)
 	{
 		var password = "foo";
 		var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
@@ -51,8 +55,17 @@ public static class ServiceFactory
 			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Length}, unique coins:{uniqueCoins}.");
 		}
 
+		IEnumerable<SmartCoin>? allowedInputs = null;
+		if (allowedInputsKeys is not null)
+		{
+			allowedInputs = sCoins.Where(coin => allowedInputsKeys.Contains(coin.HdPubKey.Labels.ToString()));
+		}
+
 		var coinsView = new CoinsView(sCoins);
 		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+
+		feeRateFetcher ??= () => new FeeRate(2m);
+
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password, allowUnconfirmed);
 	}
 
