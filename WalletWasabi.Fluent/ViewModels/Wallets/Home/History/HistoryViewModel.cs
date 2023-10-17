@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -27,7 +28,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	private readonly ReadOnlyObservableCollection<HistoryItemViewModelBase> _transactions;
+	private IObservableCollection<HistoryItemViewModelBase> _transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
 	// TODO: Remove walletViewModel parameter
 	public HistoryViewModel(UiContext uiContext, WalletViewModel walletViewModel, IWalletModel wallet)
@@ -37,19 +38,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		// TODO: Remove this
 		_walletVm = walletViewModel;
-
-		var transactionChanges = wallet.Transactions.List
-			.ToObservableChangeSet(model => model.Id);
-
-		transactionChanges
-			.Transform(x => CreateViewModel(x))
-			.Bind(out _transactions)
-			.Subscribe();
-
-		transactionChanges
-			.ToCollection()
-			.Select(models => !models.Any())
-			.BindTo(this, x => x.IsTransactionHistoryEmpty);
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
@@ -77,7 +65,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		Source.RowSelection!.SingleSelect = true;
 	}
 
-	public ReadOnlyObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+	public IObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
 	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
@@ -226,36 +214,25 @@ public partial class HistoryViewModel : ActivatableViewModel
 		}
 	}
 
-	//protected override void OnActivated(CompositeDisposable disposables)
-	//{
-	//	base.OnActivated(disposables);
+	protected override void OnActivated(CompositeDisposable disposables)
+	{
+		base.OnActivated(disposables);
 
-	//	_wallet.Transactions.TransactionProcessed
-	//						.Do(Update)
-	//						.Subscribe()
-	//						.DisposeWith(disposables);
-	//}
+		var transactionChanges = _wallet.Transactions.List
+			.ToObservableChangeSet(model => model.Id);
 
-	//private void Update()
-	//{
-	//	try
-	//	{
-	//		var newHistoryList =
-	//			_wallet.Transactions.List
-	//								.Select(x => CreateViewModel(x))
-	//								.ToList();
+		transactionChanges
+			.Transform(x => CreateViewModel(x))
+			.Bind(_transactions)
+			.Subscribe()
+			.DisposeWith(disposables);
 
-	//		_transactionSourceList.Edit(x =>
-	//		{
-	//			x.Clear();
-	//			x.AddRange(newHistoryList);
-	//		});
-	//	}
-	//	catch (Exception ex)
-	//	{
-	//		Logger.LogError(ex);
-	//	}
-	//}
+		transactionChanges
+			.ToCollection()
+			.Select(models => !models.Any())
+			.BindTo(this, x => x.IsTransactionHistoryEmpty)
+			.DisposeWith(disposables);
+	}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
 	{
