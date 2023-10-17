@@ -31,7 +31,7 @@ public class PaymentBatch
 		{
 			_payments.Add(payment);
 		}
-		Logger.LogInfo($"Payment for {payment.Amount} to {payment.Destination.ScriptPubKey}.");
+		Logger.LogInfo($"Payment for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
 		return payment.Id;
 	}
 
