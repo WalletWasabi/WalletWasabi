@@ -47,7 +47,8 @@
     </PathIcon>
 
     <!-- Second icon (Transaction Type) -->
-    <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="False">
+    <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
+    <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="True">
       <c:PrivacyContentControl.Styles>
         <Style Selector="c|PrivacyContentControl /template/ Viewbox#PART_Icon">
           <Setter Property="Opacity" Value="0.6" />
