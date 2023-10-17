@@ -398,15 +398,15 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
-	public ImmutableArray<SmartCoin> DescendantOf(SmartCoin coin, bool includeSelf)
+	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>
+	public ICoinsView DescendantOf(SmartCoin coin, bool includeSelf)
 	{
 		lock (Lock)
 		{
-			return DescendantOfNoLock(coin, includeSelf);
+			return new CoinsView(DescendantOfNoLock(coin, includeSelf));
 		}
 	}
 
-	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>
 	/// <remarks>Callers must acquire <see cref="Lock"/> before calling this method.</remarks>
 	private ImmutableArray<SmartCoin> DescendantOfNoLock(SmartCoin coin, bool includeSelf)
 	{
