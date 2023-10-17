@@ -16,12 +16,12 @@ public class AmountExtensionsTests
 		var previous = new Amount(Money.FromUnit(221, MoneyUnit.Satoshi), exchangeRateProvider);
 		var current = new Amount(Money.FromUnit(110, MoneyUnit.Satoshi), exchangeRateProvider);
 
-		var result = AmountExtensions.Diff(current, previous);
+		var result = current.Diff(previous);
 
 		var expected = -0.5m;
 		decimal tolerance = 0.01m;
 		Assert.NotNull(result);
-		var areApproximatelyEqual = Math.Abs((decimal)result! - expected) < tolerance;
+		var areApproximatelyEqual = Math.Abs((decimal)result - expected) < tolerance;
 		Assert.True(areApproximatelyEqual, $"Result is not the expected by the given tolerance. Result: {result}, Expected: {expected}, Tolerance: {tolerance}");
 	}
 }

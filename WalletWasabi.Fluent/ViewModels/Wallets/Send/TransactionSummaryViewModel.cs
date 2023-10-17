@@ -1,3 +1,4 @@
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -58,7 +59,17 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
-		AmountDiff = Amount.Diff(Parent.CurrentTransactionSummary.Amount);
-		FeeDiff = Fee.Diff(Parent.CurrentTransactionSummary.Fee);
+		AmountDiff = DiffOrNull(Amount, Parent.CurrentTransactionSummary.Amount);
+		FeeDiff = DiffOrNull(Fee, Parent.CurrentTransactionSummary.Fee);
+	}
+
+	private static double? DiffOrNull(Amount? current, Amount? previous)
+	{
+		if (current is null || previous is null)
+		{
+			return null;
+		}
+
+		return current.Diff(previous);
 	}
 }
