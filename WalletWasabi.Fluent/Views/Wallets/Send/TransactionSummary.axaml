@@ -25,7 +25,7 @@
 
   <UserControl.Styles>
     <Style Selector="c|PreviewItem.Dimmed">
-      <Setter Property="Opacity" Value="0.4" />
+      <Setter Property="Opacity" Value="0.2" />
     </Style>
   </UserControl.Styles>
 
@@ -33,9 +33,6 @@
 
     <!-- Amount -->
     <DockPanel>
-
-
-
       <Button Classes="activeHyperLink"
               Command="{Binding Parent.ChangeCoinsCommand}"
               Content="Review coins"
@@ -82,15 +79,8 @@
     <c:PreviewItem Icon="{StaticResource transceive_regular}"
                    x:Name="PreviewItem"
                    Label="Address"
-                   CopyableContent="{Binding AddressText}">
+                   CopyableContent="{Binding AddressText}" Classes.Dimmed="{Binding IsPreview}">
       <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
-
-      <Classes.Dimmed>
-        <MultiBinding Converter="{x:Static BoolConverters.And}">
-          <Binding Path="IsPreview" />
-        </MultiBinding>
-      </Classes.Dimmed>
-
     </c:PreviewItem>
     <Separator />
 
@@ -111,15 +101,9 @@
         <c:PreviewItem Icon="{StaticResource timer_regular}"
                        Label="Expected confirmation time"
                        IsVisible="{Binding !IsCustomFeeUsed}"
+                       Classes.Dimmed="{Binding IsPreview}"
                        ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
-
-          <Classes.Dimmed>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding Path="IsPreview" />
-            </MultiBinding>
-          </Classes.Dimmed>
-
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="Fee"
