@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 {

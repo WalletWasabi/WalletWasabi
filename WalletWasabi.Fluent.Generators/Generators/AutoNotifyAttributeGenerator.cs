@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 internal class AutoNotifyAttributeGenerator : StaticFileGenerator
 {

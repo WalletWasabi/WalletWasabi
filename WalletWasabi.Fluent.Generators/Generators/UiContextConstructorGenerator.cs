@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyntax>
 {

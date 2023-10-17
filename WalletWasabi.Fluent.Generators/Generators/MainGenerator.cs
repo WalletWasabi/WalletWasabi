@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 [Generator]
 internal class MainGenerator : CombinedGenerator
