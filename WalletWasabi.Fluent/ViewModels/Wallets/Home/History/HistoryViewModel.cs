@@ -28,8 +28,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	private IObservableCollection<HistoryItemViewModelBase> _transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-
 	// TODO: Remove walletViewModel parameter
 	public HistoryViewModel(UiContext uiContext, WalletViewModel walletViewModel, IWalletModel wallet)
 	{
@@ -49,7 +47,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 
-		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
 		{
 			Columns =
 			{
@@ -65,7 +63,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		Source.RowSelection!.SingleSelect = true;
 	}
 
-	public IObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
 	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
@@ -195,7 +193,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
 			// Selecting first the root item, then the child solves the issue.
-			var index = _transactions.IndexOf(txnItem);
+			var index = Transactions.IndexOf(txnItem);
 			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
@@ -223,7 +221,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		transactionChanges
 			.Transform(x => CreateViewModel(x))
-			.Bind(_transactions)
+			.Bind(Transactions)
 			.Subscribe()
 			.DisposeWith(disposables);
 
