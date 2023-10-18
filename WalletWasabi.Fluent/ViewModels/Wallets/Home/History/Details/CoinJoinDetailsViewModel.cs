@@ -31,6 +31,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 		ConfirmationTime = coinJoin.CoinJoinTransaction.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
+
 		Update();
 	}
 

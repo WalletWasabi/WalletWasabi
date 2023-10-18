@@ -26,7 +26,7 @@
     <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
     <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     <Setter Property="CornerRadius" Value="8 8 8 8" />
     <Setter Property="Template">
       <ControlTemplate>

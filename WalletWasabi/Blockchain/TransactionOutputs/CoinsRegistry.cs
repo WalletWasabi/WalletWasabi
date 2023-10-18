@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -142,9 +143,9 @@ public class CoinsRegistry : ICoinsView
 		return added;
 	}
 
-	private ICoinsView RemoveNoLock(SmartCoin coin)
+	private IEnumerable<SmartCoin> RemoveNoLock(SmartCoin coin)
 	{
-		var coinsToRemove = DescendantOfAndSelfNoLock(coin);
+		var coinsToRemove = DescendantOfNoLock(coin, includeSelf: true);
 		foreach (var toRemove in coinsToRemove)
 		{
 			if (!Coins.Remove(toRemove))
@@ -240,7 +241,7 @@ public class CoinsRegistry : ICoinsView
 		{
 			foreach (var coin in AsCoinsViewNoLock().AtBlockHeight(blockHeight))
 			{
-				var descendantCoins = DescendantOfAndSelf(coin);
+				var descendantCoins = DescendantOfNoLock(coin, includeSelf: true);
 				foreach (var toSwitch in descendantCoins)
 				{
 					toSwitch.Height = Height.Mempool;
@@ -393,17 +394,49 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Available() => AsCoinsView().Available();
 
-	public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
-
 	public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
 
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
-	public ICoinsView DescendantOf(SmartCoin coin) => AsCoinsView().DescendantOf(coin);
+	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>
+	public ICoinsView DescendantOf(SmartCoin coin, bool includeSelf)
+	{
+		lock (Lock)
+		{
+			return new CoinsView(DescendantOfNoLock(coin, includeSelf));
+		}
+	}
 
-	private ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin) => AsAllCoinsViewNoLock().DescendantOfAndSelf(coin);
+	/// <remarks>Callers must acquire <see cref="Lock"/> before calling this method.</remarks>
+	private ImmutableArray<SmartCoin> DescendantOfNoLock(SmartCoin coin, bool includeSelf)
+	{
+		ICoinsView allCoins = AsAllCoinsViewNoLock();
 
-	public ICoinsView DescendantOfAndSelf(SmartCoin coin) => AsAllCoinsView().DescendantOfAndSelf(coin);
+		IEnumerable<SmartCoin> Generator(SmartCoin parentCoin, bool addSelf)
+		{
+			IEnumerable<SmartCoin> childrenOf = parentCoin.SpenderTransaction is not null
+				? allCoins.Where(x => x.TransactionId == parentCoin.SpenderTransaction.GetHash()) // Inefficient.
+				: Array.Empty<SmartCoin>();
+
+			foreach (var child in childrenOf)
+			{
+				foreach (var childDescendant in Generator(child, addSelf: false))
+				{
+					yield return childDescendant;
+				}
+
+				yield return child;
+			}
+
+			// Return self.
+			if (addSelf)
+			{
+				yield return parentCoin;
+			}
+		}
+
+		return Generator(coin, addSelf: includeSelf).ToImmutableArray();
+	}
 
 	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
 

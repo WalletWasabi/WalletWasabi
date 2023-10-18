@@ -27,7 +27,7 @@
     <c:ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
@@ -87,7 +87,6 @@
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
                 <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
-
                   <!-- Warnings -->
                   <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
 
@@ -112,8 +111,7 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-
-    <Carousel Items="{Binding TransactionSummaries}" IsVirtualized="False"
+    <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
         <CrossFade Duration="0.75" />

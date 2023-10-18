@@ -17,7 +17,7 @@ public class NavBarIconConverter : IValueConverter
 	{
 		if (Application.Current is { } && value is string iconName)
 		{
-			if (Application.Current.Styles.TryGetResource(iconName, out object? resource))
+			if (Application.Current.Styles.TryGetResource(iconName, null, out object? resource))
 			{
 				return resource is not StreamGeometry ? AvaloniaProperty.UnsetValue : resource;
 			}

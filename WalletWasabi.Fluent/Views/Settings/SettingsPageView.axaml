@@ -31,7 +31,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
-      <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
+      <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
                      Margin="0,16,0,0"
                      HorizontalAlignment="Center"
                      Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"

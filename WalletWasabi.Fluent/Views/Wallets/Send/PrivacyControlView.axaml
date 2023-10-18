@@ -66,7 +66,7 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
               </Style>
             </ScrollViewer.Styles>
-            <ItemsControl Items="{Binding LabelsWhiteList}">
+            <ItemsControl ItemsSource="{Binding LabelsWhiteList}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Horizontal" />
@@ -115,7 +115,7 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
               </Style>
             </ScrollViewer.Styles>
-            <ItemsControl Items="{Binding LabelsBlackList}">
+            <ItemsControl ItemsSource="{Binding LabelsBlackList}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Horizontal" />

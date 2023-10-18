@@ -14,7 +14,7 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="False">
 
-    <ListBox Items="{Binding Charsets}"
+    <ListBox ItemsSource="{Binding Charsets}"
              Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
