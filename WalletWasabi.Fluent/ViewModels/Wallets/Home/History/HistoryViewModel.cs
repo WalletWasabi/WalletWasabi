@@ -218,18 +218,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		var transactionChanges =
-			_wallet.Transactions.List
-					.ToObservableChangeSet(model => model.Id);
-
-		transactionChanges
-			.Transform(x => CreateViewModel(x))
-			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
-				.Ascending(x => x.Transaction.IsConfirmed)
-				.ThenByDescending(x => x.Transaction.OrderIndex))
-			.Bind(Transactions)
-			.Subscribe()
-			.DisposeWith(disposables);
+		_wallet.Transactions.List
+							.ToObservableChangeSet(model => model.Id)
+							.Transform(x => CreateViewModel(x))
+							.Sort(SortExpressionComparer<HistoryItemViewModelBase>
+								.Ascending(x => x.Transaction.IsConfirmed)
+								.ThenByDescending(x => x.Transaction.OrderIndex))
+							.Bind(Transactions)
+							.Subscribe()
+							.DisposeWith(disposables);
 
 		_wallet.Transactions.IsEmpty
 							.BindTo(this, x => x.IsTransactionHistoryEmpty)
