@@ -133,67 +133,6 @@ public class CoinsRegistry : ICoinsView
 		return added;
 	}
 
-	private IEnumerable<SmartCoin> RemoveNoLock(SmartCoin coin)
-	{
-		var coinsToRemove = DescendantOfNoLock(coin, includeSelf: true);
-		foreach (var toRemove in coinsToRemove)
-		{
-			var removedCoinOutPoint = toRemove.Outpoint;
-			OutpointCoinCache.Remove(removedCoinOutPoint);
-
-			if (CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
-			{
-				coinsOfPubKey.Remove(coin);
-
-				if (coinsOfPubKey.Count == 0)
-				{
-					CoinsByPubKeys.Remove(coin.HdPubKey);
-				}
-			}
-		}
-
-		foreach (var txId in coinsToRemove.Select(x => x.TransactionId).Distinct())
-		{
-			if (!CoinsByTransactionId.TryGetValue(txId, out var coins))
-			{
-				continue;
-			}
-
-			coins.RemoveWhere(x => coinsToRemove.Contains(x));
-
-			if (coins.Any())
-			{
-				continue;
-			}
-
-			if (!CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved))
-			{
-				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
-			}
-
-			// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
-			// This cache can be really big and it's better to avoid .ToList().
-			var keysToRemove = new HashSet<OutPoint>();
-			foreach (var removedTxIdByInputPrevOut in TxIdsByPrevOuts.Where(x => x.Value.Equals(txId)))
-			{
-				keysToRemove.Add(removedTxIdByInputPrevOut.Key);
-			}
-
-			foreach (var keyToRemove in keysToRemove)
-			{
-				TxIdsByPrevOuts.Remove(keyToRemove);
-			}
-
-			if (!TransactionAmountsByTxid.Remove(txId))
-			{
-				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(TransactionAmountsByTxid)}.");
-			}
-		}
-
-		InvalidateSnapshot = true;
-		return coinsToRemove;
-	}
-
 	public void Spend(SmartCoin spentCoin, SmartTransaction tx)
 	{
 		tx.TryAddWalletInput(spentCoin);
@@ -282,24 +221,78 @@ public class CoinsRegistry : ICoinsView
 		lock (Lock)
 		{
 			var allCoins = AsAllCoinsViewNoLock();
-			var toRemove = new List<SmartCoin>();
-			var toAdd = new List<SmartCoin>();
+			var toRemove = new HashSet<SmartCoin>();
+			var toAdd = new HashSet<SmartCoin>();
 
-			// remove recursively the coins created by the transaction
+			// Find all TransactionsIds to remove
+			HashSet<uint256> txIdsToRemove = new();
 			foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 			{
-				toRemove.AddRange(RemoveNoLock(createdCoin));
+				foreach(var descendantOrSelf in DescendantOf(createdCoin, true))
+				{
+					txIdsToRemove.Add(descendantOrSelf.TransactionId);
+				}
 			}
 
-			// destroyed (spent) coins are now (unspent)
-			foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
+			foreach (var txIdToRemove in txIdsToRemove)
 			{
-				destroyedCoin.SpenderTransaction = null;
-				toAdd.Add(destroyedCoin);
+				if (!CoinsByTransactionId.Remove(txIdToRemove, out var coinsToRemove))
+				{
+					throw new InvalidOperationException(
+						$"Failed to remove '{txIdToRemove}' from {nameof(CoinsByTransactionId)}.");
+				}
+
+				foreach (var coinToRemove in coinsToRemove)
+				{
+					if (toRemove.Add(coinToRemove))
+					{
+						continue;
+					}
+
+					var removedCoinOutPoint = coinToRemove.Outpoint;
+					OutpointCoinCache.Remove(removedCoinOutPoint);
+
+					if (!CoinsByPubKeys.TryGetValue(coinToRemove.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
+					{
+						continue;
+					}
+
+					coinsOfPubKey.Remove(coinToRemove);
+
+					if (coinsOfPubKey.Count == 0)
+					{
+						CoinsByPubKeys.Remove(coinToRemove.HdPubKey);
+					}
+				}
+
+				// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
+				// This cache can be really big and it's better to avoid .ToList().
+				var keysToRemove = new HashSet<OutPoint>();
+				foreach (var removedTxIdByInputPrevOut in TxIdsByPrevOuts.Where(x => x.Value.Equals(txIdToRemove)))
+				{
+					keysToRemove.Add(removedTxIdByInputPrevOut.Key);
+				}
+
+				foreach (var keyToRemove in keysToRemove)
+				{
+					TxIdsByPrevOuts.Remove(keyToRemove);
+				}
+
+				if (!TransactionAmountsByTxid.Remove(txIdToRemove))
+				{
+					throw new InvalidOperationException(
+						$"Failed to remove '{txIdToRemove}' from {nameof(TransactionAmountsByTxid)}.");
+				}
+
+				// destroyed (spent) coins are now (unspent)
+				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txIdToRemove))
+				{
+					destroyedCoin.SpenderTransaction = null;
+					toAdd.Add(destroyedCoin);
+				}
 			}
 
-			InvalidateSnapshot = true;
-
+			InvalidateSnapshot = InvalidateSnapshot || toRemove.Any() || toAdd.Any();
 			return (new CoinsView(toRemove), new CoinsView(toAdd));
 		}
 	}
