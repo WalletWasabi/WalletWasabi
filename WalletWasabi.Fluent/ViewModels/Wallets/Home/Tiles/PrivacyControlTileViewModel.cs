@@ -58,9 +58,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 					   .Subscribe()
 					   .DisposeWith(disposables);
 
-		var	b = BenchmarkLogger.Measure();
 		PrivacyBar?.Activate(disposables);
-		b.Dispose();
 	}
 
 	private void ShowDetails()
