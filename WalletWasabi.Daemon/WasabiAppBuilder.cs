@@ -2,10 +2,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
+using Microsoft.VisualBasic;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Daemon;
 
@@ -39,6 +40,19 @@ public class WasabiApplication
 		if (AppConfig.Arguments.Contains("--version"))
 		{
 			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+			return ExitCode.Ok;
+		}
+		if (AppConfig.Arguments.Contains("--help"))
+		{
+			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+			Console.WriteLine($"Usage: {AppConfig.AppName} [OPTION]...");
+			Console.WriteLine();
+			Console.WriteLine("Available options are:");
+
+			foreach (var (parameter, meta) in Config.GetConfigOptionsMetadata())
+			{
+				Console.WriteLine($"\t--{parameter.ToLower(),-32}\t{meta}");
+			}
 			return ExitCode.Ok;
 		}
 

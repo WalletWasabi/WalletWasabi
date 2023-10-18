@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -153,6 +154,33 @@ public class Config
 		};
 
 		return result is null ? GetBackendUri() : new Uri(result);
+	}
+
+	public IEnumerable<(string, string)> GetConfigOptionsMetadata()
+	{
+		static string Source(ValueSource source) =>
+			source switch
+			{
+				ValueSource.Disk => "config file",
+				ValueSource.EnvironmentVariable => "environment variable",
+				ValueSource.CommandLineArgument => "command line",
+				_ => "unknown"
+			};
+
+		static string AsString(object value) =>
+			value switch
+			{
+				NetworkValue n => $"{n.EffectiveValue} (source: {Source(n.ValueSource)})",
+				StringValue s => $"{s.EffectiveValue}\" (source: {Source(s.ValueSource)})",
+				NullableStringValue => $"string or null",
+				StringArrayValue => $"array of strings",
+				MoneyValue m => $"{m.EffectiveValue} BTC (source: {Source(m.ValueSource)})",
+				EndPointValue ep => $"{ep.EffectiveValue} (source: {Source(ep.ValueSource)})",
+				BoolValue b => $"{b.EffectiveValue} (source: {Source(b.ValueSource)})",
+				_ => "unknown"
+			};
+
+		return Data.Select(x => (x.Key, $"{AsString(x.Value)}"));
 	}
 
 	private EndPointValue GetEndPointValue(string key, EndPoint value, string[] cliArgs)
