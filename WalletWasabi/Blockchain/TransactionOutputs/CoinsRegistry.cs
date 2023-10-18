@@ -15,10 +15,6 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> Coins { get; } = new();
 
-	/// <summary>Set of all coins' transactions (for both spent and unspent coins).</summary>
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<uint256> KnownTransactions { get; } = new();
-
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> OutpointCoinCache { get; } = new();
 
@@ -110,7 +106,6 @@ public class CoinsRegistry : ICoinsView
 		}
 
 		var added = Coins.Add(coin);
-		KnownTransactions.Add(coin.TransactionId);
 		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
 
 		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
@@ -184,9 +179,6 @@ public class CoinsRegistry : ICoinsView
 				continue;
 			}
 
-			// No more coins were created by this transaction.
-			KnownTransactions.Remove(txId);
-
 			if (!CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved))
 			{
 				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
@@ -255,7 +247,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			return KnownTransactions.Contains(txid);
+			return CoinsByTransactionId.ContainsKey(txid);
 		}
 	}
 
