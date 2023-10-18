@@ -118,15 +118,16 @@ public class CoinsRegistry : ICoinsView
 			{
 				hashSet = new();
 				CoinsByTransactionId.Add(coin.TransactionId, hashSet);
+
+				// Each prevOut of the transaction contributes to the existence of coins.
+				// This only has to be added one per transaction.
+				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
+				{
+					TxIdsByPrevOuts[input.PrevOut] = coin.TransactionId;
+				}
 			}
 
 			hashSet.Add(coin);
-
-			// Each prevOut of the transaction contributes to the existence of coins.
-			foreach (TxIn input in coin.Transaction.Transaction.Inputs)
-			{
-				TxIdsByPrevOuts[input.PrevOut] = coin.TransactionId;
-			}
 
 			InvalidateSnapshot = true;
 		}
