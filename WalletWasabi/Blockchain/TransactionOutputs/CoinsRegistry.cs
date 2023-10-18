@@ -12,24 +12,24 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
+	/// <summary>Maps each TXID to smart coins (i.e. UTXOs).</summary>
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private Dictionary<uint256, IndexedCoinsWithAmount> CoinsByTransactionId { get; } = new();
+
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
 
 	private object Lock { get; } = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
-
 	/// <summary>Maps each outpoint to transactions (i.e. TxIds) that exist thanks to the outpoint. The values are also stored as keys in <see cref="CoinsByTransactionId"/>.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, uint256> TxIdsByPrevOuts { get; } = new();
-
-	/// <summary>Maps each TXID to smart coins (i.e. UTXOs).</summary>
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<uint256, IndexedCoinsWithAmount> CoinsByTransactionId { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
