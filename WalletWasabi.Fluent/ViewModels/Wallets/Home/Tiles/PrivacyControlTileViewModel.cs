@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -47,7 +48,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		_wallet.Privacy.Progress
 					   .CombineLatest(_wallet.Privacy.IsWalletPrivate)
-					   .CombineLatest(_wallet.Coins.List.ToCollection())
+					   .CombineLatest(_wallet.Coins.List.ToObservableChangeSet(x => x.Key).ToCollection())
 					   .Flatten()
 					   .Do(tuple =>
 					   {
