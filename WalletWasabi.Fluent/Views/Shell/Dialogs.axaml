@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:shell="using:WalletWasabi.Fluent.Views.Shell"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="False"
@@ -18,7 +19,7 @@
                                      MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
       <Viewbox Stretch="Uniform" ClipToBounds="False">
-        <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
+        <shell:WelcomeBg EnableAnimations="{Binding IsOobeBackgroundVisible, FallbackValue=False}" ClipToBounds="False" />
       </Viewbox>
     </ExperimentalAcrylicBorder>
     <c:Dialog DataContext="{Binding FullScreen}"

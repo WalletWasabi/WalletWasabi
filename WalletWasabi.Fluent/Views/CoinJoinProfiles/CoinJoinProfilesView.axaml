@@ -32,7 +32,7 @@
               VerticalAlignment="Bottom"
               Content="Customize" />
 
-      <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
+      <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
                VerticalAlignment="Center"
                ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
         <ListBox.Styles>
@@ -60,17 +60,16 @@
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
             <Setter Property="CornerRadius" Value="4" />
-
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
             <Setter Property="Opacity" Value="0" />
           </Style>
 

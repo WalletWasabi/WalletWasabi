@@ -142,8 +142,8 @@
             <c:DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
-                                           TrueValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedRight}"
-                                           FalseValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedLeft}">
+                                           TrueValue="{x:Static PlacementMode.BottomEdgeAlignedRight}"
+                                           FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}">
               </converters:BooleanConverter>
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>

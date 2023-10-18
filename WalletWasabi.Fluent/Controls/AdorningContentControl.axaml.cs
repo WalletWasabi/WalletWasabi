@@ -42,7 +42,7 @@ public class AdorningContentControl : ContentControl
 		set => SetValue(IsAdornmentVisibleProperty, value);
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
@@ -52,11 +52,11 @@ public class AdorningContentControl : ContentControl
 		}
 		else if (change.Property == AdornmentProperty)
 		{
-			InvalidateAdornmentVisible(change.OldValue.GetValueOrDefault<Control?>(), change.NewValue.GetValueOrDefault<Control?>());
+			InvalidateAdornmentVisible(change.GetOldValue<Control>(), change.GetNewValue<Control>());
 		}
 		else if (change.Property == IsAdornmentVisibleProperty)
 		{
-			if (change.NewValue.GetValueOrDefault<bool>())
+			if (change.GetNewValue<bool>())
 			{
 				AdornerHelper.AddAdorner(this, Adornment);
 			}

@@ -5,7 +5,7 @@ using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class HistoryPlaceholderPanel : ContentControl
+public class HistoryPlaceholderPanel : TemplatedControl
 {
 	private ItemsControl? _targetItemsControl;
 
@@ -29,7 +29,7 @@ public class HistoryPlaceholderPanel : ContentControl
 
 		var deltaOpacity = 1d / totalRows;
 
-		_targetItemsControl.Items =
+		_targetItemsControl.ItemsSource =
 			Enumerable
 				.Range(1, totalRows)
 				.Reverse()
