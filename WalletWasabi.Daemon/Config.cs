@@ -41,7 +41,7 @@ public class Config
 			{ nameof(JsonRpcUser), GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs) },
 			{ nameof(JsonRpcPassword), GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs) },
 			{ nameof(JsonRpcServerPrefixes), GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs) },
-			{ nameof(OnionEnabled), GetBoolValue("OnionEnabled", value: false, cliArgs) },
+			{ nameof(RpcOnionEnabled), GetBoolValue("RpcOnionEnabled", value: false, cliArgs) },
 			{ nameof(DustThreshold), GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs) },
 			{ nameof(BlockOnlyMode), GetBoolValue("BlockOnly", value: false, cliArgs) },
 			{ nameof(LogLevel), GetStringValue("LogLevel", value: "", cliArgs) },
@@ -86,7 +86,7 @@ public class Config
 	public string JsonRpcUser => GetEffectiveValue<StringValue, string>(nameof(JsonRpcUser));
 	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>(nameof(JsonRpcPassword));
 	public string[] JsonRpcServerPrefixes => GetEffectiveValue<StringArrayValue, string[]>(nameof(JsonRpcServerPrefixes));
-	public bool OnionEnabled => GetEffectiveValue<BoolValue, bool>(nameof(OnionEnabled));
+	public bool RpcOnionEnabled => GetEffectiveValue<BoolValue, bool>(nameof(RpcOnionEnabled));
 	public Money DustThreshold => GetEffectiveValue<MoneyValue, Money>(nameof(DustThreshold));
 	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>(nameof(BlockOnlyMode));
 	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
