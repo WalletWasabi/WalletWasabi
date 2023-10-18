@@ -12,12 +12,12 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
   <UserControl.Resources>
     <converters:DiffToBrushConverter x:Key="InvertedDiffConverter"
-                                     PositiveBrush="{StaticResource NegativeBrush}"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
                                      NegativeBrush="{StaticResource PositiveBrush}"
                                      ZeroBrush="{StaticResource UncertainBrush}">
     </converters:DiffToBrushConverter>
     <converters:DiffToBrushConverter x:Key="NeutralDiffConverter"
-                                     PositiveBrush="{StaticResource ZeroBrush}"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
                                      NegativeBrush="{StaticResource UncertainBrush}"
                                      ZeroBrush="{StaticResource UncertainBrush}">
     </converters:DiffToBrushConverter>
