@@ -43,10 +43,16 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
 					  .ToObservableChangeSet(x => x.Id);
 
-		transactionChanges.Bind(out _transactions).Subscribe(set => { });
+		transactionChanges.Bind(out _transactions).Subscribe();
+
+		IsEmpty =
+			transactionChanges.ToCollection()
+							  .Select(models => !models.Any());
 	}
 
 	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
+
+	public IObservable<bool> IsEmpty { get; }
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
