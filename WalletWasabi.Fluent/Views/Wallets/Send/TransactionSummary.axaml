@@ -65,6 +65,16 @@
     </DockPanel>
     <Separator />
 
+    <!-- Address -->
+    <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                   x:Name="PreviewItem"
+                   Label="Address"
+                   CopyableContent="{Binding AddressText}"
+                   Classes.Dimmed="{Binding IsPreview}">
+      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+    </c:PreviewItem>
+    <Separator />
+
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
                    Classes.Dimmed="{Binding IsPreview}"
@@ -73,16 +83,6 @@
       <c:LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
-    </c:PreviewItem>
-    <Separator />
-
-    <!-- Address -->
-    <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                   x:Name="PreviewItem"
-                   Label="Address"
-                   CopyableContent="{Binding AddressText}"
-                   Classes.Dimmed="{Binding IsPreview}">
-      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </c:PreviewItem>
     <Separator />
 

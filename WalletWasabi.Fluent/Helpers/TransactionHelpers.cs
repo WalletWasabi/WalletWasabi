@@ -69,10 +69,10 @@ public static class TransactionHelpers
 
 			builder.BuildTransaction(
 				intent,
-				feeRateFetcher: () => transactionInfo.FeeRate,
+				transactionInfo.FeeRate,
 				allowedCoins.Select(x => x.Outpoint),
-				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
 				transactionInfo.PayJoinClient,
+				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
 				tryToSign: false);
 
 			return true;
