@@ -46,7 +46,8 @@
             </WrapPanel>
           </Panel>
         </controls:InfoMessage>
-        <TextBox Classes="selectableTextBlock monoSpaced wrap"
+        <TextBox Classes="monoSpaced wrap"
+                 Theme="{DynamicResource SelectableTextBlockTextBox}"
                  Text="{Binding Trace}" />
       </DockPanel>
     </controls:ContentArea>

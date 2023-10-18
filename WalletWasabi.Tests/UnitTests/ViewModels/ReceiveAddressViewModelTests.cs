@@ -60,7 +60,7 @@ public class ReceiveAddressViewModelTests
 
 	private static IWalletModel WalletWithAddresses(TestAddress address)
 	{
-		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
+		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(a => true, true).AutoRefresh(null, null, null));
 	}
 
 	private static ISourceCache<IAddress, string> AddressList(params IAddress[] addresses)

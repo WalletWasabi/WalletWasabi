@@ -30,7 +30,8 @@ public class TransactionProcessor
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	private static object Lock { get; } = new();
+	/// <remarks>Intentionally, <c>static</c> to avoid modifying smart transactions from multiple threads.</remarks>
+	public static object Lock { get; } = new();
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
 

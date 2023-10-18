@@ -16,6 +16,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
+	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
+	private const string RandomlySkippedRoundMessage = "Awaiting cheaper coinjoins";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
@@ -313,6 +315,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
 					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
 					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
+					CoinjoinError.UneconomicalRound => UneconomicalRoundMessage,
+					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					_ => GeneralErrorMessage
 				};
 				break;

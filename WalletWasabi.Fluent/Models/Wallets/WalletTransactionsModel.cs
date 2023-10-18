@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -21,6 +22,7 @@ public partial class WalletTransactionsModel : ReactiveObject
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
+	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
 
 	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
 	{
@@ -34,18 +36,31 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .Sample(TimeSpan.FromSeconds(1))
 					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .StartWith(Unit.Default);
+
+		var transactionChanges =
+			Observable.Defer(() => BuildSummary().ToObservable())
+					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
+					  .ToObservableChangeSet(x => x.Id);
+
+		transactionChanges.Bind(out _transactions).Subscribe(set => { });
 	}
+
+	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public IObservable<IChangeSet<TransactionModel, uint256>> List => TransactionProcessed.ProjectList(BuildSummary, x => x.Id);
-
-	public async Task<TransactionSummary?> GetById(string transactionId)
+	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
-		var txRecordList = await Task.Run(() => _wallet.BuildHistorySummary());
+		var result = List.FirstOrDefault(x => x.Id == transactionId);
 
-		var transaction = txRecordList.FirstOrDefault(x => x.GetHash().ToString() == transactionId);
-		return transaction;
+		if (result is null)
+		{
+			transaction = default;
+			return false;
+		}
+
+		transaction = result;
+		return true;
 	}
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)

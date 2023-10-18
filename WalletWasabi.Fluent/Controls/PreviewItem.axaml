@@ -1,7 +1,7 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
-        xmlns:conv="using:WalletWasabi.Fluent.Converters">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls"
+                    xmlns:conv="using:WalletWasabi.Fluent.Converters">
 
   <Design.PreviewWith>
     <Border Width="200">
@@ -10,7 +10,8 @@
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="c|PreviewItem">
+  <ControlTheme x:Key="{x:Type c:PreviewItem}" TargetType="c:PreviewItem">
+
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel Background="Transparent">
@@ -18,11 +19,12 @@
                     Data="{TemplateBinding Icon}"
                     Opacity="0.5"
                     Margin="0 0 20 0"
-                    Foreground="{StaticResource SystemAccentColor}"
+                    Foreground="{DynamicResource SystemAccentColor}"
                     DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <DockPanel>
             <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
-                       Opacity="0.6" />
+                       Opacity="0.6"
+                       IsVisible="{Binding !!$self.Text}"/>
             <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
               <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
                                      ToolTip.Tip="Copy"
@@ -42,42 +44,51 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.FontSize" Value="14" />
-  </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="TextElement.FontSize" Value="14" />
+    </Style>
 
-  <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
+    <Style Selector="^/template/ TextBlock#PART_Text">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
 
-  <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
+    <Style Selector="^/template/ TextBlock#PART_ContentReplacementTextBlock">
+      <Setter Property="Text" Value="Sensitive Data" />
+      <Setter Property="Foreground" Value="IndianRed" />
+    </Style>
 
-  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
-    <Setter Property="Text" Value="Sensitive Data" />
-    <Setter Property="Foreground" Value="IndianRed" />
-  </Style>
+    <!-- Transitions -->
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="^/template/ TextBlock#PART_ContentReplacementTextBlock">
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+        </Transitions>
+      </Setter>
+    </Style>
 
-  <!-- Transitions -->
-  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter,
-                   c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
-      </Transitions>
-    </Setter>
-  </Style>
-  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
-                   c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
-  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
-                   c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
-    <Setter Property="Opacity" Value="0" />
-  </Style>
+    <Style Selector="^/template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True]">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
 
-</Styles>
+    <Style Selector="^/template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False]">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+  </ControlTheme>
+
+</ResourceDictionary>

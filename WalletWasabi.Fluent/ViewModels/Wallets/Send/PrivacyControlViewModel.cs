@@ -36,6 +36,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()), LabelSelection.WhenAnyValue(x => x.EnoughSelected));
+
+		IsBusy = true;
 	}
 
 	public LabelSelectionViewModel LabelSelection { get; }
