@@ -166,16 +166,16 @@ public class TorControlClient : IAsyncDisposable
 		return reply;
 	}
 
-	public async Task<string> CreateHiddenServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
+	public async Task<string> CreateOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
 	{
 		var reply = await SendCommandAsync($"ADD_ONION NEW:BEST Flags=DiscardPK Port={virtualPort},{remotePort}\r\n", cancellationToken).ConfigureAwait(false);
 		if (!reply.Success)
 		{
-			throw new TorControlException("Failed to create onion.");
+			throw new TorControlException("Failed to create onion service.");
 		}
 
 		const string Marker = "ServiceID=";
-		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(Marker));
+		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(Marker, StringComparison.Ordinal));
 		if (serviceLine is null)
 		{
 			throw new TorControlException("Tor protocol violation.");
@@ -185,9 +185,10 @@ public class TorControlClient : IAsyncDisposable
 		return serviceId;
 	}
 
-	public Task DestroyHiddenService(string serviceId, CancellationToken cancellationToken)
+	public async Task<bool> DestroyOnionServiceAsync(string serviceId, CancellationToken cancellationToken)
 	{
-		return SendCommandAsync($"DEL_ONION {serviceId}\r\n", cancellationToken);
+		var reply = await SendCommandAsync($"DEL_ONION {serviceId}\r\n", cancellationToken).ConfigureAwait(false);
+		return reply.Success;
 	}
 
 	/// <summary>

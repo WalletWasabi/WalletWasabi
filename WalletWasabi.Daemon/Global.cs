@@ -271,21 +271,22 @@ public class Global
 			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 			{
 				TorManager = new TorProcessManager(TorSettings);
-				var (_, torControlClient) = await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
+				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
+				var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 				if (Config is {JsonRpcServerEnabled: true, OnionEnabled: true} && torControlClient is { } nonNullTorControlClient)
 				{
 					var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
 					if (!anonymousAccessAllowed)
 					{
-						var onionServiceId = await nonNullTorControlClient.CreateHiddenServiceAsync(80, 37129, cancellationToken).ConfigureAwait(false);
+						var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
 						OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
 						Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
 					}
 					else
 					{
-						Logger.LogInfo("Anonymous access rpc server cannot be exposed as onion service.");
+						Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 					}
 				}
 			}
@@ -477,9 +478,23 @@ public class Global
 
 				if (TorManager is { } torManager)
 				{
-					if (OnionServiceUri is { } nonNullOnionServiceUri && torManager.TorControlClient is {} nonNullTorControlClient)
+					using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
+					var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cts.Token).ConfigureAwait(false);
+					if (OnionServiceUri is { } nonNullOnionServiceUri && torControlClient is {} nonNullTorControlClient)
 					{
-						await nonNullTorControlClient.DestroyHiddenService(nonNullOnionServiceUri.Host, CancellationToken.None).ConfigureAwait(false);
+						try
+						{
+							var isDestroyedSuccessfully = await nonNullTorControlClient
+								.DestroyOnionServiceAsync(nonNullOnionServiceUri.Host, cts.Token).ConfigureAwait(false);
+							if (!isDestroyedSuccessfully)
+							{
+								Logger.LogInfo($"Onion service '{nonNullOnionServiceUri.Host}' failed to be destroyed.");
+							}
+						}
+						catch (OperationCanceledException)
+						{
+							Logger.LogInfo($"'{nonNullOnionServiceUri.Host}' failed to be stopped in allotted time.");
+						}
 					}
 
 					await torManager.DisposeAsync().ConfigureAwait(false);
