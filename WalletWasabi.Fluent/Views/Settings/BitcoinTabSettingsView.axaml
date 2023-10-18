@@ -14,7 +14,7 @@
     <StackPanel Spacing="10">
       <TextBlock Text="Network" />
       <ComboBox HorizontalAlignment="Stretch"
-                Items="{Binding Networks}"
+                ItemsSource="{Binding Networks}"
                 SelectedItem="{Binding Settings.Network}" />
     </StackPanel>
 

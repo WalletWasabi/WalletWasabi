@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<AvaloniaVersion>0.10.21</AvaloniaVersion>
+		<AvaloniaVersion>11.0.5</AvaloniaVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<!-- JSON. -->
@@ -20,12 +20,14 @@
 		<PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 		<!-- UI. -->
 		<PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-		<PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="0.10.18.1" />
+		<PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.1" />
 		<PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-		<PackageVersion Include="Avalonia.Xaml.Behaviors" Version="0.10.19" />
+		<PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.0.2" />
 		<PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
 		<PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 		<PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
+		<PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+		<PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
 		<PackageVersion Include="System.Runtime" Version="4.3.1" />
 		<PackageVersion Include="QRackers" Version="1.1.0" />
 		<!-- Testing. -->

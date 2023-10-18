@@ -42,7 +42,7 @@
     <!-- Banned -->
     <PathIcon IsVisible="{Binding Model.IsBanned}"
               Data="{StaticResource warning_filled}"
-              Foreground="{StaticResource SystemControlErrorTextForegroundBrush}"
+              Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
               Height="14"
               ToolTip.Tip="{Binding Model.BannedUntilUtcToolTip}" />
   </StackPanel>

@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class PlainTextElementFactory : TreeDataGridElementFactory
 {
-	protected override IControl CreateElement(object? data)
+	protected override Control CreateElement(object? data)
 	{
 		return data is PlainTextCell ?
 			new TreeDataGridPlainTextCell() :

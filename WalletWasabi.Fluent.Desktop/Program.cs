@@ -6,9 +6,10 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ReactiveUI;
 using System.Linq;
-using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
@@ -20,10 +21,7 @@ using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using System.Threading;
-using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -137,9 +135,9 @@ public class Program
 		}
 
 		return result
-			.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
-			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Report" })
-			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
+			.With(new Win32PlatformOptions { RenderingMode = new[] { Win32RenderingMode.Software } })
+			.With(new X11PlatformOptions { RenderingMode = new[] { X11RenderingMode.Software }, WmClass = "Wasabi Wallet Crash Report" })
+			.With(new AvaloniaNativePlatformOptions { RenderingMode = new[] { AvaloniaNativeRenderingMode.Software } })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 	}
@@ -185,9 +183,6 @@ public static class WasabiAppExtensions
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
 					{
-						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						Logger.LogInfo($"Renderer: {glInterface?.PrimaryContext.GlInterface.Renderer ?? "Avalonia Software"}");
-
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					});
 
