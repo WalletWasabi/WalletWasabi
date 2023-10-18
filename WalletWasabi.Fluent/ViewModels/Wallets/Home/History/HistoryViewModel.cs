@@ -93,7 +93,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			new TemplateColumn<HistoryItemViewModelBase>(
 				null,
 				new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
-				options: new ColumnOptions<HistoryItemViewModelBase>
+				null,
+				options: new TemplateColumnOptions<HistoryItemViewModelBase>
 				{
 					CanUserResizeColumn = false,
 					CanUserSortColumn = true,
@@ -129,7 +130,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		return new TemplateColumn<HistoryItemViewModelBase>(
 			"Labels",
 			new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
-			options: new ColumnOptions<HistoryItemViewModelBase>
+			null,
+			options: new TemplateColumnOptions<HistoryItemViewModelBase>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,

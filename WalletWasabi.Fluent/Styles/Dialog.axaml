@@ -1,0 +1,25 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="c|Dialog:alert /template/ Border#PART_Border">
+    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
+    <Style.Animations>
+      <Animation Duration="0:0:0.6" PlaybackDirection="AlternateReverse" IterationCount="1">
+        <KeyFrame Cue="25%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertEndBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="75%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+</Styles>

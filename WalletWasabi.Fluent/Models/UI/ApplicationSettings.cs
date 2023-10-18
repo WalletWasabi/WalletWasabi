@@ -22,7 +22,8 @@ public partial class ApplicationSettings : ReactiveObject
 
 	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly PersistentConfig _startupConfig;
-	private readonly PersistentConfig _config;
+	private readonly PersistentConfig _persistentConfig;
+	private readonly Config _config;
 	private readonly UiConfig _uiConfig;
 
 	// Advanced
@@ -53,24 +54,25 @@ public partial class ApplicationSettings : ReactiveObject
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
 
-	public ApplicationSettings(PersistentConfig config, UiConfig uiConfig)
+	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(config.FilePath);
+		_startupConfig = new PersistentConfig(persistentConfig.FilePath);
 		_startupConfig.LoadFile();
 
+		_persistentConfig = persistentConfig;
 		_config = config;
 		_uiConfig = uiConfig;
 
 		// Advanced
-		_enableGpu = _config.EnableGpu;
+		_enableGpu = _persistentConfig.EnableGpu;
 
 		// Bitcoin
-		_network = _config.Network;
-		_startLocalBitcoinCoreOnStartup = _config.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = _config.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = _config.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = _config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = _config.DustThreshold.ToString();
+		_network = config.Network;
+		_startLocalBitcoinCoreOnStartup = _persistentConfig.StartLocalBitcoinCoreOnStartup;
+		_localBitcoinCoreDataDir = _persistentConfig.LocalBitcoinCoreDataDir;
+		_stopLocalBitcoinCoreOnShutdown = _persistentConfig.StopLocalBitcoinCoreOnShutdown;
+		_bitcoinP2PEndPoint = _persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_dustThreshold = _persistentConfig.DustThreshold.ToString();
 
 		// General
 		_darkModeEnabled = _uiConfig.DarkModeEnabled;
@@ -82,9 +84,9 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = _config.UseTor;
-		_terminateTorOnExit = _config.TerminateTorOnExit;
-		_downloadNewVersion = _config.DownloadNewVersion;
+		_useTor = _persistentConfig.UseTor;
+		_terminateTorOnExit = _persistentConfig.TerminateTorOnExit;
+		_downloadNewVersion = _persistentConfig.DownloadNewVersion;
 
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
@@ -115,11 +117,17 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.CustomChangeAddress,
 			x => x.SelectedFeeDisplayUnit,
 			x => x.RunOnSystemStartup,
-			x => x.HideOnClose,
-			x => x.PrivacyMode)
+			x => x.HideOnClose)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
+			.Subscribe();
+
+		// Save UiConfig on change without throttling
+		this.WhenAnyValue(
+				x => x.PrivacyMode)
+			.Skip(1)
+			.Do(_ => ApplyUiConfigPrivacyModeChange())
 			.Subscribe();
 
 		// Set Default BitcoinCoreDataDir if required
@@ -133,6 +141,8 @@ public partial class ApplicationSettings : ReactiveObject
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
 			.Subscribe();
 	}
+
+	public bool IsOverridden => _config.IsOverridden;
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 
@@ -210,6 +220,10 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.FeeDisplayUnit = (int)SelectedFeeDisplayUnit;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+	}
+
+	private void ApplyUiConfigPrivacyModeChange()
+	{
 		_uiConfig.PrivacyMode = PrivacyMode;
 	}
 }

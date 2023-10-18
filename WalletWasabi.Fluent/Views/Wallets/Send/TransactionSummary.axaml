@@ -70,7 +70,7 @@
                    Classes.Dimmed="{Binding IsPreview}"
                    Label="Recipient"
                    CopyableContent="{Binding Recipient}">
-      <c:LabelsItemsPresenter Items="{Binding Recipient}"
+      <c:LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
     </c:PreviewItem>
