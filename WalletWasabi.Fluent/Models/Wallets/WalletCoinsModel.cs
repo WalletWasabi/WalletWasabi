@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -20,6 +22,7 @@ public partial class WalletCoinsModel
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly IObservable<Unit> _signals;
+	private ReadOnlyObservableCollection<ICoinModel> _coins;
 
 	public WalletCoinsModel(Wallet wallet, IWalletModel walletModel)
 	{
@@ -34,9 +37,15 @@ public partial class WalletCoinsModel
 				.Merge(anonScoreTargetChanged)
 				.Merge(isCoinjoinRunningChanged)
 				.StartWith(Unit.Default);
+
+		_signals.SelectMany(_ => GetCoins())
+			.ToObservableChangeSet(x => x.Key)
+			.Bind(out _coins)
+			.Subscribe();
 	}
 
-	public IObservable<IChangeSet<ICoinModel, int>> List => _signals.ProjectList(GetCoins, x => x.Key);
+	public ReadOnlyObservableCollection<ICoinModel> Coins => _coins;
+	public IObservable<IChangeSet<ICoinModel, int>> List => Coins.ToObservableChangeSet(model => model.Key);
 
 	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets => _signals.ProjectList(GetPockets, x => x.Labels);
 

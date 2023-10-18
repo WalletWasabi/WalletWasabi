@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
@@ -56,7 +57,9 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 					   .Subscribe()
 					   .DisposeWith(disposables);
 
+		var	b = BenchmarkLogger.Measure();
 		PrivacyBar?.Activate(disposables);
+		b.Dispose();
 	}
 
 	private void ShowDetails()
