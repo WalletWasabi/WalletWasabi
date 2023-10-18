@@ -218,8 +218,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		var transactionChanges = _wallet.Transactions.List
-			.ToObservableChangeSet(model => model.Id);
+		var transactionChanges =
+			_wallet.Transactions.List
+					.ToObservableChangeSet(model => model.Id);
 
 		transactionChanges
 			.Transform(x => CreateViewModel(x))
@@ -229,11 +230,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		transactionChanges
-			.ToCollection()
-			.Select(models => !models.Any())
-			.BindTo(this, x => x.IsTransactionHistoryEmpty)
-			.DisposeWith(disposables);
+		_wallet.Transactions.IsEmpty
+							.BindTo(this, x => x.IsTransactionHistoryEmpty)
+							.DisposeWith(disposables);
 	}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
