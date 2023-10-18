@@ -49,7 +49,7 @@ public class WasabiApplication
 			Console.WriteLine();
 			Console.WriteLine("Available options are:");
 
-			foreach (var (parameter, meta) in Config.GetConfigOptionsMetadata())
+			foreach (var (parameter, meta) in Config.GetConfigOptionsMetadata().OrderBy(x => x.Item1))
 			{
 				Console.WriteLine($"\t--{parameter.ToLower(),-32}\t{meta}");
 			}

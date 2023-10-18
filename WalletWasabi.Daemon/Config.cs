@@ -171,7 +171,7 @@ public class Config
 			value switch
 			{
 				NetworkValue n => $"{n.EffectiveValue} (source: {Source(n.ValueSource)})",
-				StringValue s => $"{s.EffectiveValue}\" (source: {Source(s.ValueSource)})",
+				StringValue s => $"{s.EffectiveValue} (source: {Source(s.ValueSource)})",
 				NullableStringValue => $"string or null",
 				StringArrayValue => $"array of strings",
 				MoneyValue m => $"{m.EffectiveValue} BTC (source: {Source(m.ValueSource)})",
