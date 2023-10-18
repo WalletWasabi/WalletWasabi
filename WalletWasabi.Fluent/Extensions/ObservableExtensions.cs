@@ -1,7 +1,4 @@
-using DynamicData;
 using ReactiveUI;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -106,22 +103,4 @@ public static class ObservableExtensions
 
 	public static IObservable<(T1, T2, T3)> Flatten<T1, T2, T3>(this IObservable<((T1, T2), T3)> source) =>
 		source.Select(t => (t.Item1.Item1, t.Item1.Item2, t.Item2));
-
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "ignored")]
-	public static IObservable<IChangeSet<TItem, TKey>> ProjectList<TSource, TItem, TKey>(this IObservable<TSource> source, Func<IEnumerable<TItem>> retrieve, Func<TItem, TKey> keySelector) where TKey : notnull
-	{
-		var pocketsSource = new SourceCache<TItem, TKey>(keySelector);
-		var initialItems = retrieve().ToList();
-		pocketsSource.AddOrUpdate(initialItems);
-		source
-			.Do(_ => pocketsSource.Edit(updater => updater.Load(retrieve())))
-			.Subscribe();
-
-		if (!initialItems.Any())
-		{
-			return pocketsSource.Connect().StartWithEmpty();
-		}
-
-		return pocketsSource.Connect();
-	}
 }
