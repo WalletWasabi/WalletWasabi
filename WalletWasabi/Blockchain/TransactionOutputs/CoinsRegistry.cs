@@ -13,9 +13,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 public class CoinsRegistry : ICoinsView
 {
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> Coins { get; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> OutpointCoinCache { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -25,9 +22,6 @@ public class CoinsRegistry : ICoinsView
 	private bool InvalidateSnapshot { get; set; }
 
 	private object Lock { get; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> SpentCoins { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
@@ -82,9 +76,22 @@ public class CoinsRegistry : ICoinsView
 			return;
 		}
 
-		LatestCoinsSnapshot = Coins.ToHashSet();
-		LatestSpentCoinsSnapshot = SpentCoins.ToHashSet();
-		InvalidateSnapshot = false;
+		var newCoinsSnapshot = new HashSet<SmartCoin>();
+		var newSpentCoinsSnapshot = new HashSet<SmartCoin>();
+		foreach (var coin in CoinsByTransactionId.Values.SelectMany(x => x))
+		{
+			if (coin.SpenderTransaction is null)
+			{
+				newCoinsSnapshot.Add(coin);
+			}
+			else
+			{
+				newSpentCoinsSnapshot.Add(coin);
+			}
+		}
+
+		LatestCoinsSnapshot = newCoinsSnapshot;
+		LatestSpentCoinsSnapshot = newSpentCoinsSnapshot;
 	}
 
 	public bool TryAdd(SmartCoin coin)
@@ -97,12 +104,6 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryAddNoLock(SmartCoin coin)
 	{
-		if (SpentCoins.Contains(coin))
-		{
-			return false;
-		}
-
-		var added = Coins.Add(coin);
 		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
 
 		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
@@ -112,26 +113,22 @@ public class CoinsRegistry : ICoinsView
 		}
 		coinsOfPubKey.Add(coin);
 
-		if (added)
+		if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
 		{
-			if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
+			hashSet = new();
+			CoinsByTransactionId.Add(coin.TransactionId, hashSet);
+
+			// Each prevOut of the transaction contributes to the existence of coins.
+			// This only has to be added one per transaction.
+			foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 			{
-				hashSet = new();
-				CoinsByTransactionId.Add(coin.TransactionId, hashSet);
-
-				// Each prevOut of the transaction contributes to the existence of coins.
-				// This only has to be added one per transaction.
-				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
-				{
-					TxIdsByPrevOuts[input.PrevOut] = coin.TransactionId;
-				}
+				TxIdsByPrevOuts[input.PrevOut] = coin.TransactionId;
 			}
-
-			hashSet.Add(coin);
-
-			InvalidateSnapshot = true;
 		}
 
+		var added = hashSet.Add(coin);
+
+		InvalidateSnapshot = InvalidateSnapshot || added;
 		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 		return added;
 	}
@@ -141,11 +138,6 @@ public class CoinsRegistry : ICoinsView
 		var coinsToRemove = DescendantOfNoLock(coin, includeSelf: true);
 		foreach (var toRemove in coinsToRemove)
 		{
-			if (!Coins.Remove(toRemove))
-			{
-				SpentCoins.Remove(toRemove);
-			}
-
 			var removedCoinOutPoint = toRemove.Outpoint;
 			OutpointCoinCache.Remove(removedCoinOutPoint);
 
@@ -209,12 +201,8 @@ public class CoinsRegistry : ICoinsView
 
 		lock (Lock)
 		{
-			if (Coins.Remove(spentCoin))
-			{
-				InvalidateSnapshot = true;
-				SpentCoins.Add(spentCoin);
-				UpdateTransactionAmountNoLock(tx.GetHash(), Money.Zero - spentCoin.Amount);
-			}
+			InvalidateSnapshot = true;
+			UpdateTransactionAmountNoLock(tx.GetHash(), Money.Zero - spentCoin.Amount);
 		}
 	}
 
@@ -306,12 +294,8 @@ public class CoinsRegistry : ICoinsView
 			// destroyed (spent) coins are now (unspent)
 			foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
 			{
-				if (SpentCoins.Remove(destroyedCoin))
-				{
-					destroyedCoin.SpenderTransaction = null;
-					Coins.Add(destroyedCoin);
-					toAdd.Add(destroyedCoin);
-				}
+				destroyedCoin.SpenderTransaction = null;
+				toAdd.Add(destroyedCoin);
 			}
 
 			InvalidateSnapshot = true;
