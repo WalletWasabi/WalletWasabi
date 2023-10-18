@@ -11,15 +11,15 @@
              x:DataType="send:TransactionSummaryViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
   <UserControl.Resources>
-    <converters:DiffToBrushConverter x:Key="InvertedDiffConverter" PositiveBrush="{StaticResource NegativeBrush}"
+    <converters:DiffToBrushConverter x:Key="InvertedDiffConverter"
+                                     PositiveBrush="{StaticResource NegativeBrush}"
                                      NegativeBrush="{StaticResource PositiveBrush}"
-                                     ZeroBrush="{StaticResource ZeroBrush}">
-
+                                     ZeroBrush="{StaticResource UncertainBrush}">
     </converters:DiffToBrushConverter>
-    <converters:DiffToBrushConverter x:Key="NeutralDiffConverter" PositiveBrush="{StaticResource ZeroBrush}"
-                                     NegativeBrush="{StaticResource ZeroBrush}"
-                                     ZeroBrush="{StaticResource ZeroBrush}">
-
+    <converters:DiffToBrushConverter x:Key="NeutralDiffConverter"
+                                     PositiveBrush="{StaticResource ZeroBrush}"
+                                     NegativeBrush="{StaticResource UncertainBrush}"
+                                     ZeroBrush="{StaticResource UncertainBrush}">
     </converters:DiffToBrushConverter>
   </UserControl.Resources>
 
