@@ -87,8 +87,7 @@ public class AmountDecomposer
 		if (!denoms.Any())
 		{
 			throw new InvalidOperationException(
-				"No valid output denominations found. This can occur when an insufficient number of coins are registered to participate in the coinjoin."
-				);
+				"No valid output denominations found. This can occur when an insufficient number of coins are registered to participate in the coinjoin.");
 		}
 
 		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
