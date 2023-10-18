@@ -224,9 +224,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		transactionChanges
 			.Transform(x => CreateViewModel(x))
-			.Bind(Transactions).Sort(SortExpressionComparer<HistoryItemViewModelBase>
+			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
 				.Ascending(x => x.Transaction.IsConfirmed)
 				.ThenByDescending(x => x.Transaction.OrderIndex))
+			.Bind(Transactions)
 			.Subscribe()
 			.DisposeWith(disposables);
 
