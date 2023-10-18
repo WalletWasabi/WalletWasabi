@@ -262,7 +262,7 @@ public class CoinsRegistry : ICoinsView
 		return CoinsByPrevOuts.TryGetValue(prevOut, out coins);
 	}
 
-	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
+	public bool TryGetCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
 		coin = null;
 		lock (Lock)
@@ -272,7 +272,7 @@ public class CoinsRegistry : ICoinsView
 				return false;
 			}
 
-			coin = allCoinsForTransaction.FirstOrDefault(x => x.SpenderTransaction != null && x.Outpoint == outPoint);
+			coin = allCoinsForTransaction.FirstOrDefault(x => x.Outpoint == outPoint);
 			return coin is not null;
 		}
 	}
