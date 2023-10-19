@@ -65,15 +65,20 @@ public static class TransactionHelpers
 				label: transactionInfo.Recipient);
 
 			var network = keyManager.GetNetwork();
-			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);
+			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password);
 
-			builder.BuildTransaction(
+			TransactionParameters parameters = new(
 				intent,
 				transactionInfo.FeeRate,
-				allowedCoins.Select(x => x.Outpoint),
-				transactionInfo.PayJoinClient,
+				AllowUnconfirmed: true,
+				AllowDoubleSpend: false,
+				AllowedInputs: allowedCoins.Select(x => x.Outpoint),
+				TryToSign: false);
+
+			builder.BuildTransaction(
+				parameters,
 				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
-				tryToSign: false);
+				transactionInfo.PayJoinClient);
 
 			return true;
 		}

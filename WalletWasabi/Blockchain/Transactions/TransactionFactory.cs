@@ -19,24 +19,19 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionFactory
 {
-	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false, bool allowDoubleSpend = false)
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "")
 	{
 		Network = network;
 		KeyManager = keyManager;
 		Coins = coins;
 		TransactionStore = transactionStore;
 		Password = password;
-		AllowUnconfirmed = allowUnconfirmed;
-		AllowDoubleSpend = allowDoubleSpend;
 	}
 
 	public Network Network { get; }
 	public KeyManager KeyManager { get; }
 	public ICoinsView Coins { get; }
 	private string Password { get; }
-	public bool AllowUnconfirmed { get; }
-	public bool AllowDoubleSpend { get; }
 	private ITransactionStore TransactionStore { get; }
 
 	/// <exception cref="ArgumentException"/>
@@ -48,10 +43,22 @@ public class TransactionFactory
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
 		Func<LockTime>? lockTimeSelector = null,
+		bool allowUnconfirmed = true,
+		bool allowDoubleSpend = false,
 		bool tryToSign = true)
+	{
+		TransactionParameters parameters = new(payments, feeRate, allowUnconfirmed, allowDoubleSpend, allowedInputs, tryToSign);
+		return BuildTransaction(parameters, lockTimeSelector, payjoinClient);
+	}
+
+	public BuildTransactionResult BuildTransaction(
+		TransactionParameters parameters,
+		Func<LockTime>? lockTimeSelector = null,
+		IPayjoinClient? payjoinClient = null)
 	{
 		lockTimeSelector ??= () => LockTime.Zero;
 
+		var payments = parameters.PaymentIntent;
 		long totalAmount = payments.TotalAmount.Satoshi;
 		if (totalAmount is < 0 or > Constants.MaximumNumberOfSatoshis)
 		{
@@ -60,10 +67,10 @@ public class TransactionFactory
 
 		// Get allowed coins to spend.
 		var availableCoinsView = Coins.Unspent();
-		if (AllowDoubleSpend && allowedInputs is not null)
+		if (parameters.AllowDoubleSpend && parameters.AllowedInputs is not null)
 		{
 			var doubleSpends = new List<SmartCoin>();
-			foreach (var input in allowedInputs)
+			foreach (var input in parameters.AllowedInputs)
 			{
 				if (((CoinsRegistry)Coins).AsAllCoinsView().TryGetByOutPoint(input, out var coin)
 					&& coin.SpenderTransaction is not null
@@ -75,18 +82,18 @@ public class TransactionFactory
 			availableCoinsView = new CoinsView(availableCoinsView.ToList().Concat(doubleSpends));
 		}
 
-		List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
+		List<SmartCoin> allowedSmartCoinInputs = parameters.AllowUnconfirmed // Inputs that can be used to build the transaction.
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
-		if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
+		if (parameters.AllowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 		{
-			if (!allowedInputs.Any())
+			if (!parameters.AllowedInputs.Any())
 			{
-				throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+				throw new ArgumentException($"{nameof(parameters.AllowedInputs)} is not null, but empty.");
 			}
 
 			allowedSmartCoinInputs = allowedSmartCoinInputs
-				.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
+				.Where(x => parameters.AllowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 				.ToList();
 
 			// Add those that have the same script, because common ownership is already exposed.
@@ -96,7 +103,7 @@ public class TransactionFactory
 				var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
 				foreach (var coin in availableCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
 				{
-					if (!(AllowUnconfirmed || coin.Confirmed))
+					if (!(parameters.AllowUnconfirmed || coin.Confirmed))
 					{
 						continue;
 					}
@@ -156,7 +163,7 @@ public class TransactionFactory
 
 		builder.OptInRBF = true;
 
-		builder.SendEstimatedFees(feeRate);
+		builder.SendEstimatedFees(parameters.FeeRate);
 
 		var psbt = builder.BuildPSBT(false);
 
@@ -223,7 +230,7 @@ public class TransactionFactory
 		psbt.AddPrevTxs(TransactionStore);
 
 		Transaction tx;
-		if (KeyManager.IsWatchOnly || !tryToSign)
+		if (KeyManager.IsWatchOnly || !parameters.TryToSign)
 		{
 			tx = psbt.GetGlobalTransaction();
 		}
