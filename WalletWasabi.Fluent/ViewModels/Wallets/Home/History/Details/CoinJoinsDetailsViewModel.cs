@@ -3,8 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
-using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -37,7 +36,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 		Update();
 
-		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		ConfirmationTime = coinJoinGroup.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
