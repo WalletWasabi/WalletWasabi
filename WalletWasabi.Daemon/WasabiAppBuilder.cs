@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.VisualBasic;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -49,9 +50,40 @@ public class WasabiApplication
 			Console.WriteLine();
 			Console.WriteLine("Available options are:");
 
-			foreach (var (parameter, meta) in Config.GetConfigOptionsMetadata().OrderBy(x => x.Item1))
+			static string[] Split(string text)
 			{
-				Console.WriteLine($"\t--{parameter.ToLower(),-32}\t{meta}");
+				static void InternalSlip(string text, List<string> result)
+				{
+					if (text.Length < 40)
+					{
+						result.Add(text);
+						return;
+					}
+					var line = text
+						.Split(' ')
+						.Scan(string.Empty, (l, w) => l + w + ' ')
+						.TakeWhile(l => l.Length <= 40)
+						.DefaultIfEmpty(text)
+						.Last();
+					result.Add(line);
+					InternalSlip(text[(line.Length)..], result);
+				}
+
+				List<string> result = new();
+				InternalSlip(text, result);
+				return result.ToArray();
+			}
+
+			foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.Item1))
+			{
+				Console.Write($"  --{parameter.ToLower(),-30} ");
+				var hintLines = Split(hint);
+				Console.WriteLine(hintLines[0]);
+				foreach (var hintLine in hintLines.Skip(1))
+				{
+					Console.WriteLine($"{' ',-35}{hintLine}");
+				}
+				Console.WriteLine();
 			}
 			return ExitCode.Ok;
 		}
