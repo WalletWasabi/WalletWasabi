@@ -24,6 +24,7 @@
 
   <Style Selector="TextBlock.monoSpaced">
     <Setter Property="(TextElement.FontFamily)" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="Padding" Value="15,9,15,8" />
   </Style>
 
   <Style Selector="TextBox.monoSpaced /template/ TextPresenter#PART_TextPresenter">
