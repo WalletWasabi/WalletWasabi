@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -48,7 +49,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Coins.List
+		_wallet.Coins.List.ToObservableChangeSet(model => model.Key)
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())
