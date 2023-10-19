@@ -36,7 +36,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 		Update();
 
-		ConfirmationTime = coinJoinGroup.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+		ConfirmationTime = coinJoinGroup.Transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
