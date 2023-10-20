@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -51,7 +52,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var coinChanges =
-			_wallet.Coins.List
+			_wallet.Coins.List.ToObservableChangeSet(model => model.Key)
 				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
 				.Replay(1)
 				.RefCount();

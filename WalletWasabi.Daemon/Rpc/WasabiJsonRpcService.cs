@@ -205,6 +205,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				TorStatus.Running => "Running",
 				_ => "Turned off"
 			},
+			onionService = Global.OnionServiceUri?.ToString() ?? "Unavailable",
 			backendStatus = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
 			bestBlockchainHeight = smartHeaderChain.TipHeight.ToString(),
 			bestBlockchainHash = smartHeaderChain.TipHash?.ToString() ?? "",
@@ -257,6 +258,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var smartTx = result.Transaction;
 
 		return smartTx.Transaction.ToHex();
+	}
+
+	[JsonRpcMethod("payincoinjoin")]
+	public string PayInCoinJoin(BitcoinAddress address, Money amount)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		return activeWallet.AddCoinJoinPayment(address, amount);
 	}
 
 	[JsonRpcMethod("send")]

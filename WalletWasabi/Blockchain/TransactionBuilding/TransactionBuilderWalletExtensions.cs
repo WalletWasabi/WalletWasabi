@@ -32,32 +32,35 @@ public static class TransactionBuilderWalletExtensions
 		bool allowDoubleSpend = false,
 		bool tryToSign = true)
 	{
-		var builder = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password, allowUnconfirmed: allowUnconfirmed, allowDoubleSpend: allowDoubleSpend);
-		return builder.BuildTransaction(
+		FeeRate? feeRate;
+
+		if (feeStrategy.TryGetTarget(out int? target))
+		{
+			feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(target.Value)
+				?? throw new InvalidOperationException("Cannot get fee estimations.");
+		}
+		else if (!feeStrategy.TryGetFeeRate(out feeRate))
+		{
+			throw new NotSupportedException(feeStrategy.Type.ToString());
+		}
+
+		TransactionParameters parameters = new(
 			payments,
-			feeRateFetcher: () =>
-			{
-				if (feeStrategy.TryGetTarget(out int? target))
-				{
-					return wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
-				}
-				else if (feeStrategy.TryGetFeeRate(out FeeRate? feeRate))
-				{
-					return feeRate;
-				}
-				else
-				{
-					throw new NotSupportedException(feeStrategy.Type.ToString());
-				}
-			},
-			allowedInputs,
+			FeeRate: feeRate,
+			AllowUnconfirmed: allowUnconfirmed,
+			AllowDoubleSpend: allowDoubleSpend,
+			AllowedInputs: allowedInputs,
+			TryToSign: tryToSign);
+
+		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
+		return factory.BuildTransaction(
+			parameters,
 			lockTimeSelector: () =>
 			{
 				var currentTipHeight = wallet.BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient,
-			tryToSign: tryToSign);
+			payjoinClient);
 	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(

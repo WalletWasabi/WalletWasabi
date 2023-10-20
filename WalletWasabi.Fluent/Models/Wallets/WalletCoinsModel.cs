@@ -1,15 +1,16 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -19,26 +20,41 @@ public partial class WalletCoinsModel
 {
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
-	private readonly IObservable<Unit> _signals;
+	private readonly ReadOnlyObservableCollection<ICoinModel> _coins;
+	private readonly ReadOnlyObservableCollection<Pocket> _pockets;
 
 	public WalletCoinsModel(Wallet wallet, IWalletModel walletModel)
 	{
 		_wallet = wallet;
 		_walletModel = walletModel;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
-		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
+		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
 
-		_signals =
-			transactionProcessed
-				.Merge(anonScoreTargetChanged)
-				.Merge(isCoinjoinRunningChanged)
-				.StartWith(Unit.Default);
+		var signals = transactionProcessed
+			.Merge(anonScoreTargetChanged)
+			.Merge(isCoinjoinRunningChanged)
+			.Publish();
+
+		signals.SelectMany(_ => GetCoins())
+			.ToObservableChangeSet(x => x.Key)
+			.Bind(out _coins)
+			.Subscribe();
+
+		signals.SelectMany(_ => GetPockets())
+			.ToObservableChangeSet(x => x.Labels)
+			.Bind(out _pockets)
+			.Subscribe();
+
+		signals
+			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
+			.Subscribe();
+
+		signals.Connect();
 	}
 
-	public IObservable<IChangeSet<ICoinModel, int>> List => _signals.ProjectList(GetCoins, x => x.Key);
-
-	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets => _signals.ProjectList(GetPockets, x => x.Labels);
+	public ReadOnlyObservableCollection<ICoinModel> List => _coins;
+	public ReadOnlyObservableCollection<Pocket> Pockets => _pockets;
 
 	public List<ICoinModel> GetSpentCoins(BuildTransactionResult? transaction)
 	{

@@ -12,7 +12,6 @@ public static class ServiceFactory
 {
 	public static TransactionFactory CreateTransactionFactory(
 		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
-		bool allowUnconfirmed = true,
 		bool watchOnly = false)
 	{
 		var password = "foo";
@@ -53,7 +52,7 @@ public static class ServiceFactory
 
 		var coinsView = new CoinsView(sCoins);
 		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
-		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password, allowUnconfirmed);
+		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)

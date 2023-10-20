@@ -63,6 +63,8 @@ public class TorSettings
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37151);
+	public int RpcVirtualPort => 80;
+	public int RpcOnionPort => 37129;
 
 	private string GeoIpPath { get; }
 	private string GeoIp6Path { get; }
