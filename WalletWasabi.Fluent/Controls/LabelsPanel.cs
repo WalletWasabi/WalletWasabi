@@ -23,6 +23,7 @@ public class LabelsPanel : Panel
 
 	private List<string>? _filteredItems;
 	private IDisposable? _disposable;
+	private bool _trimLabels;
 
 	public bool InfiniteWidthMeasure
 	{
@@ -122,14 +123,24 @@ public class LabelsPanel : Panel
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		var ellipsis = 0.0;
+		var ellipsisDesiredWidth = 0.0;
 		if (EllipsisControl is { })
 		{
 			EllipsisControl.Measure(availableSize);
-			ellipsis = EllipsisControl.DesiredSize.Width;
+			ellipsisDesiredWidth = EllipsisControl.DesiredSize.Width;
 		}
 
-		var size = MeasureOverridePanel(availableSize.WithWidth(availableSize.Width + ellipsis));
+		var size = MeasureOverridePanel(availableSize.WithWidth(availableSize.Width));
+		if (size.Width < availableSize.Width)
+		{
+			size = size.WithWidth(size.Width - ellipsisDesiredWidth);
+			_trimLabels = false;
+		}
+		else
+		{
+			_trimLabels = true;
+		}
+
 		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
 	}
 
@@ -156,7 +167,7 @@ public class LabelsPanel : Panel
 
 			height = Math.Max(height, child.DesiredSize.Height);
 
-			if (width + childWidth > finalWidth)
+			if (width + childWidth > finalWidth && _trimLabels)
 			{
 				while (true)
 				{
