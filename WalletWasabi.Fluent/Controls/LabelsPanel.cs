@@ -23,7 +23,8 @@ public class LabelsPanel : Panel
 
 	private List<string>? _filteredItems;
 	private IDisposable? _disposable;
-	private bool _trimLabels;
+	private double _spacing = 2.0;
+	private bool _needToTrim;
 
 	public bool InfiniteWidthMeasure
 	{
@@ -134,49 +135,54 @@ public class LabelsPanel : Panel
 		if (size.Width < availableSize.Width)
 		{
 			size = size.WithWidth(size.Width - ellipsisDesiredWidth);
-			_trimLabels = false;
+			_needToTrim = false;
 		}
 		else
 		{
-			_trimLabels = true;
+			_needToTrim = true;
 		}
 
 		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
 	}
 
-	protected override Size ArrangeOverride(Size finalSize)
+	private struct CalculateResult
 	{
-		var spacing = 2.0;
-		var ellipsisWidth = 0.0;
+		public int Count { get; init; }
+		public double Width { get; init; }
+		public double Height { get; init; }
+		public bool Trim { get; init; }
+	}
+
+	private CalculateResult CalculateWidth(
+		Avalonia.Controls.Controls children,
+		double finalWidth,
+		double trimWidth,
+		double spacing,
+		bool needToTrim)
+	{
+		var totalChildren = children.Count;
 		var width = 0.0;
 		var height = 0.0;
-		var finalWidth = finalSize.Width;
-		var showEllipsis = false;
-		var totalChildren = Children.Count;
 		var count = 0;
-
-		if (EllipsisControl is { })
-		{
-			ellipsisWidth = EllipsisControl.DesiredSize.Width;
-		}
+		var trim = false;
 
 		for (var i = 0; i < totalChildren; i++)
 		{
-			var child = Children[i];
+			var child = children[i];
 			var childWidth = child.DesiredSize.Width;
 
 			height = Math.Max(height, child.DesiredSize.Height);
 
-			if (width + childWidth > finalWidth && _trimLabels)
+			if (width + childWidth > finalWidth && needToTrim)
 			{
 				while (true)
 				{
-					if (width + ellipsisWidth > finalWidth)
+					if (width + trimWidth > finalWidth)
 					{
 						var previous = i - 1;
 						if (previous >= 0)
 						{
-							var previousChild = Children[previous];
+							var previousChild = children[previous];
 							count--;
 							width -= previousChild.DesiredSize.Width + spacing;
 						}
@@ -191,11 +197,7 @@ public class LabelsPanel : Panel
 					}
 				}
 
-				showEllipsis = true;
-				if (EllipsisControl is { })
-				{
-					width += EllipsisControl.DesiredSize.Width;
-				}
+				trim = true;
 
 				break;
 			}
@@ -204,14 +206,44 @@ public class LabelsPanel : Panel
 			count++;
 		}
 
+		if (trim)
+		{
+			width += trimWidth;
+		}
+
+		return new CalculateResult
+		{
+			Count = count,
+			Width = width,
+			Height = height,
+			Trim = trim
+		};
+	}
+
+	protected override Size ArrangeOverride(Size finalSize)
+	{
+		var spacing = _spacing;
+		var trimWidth = 0.0;
+		var finalWidth = finalSize.Width;
+		var ellipsisControl = EllipsisControl;
+		var children = Children;
+		var totalChildren = children.Count;
+
+		if (ellipsisControl is { })
+		{
+			trimWidth = ellipsisControl.DesiredSize.Width;
+		}
+
+		var result = CalculateWidth(children, finalWidth, trimWidth, spacing, _needToTrim);
+
 		var offset = 0.0;
 
 		for (var i = 0; i < totalChildren; i++)
 		{
-			var child = Children[i];
-			if (i < count)
+			var child = children[i];
+			if (i < result.Count)
 			{
-				var rect = new Rect(offset, 0.0, child.DesiredSize.Width, height);
+				var rect = new Rect(offset, 0.0, child.DesiredSize.Width, result.Height);
 				child.Arrange(rect);
 				offset += child.DesiredSize.Width + spacing;
 			}
@@ -221,21 +253,21 @@ public class LabelsPanel : Panel
 			}
 		}
 
-		if (EllipsisControl is { })
+		if (ellipsisControl is { })
 		{
-			if (showEllipsis)
+			if (result.Trim)
 			{
-				var rect = new Rect(offset, 0.0, EllipsisControl.DesiredSize.Width, height);
-				EllipsisControl.Arrange(rect);
+				var rect = new Rect(offset, 0.0, trimWidth, result.Height);
+				ellipsisControl.Arrange(rect);
 			}
 			else
 			{
-				EllipsisControl.Arrange(new Rect(-10000, -10000, 0, 0));
+				ellipsisControl.Arrange(new Rect(-10000, -10000, 0, 0));
 			}
 		}
 
-		UpdateFilteredItems(count);
+		UpdateFilteredItems(result.Count);
 
-		return new Size(width, height);
+		return new Size(result.Width, result.Height);
 	}
 }
