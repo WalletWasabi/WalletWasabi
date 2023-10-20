@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.ClientConfig;
@@ -80,6 +81,9 @@ public class App : Application
 		}
 
 		base.OnFrameworkInitializationCompleted();
+#if DEBUG
+		this.AttachDevTools();
+#endif
 	}
 
 	private void InitializeTrayIcons()
@@ -118,13 +122,12 @@ public class App : Application
 
 	private static IApplicationSettings CreateApplicationSettings()
 	{
-		return new ApplicationSettings(Services.PersistentConfig, Services.UiConfig);
+		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
 	}
 
-	private static ITransactionBroadcasterModel CreateBroadcaster()
+	private static ITransactionBroadcasterModel CreateBroadcaster(Network network)
 	{
-		// TODO: SuperJMN: Replace this by the effective network
-		return new TransactionBroadcasterModel(Services.PersistentConfig.Network);
+		return new TransactionBroadcasterModel(network);
 	}
 
 	private static IAmountProvider CreateAmountProvider()
@@ -136,6 +139,8 @@ public class App : Application
 	{
 		var amountProvider = CreateAmountProvider();
 
+		var applicationSettings = CreateApplicationSettings();
+
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
@@ -146,8 +151,8 @@ public class App : Application
 			CreateHardwareWalletInterface(),
 			CreateFileSystem(),
 			CreateConfig(),
-			CreateApplicationSettings(),
-			CreateBroadcaster(),
+			applicationSettings,
+			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSourceSource());
 	}

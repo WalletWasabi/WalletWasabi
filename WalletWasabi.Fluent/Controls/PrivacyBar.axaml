@@ -1,36 +1,28 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls">
-  <Style Selector="controls|PrivacyBar">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:WalletWasabi.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type controls:PrivacyBar}" TargetType="controls:PrivacyBar">
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                          ItemsPanel="{TemplateBinding ItemsPanel}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
         <Panel />
       </ItemsPanelTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="controls|PrivacyBarSegment">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Path Data="{TemplateBinding Data}"
-              Fill="{TemplateBinding Foreground}" />
-      </ControlTemplate>
-    </Setter>
-  </Style>
+  </ControlTheme>
 
-  <Style Selector="controls|PrivacyBarSegment[PrivacyLevel=Invalid]">
-    <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
-  </Style>
-
-  <Style Selector="controls|PrivacyBarSegment[PrivacyLevel=Private]">
-    <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
-  </Style>
-
-  <Style Selector="controls|PrivacyBarSegment[PrivacyLevel=SemiPrivate]">
-    <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
-  </Style>
-
-  <Style Selector="controls|PrivacyBarSegment[PrivacyLevel=NonPrivate]">
-    <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
-  </Style>
-</Styles>
+</ResourceDictionary>

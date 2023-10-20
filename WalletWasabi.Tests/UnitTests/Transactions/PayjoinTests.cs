@@ -82,8 +82,9 @@ public class PayjoinTests
 			PayjoinServerOkAsync(req, psbt => psbt);
 
 		var payjoinClient = NewPayjoinClient(mockHttpClient);
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			});
 
@@ -133,10 +134,11 @@ public class PayjoinTests
 			});
 
 		var payjoinClient = NewPayjoinClient(mockHttpClient);
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+			});
 
 		var allowedCoins = transactionFactory.Coins.ToArray();
 

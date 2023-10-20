@@ -29,9 +29,9 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
-
-		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		ConfirmationTime = coinJoin.Transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
+
 		Update();
 	}
 

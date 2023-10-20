@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -12,24 +11,19 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 public partial class HistoryViewModel : ActivatableViewModel
 {
-	private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
 	private readonly IWalletModel _wallet;
 	private readonly WalletViewModel _walletVm; // TODO: Remove this
-	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
-	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
@@ -43,23 +37,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// TODO: Remove this
 		_walletVm = walletViewModel;
 
-		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
-		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-
-		this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
-			.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
-
-		_transactionSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
-				.Ascending(x => x.Transaction.IsConfirmed)
-				.ThenByDescending(x => x.Transaction.OrderIndex))
-			.Bind(_unfilteredTransactions)
-			.Bind(_transactions)
-			.Subscribe();
-
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
@@ -70,7 +47,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 
-		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
 		{
 			Columns =
 			{
@@ -86,9 +63,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		Source.RowSelection!.SingleSelect = true;
 	}
 
-	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
-
-	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
 	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
@@ -98,7 +73,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			new TemplateColumn<HistoryItemViewModelBase>(
 				null,
 				new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
-				options: new ColumnOptions<HistoryItemViewModelBase>
+				null,
+				options: new TemplateColumnOptions<HistoryItemViewModelBase>
 				{
 					CanUserResizeColumn = false,
 					CanUserSortColumn = true,
@@ -134,7 +110,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		return new TemplateColumn<HistoryItemViewModelBase>(
 			"Labels",
 			new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
-			options: new ColumnOptions<HistoryItemViewModelBase>
+			null,
+			options: new TemplateColumnOptions<HistoryItemViewModelBase>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
@@ -218,7 +195,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
 			// Selecting first the root item, then the child solves the issue.
-			var index = _transactions.IndexOf(txnItem);
+			var index = Transactions.IndexOf(txnItem);
 			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
@@ -242,30 +219,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		_wallet.Transactions.List
-							.ToCollection()
-							.Do(Update)
+							.ToObservableChangeSet(model => model.Id)
+							.Transform(x => CreateViewModel(x))
+							.Sort(SortExpressionComparer<HistoryItemViewModelBase>
+								.Ascending(x => x.Transaction.IsConfirmed)
+								.ThenByDescending(x => x.Transaction.OrderIndex))
+							.Bind(Transactions)
 							.Subscribe()
 							.DisposeWith(disposables);
-	}
 
-	private void Update(IEnumerable<TransactionModel> transactions)
-	{
-		try
-		{
-			var newHistoryList =
-				transactions.Select(x => CreateViewModel(x))
-							.ToList();
-
-			_transactionSourceList.Edit(x =>
-			{
-				x.Clear();
-				x.AddRange(newHistoryList);
-			});
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-		}
+		_wallet.Transactions.IsEmpty
+							.BindTo(this, x => x.IsTransactionHistoryEmpty)
+							.DisposeWith(disposables);
 	}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
@@ -279,7 +244,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent ?? throw new ArgumentNullException(nameof(parent))),
-			_ => throw new NotImplementedException($"Unsupported Transaction Type: {transaction.Type}"),
+			_ => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction)
 		};
 
 		var children = transaction.Children.Reverse();

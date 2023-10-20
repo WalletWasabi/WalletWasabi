@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
@@ -36,6 +37,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	{
 		// Close dialog if target transaction is already confirmed.
 		_wallet.Transactions.List
+							.ToObservableChangeSet(x => x.Id)
 							.ToCollection()
 							.Select(col => col.FirstOrDefault(x => x.Id == _cancellingTransaction.TargetTransaction.Id))
 							.WhereNotNull()

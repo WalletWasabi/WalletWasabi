@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using Newtonsoft.Json;
+using WalletWasabi.Daemon.Rpc;
 using WalletWasabi.Rpc;
 using Xunit;
 
-namespace WalletWasabi.Tests;
+namespace WalletWasabi.Tests.UnitTests;
 
 public class RpcTests
 {
@@ -96,6 +98,38 @@ public class RpcTests
 
 		var response = await handler.HandleAsync("", request, CancellationToken.None);
 		Assert.Equal(expectedResponse, response);
+	}
+
+	[Fact]
+	public void BuildTransactionWithFees()
+	{
+		var service = new WasabiJsonRpcService(null);
+		var paymentInfo = new PaymentInfo
+		{
+			Amount = Money.Coins(1),
+			Sendto = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main),
+			Label = "Cesar"
+		};
+
+		void BuildTransaction(int? feeTarget = null, decimal? feeRate = null) =>
+			service.BuildTransaction(new[] { paymentInfo }, Array.Empty<OutPoint>(), feeTarget, feeRate);
+
+		// No fee information is provided
+		Assert.Throws<ArgumentException>(() => BuildTransaction());
+
+		// Invalid feeTarget (out of range)
+		Assert.Throws<ArgumentException>(() => BuildTransaction(feeTarget: -4));
+		Assert.Throws<ArgumentException>(() => BuildTransaction(feeTarget: 0));
+		Assert.Throws<ArgumentException>(() => BuildTransaction(feeTarget: 2000));
+
+		// Invalid feeRate (out of range)
+		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 0));
+		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20_000));
+
+		// Contradictory fee information (both feeRate and feeTarget are present)
+		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20, feeTarget: 8));
+		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
+		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
 	}
 
 	private static string Request(string id, string methodName, params object[] parameters)

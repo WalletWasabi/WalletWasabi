@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Fluent.Generators.Analyzers;
 
 namespace WalletWasabi.Fluent.Generators;
 

@@ -12,10 +12,6 @@
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
 
-  <UserControl.Resources>
-    <converters:IndentConverter x:Key="IndentConverter" Multiplier="10" />
-  </UserControl.Resources>
-
   <controls:ContentArea
     Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
@@ -30,6 +26,7 @@
       <Style Selector="TreeDataGridRow">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Height" Value="37.5" />
+        <Setter Property="Theme" Value="{StaticResource GenericTreeDataGridRow}" />
       </Style>
 
       <Style Selector="TreeDataGridRow /template/ Rectangle">
@@ -69,28 +66,13 @@
         <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="Margin" Value="10 0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
       </Style>
 
       <Style Selector="TreeDataGridExpanderCell">
-        <Setter Property="Template">
-          <ControlTemplate>
-            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Indent, Converter={StaticResource IndentConverter}}">
-              <DockPanel>
-                <Border DockPanel.Dock="Left"
-                        Margin="4 0"
-                        Width="12" Height="12">
-                  <ToggleButton Classes="ExpandCollapseChevron"
-                                Focusable="False"
-                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                IsVisible="{TemplateBinding ShowExpander}"
-                                Cursor="Hand" />
-                </Border>
-                <Decorator Name="PART_Content" />
-              </DockPanel>
-            </Border>
-          </ControlTemplate>
-        </Setter>
+        <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridExpanderCell}" />
       </Style>
 
     </controls:ContentArea.Styles>
