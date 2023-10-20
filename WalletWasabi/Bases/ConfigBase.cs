@@ -67,8 +67,6 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 
 			lock (FileLock)
 			{
-				JsonConvert.PopulateObject("{}", this);
-
 				if (!File.Exists(FilePath))
 				{
 					Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
