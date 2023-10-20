@@ -47,7 +47,7 @@ public partial class WalletCoinsModel
 			.Subscribe();
 
 		signals
-			.Do(_ => Logger.LogInfo($"Refresh signal emitted in {walletModel.Name}"))
+			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
 			.Subscribe();
 
 		signals.Connect();
