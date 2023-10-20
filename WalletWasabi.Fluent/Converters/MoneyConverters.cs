@@ -6,6 +6,11 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Converters;
 
+public static class MathHelper
+{
+
+}
+
 public static class MoneyConverters
 {
 	public static readonly IValueConverter ToUsd =
@@ -30,23 +35,5 @@ public static class MoneyConverters
 		new FuncValueConverter<Money?, string?>(n => n?.ToFeeDisplayUnitRawString());
 
 	public static readonly IValueConverter PercentageDifferenceConverter =
-			new FuncValueConverter<double, string>(n =>
-			{
-				var precision = 0.01m;
-				var withFriendlyDecimals = n.WithFriendlyDecimals();
-
-				string diffPart;
-				if (Math.Abs(withFriendlyDecimals) < precision)
-				{
-					var threshold = withFriendlyDecimals > 0 ? precision : -precision;
-					diffPart = "less than " + threshold.ToString(CultureInfo.InvariantCulture);
-				}
-				else
-				{
-					diffPart = withFriendlyDecimals.ToString(CultureInfo.InvariantCulture);
-				}
-
-				var numericPart = n > 0 ? "+" + diffPart : diffPart;
-				return numericPart + "%";
-			});
+			new FuncValueConverter<double, string>(TextHelpers.FormatPercentageDiff );
 }
