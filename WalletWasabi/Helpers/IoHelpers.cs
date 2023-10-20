@@ -63,13 +63,15 @@ public static class IoHelpers
 	}
 
 	/// <summary>
-	/// It's like Directory.CreateDirectory, but does not fail when root is given.
+	/// Makes sure that directory <paramref name="dir"/> is created if it does not exist.
 	/// </summary>
+	/// <remarks>Method does not throw exceptions unless provided directory path is invalid.</remarks>
 	public static void EnsureDirectoryExists(string? dir)
 	{
-		if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then do not worry.
+		// If root is given, then do not worry.
+		if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
 		{
-			Directory.CreateDirectory(dir); // It does not fail if it exists.
+			_ = Directory.CreateDirectory(dir);
 		}
 	}
 
