@@ -28,13 +28,12 @@ public partial class WalletCoinsModel
 		_wallet = wallet;
 		_walletModel = walletModel;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
-		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
+		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
 
 		var signals = transactionProcessed
 			.Merge(anonScoreTargetChanged)
 			.Merge(isCoinjoinRunningChanged)
-			.StartWith(Unit.Default)
 			.Publish();
 
 		signals.SelectMany(_ => GetCoins())
