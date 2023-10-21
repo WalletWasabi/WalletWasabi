@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "WalletWasabi.Daemon": {
-      "commandName": "Project",
-      "commandLineArgs": "--network=regtest --enablejsonrpc=true"
-    }
-  }
-}
