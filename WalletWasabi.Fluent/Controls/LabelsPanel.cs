@@ -148,14 +148,6 @@ public class LabelsPanel : Panel
 		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
 	}
 
-	private struct CalculateResult
-	{
-		public int Count { get; init; }
-		public double Width { get; init; }
-		public double Height { get; init; }
-		public bool Trim { get; init; }
-	}
-
 	private CalculateResult CalculateWidth(
 		Avalonia.Controls.Controls children,
 		Control? trimControl,
@@ -220,13 +212,7 @@ public class LabelsPanel : Panel
 			width += trimWidth;
 		}
 
-		return new CalculateResult
-		{
-			Count = count,
-			Width = width,
-			Height = height,
-			Trim = trim
-		};
+		return new CalculateResult(count, width, height, trim);
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
@@ -290,4 +276,6 @@ public class LabelsPanel : Panel
 
 		return new Size(result.Width, result.Height);
 	}
+
+	private record CalculateResult(int Count, double Width, double Height, bool Trim);
 }
