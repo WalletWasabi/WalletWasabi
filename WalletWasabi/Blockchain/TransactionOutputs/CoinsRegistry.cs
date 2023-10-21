@@ -264,16 +264,25 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryGetCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
-		coin = null;
 		lock (Lock)
 		{
-			if (!CoinsByTransactionId.TryGetValue(outPoint.Hash, out var allCoinsForTransaction))
+			if (!CoinsByTransactionId.TryGetValue(outPoint.Hash, out HashSet<SmartCoin>? txCoins))
 			{
+				coin = null;
 				return false;
 			}
 
-			coin = allCoinsForTransaction.FirstOrDefault(x => x.Outpoint == outPoint);
-			return coin is not null;
+			foreach (SmartCoin txCoin in txCoins)
+			{
+				if (txCoin.Outpoint == outPoint)
+				{
+					coin = txCoin; 
+					return true;
+				}
+			}
+
+			coin = null;
+			return false;
 		}
 	}
 
