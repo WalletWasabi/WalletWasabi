@@ -132,15 +132,18 @@ public class LabelsPanel : Panel
 		}
 
 		var size = MeasureOverridePanel(availableSize.WithWidth(availableSize.Width));
-		if (size.Width < availableSize.Width)
-		{
-			size = size.WithWidth(size.Width - ellipsisDesiredWidth);
-			_needToTrim = false;
-		}
-		else
-		{
-			_needToTrim = true;
-		}
+
+		_needToTrim = !(size.Width < availableSize.Width);
+
+		var result = CalculateWidth(
+			Children,
+			EllipsisControl,
+			availableSize.Width,
+			ellipsisDesiredWidth,
+			_spacing,
+			_needToTrim);
+
+		size = size.WithWidth(result.Width);
 
 		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
 	}
@@ -155,6 +158,7 @@ public class LabelsPanel : Panel
 
 	private CalculateResult CalculateWidth(
 		Avalonia.Controls.Controls children,
+		Control? trimControl,
 		double finalWidth,
 		double trimWidth,
 		double spacing,
@@ -169,6 +173,11 @@ public class LabelsPanel : Panel
 		for (var i = 0; i < totalChildren; i++)
 		{
 			var child = children[i];
+			if (child == trimControl)
+			{
+				continue;
+			}
+
 			var childWidth = child.DesiredSize.Width;
 
 			height = Math.Max(height, child.DesiredSize.Height);
@@ -234,13 +243,24 @@ public class LabelsPanel : Panel
 			trimWidth = ellipsisControl.DesiredSize.Width;
 		}
 
-		var result = CalculateWidth(children, finalWidth, trimWidth, spacing, _needToTrim);
+		var result = CalculateWidth(
+			children,
+			ellipsisControl,
+			finalWidth,
+			trimWidth,
+			spacing,
+			_needToTrim);
 
 		var offset = 0.0;
 
 		for (var i = 0; i < totalChildren; i++)
 		{
 			var child = children[i];
+			if (child == ellipsisControl)
+			{
+				continue;
+			}
+
 			if (i < result.Count)
 			{
 				var rect = new Rect(offset, 0.0, child.DesiredSize.Width, result.Height);
