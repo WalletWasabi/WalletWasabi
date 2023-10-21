@@ -86,7 +86,7 @@ public class Config
 				"Publish the Json RPC Server as a Tor Onion service",
 				GetBoolValue("RpcOnionEnabled", value: false, cliArgs)),
 			[ nameof(DustThreshold)] = (
-				"The amount threshold under which coins received from others to reuse addresses are considered a dust attack",
+				"The amount threshold under which coins received from others to already used addresses are considered a dust attack",
 				GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs)),
 			[ nameof(BlockOnlyMode)] = (
 				"Wasabi listens only for blocks and not for transactions",
