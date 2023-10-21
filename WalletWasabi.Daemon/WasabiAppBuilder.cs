@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -100,14 +101,17 @@ public class WasabiApplication
 	{
 		Directory.CreateDirectory(Config.DataDir);
 
-		PersistentConfig persistentConfig = new(Path.Combine(Config.DataDir, "Config.json"));
-		persistentConfig.LoadFile(createIfMissing: true);
+		string configFilePath = Path.Combine(Config.DataDir, "Config.json");
 
-		if (persistentConfig.MigrateOldDefaultBackendUris())
-		{
-			// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-			persistentConfig.ToFile();
-		}
+		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(configFilePath, createIfMissing: true);
+		// PersistentConfig persistentConfig = new(Path.Combine(Config.DataDir, "Config.json"));
+		//persistentConfig.LoadFile(createIfMissing: true);
+
+		//if (persistentConfig.MigrateOldDefaultBackendUris())
+		//{
+		//	// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
+		//	persistentConfig.ToFile();
+		//}
 
 		return persistentConfig;
 	}

@@ -2,7 +2,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Net;
-using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
@@ -11,7 +10,7 @@ using WalletWasabi.JsonConverters.Bitcoin;
 namespace WalletWasabi.Daemon;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class PersistentConfig : ConfigBase
+public class PersistentConfig
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
@@ -19,11 +18,8 @@ public class PersistentConfig : ConfigBase
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
 	/// </summary>
+	[JsonConstructor]
 	public PersistentConfig() : base()
-	{
-	}
-
-	public PersistentConfig(string filePath) : base(filePath)
 	{
 	}
 

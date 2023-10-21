@@ -56,8 +56,8 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(persistentConfig.FilePath);
-		_startupConfig.LoadFile();
+		_startupConfig = persistentConfig; // new PersistentConfig(persistentConfig.FilePath);
+		// _startupConfig.LoadFile();
 
 		_persistentConfig = persistentConfig;
 		_config = config;
@@ -148,35 +148,35 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !_startupConfig.AreDeepEqual(config);
+		return false; // !_startupConfig.AreDeepEqual(config);
 	}
 
 	private void Save()
 	{
-		var config = new PersistentConfig(_startupConfig.FilePath);
+		//var config = new PersistentConfig(_startupConfig.FilePath);
 
-		RxApp.MainThreadScheduler.Schedule(
-			() =>
-			{
-				try
-				{
-					lock (ConfigLock)
-					{
-						// TODO: Roland: do we really need to do this?
-						config.LoadFile();
+		//RxApp.MainThreadScheduler.Schedule(
+		//	() =>
+		//	{
+		//		try
+		//		{
+		//			lock (ConfigLock)
+		//			{
+		//				// TODO: Roland: do we really need to do this?
+		//				config.LoadFile();
 
-						ApplyChanges(config);
+		//				ApplyChanges(config);
 
-						config.ToFile();
-					}
+		//				config.ToFile();
+		//			}
 
-					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-				}
-			});
+		//			_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			Logger.LogDebug(ex);
+		//		}
+		//	});
 	}
 
 	private void ApplyChanges(PersistentConfig config)
