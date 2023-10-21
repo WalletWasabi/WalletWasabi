@@ -48,7 +48,7 @@ public class CoinJoinCoinSelector
 			wallet.RedCoinIsolation ? Constants.SemiPrivateThreshold : 0);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
+	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, bool stopWhenAllMixed, UtxoSelectionParameters parameters, Money liquidityClue)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
 		liquidityClue = liquidityClue > Money.Zero
@@ -80,7 +80,7 @@ public class CoinJoinCoinSelector
 			.Where(x => x.IsRedCoin(SemiPrivateThreshold))
 			.ToArray();
 
-		if (semiPrivateCoins.Length + redCoins.Length == 0)
+		if (stopWhenAllMixed && semiPrivateCoins.Length + redCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
@@ -127,6 +127,25 @@ public class CoinJoinCoinSelector
 
 		// Shuffle coins, while randomly biasing towards lower AS.
 		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
+
+		// If the command is given to not stop when everything is coinjoined and the allowed private coins are empty, then we shortcircuit the selection.
+		if (!stopWhenAllMixed && !allowedNonPrivateCoins.Any())
+		{
+			var largestAllowedCoin = orderedAllowedCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
+			if (largestAllowedCoin is null)
+			{
+				Logger.LogDebug($"Couldn't select any coins, ending.");
+				return ImmutableList<TCoin>.Empty;
+			}
+			else
+			{
+				// Take the largest to ensure volume, then select the rest and go for it.
+				var selectedCoins = orderedAllowedCoins.Except(new[] { largestAllowedCoin }).Take(inputCount - 1).ToList();
+				selectedCoins.Add(largestAllowedCoin);
+				selectedCoins.Shuffle(Rnd);
+				return selectedCoins.ToImmutableList();
+			}
+		}
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestNonPrivateCoins = allowedNonPrivateCoins

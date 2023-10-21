@@ -179,7 +179,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
@@ -269,7 +269,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			coinJoinClient.CoinJoinClientProgress += HandleCoinJoinProgress;
 
 			// Run the coinjoin client task.
-			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 			if (coinjoinResult is SuccessfulCoinJoinResult)
 			{
 				throw new Exception("Coinjoin should have never finished successfully.");
@@ -360,7 +360,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager1, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token).ConfigureAwait(false), cts.Token);
+		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
