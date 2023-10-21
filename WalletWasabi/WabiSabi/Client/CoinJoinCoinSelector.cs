@@ -139,11 +139,13 @@ public class CoinJoinCoinSelector
 			}
 			else
 			{
-				// Take the largest to ensure volume, then select the rest and go for it.
-				var selectedCoins = orderedAllowedCoins.Except(new[] { largestAllowedCoin }).Take(inputCount - 1).ToList();
-				selectedCoins.Add(largestAllowedCoin);
-				selectedCoins.Shuffle(Rnd);
-				return selectedCoins.ToImmutableList();
+				// orderedAllowedCoins at this point is going to have inputCount - 1 coins, so add another coin to it.
+				var selectedPrivateCoins = orderedAllowedCoins
+					.Concat(smallerPrivateCoins.Concat(largerPrivateCoins).Except(orderedAllowedCoins).Take(1))
+					.Take(inputCount) // This is just sanity check, it should never have an effect, unless someone touches computations above.
+					.ToList();
+				selectedPrivateCoins.Shuffle(Rnd);
+				return selectedPrivateCoins.ToImmutableList();
 			}
 		}
 
