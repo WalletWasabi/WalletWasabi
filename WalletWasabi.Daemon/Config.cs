@@ -23,43 +23,43 @@ public class Config
 		Data = new()
 		{
 			[ nameof(Network)] = (
-				"Bitcoin network to use (main, testnet or regtest)",
+				"The Bitcoin network to use: main, testnet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
 			[ nameof(MainNetBackendUri)] = (
-				"Url to the backend server to connect to when network is main",
+				"The backend server's URL to connect to when the Bitcoin network is main",
 				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs)),
 			[ nameof(TestNetBackendUri)] = (
-				"Url to the backend server to connect to when network is testnet",
+				"The backend server's URL to connect to when the Bitcoin network is testnet",
 				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs)),
 			[ nameof(RegTestBackendUri)] = (
-				"Url to the backend server to connect to when network is regtest",
+				"The backend server's URL to connect to when the Bitcoin network is regtest",
 				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
 			[ nameof(MainNetCoordinatorUri)] = (
-				"Url to the coordinator server to connect to when network is main",
+				"The coordinator server's URL to connect to when the Bitcoin network is main",
 				GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
 			[ nameof(TestNetCoordinatorUri)] = (
-				"Url to the coordinator server to connect to when network is testnet",
+				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
 				GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
 			[ nameof(RegTestCoordinatorUri)] = (
-				"Url to the coordinator server to connect to when network is regtest",
+				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
 				GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
-				"Indicate all the communication have to go thru the Tor network",
+				"All the communications go through the Tor network",
 				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
 			[ nameof(TerminateTorOnExit)] = (
-				"Indicate the Tor process must be stopped when Wasabi finishes",
+				"Stop the Tor process when Wasabi is closed",
 				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
 			[ nameof(DownloadNewVersion)] = (
-				"Indicate new version of Wasabi should be downloaded automatically",
+				"Automatically download any new released version of Wasabi",
 				GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs)),
 			[ nameof(StartLocalBitcoinCoreOnStartup)] = (
-				"Indicate that bitcoin node should be started when wasabi starts",
+				"Start a local bitcoin node when Wasabi starts",
 				GetBoolValue("StartLocalBitcoinCoreOnStartup", PersistentConfig.StartLocalBitcoinCoreOnStartup, cliArgs)),
 			[ nameof(StopLocalBitcoinCoreOnShutdown)] = (
-				"Indicate that bitcoin node should be stopped when finishes",
+				"Stop the local bitcoin node when Wasabi is closed",
 				GetBoolValue("StopLocalBitcoinCoreOnShutdown", PersistentConfig.StopLocalBitcoinCoreOnShutdown, cliArgs)),
 			[ nameof(LocalBitcoinCoreDataDir)] = (
-				"Specify the DataDir to be used by the bitcoin node",
+				"The path of the data directory to be used by the local bitcoin node",
 				GetStringValue("LocalBitcoinCoreDataDir", PersistentConfig.LocalBitcoinCoreDataDir, cliArgs)),
 			[ nameof(MainNetBitcoinP2pEndPoint)] = (
 				"-",
@@ -71,7 +71,7 @@ public class Config
 				"-",
 				GetEndPointValue("RegTestBitcoinP2pEndPoint", PersistentConfig.RegTestBitcoinP2pEndPoint, cliArgs)),
 			[ nameof(JsonRpcServerEnabled)] = (
-				"Indicate the Json RPC Server should be started and accepting requests",
+				"Start the Json RPC Server and accept requests",
 				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
 			[ nameof(JsonRpcUser)] = (
 				"The user name that is authorized to make requests to the Json RPC server",
@@ -80,22 +80,22 @@ public class Config
 				"The user password that is authorized to make requests to the Json RPC server",
 				GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs)),
 			[ nameof(JsonRpcServerPrefixes)] = (
-				"Json RPC server prefixes",
+				"The Json RPC server prefixes",
 				GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs)),
 			[ nameof(RpcOnionEnabled)] = (
-				"Indicate the Json RPC Server should be published as an Tor Onion service",
+				"Publish the Json RPC Server as a Tor Onion service",
 				GetBoolValue("RpcOnionEnabled", value: false, cliArgs)),
 			[ nameof(DustThreshold)] = (
-				"Threshold amount under which coin received from others to reused addresses are considered a dust attack",
+				"The amount threshold under which coins received from others to reuse addresses are considered a dust attack",
 				GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs)),
 			[ nameof(BlockOnlyMode)] = (
-				"Indicate Wasabi should only listen for blocks and not for transactions",
+				"Wasabi listens only for blocks and not for transactions",
 				GetBoolValue("BlockOnly", value: false, cliArgs)),
 			[ nameof(LogLevel)] = (
-				"Level of detail in the logs (trace, debug, info, warning, error or critical)",
+				"The level of detail in the logs: trace, debug, info, warning, error, or critical",
 				GetStringValue("LogLevel", value: "", cliArgs)),
 			[ nameof(EnableGpu)] = (
-				"Indicate Wasabi should use the GPU",
+				"Use a GPU to render the user interface",
 				GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs)),
 			[ nameof(CoordinatorIdentifier)] = (
 				"-",
