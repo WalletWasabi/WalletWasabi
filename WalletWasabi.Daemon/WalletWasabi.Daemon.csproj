@@ -38,8 +38,4 @@
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Properties\" />
-	</ItemGroup>
-
 </Project>
