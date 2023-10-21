@@ -6,11 +6,6 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Converters;
 
-public static class MathHelper
-{
-
-}
-
 public static class MoneyConverters
 {
 	public static readonly IValueConverter ToUsd =
