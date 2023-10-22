@@ -66,6 +66,9 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		opacityAnimation.Duration = opacityDuration;
 		opacityAnimation.Direction = PlaybackDirection.Normal;
 
+		var animationGroup = compositor.CreateAnimationGroup();
+		animationGroup.Add(opacityAnimation);
+
 		if (enableScale)
 		{
 			var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
@@ -82,19 +85,12 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 				compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
 			}).DisposeWith(disposables);
 
-			var animationGroup = compositor.CreateAnimationGroup();
-			animationGroup.Add(opacityAnimation);
 			animationGroup.Add(scaleAnimation);
+		}
 
-			var implicitAnimation = compositor.CreateImplicitAnimationCollection();
-			implicitAnimation["Opacity"] = animationGroup;
-			compositionVisual.ImplicitAnimations = implicitAnimation;
-		}
-		else
-		{
-			var implicitAnimation = compositor.CreateImplicitAnimationCollection();
-			implicitAnimation["Opacity"] = opacityAnimation;
-			compositionVisual.ImplicitAnimations = implicitAnimation;
-		}
+		var implicitAnimation = compositor.CreateImplicitAnimationCollection();
+		implicitAnimation["Opacity"] = animationGroup;
+
+		compositionVisual.ImplicitAnimations = implicitAnimation;
 	}
 }
