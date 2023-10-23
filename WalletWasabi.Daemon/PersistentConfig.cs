@@ -1,16 +1,18 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 
 namespace WalletWasabi.Daemon;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class PersistentConfig
+public record PersistentConfig : IConfigNg
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
@@ -29,24 +31,24 @@ public class PersistentConfig
 
 	[DefaultValue(Constants.BackendUri)]
 	[JsonProperty(PropertyName = "MainNetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetBackendUri { get; private set; } = Constants.BackendUri;
+	public string MainNetBackendUri { get; init; } = Constants.BackendUri;
 
 	[DefaultValue(Constants.TestnetBackendUri)]
 	[JsonProperty(PropertyName = "TestNetClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetBackendUri { get; private set; } = Constants.TestnetBackendUri;
+	public string TestNetBackendUri { get; init; } = Constants.TestnetBackendUri;
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string RegTestBackendUri { get; private set; } = "http://localhost:37127/";
+	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
 
 	[JsonProperty(PropertyName = "MainNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string? MainNetCoordinatorUri { get; private set; }
+	public string? MainNetCoordinatorUri { get; init; }
 
 	[JsonProperty(PropertyName = "TestNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string? TestNetCoordinatorUri { get; private set; }
+	public string? TestNetCoordinatorUri { get; init; }
 
 	[JsonProperty(PropertyName = "RegTestCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string? RegTestCoordinatorUri { get; private set; }
+	public string? RegTestCoordinatorUri { get; init; }
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -150,20 +152,19 @@ public class PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public bool MigrateOldDefaultBackendUris()
+	public bool MigrateOldDefaultBackendUris([NotNullWhenAttribute(true)] out PersistentConfig? newConfig)
 	{
 		bool hasChanged = false;
+		newConfig = null;
 
-		if (MainNetBackendUri == "https://wasabiwallet.io/")
+		if (MainNetBackendUri == "https://wasabiwallet.io/" || TestNetBackendUri == "https://wasabiwallet.co/")
 		{
-			MainNetBackendUri = "https://api.wasabiwallet.io/";
 			hasChanged = true;
-		}
-
-		if (TestNetBackendUri == "https://wasabiwallet.co/")
-		{
-			TestNetBackendUri = "https://api.wasabiwallet.co/";
-			hasChanged = true;
+			newConfig = this with
+			{
+				MainNetBackendUri = "https://api.wasabiwallet.io/",
+				TestNetBackendUri = "https://api.wasabiwallet.co/",
+			};
 		}
 
 		return hasChanged;

@@ -102,16 +102,13 @@ public class WasabiApplication
 		Directory.CreateDirectory(Config.DataDir);
 
 		string configFilePath = Path.Combine(Config.DataDir, "Config.json");
-
 		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(configFilePath, createIfMissing: true);
-		// PersistentConfig persistentConfig = new(Path.Combine(Config.DataDir, "Config.json"));
-		//persistentConfig.LoadFile(createIfMissing: true);
 
-		//if (persistentConfig.MigrateOldDefaultBackendUris())
-		//{
-		//	// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-		//	persistentConfig.ToFile();
-		//}
+		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
+		{
+			persistentConfig = newConfig;
+			ConfigManager.ToFile<PersistentConfig>(configFilePath, persistentConfig);
+		}
 
 		return persistentConfig;
 	}
