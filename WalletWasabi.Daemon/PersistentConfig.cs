@@ -106,14 +106,14 @@ public record PersistentConfig : IConfigNg
 
 	[JsonProperty(PropertyName = "DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money DustThreshold { get; set; } = DefaultDustThreshold;
+	public Money DustThreshold { get; init; } = DefaultDustThreshold;
 
 	[JsonProperty(PropertyName = "EnableGpu")]
-	public bool EnableGpu { get; set; } = true;
+	public bool EnableGpu { get; init; } = true;
 
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
+	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
