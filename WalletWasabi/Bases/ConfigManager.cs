@@ -47,7 +47,6 @@ public class ConfigManager
 		return result;
 	}
 
-	/// <inheritdoc />
 	public static void ToFile<T>(string filePath, T obj)
 	{
 		string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSerializationOptions.Default.Settings);
