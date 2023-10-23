@@ -1,16 +1,31 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Crypto.Serialization;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Bases;
 
 public class ConfigManager
 {
-	private static readonly JsonSerializer Serializer = JsonSerializer.Create(JsonSerializationOptions.Default.Settings);
+	private static readonly JsonSerializerSettings SerializerSettings = new()
+	{
+		Converters = new List<JsonConverter>()
+			{
+				new NetworkJsonConverter(),
+				new FeeRateJsonConverter(),
+				new MoneySatoshiJsonConverter(),
+			}
+	};
+
+	private static readonly JsonSerializer Serializer = JsonSerializer.Create(SerializerSettings);
 
 	public static TResult LoadFile<TResult>(string filePath, bool createIfMissing = false)
 		where TResult : IConfigNg, new()
