@@ -4,17 +4,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using WalletWasabi.Interfaces;
-using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Crypto.Serialization;
-using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Bases;
 
 public class ConfigManager
 {
+	/// <remarks>Do not add converters that are not needed. It prolongs app's startup time.</remarks>
 	private static readonly JsonSerializerSettings SerializerSettings = new()
 	{
 		Converters = new List<JsonConverter>()
@@ -64,7 +62,7 @@ public class ConfigManager
 
 	public static void ToFile<T>(string filePath, T obj)
 	{
-		string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSerializationOptions.Default.Settings);
+		string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, SerializerSettings);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 	}
 
@@ -76,7 +74,7 @@ public class ConfigManager
 		}
 
 		string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-		TResponse? result = JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings);
+		TResponse? result = JsonConvert.DeserializeObject<TResponse>(jsonString, SerializerSettings);
 
 		return result is not null
 			? result
