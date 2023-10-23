@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
@@ -180,9 +181,24 @@ public partial class ApplicationSettings : ReactiveObject
 		// Bitcoin
 		if (Network == config.Network)
 		{
-			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
+			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? endPoint))
 			{
-				config.SetBitcoinP2pEndpoint(p2PEp);
+				if (Network == Network.Main)
+				{
+					result = result with { MainNetBitcoinP2pEndPoint = endPoint };
+				}
+				else if (Network == Network.TestNet)
+				{
+					result = result with { TestNetBitcoinP2pEndPoint = endPoint };
+				}
+				else if (Network == Network.RegTest)
+				{
+					result = result with { RegTestBitcoinP2pEndPoint = endPoint };
+				}
+				else
+				{
+					throw new NotSupportedNetworkException(Network);
+				}
 			}
 
 			result = result with {

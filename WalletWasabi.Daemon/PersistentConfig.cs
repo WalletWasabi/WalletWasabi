@@ -52,53 +52,53 @@ public record PersistentConfig : IConfigNg
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool UseTor { get; set; } = true;
+	public bool UseTor { get; init; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool TerminateTorOnExit { get; set; } = false;
+	public bool TerminateTorOnExit { get; init; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "DownloadNewVersion", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool DownloadNewVersion { get; set; } = true;
+	public bool DownloadNewVersion { get; init; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StartLocalBitcoinCoreOnStartup { get; set; } = false;
+	public bool StartLocalBitcoinCoreOnStartup { get; init; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StopLocalBitcoinCoreOnShutdown { get; set; } = true;
+	public bool StopLocalBitcoinCoreOnShutdown { get; init; } = true;
 
 	[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-	public string LocalBitcoinCoreDataDir { get; set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
+	public string LocalBitcoinCoreDataDir { get; init; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
 	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-	public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
 
 	[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
-	public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
 
 	[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
-	public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "JsonRpcServerEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool JsonRpcServerEnabled { get; internal set; }
+	public bool JsonRpcServerEnabled { get; init; }
 
 	[DefaultValue("")]
 	[JsonProperty(PropertyName = "JsonRpcUser", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string JsonRpcUser { get; internal set; } = "";
+	public string JsonRpcUser { get; init; } = "";
 
 	[DefaultValue("")]
 	[JsonProperty(PropertyName = "JsonRpcPassword", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string JsonRpcPassword { get; internal set; } = "";
+	public string JsonRpcPassword { get; init; } = "";
 
 	[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
-	public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
+	public string[] JsonRpcServerPrefixes { get; init; } = new[]
 	{
 		"http://127.0.0.1:37128/",
 		"http://localhost:37128/"
@@ -114,26 +114,6 @@ public record PersistentConfig : IConfigNg
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
-
-	public void SetBitcoinP2pEndpoint(EndPoint endPoint)
-	{
-		if (Network == Network.Main)
-		{
-			MainNetBitcoinP2pEndPoint = endPoint;
-		}
-		else if (Network == Network.TestNet)
-		{
-			TestNetBitcoinP2pEndPoint = endPoint;
-		}
-		else if (Network == Network.RegTest)
-		{
-			RegTestBitcoinP2pEndPoint = endPoint;
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
