@@ -21,6 +21,7 @@ public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
 	public Global? Global { get; private set; }
+	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
@@ -28,7 +29,11 @@ public class WasabiApplication
 	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
 		AppConfig = wasabiAppBuilder;
-		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
+
+		ConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
+		Directory.CreateDirectory(Config.DataDir);
+		Config = new Config(LoadOrCreateConfigs(ConfigFilePath), wasabiAppBuilder.Arguments);
+
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 		SingleInstanceChecker = new(Config.Network);
@@ -95,19 +100,16 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-		=> new(Config.DataDir, Config);
+		=> new(Config.DataDir, ConfigFilePath, Config);
 
-	private PersistentConfig LoadOrCreateConfigs()
+	private PersistentConfig LoadOrCreateConfigs(string filePath)
 	{
-		Directory.CreateDirectory(Config.DataDir);
-
-		string configFilePath = Path.Combine(Config.DataDir, "Config.json");
-		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(configFilePath, createIfMissing: true);
+		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(filePath, createIfMissing: true);
 
 		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
 			persistentConfig = newConfig;
-			ConfigManager.ToFile<PersistentConfig>(configFilePath, persistentConfig);
+			ConfigManager.ToFile(filePath, persistentConfig);
 		}
 
 		return persistentConfig;

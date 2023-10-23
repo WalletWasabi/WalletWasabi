@@ -19,9 +19,8 @@ public partial class ApplicationSettings : ReactiveObject
 {
 	private const int ThrottleTime = 500;
 
-	private static readonly object ConfigLock = new();
-
 	private readonly Subject<bool> _isRestartNeeded = new();
+	private readonly string _persistentConfigFilePath;
 	private readonly PersistentConfig _startupConfig;
 	private readonly PersistentConfig _persistentConfig;
 	private readonly Config _config;
@@ -55,12 +54,12 @@ public partial class ApplicationSettings : ReactiveObject
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
 
-	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
+	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = persistentConfig; // new PersistentConfig(persistentConfig.FilePath);
-		// _startupConfig.LoadFile();
+		_persistentConfigFilePath = persistentConfigFilePath;
+		_startupConfig = persistentConfig;
 
-		_persistentConfig = persistentConfig;
+		_persistentConfig = persistentConfig with { }; // Clone the object.
 		_config = config;
 		_uiConfig = uiConfig;
 
@@ -154,36 +153,29 @@ public partial class ApplicationSettings : ReactiveObject
 
 	private void Save()
 	{
-		//var config = new PersistentConfig(_startupConfig.FilePath);
+		RxApp.MainThreadScheduler.Schedule(
+			() =>
+			{
+				try
+				{
+					PersistentConfig newConfig = ApplyChanges(_startupConfig);
+					ConfigManager.ToFile(_persistentConfigFilePath, newConfig);
 
-		//RxApp.MainThreadScheduler.Schedule(
-		//	() =>
-		//	{
-		//		try
-		//		{
-		//			lock (ConfigLock)
-		//			{
-		//				// TODO: Roland: do we really need to do this?
-		//				config.LoadFile();
-
-		//				ApplyChanges(config);
-
-		//				config.ToFile();
-		//			}
-
-		//			_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
-		//		}
-		//		catch (Exception ex)
-		//		{
-		//			Logger.LogDebug(ex);
-		//		}
-		//	});
+					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+			});
 	}
 
-	private void ApplyChanges(PersistentConfig config)
+	private PersistentConfig ApplyChanges(PersistentConfig config)
 	{
+		PersistentConfig result = config;
+
 		// Advanced
-		config.EnableGpu = EnableGpu;
+		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
 		if (Network == config.Network)
@@ -193,23 +185,34 @@ public partial class ApplicationSettings : ReactiveObject
 				config.SetBitcoinP2pEndpoint(p2PEp);
 			}
 
-			config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-			config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-			config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
-				? Money.Coins(threshold)
-				: PersistentConfig.DefaultDustThreshold;
+			result = result with {
+				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
+				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
+				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
+				DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+					? Money.Coins(threshold)
+					: PersistentConfig.DefaultDustThreshold,
+			};
 		}
 		else
 		{
-			config.Network = Network;
+			result = result with
+			{
+				Network = Network
+			};
+
 			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
 
 		// General
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
-		config.DownloadNewVersion = DownloadNewVersion;
+		result = result with
+		{
+			UseTor = UseTor,
+			TerminateTorOnExit = TerminateTorOnExit,
+			DownloadNewVersion = DownloadNewVersion,
+		};
+
+		return result;
 	}
 
 	private void ApplyUiConfigChanges()
