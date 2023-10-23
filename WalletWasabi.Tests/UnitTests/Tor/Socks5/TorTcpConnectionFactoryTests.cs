@@ -87,7 +87,7 @@ public class TorTcpConnectionFactoryTests
 			stream.Flush();
 
 			Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Expecting exception.");
-			await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken).ConfigureAwait(false));
+			await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WaitAsync(timeoutToken).ConfigureAwait(false));
 		}
 		finally
 		{
@@ -220,7 +220,7 @@ public class TorTcpConnectionFactoryTests
 			stream.Flush();
 
 			Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Expecting exception.");
-			await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
+			await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WaitAsync(timeoutToken));
 		}
 		finally
 		{
