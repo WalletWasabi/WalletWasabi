@@ -6,6 +6,7 @@ using System.Text;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases;
@@ -20,6 +21,8 @@ public class ConfigManager
 				new NetworkJsonConverter(),
 				new FeeRateJsonConverter(),
 				new MoneySatoshiJsonConverter(),
+				new TimeSpanJsonConverter(),
+				new ExtPubKeyJsonConverter(),
 			}
 	};
 
