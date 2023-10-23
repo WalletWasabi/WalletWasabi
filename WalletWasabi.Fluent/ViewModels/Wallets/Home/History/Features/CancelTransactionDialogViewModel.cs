@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -88,7 +89,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	{
 		if (!string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup()))
 		{
-			var result = UiContext.Navigate().To().PasswordAuthDialog(WalletRepository.CreateWalletModel(_wallet));
+			var result = UiContext.Navigate().To().PasswordAuthDialog(WalletRepository.CreateWalletModel(_wallet), PasswordRequestIntent.Other);
 			var dialogResult = await result.GetResultAsync();
 			return dialogResult;
 		}

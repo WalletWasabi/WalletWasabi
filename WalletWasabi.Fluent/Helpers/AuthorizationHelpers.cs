@@ -16,7 +16,7 @@ public static class AuthorizationHelpers
 		}
 		else
 		{
-			return new PasswordAuthDialogViewModel(wallet);
+			return new PasswordAuthDialogViewModel(wallet, PasswordRequestIntent.Send);
 		}
 	}
 }
