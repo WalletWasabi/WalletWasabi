@@ -85,7 +85,7 @@ public partial class LineChart : Control
 		var areaWidth = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
 		var value = Clamp(x - AreaMargin.Left, 0, areaWidth);
 		var factor = value / areaWidth;
-		var index = (int) ((xAxisValues.Count - 1) * factor);
+		var index = (int)((xAxisValues.Count - 1) * factor);
 		var currentValue = xAxisValues[index];
 		XAxisCurrentValue = currentValue;
 	}
@@ -407,11 +407,11 @@ public partial class LineChart : Control
 	{
 		var brush = AreaFill;
 		if (brush is null
-		    || state.Points is null
-		    || state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < AreaMinViableWidth
-		    || state.AreaHeight < AreaMinViableHeight)
+			|| state.Points is null
+			|| state.AreaWidth <= 0
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < AreaMinViableWidth
+			|| state.AreaHeight < AreaMinViableHeight)
 		{
 			return;
 		}
@@ -430,11 +430,11 @@ public partial class LineChart : Control
 	{
 		var brush = AreaStroke;
 		if (brush is null
-		    || state.Points is null
-		    || state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < AreaMinViableWidth
-		    || state.AreaHeight < AreaMinViableHeight)
+			|| state.Points is null
+			|| state.AreaWidth <= 0
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < AreaMinViableWidth
+			|| state.AreaHeight < AreaMinViableHeight)
 		{
 			return;
 		}
@@ -459,11 +459,11 @@ public partial class LineChart : Control
 	{
 		var brush = CursorStroke;
 		if (brush is null
-		    || double.IsNaN(state.XAxisCursorPosition)
-		    || state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < AreaMinViableWidth
-		    || state.AreaHeight < AreaMinViableHeight)
+			|| double.IsNaN(state.XAxisCursorPosition)
+			|| state.AreaWidth <= 0
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < AreaMinViableWidth
+			|| state.AreaHeight < AreaMinViableHeight)
 		{
 			return;
 		}
@@ -489,10 +489,10 @@ public partial class LineChart : Control
 	{
 		var brush = XAxisStroke;
 		if (brush is null
-		    || state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < XAxisMinViableWidth
-		    || state.AreaHeight < XAxisMinViableHeight)
+			|| state.AreaWidth <= 0
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < XAxisMinViableWidth
+			|| state.AreaHeight < XAxisMinViableHeight)
 		{
 			return;
 		}
@@ -520,8 +520,7 @@ public partial class LineChart : Control
 		opacityState.Dispose();
 	}
 
-	private static Point AlignXAxisLabelOffset(Point offsetCenter, double width, int index, int count,
-		LabelAlignment alignment)
+	private static Point AlignXAxisLabelOffset(Point offsetCenter, double width, int index, int count, LabelAlignment alignment)
 	{
 		var isFirst = index == 0;
 		var isLast = index == count - 1;
@@ -544,11 +543,11 @@ public partial class LineChart : Control
 	{
 		var foreground = XAxisLabelForeground;
 		if (foreground is null
-		    || state.XAxisLabels is null
-		    || double.IsNaN(state.XAxisLabelStep)
-		    || state.ChartWidth <= 0
-		    || state.ChartHeight <= 0
-		    || state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
+			|| state.XAxisLabels is null
+			|| double.IsNaN(state.XAxisLabelStep)
+			|| state.ChartWidth <= 0
+			|| state.ChartHeight <= 0
+			|| state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
 		{
 			return;
 		}
@@ -586,13 +585,17 @@ public partial class LineChart : Control
 			formattedTextLabels[i].MaxTextWidth = constraintMax.Width;
 			var origin = new Point(i * state.XAxisLabelStep + constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
-			offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Width, i,
-				formattedTextLabels.Count, alignment);
+			offsetCenter = AlignXAxisLabelOffset(
+				offsetCenter,
+				formattedTextLabels[i].Width,
+				i,
+				formattedTextLabels.Count,
+				alignment);
 			var xPosition = origin.X + constraintMax.Width / 2;
 			var yPosition = origin.Y + constraintMax.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-			             * Matrix.CreateRotation(angleRadians)
-			             * Matrix.CreateTranslation(xPosition, yPosition);
+						 * Matrix.CreateRotation(angleRadians)
+						 * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushTransform(matrix);
 			var opacityState = context.PushOpacity(opacity);
 			formattedTextLabels[i].SetForegroundBrush(foreground);
@@ -613,9 +616,9 @@ public partial class LineChart : Control
 		}
 
 		if (state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < XAxisMinViableWidth
-		    || state.AreaHeight < XAxisMinViableHeight)
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < XAxisMinViableWidth
+			|| state.AreaHeight < XAxisMinViableHeight)
 		{
 			return;
 		}
@@ -638,8 +641,8 @@ public partial class LineChart : Control
 		var yPosition = origin.Y + size.Height / 2;
 
 		var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-		             * Matrix.CreateRotation(angleRadians)
-		             * Matrix.CreateTranslation(xPosition, yPosition);
+					 * Matrix.CreateRotation(angleRadians)
+					 * Matrix.CreateTranslation(xPosition, yPosition);
 		var labelTransform = context.PushTransform(matrix);
 		var offsetCenter = new Point(0, 0);
 		var opacityState = context.PushOpacity(opacity);
@@ -654,10 +657,10 @@ public partial class LineChart : Control
 	{
 		var brush = YAxisStroke;
 		if (brush is null
-		    || state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < YAxisMinViableWidth
-		    || state.AreaHeight < YAxisMinViableHeight)
+			|| state.AreaWidth <= 0
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < YAxisMinViableWidth
+			|| state.AreaHeight < YAxisMinViableHeight)
 		{
 			return;
 		}
@@ -721,11 +724,11 @@ public partial class LineChart : Control
 	{
 		var foreground = YAxisLabelForeground;
 		if (foreground is null
-		    || state.YAxisLabels is null
-		    || double.IsNaN(state.YAxisLabelStep)
-		    || state.ChartWidth <= 0
-		    || state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
-		    || state.ChartHeight <= 0)
+			|| state.YAxisLabels is null
+			|| double.IsNaN(state.YAxisLabelStep)
+			|| state.ChartWidth <= 0
+			|| state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
+			|| state.ChartHeight <= 0)
 		{
 			return;
 		}
@@ -767,13 +770,17 @@ public partial class LineChart : Control
 				originLeft,
 				i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
-			offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Height, i,
-				formattedTextLabels.Count, alignment);
+			offsetCenter = AlignYAxisLabelOffset(
+				offsetCenter,
+				formattedTextLabels[i].Height,
+				i,
+				formattedTextLabels.Count,
+				alignment);
 			var xPosition = origin.X + constraintMax.Width / 2;
 			var yPosition = origin.Y + constraintMax.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-			             * Matrix.CreateRotation(angleRadians)
-			             * Matrix.CreateTranslation(xPosition, yPosition);
+						 * Matrix.CreateRotation(angleRadians)
+						 * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushTransform(matrix);
 			var opacityState = context.PushOpacity(opacity);
 			formattedTextLabels[i].SetForegroundBrush(foreground);
@@ -794,9 +801,9 @@ public partial class LineChart : Control
 		}
 
 		if (state.AreaWidth <= 0
-		    || state.AreaHeight <= 0
-		    || state.AreaWidth < YAxisMinViableWidth
-		    || state.AreaHeight < YAxisMinViableHeight)
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < YAxisMinViableWidth
+			|| state.AreaHeight < YAxisMinViableHeight)
 		{
 			return;
 		}
@@ -818,8 +825,8 @@ public partial class LineChart : Control
 		var xPosition = origin.X + size.Width / 2;
 		var yPosition = origin.Y + size.Height / 2;
 		var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-		             * Matrix.CreateRotation(angleRadians)
-		             * Matrix.CreateTranslation(xPosition, yPosition);
+					 * Matrix.CreateRotation(angleRadians)
+					 * Matrix.CreateTranslation(xPosition, yPosition);
 		var labelTransform = context.PushTransform(matrix);
 		var offsetCenter = new Point(0, size.Height / 2 - formattedText.Height / 2);
 		var opacityState = context.PushOpacity(opacity);
@@ -874,7 +881,7 @@ public partial class LineChart : Control
 		base.OnPropertyChanged(change);
 
 		if (change.Property == XAxisValuesProperty || change.Property == YAxisValuesProperty ||
-		    change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
+			change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
 		{
 			var oldINCC = change.OldValue as INotifyCollectionChanged;
 			var newINCC = change.NewValue as INotifyCollectionChanged;
