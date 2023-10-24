@@ -32,11 +32,11 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
-	/// <summary>Maps each outpoint to smart coins (i.e. UTXOs) that exist thanks to the outpoint. The same hash-set (reference) is also stored in <see cref="CoinsByTransactionId"/>.</summary>
+	/// <summary>Maps each outpoint to transactions (i.e. TxIds) that exist thanks to the outpoint. The values are also stored as keys in <see cref="CoinsByTransactionId"/>.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByPrevOuts { get; } = new();
+	private Dictionary<OutPoint, uint256> TxIdsByPrevOuts { get; } = new();
 
-	/// <summary>Maps each TXID to smart coins (i.e. UTXOs). The same hash-set (reference) is also stored in <see cref="CoinsByPrevOuts"/>.</summary>
+	/// <summary>Maps each TxId to smart coins (i.e. UTXOs).</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<uint256, HashSet<SmartCoin>> CoinsByTransactionId { get; } = new();
 
@@ -125,7 +125,7 @@ public class CoinsRegistry : ICoinsView
 			// Each prevOut of the transaction contributes to the existence of coins.
 			foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 			{
-				CoinsByPrevOuts[input.PrevOut] = hashSet;
+				TxIdsByPrevOuts[input.PrevOut] = coin.TransactionId;
 			}
 
 			InvalidateSnapshot = true;
@@ -173,17 +173,22 @@ public class CoinsRegistry : ICoinsView
 				continue;
 			}
 
-			if (!CoinsByTransactionId.Remove(txId, out var referenceHashSetRemoved))
+			if (!CoinsByTransactionId.Remove(txId, out _))
 			{
 				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
 			}
 
-			foreach (var kvp in CoinsByPrevOuts.ToList())
+			// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
+			// This cache can be really big and it's better to avoid .ToList().
+			var keysToRemove = new HashSet<OutPoint>();
+			foreach (var removedTxIdByInputPrevOut in TxIdsByPrevOuts.Where(x => x.Value.Equals(txId)))
 			{
-				if (ReferenceEquals(kvp.Value, referenceHashSetRemoved))
-				{
-					CoinsByPrevOuts.Remove(kvp.Key);
-				}
+				keysToRemove.Add(removedTxIdByInputPrevOut.Key);
+			}
+
+			foreach (var keyToRemove in keysToRemove)
+			{
+				TxIdsByPrevOuts.Remove(keyToRemove);
 			}
 
 			if (!TransactionAmountsByTxid.Remove(txId))
@@ -259,7 +264,13 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		return CoinsByPrevOuts.TryGetValue(prevOut, out coins);
+		coins = null;
+		if (!TxIdsByPrevOuts.TryGetValue(prevOut, out var txId))
+		{
+			return false;
+		}
+
+		return CoinsByTransactionId.TryGetValue(txId, out coins);
 	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
