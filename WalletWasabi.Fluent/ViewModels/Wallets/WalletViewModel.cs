@@ -22,18 +22,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify] private bool _isSelected;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-
-	//[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
-	[AutoNotify(SetterModifier = AccessModifier.Protected)]
-	private bool _isLoading;
-
-	[AutoNotify(SetterModifier = AccessModifier.Protected)]
-	private bool _isCoinJoining;
-
-	[AutoNotify(SetterModifier = AccessModifier.Protected)]
-	private WalletState _walletState;
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
 
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
@@ -43,12 +36,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		_title = WalletName;
 
-		// TODO:
-		//this.WhenAnyValue(x => x.IsCoinJoining)
-		//	.Skip(1)
-		//	.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
-
-		Disposables = Disposables is null
+		Disposables =
+			Disposables is null
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -64,9 +53,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		walletModel.Coinjoin.IsRunning
 							.BindTo(this, x => x.IsCoinJoining)
 							.DisposeWith(Disposables);
-
-		//this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
-		//	.Subscribe(x => IsTransactionHistoryEmpty = x);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
@@ -94,7 +80,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(WalletModel));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate().To(Settings));
+		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate().To().WalletCoins(WalletModel));
 

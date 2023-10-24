@@ -32,7 +32,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	[AutoNotify] private string? _versionText;
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
-	public StatusIconViewModel(TorStatusCheckerModel statusCheckerWrapper)
+	public StatusIconViewModel(ITorStatusCheckerModel statusCheckerWrapper)
 	{
 		UseTor = Services.PersistentConfig.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -41,6 +42,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.Settings.PreferPsbtWorkflow = value;
 				wallet.Settings.Save();
 			});
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	public bool IsHardwareWallet { get; }
