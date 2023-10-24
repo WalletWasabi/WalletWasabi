@@ -301,7 +301,7 @@ public class PrivacySuggestionsModel
 		}
 		else
 		{
-			int indexOfBigger = result[0].Difference < result[1].Difference ? 1 : 0;
+			int indexOfBigger = Math.Abs(result[0].Difference) < Math.Abs(result[1].Difference) ? 1 : 0;
 			result.RemoveAt(indexOfBigger);
 			return result;
 		}
