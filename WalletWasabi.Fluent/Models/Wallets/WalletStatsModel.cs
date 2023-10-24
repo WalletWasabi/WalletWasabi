@@ -1,15 +1,47 @@
+using ReactiveUI;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletStatsModel
+public partial class WalletStatsModel : ReactiveObject, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+	[AutoNotify] private int _coinCount;
+	[AutoNotify] private Amount _balance;
+	[AutoNotify] private Amount _confirmedBalance;
+	[AutoNotify] private Amount _unconfirmedBalance;
+	[AutoNotify] private int _generatedKeyCount;
+	[AutoNotify] private int _generatedCleanKeyCount;
+	[AutoNotify] private int _generatedLockedKeyCount;
+	[AutoNotify] private int _generatedUsedKeyCount;
+	[AutoNotify] private int _totalTransactionCount;
+	[AutoNotify] private int _nonCoinjointransactionCount;
+	[AutoNotify] private int _coinjoinTransactionCount;
+
 	public WalletStatsModel(IWalletModel walletModel, Wallet wallet)
+	{
+		_balance = Amount.Zero;
+		_confirmedBalance = Amount.Zero;
+		_unconfirmedBalance = Amount.Zero;
+
+		walletModel.Transactions.TransactionProcessed
+								.Do(_ => Update(walletModel, wallet))
+								.Subscribe()
+								.DisposeWith(_disposables);
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
+	}
+
+	private void Update(IWalletModel walletModel, Wallet wallet)
 	{
 		// Number of coins in the wallet.
 		CoinCount = wallet.Coins.Unspent().Count();
@@ -40,20 +72,16 @@ public partial class WalletStatsModel
 
 		var nestedCoinjoins = groupedCoinjoins.SelectMany(x => x.Children).ToList();
 		var nonCoinjoins =
-			walletModel.Transactions
-					   .Where(x => x.Type != )
-					   .ToList();
+			walletModel.Transactions.List
+									.Where(x => !x.IsCoinjoin)
+									.ToList();
 
 		TotalTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count + nonCoinjoins.Count;
 		NonCoinjointransactionCount = nonCoinjoins.Count;
 		CoinjoinTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count;
 	}
+}
 
-	public int CoinCount { get; }
-
-	public Amount Balance { get; }
-
-	public Amount ConfirmedBalance { get; }
-
-	public Amount UnconfirmedBalance { get; }
+public partial interface IWalletStatsModel : IDisposable
+{
 }
