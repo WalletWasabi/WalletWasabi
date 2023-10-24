@@ -3,7 +3,7 @@
         xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
 
   <Style Selector="ContextMenu MenuItem">
-    <Setter Property="Padding" Value="40" />
+    <Setter Property="Padding" Value="10" />
   </Style>
 
   <Style Selector="ContextMenu MenuItem /template/ Viewbox#PART_IconPresenter">
