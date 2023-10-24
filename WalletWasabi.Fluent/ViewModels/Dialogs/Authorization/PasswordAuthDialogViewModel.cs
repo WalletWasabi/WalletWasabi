@@ -9,7 +9,7 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private string _password;
 
-	public PasswordAuthDialogViewModel(IWalletModel wallet, string continueText)
+	public PasswordAuthDialogViewModel(IWalletModel wallet, string continueText = "Continue")
 	{
 		if (wallet.IsHardwareWallet)
 		{

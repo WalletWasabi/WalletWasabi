@@ -109,7 +109,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			if (!string.IsNullOrEmpty(Wallet.Kitchen.SaltSoup()))
 			{
 				// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-				var pwAuthDialog = new PasswordAuthDialogViewModel(WalletModel, "Next");
+				var pwAuthDialog = new PasswordAuthDialogViewModel(WalletModel);
 				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 				if (!dialogResult.Result)
