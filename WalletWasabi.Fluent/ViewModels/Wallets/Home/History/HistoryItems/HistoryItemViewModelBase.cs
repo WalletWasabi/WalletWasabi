@@ -70,6 +70,42 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		IsSpeedUp = false;
 	}
 
+	public uint256 Id { get; }
+
+	public LabelsArray Labels { get; init; }
+
+	public bool IsCoinJoin { get; protected set; }
+
+	public bool IsCoinJoinGroup { get; protected set; }
+
+	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
+
+	public Money? Balance { get; protected set; }
+
+	public Money? OutgoingAmount { get; protected set; }
+
+	public Money? IncomingAmount { get; protected set; }
+
+	public ICommand? ShowDetailsCommand { get; protected set; }
+
+	public bool IsChild { get; set; }
+
+	public ICommand? ClipboardCopyCommand { get; protected set; }
+
+	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+
+	public ICommand? CancelTransactionCommand { get; protected set; }
+
+	public bool IsCancellation { get; set; }
+
+	public bool IsSpeedUp { get; set; }
+
+	public bool IsCPFP { get; set; }
+
+	public bool IsCPFPd { get; set; }
+
+	public TransactionSummary TransactionSummary { get; }
+
 	protected HistoryItemType GetItemType()
 	{
 		if (!IsCPFP && IncomingAmount is { } incomingAmount && incomingAmount > Money.Zero && !IsCoinJoin)
@@ -134,42 +170,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		return $"Confirmed ({confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)})";
 	}
-
-	public uint256 Id { get; }
-
-	public LabelsArray Labels { get; init; }
-
-	public bool IsCoinJoin { get; protected set; }
-
-	public bool IsCoinJoinGroup { get; protected set; }
-
-	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
-
-	public Money? Balance { get; protected set; }
-
-	public Money? OutgoingAmount { get; protected set; }
-
-	public Money? IncomingAmount { get; protected set; }
-
-	public ICommand? ShowDetailsCommand { get; protected set; }
-
-	public bool IsChild { get; set; }
-
-	public ICommand? ClipboardCopyCommand { get; protected set; }
-
-	public ICommand? SpeedUpTransactionCommand { get; protected set; }
-
-	public ICommand? CancelTransactionCommand { get; protected set; }
-
-	public bool IsCancellation { get; set; }
-
-	public bool IsSpeedUp { get; set; }
-
-	public bool IsCPFP { get; set; }
-
-	public bool IsCPFPd { get; set; }
-
-	public TransactionSummary TransactionSummary { get; }
 
 	private async Task CopyToClipboardAsync(string text)
 	{
