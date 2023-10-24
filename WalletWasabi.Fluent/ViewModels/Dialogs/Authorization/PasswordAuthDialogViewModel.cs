@@ -3,6 +3,14 @@ using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 
+// Source generators don't support nested classes, otherwise, this would be inside the class above.
+public enum PasswordRequestIntent
+{
+	Invalid = 0,
+	Send,
+	Other,
+}
+
 [NavigationMetaData(Title = "Enter your password", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 {
@@ -38,12 +46,4 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 		Password = "";
 		return success;
 	}
-}
-
-// Source generators don't support nested classes, otherwise, this would be inside the class above.
-public enum PasswordRequestIntent
-{
-	Invalid = 0,
-	Send,
-	Other,
 }
