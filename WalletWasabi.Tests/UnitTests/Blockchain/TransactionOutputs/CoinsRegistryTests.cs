@@ -364,6 +364,35 @@ public class CoinsRegistryTests
 		}
 	}
 
+	/// <summary>
+	/// Tests that processing twice the same transaction results in a consistent state.
+	/// </summary>
+	[Fact]
+	public void ProcessTwiceSameTransactionTest()
+	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
+		SmartTransaction tx0;
+
+		Money tx0CreditingAmount = Money.Coins(1.0m);
+
+		// Create and process transaction tx0.
+		{
+			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, tx0CreditingAmount,
+				height: 54321);
+
+			Assert.Equal(Money.Zero, Coins.GetTotalBalance());
+
+			// Now process tx0 twice.
+			_ = ProcessTransaction(tx0);
+			var tx0Coins = ProcessTransaction(tx0);
+			Assert.Empty(tx0Coins);
+			Assert.Single(Coins);
+			Assert.Equal(tx0CreditingAmount, Coins.First().Amount);
+			Coins.TryGetTxAmount(tx0.GetHash(), out var tx0Amount);
+			Assert.Equal(tx0CreditingAmount, tx0Amount);
+		}
+	}
+
 	/// <summary>Modify UTXO set in <see cref="CoinsRegistry"/> with <paramref name="tx">transaction</paramref> in mind.</summary>
 	private IReadOnlyList<SmartCoin> ProcessTransaction(SmartTransaction tx)
 	{
@@ -375,8 +404,10 @@ public class CoinsRegistryTests
 			if (KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? pubKey))
 			{
 				SmartCoin newCoin = new(tx, outputIndex: coin.Outpoint.N, pubKey: pubKey);
-				Assert.True(Coins.TryAdd(newCoin));
-				result.Add(newCoin);
+				if(Coins.TryAdd(newCoin))
+				{
+					result.Add(newCoin);
+				}
 			}
 		}
 
