@@ -1,8 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui">
 
-  <Style Selector="MenuFlyoutPresenter StackPanel">
-    <Setter Property="Spacing" Value="10" />
-    <Setter Property="Margin" Value="10 0" />
+  <Style Selector="MenuFlyoutPresenter MenuItem">
+    <Setter Property="Padding" Value="10" />
   </Style>
 
 </Styles>
