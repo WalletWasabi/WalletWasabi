@@ -129,15 +129,16 @@ public class TransactionProcessor
 				{
 					doubleSpentSpenders.AddRange(coins);
 				}
-				if (Coins.TryGetSpentCoinByOutPoint(txIn.PrevOut, out var spentCoin))
+
+				if (Coins.TryGetByOutPoint(txIn.PrevOut, out var coin) && coin.IsSpent())
 				{
-					doubleSpentCoins.Add(spentCoin);
+					doubleSpentCoins.Add(coin);
 				}
 			}
 
 			var doubleSpentTransactions = doubleSpentCoins.Select(x => x.SpenderTransaction!).Concat(doubleSpentSpenders.Select(x => x.Transaction)).ToHashSet();
 
-			if (doubleSpentTransactions.Any())
+			if (doubleSpentTransactions.Count > 0)
 			{
 				tx.SetReplacement();
 			}
@@ -159,7 +160,7 @@ public class TransactionProcessor
 					result.ReplacedCoins.AddRange(replaced);
 					result.RestoredCoins.AddRange(restored);
 				}
-				else if (doubleSpentSpenders.Any())
+				else if (doubleSpentSpenders.Count > 0)
 				{
 					return result;
 				}

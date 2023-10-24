@@ -41,9 +41,6 @@ public class CoinsRegistry : ICoinsView
 	private Dictionary<uint256, HashSet<SmartCoin>> CoinsByTransactionId { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, SmartCoin> SpentCoinsByOutPoint { get; } = new();
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
 	/// <summary>Maps each TXIDs to a balance change that is caused by the corresponding wallet transaction.</summary>
@@ -145,10 +142,7 @@ public class CoinsRegistry : ICoinsView
 		{
 			if (!Coins.Remove(toRemove))
 			{
-				if (SpentCoins.Remove(toRemove))
-				{
-					SpentCoinsByOutPoint.Remove(toRemove.Outpoint);
-				}
+				SpentCoins.Remove(toRemove);
 			}
 
 			var removedCoinOutPoint = toRemove.Outpoint;
@@ -212,11 +206,7 @@ public class CoinsRegistry : ICoinsView
 			if (Coins.Remove(spentCoin))
 			{
 				InvalidateSnapshot = true;
-				if (SpentCoins.Add(spentCoin))
-				{
-					SpentCoinsByOutPoint.Add(spentCoin.Outpoint, spentCoin);
-				}
-
+				SpentCoins.Add(spentCoin);
 				UpdateTransactionAmountNoLock(tx.GetHash(), Money.Zero - spentCoin.Amount);
 			}
 		}
@@ -272,14 +262,6 @@ public class CoinsRegistry : ICoinsView
 		return CoinsByPrevOuts.TryGetValue(prevOut, out coins);
 	}
 
-	public bool TryGetSpentCoinByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out SmartCoin? coin)
-	{
-		lock (Lock)
-		{
-			return SpentCoinsByOutPoint.TryGetValue(outPoint, out coin);
-		}
-	}
-
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 	{
 		lock (Lock)
@@ -300,7 +282,6 @@ public class CoinsRegistry : ICoinsView
 				if (SpentCoins.Remove(destroyedCoin))
 				{
 					destroyedCoin.SpenderTransaction = null;
-					SpentCoinsByOutPoint.Remove(destroyedCoin.Outpoint);
 					Coins.Add(destroyedCoin);
 					toAdd.Add(destroyedCoin);
 				}
