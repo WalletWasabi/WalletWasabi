@@ -377,8 +377,7 @@ public class CoinsRegistryTests
 
 		// Create and process transaction tx0.
 		{
-			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, tx0CreditingAmount,
-				height: 54321);
+			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, tx0CreditingAmount, height: 54321);
 
 			Assert.Equal(Money.Zero, Coins.GetTotalBalance());
 
@@ -404,7 +403,7 @@ public class CoinsRegistryTests
 			if (KeyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out HdPubKey? pubKey))
 			{
 				SmartCoin newCoin = new(tx, outputIndex: coin.Outpoint.N, pubKey: pubKey);
-				if(Coins.TryAdd(newCoin))
+				if (Coins.TryAdd(newCoin))
 				{
 					result.Add(newCoin);
 				}
