@@ -281,7 +281,7 @@ public partial class MainViewModel : ViewModelBase
 					{
 						// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
 						// TODO: Why is this code duplicated?
-						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.WalletModel, PasswordRequestIntent.Other);
+						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.WalletModel, "Next");
 						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
 
 						if (!dialogResult.Result)
