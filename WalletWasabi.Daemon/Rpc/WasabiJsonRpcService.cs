@@ -434,20 +434,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	private string GetCoinjoinStatus(Wallet wallet)
-	{
-		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
-		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletName);
-		return walletCoinjoinClientState switch
-		{
-			CoinJoinClientState.Idle => "Idle",
-			CoinJoinClientState.InProgress => "In progress",
-			CoinJoinClientState.InSchedule => "In schedule",
-			CoinJoinClientState.InCriticalPhase => "In critical phase",
-			_ => throw new Exception($"The state {walletCoinjoinClientState.FriendlyName()} is unknown.")
-		};
-	}
-
 	[JsonRpcMethod("getfeerates", initializable: false)]
 	public object GetFeeRate()
 	{
@@ -469,6 +455,26 @@ public class WasabiJsonRpcService : IJsonRpcService
 			.ToArray();
 	}
 
+	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
+	public Task StopAsync()
+	{
+		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
+	}
+
+	private string GetCoinjoinStatus(Wallet wallet)
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletName);
+		return walletCoinjoinClientState switch
+		{
+			CoinJoinClientState.Idle => "Idle",
+			CoinJoinClientState.InProgress => "In progress",
+			CoinJoinClientState.InSchedule => "In schedule",
+			CoinJoinClientState.InCriticalPhase => "In critical phase",
+			_ => throw new Exception($"The state {walletCoinjoinClientState.FriendlyName()} is unknown.")
+		};
+	}
+
 	private void SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
@@ -486,12 +492,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new Exception($"Wallet '{walletName}' not found.");
 		}
-	}
-
-	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
-	public Task StopAsync()
-	{
-		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
 	}
 
 	private void AssertWalletIsLoaded()
