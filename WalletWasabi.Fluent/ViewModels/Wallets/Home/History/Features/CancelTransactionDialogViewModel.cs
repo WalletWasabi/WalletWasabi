@@ -89,7 +89,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	{
 		if (!string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup()))
 		{
-			var result = UiContext.Navigate().To().PasswordAuthDialog(WalletRepository.CreateWalletModel(_wallet), PasswordRequestIntent.Other);
+			var result = UiContext.Navigate().To().PasswordAuthDialog(WalletRepository.CreateWalletModel(_wallet), PasswordRequestIntent.Send);
 			var dialogResult = await result.GetResultAsync();
 			return dialogResult;
 		}
