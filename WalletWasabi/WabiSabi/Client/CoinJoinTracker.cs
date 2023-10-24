@@ -29,7 +29,7 @@ public class CoinJoinTracker : IDisposable
 		OverridePlebStop = overridePlebStop;
 		OutputWallet = outputWallet;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, CancellationTokenSource.Token);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, stopWhenAllMixed, CancellationTokenSource.Token);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
