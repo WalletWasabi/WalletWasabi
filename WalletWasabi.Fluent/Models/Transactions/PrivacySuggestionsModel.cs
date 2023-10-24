@@ -293,12 +293,12 @@ public class PrivacySuggestionsModel
 			result.Add(suggestion);
 		}
 
-		// If there's one or zero suggestion, or one is Less, the other is More.
+		// If there's one or zero suggestion, or one is Less, the other is More, simply return the results.
+		// If both is Less/More, only return the one with smaller difference.
 		if (result.Count <= 1 || result[0].IsLess != result[1].IsLess)
 		{
 			return result;
 		}
-		// If both is Less/More, only return the one with smaller difference.
 		else
 		{
 			int indexOfBigger = result[0].Difference < result[1].Difference ? 1 : 0;
