@@ -293,7 +293,18 @@ public class PrivacySuggestionsModel
 			result.Add(suggestion);
 		}
 
-		return result;
+		// If there's one or zero suggestion, or one is Less, the other is More.
+		if (result.Count <= 1 || result[0].IsLess != result[1].IsLess)
+		{
+			return result;
+		}
+		// If both is Less/More, only return the one with smaller difference.
+		else
+		{
+			int indexOfBigger = result[0].Difference < result[1].Difference ? 1 : 0;
+			result.RemoveAt(indexOfBigger);
+			return result;
+		}
 	}
 
 	private async IAsyncEnumerable<ChangeAvoidanceSuggestion> CreateChangeAvoidanceSuggestionsAsync(
@@ -332,7 +343,7 @@ public class PrivacySuggestionsModel
 			if (transaction is not null)
 			{
 				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
-				yield return new ChangeAvoidanceSuggestion(transaction, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
+				yield return new ChangeAvoidanceSuggestion(transaction, differenceFiat, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
 			}
 		}
 	}
