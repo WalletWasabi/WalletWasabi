@@ -319,6 +319,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					_ => GeneralErrorMessage
 				};
+
+				StopCountDown();
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:

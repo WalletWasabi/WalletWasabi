@@ -54,16 +54,21 @@ public static class CurrencyExtensions
 
 	public static string ToUsd(this decimal n)
 	{
-		return ToUsdAmount(n) + " USD";
+		return n.WithFriendlyDecimals() + " USD";
 	}
 
-	public static string ToUsdAmount(this decimal n)
+	public static decimal WithFriendlyDecimals(this double n)
 	{
-		return n switch
+		return WithFriendlyDecimals((decimal) n);
+	}
+
+	public static decimal WithFriendlyDecimals(this decimal n)
+	{
+		return Math.Abs(n) switch
 		{
-			>= 10 => Math.Ceiling(n).ToString("N0", FormatInfo),
-			>= 1 => n.ToString("N1", FormatInfo),
-			_ => n.ToString("N2", FormatInfo)
+			>= 10 => decimal.Round(n),
+			>= 1 => decimal.Round(n, 1),
+			_ => decimal.Round(n, 2)
 		};
 	}
 
