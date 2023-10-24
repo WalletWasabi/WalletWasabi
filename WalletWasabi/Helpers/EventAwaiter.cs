@@ -20,5 +20,5 @@ public class EventAwaiter<TEventArgs> : EventsAwaiter<TEventArgs>
 		=> await Task.WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
 
 	public new async Task<TEventArgs> WaitAsync(CancellationToken token)
-		=> await Task.WithAwaitCancellationAsync(token).ConfigureAwait(false);
+		=> await Task.WaitAsync(token).ConfigureAwait(false);
 }

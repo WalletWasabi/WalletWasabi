@@ -30,6 +30,7 @@ public class P2pNode
 	}
 
 	public event EventHandler<uint256>? BlockInv;
+
 	public event EventHandler<Transaction>? OnTransactionArrived;
 
 	private Node? Node { get; set; }
@@ -200,7 +201,7 @@ public class P2pNode
 
 			// Disconnection not waited here.
 			node.DisconnectAsync();
-			await tcs.Task.WithAwaitCancellationAsync(cancel).ConfigureAwait(false);
+			await tcs.Task.WaitAsync(cancel).ConfigureAwait(false);
 		}
 		finally
 		{
