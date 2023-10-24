@@ -56,7 +56,4 @@ public class EventsAwaiter<TEventArgs>
 
 	public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
 		=> await Task.WhenAll(Tasks).WaitAsync(timeout).ConfigureAwait(false);
-
-	public async Task<IEnumerable<TEventArgs>> WaitAsync(CancellationToken token)
-		=> await Task.WhenAll(Tasks).WaitAsync(token).ConfigureAwait(false);
 }
