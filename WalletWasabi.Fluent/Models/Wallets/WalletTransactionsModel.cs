@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -39,9 +40,9 @@ public partial class WalletTransactionsModel : ReactiveObject
 					  .StartWith(Unit.Default);
 
 		var transactionChanges =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.Id);
+			TransactionProcessed
+				.SelectMany(_ => BuildSummary())
+				.ToObservableChangeSet(x => x.Id);
 
 		transactionChanges.Bind(out _transactions).Subscribe();
 
@@ -131,7 +132,8 @@ public partial class WalletTransactionsModel : ReactiveObject
 	private IEnumerable<TransactionModel> BuildSummary()
 	{
 		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true);
-		return _treeBuilder.Build(orderedRawHistoryList);
+		var transactionModels = _treeBuilder.Build(orderedRawHistoryList);
+		return transactionModels;
 	}
 
 	private Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)

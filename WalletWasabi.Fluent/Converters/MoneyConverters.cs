@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia.Data.Converters;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -11,7 +12,7 @@ public static class MoneyConverters
 		new FuncValueConverter<decimal, string>(n => n.ToUsd());
 
 	public static readonly IValueConverter ToUsdNumber =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAmount());
+		new FuncValueConverter<decimal, string>(n => n.WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
 
 	public static readonly IValueConverter ToUsdApprox =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());
@@ -27,4 +28,7 @@ public static class MoneyConverters
 
 	public static readonly IValueConverter ToFeeWithoutUnit =
 		new FuncValueConverter<Money?, string?>(n => n?.ToFeeDisplayUnitRawString());
+
+	public static readonly IValueConverter PercentageDifferenceConverter =
+			new FuncValueConverter<double, string>(TextHelpers.FormatPercentageDiff );
 }
