@@ -520,8 +520,7 @@ public partial class LineChart : Control
 		opacityState.Dispose();
 	}
 
-	private static Point AlignXAxisLabelOffset(Point offsetCenter, double width, int index, int count,
-		LabelAlignment alignment)
+	private static Point AlignXAxisLabelOffset(Point offsetCenter, double width, int index, int count, LabelAlignment alignment)
 	{
 		var isFirst = index == 0;
 		var isLast = index == count - 1;
@@ -586,8 +585,12 @@ public partial class LineChart : Control
 			formattedTextLabels[i].MaxTextWidth = constraintMax.Width;
 			var origin = new Point(i * state.XAxisLabelStep + constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
-			offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Width, i,
-				formattedTextLabels.Count, alignment);
+			offsetCenter = AlignXAxisLabelOffset(
+				offsetCenter,
+				formattedTextLabels[i].Width,
+				i,
+				formattedTextLabels.Count,
+				alignment);
 			var xPosition = origin.X + constraintMax.Width / 2;
 			var yPosition = origin.Y + constraintMax.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -766,8 +769,12 @@ public partial class LineChart : Control
 				originLeft,
 				i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
-			offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Height, i,
-				formattedTextLabels.Count, alignment);
+			offsetCenter = AlignYAxisLabelOffset(
+				offsetCenter,
+				formattedTextLabels[i].Height,
+				i,
+				formattedTextLabels.Count,
+				alignment);
 			var xPosition = origin.X + constraintMax.Width / 2;
 			var yPosition = origin.Y + constraintMax.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
