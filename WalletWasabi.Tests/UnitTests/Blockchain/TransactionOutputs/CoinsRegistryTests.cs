@@ -365,31 +365,29 @@ public class CoinsRegistryTests
 	}
 
 	/// <summary>
-	/// Tests that processing twice the same transaction results in a consistent state.
+	/// Tests that processing twice the same transaction results in a correct and consistent state.
 	/// </summary>
 	[Fact]
 	public void ProcessTwiceSameTransactionTest()
 	{
-		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(30));
-		SmartTransaction tx0;
-
 		Money tx0CreditingAmount = Money.Coins(1.0m);
 
 		// Create and process transaction tx0.
-		{
-			tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, tx0CreditingAmount, height: 54321);
+		SmartTransaction tx0 = CreateCreditingTransaction(NewInternalKey(label: "A").P2wpkhScript, tx0CreditingAmount, height: 54321);
+		Assert.Equal(Money.Zero, Coins.GetTotalBalance());
+		Assert.False(Coins.TryGetTxAmount(tx0.GetHash(), out _));
 
-			Assert.Equal(Money.Zero, Coins.GetTotalBalance());
+		// Now process tx0 twice.
+		_ = ProcessTransaction(tx0);
+		Assert.Empty(ProcessTransaction(tx0));
 
-			// Now process tx0 twice.
-			_ = ProcessTransaction(tx0);
-			var tx0Coins = ProcessTransaction(tx0);
-			Assert.Empty(tx0Coins);
-			Assert.Single(Coins);
-			Assert.Equal(tx0CreditingAmount, Coins.First().Amount);
-			Coins.TryGetTxAmount(tx0.GetHash(), out var tx0Amount);
-			Assert.Equal(tx0CreditingAmount, tx0Amount);
-		}
+		// There is only a single coin.
+		Assert.Single(Coins);
+
+		// Total balance and amount registered for tx0 should be correct.
+		Assert.Equal(tx0CreditingAmount, Coins.GetTotalBalance());
+		Assert.True(Coins.TryGetTxAmount(tx0.GetHash(), out var tx0Amount));
+		Assert.Equal(tx0CreditingAmount, tx0Amount);
 	}
 
 	/// <summary>Modify UTXO set in <see cref="CoinsRegistry"/> with <paramref name="tx">transaction</paramref> in mind.</summary>
