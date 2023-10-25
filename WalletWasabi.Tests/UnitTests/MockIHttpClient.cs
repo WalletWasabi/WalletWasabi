@@ -9,7 +9,8 @@ public class MockIHttpClient : IHttpClient
 {
 	public MockIHttpClient()
 		: this("https://fake.domain.com")
-	{ }
+	{
+	}
 
 	public MockIHttpClient(string uri)
 	{
@@ -20,14 +21,6 @@ public class MockIHttpClient : IHttpClient
 	public Func<HttpRequestMessage, Task<HttpResponseMessage>>? OnSendAsync { get; set; }
 
 	public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default) =>
-		OnSendAsync?.Invoke(request) ?? throw new NotImplementedException();
-}
-
-public class MockHttpClient : HttpClient
-{
-	public Func<HttpRequestMessage, Task<HttpResponseMessage>>? OnSendAsync { get; set; }
-
-	public override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
 		OnSendAsync?.Invoke(request) ?? throw new NotImplementedException();
 }
 
