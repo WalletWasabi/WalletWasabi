@@ -128,10 +128,10 @@ public class CoinsRegistry : ICoinsView
 				CoinsByPrevOuts[input.PrevOut] = hashSet;
 			}
 
+			UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 			InvalidateSnapshot = true;
 		}
 
-		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 		return added;
 	}
 
