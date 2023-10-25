@@ -7,11 +7,11 @@ using DynamicData;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class Retriever<TObject, TKey> : IDisposable where TKey : notnull
+public class SignaledFetcher<TObject, TKey> : IDisposable where TKey : notnull
 {
 	private readonly CompositeDisposable _disposable = new();
 
-	public Retriever(IObservable<Unit> retrieveSignal, Func<TObject, TKey> keySelector, Func<IEnumerable<TObject>> retrieve)
+	public SignaledFetcher(IObservable<Unit> retrieveSignal, Func<TObject, TKey> keySelector, Func<IEnumerable<TObject>> retrieve)
 	{
 		var sourceCache = new SourceCache<TObject, TKey>(keySelector)
 			.DisposeWith(_disposable);

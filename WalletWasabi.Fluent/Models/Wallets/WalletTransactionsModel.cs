@@ -39,7 +39,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 				.StartWith(Unit.Default);
 
 		var retriever =
-			new Retriever<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
+			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
 				.DisposeWith(_disposable);
 
 		retriever.Changes.Bind(out _transactions)
