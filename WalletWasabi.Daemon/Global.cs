@@ -275,7 +275,7 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
 				var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
-				if (Config is {JsonRpcServerEnabled: true, RpcOnionEnabled: true} && torControlClient is { } nonNullTorControlClient)
+				if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
 				{
 					var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
 					if (!anonymousAccessAllowed)
@@ -480,7 +480,7 @@ public class Global
 				{
 					using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
 					var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cts.Token).ConfigureAwait(false);
-					if (OnionServiceUri is { } nonNullOnionServiceUri && torControlClient is {} nonNullTorControlClient)
+					if (OnionServiceUri is { } nonNullOnionServiceUri && torControlClient is { } nonNullTorControlClient)
 					{
 						try
 						{
