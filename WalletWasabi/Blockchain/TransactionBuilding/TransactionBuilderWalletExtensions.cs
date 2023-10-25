@@ -32,7 +32,6 @@ public static class TransactionBuilderWalletExtensions
 		bool allowDoubleSpend = false,
 		bool tryToSign = true)
 	{
-		var builder = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password, allowUnconfirmed: allowUnconfirmed, allowDoubleSpend: allowDoubleSpend);
 		FeeRate? feeRate;
 
 		if (feeStrategy.TryGetTarget(out int? target))
@@ -45,17 +44,23 @@ public static class TransactionBuilderWalletExtensions
 			throw new NotSupportedException(feeStrategy.Type.ToString());
 		}
 
-		return builder.BuildTransaction(
+		TransactionParameters parameters = new(
 			payments,
-			feeRate,
-			allowedInputs,
-			payjoinClient,
+			FeeRate: feeRate,
+			AllowUnconfirmed: allowUnconfirmed,
+			AllowDoubleSpend: allowDoubleSpend,
+			AllowedInputs: allowedInputs,
+			TryToSign: tryToSign);
+
+		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
+		return factory.BuildTransaction(
+			parameters,
 			lockTimeSelector: () =>
 			{
 				var currentTipHeight = wallet.BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			tryToSign: tryToSign);
+			payjoinClient);
 	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(
