@@ -290,21 +290,21 @@ public class PrivacySuggestionsModel
 				return result;
 			}
 
+			// If both is Less/More, only return the one with smaller difference.
+			if (changeAvoidanceSuggestions.FirstOrDefault(x => x.IsLess == suggestion.IsLess && x.IsMore == suggestion.IsMore) is { } existingSuggestion)
+			{
+				if (Math.Abs(suggestion.Difference) < Math.Abs(existingSuggestion.Difference))
+				{
+					result.Remove(existingSuggestion);
+					result.Add(suggestion);
+				}
+				return result;
+			}
+
 			result.Add(suggestion);
 		}
 
-		// If there's one or zero suggestion, or one is Less, the other is More, simply return the results.
-		// If both is Less/More, only return the one with smaller difference.
-		if (result.Count <= 1 || result[0].IsLess != result[1].IsLess)
-		{
-			return result;
-		}
-		else
-		{
-			int indexOfBigger = Math.Abs(result[0].Difference) < Math.Abs(result[1].Difference) ? 1 : 0;
-			result.RemoveAt(indexOfBigger);
-			return result;
-		}
+		return result;
 	}
 
 	private async IAsyncEnumerable<ChangeAvoidanceSuggestion> CreateChangeAvoidanceSuggestionsAsync(
