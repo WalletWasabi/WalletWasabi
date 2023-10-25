@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -13,18 +14,19 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletTransactionsModel : ReactiveObject
+public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
 	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
+	private readonly CompositeDisposable _disposable = new();
 
 	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
 	{
@@ -34,21 +36,22 @@ public partial class WalletTransactionsModel : ReactiveObject
 
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
-					  .Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
-					  .Sample(TimeSpan.FromSeconds(1))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .StartWith(Unit.Default);
+				.Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
+				.Sample(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.StartWith(Unit.Default);
 
-		var transactionChanges =
-			TransactionProcessed
-				.SelectMany(_ => BuildSummary())
-				.ToObservableChangeSet(x => x.Id);
+		var retriever =
+			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
+				.DisposeWith(_disposable);
 
-		transactionChanges.Bind(out _transactions).Subscribe();
+		retriever.Changes.Bind(out _transactions)
+			.Subscribe()
+			.DisposeWith(_disposable);
 
-		IsEmpty =
-			transactionChanges.ToCollection()
-							  .Select(models => !models.Any());
+		IsEmpty = retriever.Changes
+			.ToCollection()
+			.Select(models => !models.Any());
 	}
 
 	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
@@ -149,4 +152,6 @@ public partial class WalletTransactionsModel : ReactiveObject
 		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
 		return boostingTransactionFee - originalFee;
 	}
+
+	public void Dispose() => _disposable.Dispose();
 }

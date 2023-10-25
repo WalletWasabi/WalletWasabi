@@ -177,8 +177,6 @@ public class TransactionTreeBuilder
 
 	private TransactionModel CreateSpeedUpGroup(TransactionSummary transactionSummary, TransactionModel parent, IEnumerable<TransactionModel> children)
 	{
-		children = children.Reverse();
-
 		var isConfirmed = children.All(x => x.IsConfirmed);
 
 		var result = new TransactionModel
