@@ -50,7 +50,7 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		if (currentHistoryItem.IsConfirmed)
+		if (currentHistoryItem.Transaction.IsConfirmed)
 		{
 			if (control.Classes.Contains(ClassName))
 			{
@@ -76,7 +76,7 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		{
 			return presenter.Items is { } items
 				   && items.Count > index + 1
-				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true };
+				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase vm && vm.Transaction.IsConfirmed;
 		}
 	}
 }
