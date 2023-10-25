@@ -53,7 +53,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		var coinChanges =
 			_wallet.Coins.List.ToObservableChangeSet(model => model.Key)
-				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
+				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x), (x, y) => { }) // TODO: SuperJMN: is this safe?
 				.Replay(1)
 				.RefCount();
 
