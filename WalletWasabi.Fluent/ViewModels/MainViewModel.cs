@@ -184,14 +184,11 @@ public partial class MainViewModel : ViewModelBase
 	{
 		StatusIcon.Initialize();
 
-		// TODO
-		UiContext.WalletRepository
-				 .Wallets
-				 .AutoRefreshOnObservable(x => x.Coinjoin.IsRunning)
-				 .ToCollection()
-				 .SelectMany(set => set.Select(x => x.Coinjoin.IsRunning))
-				 .Select(x => x.ToList().Any());
-		//.BindTo(this, x => x.IsCoinJoinActive);
+		UiContext.WalletRepository.Wallets
+								  .FilterOnObservable(x => x.Coinjoin.IsRunning)
+								  .ToCollection()
+								  .Select(x => x.Any())
+								  .BindTo(this, x => x.IsCoinJoinActive);
 
 		if (UiContext.ApplicationSettings.Network != Network.Main)
 		{
