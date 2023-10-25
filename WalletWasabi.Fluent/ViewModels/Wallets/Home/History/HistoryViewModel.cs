@@ -243,7 +243,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			TransactionType.Coinjoin => new CoinJoinHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
-			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent ?? throw new ArgumentNullException(nameof(parent))),
+			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent),
 			_ => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction, _walletVm),
 		};
 
