@@ -96,6 +96,11 @@ public static partial class TextHelpers
 		return new string(UiConstants.PrivacyChar, repeatCount);
 	}
 
+	public static string GetConfirmationText(int confirmations)
+	{
+		return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
+	}
+
 	public static string FormatPercentageDiff(double n)
 	{
 		var precision = 0.01m;

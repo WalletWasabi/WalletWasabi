@@ -69,24 +69,30 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		var animationGroup = compositor.CreateAnimationGroup();
 		animationGroup.Add(opacityAnimation);
 
+		var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
+		scaleAnimation.Target = "Scale";
 		if (enableScale)
 		{
-			var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
-			scaleAnimation.Target = "Scale";
 			scaleAnimation.InsertExpressionKeyFrame(0f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
 			scaleAnimation.InsertExpressionKeyFrame(1f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
-			scaleAnimation.Duration = scaleDuration;
-			scaleAnimation.Direction = PlaybackDirection.Normal;
-
-			compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
-
-			control.GetObservable(Visual.BoundsProperty).Subscribe(x =>
-			{
-				compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
-			}).DisposeWith(disposables);
-
-			animationGroup.Add(scaleAnimation);
 		}
+		else
+		{
+			// Required to make implicit animation for Opacity run on first time.
+			scaleAnimation.InsertKeyFrame(0f, new Vector3(1, 1, 0));
+			scaleAnimation.InsertKeyFrame(1f, new Vector3(1, 1, 0));
+		}
+		scaleAnimation.Duration = scaleDuration;
+		scaleAnimation.Direction = PlaybackDirection.Normal;
+
+		compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
+
+		control.GetObservable(Visual.BoundsProperty).Subscribe(x =>
+		{
+			compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
+		}).DisposeWith(disposables);
+
+		animationGroup.Add(scaleAnimation);
 
 		var implicitAnimation = compositor.CreateImplicitAnimationCollection();
 		implicitAnimation["Opacity"] = animationGroup;

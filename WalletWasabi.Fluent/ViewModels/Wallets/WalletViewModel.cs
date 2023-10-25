@@ -60,7 +60,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		UiTriggers = new UiTriggers(this);
-		History = new HistoryViewModel(UiContext, this);
+		History = new HistoryViewModel(UiContext, this, parent.WalletModel);
 
 		UiTriggers.TransactionsUpdateTrigger
 			.Subscribe(_ => IsWalletBalanceZero = Wallet.Coins.TotalAmount() == Money.Zero)

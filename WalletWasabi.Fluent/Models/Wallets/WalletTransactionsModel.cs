@@ -3,58 +3,71 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
+#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletTransactionsModel : ReactiveObject
+public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly Wallet _wallet;
-	private readonly ReadOnlyObservableCollection<TransactionSummary> _transactions;
+	private readonly TransactionTreeBuilder _treeBuilder;
+	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
+	private readonly CompositeDisposable _disposable = new();
 
 	public WalletTransactionsModel(Wallet wallet)
 	{
 		_wallet = wallet;
+		_treeBuilder = new TransactionTreeBuilder(wallet);
 
 		TransactionProcessed =
 			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
-					  .Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
-					  .Sample(TimeSpan.FromSeconds(1))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .StartWith(Unit.Default);
+				.Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
+				.Sample(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.StartWith(Unit.Default);
 
-		var transactionChanges =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(TransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.GetHash());
+		var retriever =
+			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
+				.DisposeWith(_disposable);
 
-		transactionChanges.Bind(out _transactions).Subscribe();
+		retriever.Changes.Bind(out _transactions)
+			.Subscribe()
+			.DisposeWith(_disposable);
+
+		IsEmpty = retriever.Changes
+			.ToCollection()
+			.Select(models => !models.Any());
 	}
 
-	public ReadOnlyObservableCollection<TransactionSummary> List => _transactions;
+	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
+
+	public IObservable<bool> IsEmpty { get; }
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionSummary? transactionSummary)
+	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
-		var result = List.FirstOrDefault(x => x.GetHash() == transactionId);
+		var result = List.FirstOrDefault(x => x.Id == transactionId);
 
 		if (result is null)
 		{
-			transactionSummary = default;
+			transaction = default;
 			return false;
 		}
 
-		transactionSummary = result;
+		transaction = result;
 		return true;
 	}
 
@@ -66,8 +79,34 @@ public partial class WalletTransactionsModel : ReactiveObject
 			: null;
 	}
 
-	private IEnumerable<TransactionSummary> BuildSummary()
+	public (SmartTransaction TransactionToSpeedUp, BuildTransactionResult BoostingTransaction) CreateSpeedUpTransaction(TransactionModel transaction)
 	{
-		return _wallet.BuildHistorySummary();
+		var transactionToSpeedUp = transaction.TransactionSummary.Transaction;
+
+		// If the transaction has CPFPs, then we want to speed them up instead of us.
+		// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
+		if (transactionToSpeedUp.TryGetLargestCPFP(_wallet.KeyManager, out var largestCpfp))
+		{
+			transactionToSpeedUp = largestCpfp;
+		}
+		var boostingTransaction = _wallet.SpeedUpTransaction(transactionToSpeedUp);
+
+		return (transactionToSpeedUp, boostingTransaction);
 	}
+
+	public BuildTransactionResult CreateCancellingTransaction(TransactionModel transaction)
+	{
+		var transactionToCancel = transaction.TransactionSummary.Transaction;
+		var cancellingTransaction = _wallet.CancelTransaction(transactionToCancel);
+		return cancellingTransaction;
+	}
+
+	private IEnumerable<TransactionModel> BuildSummary()
+	{
+		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true);
+		var transactionModels = _treeBuilder.Build(orderedRawHistoryList);
+		return transactionModels;
+	}
+
+	public void Dispose() => _disposable.Dispose();
 }

@@ -102,7 +102,7 @@
       <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
       <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
 
-      <!-- Base.axaml -->
+      <!-- Base -->
 
       <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
       <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />
@@ -344,7 +344,7 @@
       <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
       <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
 
-      <!-- Base.axaml -->
+      <!-- Base -->
 
       <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
       <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />

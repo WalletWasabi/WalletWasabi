@@ -9,12 +9,14 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private string _password;
 
-	public PasswordAuthDialogViewModel(IWalletModel wallet)
+	public PasswordAuthDialogViewModel(IWalletModel wallet, string continueText = "Continue")
 	{
 		if (wallet.IsHardwareWallet)
 		{
 			throw new InvalidOperationException("Password authorization is not possible on hardware wallets.");
 		}
+
+		ContinueText = continueText;
 
 		_wallet = wallet;
 		_password = "";
@@ -25,6 +27,8 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 		AuthorizationFailedMessage = $"The password is incorrect.{Environment.NewLine}Please try again.";
 	}
+
+	public string ContinueText { get; init; }
 
 	protected override async Task<bool> AuthorizeAsync()
 	{
