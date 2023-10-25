@@ -85,7 +85,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	{
 		if (_wallet.Auth.HasPassword)
 		{
-			return await Navigate().To().PasswordAuthDialog(_wallet).GetResultAsync();
+			return await Navigate().To().PasswordAuthDialog(_wallet, "Send").GetResultAsync();
 		}
 
 		return true;
