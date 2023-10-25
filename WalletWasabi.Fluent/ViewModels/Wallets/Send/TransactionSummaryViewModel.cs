@@ -21,7 +21,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private Amount? _amount;
-	[AutoNotify] private Money? _copyableAmount;
 	[AutoNotify] private double? _amountDiff;
 	[AutoNotify] private double? _feeDiff;
 
@@ -55,7 +54,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
-		CopyableAmount = Amount.Btc;
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
 
 		Recipient = info.Recipient;
