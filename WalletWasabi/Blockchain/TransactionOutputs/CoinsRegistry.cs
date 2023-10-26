@@ -260,9 +260,9 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		coins = null;
 		if (!TxIdsByPrevOuts.TryGetValue(prevOut, out var txId))
 		{
+			coins = null;
 			return false;
 		}
 
