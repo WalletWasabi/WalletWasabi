@@ -31,10 +31,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		Addresses =
-			Observable.Defer(() => GetAddresses().ToObservable())
-					  .Concat(Transactions.TransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-					  .ToObservableChangeSet(x => x.Text);
+		AddressesModel = new AddressesModel(Transactions.TransactionProcessed, Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -64,6 +61,8 @@ public partial class WalletModel : ReactiveObject
 			 .Subscribe();
 	}
 
+	public IAddressesModel AddressesModel { get; }
+
 	internal Wallet Wallet { get; }
 
 	public string Name => Wallet.WalletName;
@@ -87,8 +86,6 @@ public partial class WalletModel : ReactiveObject
 	public IWalletPrivacyModel Privacy { get; }
 
 	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
-
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public IObservable<WalletState> State { get; }
 

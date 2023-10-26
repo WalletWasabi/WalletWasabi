@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
@@ -27,30 +28,32 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private ReceiveViewModel(IWalletModel wallet)
 	{
-		_wallet = wallet;
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		using (BenchmarkLogger.Measure(operationName: "Constructor of ReceiveViewModel"))
+		{
+			_wallet = wallet;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		EnableBack = false;
+			EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
+			SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
 
-		var nextCommandCanExecute =
-			SuggestionLabels
-				.WhenAnyValue(x => x.Labels.Count).ToSignal()
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).ToSignal())
-				.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
+			var nextCommandCanExecute =
+				SuggestionLabels
+					.WhenAnyValue(x => x.Labels.Count).ToSignal()
+					.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).ToSignal())
+					.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
 
-		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
-		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 
-		HasUnusedAddresses =
-			_wallet
-				.UnusedAddresses()
-				.ToCollection()
-				.Select(x => x.Any())
-				.StartWith(false);
+			AddressesModel = wallet.AddressesModel;
+
+			HasUnusedAddresses = _wallet.AddressesModel.HasUnusedAddresses.StartWith(false);
+		}
 	}
+
+	public IAddressesModel AddressesModel { get; }
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
