@@ -44,11 +44,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			});
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
