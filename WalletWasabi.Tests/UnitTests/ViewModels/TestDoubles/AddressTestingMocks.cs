@@ -27,20 +27,22 @@ internal class AddressTestingMocks
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
 		public IWalletAuthModel Auth => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
-		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
+		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
 		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
 		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 		public IObservable<Amount> Balances => throw new NotSupportedException();
-		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
-		public Network Network => throw new NotImplementedException();
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
-		public IAmountProvider AmountProvider => throw new NotImplementedException();
+		IWalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
+		public Network Network => throw new NotSupportedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
 		}
+
+		public IWalletStatsModel GetWalletStats() => throw new NotSupportedException();
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
@@ -85,6 +87,7 @@ internal class AddressTestingMocks
 		public IObservable<IChangeSet<IAddress, string>> UnusedAddresses => Addresses.AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed);
 		public IObservable<bool> HasUnusedAddresses => UnusedAddresses.AsObservableCache().CountChanged.Select(i => i > 0);
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+
 		public void Dispose()
 		{
 		}

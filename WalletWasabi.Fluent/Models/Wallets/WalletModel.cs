@@ -102,6 +102,11 @@ public partial class WalletModel : ReactiveObject
 		return new WalletInfoModel(Wallet);
 	}
 
+	public IWalletStatsModel GetWalletStats()
+	{
+		return new WalletStatsModel(this, Wallet);
+	}
+
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;

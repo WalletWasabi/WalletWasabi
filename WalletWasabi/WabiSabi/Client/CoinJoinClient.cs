@@ -90,7 +90,7 @@ public class CoinJoinClient
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
-					&& roundState.BlameOf == uint256.Zero
+					&& !roundState.IsBlame
 					&& roundState.Id != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
@@ -120,7 +120,7 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
-		if (!IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
+		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
@@ -143,13 +143,16 @@ public class CoinJoinClient
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
 
-			if (!IsRoundEconomic(roundParameters.MiningFeeRate))
+			if (!currentRoundState.IsBlame)
 			{
-				throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, "Uneconomical round skipped.");
-			}
-			if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
-			{
-				throw new CoinJoinClientException(CoinjoinError.RandomlySkippedRound, "Round skipped randomly for better privacy.");
+				if (!IsRoundEconomic(roundParameters.MiningFeeRate))
+				{
+					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, "Uneconomical round skipped.");
+				}
+				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
+				{
+					throw new CoinJoinClientException(CoinjoinError.RandomlySkippedRound, "Round skipped randomly for better privacy.");
+				}
 			}
 
 			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
