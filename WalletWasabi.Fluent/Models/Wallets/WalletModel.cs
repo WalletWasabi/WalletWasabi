@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
