@@ -129,10 +129,10 @@ public class CoinsRegistry : ICoinsView
 
 			hashSet.Add(coin);
 
+			UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 			InvalidateSnapshot = true;
 		}
 
-		UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
 		return added;
 	}
 
