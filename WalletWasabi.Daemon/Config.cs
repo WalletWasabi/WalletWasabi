@@ -26,22 +26,22 @@ public class Config
 				"The Bitcoin network to use: main, testnet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
 			[ nameof(MainNetBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is main",
+				"The backend server's URI to connect to when the Bitcoin network is main",
 				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs)),
 			[ nameof(TestNetBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is testnet",
+				"The backend server's URI to connect to when the Bitcoin network is testnet",
 				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs)),
 			[ nameof(RegTestBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is regtest",
+				"The backend server's URI to connect to when the Bitcoin network is regtest",
 				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
 			[ nameof(MainNetCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is main",
+				"The coordinator server's URI to connect to when the Bitcoin network is main",
 				GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
 			[ nameof(TestNetCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
+				"The coordinator server's URI to connect to when the Bitcoin network is testnet",
 				GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
 			[ nameof(RegTestCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
+				"The coordinator server's URI to connect to when the Bitcoin network is regtest",
 				GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
