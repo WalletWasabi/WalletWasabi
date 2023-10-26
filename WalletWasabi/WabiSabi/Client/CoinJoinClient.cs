@@ -120,7 +120,7 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
-		if (!IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
+		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
