@@ -25,19 +25,6 @@ public class Prison
 	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
 	private object Lock { get; } = new();
 
-	private void Punish(Offender offender)
-	{
-		lock (Lock)
-		{
-			Offenders.Add(offender);
-			BanningTimeCache.Remove(offender.OutPoint);
-		}
-		if (!NotificationChannelWriter.TryWrite(offender))
-		{
-			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
-		}
-	}
-
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotConfirm)));
 
@@ -131,5 +118,18 @@ public class Prison
 		};
 		BanningTimeCache[outpoint] = banningTime;
 		return banningTime;
+	}
+
+	private void Punish(Offender offender)
+	{
+		lock (Lock)
+		{
+			Offenders.Add(offender);
+			BanningTimeCache.Remove(offender.OutPoint);
+		}
+		if (!NotificationChannelWriter.TryWrite(offender))
+		{
+			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
+		}
 	}
 }
