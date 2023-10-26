@@ -17,6 +17,7 @@ public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
+	[AutoNotify] private bool _isLoggedIn;
 	private readonly ReadOnlyObservableCollection<IAddress> _addresses;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
@@ -64,8 +65,10 @@ public partial class WalletModel : ReactiveObject
 		State.Where(x => x == WalletState.Started)
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
-	}
 
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
+	}
+	
 	internal Wallet Wallet { get; }
 
 	public string Name => Wallet.WalletName;
