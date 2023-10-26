@@ -2,15 +2,12 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -22,10 +19,6 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
