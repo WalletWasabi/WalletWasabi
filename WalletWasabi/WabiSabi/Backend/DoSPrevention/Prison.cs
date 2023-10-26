@@ -69,13 +69,15 @@ public class Prison
 				offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
 			}
 
-			var maxOffense = offenderHistory.Max(
-				x => disruption switch
-				{
+			var maxOffense = offenderHistory
+				.Select(x => x.Offense)
+				.OfType<RoundDisruption>()
+				.Max( x => x switch {
 					{ Method: RoundDisruptionMethod.DidNotConfirm } => configuration.PenaltyFactorForDisruptingConfirmation,
 					{ Method: RoundDisruptionMethod.DidNotSign } => configuration.PenaltyFactorForDisruptingSigning,
 					{ Method: RoundDisruptionMethod.DoubleSpent } => configuration.PenaltyFactorForDisruptingByDoubleSpending,
 					{ Method: RoundDisruptionMethod.DidNotSignalReadyToSign } => configuration.PenaltyFactorForDisruptingSignalReadyToSign,
+
 					_ => throw new NotSupportedException("Unknown round disruption method.")
 				});
 
