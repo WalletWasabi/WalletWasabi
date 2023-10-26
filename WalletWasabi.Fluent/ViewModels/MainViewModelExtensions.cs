@@ -1,14 +1,9 @@
-﻿using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
-using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
