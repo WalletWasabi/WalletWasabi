@@ -220,14 +220,4 @@ public partial class MainViewModel : ViewModelBase
 
 		return searchBar;
 	}
-
-	private async Task<bool> AuthorizeForPasswordAsync(IWalletModel walletModel)
-	{
-		if (walletModel.Auth.HasPassword)
-		{
-			return await UiContext.Navigate().To().PasswordAuthDialog(walletModel).GetResultAsync();
-		}
-
-		return true;
-	}
 }
