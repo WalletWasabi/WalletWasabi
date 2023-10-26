@@ -22,7 +22,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -612,26 +611,4 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			return ret;
 		}
 	}
-}
-
-public class MockWasabiHttpClientFactory : IWasabiHttpClientFactory
-{
-	public Func<(PersonCircuit, IHttpClient)>? OnNewHttpClientWithPersonCircuit { get; set; }
-	public Func<IHttpClient>? OnNewHttpClientWithCircuitPerRequest { get; set; }
-	public Func<IHttpClient>? OnNewHttpClientWithDefaultCircuit { get; set; }
-
-	public (PersonCircuit, IHttpClient) NewHttpClientWithPersonCircuit() =>
-		OnNewHttpClientWithPersonCircuit?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClientWithCircuitPerRequest() =>
-		OnNewHttpClientWithCircuitPerRequest?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClientWithDefaultCircuit() =>
-		OnNewHttpClientWithDefaultCircuit?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithDefaultCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null) =>
-		throw new NotImplementedException();
 }
