@@ -160,9 +160,9 @@ public class CoinsRegistry : ICoinsView
 			}
 		}
 
-		foreach (var txId in coinsToRemove.Select(x => x.TransactionId).Distinct())
+		foreach (var txid in coinsToRemove.Select(x => x.TransactionId).Distinct())
 		{
-			if (!CoinsByTransactionId.TryGetValue(txId, out var coins))
+			if (!CoinsByTransactionId.TryGetValue(txid, out var coins))
 			{
 				continue;
 			}
@@ -174,15 +174,15 @@ public class CoinsRegistry : ICoinsView
 				continue;
 			}
 
-			if (!CoinsByTransactionId.Remove(txId, out _))
+			if (!CoinsByTransactionId.Remove(txid, out _))
 			{
-				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(CoinsByTransactionId)}.");
+				throw new InvalidOperationException($"Failed to remove '{txid}' from {nameof(CoinsByTransactionId)}.");
 			}
 
 			// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
 			// This cache can be really big and it's better to avoid .ToList().
 			var keysToRemove = new HashSet<OutPoint>();
-			foreach (var removedTxIdByInputPrevOut in TxIdsByPrevOuts.Where(x => x.Value.Equals(txId)))
+			foreach (var removedTxIdByInputPrevOut in TxIdsByPrevOuts.Where(x => x.Value.Equals(txid)))
 			{
 				keysToRemove.Add(removedTxIdByInputPrevOut.Key);
 			}
@@ -192,9 +192,9 @@ public class CoinsRegistry : ICoinsView
 				TxIdsByPrevOuts.Remove(keyToRemove);
 			}
 
-			if (!TransactionAmountsByTxid.Remove(txId))
+			if (!TransactionAmountsByTxid.Remove(txid))
 			{
-				throw new InvalidOperationException($"Failed to remove '{txId}' from {nameof(TransactionAmountsByTxid)}.");
+				throw new InvalidOperationException($"Failed to remove '{txid}' from {nameof(TransactionAmountsByTxid)}.");
 			}
 		}
 
