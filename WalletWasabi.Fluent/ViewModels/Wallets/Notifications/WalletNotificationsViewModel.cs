@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -23,8 +24,8 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 	public void StartListening()
 	{
 		UiContext.WalletRepository.Wallets
-								  .AutoRefresh(x => x.Auth.IsLoggedIn)
-								  .Filter(x => x.Auth.IsLoggedIn)
+								  .AutoRefresh(x => x.IsLoggedIn)
+								  .Filter(x => x.IsLoggedIn)
 								  .MergeMany(x => x.Transactions.NewTransactionArrived)
 								  .Where(x => !UiContext.ApplicationSettings.PrivacyMode)
 								  .Where(x => x.EventArgs.IsNews)
