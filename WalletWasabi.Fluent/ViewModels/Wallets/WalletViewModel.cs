@@ -36,23 +36,16 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		_title = WalletName;
 
-		Disposables =
-			Disposables is null
-			? new CompositeDisposable()
-			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, this, WalletModel);
 
 		walletModel.HasBalance
 				   .Select(x => !x)
-				   .BindTo(this, x => x.IsWalletBalanceZero)
-				   .DisposeWith(Disposables);
+				   .BindTo(this, x => x.IsWalletBalanceZero);
 
 		walletModel.Coinjoin.IsRunning
-							.BindTo(this, x => x.IsCoinJoining)
-							.DisposeWith(Disposables);
+			       .BindTo(this, x => x.IsCoinJoining);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
@@ -139,8 +132,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public ICommand WalletCoinsCommand { get; private set; }
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
-
-	private CompositeDisposable Disposables { get; set; }
 
 	public void NavigateAndHighlight(uint256 txid)
 	{

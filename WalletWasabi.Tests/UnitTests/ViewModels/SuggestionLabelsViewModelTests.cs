@@ -1,11 +1,8 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Threading.Tasks;
-using DynamicData;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -170,7 +167,7 @@ public class SuggestionLabelsViewModelTests
 
 		public string Name => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
+		public ReadOnlyObservableCollection<IAddress> Addresses => throw new NotSupportedException();
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 

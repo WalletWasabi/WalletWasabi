@@ -699,8 +699,7 @@ public partial class LineChart : Control
 		};
 	}
 
-	private static Point AlignYAxisLabelOffset(Point offsetCenter, double height, int index, int count,
-		LabelAlignment alignment)
+	private static Point AlignYAxisLabelOffset(Point offsetCenter, double height, int index, int count, LabelAlignment alignment)
 	{
 		var isFirst = index == 0;
 		var isLast = index == count - 1;
