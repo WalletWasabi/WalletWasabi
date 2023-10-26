@@ -63,16 +63,20 @@ public class Prison
 		{
 			var basePunishmentInHours = configuration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
 
-			List<Offender> offenderHistory;
+			List<RoundDisruption> offenderHistory;
 			lock (Lock)
 			{
-				offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
+				offenderHistory = Offenders
+					.Where(x => x.OutPoint == offender.OutPoint)
+					.Select(x => x.Offense)
+					.OfType<RoundDisruption>()
+					.ToList();
+
 			}
 
-			var maxOffense = offenderHistory
-				.Select(x => x.Offense)
-				.OfType<RoundDisruption>()
-				.Max( x => x switch {
+			var maxOffense = offenderHistory.Count == 0
+				? 1
+				: offenderHistory.Max( x => x switch {
 					{ Method: RoundDisruptionMethod.DidNotConfirm } => configuration.PenaltyFactorForDisruptingConfirmation,
 					{ Method: RoundDisruptionMethod.DidNotSign } => configuration.PenaltyFactorForDisruptingSigning,
 					{ Method: RoundDisruptionMethod.DoubleSpent } => configuration.PenaltyFactorForDisruptingByDoubleSpending,
@@ -118,6 +122,7 @@ public class Prison
 			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
 			_ => throw new NotSupportedException("Unknown offense type.")
 		};
+
 		BanningTimeCache[outpoint] = banningTime;
 		return banningTime;
 	}
