@@ -32,7 +32,7 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
-	/// <summary>Maps each outpoint to transactions (i.e. TxIds) that exist thanks to the outpoint. The values are also stored as keys in <see cref="CoinsByTransactionId"/>.</summary>
+	/// <summary>Maps each outpoint to transactions (i.e. TxIds) that exist thanks to the outpoint.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<OutPoint, uint256> TxIdsByPrevOuts { get; } = new();
 
