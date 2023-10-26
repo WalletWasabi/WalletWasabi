@@ -1,11 +1,9 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -13,29 +11,23 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private IWalletModel _wallet;
 
-	// TODO: Remove the WalletViewModel parameter
-	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction, WalletViewModel walletVm) : base(transaction)
+	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
 	{
 		_wallet = wallet;
-		WalletVm = walletVm;
 
-		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(walletVm.WalletModel, transaction.TransactionSummary));
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction.TransactionSummary));
 		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(transaction.CanSpeedUpTransaction));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
 	}
 
 	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction;
 
-	public WalletViewModel WalletVm { get; }
-	public Wallet Wallet => WalletVm.Wallet;
-	public KeyManager KeyManager => Wallet.KeyManager;
-
 	private void OnSpeedUpTransaction(TransactionModel transaction)
 	{
 		try
 		{
-			var (transactionToSpeedUp, boostingTransaction) = _wallet.Transactions.CreateSpeedUpTransaction(transaction);
-			UiContext.Navigate().To().SpeedUpTransactionDialog(WalletVm.UiTriggers, WalletVm.Wallet, transactionToSpeedUp, boostingTransaction);
+			var speedupTransaction = _wallet.Transactions.CreateSpeedUpTransaction(transaction);
+			UiContext.Navigate().To().SpeedUpTransactionDialog(_wallet, speedupTransaction);
 		}
 		catch (Exception ex)
 		{
@@ -49,7 +41,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		try
 		{
 			var cancellingTransaction = _wallet.Transactions.CreateCancellingTransaction(transaction);
-			UiContext.Navigate().To().CancelTransactionDialog(WalletVm.UiTriggers, Wallet, transaction.TransactionSummary.Transaction, cancellingTransaction);
+			UiContext.Navigate().To().CancelTransactionDialog(_wallet, cancellingTransaction);
 		}
 		catch (Exception ex)
 		{

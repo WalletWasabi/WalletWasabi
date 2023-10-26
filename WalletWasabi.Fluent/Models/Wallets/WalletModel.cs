@@ -6,7 +6,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -30,7 +29,7 @@ public partial class WalletModel : ReactiveObject
 		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
 		_coins = new(() => new WalletCoinsModel(wallet, this));
 
-		Transactions = new WalletTransactionsModel(wallet);
+		Transactions = new WalletTransactionsModel(this, wallet);
 
 		Addresses =
 			Observable.Defer(() => GetAddresses().ToObservable())
