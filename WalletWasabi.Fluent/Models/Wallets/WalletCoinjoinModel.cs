@@ -70,4 +70,8 @@ public partial class WalletCoinjoinModel
 	{
 		await _coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 	}
+
+	public void ForceStart()
+	{
+	}
 }

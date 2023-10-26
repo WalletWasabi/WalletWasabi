@@ -104,8 +104,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			if (wallet.Settings.IsCoinjoinProfileSelected)
 			{
-				var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
-				await wallet.Coinjoin.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
+				var overrideSkipRounds = _stateMachine.IsInState(State.WaitingForCheaperCoinjoin);
+
+				if (overrideSkipRounds)
+				{
+					wallet.Coinjoin.ForceStart();
+				}
+				else
+				{
+					var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
+					await wallet.Coinjoin.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
+				}
 			}
 		});
 
@@ -154,6 +163,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Playing,
 		PlebStopActive,
 		WaitingForAutoStart,
+		WaitingForCheaperCoinjoin
 	}
 
 	private enum Trigger
@@ -166,7 +176,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlebStopChanged,
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
-		AutoCoinJoinOff
+		AutoCoinJoinOff,
+		RoundSkipActivated
 	}
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
@@ -229,6 +240,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.Playing)
 			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
+			.Permit(Trigger.RoundSkipActivated, State.WaitingForCheaperCoinjoin)
 			.OnEntry(() =>
 			{
 				PlayVisible = false;
@@ -238,6 +250,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = WaitingMessage;
 			})
 			.OnTrigger(Trigger.Tick, UpdateCountDown);
+
+		_stateMachine.Configure(State.WaitingForCheaperCoinjoin)
+			.SubstateOf(State.Playing)
+			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
+			.OnEntry(() =>
+			{
+				PlayVisible = true;
+				PauseVisible = IsAutoCoinJoinEnabled;
+				StopVisible = !IsAutoCoinJoinEnabled;
+			});
 
 		_stateMachine.Configure(State.PlebStopActive)
 			.Permit(Trigger.BalanceChanged, State.Playing)
