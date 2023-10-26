@@ -122,5 +122,10 @@ public class ReceiveAddressViewModelTests
 		{
 			throw new NotSupportedException();
 		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

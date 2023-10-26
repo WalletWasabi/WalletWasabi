@@ -55,9 +55,12 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			if (member is IPropertySymbol property)
 			{
 				var accessors =
-					property.SetMethod is { }
-					? "{ get; set; }"
-					: "{ get; }";
+					property.SetMethod switch
+					{
+						IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
+						IMethodSymbol s                   => "{ get; set; }",
+						_                                 => "{ get; }"
+					};
 
 				var type = property.Type.SimplifyType(namespaces);
 				properties.Add($"\t{type} {property.Name} {accessors}");

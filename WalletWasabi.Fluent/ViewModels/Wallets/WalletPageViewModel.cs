@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -85,7 +86,15 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWallet()
 	{
-		WalletViewModel = WalletViewModel.Create(UiContext, this);
+		WalletViewModel =
+			WalletModel.IsHardwareWallet
+			? new HardwareWalletViewModel(UiContext, WalletModel, Wallet)
+			: new WalletViewModel(UiContext, WalletModel, Wallet);
+
+		// Pass IsSelected down to WalletViewModel.IsSelected
+		this.WhenAnyValue(x => x.IsSelected)
+			.BindTo(WalletViewModel, x => x.IsSelected);
+
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
 	}
@@ -115,7 +124,7 @@ public partial class WalletPageViewModel : ViewModelBase
 			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", async () => UiContext.Navigate().To().CoinJoinSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Settings", "Display wallet settings", async () => UiContext.Navigate().To().WalletSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
 			new ActionableItem("Wallet Coins", "Display wallet coins", async () => UiContext.Navigate().To().WalletCoins(WalletModel), "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 5 },
-			new ActionableItem("Wallet Stats", "Display wallet stats", async () => UiContext.Navigate().To().WalletStats(WalletViewModel!), "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
+			new ActionableItem("Wallet Stats", "Display wallet stats", async () => UiContext.Navigate().To().WalletStats(WalletModel), "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
 			new ActionableItem("Wallet Info", "Display wallet info", async () => UiContext.Navigate().To().WalletInfo(WalletModel), "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
 		};
 	}

@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
@@ -22,11 +21,10 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using Constants = WalletWasabi.Helpers.Constants;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Userfacing.Bip21;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -63,6 +61,7 @@ public partial class SendViewModel : RoutableViewModel
 		UiContext = uiContext;
 		WalletVm = walletVm;
 		_to = "";
+
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
@@ -110,7 +109,8 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () =>
 			{
 				var labelDialog = new LabelEntryDialogViewModel(WalletVm.WalletModel, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);

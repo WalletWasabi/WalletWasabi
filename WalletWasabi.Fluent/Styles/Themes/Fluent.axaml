@@ -5,6 +5,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CaptionButtons.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
@@ -32,6 +33,7 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TileButton.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AmountControl.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
       <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />

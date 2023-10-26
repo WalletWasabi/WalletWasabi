@@ -2,15 +2,12 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -22,10 +19,6 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -230,97 +223,6 @@ public partial class MainViewModel : ViewModelBase
 		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel(UiContext));
 		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(UiContext));
 		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(UiContext));
-
-		WalletCoinsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return new WalletCoinsViewModel(UiContext, walletViewModel.WalletModel);
-			}
-
-			return null;
-		});
-
-		CoinJoinSettingsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel) && !walletViewModel.IsWatchOnly)
-			{
-				return walletViewModel.CoinJoinSettings;
-			}
-
-			return null;
-		});
-
-		WalletSettingsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return walletViewModel.Settings;
-			}
-
-			return null;
-		});
-
-		WalletStatsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return new WalletStatsViewModel(UiContext, walletViewModel);
-			}
-
-			return null;
-		});
-
-		WalletInfoViewModel.RegisterAsyncLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				async Task<RoutableViewModel?> AuthorizeWalletInfo()
-				{
-					if (!string.IsNullOrEmpty(walletViewModel.Wallet.Kitchen.SaltSoup()))
-					{
-						// TODO: Remove reference to WalletRepository when this ViewModel is Decoupled
-						// TODO: Why is this code duplicated?
-						var pwAuthDialog = new PasswordAuthDialogViewModel(walletViewModel.WalletModel);
-						var dialogResult = await UiContext.Navigate().NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
-
-						if (!dialogResult.Result)
-						{
-							return null;
-						}
-					}
-
-					return new WalletInfoViewModel(UiContext, walletViewModel.WalletModel);
-				}
-
-				return AuthorizeWalletInfo();
-			}
-
-			Task<RoutableViewModel?> NoWalletInfo() => Task.FromResult<RoutableViewModel?>(null);
-
-			return NoWalletInfo();
-		});
-
-		SendViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				// TODO: Check if we can send?
-				return new SendViewModel(UiContext, walletViewModel);
-			}
-
-			return null;
-		});
-
-		ReceiveViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return new ReceiveViewModel(UiContext, walletViewModel.WalletModel);
-			}
-
-			return null;
-		});
 	}
 
 	public void ApplyUiConfigWindowState()
