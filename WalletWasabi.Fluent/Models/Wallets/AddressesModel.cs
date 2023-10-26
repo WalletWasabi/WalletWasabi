@@ -30,7 +30,7 @@ public partial class AddressesModel : IDisposable
 		var unusedAddresses = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed);
 		UnusedAddresses = unusedAddresses;
 		var unusedCache = unusedAddresses.AsObservableCache().DisposeWith(_disposable);
-		HasUnusedAddresses = unusedCache.CountChanged.Select(i => i > 1);
+		HasUnusedAddresses = unusedCache.CountChanged.Select(i => i > 0);
 	}
 
 	public IObservable<IChangeSet<IAddress, string>> UnusedAddresses { get; }
