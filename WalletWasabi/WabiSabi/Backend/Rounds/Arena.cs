@@ -487,7 +487,7 @@ public partial class Arena : PeriodicRunner
 		var feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
-			.Where(x => !Prison.IsBanned(x, DateTimeOffset.UtcNow))
+			.Where(x => !Prison.IsBanned(x, Config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
 			.ToHashSet();
 
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
