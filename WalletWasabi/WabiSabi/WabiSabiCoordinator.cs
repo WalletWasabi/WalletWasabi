@@ -104,7 +104,7 @@ public class WabiSabiCoordinator : BackgroundService
 	{
 		var now = DateTimeOffset.UtcNow;
 
-		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, now);
+		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, Config.GetDoSConfiguration(), now);
 		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
 
 		var outpointsToBan = block.Transactions
