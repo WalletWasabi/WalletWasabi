@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
@@ -114,13 +113,5 @@ public partial class WalletModel : ReactiveObject
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);
-	}
-
-	private IEnumerable<IAddress> GetAddresses()
-	{
-		return Wallet.KeyManager
-			.GetKeys()
-			.Reverse()
-			.Select(x => new Address(Wallet.KeyManager, x));
 	}
 }
