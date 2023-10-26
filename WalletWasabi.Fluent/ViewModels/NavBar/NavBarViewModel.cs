@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -9,8 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
-using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar;
@@ -21,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
-	[AutoNotify] private IWalletModel _selectedWalletModel;
+	private IWalletModel? _selectedWalletModel;
 
 	public NavBarViewModel(UiContext uiContext)
 	{
@@ -43,6 +40,13 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets { get; }
+
+	// AutoInterfaces (such as IWalletModel) cannot be seen by AutoNotifyGenerator.
+	public IWalletModel? SelectedWalletModel
+	{
+		get => _selectedWalletModel;
+		set => this.RaiseAndSetIfChanged(ref _selectedWalletModel, value);
+	}
 
 	public void Activate()
 	{
