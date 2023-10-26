@@ -9,22 +9,15 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
-using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -58,7 +51,8 @@ public partial class MainViewModel : ViewModelBase
 		PrivacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
 
 		NavigationManager.RegisterType(NavBar);
-		RegisterViewModels();
+
+		this.RegisterAllViewModels(UiContext);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await NavBar.InitialiseAsync());
 
@@ -196,130 +190,6 @@ public partial class MainViewModel : ViewModelBase
 		}
 	}
 
-	private void RegisterViewModels()
-	{
-		PrivacyModeViewModel.Register(PrivacyMode);
-		AddWalletPageViewModel.RegisterLazy(() => new AddWalletPageViewModel(UiContext));
-		SettingsPageViewModel.Register(SettingsPage);
-
-		GeneralSettingsTabViewModel.RegisterLazy(() =>
-		{
-			SettingsPage.SelectedTab = 0;
-			return SettingsPage;
-		});
-
-		BitcoinTabSettingsViewModel.RegisterLazy(() =>
-		{
-			SettingsPage.SelectedTab = 1;
-			return SettingsPage;
-		});
-
-		AdvancedSettingsTabViewModel.RegisterLazy(() =>
-		{
-			SettingsPage.SelectedTab = 2;
-			return SettingsPage;
-		});
-
-		AboutViewModel.RegisterLazy(() => new AboutViewModel(UiContext));
-		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(UiContext));
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(UiContext));
-		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel(UiContext));
-		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel(UiContext));
-		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel(UiContext));
-		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(UiContext));
-		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(UiContext));
-		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel(UiContext));
-		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(UiContext));
-		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(UiContext));
-
-		WalletCoinsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return new WalletCoinsViewModel(UiContext, walletViewModel.WalletModel);
-			}
-
-			return null;
-		});
-
-		CoinJoinSettingsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel) && !walletViewModel.IsWatchOnly)
-			{
-				return walletViewModel.CoinJoinSettings;
-			}
-
-			return null;
-		});
-
-		WalletSettingsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return walletViewModel.Settings;
-			}
-
-			return null;
-		});
-
-		WalletStatsViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return new WalletStatsViewModel(UiContext, walletViewModel.WalletModel);
-			}
-
-			return null;
-		});
-
-		WalletInfoViewModel.RegisterAsyncLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				async Task<RoutableViewModel?> AuthorizeWalletInfo()
-				{
-					if (walletViewModel.WalletModel.Auth.HasPassword)
-					{
-						var dialogResult = await UiContext.Navigate().To().PasswordAuthDialog(walletViewModel.WalletModel).GetResultAsync();
-						if (!dialogResult)
-						{
-							return null;
-						}
-					}
-
-					return new WalletInfoViewModel(UiContext, walletViewModel.WalletModel);
-				}
-
-				return AuthorizeWalletInfo();
-			}
-
-			Task<RoutableViewModel?> NoWalletInfo() => Task.FromResult<RoutableViewModel?>(null);
-
-			return NoWalletInfo();
-		});
-
-		SendViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				// TODO: Check if we can send?
-				return new SendViewModel(UiContext, walletViewModel);
-			}
-
-			return null;
-		});
-
-		ReceiveViewModel.RegisterLazy(() =>
-		{
-			if (UiServices.WalletManager.TryGetSelectedAndLoggedInWalletViewModel(out var walletViewModel))
-			{
-				return new ReceiveViewModel(UiContext, walletViewModel.WalletModel);
-			}
-
-			return null;
-		});
-	}
-
 	public void ApplyUiConfigWindowState()
 	{
 		WindowState = UiContext.ApplicationSettings.WindowState;
@@ -349,5 +219,15 @@ public partial class MainViewModel : ViewModelBase
 			.Subscribe(querySubject);
 
 		return searchBar;
+	}
+
+	private async Task<bool> AuthorizeForPasswordAsync(IWalletModel walletModel)
+	{
+		if (walletModel.Auth.HasPassword)
+		{
+			return await UiContext.Navigate().To().PasswordAuthDialog(walletModel).GetResultAsync();
+		}
+
+		return true;
 	}
 }

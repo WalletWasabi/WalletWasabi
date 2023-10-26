@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
+	[AutoNotify] private IWalletModel _selectedWalletModel;
 
 	public NavBarViewModel(UiContext uiContext)
 	{
@@ -63,6 +64,10 @@ public partial class NavBarViewModel : ViewModelBase, IWalletNavigation
 				}
 			})
 			.Subscribe();
+
+		this.WhenAnyValue(x => x.SelectedWallet)
+			.Select(x => x?.WalletViewModel?.WalletModel)
+			.BindTo(this, x => x.SelectedWalletModel);
 
 		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName);
 	}
