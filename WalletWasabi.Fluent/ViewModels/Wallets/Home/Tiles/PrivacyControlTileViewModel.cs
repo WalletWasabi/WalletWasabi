@@ -47,7 +47,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		_wallet.Privacy.Progress
 					   .CombineLatest(_wallet.Privacy.IsWalletPrivate)
-					   .CombineLatest(_wallet.Coins.List.ToObservableChangeSet(x => x.Key).ToCollection())
+					   .CombineLatest(_wallet.Coins.List.ToObservableChangeSet(x => x.Key).StartWithEmpty().ToCollection())
 					   .Flatten()
 					   .Do(tuple =>
 					   {
