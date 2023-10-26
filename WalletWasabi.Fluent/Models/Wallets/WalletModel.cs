@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
@@ -126,4 +127,8 @@ public partial class WalletModel : ReactiveObject
 			.Reverse()
 			.Select(x => new Address(Wallet.KeyManager, x));
 	}
+}
+
+public partial interface IWalletModel : INotifyPropertyChanged
+{
 }

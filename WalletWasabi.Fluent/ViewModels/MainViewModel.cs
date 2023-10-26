@@ -2,11 +2,16 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,6 +20,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -40,12 +46,11 @@ public partial class MainViewModel : ViewModelBase
 
 		NavBar.Activate();
 
-		UiServices.Initialize(UiContext);
-
 		StatusIcon = new StatusIconViewModel(UiContext.TorStatusChecker);
 
 		SettingsPage = new SettingsPageViewModel(UiContext);
 		PrivacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
+		Notifications = new WalletNotificationsViewModel(UiContext, NavBar);
 
 		NavigationManager.RegisterType(NavBar);
 
@@ -124,6 +129,7 @@ public partial class MainViewModel : ViewModelBase
 	public StatusIconViewModel StatusIcon { get; }
 	public SettingsPageViewModel SettingsPage { get; }
 	public PrivacyModeViewModel PrivacyMode { get; }
+	public WalletNotificationsViewModel Notifications { get; }
 
 	public static MainViewModel Instance { get; private set; }
 
@@ -180,6 +186,8 @@ public partial class MainViewModel : ViewModelBase
 								  .ToCollection()
 								  .Select(x => x.Any())
 								  .BindTo(this, x => x.IsCoinJoinActive);
+
+		Notifications.StartListening();
 
 		if (UiContext.ApplicationSettings.Network != Network.Main)
 		{
