@@ -110,7 +110,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Invalid Recovery Words. Confirm they're spelled right, sequenced correctly, and aligned with the total count you have.");
+		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
 	}
 
 	private string GetTagsAsConcatString()
