@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive;
 using DynamicData;
 using Moq;
@@ -97,6 +98,10 @@ public class ReceiveAddressViewModelTests
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
 		public IAmountProvider AmountProvider => throw new NotImplementedException();
+
+		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

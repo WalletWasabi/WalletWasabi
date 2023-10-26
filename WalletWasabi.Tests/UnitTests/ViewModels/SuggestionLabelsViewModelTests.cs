@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -160,6 +161,8 @@ public class SuggestionLabelsViewModelTests
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
 
+		public event PropertyChangedEventHandler? PropertyChanged;
+
 		public TestWallet(List<(string Label, int Score)> mostUsedLabels)
 		{
 			_mostUsedLabels = mostUsedLabels;
@@ -198,6 +201,8 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 
 		public IAmountProvider AmountProvider => throw new NotImplementedException();
+
+		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

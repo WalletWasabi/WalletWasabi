@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using DynamicData;
@@ -100,6 +101,10 @@ public class ReceiveViewModelTests
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
 
 		public IAmountProvider AmountProvider => throw new NotImplementedException();
+
+		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
