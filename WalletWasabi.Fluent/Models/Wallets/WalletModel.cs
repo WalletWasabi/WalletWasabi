@@ -1,10 +1,10 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -16,6 +16,7 @@ public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
+	private readonly ReadOnlyObservableCollection<IAddress> _addresses;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -31,10 +32,10 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		Addresses =
-			Observable.Defer(() => GetAddresses().ToObservable())
-					  .Concat(Transactions.TransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-					  .ToObservableChangeSet(x => x.Text);
+		new SignaledFetcher<IAddress, string>(Transactions.TransactionProcessed, x => x.Text, GetAddresses)
+			.Changes
+			.Bind(out _addresses)
+			.Subscribe();
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -88,7 +89,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
 
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+	public ReadOnlyObservableCollection<IAddress> Addresses => _addresses;
 
 	public IObservable<WalletState> State { get; }
 

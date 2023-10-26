@@ -1,15 +1,12 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using Moq;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
@@ -58,23 +55,16 @@ public class ReceiveAddressViewModelTests
 		Mock.Get(ns).Verify(x => x.Back(), Times.Once);
 	}
 
-	private static IWalletModel WalletWithAddresses(TestAddress address)
+	private static IWalletModel WalletWithAddresses(IAddress address)
 	{
-		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(a => true, true).AutoRefresh(null, null, null));
-	}
-
-	private static ISourceCache<IAddress, string> AddressList(params IAddress[] addresses)
-	{
-		var cache = new SourceCache<IAddress, string>(s => s.Text);
-		cache.PopulateFrom(addresses.ToObservable());
-		return cache;
+		return Mock.Of<IWalletModel>(x => x.Addresses == new ReadOnlyObservableCollection<IAddress>(new ObservableCollection<IAddress>(new List<IAddress> { address })));
 	}
 
 	private class TestWallet : IWalletModel
 	{
 		public string Name => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
+		public ReadOnlyObservableCollection<IAddress> Addresses => new(new ObservableCollection<IAddress>());
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 

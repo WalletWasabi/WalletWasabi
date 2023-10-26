@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
-using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Wallets;
 using Xunit;
-using TransactionSummary = WalletWasabi.Blockchain.Transactions.TransactionSummary;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
@@ -61,14 +59,20 @@ public class ReceiveViewModelTests
 	{
 		public TestWallet(IConnectableCache<IAddress, string> addresses)
 		{
-			Addresses = addresses.Connect();
+			addresses
+				.Connect()
+				.Bind(out var addressesCollection)
+				.Subscribe();
+
+			Addresses = addressesCollection;
 		}
 
 		public string Name => throw new NotSupportedException();
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
 
-		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+		public ReadOnlyObservableCollection<IAddress> Addresses { get; }
+
 		public bool IsHardwareWallet => throw new NotSupportedException();
 
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
