@@ -73,5 +73,6 @@ public partial class WalletCoinjoinModel
 
 	public void ForceStart()
 	{
+		_coinJoinManager.DisallowSkipRoundsOn(_wallet.WalletName);
 	}
 }

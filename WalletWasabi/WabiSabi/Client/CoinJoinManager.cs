@@ -64,6 +64,9 @@ public class CoinJoinManager : BackgroundService
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
+	private HashSet<string> DisallowSkipRoundsByWallets { get; } = new();
+	private object _skipRoundsLock = new();
+
 	#region Public API (Start | Stop | TryGetWalletStatus)
 
 	public async Task StartAsync(IWallet wallet, IWallet outputWallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken)
@@ -93,6 +96,14 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	#endregion Public API (Start | Stop | TryGetWalletStatus)
+
+	public void DisallowSkipRoundsOn(string walletName)
+	{
+		lock (_skipRoundsLock)
+		{
+			DisallowSkipRoundsByWallets.Add(walletName);
+		}
+	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -223,7 +234,13 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var disallowSkipRounds = false;
+			lock (_skipRoundsLock)
+			{
+				disallowSkipRounds = DisallowSkipRoundsByWallets.Contains(walletToStart.WalletName);
+			}
+
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, disallowSkipRounds).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{

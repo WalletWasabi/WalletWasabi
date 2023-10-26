@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
@@ -29,7 +30,7 @@ public class CoinJoinTrackerFactory
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop, bool disallowSkipRounds)
 	{
 		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
@@ -47,8 +48,8 @@ public class CoinJoinTrackerFactory
 			CoordinatorIdentifier,
 			coinSelector,
 			LiquidityClueProvider,
-			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
-			skipFactors: wallet.CoinjoinSkipFactors,
+			feeRateMedianTimeFrame: disallowSkipRounds ? TimeSpan.Zero : wallet.FeeRateMedianTimeFrame,
+			skipFactors: disallowSkipRounds ? CoinjoinSkipFactors.NoSkip : wallet.CoinjoinSkipFactors,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, CancellationToken);
