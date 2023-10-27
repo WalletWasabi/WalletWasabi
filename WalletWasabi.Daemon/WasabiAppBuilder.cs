@@ -45,46 +45,7 @@ public class WasabiApplication
 		}
 		if (AppConfig.Arguments.Contains("--help"))
 		{
-			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
-			Console.WriteLine($"Usage: {AppConfig.AppName} [OPTION]...");
-			Console.WriteLine();
-			Console.WriteLine("Available options are:");
-
-			static string[] Split(string text)
-			{
-				static void InternalSlip(string text, List<string> result)
-				{
-					if (text.Length < 40)
-					{
-						result.Add(text);
-						return;
-					}
-					var line = text
-						.Split(' ')
-						.Scan(string.Empty, (l, w) => l + w + ' ')
-						.TakeWhile(l => l.Length <= 40)
-						.DefaultIfEmpty(text)
-						.Last();
-					result.Add(line);
-					InternalSlip(text[(line.Length)..], result);
-				}
-
-				List<string> result = new();
-				InternalSlip(text, result);
-				return result.ToArray();
-			}
-
-			foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.Item1))
-			{
-				Console.Write($"  --{parameter.ToLower(),-30} ");
-				var hintLines = Split(hint);
-				Console.WriteLine(hintLines[0]);
-				foreach (var hintLine in hintLines.Skip(1))
-				{
-					Console.WriteLine($"{' ',-35}{hintLine}");
-				}
-				Console.WriteLine();
-			}
+			ShowHelp();
 			return ExitCode.Ok;
 		}
 
@@ -187,6 +148,50 @@ public class WasabiApplication
 			? parsedLevel
 			: LogLevel.Info;
 		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel);
+	}
+
+	private void ShowHelp()
+	{
+		Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+		Console.WriteLine($"Usage: {AppConfig.AppName} [OPTION]...");
+		Console.WriteLine();
+		Console.WriteLine("Available options are:");
+
+		static string[] Split(string text)
+		{
+			static void InternalSlip(string text, List<string> result)
+			{
+				if (text.Length < 40)
+				{
+					result.Add(text);
+					return;
+				}
+				var line = text
+					.Split(' ')
+					.Scan(string.Empty, (l, w) => l + w + ' ')
+					.TakeWhile(l => l.Length <= 40)
+					.DefaultIfEmpty(text)
+					.Last();
+				result.Add(line);
+				InternalSlip(text[(line.Length)..], result);
+			}
+
+			List<string> result = new();
+			InternalSlip(text, result);
+			return result.ToArray();
+		}
+
+		foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.Item1))
+		{
+			Console.Write($"  --{parameter.ToLower(),-30} ");
+			var hintLines = Split(hint);
+			Console.WriteLine(hintLines[0]);
+			foreach (var hintLine in hintLines.Skip(1))
+			{
+				Console.WriteLine($"{' ',-35}{hintLine}");
+			}
+			Console.WriteLine();
+		}
 	}
 }
 
