@@ -17,6 +17,7 @@ using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi;
 
@@ -122,6 +123,17 @@ public class WabiSabiCoordinator : BackgroundService
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
 		var outPoints = tx.Inputs.Select(x => x.PrevOut);
+
+		var finishedCoinjoinIds = Arena.RoundStates
+			.Select(x => x.CoinjoinState)
+			.OfType<SigningState>()
+			.Where(x => x.IsFullySigned)
+			.Select(x => x.CreateUnsignedTransaction().GetHash());
+
+		if (finishedCoinjoinIds.Contains(tx.GetHash()))
+		{
+			return;
+		}
 
 		// Detect and punish double spending coins
 		var disrupters = Arena.RoundStates
