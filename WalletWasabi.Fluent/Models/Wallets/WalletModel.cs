@@ -95,6 +95,8 @@ public partial class WalletModel : ReactiveObject
 
 	public IAmountProvider AmountProvider { get; }
 
+	public TransactionFeeProvider TransactionFeeProvider => Wallet.TransactionFeeProvider;
+
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
 		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);

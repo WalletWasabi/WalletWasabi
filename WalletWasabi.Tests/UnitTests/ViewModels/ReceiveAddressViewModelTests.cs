@@ -108,6 +108,8 @@ public class ReceiveAddressViewModelTests
 
 		public IAmountProvider AmountProvider => throw new NotImplementedException();
 
+		public TransactionFeeProvider TransactionFeeProvider => throw new NotImplementedException();
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();

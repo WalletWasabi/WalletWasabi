@@ -91,6 +91,8 @@ public class ReceiveViewModelTests
 
 		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
 
+		public TransactionFeeProvider TransactionFeeProvider => throw new NotImplementedException();
+
 		public Network Network => throw new NotImplementedException();
 
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
