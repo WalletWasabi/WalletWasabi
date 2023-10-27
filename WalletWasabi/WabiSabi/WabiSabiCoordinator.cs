@@ -108,6 +108,7 @@ public class WabiSabiCoordinator : BackgroundService
 		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
 
 		var outpointsToBan = block.Transactions
+			.Where(tx => !CoinJoinIdStore.Contains(tx.GetHash()))  // We don't ban coinjoin outputs
 			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
 			.Where(x => x.BannedInputs.Any())
 			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
