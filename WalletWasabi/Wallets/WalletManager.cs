@@ -259,6 +259,7 @@ public class WalletManager : IWalletProvider
 		}
 
 		wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+		wallet.WalletRelevantTransactionProcessed += TransactionFeeProvider.WalletRelevantTransactionProcessed;
 		wallet.StateChanged += Wallet_StateChanged;
 
 		WalletAdded?.Invoke(this, wallet);
@@ -301,6 +302,7 @@ public class WalletManager : IWalletProvider
 				cancel.ThrowIfCancellationRequested();
 
 				wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+				wallet.WalletRelevantTransactionProcessed -= TransactionFeeProvider.WalletRelevantTransactionProcessed;
 				wallet.StateChanged -= Wallet_StateChanged;
 
 				lock (Lock)
