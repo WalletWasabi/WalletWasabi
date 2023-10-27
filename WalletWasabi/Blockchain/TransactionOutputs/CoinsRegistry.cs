@@ -32,11 +32,11 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
-	/// <summary>Maps each outpoint to transactions (i.e. TxIds) that exist thanks to the outpoint.</summary>
+	/// <summary>Maps each outpoint to transaction IDs (i.e. txids) that exist thanks to the outpoint.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, uint256> TxIdsByPrevOuts { get; } = new();
+	private Dictionary<OutPoint, uint256> TxidsByPrevOuts { get; } = new();
 
-	/// <summary>Maps each TxId to smart coins (i.e. UTXOs).</summary>
+	/// <summary>Maps each txid to smart coins (i.e. UTXOs).</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private Dictionary<uint256, HashSet<SmartCoin>> CoinsByTransactionId { get; } = new();
 
@@ -123,7 +123,7 @@ public class CoinsRegistry : ICoinsView
 				// This only has to be added once per transaction.
 				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 				{
-					TxIdsByPrevOuts[input.PrevOut] = coin.TransactionId;
+					TxidsByPrevOuts[input.PrevOut] = coin.TransactionId;
 				}
 			}
 
@@ -181,10 +181,9 @@ public class CoinsRegistry : ICoinsView
 				throw new InvalidOperationException($"Failed to remove '{txid}' from {nameof(CoinsByTransactionId)}.");
 			}
 
-			// Remove the prevOut of the inputs of the transaction from TxIdsByInputsPrevOut cache.
 			foreach (TxIn input in tx.Transaction.Inputs)
 			{
-				TxIdsByPrevOuts.Remove(input.PrevOut);
+				TxidsByPrevOuts.Remove(input.PrevOut);
 			}
 
 			if (!TransactionAmountsByTxid.Remove(txid))
@@ -260,13 +259,13 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		if (!TxIdsByPrevOuts.TryGetValue(prevOut, out var txId))
+		if (!TxidsByPrevOuts.TryGetValue(prevOut, out var txid))
 		{
 			coins = null;
 			return false;
 		}
 
-		return CoinsByTransactionId.TryGetValue(txId, out coins);
+		return CoinsByTransactionId.TryGetValue(txid, out coins);
 	}
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
