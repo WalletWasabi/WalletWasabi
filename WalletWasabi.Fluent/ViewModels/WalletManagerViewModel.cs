@@ -59,15 +59,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 			});
 	}
 
-	public bool TryGetSelectedAndLoggedInWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
-	{
-		// TODO: Temporary Workaround
-		// Remove soon
-		walletViewModel =
-			MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.IsSelected)?.WalletViewModel;
-		return walletViewModel is { };
-	}
-
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
 		if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel.WalletViewModel is { } result)

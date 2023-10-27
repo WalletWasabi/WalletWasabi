@@ -18,9 +18,9 @@ public static class NotificationHelpers
 	private const int DefaultNotificationTimeout = 10;
 	private static WindowNotificationManager? NotificationManager;
 
-	public static void SetNotificationManager(Window host)
+	public static void SetNotificationManager(Visual host)
 	{
-		var notificationManager = new WindowNotificationManager(host)
+		var notificationManager = new WindowNotificationManager(TopLevel.GetTopLevel(host))
 		{
 			Position = NotificationPosition.BottomRight,
 			MaxItems = 4,

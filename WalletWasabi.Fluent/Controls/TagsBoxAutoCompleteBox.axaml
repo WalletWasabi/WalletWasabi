@@ -1,0 +1,92 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="c|TagsBox AutoCompleteBox">
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Background" Value="{x:Null}" />
+    <Setter Property="Padding" Value="15 10 15 8" />
+    <Setter Property="Margin" Value="0 0 0 2" />
+    <Setter Property="MaxDropDownHeight" Value="90" />
+    <Setter Property="MinimumPrefixLength" Value="1" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="IsTextCompletionEnabled" Value="{Binding $parent[c:TagsBox].RestrictInputToSuggestions}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid Name="PART_LayoutRoot">
+          <TextBox Name="PART_TextBox"
+                   Watermark="{TemplateBinding Watermark}"
+                   Width="{TemplateBinding Width}"
+                   Foreground="{TemplateBinding Foreground}"
+                   Background="{TemplateBinding Background}"
+                   BorderBrush="{TemplateBinding BorderBrush}"
+                   BorderThickness="{TemplateBinding BorderThickness}"
+                   CornerRadius="{TemplateBinding CornerRadius}"
+                   FontSize="{TemplateBinding FontSize}"
+                   FontFamily="{TemplateBinding FontFamily}"
+                   FontWeight="{TemplateBinding FontWeight}"
+                   Padding="{TemplateBinding Padding}"
+                   Margin="0"
+                   DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
+          <Popup Name="PART_Popup"
+                 WindowManagerAddShadowHint="False"
+                 MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                 MaxHeight="120"
+                 IsLightDismissEnabled="True"
+                 PlacementTarget="{TemplateBinding}">
+            <Border Name="PART_SuggestionsContainer"
+                    Padding="{DynamicResource AutoCompleteListMargin}"
+                    BorderThickness="{DynamicResource AutoCompleteListBorderThemeThickness}"
+                    BorderBrush="{DynamicResource AutoCompleteBoxSuggestionsListBorderBrush}"
+                    Background="{DynamicResource AutoCompleteBoxSuggestionsListBackground}"
+                    CornerRadius="{DynamicResource OverlayCornerRadius}">
+              <ListBox Name="PART_SelectingItemsControl"
+                       BorderThickness="0"
+                       Background="Transparent"
+                       ItemTemplate="{TemplateBinding ItemTemplate}"
+                       Margin="{DynamicResource AutoCompleteListPadding}" />
+            </Border>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
+    <Setter Property="MaxLength"
+            Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type c:TagsBox}}}" />
+  </Style>
+
+  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0" />
+  </Style>
+
+  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ DataValidationErrors">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="c|TagsBox AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
+    <Setter Property="MinWidth" Value="286" />
+  </Style>
+
+  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+    <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
+    <Setter Property="ContextMenu">
+      <ContextMenu>
+        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
+                  IsEnabled="{Binding $parent[TextBox].CanPaste}"
+                  InputGesture="{x:Static TextBox.PasteGesture}" />
+      </ContextMenu>
+    </Setter>
+  </Style>
+
+</Styles>

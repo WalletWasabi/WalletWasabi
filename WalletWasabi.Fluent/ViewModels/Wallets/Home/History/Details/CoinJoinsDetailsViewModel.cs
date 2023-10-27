@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -10,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
-[NavigationMetaData(Title = "Coinjoins")]
+[NavigationMetaData(Title = "Coinjoins", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 {
 	private readonly CoinJoinsHistoryItemViewModel _coinJoinGroup;
@@ -35,7 +36,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 		Update();
 
-		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		ConfirmationTime = coinJoinGroup.Transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
@@ -54,11 +55,11 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _coinJoinGroup.DateString;
-		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_coinJoinGroup.OutgoingAmount);
+		Date = _coinJoinGroup.Transaction.DateString;
+		Status = _coinJoinGroup.Transaction.IsConfirmed ? "Confirmed" : "Pending";
+		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_coinJoinGroup.Transaction.OutgoingAmount);
 
-		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.GetHash()));
+		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.Transaction.Children.Select(x => x.Id));
 		TxCount = TransactionIds.Count;
 	}
 }

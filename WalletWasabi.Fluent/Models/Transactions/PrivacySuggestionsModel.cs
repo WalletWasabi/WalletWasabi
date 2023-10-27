@@ -290,6 +290,17 @@ public class PrivacySuggestionsModel
 				return result;
 			}
 
+			// If both is Less/More, only return the one with smaller difference.
+			if (changeAvoidanceSuggestions.FirstOrDefault(x => x.IsLess == suggestion.IsLess && x.IsMore == suggestion.IsMore) is { } existingSuggestion)
+			{
+				if (Math.Abs(suggestion.Difference) < Math.Abs(existingSuggestion.Difference))
+				{
+					result.Remove(existingSuggestion);
+					result.Add(suggestion);
+				}
+				return result;
+			}
+
 			result.Add(suggestion);
 		}
 
@@ -332,7 +343,7 @@ public class PrivacySuggestionsModel
 			if (transaction is not null)
 			{
 				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
-				yield return new ChangeAvoidanceSuggestion(transaction, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
+				yield return new ChangeAvoidanceSuggestion(transaction, differenceFiat, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
 			}
 		}
 	}

@@ -5,7 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingItemDetailsView"
@@ -40,7 +40,7 @@
         <Separator Margin="0 3 0 9" />
         <StackPanel Opacity="0.8" IsVisible="{Binding !IsNonPrivate}" Classes="privacyLevel" x:Name="PrivacyLevel" HorizontalAlignment="Center">
           <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
-                  BorderBrush="{StaticResource ButtonForeground}">
+                  BorderBrush="{DynamicResource ButtonForeground}">
             <TextBlock
               Text="{Binding PrivacyLevelText, Converter={x:Static conv:StringConverters.ToUpperCase}}" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
           </Border>
@@ -50,7 +50,7 @@
 
       <StackPanel IsVisible="{Binding IsNonPrivate}" MinHeight="42">
         <Separator IsVisible="{Binding !Labels.IsEmpty}" Margin="0 3 0 9" />
-        <c:LabelsItemsPresenter Items="{Binding Labels}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+        <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
       </StackPanel>
     </StackPanel>
   </StackPanel>

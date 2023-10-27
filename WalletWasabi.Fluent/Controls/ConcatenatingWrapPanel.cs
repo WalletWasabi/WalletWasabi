@@ -85,7 +85,7 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 		var orientation = Orientation;
 		var children = Children.Concat(ConcatenatedChildren).ToList();
 		bool horiz = orientation == Orientation.Horizontal;
-		int index = Children.IndexOf((IControl)from);
+		int index = Children.IndexOf((Control)from);
 
 		switch (direction)
 		{

@@ -1,7 +1,9 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
-  <Style Selector="c|ProgressRingArc">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type c:ProgressRingArc}" TargetType="c:ProgressRingArc">
+
     <Setter Property="Template">
       <ControlTemplate>
         <DataValidationErrors>
@@ -30,5 +32,7 @@
         </DataValidationErrors>
       </ControlTemplate>
     </Setter>
-  </Style>
-</Styles>
+
+  </ControlTheme>
+
+</ResourceDictionary>

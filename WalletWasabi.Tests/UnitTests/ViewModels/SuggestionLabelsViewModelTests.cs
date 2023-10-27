@@ -218,5 +218,10 @@ public class SuggestionLabelsViewModelTests
 		{
 			throw new NotSupportedException();
 		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

@@ -65,8 +65,8 @@
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction IDs">
-        <ItemsRepeater Items="{Binding TransactionIds}">
-          <ItemsRepeater.ItemTemplate>
+        <ItemsControl ItemsSource="{Binding TransactionIds}">
+          <ItemsControl.ItemTemplate>
             <DataTemplate>
               <c:PreviewItem CopyableContent="{Binding }">
                 <c:PrivacyContentControl>
@@ -74,8 +74,8 @@
                 </c:PrivacyContentControl>
               </c:PreviewItem>
             </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

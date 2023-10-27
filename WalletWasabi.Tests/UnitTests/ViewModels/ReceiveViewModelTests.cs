@@ -113,6 +113,11 @@ public class ReceiveViewModelTests
 		{
 			throw new NotSupportedException();
 		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	private class AddressConfiguration

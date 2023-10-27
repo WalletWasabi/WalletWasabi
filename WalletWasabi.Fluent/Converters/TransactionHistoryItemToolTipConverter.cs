@@ -3,6 +3,7 @@ using Avalonia.Data;
 using Avalonia.Data.Converters;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Converters;
@@ -19,34 +20,34 @@ public class TransactionHistoryItemToolTipConverter : IValueConverter
 	{
 		if (value is HistoryItemViewModelBase vm)
 		{
-			if (vm.ItemStatus == HistoryItemStatus.Confirmed)
+			if (vm.Transaction.Status == TransactionStatus.Confirmed)
 			{
-				return vm.ConfirmedToolTip;
+				return vm.Transaction.ConfirmedTooltip;
 			}
 
-			if (vm.TransactionSummary.TryGetConfirmationTime(out var estimate))
+			if (vm.Transaction.TransactionSummary.TryGetConfirmationTime(out var estimate))
 			{
 				var friendlyString = TextHelpers.TimeSpanToFriendlyString(estimate.Value);
 				if (friendlyString != "")
 				{
-					if (vm.ItemStatus == HistoryItemStatus.SpeedUp)
+					if (vm.Transaction.Status == TransactionStatus.SpeedUp)
 					{
 						return $"Pending (accelerated, confirming in ≈ {friendlyString})";
 					}
 
-					if (vm.ItemStatus == HistoryItemStatus.Pending)
+					if (vm.Transaction.Status == TransactionStatus.Pending)
 					{
 						return $"Pending (confirming in ≈ {friendlyString})";
 					}
 				}
 			}
 
-			if (vm.ItemStatus == HistoryItemStatus.SpeedUp)
+			if (vm.Transaction.Status == TransactionStatus.SpeedUp)
 			{
 				return "Pending (accelerated)";
 			}
 
-			if (vm.ItemStatus == HistoryItemStatus.Pending)
+			if (vm.Transaction.Status == TransactionStatus.Pending)
 			{
 				return "Pending";
 			}

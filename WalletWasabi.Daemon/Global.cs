@@ -3,6 +3,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -149,6 +150,9 @@ public class Global
 	public MemoryCache Cache { get; private set; }
 	public CoinPrison CoinPrison { get; }
 	public JsonRpcServer? RpcServer { get; private set; }
+
+	public Uri? OnionServiceUri { get; private set; }
+
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
@@ -239,7 +243,13 @@ public class Global
 
 	private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
 	{
-		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, Config.JsonRpcServerPrefixes);
+		// HttpListener doesn't support onion services as prefix and for that reason we have no alternative
+		// other than using
+		var prefixes = OnionServiceUri is { }
+			? Config.JsonRpcServerPrefixes.Append($"http://+:37129/").ToArray()
+			: Config.JsonRpcServerPrefixes;
+
+		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes);
 		if (jsonRpcServerConfig.IsEnabled)
 		{
 			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(global: this);
@@ -265,6 +275,22 @@ public class Global
 				TorManager = new TorProcessManager(TorSettings);
 				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+
+				var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+				if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+				{
+					var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
+					if (!anonymousAccessAllowed)
+					{
+						var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
+						OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
+						Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
+					}
+					else
+					{
+						Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
+					}
+				}
 			}
 
 			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
@@ -454,6 +480,25 @@ public class Global
 
 				if (TorManager is { } torManager)
 				{
+					using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
+					var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cts.Token).ConfigureAwait(false);
+					if (OnionServiceUri is { } nonNullOnionServiceUri && torControlClient is { } nonNullTorControlClient)
+					{
+						try
+						{
+							var isDestroyedSuccessfully = await nonNullTorControlClient
+								.DestroyOnionServiceAsync(nonNullOnionServiceUri.Host, cts.Token).ConfigureAwait(false);
+							if (!isDestroyedSuccessfully)
+							{
+								Logger.LogInfo($"Onion service '{nonNullOnionServiceUri.Host}' failed to be destroyed.");
+							}
+						}
+						catch (OperationCanceledException)
+						{
+							Logger.LogInfo($"'{nonNullOnionServiceUri.Host}' failed to be stopped in allotted time.");
+						}
+					}
+
 					await torManager.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}

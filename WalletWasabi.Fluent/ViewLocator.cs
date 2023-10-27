@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent;
 [StaticViewLocator]
 public partial class ViewLocator : IDataTemplate
 {
-	public IControl Build(object data)
+	public Control Build(object data)
 	{
 		var type = data.GetType();
 		if (s_views.TryGetValue(type, out var func))

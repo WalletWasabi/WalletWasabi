@@ -9,7 +9,7 @@
              x:DataType="collections:IEnumerable">
 
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-    <ItemsControl Items="{Binding}">
+    <ItemsControl ItemsSource="{Binding}">
       <ItemsControl.Styles>
         <Style Selector="ItemsControl > ContentPresenter">
           <Setter Property="Width" Value="310" />
