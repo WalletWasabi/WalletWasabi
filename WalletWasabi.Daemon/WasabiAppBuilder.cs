@@ -157,34 +157,10 @@ public class WasabiApplication
 		Console.WriteLine();
 		Console.WriteLine("Available options are:");
 
-		static string[] Split(string text)
-		{
-			static void InternalSlip(string text, List<string> result)
-			{
-				if (text.Length < 40)
-				{
-					result.Add(text);
-					return;
-				}
-				var line = text
-					.Split(' ')
-					.Scan(string.Empty, (l, w) => l + w + ' ')
-					.TakeWhile(l => l.Length <= 40)
-					.DefaultIfEmpty(text)
-					.Last();
-				result.Add(line);
-				InternalSlip(text[(line.Length)..], result);
-			}
-
-			List<string> result = new();
-			InternalSlip(text, result);
-			return result.ToArray();
-		}
-
-		foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.Item1))
+		foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.ParameterName))
 		{
 			Console.Write($"  --{parameter.ToLower(),-30} ");
-			var hintLines = Split(hint);
+			var hintLines = hint.SplitLines(lineWidth: 40);
 			Console.WriteLine(hintLines[0]);
 			foreach (var hintLine in hintLines.Skip(1))
 			{

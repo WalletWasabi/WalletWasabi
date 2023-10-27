@@ -208,7 +208,7 @@ public class Config
 		return result is null ? GetBackendUri() : new Uri(result);
 	}
 
-	public IEnumerable<(string, string)> GetConfigOptionsMetadata() =>
+	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
 		Data.Select(x => (x.Key, x.Value.Hint));
 
 	private EndPointValue GetEndPointValue(string key, EndPoint value, string[] cliArgs)
