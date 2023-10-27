@@ -57,6 +57,20 @@ public static class TransactionFeeHelper
 		return TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
 	}
 
+	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, int feeInSats, int vSize, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		FeeRate feeRate = new(new Money((long)feeInSats), vSize);
+
+		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates))
+		{
+			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+			return true;
+		}
+
+		return false;
+	}
+
 	public static bool TryEstimateConfirmationTime(Wallet wallet, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
