@@ -1,11 +1,14 @@
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -30,7 +33,13 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		ConfirmationTime = TimeSpan.Zero; // TODO: Calculate confirmation time
+		var feeInSats = Services.HostedServices.Get<TransactionFeeProvider>().FeeCache.TryGet(coinJoin.Id);
+		var network = Services.WalletManager.Network;
+		var vSize = coinJoin.TransactionSummary.Transaction.Transaction.GetVirtualSize();
+		TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), network, feeInSats, vSize, out var estimate);
+
+		ConfirmationTime = estimate;
+
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		Update();
 	}

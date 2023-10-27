@@ -41,7 +41,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 
 		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
-		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
+		if (Fee is null || !Fee.HasBalance)
+		{
+			Fee = uiContext.AmountProvider.Create(new Money((long)wallet.TransactionFeeProvider.GetFee(transactionSummary.GetHash())));
+		}
+
+		IsFeeVisible = Fee != null && Fee.HasBalance;
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
