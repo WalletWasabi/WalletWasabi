@@ -325,7 +325,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					break;
 				}
 
-				_stateMachine.Fire(Trigger.StartError);
+				var trigger = start.Error is CoinjoinError.UneconomicalRound or CoinjoinError.RandomlySkippedRound
+					? Trigger.RoundSkipActivated
+					: Trigger.StartError;
+
+				_stateMachine.Fire(trigger);
 				CurrentStatus = start.Error switch
 				{
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
