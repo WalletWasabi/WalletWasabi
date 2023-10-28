@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -123,7 +124,12 @@ public class CoinsRegistry : ICoinsView
 				// This only has to be added once per transaction.
 				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 				{
-					TxidsByPrevOuts[input.PrevOut] = coin.TransactionId;
+					if (!TxidsByPrevOuts.TryAdd(input.PrevOut, coin.TransactionId))
+					{
+						throw new UnreachableException(
+							$"Input PrevOut {input.PrevOut} is already present in the cache." +
+							"Undo might not have been called when required");
+					}
 				}
 			}
 
