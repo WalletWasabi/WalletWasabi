@@ -56,14 +56,7 @@ public class AdorningContentControl : ContentControl
 		}
 		else if (change.Property == IsAdornmentVisibleProperty)
 		{
-			if (change.GetNewValue<bool>())
-			{
-				AdornerLayer.SetAdorner(this, Adornment);
-			}
-			else
-			{
-				AdornerLayer.SetAdorner(this, null);
-			}
+			AdornerLayer.SetAdorner(this, change.GetNewValue<bool>() ? Adornment : null);
 		}
 	}
 
