@@ -26,6 +26,8 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinManager : BackgroundService
 {
+	private object _skipRoundsLock = new();
+
 	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory coordinatorHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier, CoinPrison coinPrison)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
@@ -65,7 +67,6 @@ public class CoinJoinManager : BackgroundService
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
 	private HashSet<string> DisallowSkipRoundsByWallets { get; } = new();
-	private object _skipRoundsLock = new();
 
 	#region Public API (Start | Stop | TryGetWalletStatus)
 
