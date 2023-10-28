@@ -1522,10 +1522,9 @@ public class TransactionProcessorTests
 	private List<TxOut> CreateRandomIndistinguishableOutputs(long amount, int count)
 	{
 		List<TxOut> outputs = new();
-		for(int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++)
 		{
 			outputs.Add(new TxOut(amount, BitcoinFactory.CreateScript()));
-
 		}
 
 		return outputs;
@@ -1534,10 +1533,9 @@ public class TransactionProcessorTests
 	private List<TxIn> CreateRandomInputs(int count)
 	{
 		List<TxIn> inputs = new();
-		for(int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++)
 		{
 			inputs.Add(new TxIn(GetRandomOutPoint(), Script.Empty));
-
 		}
 
 		return inputs;
