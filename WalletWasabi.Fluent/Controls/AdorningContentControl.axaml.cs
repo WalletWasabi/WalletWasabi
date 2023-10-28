@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -58,11 +58,11 @@ public class AdorningContentControl : ContentControl
 		{
 			if (change.GetNewValue<bool>())
 			{
-				AdornerHelper.AddAdorner(this, Adornment);
+				AdornerLayer.SetAdorner(this, Adornment);
 			}
 			else
 			{
-				AdornerHelper.RemoveAdorner(this, Adornment);
+				AdornerLayer.SetAdorner(this, null);
 			}
 		}
 	}
@@ -91,7 +91,7 @@ public class AdorningContentControl : ContentControl
 
 		if (oldValue is { })
 		{
-			AdornerHelper.RemoveAdorner(this, oldValue);
+			AdornerLayer.SetAdorner(this, null);
 		}
 
 		if (newValue is { })
@@ -101,7 +101,7 @@ public class AdorningContentControl : ContentControl
 
 			if (IsAdornmentVisible)
 			{
-				AdornerHelper.AddAdorner(this, Adornment);
+				AdornerLayer.SetAdorner(this, Adornment);
 			}
 		}
 	}
