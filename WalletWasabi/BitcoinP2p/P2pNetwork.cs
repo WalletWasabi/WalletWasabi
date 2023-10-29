@@ -2,7 +2,6 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -85,11 +84,7 @@ public class P2pNetwork : BackgroundService
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 
-			Stopwatch sw = Stopwatch.StartNew();
 			var userAgent = Constants.UserAgents.RandomElement(InsecureRandom.Instance);
-			long elapsedMs = sw.ElapsedMilliseconds;
-			Logger.LogWarning($"MEASUREREMENT: {elapsedMs} ms");
-
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
 			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
