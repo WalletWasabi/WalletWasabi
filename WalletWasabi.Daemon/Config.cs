@@ -264,7 +264,7 @@ public class Config
 
 	private static bool GetCliArgsValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? cliArgsValue)
 	{
-		if (ArgumentHelpers.TryGetValue(key, cliArgs, x => x, out cliArgsValue))
+		if (ArgumentHelpers.TryGetValue(key, cliArgs, out cliArgsValue))
 		{
 			return true;
 		}

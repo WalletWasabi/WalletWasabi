@@ -6,9 +6,9 @@ namespace WalletWasabi.Daemon;
 
 public static class ArgumentHelpers
 {
-	public static bool TryGetValue<T>(string key, string[] args, Func<string, T> converter, [NotNullWhen(true)] out T? value)
+	public static bool TryGetValue(string key, string[] args, [NotNullWhen(true)] out string? value)
 	{
-		var values = GetValues(key, args, converter);
+		var values = GetValues(key, args);
 		if (values.Length > 0)
 		{
 			value = values[0];
@@ -19,12 +19,11 @@ public static class ArgumentHelpers
 		return false;
 	}
 
-	public static T[] GetValues<T>(string key, string[] args, Func<string, T> converter)
+	public static string[] GetValues(string key, string[] args)
 	{
 		var cliArgKey = "--" + key + "=";
 		return args
 			.Where(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase))
-			.Select(x => converter(x[cliArgKey.Length..]))
 			.ToArray();
 	}
 }
