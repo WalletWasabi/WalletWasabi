@@ -33,7 +33,7 @@ public class WasabiSignerHelpers
 		byte[] sigBytes = Convert.FromBase64String(signatureText);
 		var wasabiSignature = ECDSASignature.FromDER(sigBytes);
 
-		var pubKey = Constants.WasabiPubKey;
+		var pubKey = Constants.WasabiPubKey.Value;
 
 		if (!pubKey.Verify(new uint256(hash), wasabiSignature))
 		{

@@ -103,9 +103,12 @@ public static class Constants
 		MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 	};
 
-	public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
-	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC");
-	public static readonly PubKey WasabiPubKey = new("02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608");
+	public static readonly Lazy<ExtPubKey> WabiSabiFallBackCoordinatorExtPubKey = new(
+		valueFactory: () => NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC"),
+		isThreadSafe: true);
+	public static readonly Lazy<PubKey> WasabiPubKey = new(
+		valueFactory: () => new PubKey("02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608"),
+		isThreadSafe: true);
 
 	public static readonly string[] UserAgents = new[]
 	{
