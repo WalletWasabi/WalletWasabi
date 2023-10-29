@@ -21,7 +21,7 @@ public static class ArgumentHelpers
 
 	public static string[] GetValues(string key, string[] args)
 	{
-		var cliArgKey = "--" + key + "=";
+		var cliArgKey = $"--{key}=";
 		return args
 			.Where(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase))
 			.ToArray();

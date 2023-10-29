@@ -277,7 +277,7 @@ public class Config
 
 	private static bool GetEnvironmentVariable(string key, [NotNullWhen(true)] out string? envValue)
 	{
-		string envKey = "WASABI-" + key.ToUpperInvariant();
+		string envKey = $"WASABI-{key.ToUpperInvariant()}";
 
 		if (EnvironmentVariables.Contains(envKey))
 		{
