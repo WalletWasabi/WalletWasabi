@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
@@ -13,6 +14,17 @@ namespace WalletWasabi.Bases;
 
 public class ConfigManager
 {
+	private static readonly bool UseNg = true;
+
+	static ConfigManager()
+	{
+		SerializerSettingsNg.Converters.Add(new NetworkJsonConverterNg());
+		SerializerSettingsNg.Converters.Add(new FeeRateJsonConverterNg());
+		SerializerSettingsNg.Converters.Add(new MoneySatoshiJsonConverterNg());
+		SerializerSettingsNg.Converters.Add(new TimeSpanJsonConverterNg());
+		SerializerSettingsNg.Converters.Add(new ExtPubKeyJsonConverterNg());
+	}
+
 	/// <remarks>Do not add converters that are not needed. It prolongs app's startup time.</remarks>
 	private static readonly JsonSerializerSettings SerializerSettings = new()
 	{
@@ -26,7 +38,10 @@ public class ConfigManager
 			}
 	};
 
-	private static readonly JsonSerializer Serializer = JsonSerializer.Create(SerializerSettings);
+	/// <remarks>Do not add converters that are not needed. It prolongs app's startup time.</remarks>
+	private static readonly JsonSerializerOptions SerializerSettingsNg = new();
+
+	private static readonly Newtonsoft.Json.JsonSerializer Serializer = Newtonsoft.Json.JsonSerializer.Create(SerializerSettings);
 
 	public static TResult LoadFile<TResult>(string filePath, bool createIfMissing = false)
 		where TResult : IConfigNg, new()
@@ -65,7 +80,10 @@ public class ConfigManager
 
 	public static void ToFile<T>(string filePath, T obj)
 	{
-		string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, SerializerSettings);
+		string jsonString = UseNg
+			? JsonConvert.SerializeObject(obj, Formatting.Indented, SerializerSettings)
+			: System.Text.Json.JsonSerializer.Serialize<T>(obj, SerializerSettingsNg);
+
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 	}
 
@@ -77,11 +95,14 @@ public class ConfigManager
 		}
 
 		string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-		TResponse? result = JsonConvert.DeserializeObject<TResponse>(jsonString, SerializerSettings);
+
+		TResponse? result = UseNg
+			? System.Text.Json.JsonSerializer.Deserialize<TResponse>(jsonString, SerializerSettingsNg)
+			: JsonConvert.DeserializeObject<TResponse>(jsonString, SerializerSettings);
 
 		return result is not null
 			? result
-			: throw new JsonException("Unexpected null value.");
+			: throw new Newtonsoft.Json.JsonException("Unexpected null value.");
 	}
 
 	public static bool AreDeepEqual(object current, object other)
