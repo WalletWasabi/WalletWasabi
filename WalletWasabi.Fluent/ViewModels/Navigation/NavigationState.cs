@@ -109,4 +109,10 @@ public class NavigationState : ReactiveObject, INavigate
 
 		page.IsActive = true;
 	}
+
+	public bool IsAnyPageBusy =>
+		HomeScreen.CurrentPage is { IsBusy: true } ||
+		DialogScreen.CurrentPage is { IsBusy: true } ||
+		FullScreen.CurrentPage is { IsBusy: true } ||
+		CompactDialogScreen.CurrentPage is { IsBusy: true };
 }
