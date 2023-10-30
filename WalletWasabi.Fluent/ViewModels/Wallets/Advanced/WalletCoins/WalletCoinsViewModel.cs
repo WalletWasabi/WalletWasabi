@@ -60,7 +60,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		IsAnySelected =
 			coinChanges
 				.AutoRefresh(x => x.IsSelected)
-				.ToCollection()
+				.ToCollectionStartWithEmpty()
 				.Select(items => items.Any(t => t.IsSelected))
 				.ObserveOn(RxApp.MainThreadScheduler);
 

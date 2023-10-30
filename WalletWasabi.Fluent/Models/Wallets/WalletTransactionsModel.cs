@@ -50,7 +50,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			.DisposeWith(_disposable);
 
 		IsEmpty = retriever.Changes
-			.ToCollection()
+			.ToCollectionStartWithEmpty()
 			.Select(models => !models.Any());
 	}
 

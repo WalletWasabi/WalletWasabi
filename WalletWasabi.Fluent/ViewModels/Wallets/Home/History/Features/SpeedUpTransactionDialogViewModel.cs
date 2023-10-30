@@ -42,7 +42,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		// Close dialog if target transaction is already confirmed.
 		_wallet.Transactions.List
 							.ToObservableChangeSet(x => x.Id)
-							.ToCollection()
+							.ToCollectionStartWithEmpty()
 							.Select(col => col.FirstOrDefault(x => x.Id == _speedupTransaction.TargetTransaction.GetHash()))
 							.WhereNotNull()
 							.Where(s => s.IsConfirmed)

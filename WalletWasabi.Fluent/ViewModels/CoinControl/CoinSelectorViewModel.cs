@@ -9,6 +9,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -59,12 +60,12 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		var selectedCoins = coinItems
 			.AutoRefresh(x => x.IsSelected)
-			.ToCollection()
+			.ToCollectionStartWithEmpty()
 			.Select(GetSelectedCoins);
 
 		wallet.Coins.Pockets
 			.ToObservableChangeSet(pocket => pocket.Labels)
-			.ToCollection()
+			.ToCollectionStartWithEmpty()
 			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
 			.Do(
 				tuple =>
@@ -88,8 +89,8 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		wallet.Coins.Pockets.ToObservableChangeSet(pocket => pocket.Labels)
-					.ToCollection()
-					.Take(1)
+					.ToCollectionStartWithEmpty()
+					.TakeUntil(pockets => pockets.Any())
 					.Do(
 						pockets =>
 						{

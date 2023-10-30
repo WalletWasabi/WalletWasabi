@@ -76,4 +76,14 @@ public static class DynamicDataExtensions
 	{
 		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
 	}
+
+	public static IObservable<IReadOnlyCollection<TObject>> ToCollectionStartWithEmpty<TObject, TKey>(this IObservable<IChangeSet<TObject, TKey>> changeSet) where TKey : notnull
+	{
+		return changeSet.ToCollection().StartWithEmpty();
+	}
+
+	public static IObservable<IReadOnlyCollection<TObject>> ToCollectionStartWithEmpty<TObject>(this IObservable<IChangeSet<TObject>> changeSet)
+	{
+		return changeSet.ToCollection().StartWithEmpty();
+	}
 }

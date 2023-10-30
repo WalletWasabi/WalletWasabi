@@ -38,7 +38,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		// Close dialog if target transaction is already confirmed.
 		_wallet.Transactions.List
 							.ToObservableChangeSet(x => x.Id)
-							.ToCollection()
+							.ToCollectionStartWithEmpty()
 							.Select(col => col.FirstOrDefault(x => x.Id == _cancellingTransaction.TargetTransaction.Id))
 							.WhereNotNull()
 							.Where(s => s.IsConfirmed)

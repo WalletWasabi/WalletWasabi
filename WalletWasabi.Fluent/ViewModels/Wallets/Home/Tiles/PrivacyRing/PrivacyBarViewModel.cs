@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using System.Collections.Generic;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
@@ -39,7 +40,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 
 		Wallet.Coins.List
 			.ToObservableChangeSet(x => x.Key)
-			.ToCollection()
+			.ToCollectionStartWithEmpty()
 			.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
 			.DisposeWith(disposables);
 	}
