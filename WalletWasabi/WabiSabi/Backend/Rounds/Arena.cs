@@ -355,6 +355,8 @@ public partial class Arena : PeriodicRunner
 
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					EndRound(round, EndRoundState.TransactionBroadcasted);
+					round.LogInfo($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.");
 
 					var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 					if (round.CoordinatorScript == coordinatorScriptPubKey)
@@ -376,9 +378,6 @@ public partial class Arena : PeriodicRunner
 							round.LogError($"Output script pub key reuse detected: {address.ToHex()}");
 						}
 					}
-
-					EndRound(round, EndRoundState.TransactionBroadcasted);
-					round.LogInfo($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.");
 
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);

@@ -28,6 +28,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
 
+	private string _title;
+
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
 		UiContext = uiContext;
@@ -75,7 +77,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate().To().WalletCoins(WalletModel));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!WalletModel.IsWatchOnlyWallet));
 
@@ -88,8 +90,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 	}
 
-	private string _title;
-
 	// TODO: Remove this
 	public Wallet Wallet { get; }
 
@@ -100,8 +100,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
-
-	public override string ToString() => WalletName;
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
 
@@ -133,6 +131,14 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
 
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+	}
+
+	public override string ToString() => WalletName;
+
 	public void NavigateAndHighlight(uint256 txid)
 	{
 		Navigate().To(this, NavigationMode.Clear);
@@ -152,12 +158,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletModel.State
 				   .BindTo(this, x => x.WalletState)
 				   .DisposeWith(disposables);
-	}
-
-	public override string Title
-	{
-		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
 	public void SelectTransaction(uint256 txid)

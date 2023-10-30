@@ -30,7 +30,6 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 								  .MergeMany(x => x.Transactions.NewTransactionArrived)
 								  .Where(x => !UiContext.ApplicationSettings.PrivacyMode)
 								  .Where(x => x.EventArgs.IsNews)
-								  .Where(x => !IsBusy)
 								  .DoAsync(x => OnNotificationReceivedAsync(x.Wallet, x.EventArgs))
 								  .Subscribe();
 	}
@@ -41,6 +40,11 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 		{
 			void OnClick()
 			{
+				if (UiContext.Navigate().IsAnyPageBusy)
+				{
+					return;
+				}
+
 				var wvm = _walletSelector.To(wallet);
 				wvm?.SelectTransaction(e.Transaction.GetHash());
 			}
