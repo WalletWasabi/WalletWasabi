@@ -19,6 +19,7 @@ public record RoundState(uint256 Id,
 	MultipartyTransactionState CoinjoinState)
 {
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
+	public bool IsBlame => BlameOf != uint256.Zero;
 
 	public static RoundState FromRound(Round round, int stateId = 0) =>
 		new(

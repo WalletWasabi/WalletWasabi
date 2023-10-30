@@ -177,14 +177,6 @@
           "Avalonia": "11.0.0"
         }
       },
-      "DynamicData": {
-        "type": "Transitive",
-        "resolved": "7.9.5",
-        "contentHash": "xFwVha7o3qUtVYxco5p+7Urcztc/m1gmaEUxOG0i7LNe+vfCfyb0ECAsT2FLm3zOPHb0g8s9qVu5LfPKfRNVng==",
-        "dependencies": {
-          "System.Reactive": "5.0.0"
-        }
-      },
       "HarfBuzzSharp": {
         "type": "Transitive",
         "resolved": "2.8.2.3",
@@ -499,8 +491,8 @@
       },
       "System.Reactive": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ=="
+        "resolved": "6.0.0",
+        "contentHash": "31kfaW4ZupZzPsI5PVe77VhnvFF55qgma7KZr/E0iFTs6fmdhhG8j0mgEx620iLTey1EynOkEfnyTjtNEpJzGw=="
       },
       "System.Reflection": {
         "type": "Transitive",
@@ -651,6 +643,7 @@
           "Avalonia.Skia": "[11.0.5, )",
           "Avalonia.Themes.Fluent": "[11.0.5, )",
           "Avalonia.Xaml.Behaviors": "[11.0.2, )",
+          "DynamicData": "[8.1.1, )",
           "QRackers": "[1.1.0, )",
           "System.Runtime": "[4.3.1, )",
           "Wasabi Wallet Daemon": "[1.0.0, )"
@@ -746,6 +739,15 @@
           "Avalonia.Xaml.Interactions.Reactive": "11.0.2",
           "Avalonia.Xaml.Interactions.Responsive": "11.0.2",
           "Avalonia.Xaml.Interactivity": "11.0.2"
+        }
+      },
+      "DynamicData": {
+        "type": "CentralTransitive",
+        "requested": "[8.1.1, )",
+        "resolved": "8.1.1",
+        "contentHash": "NYTTP6lJudweNrIQgIM67/KzFJIp20NK+GVInqrvxdCB9JMHsihqOYplyDGuOCZbMeZXVskj8bpXZfspsdm45w==",
+        "dependencies": {
+          "System.Reactive": "6.0.0"
         }
       },
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {

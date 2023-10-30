@@ -1,21 +1,25 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
 using System.Reactive.Linq;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public partial interface IWalletModel : INotifyPropertyChanged
+{
+}
+
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
+
+	[AutoNotify] private bool _isLoggedIn;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -31,10 +35,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		Addresses =
-			Observable.Defer(() => GetAddresses().ToObservable())
-					  .Concat(Transactions.TransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-					  .ToObservableChangeSet(x => x.Text);
+		AddressesModel = new AddressesModel(Transactions.TransactionProcessed, Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -62,7 +63,11 @@ public partial class WalletModel : ReactiveObject
 		State.Where(x => x == WalletState.Started)
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
+
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
+
+	public IAddressesModel AddressesModel { get; }
 
 	internal Wallet Wallet { get; }
 
@@ -87,8 +92,6 @@ public partial class WalletModel : ReactiveObject
 	public IWalletPrivacyModel Privacy { get; }
 
 	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
-
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public IObservable<WalletState> State { get; }
 
@@ -119,13 +122,5 @@ public partial class WalletModel : ReactiveObject
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);
-	}
-
-	private IEnumerable<IAddress> GetAddresses()
-	{
-		return Wallet.KeyManager
-			.GetKeys()
-			.Reverse()
-			.Select(x => new Address(Wallet.KeyManager, x));
 	}
 }

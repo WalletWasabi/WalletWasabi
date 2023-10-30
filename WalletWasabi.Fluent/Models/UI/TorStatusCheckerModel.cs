@@ -5,13 +5,14 @@ using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public class TorStatusCheckerModel
+[AutoInterface]
+public partial class TorStatusCheckerModel
 {
-	public TorStatusCheckerModel(TorStatusChecker statusChecker)
+	public TorStatusCheckerModel()
 	{
-		Issues = Observable
-			.FromEventPattern<Issue[]>(statusChecker, nameof(TorStatusChecker.StatusEvent))
-			.Select(pattern => pattern.EventArgs.ToList());
+		Issues =
+			Observable.FromEventPattern<Issue[]>(Services.TorStatusChecker, nameof(TorStatusChecker.StatusEvent))
+					  .Select(pattern => pattern.EventArgs.ToList());
 	}
 
 	public IObservable<IList<Issue>> Issues { get; }

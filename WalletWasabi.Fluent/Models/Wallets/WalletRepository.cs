@@ -9,7 +9,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -21,14 +20,12 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletRepository : ReactiveObject
 {
-	// TODO: make this field non-static after CancelTransactionDialogViewModel and SpeedUpTransactionDialogViewModel are decoupled.
-	private static IAmountProvider AmountProvider;
-
-	private static Dictionary<string, WalletModel> WalletDictionary = new();
+	private readonly IAmountProvider _amountProvider;
+	private readonly Dictionary<string, WalletModel> _walletDictionary = new();
 
 	public WalletRepository(IAmountProvider amountProvider)
 	{
-		AmountProvider = amountProvider;
+		_amountProvider = amountProvider;
 
 		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
 		Wallets =
@@ -83,6 +80,16 @@ public partial class WalletRepository : ReactiveObject
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
 		return WalletHelpers.ValidateWalletName(walletName);
+	}
+
+	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
+	{
+		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
+		if (existingWallet is { })
+		{
+			return GetByName(existingWallet.WalletName);
+		}
+		return null;
 	}
 
 	private async Task<IWalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
@@ -170,25 +177,14 @@ public partial class WalletRepository : ReactiveObject
 	private IWalletModel GetByName(string walletName)
 	{
 		return
-			WalletDictionary.TryGetValue(walletName, out var wallet)
+			_walletDictionary.TryGetValue(walletName, out var wallet)
 			? wallet
 			: throw new InvalidOperationException($"Wallet not found: {walletName}");
 	}
 
-	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
+	private WalletModel CreateWalletModel(Wallet wallet)
 	{
-		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
-		if (existingWallet is { })
-		{
-			return GetByName(existingWallet.WalletName);
-		}
-		return null;
-	}
-
-	// TODO: Make this method private and non-static once refactoring is completed (this is the only place where WalletModel should be instantiated and its a responsibility of WalletRepository alone)
-	public static WalletModel CreateWalletModel(Wallet wallet)
-	{
-		if (WalletDictionary.TryGetValue(wallet.WalletName, out var existing))
+		if (_walletDictionary.TryGetValue(wallet.WalletName, out var existing))
 		{
 			if (!object.ReferenceEquals(existing.Wallet, wallet))
 			{
@@ -199,10 +195,10 @@ public partial class WalletRepository : ReactiveObject
 
 		var result =
 			wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletModel(wallet, AmountProvider)
-			: new WalletModel(wallet, AmountProvider);
+			? new HardwareWalletModel(wallet, _amountProvider)
+			: new WalletModel(wallet, _amountProvider);
 
-		WalletDictionary[wallet.WalletName] = result;
+		_walletDictionary[wallet.WalletName] = result;
 
 		return result;
 	}

@@ -63,7 +63,8 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_wallet.Addresses
+		_wallet.AddressesModel.Addresses
+			.AutoRefresh(x => x.IsUsed)
 			.Watch(Model.Text)
 			.Where(change => change.Current.IsUsed)
 			.Do(_ => Navigate().Back())

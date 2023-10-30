@@ -15,6 +15,8 @@ public interface INavigate : IWalletNavigation
 
 	IObservable<bool> IsDialogOpen { get; }
 
+	bool IsAnyPageBusy { get; }
+
 	INavigationStack<RoutableViewModel> Navigate(NavigationTarget target);
 
 	FluentNavigate To();

@@ -11,10 +11,11 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletCoinjoinModel
+public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
 	private CoinJoinManager _coinJoinManager;
+	[AutoNotify] private bool _isCoinjoining;
 
 	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
 	{
@@ -46,15 +47,22 @@ public partial class WalletCoinjoinModel
 		var coinjoinStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
 						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
-						 .Select(x => true);
+						 .Select(_ => true);
+
+		var coinjoinStopped =
+			StatusUpdated.OfType<WalletStoppedCoinJoinEventArgs>()
+				.Select(_ => false);
 
 		var coinjoinCompleted =
 			StatusUpdated.OfType<CompletedEventArgs>()
-						 .Select(x => false);
+				.Select(_ => false);
 
 		IsRunning =
-			coinjoinStarted.Merge(coinjoinCompleted)
+			coinjoinStarted.Merge(coinjoinStopped)
+				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
+
+		IsRunning.BindTo(this, x => x.IsCoinjoining);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
