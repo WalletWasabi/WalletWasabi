@@ -12,14 +12,14 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class AddressesModel : IDisposable
 {
 	private readonly CompositeDisposable _disposable = new();
-	private readonly KeyManager _walletKeyManager;
+	private readonly KeyManager _keyManager;
 
-	public AddressesModel(IObservable<Unit> transactionsTransactionProcessed, KeyManager walletKeyManager)
+	public AddressesModel(IObservable<Unit> transactionProcessed, KeyManager keyManager)
 	{
-		_walletKeyManager = walletKeyManager;
+		_keyManager = keyManager;
 		var sourceCache = new SourceCache<IAddress, string>(address => address.Text)
 			.DisposeWith(_disposable);
-		transactionsTransactionProcessed
+		transactionProcessed
 			.Do(_ => sourceCache.EditDiff(GetAddresses(), (one, another) => string.Equals(one.Text, another.Text, StringComparison.Ordinal)))
 			.Subscribe()
 			.DisposeWith(_disposable);
@@ -41,8 +41,8 @@ public partial class AddressesModel : IDisposable
 
 	public void Dispose() => _disposable.Dispose();
 
-	private IEnumerable<IAddress> GetAddresses() => _walletKeyManager
+	private IEnumerable<IAddress> GetAddresses() => _keyManager
 		.GetKeys()
 		.Reverse()
-		.Select(x => new Address(_walletKeyManager, x));
+		.Select(x => new Address(_keyManager, x));
 }
