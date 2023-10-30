@@ -103,12 +103,8 @@ public static class Constants
 		MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 	};
 
-	public static readonly Lazy<ExtPubKey> WabiSabiFallBackCoordinatorExtPubKey = new(
-		valueFactory: () => NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC"),
-		isThreadSafe: true);
-	public static readonly Lazy<PubKey> WasabiPubKey = new(
-		valueFactory: () => new PubKey("02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608"),
-		isThreadSafe: true);
+	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
+	public const string WasabiPubKey = "02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608";
 
 	public static readonly string[] UserAgents = new[]
 	{
