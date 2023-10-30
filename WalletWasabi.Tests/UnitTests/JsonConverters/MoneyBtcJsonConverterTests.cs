@@ -57,13 +57,25 @@ public class MoneyBtcJsonConverterCompareTests
 		Assert.Equal(Money.Satoshis(1000), deserializedJstClass.SomeSats);
 
 		// Error handling.(Neither of these throws exception)
+		// SomeSats property is mistyped:
 		string badJson = "{\"HalfBTC\":\"0.50\",\"OneBTC\":\"1.00\",\"SomeS\":\"0.00002\"}";
 		var des = Newtonsoft.Json.JsonConvert.DeserializeObject<NewtonsoftJsonSerializableClass>(badJson); // SomeSats is null.
 		var des2 = System.Text.Json.JsonSerializer.Deserialize<STJJsonSerializableClass>(badJson); // SomeSats is 0.00001. STJ fills up the property with the init value if it can't find the new value in json.
 
+		// A bonus property is in the middle of the json:
 		badJson = "{\"HalfBTC\":\"0.50\",\"OneBTC\":\"1.00\",\"FakeSomeSats\":\"0.00003\",\"SomeSats\":\"0.00002\"}";
 		des = Newtonsoft.Json.JsonConvert.DeserializeObject<NewtonsoftJsonSerializableClass>(badJson); // Ignores FakeSomeSats, SomeSats is 0.00002.
-		des2 = System.Text.Json.JsonSerializer.Deserialize<STJJsonSerializableClass>(badJson); // Ignores FakeSomeSats, SomeSats is 0.00002
+		des2 = System.Text.Json.JsonSerializer.Deserialize<STJJsonSerializableClass>(badJson); // Ignores FakeSomeSats, SomeSats is 0.00002.
+
+		// SomeSats is null:
+		badJson = "{\"HalfBTC\":\"0.50\",\"OneBTC\":\"1.00\",\"SomeSats\":null}";
+		des = Newtonsoft.Json.JsonConvert.DeserializeObject<NewtonsoftJsonSerializableClass>(badJson); // SomeSats is null.
+		des2 = System.Text.Json.JsonSerializer.Deserialize<STJJsonSerializableClass>(badJson); // SomeSats is null.
+
+		// OneBTC has an extra zero and misses number after decimal point:
+		badJson = "{\"HalfBTC\":\"0.50\",\"OneBTC\":\"01.\",\"SomeSats\":null}";
+		des = Newtonsoft.Json.JsonConvert.DeserializeObject<NewtonsoftJsonSerializableClass>(badJson); // OneBTC is 1.00000000.
+		des2 = System.Text.Json.JsonSerializer.Deserialize<STJJsonSerializableClass>(badJson); // OneBTC is 1.00000000.
 	}
 
 	private class STJJsonSerializableClass
