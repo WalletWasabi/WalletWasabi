@@ -49,9 +49,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposable);
 
-		IsEmpty = retriever.Changes
-			.ToCollection()
-			.Select(models => !models.Any());
+		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
 	}
 
 	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;

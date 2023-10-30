@@ -27,7 +27,8 @@ public class UiContext
 		IApplicationSettings applicationSettings,
 		ITransactionBroadcasterModel transactionBroadcaster,
 		IAmountProvider amountProvider,
-		IEditableSearchSource editableSearchSource)
+		IEditableSearchSource editableSearchSource,
+		ITorStatusCheckerModel torStatusChecker)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -40,6 +41,7 @@ public class UiContext
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
 		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
 		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
+		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -53,7 +55,8 @@ public class UiContext
 	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
 	public IAmountProvider AmountProvider { get; }
 	public IEditableSearchSource EditableSearchSource { get; }
-	
+	public ITorStatusCheckerModel TorStatusChecker { get; }
+
 	public void RegisterNavigation(INavigate navigate)
 	{
 		_navigate ??= navigate;

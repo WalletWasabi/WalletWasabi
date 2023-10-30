@@ -154,6 +154,7 @@ public class App : Application
 			applicationSettings,
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
-			new EditableSearchSourceSource());
+			new EditableSearchSourceSource(),
+			new TorStatusCheckerModel());
 	}
 }
