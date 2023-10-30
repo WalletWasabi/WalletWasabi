@@ -62,6 +62,8 @@ public class ReceiveAddressViewModelTests
 
 	private class TestWallet : IWalletModel
 	{
+		public event PropertyChangedEventHandler? PropertyChanged;
+
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
 		public string Name => throw new NotSupportedException();
 		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
@@ -81,8 +83,6 @@ public class ReceiveAddressViewModelTests
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
