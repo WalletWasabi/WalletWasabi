@@ -1,6 +1,5 @@
 using Moq;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
@@ -49,8 +48,9 @@ public class UiContextBuilder
 			ClientConfig,
 			new NullApplicationSettings(),
 			TransactionBroadcaster,
-            Mock.Of<IAmountProvider>(),
-			new EditableSearchSourceSource());
+			Mock.Of<IAmountProvider>(),
+			new EditableSearchSourceSource(),
+			Mock.Of<ITorStatusCheckerModel>());
 
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;

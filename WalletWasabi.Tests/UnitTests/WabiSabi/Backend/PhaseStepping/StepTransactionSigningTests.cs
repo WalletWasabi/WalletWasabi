@@ -61,12 +61,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = new()
-		{
-			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-		};
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -92,7 +87,7 @@ public class StepTransactionSigningTests
 		var now = DateTimeOffset.UtcNow;
 		Assert.All(
 			new[] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
-			prevOut => Assert.False(prison.IsBanned(prevOut, now)));
+			prevOut => Assert.False(prison.IsBanned(prevOut, cfg.GetDoSConfiguration(), now)));
 
 		await arena.StopAsync(token);
 	}
@@ -103,13 +98,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = new()
-		{
-			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-		};
-
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -139,7 +128,7 @@ public class StepTransactionSigningTests
 		var now = DateTimeOffset.UtcNow;
 		Assert.All(
 			new[] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
-			prevOut => Assert.False(prison.IsBanned(prevOut, now)));
+			prevOut => Assert.False(prison.IsBanned(prevOut, cfg.GetDoSConfiguration(), now)));
 
 		await arena.StopAsync(token);
 	}
@@ -150,13 +139,9 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = new()
-		{
-			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 1,
-			TransactionSigningTimeout = TimeSpan.Zero,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-		};
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.MinInputCountByRoundMultiplier = 1;
+		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -178,7 +163,7 @@ public class StepTransactionSigningTests
 		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
 		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
 
-		Assert.True(prison.IsBanned(aliceClient1.SmartCoin.Outpoint, DateTimeOffset.UtcNow));
+		Assert.True(prison.IsBanned(aliceClient1.SmartCoin.Outpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 
 		await arena.StopAsync(token);
 	}
@@ -189,14 +174,11 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = new()
-		{
-			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 1,
-			TransactionSigningTimeout = TimeSpan.Zero,
-			FailFastOutputRegistrationTimeout = TimeSpan.Zero,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-		};
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.MinInputCountByRoundMultiplier = 1;
+		cfg.TransactionSigningTimeout = TimeSpan.Zero;
+		cfg.FailFastOutputRegistrationTimeout = TimeSpan.Zero;
+
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -223,7 +205,7 @@ public class StepTransactionSigningTests
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Single(arena.Rounds.Where(x => x is BlameRound));
 		var badOutpoint = alice3.Coin.Outpoint;
-		Assert.True(prison.IsBanned(badOutpoint, DateTimeOffset.UtcNow));
+		Assert.True(prison.IsBanned(badOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 
 		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
 		var blameRound = Assert.IsType<BlameRound>(onlyRound);
@@ -244,15 +226,11 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = new()
-		{
-			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5,
-			TransactionSigningTimeout = TimeSpan.Zero,
-			OutputRegistrationTimeout = TimeSpan.Zero,
-			FailFastTransactionSigningTimeout = TimeSpan.Zero,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-		};
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.TransactionSigningTimeout = TimeSpan.Zero;
+		cfg.OutputRegistrationTimeout = TimeSpan.Zero;
+		cfg.FailFastTransactionSigningTimeout = TimeSpan.Zero;
+
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -260,6 +238,7 @@ public class StepTransactionSigningTests
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
+
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
@@ -277,7 +256,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.Ended, round.Phase);
 
-		Assert.True(prison.IsBanned(badOutpoint, DateTimeOffset.UtcNow));
+		Assert.True(prison.IsBanned(badOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
 		var blameRound = Assert.IsType<BlameRound>(onlyRound);
 		Assert.Equal(round.Id, blameRound.BlameOf.Id);

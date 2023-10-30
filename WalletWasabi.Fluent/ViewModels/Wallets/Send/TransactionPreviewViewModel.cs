@@ -393,7 +393,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
-				Navigate().To().SendSuccess(_wallet, finalTransaction);
+				Navigate().To().SendSuccess(finalTransaction);
 			}
 		}
 		catch (Exception ex)

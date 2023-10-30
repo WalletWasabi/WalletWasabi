@@ -15,6 +15,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
+
 #pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -41,6 +42,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
+		NewTransactionArrived =
+			Observable.FromEventPattern<ProcessedResult>(wallet, nameof(wallet.WalletRelevantTransactionProcessed))
+					  .Select(x => (walletModel, x.EventArgs))
+					  .ObserveOn(RxApp.MainThreadScheduler);
+
 		var retriever =
 			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
 				.DisposeWith(_disposable);
@@ -49,9 +55,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposable);
 
-		IsEmpty = retriever.Changes
-			.ToCollectionStartWithEmpty()
-			.Select(models => !models.Any());
+		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
 	}
 
 	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
@@ -59,6 +63,8 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<bool> IsEmpty { get; }
 
 	public IObservable<Unit> TransactionProcessed { get; }
+
+	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
