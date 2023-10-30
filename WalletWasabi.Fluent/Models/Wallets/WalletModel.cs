@@ -9,6 +9,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public partial interface IWalletModel : INotifyPropertyChanged
+{
+}
+
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
@@ -117,8 +121,4 @@ public partial class WalletModel : ReactiveObject
 	{
 		return Wallet.GetLabelsWithRanking(intent);
 	}
-}
-
-public partial interface IWalletModel : INotifyPropertyChanged
-{
 }
