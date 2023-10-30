@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -15,6 +16,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -40,12 +42,11 @@ public partial class MainViewModel : ViewModelBase
 
 		NavBar.Activate();
 
-		UiServices.Initialize(UiContext);
-
 		StatusIcon = new StatusIconViewModel(UiContext.TorStatusChecker);
 
 		SettingsPage = new SettingsPageViewModel(UiContext);
 		PrivacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
+		Notifications = new WalletNotificationsViewModel(UiContext, NavBar);
 
 		NavigationManager.RegisterType(NavBar);
 
@@ -124,14 +125,9 @@ public partial class MainViewModel : ViewModelBase
 	public StatusIconViewModel StatusIcon { get; }
 	public SettingsPageViewModel SettingsPage { get; }
 	public PrivacyModeViewModel PrivacyMode { get; }
+	public WalletNotificationsViewModel Notifications { get; }
 
 	public static MainViewModel Instance { get; private set; }
-
-	public bool IsBusy =>
-		MainScreen.CurrentPage is { IsBusy: true } ||
-		DialogScreen.CurrentPage is { IsBusy: true } ||
-		FullScreen.CurrentPage is { IsBusy: true } ||
-		CompactDialogScreen.CurrentPage is { IsBusy: true };
 
 	public bool IsDialogOpen()
 	{
@@ -180,6 +176,8 @@ public partial class MainViewModel : ViewModelBase
 								  .ToCollection()
 								  .Select(x => x.Any())
 								  .BindTo(this, x => x.IsCoinJoinActive);
+
+		Notifications.StartListening();
 
 		if (UiContext.ApplicationSettings.Network != Network.Main)
 		{

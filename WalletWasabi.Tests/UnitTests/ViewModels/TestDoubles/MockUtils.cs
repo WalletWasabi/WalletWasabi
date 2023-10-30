@@ -66,6 +66,7 @@ public static class MockUtils
 		public INavigationStack<RoutableViewModel> FullScreen => throw new NotSupportedException();
 		public INavigationStack<RoutableViewModel> CompactDialogScreen => throw new NotSupportedException();
 		public IObservable<bool> IsDialogOpen => throw new NotSupportedException();
+		public bool IsAnyPageBusy => false;
 
 		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
 		{

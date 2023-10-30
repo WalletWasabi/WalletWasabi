@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using DynamicData;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -167,6 +165,8 @@ public class SuggestionLabelsViewModelTests
 			_mostUsedLabels = mostUsedLabels;
 		}
 
+		public event PropertyChangedEventHandler? PropertyChanged;
+
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
 		public string Name => throw new NotSupportedException();
 		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
@@ -184,6 +184,8 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
+
+		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
