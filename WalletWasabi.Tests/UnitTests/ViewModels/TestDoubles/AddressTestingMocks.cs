@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
@@ -15,6 +16,8 @@ internal class AddressTestingMocks
 	{
 		private readonly IObservable<IChangeSet<IAddress, string>> _addresses;
 
+		public event PropertyChangedEventHandler? PropertyChanged;
+
 		public TestWallet(IObservable<IChangeSet<IAddress, string>> addresses)
 		{
 			_addresses = addresses;
@@ -25,6 +28,7 @@ internal class AddressTestingMocks
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		public bool IsHardwareWallet => false;
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
+		public bool IsLoggedIn { get; set; }
 		public IWalletAuthModel Auth => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
