@@ -78,6 +78,7 @@ public class MoneyBtcJsonConverterCompareTests
 		des2 = System.Text.Json.JsonSerializer.Deserialize<STJJsonSerializableClass>(badJson); // OneBTC is 1.00000000.
 	}
 
+	// This example template class only uses System.Text.Json functions and attributes for serializing.
 	private class STJJsonSerializableClass
 	{
 		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
@@ -93,6 +94,7 @@ public class MoneyBtcJsonConverterCompareTests
 		public Money SomeSats { get; set; } = Money.Satoshis(1000);
 	}
 
+	// This example template class only uses Newtonsoft.Json functions and attributes for serializing.
 	private class NewtonsoftJsonSerializableClass
 	{
 		[Newtonsoft.Json.JsonProperty(PropertyName = "HalfBTC", DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Populate)]
