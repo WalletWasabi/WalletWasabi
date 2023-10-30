@@ -21,6 +21,7 @@ public class UiContext
 		IQrCodeReader qrCodeReader,
 		IUiClipboard clipboard,
 		IWalletRepository walletRepository,
+		ICoinjoinModel coinJoinModel,
 		IHardwareWalletInterface hardwareWalletInterface,
 		IFileSystem fileSystem,
 		IClientConfig config,
@@ -35,6 +36,7 @@ public class UiContext
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
 		WalletRepository = walletRepository ?? throw new ArgumentNullException(nameof(walletRepository));
+		CoinjoinModel = coinJoinModel ?? throw new ArgumentNullException(nameof(coinJoinModel));
 		HardwareWalletInterface = hardwareWalletInterface ?? throw new ArgumentNullException(nameof(hardwareWalletInterface));
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
@@ -49,6 +51,7 @@ public class UiContext
 	public IUiClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 	public IWalletRepository WalletRepository { get; }
+	public ICoinjoinModel CoinjoinModel { get; }
 	public IQrCodeReader QrCodeReader { get; }
 	public IHardwareWalletInterface HardwareWalletInterface { get; }
 	public IFileSystem FileSystem { get; }

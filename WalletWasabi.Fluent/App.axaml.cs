@@ -148,6 +148,7 @@ public class App : Application
 			new QrCodeReader(),
 			new UiClipboard(),
 			CreateWalletRepository(amountProvider),
+			new CoinjoinModel(),
 			CreateHardwareWalletInterface(),
 			CreateFileSystem(),
 			CreateConfig(),
