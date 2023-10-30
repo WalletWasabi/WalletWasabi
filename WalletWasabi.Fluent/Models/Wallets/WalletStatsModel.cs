@@ -8,6 +8,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public partial interface IWalletStatsModel : IDisposable
+{
+}
+
 [AutoInterface]
 public partial class WalletStatsModel : ReactiveObject, IDisposable
 {
@@ -80,8 +84,4 @@ public partial class WalletStatsModel : ReactiveObject, IDisposable
 		NonCoinjointransactionCount = nonCoinjoins.Count;
 		CoinjoinTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count;
 	}
-}
-
-public partial interface IWalletStatsModel : IDisposable
-{
 }

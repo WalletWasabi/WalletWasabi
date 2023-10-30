@@ -10,33 +10,20 @@ namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public class Prison
 {
-	public Prison(DoSConfiguration dosConfiguration, ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
+	public Prison(ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
-		DoSConfiguration = dosConfiguration;
 		CoinJoinIdStore = coinJoinIdStore;
 		Offenders = offenders.ToList();
 		NotificationChannelWriter = channelWriterWriter;
 	}
 
 	private ICoinJoinIdStore CoinJoinIdStore { get; }
-	private DoSConfiguration DoSConfiguration { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
 	private List<Offender> Offenders { get; }
+	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
 
 	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
 	private object Lock { get; } = new();
-
-	private void Punish(Offender offender)
-	{
-		lock (Lock)
-		{
-			Offenders.Add(offender);
-		}
-		if (!NotificationChannelWriter.TryWrite(offender))
-		{
-			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
-		}
-	}
 
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotConfirm)));
@@ -59,68 +46,97 @@ public class Prison
 	public void FailedToSignalReadyToSign(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotSignalReadyToSign)));
 
-	public bool IsBanned(OutPoint outpoint, DateTimeOffset when) =>
-		GetBanTimePeriod(outpoint).Includes(when);
+	public bool IsBanned(OutPoint outpoint, DoSConfiguration configuration, DateTimeOffset when) =>
+		GetBanTimePeriod(outpoint, configuration).Includes(when);
 
-	public TimeFrame GetBanTimePeriod(OutPoint outpoint)
+	public TimeFrame GetBanTimePeriod(OutPoint outpoint, DoSConfiguration configuration)
 	{
+		TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
+		{
+			var effectiveBanningTime = banningTime < configuration.MinTimeInPrison
+				? TimeSpan.Zero
+				: banningTime;
+			return new TimeFrame(offender.StartedTime, effectiveBanningTime);
+		}
+
+		TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
+		{
+			var basePunishmentInHours = configuration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
+
+			List<RoundDisruption> offenderHistory;
+			lock (Lock)
+			{
+				offenderHistory = Offenders
+					.Where(x => x.OutPoint == offender.OutPoint)
+					.Select(x => x.Offense)
+					.OfType<RoundDisruption>()
+					.ToList();
+
+			}
+
+			var maxOffense = offenderHistory.Count == 0
+				? 1
+				: offenderHistory.Max( x => x switch {
+					{ Method: RoundDisruptionMethod.DidNotConfirm } => configuration.PenaltyFactorForDisruptingConfirmation,
+					{ Method: RoundDisruptionMethod.DidNotSign } => configuration.PenaltyFactorForDisruptingSigning,
+					{ Method: RoundDisruptionMethod.DoubleSpent } => configuration.PenaltyFactorForDisruptingByDoubleSpending,
+					{ Method: RoundDisruptionMethod.DidNotSignalReadyToSign } => configuration.PenaltyFactorForDisruptingSignalReadyToSign,
+
+					_ => throw new NotSupportedException("Unknown round disruption method.")
+				});
+
+			var repetitions = offenderHistory.Count;
+			var repetitionFactor = CoinJoinIdStore.Contains(offender.OutPoint.Hash)
+				? repetitions                   // Linear punishment
+				: Math.Pow(2, repetitions - 1); // Exponential punishment
+
+			var prisonTime = basePunishmentInHours * maxOffense * (decimal)repetitionFactor;
+			return TimeSpan.FromHours((double)prisonTime);
+		}
+
+		TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors)
+		{
+			return ancestors
+				.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a, configuration)))
+				.MaxBy(x => x.BanningTime.EndTime)
+				.BanningTime;
+		}
+
 		Offender? offender;
 		lock (Lock)
 		{
+			if (BanningTimeCache.TryGetValue(outpoint, out var cachedBanningTime))
+			{
+				return cachedBanningTime;
+			}
+
 			offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
 		}
 
-		return offender switch
+		var banningTime = offender switch
 		{
 			null => TimeFrame.Zero,
-			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForFailedToVerify),
-			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, DoSConfiguration.MinTimeForCheating),
+			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, configuration.MinTimeForFailedToVerify),
+			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, configuration.MinTimeForCheating),
 			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
 			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
 			_ => throw new NotSupportedException("Unknown offense type.")
 		};
+
+		BanningTimeCache[outpoint] = banningTime;
+		return banningTime;
 	}
 
-	private TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
+	private void Punish(Offender offender)
 	{
-		var effectiveBanningTime = banningTime < DoSConfiguration.MinTimeInPrison
-			? TimeSpan.Zero
-			: banningTime;
-		return new TimeFrame(offender.StartedTime, effectiveBanningTime);
-	}
-
-	private TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
-	{
-		var basePunishmentInHours = DoSConfiguration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
-
-		List<Offender> offenderHistory;
 		lock (Lock)
 		{
-			offenderHistory = Offenders.Where(x => x.OutPoint == offender.OutPoint).ToList();
+			Offenders.Add(offender);
+			BanningTimeCache.Remove(offender.OutPoint);
 		}
-
-		var maxOffense = offenderHistory.Max(
-			x => disruption switch
-			{
-				{ Method: RoundDisruptionMethod.DidNotConfirm } => DoSConfiguration.PenaltyFactorForDisruptingConfirmation,
-				{ Method: RoundDisruptionMethod.DidNotSign } => DoSConfiguration.PenaltyFactorForDisruptingSigning,
-				{ Method: RoundDisruptionMethod.DoubleSpent } => DoSConfiguration.PenaltyFactorForDisruptingByDoubleSpending,
-				{ Method: RoundDisruptionMethod.DidNotSignalReadyToSign } => DoSConfiguration.PenaltyFactorForDisruptingSignalReadyToSign,
-				_ => throw new NotSupportedException("Unknown round disruption method.")
-			});
-
-		var repetitions = offenderHistory.Count;
-		var repetitionFactor = CoinJoinIdStore.Contains(offender.OutPoint.Hash)
-			? repetitions                   // Linear punishment
-			: Math.Pow(2, repetitions - 1); // Exponential punishment
-
-		var prisonTime = basePunishmentInHours * maxOffense * (decimal)repetitionFactor;
-		return TimeSpan.FromHours((double)prisonTime);
+		if (!NotificationChannelWriter.TryWrite(offender))
+		{
+			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
+		}
 	}
-
-	private TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors) =>
-		ancestors
-			.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a)))
-			.MaxBy(x => x.BanningTime.EndTime)
-			.BanningTime;
 }
