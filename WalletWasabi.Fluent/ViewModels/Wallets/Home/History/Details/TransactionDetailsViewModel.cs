@@ -40,7 +40,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
 		if (Fee is null || !Fee.HasBalance)
 		{
-			Fee = uiContext.AmountProvider.Create(new Money((long)wallet.TransactionFeeProvider.GetFee(transactionSummary.GetHash())));
+			Fee = uiContext.AmountProvider.Create(wallet.TransactionFeeProvider.GetFee(transactionSummary.GetHash()));
 		}
 
 		IsFeeVisible = Fee != null && Fee.HasBalance;

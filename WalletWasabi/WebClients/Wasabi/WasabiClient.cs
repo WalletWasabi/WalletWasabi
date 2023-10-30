@@ -199,7 +199,7 @@ public class WasabiClient
 		return strings;
 	}
 
-	public async Task<int> FetchTransactionFeeAsync(uint256 transactionId, CancellationToken cancel = default)
+	public async Task<Money> FetchTransactionFeeAsync(uint256 transactionId, CancellationToken cancel = default)
 	{
 		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, $"api/v4/btc/Blockchain/get-transaction-fee?&transactionId={transactionId}", cancellationToken: cancel).ConfigureAwait(false);
 
@@ -210,7 +210,7 @@ public class WasabiClient
 
 		var transactionFee = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
 
-		return int.Parse(transactionFee);
+		return new Money(long.Parse(transactionFee));
 	}
 
 	#endregion blockchain

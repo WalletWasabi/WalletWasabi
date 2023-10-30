@@ -18,7 +18,7 @@ public class TransactionFeeProvider : PeriodicRunner
 	}
 
 #pragma warning disable IDE1006 // Naming Styles
-	public ConcurrentDictionary<uint256, int> FeeCache = new();
+	public ConcurrentDictionary<uint256, Money> FeeCache = new();
 #pragma warning restore IDE1006 // Naming Styles
 	public ConcurrentQueue<uint256> Queue { get; } = new();
 
@@ -31,11 +31,11 @@ public class TransactionFeeProvider : PeriodicRunner
 
 		try
 		{
-			int feeInSats = await HttpClient.FetchTransactionFeeAsync(txid, linkedCts.Token).ConfigureAwait(false);
+			Money fee = await HttpClient.FetchTransactionFeeAsync(txid, linkedCts.Token).ConfigureAwait(false);
 
-			if (!FeeCache.TryAdd(txid, feeInSats))
+			if (!FeeCache.TryAdd(txid, fee))
 			{
-				throw new InvalidOperationException($"Failed to cache {txid} with fee: {feeInSats}");
+				throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
 			}
 		}
 		catch (Exception ex)
@@ -57,14 +57,14 @@ public class TransactionFeeProvider : PeriodicRunner
 		return Task.CompletedTask;
 	}
 
-	public int GetFee(uint256 txid)
+	public Money GetFee(uint256 txid)
 	{
 		if (FeeCache.TryGetValue(txid, out var fee))
 		{
 			return fee;
 		}
 
-		return 0;
+		return Money.Zero;
 	}
 
 	public void WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)

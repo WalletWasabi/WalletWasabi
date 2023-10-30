@@ -33,7 +33,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		var feeInSats = Services.HostedServices.Get<TransactionFeeProvider>().FeeCache.TryGet(coinJoin.Transaction.Id);
+		Money feeInSats = Services.HostedServices.Get<TransactionFeeProvider>().GetFee(coinJoin.Transaction.Id);
 		var network = Services.WalletManager.Network;
 		var vSize = coinJoin.Transaction.TransactionSummary.Transaction.Transaction.GetVirtualSize();
 		TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), network, feeInSats, vSize, out var estimate);
