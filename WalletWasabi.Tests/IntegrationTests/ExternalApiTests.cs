@@ -39,7 +39,6 @@ public class ExternalApiTests
 	public async Task CoingateExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync(new CoingateExchangeRateProvider());
 
-
 	private async Task AssertProviderAsync(IExchangeRateProvider provider)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
