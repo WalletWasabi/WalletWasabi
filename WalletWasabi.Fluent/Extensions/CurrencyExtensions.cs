@@ -48,9 +48,24 @@ public static class CurrencyExtensions
 		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
 	}
 
-	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsd(n)}" : "";
+	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsdFormatted(n)}" : "";
 
 	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
+
+	public static string ToUsdFormatted(this decimal n)
+	{
+		return ToUsdAmountFormatted(n) + " USD";
+	}
+
+	public static string ToUsdAmountFormatted(this decimal n)
+	{
+		return n switch
+		{
+			>= 10 => Math.Ceiling(n).ToString("N0", FormatInfo),
+			>= 1 => n.ToString("N1", FormatInfo),
+			_ => n.ToString("N2", FormatInfo)
+		};
+	}
 
 	public static string ToUsd(this decimal n)
 	{

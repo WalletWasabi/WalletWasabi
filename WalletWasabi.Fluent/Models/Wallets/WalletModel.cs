@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Linq;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -16,7 +13,6 @@ public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
-	private readonly ReadOnlyObservableCollection<IAddress> _addresses;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -32,10 +28,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		new SignaledFetcher<IAddress, string>(Transactions.TransactionProcessed, x => x.Text, GetAddresses)
-			.Changes
-			.Bind(out _addresses)
-			.Subscribe();
+		AddressesModel = new AddressesModel(Transactions.TransactionProcessed, Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -65,6 +58,8 @@ public partial class WalletModel : ReactiveObject
 			 .Subscribe();
 	}
 
+	public IAddressesModel AddressesModel { get; }
+
 	internal Wallet Wallet { get; }
 
 	public string Name => Wallet.WalletName;
@@ -88,8 +83,6 @@ public partial class WalletModel : ReactiveObject
 	public IWalletPrivacyModel Privacy { get; }
 
 	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
-
-	public ReadOnlyObservableCollection<IAddress> Addresses => _addresses;
 
 	public IObservable<WalletState> State { get; }
 
@@ -118,13 +111,5 @@ public partial class WalletModel : ReactiveObject
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);
-	}
-
-	private IEnumerable<IAddress> GetAddresses()
-	{
-		return Wallet.KeyManager
-			.GetKeys()
-			.Reverse()
-			.Select(x => new Address(Wallet.KeyManager, x));
 	}
 }

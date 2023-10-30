@@ -47,14 +47,19 @@ public partial class WalletCoinjoinModel : ReactiveObject
 		var coinjoinStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
 						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
-						 .Select(x => true);
+						 .Select(_ => true);
+
+		var coinjoinStopped =
+			StatusUpdated.OfType<WalletStoppedCoinJoinEventArgs>()
+				.Select(_ => false);
 
 		var coinjoinCompleted =
 			StatusUpdated.OfType<CompletedEventArgs>()
-						 .Select(x => false);
+				.Select(_ => false);
 
 		IsRunning =
-			coinjoinStarted.Merge(coinjoinCompleted)
+			coinjoinStarted.Merge(coinjoinStopped)
+				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
 
 		IsRunning.BindTo(this, x => x.IsCoinjoining);
