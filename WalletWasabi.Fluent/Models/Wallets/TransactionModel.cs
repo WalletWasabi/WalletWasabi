@@ -38,7 +38,7 @@ public partial class TransactionModel : ReactiveObject
 
 	public Money? OutgoingAmount { get; set; }
 
-	public Money? Fee { get; init; }
+	public Money? Fee { get; set; }
 
 	public Money Amount => Math.Abs(IncomingAmount ?? OutgoingAmount ?? Money.Zero);
 

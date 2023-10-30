@@ -233,13 +233,13 @@ public class TransactionTreeBuilder
 		coinjoinGroup.ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations);
 		coinjoinGroup.Date = coinjoinGroup.Children.Select(tx => tx.Date).Max().ToLocalTime();
 
-		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
+		var incomingAmount = coinjoinGroup.Children.Sum(x => x.IncomingAmount ?? Money.Zero);
+		var outgoingAmount = coinjoinGroup.Children.Sum(x => x.OutgoingAmount ?? Money.Zero);
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
 
-		var amounts = GetAmounts(amount, fee);
-
-		coinjoinGroup.IncomingAmount = amounts.IncomingAmount;
-		coinjoinGroup.OutgoingAmount = amounts.OutgoingAmount;
+		coinjoinGroup.IncomingAmount = incomingAmount == Money.Zero ? null : incomingAmount;
+		coinjoinGroup.OutgoingAmount = outgoingAmount == Money.Zero ? null : outgoingAmount;
+		coinjoinGroup.Fee = fee == Money.Zero ? null : fee;
 
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
