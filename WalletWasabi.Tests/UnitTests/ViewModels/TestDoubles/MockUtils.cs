@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models;
