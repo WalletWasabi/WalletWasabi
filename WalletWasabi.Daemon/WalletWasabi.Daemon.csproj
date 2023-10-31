@@ -14,7 +14,8 @@
 		<!--<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>-->
 		<!--<RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>-->
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Daemon</PathMap>
-		<OutputType>Exe</OutputType>
+		<!--<OutputType>Exe</OutputType>-->
+		<OutputType>Library</OutputType>
 	</PropertyGroup>
 
 	<PropertyGroup>
