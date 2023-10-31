@@ -46,7 +46,8 @@ public class Global
 	{
 		DataDir = dataDir;
 		Config = config;
-		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		//TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		TorSettings = null;
 
 		HostedServices = new HostedServices();
 
@@ -82,7 +83,7 @@ public class Global
 				var p2p = new P2pNetwork(
 						Network,
 						Config.GetBitcoinP2pEndPoint(),
-						Config.UseTor ? TorSettings.SocksEndpoint : null,
+						Config.UseTor ? TorSettings?.SocksEndpoint : null,
 						Path.Combine(DataDir, "BitcoinP2pNetwork"),
 						BitcoinStore);
 				if (!Config.BlockOnlyMode)
@@ -122,7 +123,7 @@ public class Global
 	private CancellationTokenSource StoppingCts { get; } = new();
 
 	public string DataDir { get; }
-	public TorSettings TorSettings { get; }
+	public TorSettings? TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
 
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
@@ -157,7 +158,7 @@ public class Global
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
+			Config.UseTor ? TorSettings?.SocksEndpoint : null,
 			backendUriGetter);
 
 	public async Task InitializeNoWalletAsync(TerminateService terminateService, CancellationToken cancellationToken)
@@ -270,6 +271,10 @@ public class Global
 		{
 			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 			{
+				if (TorSettings is null)
+				{
+					return;
+				}
 				TorManager = new TorProcessManager(TorSettings);
 				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");

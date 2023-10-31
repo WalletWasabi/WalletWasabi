@@ -19,7 +19,7 @@ public enum ExitCode
 public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
-	public Global? Global { get; private set; }
+	public Global? Global { get; set; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
@@ -93,7 +93,7 @@ public class WasabiApplication
 		Logger.LogSoftwareStopped(AppConfig.AppName);
 	}
 
-	private Global CreateGlobal()
+	public Global CreateGlobal()
 		=> new(Config.DataDir, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()

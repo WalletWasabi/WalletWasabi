@@ -19,13 +19,13 @@ namespace WalletWasabi.Fluent;
 public class ApplicationStateManager : IMainWindowService
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
+	private readonly IApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
+	internal ApplicationStateManager(IApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
@@ -50,13 +50,19 @@ public class ApplicationStateManager : IMainWindowService
 						AppLifetimeHelper.StartAppWithArgs();
 					}
 
-					lifetime.Shutdown();
+					if (lifetime is IControlledApplicationLifetime controlled)
+					{
+						controlled.Shutdown();
+					}
 				})
 			.OnTrigger(
 				Trigger.ShutdownPrevented,
 				() =>
 				{
-					_lifetime.MainWindow.BringToFront();
+					if (lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					{
+						desktop.MainWindow.BringToFront();
+					}
 					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 					_restartRequest = false; // reset the value.
 				});
@@ -65,8 +71,11 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow?.Close();
-				_lifetime.MainWindow = null;
+				if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				{
+					desktop.MainWindow?.Close();
+					desktop.MainWindow = null;
+				}
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
@@ -79,7 +88,10 @@ public class ApplicationStateManager : IMainWindowService
 			.Permit(Trigger.MainWindowClosed, State.Closed)
 			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
 
-		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
+		if (lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			desktop.ShutdownRequested += LifetimeOnShutdownRequested;
+		}
 
 		_stateMachine.Start();
 	}
@@ -117,7 +129,12 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void CreateAndShowMainWindow()
 	{
-		if (_lifetime.MainWindow is { })
+		if (_lifetime is ISingleViewApplicationLifetime)
+		{
+			return;
+		}
+
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is { })
 		{
 			return;
 		}
@@ -162,7 +179,10 @@ public class ApplicationStateManager : IMainWindowService
 			})
 			.DisposeWith(_compositeDisposable);
 
-		_lifetime.MainWindow = result;
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop1)
+		{
+			desktop1.MainWindow = result;
+		}
 
 		if (result.WindowState != WindowState.Maximized)
 		{

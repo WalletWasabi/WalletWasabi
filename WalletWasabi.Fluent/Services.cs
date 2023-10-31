@@ -15,7 +15,7 @@ public static class Services
 {
 	public static string DataDir { get; private set; } = null!;
 
-	public static TorSettings TorSettings { get; private set; } = null!;
+	public static TorSettings? TorSettings { get; private set; } = null!;
 
 	public static BitcoinStore BitcoinStore { get; private set; } = null!;
 
@@ -55,7 +55,7 @@ public static class Services
 	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
-		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
+		//Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
 		Guard.NotNull(nameof(global.BitcoinStore), global.BitcoinStore);
 		Guard.NotNull(nameof(global.HttpClientFactory), global.HttpClientFactory);
 		Guard.NotNull(nameof(global.LegalChecker), global.LegalChecker);

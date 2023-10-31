@@ -200,7 +200,7 @@ public static class WasabiAppExtensions
 			});
 	}
 
-	private static UiConfig LoadOrCreateUiConfig(string dataDir)
+	public static UiConfig LoadOrCreateUiConfig(string dataDir)
 	{
 		Directory.CreateDirectory(dataDir);
 

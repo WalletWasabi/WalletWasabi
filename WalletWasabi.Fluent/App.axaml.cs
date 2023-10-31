@@ -22,7 +22,8 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly bool _startInBg;
-	private readonly Func<Task>? _backendInitialiseAsync;
+	//private readonly Func<Task>? _backendInitialiseAsync;
+	public static Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
 	static App()
@@ -58,7 +59,7 @@ public class App : Application
 				var uiContext = CreateUiContext();
 				UiContext.Default = uiContext;
 				_applicationStateManager =
-					new ApplicationStateManager(desktop, uiContext, _startInBg);
+					new ApplicationStateManager(ApplicationLifetime, uiContext, _startInBg);
 
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
@@ -81,8 +82,35 @@ public class App : Application
 			}
 			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
 			{
+				var uiContext = CreateUiContext();
+				UiContext.Default = uiContext;
+				_applicationStateManager =
+				 	new ApplicationStateManager(ApplicationLifetime, uiContext, _startInBg);
+
+				// DataContext = _applicationStateManager.ApplicationViewModel;
+
+				// desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+				// desktop.Exit += (sender, args) =>
+				// {
+				// 	MainViewModel.Instance.ClearStacks();
+				// 	MainViewModel.Instance.StatusIcon.Dispose();
+				// };
+
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+
+						MainViewModel.Instance.Initialize();
+					});
+
+				// InitializeTrayIcons();
+
 				// TODO:
-				single.MainView = new Shell();
+				single.MainView = new Shell
+				{
+					DataContext = MainViewModel.Instance
+				};
 			}
 		}
 
