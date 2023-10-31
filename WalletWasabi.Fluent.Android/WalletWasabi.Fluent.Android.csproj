@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net7.0-android</TargetFramework>
+		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+		<Nullable>enable</Nullable>
+		<ApplicationId>com.wasabiwallet.android</ApplicationId>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<IsPackable>False</IsPackable>
+	</PropertyGroup>
+	<ItemGroup>
+		<AndroidResource Include="Icon.png">
+			<Link>Resources\drawable\Icon.png</Link>
+		</AndroidResource>
+	</ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<!--<EnableLLVM>True</EnableLLVM>-->
+		<!--<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>-->
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Xamarin.AndroidX.AppCompat"/>
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel"/>
+		<PackageReference Include="Avalonia.Android"/>
+		<PackageReference Include="Avalonia.Themes.Fluent"/>
+		<PackageReference Include="Avalonia.Fonts.Inter"/>
+	</ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Icon.png"/>
+	</ItemGroup>
+</Project>

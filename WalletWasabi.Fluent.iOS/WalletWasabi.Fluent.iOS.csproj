@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net7.0-ios</TargetFramework>
+		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+		<ProvisioningType>manual</ProvisioningType>
+		<Nullable>enable</Nullable>
+		<RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>
+		<UseInterpreter>True</UseInterpreter>
+		<IsPackable>False</IsPackable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.iOS" />
+		<PackageReference Include="Avalonia.Themes.Fluent" />
+		<PackageReference Include="Avalonia.Fonts.Inter" />
+	</ItemGroup>
+</Project>
