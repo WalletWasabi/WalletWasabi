@@ -976,8 +976,8 @@ public class TransactionProcessorTests
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
 		tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, 5));
-		tx.Inputs.AddRange(CreateRandomInputs(4));
+		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, count: 5));
+		tx.Inputs.AddRange(CreateRandomInputs(count: 4));
 		var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
 		// It is relevant even when all the coins can be dust.
@@ -1521,7 +1521,8 @@ public class TransactionProcessorTests
 
 	private List<TxOut> CreateRandomIndistinguishableOutputs(long amount, int count)
 	{
-		List<TxOut> outputs = new();
+		List<TxOut> outputs = new(capacity: count);
+
 		for (int i = 0; i < count; i++)
 		{
 			outputs.Add(new TxOut(amount, BitcoinFactory.CreateScript()));
@@ -1532,7 +1533,8 @@ public class TransactionProcessorTests
 
 	private List<TxIn> CreateRandomInputs(int count)
 	{
-		List<TxIn> inputs = new();
+		List<TxIn> inputs = new(capacity: count);
+
 		for (int i = 0; i < count; i++)
 		{
 			inputs.Add(new TxIn(GetRandomOutPoint(), Script.Empty));
