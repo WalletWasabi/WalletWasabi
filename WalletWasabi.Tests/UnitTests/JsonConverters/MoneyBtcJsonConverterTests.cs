@@ -30,84 +30,76 @@ public class MoneyBtcJsonConverterTests
 	[Fact]
 	public void DeserializationParity()
 	{
-		string[] testValues = new[]
+		// Success cases.
 		{
-			"209999999.97690001", // Maximum number of bitcoins ever to exist + 1 satoshi.
-			"210000000", // 21 million bitcoin.
-			"1.", // No digit after decimal point.
-			"1e6",
-			"1,0", // Decimal comma.
-			"1,000.00", // Thousand separator.
-			"0.00000000000000000000000000000000000000000000001",
-			"00000000000000000000000"
-		};
+			string token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
+			AssertDeserializeJsonExceptionFailure(token);
+			AssertBothDeserialize(S(token));
 
-		Assert.True(AssertBothCanDeserialize(testValues[0]));
-		Assert.True(AssertBothCanDeserialize(testValues[1]));
-		Assert.True(AssertBothCanDeserialize(testValues[2]));
+			token = "210000000"; // 21 million bitcoin.
+			AssertDeserializeJsonExceptionFailure(token);
+			AssertBothDeserialize(S(token));
 
-		Assert.True(AssertNoneCanDeserialize(testValues[3]));
-		Assert.True(AssertNoneCanDeserialize(testValues[4]));
-		Assert.True(AssertNoneCanDeserialize(testValues[5]));
+			token = "0.00000000000000000000000000000000000000000000001";
+			AssertDeserializeJsonExceptionFailure(token);
+			AssertBothDeserialize(S(token));
 
-		Assert.True(AssertBothCanDeserialize(testValues[6]));
-		Assert.True(AssertBothCanDeserialize(testValues[7]));
-	}
+			token = "00000000000000000000000";
+			AssertDeserializeJsonExceptionFailure(token);
+			AssertBothDeserialize(S(token));
+		}
 
-	private bool AssertBothCanDeserialize(string value)
-	{
-		try
+		// Format exception errors.
 		{
-			string json = $$"""{"One":"{{value}}"}""";
-			bool canDeserializeWithOld = TryDeserializeWithOld(json);
-			bool canDeserializeWithNew = TryDeserializeWithNew(json);
-			return canDeserializeWithOld && canDeserializeWithNew;
-		}
-		catch (Exception)
-		{
-			return false;
-		}
-	}
+			string token = "1e6"; // Exponential notation.
+			AssertDeserializeJsonExceptionFailure(token);
+			AssertDeserializeFailure<FormatException>(S(token));
 
-	private bool AssertNoneCanDeserialize(string value)
-	{
-		try
-		{
-			string json = $$"""{"One":"{{value}}"}""";
-			bool canDeserializeWithOld = TryDeserializeWithOld(json);
-			bool canDeserializeWithNew = TryDeserializeWithNew(json);
-			return !canDeserializeWithOld && !canDeserializeWithNew;
-		}
-		catch (Exception)
-		{
-			return false;
-		}
-	}
+			token = "1,0"; // Decimal comma.
+			AssertDeserializeFailure<FormatException>(S(token));
 
-	private bool TryDeserializeWithOld(string json)
-	{
-		try
-		{
-			var data = JsonConvertOld.DeserializeObject<TestData>(json);
-			return true;
+			token = "1,000.00"; // Thousand separator.
+			AssertDeserializeFailure<FormatException>(S(token));
 		}
-		catch (Exception)
-		{
-			return false;
-		}
-	}
 
-	private bool TryDeserializeWithNew(string json)
-	{
-		try
+		// Unique case.
 		{
-			var data = JsonConvertNew.Deserialize<TestData>(json);
-			return true;
+			string token = "1."; // No digit after decimal point.
+			AssertDeserializeJsonExceptionFailure(token);
+			AssertBothDeserialize(S(token));
 		}
-		catch (Exception)
+
+
+		static void AssertBothDeserialize(string jsonToken)
 		{
-			return false;
+			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
+
+			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
+			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+
+			// Value equality.
+			Assert.Equal(product1, product2);
 		}
+
+		static void AssertDeserializeFailure<TException>(string jsonToken)
+			where TException : Exception
+		{
+			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
+
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+		}
+
+		static void AssertDeserializeJsonExceptionFailure(string jsonToken)
+		{
+			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}}""";
+
+			Assert.Throws<Newtonsoft.Json.JsonSerializationException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
+			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+		}
+
+		static string S(string s)
+			=> $"\"{s}\"";
 	}
 
 	/// <summary>
@@ -127,7 +119,21 @@ public class MoneyBtcJsonConverterTests
 	}
 
 	/// <summary>
-	/// Record with both STJ and Newtonsoft attributes.
+	/// Record for testing deserialization of <see cref="Money"/>.
+	/// </summary>
+	private record TestProduct
+	{
+		public required string Name { get; init; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Price))]
+		[Newtonsoft.Json.JsonConverter(typeof(MoneyBtcJsonConverter))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(Price))]
+		public Money? Price { get; init; }
+	}
+
+	/// <summary>
+	/// Record with various attributes for both STJ and Newtonsoft.
 	/// </summary>
 	private record TestData
 	{
