@@ -30,4 +30,7 @@
 	<ItemGroup>
 		<AvaloniaResource Include="Icon.png"/>
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+	</ItemGroup>
 </Project>
