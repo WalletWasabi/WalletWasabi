@@ -160,12 +160,12 @@ public class SuggestionLabelsViewModelTests
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
 
+		public event PropertyChangedEventHandler? PropertyChanged;
+
 		public TestWallet(List<(string Label, int Score)> mostUsedLabels)
 		{
 			_mostUsedLabels = mostUsedLabels;
 		}
-
-		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
 		public string Name => throw new NotSupportedException();

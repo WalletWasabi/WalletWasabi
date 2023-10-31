@@ -40,7 +40,7 @@ public partial class TransactionModel : ReactiveObject
 
 	public Money? Fee { get; init; }
 
-	public Money Amount => Math.Abs(IncomingAmount ?? OutgoingAmount ?? Money.Zero);
+	public Money Amount => IncomingAmount ?? -(OutgoingAmount ?? Money.Zero);
 
 	public bool CanCancelTransaction { get; init; }
 

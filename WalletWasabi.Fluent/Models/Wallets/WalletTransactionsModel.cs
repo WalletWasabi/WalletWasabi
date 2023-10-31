@@ -66,9 +66,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 
-	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
+	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
-		var result = List.FirstOrDefault(x => x.Id == transactionId);
+		var result = isChild
+			? List.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
+			: List.FirstOrDefault(x => x.Id == transactionId);
 
 		if (result is null)
 		{

@@ -22,6 +22,7 @@ public static class MockUtils
 			Mock.Of<IQrCodeReader>(),
 			Mock.Of<IUiClipboard>(),
 			new NullWalletRepository(),
+			Mock.Of<ICoinjoinModel>(),
 			new NullHardwareWalletInterface(),
 			new NullFileSystem(),
 			new NullClientConfig(),
@@ -29,7 +30,8 @@ public static class MockUtils
 			Mock.Of<ITransactionBroadcasterModel>(),
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
-			Mock.Of<ITorStatusCheckerModel>());
+			Mock.Of<ITorStatusCheckerModel>(),
+			Mock.Of<ILegalDocumentsProvider>());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
@@ -39,6 +41,7 @@ public static class MockUtils
 			Mock.Of<IQrCodeReader>(),
 			Mock.Of<IUiClipboard>(),
 			new NullWalletRepository(),
+			Mock.Of<ICoinjoinModel>(),
 			new NullHardwareWalletInterface(),
 			new NullFileSystem(),
 			new NullClientConfig(),
@@ -46,7 +49,8 @@ public static class MockUtils
 			Mock.Of<ITransactionBroadcasterModel>(),
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
-			Mock.Of<ITorStatusCheckerModel>());
+			Mock.Of<ITorStatusCheckerModel>(),
+			Mock.Of<ILegalDocumentsProvider>());
 
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;

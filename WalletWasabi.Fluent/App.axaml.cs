@@ -148,6 +148,7 @@ public class App : Application
 			new QrCodeReader(),
 			new UiClipboard(),
 			CreateWalletRepository(amountProvider),
+			new CoinjoinModel(),
 			CreateHardwareWalletInterface(),
 			CreateFileSystem(),
 			CreateConfig(),
@@ -155,6 +156,7 @@ public class App : Application
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSourceSource(),
-			new TorStatusCheckerModel());
+			new TorStatusCheckerModel(),
+			new LegalDocumentsProvider());
 	}
 }
