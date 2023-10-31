@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models;
@@ -31,7 +32,8 @@ public static class MockUtils
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
 			Mock.Of<ITorStatusCheckerModel>(),
-			Mock.Of<ILegalDocumentsProvider>());
+			Mock.Of<ILegalDocumentsProvider>(),
+			Mock.Of<IHealthMonitor>());
 	}
 
 	public static UiContext ContextWith(INavigationStack<RoutableViewModel> navigationStack)
@@ -50,7 +52,8 @@ public static class MockUtils
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
 			Mock.Of<ITorStatusCheckerModel>(),
-			Mock.Of<ILegalDocumentsProvider>());
+			Mock.Of<ILegalDocumentsProvider>(),
+			Mock.Of<IHealthMonitor>());
 
 		uiContext.RegisterNavigation(new TestNavigation(navigationStack));
 		return uiContext;
