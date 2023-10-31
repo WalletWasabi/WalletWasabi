@@ -50,7 +50,8 @@ public class UiContextBuilder
 			TransactionBroadcaster,
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
-			Mock.Of<ITorStatusCheckerModel>());
+			Mock.Of<ITorStatusCheckerModel>(),
+			Mock.Of<ILegalDocumentsProvider>());
 
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;
