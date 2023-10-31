@@ -14,7 +14,7 @@ using WalletWasabi.Tor.StatusChecker;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class HealthMonitor : ReactiveObject
+public partial class HealthMonitor : ReactiveObject, IDisposable
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
@@ -144,6 +144,11 @@ public partial class HealthMonitor : ReactiveObject
 
 	private CompositeDisposable Disposables { get; } = new();
 
+	public void Dispose()
+	{
+		Disposables.Dispose();
+	}
+
 	private HealthMonitorState GetState()
 	{
 		if (IsConnectionIssueDetected)
@@ -169,4 +174,8 @@ public partial class HealthMonitor : ReactiveObject
 
 		return HealthMonitorState.Loading;
 	}
+}
+
+public partial interface IHealthMonitor : IDisposable
+{
 }
