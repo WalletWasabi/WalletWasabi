@@ -2,7 +2,7 @@
 using Avalonia.Headless.XUnit;
 using VerifyXunit;
 
-namespace WalletWasabi.Tests.UnitTests.Fluent.Controls;
+namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AnimatedButtonTests;
 
 [UsesVerify]
 public class AnimatedButtonTests
