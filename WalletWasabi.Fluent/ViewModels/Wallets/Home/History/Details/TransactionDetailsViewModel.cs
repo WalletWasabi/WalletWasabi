@@ -11,6 +11,8 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -68,7 +70,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 
-		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transactionSummary);
+		Network network = Services.WalletManager.Network;
+		int vSize = transactionSummary.Transaction.Transaction.GetVirtualSize();
+		TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), network, Fee!.Btc, vSize, out var estimate);
+
+		var confirmationTime = estimate;
 		if (confirmationTime is { })
 		{
 			ConfirmationTime = confirmationTime;
