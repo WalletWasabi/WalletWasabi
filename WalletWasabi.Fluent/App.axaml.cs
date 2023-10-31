@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Fluent.Views.Shell;
 
 namespace WalletWasabi.Fluent;
 
@@ -77,6 +78,11 @@ public class App : Application
 					});
 
 				InitializeTrayIcons();
+			}
+			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+			{
+				// TODO:
+				single.MainView = new Shell();
 			}
 		}
 
