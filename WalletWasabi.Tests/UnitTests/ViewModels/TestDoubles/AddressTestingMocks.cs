@@ -88,14 +88,17 @@ internal class AddressTestingMocks
 		{
 			Cache = cache;
 			Addresses = cache.Connect();
-			UnusedAddresses = Cache.Connect().AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed);
-			HasUnusedAddresses = Cache.Connect().AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed).AsObservableCache().CountChanged.Select(i => i > 0);
+			UnusedAddressesCache = Cache.Connect().AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed).AsObservableCache();
+			HasUnusedAddresses = UnusedAddressesCache.CountChanged.Select(i => i > 0);
 		}
 
+		public IObservableCache<IAddress, string> UnusedAddressesCache { get; set; }
 		public IObservableCache<IAddress, string> Cache { get; }
-		public IObservable<IChangeSet<IAddress, string>> UnusedAddresses { get; }
 		public IObservable<bool> HasUnusedAddresses { get; }
 		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
-		public void Dispose() => throw new NotImplementedException();
+
+		public void Dispose()
+		{
+		}
 	}
 }

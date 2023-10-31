@@ -28,20 +28,15 @@ public partial class AddressesModel : IDisposable
 
 		Cache = changes.AsObservableCache();
 
-		Addresses = changes;
-		var unusedAddresses = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed);
-		UnusedAddresses = unusedAddresses;
-		var unusedCache = unusedAddresses.AsObservableCache().DisposeWith(_disposable);
-		HasUnusedAddresses = unusedCache.CountChanged.Select(i => i > 0);
+		UnusedAddressesCache = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed).AsObservableCache();
+		HasUnusedAddresses = UnusedAddressesCache.CountChanged.Select(i => i > 0);
 	}
+
+	public IObservableCache<IAddress, string> UnusedAddressesCache { get; set; }
 
 	public IObservableCache<IAddress, string> Cache { get; }
 
-	public IObservable<IChangeSet<IAddress, string>> UnusedAddresses { get; }
-
 	public IObservable<bool> HasUnusedAddresses { get; }
-
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public void Dispose() => _disposable.Dispose();
 
