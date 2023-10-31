@@ -1,7 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.Tests.Helpers;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
 using JsonConvertOld = Newtonsoft.Json.JsonConvert;
@@ -22,8 +21,9 @@ public class MoneyBtcJsonConverterTests
 		TestData testObject = new();
 		string[] testValues = new[]
 		{
-			"209999999.976900001", // Constants.MaximumNumberOfBitcoins + 1 sat
+			"209999999.97690001", // Constants.MaximumNumberOfBitcoins + 1 sat
 			"210000000", // 21 million bitcoin
+			"1.", // no digit after decimal point
 			"1e6",
 			"1,0", // Decimal comma
 			"1,000.00", // Thousan separator comma
@@ -36,11 +36,12 @@ public class MoneyBtcJsonConverterTests
 
 		Assert.True(AssertBothCanDeserialize(testValues[0]));
 		Assert.True(AssertBothCanDeserialize(testValues[1]));
-		Assert.True(AssertNoneCanDeserialize(testValues[2]));
+		Assert.True(AssertBothCanDeserialize(testValues[2]));
 		Assert.True(AssertNoneCanDeserialize(testValues[3]));
 		Assert.True(AssertNoneCanDeserialize(testValues[4]));
-		Assert.True(AssertBothCanDeserialize(testValues[5]));
+		Assert.True(AssertNoneCanDeserialize(testValues[5]));
 		Assert.True(AssertBothCanDeserialize(testValues[6]));
+		Assert.True(AssertBothCanDeserialize(testValues[7]));
 	}
 
 	private bool AssertBothCanDeserialize(string value)
