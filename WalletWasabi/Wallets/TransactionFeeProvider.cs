@@ -17,9 +17,7 @@ public class TransactionFeeProvider : PeriodicRunner
 		HttpClient = httpClientFactory.SharedWasabiClient;
 	}
 
-#pragma warning disable IDE1006 // Naming Styles
-	public ConcurrentDictionary<uint256, Money> FeeCache = new();
-#pragma warning restore IDE1006 // Naming Styles
+	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
 
 	private WasabiClient HttpClient { get; }
