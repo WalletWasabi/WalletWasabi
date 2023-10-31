@@ -63,7 +63,7 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Select(GetSelectedCoins);
 
 		wallet.Coins.Pockets
-			.ToObservableChangeSet(pocket => pocket.Labels)
+			.Connect()
 			.ToCollection()
 			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
 			.Do(
@@ -87,9 +87,10 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
 		TreeDataGridSource.DisposeWith(_disposables);
 
-		wallet.Coins.Pockets.ToObservableChangeSet(pocket => pocket.Labels)
+		wallet.Coins.Pockets
+					.Connect()
 					.ToCollection()
-					.Take(1)
+					.SkipWhile(pockets => !pockets.Any())
 					.Do(
 						pockets =>
 						{
