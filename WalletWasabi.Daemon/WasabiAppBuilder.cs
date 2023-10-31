@@ -177,7 +177,7 @@ public static class WasabiAppExtensions
 		{
 			var arguments = app.AppConfig.Arguments;
 			var walletNames = ArgumentHelpers
-				.GetValues("wallet", arguments, x => x)
+				.GetValues("wallet", arguments)
 				.Distinct();
 
 			foreach (var walletName in walletNames)
