@@ -43,6 +43,7 @@ public class UiContextBuilder
 			QrReader,
 			Clipboard,
 			WalletRepository,
+			Mock.Of<ICoinjoinModel>(),
 			HardwareWalletInterface,
 			FileSystem,
 			ClientConfig,
