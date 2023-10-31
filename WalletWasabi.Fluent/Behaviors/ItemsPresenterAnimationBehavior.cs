@@ -79,13 +79,7 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 						}
 					}
 				};
-
-				Dispatcher.UIThread.Post(async () =>
-				{
-					v.Opacity = 0;
-					await animation.RunAsync(v);
-					v.Opacity = 1;
-				});
+				animation.RunAsync(v);
 			})
 			.DisposeWith(disposable);
 	}

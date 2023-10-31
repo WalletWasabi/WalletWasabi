@@ -3,9 +3,6 @@ using System.Threading.Tasks;
 using Moq;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.ClientConfig;
-using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -14,9 +11,9 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 
-public static class Mocks
+public static class MockUtils
 {
 	public static UiContext ContextStub()
 	{
@@ -71,6 +68,7 @@ public static class Mocks
 		public INavigationStack<RoutableViewModel> FullScreen => throw new NotSupportedException();
 		public INavigationStack<RoutableViewModel> CompactDialogScreen => throw new NotSupportedException();
 		public IObservable<bool> IsDialogOpen => throw new NotSupportedException();
+		public bool IsAnyPageBusy => false;
 
 		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
 		{

@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -64,8 +63,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_wallet.Addresses
-			.ToObservableChangeSet(x => x.Text)
+		_wallet.AddressesModel.Addresses
 			.AutoRefresh(x => x.IsUsed)
 			.Watch(Model.Text)
 			.Where(change => change.Current.IsUsed)
