@@ -1,5 +1,7 @@
 using NBitcoin;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
 using JsonConvertOld = Newtonsoft.Json.JsonConvert;
@@ -18,48 +20,83 @@ public class MoneyBtcJsonConverterTests
 	public void FunctionalParity()
 	{
 		TestData testObject = new();
+		string[] testValues = new[]
+		{
+			"209999999.976900001", // Constants.MaximumNumberOfBitcoins + 1 sat
+			"210000000", // 21 million bitcoin
+			"1e6",
+			"1,0", // Decimal comma
+			"1,000.00", // Thousan separator comma
+			"0.00000000000000000000000000000000000000000000001",
+			"00000000000000000000000"
+		};
 
 		string json = AssertSerializedEqually(testObject);
-		Assert.Equal("""{"Half":"0.50","One":"1.00","Zeros":"0.000001","None":null,"NotAnnotated":null}""", json);
+		Assert.Equal("""{"Half":"0.50","One":"1.00","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""", json);
 
-		//string newtonJson = JsonConvertOld.SerializeObject(testObject);
-		//var deserializedNewtonClass = JsonConvertOld.DeserializeObject<TestClass>(newtonJson);
+		Assert.True(AssertBothCanDeserialize(testValues[0]));
+		Assert.True(AssertBothCanDeserialize(testValues[1]));
+		Assert.True(AssertNoneCanDeserialize(testValues[2]));
+		Assert.True(AssertNoneCanDeserialize(testValues[3]));
+		Assert.True(AssertNoneCanDeserialize(testValues[4]));
+		Assert.True(AssertBothCanDeserialize(testValues[5]));
+		Assert.True(AssertBothCanDeserialize(testValues[6]));
+	}
 
-		//// Sanity checks.
-		//Assert.Equal(Money.Coins(1m), deserializedNewtonClass.OneBTC);
-		//Assert.Equal(Money.Coins(0.5m), deserializedNewtonClass.HalfBTC);
-		//Assert.Equal(Money.Satoshis(1000), deserializedNewtonClass.SomeSats);
+	private bool AssertBothCanDeserialize(string value)
+	{
+		try
+		{
+			var json = $$"""{"Half":"0.50","One":"{{value}}","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""";
+			bool canDeserializeWithOld = TryDeserializeWithOld(json);
+			bool canDeserializeWithNew = TryDeserializeWithNew(json);
+			return canDeserializeWithOld && canDeserializeWithNew;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
 
-		//string stjJson = JsonConvertNew.Serialize(stjClass);
-		//// string stjJson = System.Text.Json.JsonSerializer.Serialize(stjClass, typeof(STJJsonSerializableClass)); -> Doesn't make a difference in current state.
+	private bool AssertNoneCanDeserialize(string value)
+	{
+		try
+		{
+			var json = $$"""{"Half":"0.50","One":"{{value}}","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""";
+			bool canDeserializeWithOld = TryDeserializeWithOld(json);
+			bool canDeserializeWithNew = TryDeserializeWithNew(json);
+			return !canDeserializeWithOld && !canDeserializeWithNew;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
 
-		//var deserializedJstClass = JsonConvertNew.Deserialize<TestClass>(stjJson);
+	private bool TryDeserializeWithOld(string json)
+	{
+		try
+		{
+			var data = JsonConvertOld.DeserializeObject<TestData>(json);
+			return true;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
 
-		//// newtontime = 7-8ms | stjtime = 41-52ms.
-		//Assert.Equal(Money.Coins(1m), deserializedJstClass.OneBTC);
-		//Assert.Equal(Money.Coins(0.5m), deserializedJstClass.HalfBTC);
-		//Assert.Equal(Money.Satoshis(1000), deserializedJstClass.SomeSats);
-
-		//// Error handling.(Neither of these throws exception)
-		//// SomeSats property is mistyped:
-		//string badJson = """{"HalfBTC":"0.50","OneBTC":"1.00","SomeS":"0.00002"}""";
-		//var des = JsonConvertOld.DeserializeObject<TestClass>(badJson); // SomeSats is null.
-		//var des2 = JsonConvertNew.Deserialize<TestClass>(badJson); // SomeSats is 0.00001. STJ fills up the property with the init value if it can't find the new value in json.
-
-		//// A bonus property is in the middle of the json:
-		//badJson = """{"HalfBTC":"0.50","OneBTC":"1.00","FakeSomeSats":"0.00003","SomeSats":"0.00002"}""";
-		//des = JsonConvertOld.DeserializeObject<TestClass>(badJson); // Ignores FakeSomeSats, SomeSats is 0.00002.
-		//des2 = JsonConvertNew.Deserialize<TestClass>(badJson); // Ignores FakeSomeSats, SomeSats is 0.00002.
-
-		//// SomeSats is null:
-		//badJson = """{"HalfBTC":"0.50","OneBTC":"1.00","SomeSats":null}""";
-		//des = JsonConvertOld.DeserializeObject<TestClass>(badJson); // SomeSats is null.
-		//des2 = JsonConvertNew.Deserialize<TestClass>(badJson); // SomeSats is null.
-
-		//// OneBTC has an extra zero and misses number after decimal point:
-		//badJson = """{"HalfBTC":"0.50","OneBTC":"01.","SomeSats":null}""";
-		//des = JsonConvertOld.DeserializeObject<TestClass>(badJson); // OneBTC is 1.00000000.
-		//des2 = JsonConvertNew.Deserialize<TestClass>(badJson); // OneBTC is 1.00000000.
+	private bool TryDeserializeWithNew(string json)
+	{
+		try
+		{
+			var data = JsonConvertNew.Deserialize<TestData>(json);
+			return true;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
 	}
 
 	/// <summary>
@@ -100,6 +137,12 @@ public class MoneyBtcJsonConverterTests
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Zeros))]
 		[Newtonsoft.Json.JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Zeros { get; set; } = Money.Coins(0.000001m);
+
+		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(Max))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Max))]
+		[Newtonsoft.Json.JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money Max { get; set; } = Money.Coins(Constants.MaximumNumberOfBitcoins);
 
 		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(None))]
