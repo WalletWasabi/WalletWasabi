@@ -48,7 +48,7 @@ public class MoneyBtcJsonConverterTests
 	{
 		try
 		{
-			var json = $$"""{"Half":"0.50","One":"{{value}}","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""";
+			var json = $$"""{"One":"{{value}}"}""";
 			bool canDeserializeWithOld = TryDeserializeWithOld(json);
 			bool canDeserializeWithNew = TryDeserializeWithNew(json);
 			return canDeserializeWithOld && canDeserializeWithNew;
@@ -63,7 +63,7 @@ public class MoneyBtcJsonConverterTests
 	{
 		try
 		{
-			var json = $$"""{"Half":"0.50","One":"{{value}}","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""";
+			var json = $$"""{"One":"{{value}}"}""";
 			bool canDeserializeWithOld = TryDeserializeWithOld(json);
 			bool canDeserializeWithNew = TryDeserializeWithNew(json);
 			return !canDeserializeWithOld && !canDeserializeWithNew;
