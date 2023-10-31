@@ -104,21 +104,6 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 			.BindTo(this, x => x.IsP2pConnected)
 			.DisposeWith(Disposables);
 
-		// State
-		this.WhenAnyValue(
-				x => x.TorStatus,
-				x => x.BackendStatus,
-				x => x.Peers,
-				x => x.BitcoinCoreStatus,
-				x => x.UpdateAvailable,
-				x => x.CriticalUpdateAvailable,
-				x => x.IsConnectionIssueDetected)
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(_ => GetState())
-			.BindTo(this, x => x.State)
-			.DisposeWith(Disposables);
-
 		// Update Available
 		if (Services.UpdateManager is { })
 		{
@@ -135,6 +120,21 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 				})
 				.DisposeWith(Disposables);
 		}
+
+		// State
+		this.WhenAnyValue(
+				x => x.TorStatus,
+				x => x.BackendStatus,
+				x => x.Peers,
+				x => x.BitcoinCoreStatus,
+				x => x.UpdateAvailable,
+				x => x.CriticalUpdateAvailable,
+				x => x.IsConnectionIssueDetected)
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(_ => GetState())
+			.BindTo(this, x => x.State)
+			.DisposeWith(Disposables);
 	}
 
 	public ICollection<Issue> TorIssues => _torIssues.Value;
