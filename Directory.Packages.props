@@ -31,6 +31,12 @@
     <PackageVersion Include="System.Runtime" Version="4.3.1" />
     <PackageVersion Include="QRackers" Version="1.1.0" />
 	<PackageVersion Include="DynamicData" Version="8.1.1" />
+	<!-- UI Testing. -->
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Verify.Avalonia" Version="1.0.1" />
+    <PackageVersion Include="Verify.DiffPlex" Version="2.2.1" />
+    <PackageVersion Include="Verify.ImageMagick" Version="3.2.2" />
+    <PackageVersion Include="Verify.Xunit" Version="20.8.2" />
     <!-- Testing. -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.9" />
