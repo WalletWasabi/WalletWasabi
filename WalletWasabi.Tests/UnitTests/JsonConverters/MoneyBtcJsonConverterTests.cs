@@ -13,33 +13,43 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 public class MoneyBtcJsonConverterTests
 {
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on NewtonSoft.JSON works the same.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on NewtonSoft.JSON *serialize* objects equally.
 	/// </summary>
 	[Fact]
-	public void FunctionalParity()
+	public void SerializationParity()
 	{
 		TestData testObject = new();
+
+		string json = AssertSerializedEqually(testObject);
+		Assert.Equal("""{"Half":"0.50","One":"1.00","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""", json);
+	}
+
+	/// <summary>
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on NewtonSoft.JSON *deserialize* objects equally.
+	/// </summary>
+	[Fact]
+	public void DeserializationParity()
+	{
 		string[] testValues = new[]
 		{
-			"209999999.97690001", // Constants.MaximumNumberOfBitcoins + 1 sat
-			"210000000", // 21 million bitcoin
-			"1.", // no digit after decimal point
+			"209999999.97690001", // Maximum number of bitcoins ever to exist + 1 satoshi.
+			"210000000", // 21 million bitcoin.
+			"1.", // No digit after decimal point.
 			"1e6",
-			"1,0", // Decimal comma
-			"1,000.00", // Thousan separator comma
+			"1,0", // Decimal comma.
+			"1,000.00", // Thousand separator.
 			"0.00000000000000000000000000000000000000000000001",
 			"00000000000000000000000"
 		};
 
-		string json = AssertSerializedEqually(testObject);
-		Assert.Equal("""{"Half":"0.50","One":"1.00","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""", json);
-
 		Assert.True(AssertBothCanDeserialize(testValues[0]));
 		Assert.True(AssertBothCanDeserialize(testValues[1]));
 		Assert.True(AssertBothCanDeserialize(testValues[2]));
+
 		Assert.True(AssertNoneCanDeserialize(testValues[3]));
 		Assert.True(AssertNoneCanDeserialize(testValues[4]));
 		Assert.True(AssertNoneCanDeserialize(testValues[5]));
+
 		Assert.True(AssertBothCanDeserialize(testValues[6]));
 		Assert.True(AssertBothCanDeserialize(testValues[7]));
 	}
@@ -48,7 +58,7 @@ public class MoneyBtcJsonConverterTests
 	{
 		try
 		{
-			var json = $$"""{"One":"{{value}}"}""";
+			string json = $$"""{"One":"{{value}}"}""";
 			bool canDeserializeWithOld = TryDeserializeWithOld(json);
 			bool canDeserializeWithNew = TryDeserializeWithNew(json);
 			return canDeserializeWithOld && canDeserializeWithNew;
@@ -63,7 +73,7 @@ public class MoneyBtcJsonConverterTests
 	{
 		try
 		{
-			var json = $$"""{"One":"{{value}}"}""";
+			string json = $$"""{"One":"{{value}}"}""";
 			bool canDeserializeWithOld = TryDeserializeWithOld(json);
 			bool canDeserializeWithNew = TryDeserializeWithNew(json);
 			return !canDeserializeWithOld && !canDeserializeWithNew;
