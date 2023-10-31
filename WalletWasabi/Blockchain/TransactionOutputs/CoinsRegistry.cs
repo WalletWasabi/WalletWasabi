@@ -35,7 +35,7 @@ public class CoinsRegistry : ICoinsView
 
 	/// <summary>Maps each outpoint to transaction IDs (i.e. txids) that exist thanks to the outpoint.</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private Dictionary<OutPoint, uint256> TxidsByPrevOuts { get; } = new();
+	private Dictionary<OutPoint, uint256> TxidsByInputPrevOuts { get; } = new();
 
 	/// <summary>Maps each txid to smart coins (i.e. UTXOs).</summary>
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -103,7 +103,7 @@ public class CoinsRegistry : ICoinsView
 			return false;
 		}
 
-		var added = Coins.Add(coin);
+		bool added = Coins.Add(coin);
 		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
 
 		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
@@ -111,6 +111,7 @@ public class CoinsRegistry : ICoinsView
 			coinsOfPubKey = new();
 			CoinsByPubKeys.Add(coin.HdPubKey, coinsOfPubKey);
 		}
+
 		coinsOfPubKey.Add(coin);
 
 		if (added)
@@ -121,14 +122,11 @@ public class CoinsRegistry : ICoinsView
 				CoinsByTransactionId.Add(coin.TransactionId, hashSet);
 
 				// Each prevOut of the transaction contributes to the existence of coins.
-				// This only has to be added once per transaction.
 				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 				{
-					if (!TxidsByPrevOuts.TryAdd(input.PrevOut, coin.TransactionId))
+					if (!TxidsByInputPrevOuts.TryAdd(input.PrevOut, coin.TransactionId))
 					{
-						throw new UnreachableException(
-							$"Input PrevOut {input.PrevOut} is already present in the cache." +
-							"Undo might not have been called when required");
+						throw new UnreachableException($"Input prevOut '{input.PrevOut}' is already present in the cache.");
 					}
 				}
 			}
@@ -189,7 +187,7 @@ public class CoinsRegistry : ICoinsView
 
 			foreach (TxIn input in tx.Transaction.Inputs)
 			{
-				TxidsByPrevOuts.Remove(input.PrevOut);
+				TxidsByInputPrevOuts.Remove(input.PrevOut);
 			}
 
 			if (!TransactionAmountsByTxid.Remove(txid))
@@ -265,7 +263,7 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryGetCoinsByInputPrevOutNoLock(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		if (!TxidsByPrevOuts.TryGetValue(prevOut, out var txid))
+		if (!TxidsByInputPrevOuts.TryGetValue(prevOut, out uint256? txid))
 		{
 			coins = null;
 			return false;
