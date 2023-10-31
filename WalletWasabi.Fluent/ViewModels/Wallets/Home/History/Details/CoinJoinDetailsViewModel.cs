@@ -29,7 +29,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		ConfirmationTime = transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+		ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
@@ -48,10 +48,13 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _transaction.DateString;
-		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_transaction.OutgoingAmount);
-		Confirmations = _transaction.Confirmations;
-		IsConfirmed = Confirmations > 0;
-		TransactionId = _transaction.Id;
+		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
+		{
+			Date = transaction.DateString;
+			CoinJoinFeeAmount = UiContext.AmountProvider.Create(transaction.OutgoingAmount);
+			Confirmations = transaction.Confirmations;
+			IsConfirmed = Confirmations > 0;
+			TransactionId = transaction.Id;
+		}
 	}
 }
