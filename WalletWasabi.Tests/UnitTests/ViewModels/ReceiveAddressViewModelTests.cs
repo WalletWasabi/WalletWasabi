@@ -66,7 +66,6 @@ public class ReceiveAddressViewModelTests
 
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
 		public string Name => throw new NotSupportedException();
-		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => false;
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();

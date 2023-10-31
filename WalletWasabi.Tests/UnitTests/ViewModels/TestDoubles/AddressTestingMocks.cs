@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -87,15 +88,13 @@ internal class AddressTestingMocks
 		public TestAddressesModel(IObservableCache<IAddress, string> cache)
 		{
 			Cache = cache;
-			Addresses = cache.Connect();
 			UnusedAddressesCache = Cache.Connect().AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed).AsObservableCache();
-			HasUnusedAddresses = UnusedAddressesCache.CountChanged.Select(i => i > 0);
+			HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
 		}
 
 		public IObservableCache<IAddress, string> UnusedAddressesCache { get; set; }
 		public IObservableCache<IAddress, string> Cache { get; }
 		public IObservable<bool> HasUnusedAddresses { get; }
-		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 		public void Dispose()
 		{

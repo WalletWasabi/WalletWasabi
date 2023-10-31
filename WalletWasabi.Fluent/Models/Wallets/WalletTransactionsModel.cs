@@ -26,7 +26,6 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
-	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
 	private readonly CompositeDisposable _disposable = new();
 
 	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
@@ -53,11 +52,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 		Cache = retriever.Changes.AsObservableCache();
 
-		retriever.Changes.Bind(out _transactions)
-			.Subscribe()
-			.DisposeWith(_disposable);
-
-		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
+		IsEmpty = retriever.Changes.AsObservableCache().Empty();
 	}
 
 	public IObservableCache<TransactionModel, uint256> Cache { get; set; }

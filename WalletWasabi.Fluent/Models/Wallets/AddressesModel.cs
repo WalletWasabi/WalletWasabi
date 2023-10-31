@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -29,7 +30,7 @@ public partial class AddressesModel : IDisposable
 		Cache = changes.AsObservableCache();
 
 		UnusedAddressesCache = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed).AsObservableCache();
-		HasUnusedAddresses = UnusedAddressesCache.CountChanged.Select(i => i > 0);
+		HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
 	}
 
 	public IObservableCache<IAddress, string> UnusedAddressesCache { get; set; }
