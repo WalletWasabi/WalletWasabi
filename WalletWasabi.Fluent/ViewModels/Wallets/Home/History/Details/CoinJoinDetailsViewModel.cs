@@ -11,18 +11,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class CoinJoinDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
-	private readonly TransactionModel _transaction;
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private Amount? _coinJoinFeeAmount;
-	[AutoNotify] private uint256? _transactionId;
+	[AutoNotify] private uint256 _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 
 	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
 		_wallet = wallet;
-		_transaction = transaction;
+
+		_transactionId = transaction.Id;
 
 		UiContext = uiContext;
 
@@ -48,10 +48,13 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _transaction.DateString;
-		CoinJoinFeeAmount = UiContext.AmountProvider.Create(_transaction.OutgoingAmount);
-		Confirmations = _transaction.Confirmations;
-		IsConfirmed = Confirmations > 0;
-		TransactionId = _transaction.Id;
+		if (_wallet.Transactions.TryGetById(TransactionId, out var transaction))
+		{
+			Date = transaction.DateString;
+			CoinJoinFeeAmount = UiContext.AmountProvider.Create(transaction.OutgoingAmount);
+			Confirmations = transaction.Confirmations;
+			IsConfirmed = Confirmations > 0;
+			TransactionId = transaction.Id;
+		}
 	}
 }

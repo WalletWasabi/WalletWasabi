@@ -13,27 +13,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
-	private readonly TransactionModel _transaction;
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
 	[AutoNotify] private string _coinJoinFeeRawString = "";
 	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private Amount? _coinJoinFeeAmount;
+	[AutoNotify] private uint256 _transactionId;
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
 
 	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
 		_wallet = wallet;
-		_transaction = transaction;
+		_transactionId = transaction.Id;
 
 		UiContext = uiContext;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+		ConfirmationTime = transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
@@ -53,11 +53,14 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _transaction.DateString;
-		Status = _transaction.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFeeAmount = _wallet.AmountProvider.Create(_transaction.OutgoingAmount);
+		if (_wallet.Transactions.TryGetById(TransactionId, out var transaction))
+		{
+			Date = transaction.DateString;
+			Status = transaction.IsConfirmed ? "Confirmed" : "Pending";
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(transaction.OutgoingAmount);
 
-		TransactionIds = new ObservableCollection<uint256>(_transaction.Children.Select(x => x.Id));
-		TxCount = TransactionIds.Count;
+			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
+			TxCount = TransactionIds.Count;
+		}
 	}
 }
