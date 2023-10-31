@@ -992,7 +992,7 @@ public class TransactionProcessorTests
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
-		var keys = transactionProcessor.KeyManager.GetKeys().ToList();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 		var amount = Money.Coins(0.1m);
 
 		var stx = CreateCreditingTransaction(keys.First().P2wpkhScript, amount);
