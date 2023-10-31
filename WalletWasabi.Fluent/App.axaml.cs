@@ -88,7 +88,10 @@ public class App : Application
 
 		base.OnFrameworkInitializationCompleted();
 #if DEBUG
-		this.AttachDevTools();
+		if (!OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS())
+		{
+			this.AttachDevTools();
+		}
 #endif
 	}
 
