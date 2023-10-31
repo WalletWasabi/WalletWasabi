@@ -116,15 +116,17 @@ public class CoinsRegistry : ICoinsView
 
 		if (added)
 		{
-			if (!CoinsByTransactionId.TryGetValue(coin.TransactionId, out HashSet<SmartCoin>? hashSet))
+			uint256 txid = coin.TransactionId;
+
+			if (!CoinsByTransactionId.TryGetValue(txid, out HashSet<SmartCoin>? hashSet))
 			{
 				hashSet = new();
-				CoinsByTransactionId.Add(coin.TransactionId, hashSet);
+				CoinsByTransactionId.Add(txid, hashSet);
 
 				// Each prevOut of the transaction contributes to the existence of coins.
 				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 				{
-					if (!TxidsByInputPrevOuts.TryAdd(input.PrevOut, coin.TransactionId))
+					if (!TxidsByInputPrevOuts.TryAdd(input.PrevOut, txid))
 					{
 						throw new UnreachableException($"Input prevOut '{input.PrevOut}' is already present in the cache.");
 					}
@@ -133,7 +135,7 @@ public class CoinsRegistry : ICoinsView
 
 			hashSet.Add(coin);
 
-			UpdateTransactionAmountNoLock(coin.TransactionId, coin.Amount);
+			UpdateTransactionAmountNoLock(txid, coin.Amount);
 			InvalidateSnapshot = true;
 		}
 
