@@ -1,0 +1,15 @@
+﻿{
+  Type: AmountControl001,
+  Title: AmountControl001,
+  Content: {
+    Type: AmountControl,
+    Name: TargetAmountControl
+  },
+  IsVisible: true,
+  DataContext: {
+    Btc: {},
+    Usd: {},
+    HasBalance: false,
+    FormattedBtc: 0.0000 0000
+  }
+}
