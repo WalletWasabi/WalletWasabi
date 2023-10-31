@@ -14,4 +14,7 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" />
 		<PackageReference Include="Avalonia.Fonts.Inter" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+	</ItemGroup>
 </Project>
