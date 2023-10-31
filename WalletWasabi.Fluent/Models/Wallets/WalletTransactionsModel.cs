@@ -50,9 +50,9 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
 				.DisposeWith(_disposable);
 
-		Cache = retriever.Changes.AsObservableCache();
+		Cache = retriever.Cache;
 
-		IsEmpty = retriever.Changes.AsObservableCache().Empty();
+		IsEmpty = retriever.Cache.Empty();
 	}
 
 	public IObservableCache<TransactionModel, uint256> Cache { get; set; }

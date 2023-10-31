@@ -40,8 +40,8 @@ public partial class WalletCoinsModel : IDisposable
 		var coinRetriever = new SignaledFetcher<ICoinModel, int>(signals, x => x.Key, GetCoins).DisposeWith(_disposables);
 		var pocketRetriever = new SignaledFetcher<Pocket, LabelsArray>(signals, x => x.Labels, GetPockets).DisposeWith(_disposables);
 
-		List = coinRetriever.Changes.AsObservableCache();
-		Pockets = pocketRetriever.Changes.AsObservableCache();
+		List = coinRetriever.Cache;
+		Pockets = pocketRetriever.Cache;
 
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))

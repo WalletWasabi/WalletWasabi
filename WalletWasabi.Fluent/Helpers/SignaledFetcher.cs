@@ -3,28 +3,36 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
-#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class SignaledFetcher<TObject, TKey> : IDisposable where TKey : notnull
+/// <summary>
+///     Keeps a cache updated by applying a final list. Uses diffs to update the cache in an optimized way.
+/// </summary>
+/// <typeparam name="TObject">Type of the cache</typeparam>
+/// <typeparam name="TKey">Key of the cache</typeparam>
+public class SignaledFetcher<TObject, TKey> : IDisposable where TKey : notnull where TObject : notnull
 {
 	private readonly CompositeDisposable _disposable = new();
 
+	/// <summary>
+	///     Creates an instance of <see cref="SignaledFetcher{TObject,TKey}" /> that updates its contents each time the
+	///     <paramref name="retrieveSignal" /> emits a signal. The final list of elements in the cache are fetched using the
+	///     <paramref name="retrieve" /> method. The <paramref name="keySelector"/> is used to locate the key of each object of <typeparamref name="TObject"/>
+	/// </summary>
+	/// <param name="retrieveSignal"></param>
+	/// <param name="keySelector"></param>
+	/// <param name="retrieve"></param>
 	public SignaledFetcher(IObservable<Unit> retrieveSignal, Func<TObject, TKey> keySelector, Func<IEnumerable<TObject>> retrieve)
 	{
-		var sourceCache = new SourceCache<TObject, TKey>(keySelector)
+		Cache = retrieveSignal
+			.Select(_ => retrieve())
+			.EditDiff(keySelector)
+			.AsObservableCache()
 			.DisposeWith(_disposable);
-
-		retrieveSignal
-			.Select(_ => retrieve()).Do(items => sourceCache.Edit(updater => updater.Load(items)))
-			.Subscribe()
-			.DisposeWith(_disposable);
-
-		Changes = sourceCache.Connect();
 	}
 
-	public IObservable<IChangeSet<TObject, TKey>> Changes { get; }
+	public IObservableCache<TObject, TKey> Cache { get; }
 
 	public void Dispose() => _disposable.Dispose();
 }

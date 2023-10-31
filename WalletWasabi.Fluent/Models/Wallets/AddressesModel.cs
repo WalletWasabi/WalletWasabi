@@ -18,8 +18,7 @@ public partial class AddressesModel : IDisposable
 	public AddressesModel(IObservable<Unit> transactionProcessed, KeyManager keyManager)
 	{
 		_keyManager = keyManager;
-		var sourceCache = new SourceCache<IAddress, string>(address => address.Text)
-			.DisposeWith(_disposable);
+		var sourceCache = new SourceCache<IAddress, string>(address => address.Text).DisposeWith(_disposable);
 		transactionProcessed
 			.Do(_ => sourceCache.EditDiff(GetAddresses(), (one, another) => string.Equals(one.Text, another.Text, StringComparison.Ordinal)))
 			.Subscribe()
@@ -27,9 +26,9 @@ public partial class AddressesModel : IDisposable
 
 		var changes = sourceCache.Connect();
 
-		Cache = changes.AsObservableCache();
+		Cache = changes.AsObservableCache().DisposeWith(_disposable);
 
-		UnusedAddressesCache = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed).AsObservableCache();
+		UnusedAddressesCache = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed).AsObservableCache().DisposeWith(_disposable);
 		HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
 	}
 
