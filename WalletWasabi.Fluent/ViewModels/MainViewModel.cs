@@ -129,12 +129,6 @@ public partial class MainViewModel : ViewModelBase
 
 	public static MainViewModel Instance { get; private set; }
 
-	public bool IsBusy =>
-		MainScreen.CurrentPage is { IsBusy: true } ||
-		DialogScreen.CurrentPage is { IsBusy: true } ||
-		FullScreen.CurrentPage is { IsBusy: true } ||
-		CompactDialogScreen.CurrentPage is { IsBusy: true };
-
 	public bool IsDialogOpen()
 	{
 		return DialogScreen.IsDialogOpen

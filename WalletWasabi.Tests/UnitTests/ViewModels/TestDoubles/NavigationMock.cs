@@ -26,6 +26,7 @@ public class NavigationMock : INavigate
 	public INavigationStack<RoutableViewModel> FullScreen { get; }
 	public INavigationStack<RoutableViewModel> CompactDialogScreen { get; }
 	public IObservable<bool> IsDialogOpen { get; }
+	public bool IsAnyPageBusy => false;
 
 	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget target)
 	{
