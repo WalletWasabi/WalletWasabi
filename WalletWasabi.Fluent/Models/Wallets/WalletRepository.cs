@@ -35,12 +35,13 @@ public partial class WalletRepository : ReactiveObject
 					  .SelectMany(_ => Services.WalletManager.GetWallets())
 					  .ToObservableChangeSet(x => x.WalletName)
 					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
-					  .Transform(x => x as IWalletModel);
+					  .Transform(x => x as IWalletModel)
+					  .AsObservableCache();
 
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
-	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
+	public IObservableCache<IWalletModel, string> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();
