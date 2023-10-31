@@ -123,7 +123,10 @@ public class Prison
 			_ => throw new NotSupportedException("Unknown offense type.")
 		};
 
-		BanningTimeCache[outpoint] = banningTime;
+		lock (Lock)
+		{
+			BanningTimeCache[outpoint] = banningTime;
+		}
 		return banningTime;
 	}
 
