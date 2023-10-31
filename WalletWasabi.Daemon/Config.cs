@@ -14,6 +14,8 @@ namespace WalletWasabi.Daemon;
 
 public class Config
 {
+	public static readonly IDictionary EnvironmentVariables = Environment.GetEnvironmentVariables();
+
 	public Config(PersistentConfig persistentConfig, string[] cliArgs)
 	{
 		PersistentConfig = persistentConfig;
@@ -264,7 +266,7 @@ public class Config
 
 	private static bool GetCliArgsValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? cliArgsValue)
 	{
-		if (ArgumentHelpers.TryGetValue(key, cliArgs, x => x, out cliArgsValue))
+		if (ArgumentHelpers.TryGetValue(key, cliArgs, out cliArgsValue))
 		{
 			return true;
 		}
@@ -275,12 +277,11 @@ public class Config
 
 	private static bool GetEnvironmentVariable(string key, [NotNullWhen(true)] out string? envValue)
 	{
-		string envKey = "WASABI-" + key.ToUpperInvariant();
-		IDictionary environmentVariables = Environment.GetEnvironmentVariables();
+		string envKey = $"WASABI-{key.ToUpperInvariant()}";
 
-		if (environmentVariables.Contains(envKey))
+		if (EnvironmentVariables.Contains(envKey))
 		{
-			if (environmentVariables[envKey] is string envVar)
+			if (EnvironmentVariables[envKey] is string envVar)
 			{
 				envValue = envVar;
 				return true;
