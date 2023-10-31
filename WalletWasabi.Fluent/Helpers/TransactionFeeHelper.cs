@@ -71,12 +71,6 @@ public static class TransactionFeeHelper
 		return false;
 	}
 
-	public static bool TryEstimateConfirmationTime(Wallet wallet, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
-	{
-		estimate = null;
-		return TryGetFeeEstimates(wallet, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
-	}
-
 	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
