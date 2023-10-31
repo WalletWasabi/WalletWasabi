@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFrameworks>net7.0</TargetFrameworks>
+		<!--<TargetFrameworks>et7.0-android;net7.0-ios</TargetFrameworks>-->
+		<!--<TargetFrameworks>net7.0-android</TargetFrameworks>-->
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
@@ -13,6 +15,8 @@
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+		<!--<RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>-->
+		<!--<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>-->
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi</PathMap>
 	</PropertyGroup>
 
@@ -34,10 +38,19 @@
 	</Target>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+		<!--<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />-->
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection" />
+
+		<!-- Depracated -->
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" />
+
 		<PackageReference Include="Microsoft.Data.Sqlite" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" />
 		<PackageReference Include="NBitcoin" />
+		<PackageReference Include="System.IO.Pipelines" />
 		<PackageReference Include="WabiSabi" />
 	</ItemGroup>
 
