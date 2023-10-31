@@ -20,6 +20,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string _coinJoinFeeRawString = "";
 	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private Amount? _coinJoinFeeAmount;
+	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
 
@@ -53,11 +54,14 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _transaction.DateString;
-		Status = _transaction.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFeeAmount = _wallet.AmountProvider.Create(_transaction.OutgoingAmount);
-
-		TransactionIds = new ObservableCollection<uint256>(_transaction.Children.Select(x => x.Id));
-		TxCount = TransactionIds.Count;
+		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
+		{
+			Date = transaction.DateString;
+			Status = transaction.IsConfirmed ? "Confirmed" : "Pending";
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(transaction.OutgoingAmount);
+			TransactionId = transaction.Id;
+			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
+			TxCount = TransactionIds.Count;
+		}
 	}
 }
