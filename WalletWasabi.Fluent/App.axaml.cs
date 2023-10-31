@@ -148,12 +148,15 @@ public class App : Application
 			new QrCodeReader(),
 			new UiClipboard(),
 			CreateWalletRepository(amountProvider),
+			new CoinjoinModel(),
 			CreateHardwareWalletInterface(),
 			CreateFileSystem(),
 			CreateConfig(),
 			applicationSettings,
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
-			new EditableSearchSourceSource());
+			new EditableSearchSourceSource(),
+			new TorStatusCheckerModel(),
+			new LegalDocumentsProvider());
 	}
 }

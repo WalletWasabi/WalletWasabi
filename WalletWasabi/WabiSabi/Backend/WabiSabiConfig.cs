@@ -12,6 +12,7 @@ using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Affiliation.Serialization;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Backend;
 
@@ -232,6 +233,17 @@ public class WabiSabiConfig : ConfigBase
 			ToFile();
 		}
 	}
+
+	public DoSConfiguration GetDoSConfiguration() =>
+		new DoSConfiguration(
+			SeverityInBitcoinsPerHour: DoSSeverity.ToDecimal(MoneyUnit.BTC),
+			MinTimeForFailedToVerify: DoSMinTimeForFailedToVerify,
+			MinTimeForCheating: DoSMinTimeForCheating,
+			PenaltyFactorForDisruptingConfirmation: (decimal) DoSPenaltyFactorForDisruptingConfirmation,
+			PenaltyFactorForDisruptingSignalReadyToSign: (decimal) DoSPenaltyFactorForDisruptingSignalReadyToSign,
+			PenaltyFactorForDisruptingSigning: (decimal) DoSPenaltyFactorForDisruptingSigning,
+			PenaltyFactorForDisruptingByDoubleSpending: (decimal) DoSPenaltyFactorForDisruptingByDoubleSpending,
+			MinTimeInPrison: DoSMinTimeInPrison);
 
 	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr)
 	{

@@ -21,18 +21,22 @@ public class UiContext
 		IQrCodeReader qrCodeReader,
 		IUiClipboard clipboard,
 		IWalletRepository walletRepository,
+		ICoinjoinModel coinJoinModel,
 		IHardwareWalletInterface hardwareWalletInterface,
 		IFileSystem fileSystem,
 		IClientConfig config,
 		IApplicationSettings applicationSettings,
 		ITransactionBroadcasterModel transactionBroadcaster,
 		IAmountProvider amountProvider,
-		IEditableSearchSource editableSearchSource)
+		IEditableSearchSource editableSearchSource,
+		ITorStatusCheckerModel torStatusChecker,
+		ILegalDocumentsProvider legalDocumentsProvider)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
 		WalletRepository = walletRepository ?? throw new ArgumentNullException(nameof(walletRepository));
+		CoinjoinModel = coinJoinModel ?? throw new ArgumentNullException(nameof(coinJoinModel));
 		HardwareWalletInterface = hardwareWalletInterface ?? throw new ArgumentNullException(nameof(hardwareWalletInterface));
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
@@ -40,11 +44,14 @@ public class UiContext
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
 		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
 		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
+		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
+		LegalDocumentsProvider = legalDocumentsProvider ?? throw new ArgumentNullException(nameof(legalDocumentsProvider));
 	}
 
 	public IUiClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 	public IWalletRepository WalletRepository { get; }
+	public ICoinjoinModel CoinjoinModel { get; }
 	public IQrCodeReader QrCodeReader { get; }
 	public IHardwareWalletInterface HardwareWalletInterface { get; }
 	public IFileSystem FileSystem { get; }
@@ -53,7 +60,9 @@ public class UiContext
 	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
 	public IAmountProvider AmountProvider { get; }
 	public IEditableSearchSource EditableSearchSource { get; }
-	
+	public ITorStatusCheckerModel TorStatusChecker { get; }
+	public ILegalDocumentsProvider LegalDocumentsProvider { get; }
+
 	public void RegisterNavigation(INavigate navigate)
 	{
 		_navigate ??= navigate;

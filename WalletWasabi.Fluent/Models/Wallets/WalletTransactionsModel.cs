@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -14,6 +15,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
+
 #pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -21,13 +23,15 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 {
+	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
 	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletTransactionsModel(Wallet wallet)
+	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
 	{
+		_walletModel = walletModel;
 		_wallet = wallet;
 		_treeBuilder = new TransactionTreeBuilder(wallet);
 
@@ -38,6 +42,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
+		NewTransactionArrived =
+			Observable.FromEventPattern<ProcessedResult>(wallet, nameof(wallet.WalletRelevantTransactionProcessed))
+					  .Select(x => (walletModel, x.EventArgs))
+					  .ObserveOn(RxApp.MainThreadScheduler);
+
 		var retriever =
 			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
 				.DisposeWith(_disposable);
@@ -46,9 +55,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposable);
 
-		IsEmpty = retriever.Changes
-			.ToCollection()
-			.Select(models => !models.Any());
+		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
 	}
 
 	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
@@ -57,9 +64,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
+	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
+
+	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
-		var result = List.FirstOrDefault(x => x.Id == transactionId);
+		var result = isChild
+			? List.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
+			: List.FirstOrDefault(x => x.Id == transactionId);
 
 		if (result is null)
 		{
@@ -71,6 +82,12 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return true;
 	}
 
+	public async Task<SmartTransaction> LoadFromFileAsync(string path)
+	{
+		var txn = await TransactionHelpers.ParseTransactionAsync(path, _wallet.Network);
+		return txn;
+	}
+
 	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
 	{
 		return
@@ -79,26 +96,48 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			: null;
 	}
 
-	public (SmartTransaction TransactionToSpeedUp, BuildTransactionResult BoostingTransaction) CreateSpeedUpTransaction(TransactionModel transaction)
+	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
 	{
-		var transactionToSpeedUp = transaction.TransactionSummary.Transaction;
+		var targetTransaction = transaction.TransactionSummary.Transaction;
 
 		// If the transaction has CPFPs, then we want to speed them up instead of us.
 		// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
-		if (transactionToSpeedUp.TryGetLargestCPFP(_wallet.KeyManager, out var largestCpfp))
+		if (targetTransaction.TryGetLargestCPFP(_wallet.KeyManager, out var largestCpfp))
 		{
-			transactionToSpeedUp = largestCpfp;
+			targetTransaction = largestCpfp;
 		}
-		var boostingTransaction = _wallet.SpeedUpTransaction(transactionToSpeedUp);
+		var boostingTransaction = _wallet.SpeedUpTransaction(targetTransaction);
 
-		return (transactionToSpeedUp, boostingTransaction);
+		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
+
+		var originalForeignAmounts = targetTransaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
+		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
+
+		// Note, if it's CPFP, then it is changed, but we shouldn't bother by it, due to the other condition.
+		var areForeignAmountsUnchanged = originalForeignAmounts.SequenceEqual(boostedForeignAmounts);
+
+		// If the foreign outputs are unchanged or we have an output, then we are paying the fee.
+		var areWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
+
+		return new SpeedupTransaction(targetTransaction, boostingTransaction, areWePayingTheFee, fee);
 	}
 
-	public BuildTransactionResult CreateCancellingTransaction(TransactionModel transaction)
+	public CancellingTransaction CreateCancellingTransaction(TransactionModel transaction)
 	{
-		var transactionToCancel = transaction.TransactionSummary.Transaction;
-		var cancellingTransaction = _wallet.CancelTransaction(transactionToCancel);
-		return cancellingTransaction;
+		var targetTransaction = transaction.TransactionSummary.Transaction;
+		var cancellingTransaction = _wallet.CancelTransaction(targetTransaction);
+
+		return new CancellingTransaction(transaction, cancellingTransaction, _walletModel.AmountProvider.Create(cancellingTransaction.Fee));
+	}
+
+	public Task SendAsync(SpeedupTransaction speedupTransaction) => SendAsync(speedupTransaction.BoostingTransaction);
+
+	public Task SendAsync(CancellingTransaction cancellingTransaction) => SendAsync(cancellingTransaction.CancelTransaction);
+
+	public async Task SendAsync(BuildTransactionResult transaction)
+	{
+		await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
+		_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 	}
 
 	private IEnumerable<TransactionModel> BuildSummary()
@@ -106,6 +145,20 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true);
 		var transactionModels = _treeBuilder.Build(orderedRawHistoryList);
 		return transactionModels;
+	}
+
+	private Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
+	{
+		var isCpfp = boostingTransaction.Transaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == transactionToSpeedUp.GetHash());
+		var boostingTransactionFee = boostingTransaction.Fee;
+
+		if (isCpfp)
+		{
+			return boostingTransactionFee;
+		}
+
+		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
+		return boostingTransactionFee - originalFee;
 	}
 
 	public void Dispose() => _disposable.Dispose();
