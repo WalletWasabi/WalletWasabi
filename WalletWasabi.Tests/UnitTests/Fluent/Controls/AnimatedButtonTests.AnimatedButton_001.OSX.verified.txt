@@ -1,0 +1,9 @@
+﻿{
+  Type: AnimatedButton001,
+  Title: AnimatedButton001,
+  Content: {
+    Type: AnimatedButton,
+    Name: TargetButton
+  },
+  IsVisible: true
+}
