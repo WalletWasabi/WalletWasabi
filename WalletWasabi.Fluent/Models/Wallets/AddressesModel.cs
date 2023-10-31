@@ -26,12 +26,16 @@ public partial class AddressesModel : IDisposable
 
 		var changes = sourceCache.Connect();
 
+		Cache = changes.AsObservableCache();
+
 		Addresses = changes;
 		var unusedAddresses = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed);
 		UnusedAddresses = unusedAddresses;
 		var unusedCache = unusedAddresses.AsObservableCache().DisposeWith(_disposable);
 		HasUnusedAddresses = unusedCache.CountChanged.Select(i => i > 0);
 	}
+
+	public IObservableCache<IAddress, string> Cache { get; }
 
 	public IObservable<IChangeSet<IAddress, string>> UnusedAddresses { get; }
 

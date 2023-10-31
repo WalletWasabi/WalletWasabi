@@ -57,7 +57,7 @@ public class ReceiveAddressViewModelTests
 
 	private static IWalletModel WalletWithAddresses(IAddress address)
 	{
-		return new AddressTestingMocks.TestWallet(new[] { address }.AsObservableChangeSet(x => x.Text));
+		return new AddressTestingMocks.TestWallet(new[] { address }.AsObservableChangeSet(x => x.Text).AsObservableCache() );
 	}
 
 	private class TestWallet : IWalletModel

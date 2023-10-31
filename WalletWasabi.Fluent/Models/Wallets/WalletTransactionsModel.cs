@@ -51,6 +51,8 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
 				.DisposeWith(_disposable);
 
+		Cache = retriever.Changes.AsObservableCache();
+
 		retriever.Changes.Bind(out _transactions)
 			.Subscribe()
 			.DisposeWith(_disposable);
@@ -58,7 +60,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
 	}
 
-	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
+	public IObservableCache<TransactionModel, uint256> Cache { get; set; }
 
 	public IObservable<bool> IsEmpty { get; }
 
@@ -69,8 +71,8 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
 		var result = isChild
-			? List.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
-			: List.FirstOrDefault(x => x.Id == transactionId);
+			? Cache.Items.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
+			: Cache.Items.FirstOrDefault(x => x.Id == transactionId);
 
 		if (result is null)
 		{

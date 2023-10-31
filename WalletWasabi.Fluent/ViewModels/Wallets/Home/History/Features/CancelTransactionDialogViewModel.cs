@@ -36,15 +36,12 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		// Close dialog if target transaction is already confirmed.
-		_wallet.Transactions.List
-							.ToObservableChangeSet(x => x.Id)
-							.ToCollection()
-							.Select(col => col.FirstOrDefault(x => x.Id == _cancellingTransaction.TargetTransaction.Id))
-							.WhereNotNull()
-							.Where(s => s.IsConfirmed)
-							.Do(_ => Navigate().Back())
-							.Subscribe()
-							.DisposeWith(disposables);
+		_wallet.Transactions.Cache
+			.Watch(_cancellingTransaction.TargetTransaction.Id)
+			.Select(change => change.Current.IsConfirmed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
