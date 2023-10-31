@@ -13,6 +13,10 @@ using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public partial interface IHealthMonitor : IDisposable
+{
+}
+
 [AutoInterface]
 public partial class HealthMonitor : ReactiveObject, IDisposable
 {
@@ -174,8 +178,4 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 
 		return HealthMonitorState.Loading;
 	}
-}
-
-public partial interface IHealthMonitor : IDisposable
-{
 }
