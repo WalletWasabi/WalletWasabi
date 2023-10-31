@@ -51,10 +51,20 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
+	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, TransactionFeeProvider feeFetcher, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
-		return TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
+		TryGetFeeEstimates(feeProvider, network, out var feeEstimates);
+		if (feeEstimates is not null && feeEstimates.TryEstimateConfirmationTime(tx, out estimate))
+		{
+			return true;
+		}
+		else
+		{
+			Money fee = feeFetcher.GetFee(tx.GetHash());
+			int vSize = tx.Transaction.GetVirtualSize();
+			return TryEstimateConfirmationTime(feeProvider, network, fee, vSize, out estimate);
+		}
 	}
 
 	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, Money feeInSats, int vSize, [NotNullWhen(true)] out TimeSpan? estimate)
