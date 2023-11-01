@@ -1,8 +1,6 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -12,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
 public partial class StatusIconViewModel : ViewModelBase
 {
-	[AutoNotify] private bool _isAskMeLaterVisible;
 	[AutoNotify] private string? _versionText;
 
 	public StatusIconViewModel(UiContext uiContext)
@@ -28,9 +25,7 @@ public partial class StatusIconViewModel : ViewModelBase
 				AppLifetimeHelper.Shutdown();
 			});
 
-		IsAskMeLaterVisible = true;
-
-		AskMeLaterCommand = ReactiveCommand.Create(() => IsAskMeLaterVisible = false, this.WhenAnyValue(x => x.HealthMonitor.UpdateAvailable, x => x.IsAskMeLaterVisible, (a, b) => a && b));
+		AskMeLaterCommand = ReactiveCommand.Create(() => HealthMonitor.CheckForUpdates = false);
 
 		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://status.torproject.org"));
 
@@ -50,6 +45,7 @@ public partial class StatusIconViewModel : ViewModelBase
 	public ICommand OpenTorStatusSiteCommand { get; }
 
 	public ICommand UpdateCommand { get; }
+
 	public ICommand ManualUpdateCommand { get; }
 
 	public ICommand AskMeLaterCommand { get; }

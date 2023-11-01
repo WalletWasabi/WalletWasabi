@@ -32,6 +32,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 	[AutoNotify] private bool _criticalUpdateAvailable;
 	[AutoNotify] private bool _updateAvailable;
 	[AutoNotify] private bool _isReadyToInstall;
+	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
 
 	public HealthMonitor(IApplicationSettings applicationSettings, ITorStatusCheckerModel torStatusChecker)
@@ -133,7 +134,8 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 				x => x.BitcoinCoreStatus,
 				x => x.UpdateAvailable,
 				x => x.CriticalUpdateAvailable,
-				x => x.IsConnectionIssueDetected)
+				x => x.IsConnectionIssueDetected,
+				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => GetState())
@@ -160,12 +162,12 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 			return HealthMonitorState.ConnectionIssueDetected;
 		}
 
-		if (CriticalUpdateAvailable)
+		if (CheckForUpdates && CriticalUpdateAvailable)
 		{
 			return HealthMonitorState.CriticalUpdateAvailable;
 		}
 
-		if (UpdateAvailable)
+		if (CheckForUpdates && UpdateAvailable)
 		{
 			return HealthMonitorState.UpdateAvailable;
 		}
