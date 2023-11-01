@@ -20,9 +20,9 @@ public class SignaledFetcher<TObject, TKey> : IDisposable where TKey : notnull w
 	///     <paramref name="retrieveSignal" /> emits a signal. The final list of elements in the cache are fetched using the
 	///     <paramref name="retrieve" /> method. The <paramref name="keySelector"/> is used to locate the key of each object of <typeparamref name="TObject"/>
 	/// </summary>
-	/// <param name="retrieveSignal"></param>
-	/// <param name="keySelector"></param>
-	/// <param name="retrieve"></param>
+	/// <param name="retrieveSignal">Observable that triggers the updates</param>
+	/// <param name="keySelector">Key selector function </param>
+	/// <param name="retrieve">The retriever function. Retrieves the full updates list (final list)</param>
 	public SignaledFetcher(IObservable<Unit> retrieveSignal, Func<TObject, TKey> keySelector, Func<IEnumerable<TObject>> retrieve)
 	{
 		Cache = retrieveSignal
