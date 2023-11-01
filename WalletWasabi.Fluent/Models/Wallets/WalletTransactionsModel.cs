@@ -88,6 +88,14 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return txn;
 	}
 
+	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
+	{
+		return
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionSummary.Transaction, out var estimate)
+			? estimate
+			: null;
+	}
+
 	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
 	{
 		var targetTransaction = transaction.TransactionSummary.Transaction;
