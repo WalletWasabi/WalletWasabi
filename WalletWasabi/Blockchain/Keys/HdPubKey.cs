@@ -18,11 +18,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
-	private Lazy<Script> _p2pkScript;
-	private Lazy<Script> _p2pkhScript;
-	private Lazy<Script> _p2wpkhScript;
-	private Lazy<Script> _p2shOverP2wpkhScript;
-	private Lazy<Script> _p2Taproot;
+	private readonly Lazy<Script> _p2pkScript;
+	private readonly Lazy<Script> _p2pkhScript;
+	private readonly Lazy<Script> _p2wpkhScript;
+	private readonly Lazy<Script> _p2shOverP2wpkhScript;
+	private readonly Lazy<Script> _p2Taproot;
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
@@ -33,11 +33,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
-		_p2pkScript = new Lazy<Script>(PubKey.ScriptPubKey);
-		_p2pkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy));
-		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
-		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH));
-		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86));
+		_p2pkScript = new Lazy<Script>(() => PubKey.ScriptPubKey, isThreadSafe: true);
+		_p2pkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), isThreadSafe: true);
+		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), isThreadSafe: true);
+		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH), isThreadSafe: true);
+		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
 		PubKeyHash = PubKey.Hash;
 		HashCode = PubKeyHash.GetHashCode();
