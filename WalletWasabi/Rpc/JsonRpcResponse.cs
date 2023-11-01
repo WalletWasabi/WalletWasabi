@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.Rpc;
 
-public record JsonRpcResponse
+public abstract record JsonRpcResponse
 {
 	// Default error messages for standard JsonRpcErrorCodes
 	private static Dictionary<JsonRpcErrorCodes, string> Messages = new()
