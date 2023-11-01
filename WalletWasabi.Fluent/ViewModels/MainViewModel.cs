@@ -42,7 +42,7 @@ public partial class MainViewModel : ViewModelBase
 
 		NavBar.Activate();
 
-		StatusIcon = new StatusIconViewModel(UiContext.TorStatusChecker);
+		StatusIcon = new StatusIconViewModel(UiContext);
 
 		SettingsPage = new SettingsPageViewModel(UiContext);
 		PrivacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
@@ -169,8 +169,6 @@ public partial class MainViewModel : ViewModelBase
 
 	public void Initialize()
 	{
-		StatusIcon.Initialize();
-
 		UiContext.WalletRepository.Wallets
 								  .FilterOnObservable(x => x.Coinjoin.IsRunning)
 								  .ToCollection()

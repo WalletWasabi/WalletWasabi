@@ -30,6 +30,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool PrivacyMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public bool Oobe { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public WindowState WindowState { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+	public bool DoUpdateOnClose { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
