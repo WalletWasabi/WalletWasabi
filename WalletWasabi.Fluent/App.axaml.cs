@@ -65,7 +65,7 @@ public class App : Application
 				desktop.Exit += (sender, args) =>
 				{
 					MainViewModel.Instance.ClearStacks();
-					//uiContext.HealthMonitor.Dispose();
+					uiContext.HealthMonitor.Dispose();
 				};
 
 				RxApp.MainThreadScheduler.Schedule(
