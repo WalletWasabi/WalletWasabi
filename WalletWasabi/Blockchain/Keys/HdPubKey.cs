@@ -16,6 +16,12 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
 
+	private readonly Lazy<Script> _p2pkScript;
+	private readonly Lazy<Script> _p2pkhScript;
+	private readonly Lazy<Script> _p2wpkhScript;
+	private readonly Lazy<Script> _p2shOverP2wpkhScript;
+	private readonly Lazy<Script> _p2Taproot;
+
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
@@ -28,11 +34,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
-		P2pkScript = PubKey.ScriptPubKey;
-		P2pkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
-		P2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
-		P2shOverP2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH);
-		P2Taproot = PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
+		_p2pkScript = new Lazy<Script>(() => PubKey.ScriptPubKey, isThreadSafe: true);
+		_p2pkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), isThreadSafe: true);
+		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), isThreadSafe: true);
+		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH), isThreadSafe: true);
+		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
 		PubKeyHash = PubKey.Hash;
 		HashCode = PubKeyHash.GetHashCode();
@@ -89,11 +95,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
 	public Height? LatestSpendingHeight { get; set; }
 
-	public Script P2pkScript { get; }
-	public Script P2pkhScript { get; }
-	public Script P2wpkhScript { get; }
-	public Script P2shOverP2wpkhScript { get; }
-	public Script P2Taproot { get; }
+	public Script P2pkScript => _p2pkScript.Value;
+	public Script P2pkhScript => _p2pkhScript.Value;
+	public Script P2wpkhScript => _p2wpkhScript.Value;
+	public Script P2shOverP2wpkhScript => _p2shOverP2wpkhScript.Value;
+	public Script P2Taproot => _p2Taproot.Value;
 
 	public KeyId PubKeyHash { get; }
 
