@@ -47,17 +47,18 @@
 
   <Style Selector="Button.function">
     <Setter Property="Padding" Value="14 10" />
-    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Background" Value="{DynamicResource ActionColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.function PathIcon">
-    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
   </Style>
   <Style Selector="Button.function:disabled PathIcon">
-    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
   <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
 
   <Style Selector="Button.invisible">

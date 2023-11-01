@@ -14,7 +14,6 @@
     <behaviors:RegisterNotificationHostBehavior />
   </i:Interaction.Behaviors>
   <Panel>
-    <shell:Background />
     <shell:MainScreen x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}" />
     <shell:Dialogs />
   </Panel>

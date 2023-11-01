@@ -13,7 +13,7 @@
         x:CompileBindings="True"
         MinWidth="720" MinHeight="480"
         WindowStartupLocation="CenterScreen"
-        Background="{x:Null}"
+        Background="{DynamicResource Layer1BackgroundBrush}"
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaTitleBarHeightHint="50"
         ExtendClientAreaToDecorationsHint="True"
