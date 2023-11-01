@@ -47,7 +47,7 @@ public static class StringExtensions
 
 	public static string[] SplitLines(this string text, int lineWidth)
 	{
-		static void InternalSlip(string text, int lineWidth, List<string> result)
+		static void InternalSplit(string text, int lineWidth, List<string> result)
 		{
 			while (true)
 			{
@@ -68,7 +68,7 @@ public static class StringExtensions
 		}
 
 		List<string> result = new();
-		InternalSlip(text, lineWidth, result);
+		InternalSplit(text, lineWidth, result);
 		return result.ToArray();
 	}
 }
