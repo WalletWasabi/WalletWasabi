@@ -15,14 +15,14 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
 
-	private double _anonymitySet = DefaultHighAnonymitySet;
-	private Cluster _cluster;
-
 	private readonly Lazy<Script> _p2pkScript;
 	private readonly Lazy<Script> _p2pkhScript;
 	private readonly Lazy<Script> _p2wpkhScript;
 	private readonly Lazy<Script> _p2shOverP2wpkhScript;
 	private readonly Lazy<Script> _p2Taproot;
+
+	private double _anonymitySet = DefaultHighAnonymitySet;
+	private Cluster _cluster;
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
