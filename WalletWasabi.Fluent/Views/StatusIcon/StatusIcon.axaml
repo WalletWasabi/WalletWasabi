@@ -140,7 +140,7 @@
               </StackPanel>
             </Button>
 
-            <Button Classes="activeHyperLink" Command="{Binding AskMeLaterCommand}">
+            <Button Classes="activeHyperLink" IsVisible="{Binding IsAskMeLaterVisible}" Command="{Binding AskMeLaterCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource clock_regular}" Height="13" />
                 <AccessText Text="Ask me later" />
