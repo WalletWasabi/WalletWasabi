@@ -1,12 +1,15 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using Android.App;
 using Android.Content.PM;
+using Android.Util;
 using Android.Views;
 using Avalonia;
 using Avalonia.Android;
 using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Helpers;
+using Config = WalletWasabi.Daemon.Config;
 
 namespace WalletWasabi.Fluent.Android;
 
@@ -50,38 +53,51 @@ public class MainActivity : AvaloniaMainActivity<App>
 		return uiConfig;
 	}
 
+	public MainActivity()
+	{
+		App.LogError = Log.Error;
+		Log.Error("WASABI", "MainActivity");
+	}
+
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         builder.WithInterFont();
-
-        Program_Main();
-
-        // _app.RunAsync(afterStarting: () =>
-        // {
-	    //
-        // });
-        _app.Global = _app.CreateGlobal();
-
-        Program_RunAsGuiAsync();
-
-        var backendInitialiseAsync = async () =>
+        Log.Error("WASABI", "CustomizeAppBuilder");
+        try
         {
-	        using CancellationTokenSource stopLoadingCts = new();
+	        Program_Main();
 
-	        // macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-	        await _app.Global!.InitializeNoWalletAsync(_app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+	        // _app.RunAsync(afterStarting: () =>
+	        // {
+		    //
+	        // });
+	        _app.Global = _app.CreateGlobal();
 
-	        // Make sure that wallet startup set correctly regarding RunOnSystemStartup
-	        // await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-        };
+	        Program_RunAsGuiAsync();
 
-        //var app = (builder.Instance as App);
-        App._backendInitialiseAsync = backendInitialiseAsync;
+	        var backendInitialiseAsync = async () =>
+	        {
+		        using CancellationTokenSource stopLoadingCts = new();
 
-        builder.AfterSetup(_ =>
+		        // macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+		        await _app.Global!.InitializeNoWalletAsync(_app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+
+		        // Make sure that wallet startup set correctly regarding RunOnSystemStartup
+		        // await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+	        };
+
+	        //var app = (builder.Instance as App);
+	        App._backendInitialiseAsync = backendInitialiseAsync;
+
+	        builder.AfterSetup(_ =>
+	        {
+		        ThemeHelper.ApplyTheme(_uiConfig.DarkModeEnabled ? WalletWasabi.Fluent.Helpers.Theme.Dark : WalletWasabi.Fluent.Helpers.Theme.Light);
+	        });
+        }
+        catch (Exception e)
         {
-	        ThemeHelper.ApplyTheme(_uiConfig.DarkModeEnabled ? WalletWasabi.Fluent.Helpers.Theme.Dark : WalletWasabi.Fluent.Helpers.Theme.Light);
-        });
+	        Log.Error("WASABI",$"{e}");
+        }
 
         return base.CustomizeAppBuilder(builder);
     }

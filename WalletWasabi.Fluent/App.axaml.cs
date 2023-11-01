@@ -21,6 +21,8 @@ namespace WalletWasabi.Fluent;
 
 public class App : Application
 {
+	public static Func<string, string, int>? LogError;
+
 	private readonly bool _startInBg;
 	//private readonly Func<Task>? _backendInitialiseAsync;
 	public static Func<Task>? _backendInitialiseAsync;
@@ -35,6 +37,8 @@ public class App : Application
 	public App()
 	{
 		Name = "Wasabi Wallet";
+
+		LogError?.Invoke("WASABI", "App()");
 	}
 
 	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
@@ -82,35 +86,42 @@ public class App : Application
 			}
 			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
 			{
-				var uiContext = CreateUiContext();
-				UiContext.Default = uiContext;
-				_applicationStateManager =
-				 	new ApplicationStateManager(ApplicationLifetime, uiContext, _startInBg);
-
-				// DataContext = _applicationStateManager.ApplicationViewModel;
-
-				// desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-				// desktop.Exit += (sender, args) =>
-				// {
-				// 	MainViewModel.Instance.ClearStacks();
-				// 	MainViewModel.Instance.StatusIcon.Dispose();
-				// };
-
-				RxApp.MainThreadScheduler.Schedule(
-					async () =>
-					{
-						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
-
-						MainViewModel.Instance.Initialize();
-					});
-
-				// InitializeTrayIcons();
-
-				// TODO:
-				single.MainView = new Shell
+				try
 				{
-					DataContext = MainViewModel.Instance
-				};
+					var uiContext = CreateUiContext();
+					UiContext.Default = uiContext;
+					_applicationStateManager =
+						new ApplicationStateManager(ApplicationLifetime, uiContext, _startInBg);
+
+					// DataContext = _applicationStateManager.ApplicationViewModel;
+
+					// desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+					// desktop.Exit += (sender, args) =>
+					// {
+					// 	MainViewModel.Instance.ClearStacks();
+					// 	MainViewModel.Instance.StatusIcon.Dispose();
+					// };
+
+					RxApp.MainThreadScheduler.Schedule(
+						async () =>
+						{
+							await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+
+							MainViewModel.Instance.Initialize();
+						});
+
+					// InitializeTrayIcons();
+
+					// TODO:
+					single.MainView = new Shell
+					{
+						DataContext = MainViewModel.Instance
+					};
+				}
+				catch (Exception e)
+				{
+					LogError?.Invoke("WASABI",$"{e}");
+				}
 			}
 		}
 
