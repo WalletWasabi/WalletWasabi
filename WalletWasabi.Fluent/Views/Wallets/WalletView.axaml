@@ -18,8 +18,9 @@
   </i:Interaction.Behaviors>
   <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
     <c:ContentArea.Title>
-      <StackPanel>
         <DockPanel>
+
+          <!-- Buttons -->
           <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
             <Button Classes="function"
                     Command="{Binding BroadcastPsbtCommand}">
@@ -82,13 +83,13 @@
               <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
             </Button>
           </StackPanel>
-          <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
+
+          <!-- Title -->
+          <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" FontWeight="Bold" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
         </DockPanel>
-        <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" />
-      </StackPanel>
     </c:ContentArea.Title>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-      <home:WalletTiles DataContext="{Binding Tiles}" Margin="0 10 0 20" DockPanel.Dock="Top" />
+      <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" />
       <history:HistoryTable Name="HistoryTable"
                             DataContext="{Binding History}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />

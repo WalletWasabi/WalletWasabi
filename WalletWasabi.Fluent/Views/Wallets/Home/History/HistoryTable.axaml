@@ -118,89 +118,95 @@
     </ContextMenu>
   </UserControl.Resources>
 
-  <Panel>
-    <TreeDataGrid Source="{Binding Source}"
-                  CanUserResizeColumns="False"
-                  Margin="0 0 0 0"
-                  IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
-      <i:Interaction.Behaviors>
-        <behaviors:ScrollToSelectedItemBehavior />
-        <behaviors:HistoryItemTypeClassBehavior />
-      </i:Interaction.Behaviors>
-      <TreeDataGrid.ElementFactory>
-        <treeDataGrid:PrivacyElementFactory />
-      </TreeDataGrid.ElementFactory>
-      <TreeDataGrid.Styles>
-        <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
-          <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-              <i:BehaviorCollection>
-                <behaviors:PendingHistoryItemSeparatorBehavior />
-              </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
-          </Setter>
-        </Style>
-        <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
-          <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-          <Setter Property="FontSize" Value="15" />
-          <Setter Property="Margin" Value="10 0" />
-          <Setter Property="Background" Value="Transparent" />
-          <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
-        </Style>
-        <Style Selector="TreeDataGridRow /template/ Rectangle#PART_Separator">
-          <Setter Property="Fill" Value="Transparent" />
-        </Style>
-        <Style Selector="TreeDataGridRow.separator /template/ Rectangle#PART_Separator">
-          <Setter Property="Fill" Value="{DynamicResource TreeDataGridGridLinesBrush}" />
-        </Style>
-        <Style Selector="PathIcon">
-          <Setter Property="Height" Value="13" />
-          <Setter Property="VerticalAlignment" Value="Center" />
-          <Setter Property="HorizontalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="TextBlock, c|PrivacyContentControl">
-          <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="TreeDataGridRow Button.historyDetails">
-          <Setter Property="Opacity" Value="0" />
-        </Style>
-        <Style Selector="TreeDataGridRow:pointerover Button.historyDetails">
-          <Setter Property="Opacity" Value="1" />
-        </Style>
+  <DockPanel>
+    <StackPanel Margin="0 20 0 20" HorizontalAlignment="Left" DockPanel.Dock="Top">
+      <TextBlock Text="Transactions" FontSize="{StaticResource FontSizeH5}" />
+    </StackPanel>
+    <Panel>
+      <TreeDataGrid Source="{Binding Source}"
+                    CanUserResizeColumns="False"
+                    Margin="0 0 0 0"
+                    IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
+        <i:Interaction.Behaviors>
+          <behaviors:ScrollToSelectedItemBehavior />
+          <behaviors:HistoryItemTypeClassBehavior />
+        </i:Interaction.Behaviors>
+        <TreeDataGrid.ElementFactory>
+          <treeDataGrid:PrivacyElementFactory />
+        </TreeDataGrid.ElementFactory>
+        <TreeDataGrid.Styles>
+          <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
+            <Setter Property="(i:Interaction.Behaviors)">
+              <i:BehaviorCollectionTemplate>
+                <i:BehaviorCollection>
+                  <behaviors:PendingHistoryItemSeparatorBehavior />
+                </i:BehaviorCollection>
+              </i:BehaviorCollectionTemplate>
+            </Setter>
+          </Style>
+          <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
+            <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Margin" Value="10 0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+          </Style>
+          <Style Selector="TreeDataGridRow /template/ Rectangle#PART_Separator">
+            <Setter Property="Fill" Value="Transparent" />
+          </Style>
+          <Style Selector="TreeDataGridRow.separator /template/ Rectangle#PART_Separator">
+            <Setter Property="Fill" Value="{DynamicResource TreeDataGridGridLinesBrush}" />
+          </Style>
+          <Style Selector="PathIcon">
+            <Setter Property="Height" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+          </Style>
+          <Style Selector="TextBlock, c|PrivacyContentControl">
+            <Setter Property="VerticalAlignment" Value="Center" />
+          </Style>
+          <Style Selector="TreeDataGridRow Button.historyDetails">
+            <Setter Property="Opacity" Value="0" />
+          </Style>
+          <Style Selector="TreeDataGridRow:pointerover Button.historyDetails">
+            <Setter Property="Opacity" Value="1" />
+          </Style>
 
-        <Style Selector="TreeDataGridRow">
-          <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
-        </Style>
+          <Style Selector="TreeDataGridRow">
+            <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
+          </Style>
 
-        <Style Selector="TreeDataGridRow.Transaction">
-          <Setter Property="ContextMenu" Value="{StaticResource TransactionContextMenu}" />
-        </Style>
-        <Style Selector="TreeDataGridRow.CoinJoin">
-          <Setter Property="ContextMenu" Value="{StaticResource CoinJoinContextMenu}" />
-        </Style>
-        <Style Selector="TreeDataGridRow.CoinJoins">
-          <Setter Property="ContextMenu" Value="{StaticResource CoinJoinsTransactionContextMenu}" />
-        </Style>
-        <Style Selector="TreeDataGridRow.SpeedUp">
-          <Setter Property="ContextMenu" Value="{StaticResource SpeedUpContextMenu}" />
-        </Style>
-        <Style Selector="TextBlock.hidden">
-          <Setter Property="IsVisible" Value="False" />
-        </Style>
-        <Style Selector="TextBlock.visible">
-          <Setter Property="IsVisible" Value="True" />
-        </Style>
-        <Style Selector="PathIcon.hidden">
-          <Setter Property="IsVisible" Value="False" />
-        </Style>
-        <Style Selector="TreeDataGridExpanderCell">
-          <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridExpanderCell}" />
-        </Style>
-      </TreeDataGrid.Styles>
-    </TreeDataGrid>
-    <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                               RowHeight="{StaticResource HistoryTableRowHeight}"
-                               IsVisible="{Binding IsTransactionHistoryEmpty}"
-                               Opacity="0.1" />
-  </Panel>
+          <Style Selector="TreeDataGridRow.Transaction">
+            <Setter Property="ContextMenu" Value="{StaticResource TransactionContextMenu}" />
+          </Style>
+          <Style Selector="TreeDataGridRow.CoinJoin">
+            <Setter Property="ContextMenu" Value="{StaticResource CoinJoinContextMenu}" />
+          </Style>
+          <Style Selector="TreeDataGridRow.CoinJoins">
+            <Setter Property="ContextMenu" Value="{StaticResource CoinJoinsTransactionContextMenu}" />
+          </Style>
+          <Style Selector="TreeDataGridRow.SpeedUp">
+            <Setter Property="ContextMenu" Value="{StaticResource SpeedUpContextMenu}" />
+          </Style>
+          <Style Selector="TextBlock.hidden">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+          <Style Selector="TextBlock.visible">
+            <Setter Property="IsVisible" Value="True" />
+          </Style>
+          <Style Selector="PathIcon.hidden">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+          <Style Selector="TreeDataGridExpanderCell">
+            <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridExpanderCell}" />
+          </Style>
+        </TreeDataGrid.Styles>
+      </TreeDataGrid>
+      <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+                                 RowHeight="{StaticResource HistoryTableRowHeight}"
+                                 IsVisible="{Binding IsTransactionHistoryEmpty}"
+                                 Opacity="0.1" />
+    </Panel>
+  </DockPanel>
+
 </UserControl>

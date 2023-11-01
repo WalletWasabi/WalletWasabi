@@ -17,13 +17,11 @@
     <shell:TitleBar DockPanel.Dock="Top" />
     <DockPanel>
       <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
-      <Border x:Name="ContentPart" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0"
-              CornerRadius="10 0 0 0" ClipToBounds="True">
+      <Border x:Name="ContentPart" CornerRadius="10 0 0 0" ClipToBounds="True" Background="{DynamicResource RegionColor}">
         <Panel>
-          <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True"
-                  IsHitTestVisible="False" />
-          <Panel VerticalAlignment="Bottom"
-                 Height="100">
+
+          <!-- Coinjoin waves -->
+          <Panel VerticalAlignment="Bottom" Height="100">
             <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
                                       Classes.fireEffect="{Binding CurrentWallet^.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
               <spectrum:SpectrumControl.IsDockEffectVisible>
@@ -48,21 +46,26 @@
             </spectrum:SpectrumControl>
           </Panel>
           <DockPanel>
-            <DockPanel.Styles>
-              <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
 
-              <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-                <Setter Property="Margin" Value="31 26 31 0" />
-              </Style>
-            </DockPanel.Styles>
+            <!-- Coinjoin player -->
             <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
                                        HorizontalAlignment="Center" Height="66" />
-            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
+
+            <!-- Main content -->
+            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}">
+              <ContentControl.Styles>
+                <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
+                  <Setter Property="IsVisible" Value="False" />
+                </Style>
+
+                <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+                  <Setter Property="Margin" Value="31 26 31 0" />
+                </Style>
+              </ContentControl.Styles>
+            </ContentControl>
           </DockPanel>
-          <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True"
-                  IsHitTestVisible="False" Margin="0 0 -5 -5" />
+
+          <!-- Status Icon -->
           <statusIcon:StatusIcon Margin="10" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
         </Panel>
       </Border>
