@@ -16,7 +16,7 @@
 		</AndroidResource>
 	</ItemGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>True</RunAOTCompilation>
+		<RunAOTCompilation>False</RunAOTCompilation>
 		<!--<EnableLLVM>True</EnableLLVM>-->
 		<!--<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>-->
 	</PropertyGroup>
