@@ -58,6 +58,9 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _oobe;
 	[AutoNotify] private WindowState _windowState;
 
+	// Non-persistent
+	[AutoNotify] private bool _doUpdateOnClose;
+
 	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
 		_startupConfig = new PersistentConfig(persistentConfig.FilePath);
@@ -149,6 +152,11 @@ public partial class ApplicationSettings : ReactiveObject
 		// Apply RunOnSystenStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
+			.Subscribe();
+
+		// Apply DoUpdateOnClose
+		this.WhenAnyValue(x => x.DoUpdateOnClose)
+			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
 	}
 
