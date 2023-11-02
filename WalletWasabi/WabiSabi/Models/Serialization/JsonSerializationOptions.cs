@@ -34,7 +34,8 @@ public class JsonSerializationOptions
 				new IssuanceRequestJsonConverter(),
 				new CredentialPresentationJsonConverter(),
 				new ProofJsonConverter(),
-				new MacJsonConverter()
+				new MacJsonConverter(),
+				new ByteArrayJsonConverter()
 			}
 	};
 

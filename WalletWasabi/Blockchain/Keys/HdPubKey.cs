@@ -24,7 +24,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
-	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
+	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState, byte[]? keyIdBytes = null)
 	{
 		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
@@ -39,7 +39,16 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH), isThreadSafe: true);
 		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
-		PubKeyHash = PubKey.Hash;
+		if (keyIdBytes != null)
+		{
+			PubKeyHash = new KeyId(keyIdBytes);
+			KeyIdBytes = keyIdBytes;
+		}
+		else
+		{
+			PubKeyHash = PubKey.Hash;
+			KeyIdBytes = PubKeyHash.ToBytes();
+		}
 		HashCode = PubKeyHash.GetHashCode();
 
 		Index = (int)FullKeyPath.Indexes[4];
@@ -87,6 +96,10 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
+
+	[JsonProperty(Order = 5)]
+	[JsonConverter(typeof(ByteArrayJsonConverter))]
+	public byte[]? KeyIdBytes { get; }
 
 	/// <summary>Height of the block where all coins associated with the key were spent, or <c>null</c> if not yet spent.</summary>
 	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
