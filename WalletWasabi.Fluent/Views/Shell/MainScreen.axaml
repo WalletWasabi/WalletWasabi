@@ -16,8 +16,7 @@
     <!-- TODO: Delay to match with Dialog overlay appearance time -->
     <Style Selector="DockPanel.blur">
       <Setter Property="Effect">
-        <BlurEffect Radius="3">
-        </BlurEffect>
+        <BlurEffect Radius="3" />
       </Setter>
     </Style>
   </UserControl.Styles>

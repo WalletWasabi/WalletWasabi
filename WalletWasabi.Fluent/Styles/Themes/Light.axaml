@@ -32,12 +32,12 @@
   <Color x:Key="SystemChromeAltHighColor">#FFEBEFF2</Color>
   <Color x:Key="SystemRevealListLowColor">#FFEEF8FC</Color>
   <Color x:Key="SystemRevealListMediumColor">#FFEBEFF2</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF4F82D0</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF6794DA</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF7EA7E3</Color>
   <Color x:Key="SystemAccentColorDark1">#FF2D61B7</Color>
   <Color x:Key="SystemAccentColorDark2">#FF2252A7</Color>
   <Color x:Key="SystemAccentColorDark3">#FF164297</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF4F82D0</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF6794DA</Color>
+  <Color x:Key="SystemAccentColorLight3">#FF7EA7E3</Color>
   <Color x:Key="RegionColor">#FFF8F9FB</Color>
 
   <Color x:Key="ActionForegroundColor">White</Color>
@@ -51,6 +51,8 @@
 
   <Color x:Key="Layer1BackgroundBrush">#262626</Color>
   <Color x:Key="Layer2BackgroundBrush">#333333</Color>
+
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource TileBorderColor}" />
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
@@ -103,7 +105,9 @@
 
   <!-- Base -->
 
-  <CornerRadius x:Key="ControlCornerRadius">5,5,5,5</CornerRadius>
+  <Thickness x:Key="MenuFlyoutItemThemePaddingNarrow">15 7</Thickness>
+  <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
+  <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />

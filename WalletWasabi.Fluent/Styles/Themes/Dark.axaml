@@ -39,44 +39,8 @@
   <Color x:Key="SystemAccentColorLight2">#FF888888</Color>
   <Color x:Key="SystemAccentColorLight3">#FF737373</Color>
 
-  <!-- <Color x:Key="SystemAccentColor">#B0B0B0</Color> -->
-  <!-- <Color x:Key="SystemAccentColorDark1">#FFBABABA</Color> -->
-  <!-- <Color x:Key="SystemAccentColorDark2">#FFC4C4C4</Color> -->
-  <!-- <Color x:Key="SystemAccentColorDark3">#FFCECECE</Color> -->
-  <!-- <Color x:Key="SystemAccentColorLight1">#FF9C9C9C</Color> -->
-  <!-- <Color x:Key="SystemAccentColorLight2">#FF888888</Color> -->
-  <!-- <Color x:Key="SystemAccentColorLight3">#FF737373</Color> -->
-  <!-- <Color x:Key="SystemAltHighColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemAltLowColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemAltMediumColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemAltMediumHighColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemAltMediumLowColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color> -->
-  <!-- <Color x:Key="SystemBaseLowColor">#FF232A33</Color> -->
-  <!-- <Color x:Key="SystemBaseMediumColor">#FF8D95A3</Color> -->
-  <!-- <Color x:Key="SystemBaseMediumHighColor">#FFA8B0BF</Color> -->
-  <!-- <Color x:Key="SystemBaseMediumLowColor">#FF58606B</Color> -->
-  <!-- <Color x:Key="SystemChromeAltLowColor">#FFA8B0BF</Color> -->
-  <!-- <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemChromeBlackLowColor">#FFA8B0BF</Color> -->
-  <!-- <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color> -->
-  <!-- <Color x:Key="SystemChromeDisabledHighColor">#282828</Color> -->
-  <!-- <Color x:Key="SystemChromeDisabledLowColor">#FF8D95A3</Color> -->
-  <!-- <Color x:Key="SystemChromeGrayColor">#FF737A87</Color> -->
-  <!-- <Color x:Key="SystemChromeHighColor">#0A8093AE</Color> -->
-  <!-- <Color x:Key="SystemChromeLowColor">#208093AE</Color> -->
-  <!-- <Color x:Key="SystemChromeMediumColor">#1A8093AE</Color> -->
-  <!-- <Color x:Key="SystemChromeMediumLowColor">#232323</Color> -->
-  <!-- <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color> -->
-  <!-- <Color x:Key="SystemListLowColor">#FF0E192C</Color> -->
-  <!-- <Color x:Key="SystemListMediumColor">#FF232A33</Color> -->
-  <!-- <Color x:Key="SystemChromeAltMediumHighColor">#CC191D24</Color> -->
-  <!-- <Color x:Key="SystemChromeAltHighColor">#FF232A33</Color> -->
-  <!-- <Color x:Key="SystemRevealListLowColor">#FF0E192C</Color> -->
-  <!-- <Color x:Key="SystemRevealListMediumColor">#FF232A33</Color> -->
-
   <!-- Action Colors -->
+  <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
   <Color x:Key="ActionColor">#77C400</Color>
   <Color x:Key="ActionColorLight1">#FF87CC1E</Color>
   <Color x:Key="ActionColorLight2">#FF98D43C</Color>
@@ -84,9 +48,10 @@
   <Color x:Key="ActionColorDark1">#FF63AF00</Color>
   <Color x:Key="ActionColorDark2">#FF4F9A00</Color>
   <Color x:Key="ActionColorDark3">#FF3C8600</Color>
-  <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
 
   <Color x:Key="RegionColor">#1F1F1F</Color>
+
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource TileBorderColor}" />
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
@@ -139,6 +104,8 @@
 
   <!-- Base -->
 
+  <Thickness x:Key="MenuFlyoutItemThemePaddingNarrow">15 7</Thickness>
+  <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
   <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
 
