@@ -64,7 +64,7 @@
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
-  <Color x:Key="TileRegionColor">Red</Color>
+  <Color x:Key="TileRegionColor">#21252D</Color>
   <Color x:Key="TileBorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">White</Color>
   <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
