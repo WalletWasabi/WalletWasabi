@@ -44,11 +44,9 @@ public partial class WalletModel : ReactiveObject
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
-		Balances =
-			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
-					  .Concat(Transactions.TransactionProcessed
-					  .Select(_ => Wallet.Coins.TotalAmount()))
-					  .Select(AmountProvider.Create);
+		Balances = Transactions.TransactionProcessed
+			.Select(_ => Wallet.Coins.TotalAmount())
+			.Select(AmountProvider.Create);
 
 		HasBalance = Balances.Select(x => x.HasBalance);
 
