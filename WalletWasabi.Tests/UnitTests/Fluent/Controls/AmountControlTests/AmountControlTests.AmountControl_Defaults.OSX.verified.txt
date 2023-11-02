@@ -1,5 +1,5 @@
 ﻿{
-  Type: AmountControl001,
+  Type: AmountControl_Defaults,
   Title: AmountControl001,
   Content: {
     Type: AmountControl,

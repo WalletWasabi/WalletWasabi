@@ -2,9 +2,9 @@
 
 namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AnimatedButtonTests;
 
-public partial class AnimatedButton001 : Window
+public partial class AnimatedButton_Defaults : Window
 {
-    public AnimatedButton001()
+    public AnimatedButton_Defaults()
     {
         InitializeComponent();
     }

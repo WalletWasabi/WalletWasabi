@@ -1,5 +1,5 @@
 ﻿{
-  Type: AnimatedButton001,
+  Type: AnimatedButton_Defaults,
   Title: AnimatedButton001,
   Content: {
     Type: AnimatedButton,

@@ -10,9 +10,9 @@ namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AmountControlTests;
 public class AmountControlTests
 {
     [AvaloniaFact]
-    public Task AmountControl_001()
+    public Task AmountControl_Defaults()
     {
-        var window = new AmountControl001();
+        var window = new AmountControl_Defaults();
         window.Show();
 
         Assert.Equal(window.DataContext, Amount.Zero);

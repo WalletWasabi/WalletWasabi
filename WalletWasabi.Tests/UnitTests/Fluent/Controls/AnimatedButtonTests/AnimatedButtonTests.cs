@@ -8,9 +8,9 @@ namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AnimatedButtonTests;
 public class AnimatedButtonTests
 {
     [AvaloniaFact]
-    public Task AnimatedButton_001()
+    public Task AnimatedButton_Defaults()
     {
-        var window = new AnimatedButton001();
+        var window = new AnimatedButton_Defaults();
         window.Show();
 
         return Verifier.Verify(window);

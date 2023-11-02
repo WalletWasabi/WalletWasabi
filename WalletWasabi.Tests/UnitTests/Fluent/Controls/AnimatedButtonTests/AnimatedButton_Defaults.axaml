@@ -1,6 +1,6 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="WalletWasabi.Tests.UnitTests.Fluent.Controls.AnimatedButtonTests.AnimatedButton001"
+        x:Class="WalletWasabi.Tests.UnitTests.Fluent.Controls.AnimatedButtonTests.AnimatedButton_Defaults"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent"
         Title="AnimatedButton001">
   <c:AnimatedButton Name="TargetButton"

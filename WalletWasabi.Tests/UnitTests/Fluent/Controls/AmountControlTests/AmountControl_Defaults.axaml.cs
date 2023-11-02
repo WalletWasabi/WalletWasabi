@@ -3,9 +3,9 @@ using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AmountControlTests;
 
-public partial class AmountControl001 : Window
+public partial class AmountControl_Defaults : Window
 {
-    public AmountControl001()
+    public AmountControl_Defaults()
     {
         InitializeComponent();
 
