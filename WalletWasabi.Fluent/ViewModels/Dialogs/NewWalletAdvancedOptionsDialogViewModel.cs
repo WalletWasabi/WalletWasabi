@@ -5,9 +5,9 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Advanced options", NavigationTarget = NavigationTarget.CompactDialogScreen)]
-public partial class NewWalletAdvancedSettingsDialogViewModel : DialogViewModelBase<(bool, ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult)>
+public partial class NewWalletAdvancedOptionsDialogViewModel : DialogViewModelBase<NewWalletAdvancedOptionsDialogViewModel.Result>
 {
-	public NewWalletAdvancedSettingsDialogViewModel(CoinJoinProfileViewModelBase currentProfile, bool isAutoCoinjoinEnabled)
+	public NewWalletAdvancedOptionsDialogViewModel(CoinJoinProfileViewModelBase currentProfile, bool isAutoCoinjoinEnabled)
 	{
 		IsAutoCoinjoinEnabled = isAutoCoinjoinEnabled;
 		CoinjoinAdvancedSettings = new ManualCoinJoinSettingsViewModel(currentProfile);
@@ -24,11 +24,13 @@ public partial class NewWalletAdvancedSettingsDialogViewModel : DialogViewModelB
 				var hours = (int) Math.Floor(CoinjoinAdvancedSettings.SelectedTimeFrame.TimeFrame.TotalHours);
 				var skipFactors = CoinjoinAdvancedSettings.SkipFactors;
 
-				Close(DialogResultKind.Normal, (IsAutoCoinjoinEnabled, new ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors))));
+				Close(DialogResultKind.Normal, new Result(new ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors)), IsAutoCoinjoinEnabled));
 			});
 	}
 
 	public ManualCoinJoinSettingsViewModel CoinjoinAdvancedSettings { get; }
 
 	public bool IsAutoCoinjoinEnabled { get; set; }
+
+	public record Result(ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult CoinjoinProfileResult, bool IsAutoCoinjoinEnabled);
 }

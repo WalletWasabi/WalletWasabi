@@ -74,17 +74,17 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		}
 		else
 		{
-			var result = await Navigate().To().NewWalletAdvancedSettingsDialog(current, _walletSettings.AutoCoinjoin).GetResultAsync();
+			var result = await Navigate().To().NewWalletAdvancedOptionsDialog(current, _walletSettings.AutoCoinjoin).GetResultAsync();
 
 			if (result is { })
 			{
-				if (result.Item2.Profile != current)
+				if (result.CoinjoinProfileResult.Profile != current)
 				{
 					SelectedProfile = null;
-					SelectedManualProfile = result.Item2.Profile;
+					SelectedManualProfile = result.CoinjoinProfileResult.Profile;
 				}
 
-				_walletSettings.AutoCoinjoin = result.Item1;
+				_walletSettings.AutoCoinjoin = result.IsAutoCoinjoinEnabled;
 			}
 		}
 	}

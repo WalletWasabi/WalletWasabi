@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs;
 
-public class NewWalletAdvancedSettingsDialogView : UserControl
+public class NewWalletAdvancedOptionsDialogView : UserControl
 {
-	public NewWalletAdvancedSettingsDialogView()
+	public NewWalletAdvancedOptionsDialogView()
 	{
 		InitializeComponent();
 	}
