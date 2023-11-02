@@ -15,7 +15,16 @@
   </i:Interaction.Behaviors>
   <Panel>
     <shell:Background />
-    <shell:MainScreen x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}" />
+    <shell:MainScreen x:CompileBindings="False"
+                      IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}">
+      <shell:MainScreen.Styles>
+        <Style Selector="shell|MainScreen[IsHitTestVisible=False]">
+          <Setter Property="Effect">
+            <BlurEffect Radius="3" />
+          </Setter>
+        </Style>
+      </shell:MainScreen.Styles>
+    </shell:MainScreen>
     <shell:Dialogs />
   </Panel>
 </UserControl>
