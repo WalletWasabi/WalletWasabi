@@ -49,6 +49,9 @@
   <Color x:Key="ActionColorLight2">#FF50C48C</Color>
   <Color x:Key="ActionColorLight3">#FF6ACF9F</Color>
 
+  <Color x:Key="Layer1BackgroundBrush">#262626</Color>
+  <Color x:Key="Layer2BackgroundBrush">#333333</Color>
+
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource  SystemAccentColor}" />
@@ -65,7 +68,7 @@
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
-  <Color x:Key="TileRegionColor">White</Color>
+  <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="TileBorderColor">#14000000</Color>
   <Color x:Key="AcrylicTrimForeground">#FCFCFC</Color>
   <Color x:Key="AcrylicTrimBackground">#90134074</Color>
@@ -100,6 +103,8 @@
 
   <!-- Base -->
 
+  <CornerRadius x:Key="ControlCornerRadius">5,5,5,5</CornerRadius>
+
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />
   <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{StaticResource SystemBaseLowColor}" />
@@ -109,10 +114,8 @@
   <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 
   <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.15"
-                   Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.25"
-                   Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.15" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
 
   <Color x:Key="StatusForegroundColor">White</Color>
 
@@ -196,10 +199,10 @@
 
   <!-- TODO: Remove already included in ThemeVariants file -->
   <!--
-  <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemBaseMediumHighColor}" />
-  -->
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemBaseMediumHighColor}" />
+      -->
 
   <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
@@ -241,4 +244,3 @@
   <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
 
 </ResourceDictionary>
-

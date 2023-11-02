@@ -2,7 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
-  <Color x:Key="SystemAccentColor">#FF5E96ED</Color>
+  <Color x:Key="SystemAccentColor">#37BEB0</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF4DC7BA</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF63D0C5</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF78D8CF</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF2CAA9C</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF219688</Color>
+  <Color x:Key="SystemAccentColorLight3">#FF168275</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemAltLowColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumColor">#FF000000</Color>
@@ -32,21 +38,18 @@
   <Color x:Key="SystemChromeAltHighColor">#FF232A33</Color>
   <Color x:Key="SystemRevealListLowColor">#FF0E192C</Color>
   <Color x:Key="SystemRevealListMediumColor">#FF232A33</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF71A3F1</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF83B1F4</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF96BEF8</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF4B84DA</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF3872C7</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF265FB3</Color>
-  <Color x:Key="RegionColor">#191D24</Color>
-  <Color x:Key="ActionForegroundColor">Black</Color>
-  <Color x:Key="ActionColorDark1">#FF4BD894</Color>
-  <Color x:Key="ActionColorDark2">#FF62DEA3</Color>
-  <Color x:Key="ActionColorDark3">#FF79E5B1</Color>
-  <Color x:Key="ActionColorLight1">#FF2ABC71</Color>
-  <Color x:Key="ActionColorLight2">#FF1FA75D</Color>
-  <Color x:Key="ActionColorLight3">#FF159148</Color>
-  <Color x:Key="ActionColor">#34D286</Color>
+
+  <!-- Action Colors -->
+  <Color x:Key="ActionColor">#77C400</Color>
+  <Color x:Key="ActionColorLight1">#FF87CC1E</Color>
+  <Color x:Key="ActionColorLight2">#FF98D43C</Color>
+  <Color x:Key="ActionColorLight3">#FFA8DB5A</Color>
+  <Color x:Key="ActionColorDark1">#FF63AF00</Color>
+  <Color x:Key="ActionColorDark2">#FF4F9A00</Color>
+  <Color x:Key="ActionColorDark3">#FF3C8600</Color>
+  <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
+
+  <Color x:Key="RegionColor">#1F1F1F</Color>
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
@@ -64,7 +67,7 @@
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
-  <Color x:Key="TileRegionColor">#21252D</Color>
+  <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="TileBorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">White</Color>
   <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
@@ -99,19 +102,22 @@
 
   <!-- Base -->
 
+  <CornerRadius x:Key="ControlCornerRadius">5,5,5,5</CornerRadius>
+
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />
   <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{StaticResource SystemBaseLowColor}" />
+
+  <Color x:Key="Layer1BackgroundBrush">#262626</Color>
+  <Color x:Key="Layer2BackgroundBrush">#333333</Color>
 
   <Color x:Key="OrangeCoinColor">#F2994A</Color>
   <Color x:Key="CoinjoinActiveColor">Orange</Color>
   <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 
   <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.15"
-                   Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.25"
-                   Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.15" Color="{StaticResource SystemBaseHighColor}" />
 
   <Color x:Key="StatusForegroundColor">White</Color>
 
@@ -192,10 +198,10 @@
 
   <!-- TODO: Remove already included in ThemeVariants file -->
   <!--
-  <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemBaseMediumHighColor}" />
-  -->
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemBaseMediumHighColor}" />
+      -->
 
   <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
@@ -235,6 +241,4 @@
   <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#ff8d95a3" />
   <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#99ffffff" />
   <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
-
 </ResourceDictionary>
-
