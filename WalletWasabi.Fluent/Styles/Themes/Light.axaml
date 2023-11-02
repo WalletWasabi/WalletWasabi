@@ -104,6 +104,7 @@
   <!-- Base -->
 
   <CornerRadius x:Key="ControlCornerRadius">5,5,5,5</CornerRadius>
+  <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />

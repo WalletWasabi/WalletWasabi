@@ -80,7 +80,7 @@
                   </MenuItem>
                 </MenuFlyout>
               </Button.Flyout>
-              <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
+              <PathIcon Data="{StaticResource more_regular}" Opacity="0.6" />
             </Button>
           </StackPanel>
 

@@ -2,42 +2,79 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
-  <Color x:Key="SystemAccentColor">#37BEB0</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF4DC7BA</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF63D0C5</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF78D8CF</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF2CAA9C</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF219688</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF168275</Color>
+  <Color x:Key="SystemAccentColor">#B0B0B0</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemAltLowColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumHighColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumLowColor">#FF000000</Color>
   <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemBaseLowColor">#FF232A33</Color>
-  <Color x:Key="SystemBaseMediumColor">#FF8D95A3</Color>
-  <Color x:Key="SystemBaseMediumHighColor">#FFA8B0BF</Color>
-  <Color x:Key="SystemBaseMediumLowColor">#FF58606B</Color>
-  <Color x:Key="SystemChromeAltLowColor">#FFA8B0BF</Color>
+  <Color x:Key="SystemBaseLowColor">#FF262626</Color>
+  <Color x:Key="SystemBaseMediumColor">#FF949494</Color>
+  <Color x:Key="SystemBaseMediumHighColor">#FFAFAFAF</Color>
+  <Color x:Key="SystemBaseMediumLowColor">#FF5D5D5D</Color>
+  <Color x:Key="SystemChromeAltLowColor">#FFAFAFAF</Color>
   <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
-  <Color x:Key="SystemChromeBlackLowColor">#FFA8B0BF</Color>
+  <Color x:Key="SystemChromeBlackLowColor">#FFAFAFAF</Color>
   <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color>
   <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color>
-  <Color x:Key="SystemChromeDisabledHighColor">#282828</Color>
-  <Color x:Key="SystemChromeDisabledLowColor">#FF8D95A3</Color>
-  <Color x:Key="SystemChromeGrayColor">#FF737A87</Color>
-  <Color x:Key="SystemChromeHighColor">#0A8093AE</Color>
-  <Color x:Key="SystemChromeLowColor">#208093AE</Color>
-  <Color x:Key="SystemChromeMediumColor">#1A8093AE</Color>
-  <Color x:Key="SystemChromeMediumLowColor">#232323</Color>
+  <Color x:Key="SystemChromeDisabledHighColor">#FF262626</Color>
+  <Color x:Key="SystemChromeDisabledLowColor">#FF949494</Color>
+  <Color x:Key="SystemChromeGrayColor">#FF787878</Color>
+  <Color x:Key="SystemChromeHighColor">#FF787878</Color>
+  <Color x:Key="SystemChromeLowColor">#FF101010</Color>
+  <Color x:Key="SystemChromeMediumColor">#262626</Color>
+  <Color x:Key="SystemChromeMediumLowColor">#FF202020</Color>
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemListLowColor">#FF0E192C</Color>
-  <Color x:Key="SystemListMediumColor">#FF232A33</Color>
-  <Color x:Key="SystemChromeAltMediumHighColor">#CC191D24</Color>
-  <Color x:Key="SystemChromeAltHighColor">#FF232A33</Color>
-  <Color x:Key="SystemRevealListLowColor">#FF0E192C</Color>
-  <Color x:Key="SystemRevealListMediumColor">#FF232A33</Color>
+  <Color x:Key="SystemListLowColor">#262626</Color>
+  <Color x:Key="SystemListMediumColor">#FF262626</Color>
+  <Color x:Key="SystemChromeAltMediumHighColor">#CC1F1F1F</Color>
+  <Color x:Key="SystemChromeAltHighColor">#FF262626</Color>
+  <Color x:Key="SystemRevealListLowColor">#262626</Color>
+  <Color x:Key="SystemRevealListMediumColor">#FF262626</Color>
+  <Color x:Key="SystemAccentColorDark1">#FFBABABA</Color>
+  <Color x:Key="SystemAccentColorDark2">#FFC4C4C4</Color>
+  <Color x:Key="SystemAccentColorDark3">#FFCECECE</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF9C9C9C</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF888888</Color>
+  <Color x:Key="SystemAccentColorLight3">#FF737373</Color>
+
+  <!-- <Color x:Key="SystemAccentColor">#B0B0B0</Color> -->
+  <!-- <Color x:Key="SystemAccentColorDark1">#FFBABABA</Color> -->
+  <!-- <Color x:Key="SystemAccentColorDark2">#FFC4C4C4</Color> -->
+  <!-- <Color x:Key="SystemAccentColorDark3">#FFCECECE</Color> -->
+  <!-- <Color x:Key="SystemAccentColorLight1">#FF9C9C9C</Color> -->
+  <!-- <Color x:Key="SystemAccentColorLight2">#FF888888</Color> -->
+  <!-- <Color x:Key="SystemAccentColorLight3">#FF737373</Color> -->
+  <!-- <Color x:Key="SystemAltHighColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemAltLowColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemAltMediumColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemAltMediumHighColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemAltMediumLowColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color> -->
+  <!-- <Color x:Key="SystemBaseLowColor">#FF232A33</Color> -->
+  <!-- <Color x:Key="SystemBaseMediumColor">#FF8D95A3</Color> -->
+  <!-- <Color x:Key="SystemBaseMediumHighColor">#FFA8B0BF</Color> -->
+  <!-- <Color x:Key="SystemBaseMediumLowColor">#FF58606B</Color> -->
+  <!-- <Color x:Key="SystemChromeAltLowColor">#FFA8B0BF</Color> -->
+  <!-- <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemChromeBlackLowColor">#FFA8B0BF</Color> -->
+  <!-- <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color> -->
+  <!-- <Color x:Key="SystemChromeDisabledHighColor">#282828</Color> -->
+  <!-- <Color x:Key="SystemChromeDisabledLowColor">#FF8D95A3</Color> -->
+  <!-- <Color x:Key="SystemChromeGrayColor">#FF737A87</Color> -->
+  <!-- <Color x:Key="SystemChromeHighColor">#0A8093AE</Color> -->
+  <!-- <Color x:Key="SystemChromeLowColor">#208093AE</Color> -->
+  <!-- <Color x:Key="SystemChromeMediumColor">#1A8093AE</Color> -->
+  <!-- <Color x:Key="SystemChromeMediumLowColor">#232323</Color> -->
+  <!-- <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color> -->
+  <!-- <Color x:Key="SystemListLowColor">#FF0E192C</Color> -->
+  <!-- <Color x:Key="SystemListMediumColor">#FF232A33</Color> -->
+  <!-- <Color x:Key="SystemChromeAltMediumHighColor">#CC191D24</Color> -->
+  <!-- <Color x:Key="SystemChromeAltHighColor">#FF232A33</Color> -->
+  <!-- <Color x:Key="SystemRevealListLowColor">#FF0E192C</Color> -->
+  <!-- <Color x:Key="SystemRevealListMediumColor">#FF232A33</Color> -->
 
   <!-- Action Colors -->
   <Color x:Key="ActionColor">#77C400</Color>
@@ -102,7 +139,8 @@
 
   <!-- Base -->
 
-  <CornerRadius x:Key="ControlCornerRadius">5,5,5,5</CornerRadius>
+  <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
+  <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />

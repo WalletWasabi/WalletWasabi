@@ -21,8 +21,8 @@
   </Design.PreviewWith>
 
   <Styles.Resources>
-    <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
-    <Thickness x:Key="InvisibleButtonPadding">20,10</Thickness>
+    <Thickness x:Key="ActionButtonPadding">15,8</Thickness>
+    <Thickness x:Key="InvisibleButtonPadding">15,8</Thickness>
     <Thickness x:Key="FunctionButtonPadding">15,8</Thickness>
   </Styles.Resources>
 
@@ -69,9 +69,6 @@
   <Style Selector="Button.function:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
   </Style>
-  <!-- <Style Selector="Button.function:disabled PathIcon"> -->
-  <!--   <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" /> -->
-  <!-- </Style> -->
   <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
@@ -80,13 +77,13 @@
   <Style Selector="Button.transparentFunction">
     <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.transparentFunction PathIcon">
     <Setter Property="Margin" Value="0" />
     <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
   </Style>
   <Style Selector="Button.transparentFunction TextBlock">
     <Setter Property="VerticalAlignment" Value="Center" />
@@ -97,14 +94,11 @@
   </Style>
   <Style Selector="Button.transparentFunction:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPointerOverBackgroundColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
   </Style>
   <Style Selector="Button.transparentFunction:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
-  <!-- <Style Selector="Button.transparentFunction:disabled PathIcon"> -->
-  <!--   <Setter Property="Foreground" Value="{DynamicResource Actio}" /> -->
-  <!-- </Style> -->
   <Style Selector="Button.transparentFunction:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
