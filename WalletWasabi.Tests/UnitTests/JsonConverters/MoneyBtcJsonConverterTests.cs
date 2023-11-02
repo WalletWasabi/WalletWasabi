@@ -1,4 +1,6 @@
 using NBitcoin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
@@ -13,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 public class MoneyBtcJsonConverterTests
 {
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on NewtonSoft.JSON *serialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *serialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void SerializationParity()
@@ -25,7 +27,20 @@ public class MoneyBtcJsonConverterTests
 	}
 
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on NewtonSoft.JSON *deserialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and <c>NewtonSoft.Json</c> fails to deserialize object if JSON is in invalid format.
+	/// </summary>
+	[Fact]
+	public void InvalidFormatDeserializingFails()
+	{
+		var price = "29.99";
+		string json = $$"""{"Name": "Little Book of Calm", "Price": {{price}}""";
+
+		Assert.Throws<Newtonsoft.Json.JsonSerializationException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
+		Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+	}
+
+	/// <summary>
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *deserialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void DeserializationParity()
@@ -33,26 +48,21 @@ public class MoneyBtcJsonConverterTests
 		// Success cases.
 		{
 			string token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			AssertDeserializeJsonExceptionFailure(token);
 			AssertBothDeserialize(S(token));
 
 			token = "210000000"; // 21 million bitcoin.
-			AssertDeserializeJsonExceptionFailure(token);
 			AssertBothDeserialize(S(token));
 
 			token = "0.00000000000000000000000000000000000000000000001";
-			AssertDeserializeJsonExceptionFailure(token);
 			AssertBothDeserialize(S(token));
 
 			token = "00000000000000000000000";
-			AssertDeserializeJsonExceptionFailure(token);
 			AssertBothDeserialize(S(token));
 		}
 
 		// Format exception errors.
 		{
 			string token = "1e6"; // Exponential notation.
-			AssertDeserializeJsonExceptionFailure(token);
 			AssertDeserializeFailure<FormatException>(S(token));
 
 			token = "1,0"; // Decimal comma.
@@ -65,10 +75,8 @@ public class MoneyBtcJsonConverterTests
 		// Unique case.
 		{
 			string token = "1."; // No digit after decimal point.
-			AssertDeserializeJsonExceptionFailure(token);
 			AssertBothDeserialize(S(token));
 		}
-
 
 		static void AssertBothDeserialize(string jsonToken)
 		{
@@ -88,14 +96,6 @@ public class MoneyBtcJsonConverterTests
 
 			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
-		}
-
-		static void AssertDeserializeJsonExceptionFailure(string jsonToken)
-		{
-			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}}""";
-
-			Assert.Throws<Newtonsoft.Json.JsonSerializationException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
 		static string S(string s)
