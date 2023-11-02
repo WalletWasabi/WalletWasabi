@@ -125,7 +125,7 @@
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#1B273D</SolidColorBrush>
 
-  <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
+  <SolidColorBrush x:Key="DialogOverlayColor">#80333333</SolidColorBrush>
 
   <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
   <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 5 #FF5E96ED</BoxShadows>

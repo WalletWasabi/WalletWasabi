@@ -12,8 +12,18 @@
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
              d:DesignWidth="1000" d:DesignHeight="1000"
              x:CompileBindings="True">
+  <UserControl.Styles>
+    <!-- TODO: Delay to match with Dialog overlay appearance time -->
+    <Style Selector="DockPanel.blur">
+      <Setter Property="Effect">
+        <BlurEffect Radius="3">
+        </BlurEffect>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
 
-  <DockPanel IsEnabled="{Binding IsMainContentEnabled^}">
+  <DockPanel IsEnabled="{Binding IsMainContentEnabled^}"
+             Classes.blur="{Binding !$self.IsEnabled}">
     <shell:TitleBar DockPanel.Dock="Top" />
     <DockPanel>
       <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
