@@ -20,7 +20,7 @@
       <shell:MainScreen.Styles>
         <Style Selector="shell|MainScreen[IsHitTestVisible=False]">
           <Setter Property="Effect">
-            <BlurEffect Radius="3" />
+            <BlurEffect Radius="10" />
           </Setter>
         </Style>
       </shell:MainScreen.Styles>
