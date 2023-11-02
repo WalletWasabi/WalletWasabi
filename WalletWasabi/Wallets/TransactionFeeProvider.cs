@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -34,7 +33,7 @@ public class TransactionFeeProvider : PeriodicRunner
 
 		try
 		{
-			var response = await HttpClient.SendAsync(HttpMethod.Get, $"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee?transactionId={txid}", null, cancellationToken).ConfigureAwait(false);
+			var response = await HttpClient.SendAsync(HttpMethod.Get, $"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee?transactionId={txid}", null, linkedCts.Token).ConfigureAwait(false);
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
