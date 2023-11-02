@@ -33,7 +33,7 @@ public class MoneyBtcJsonConverterTests
 	public void InvalidFormatDeserializingFails()
 	{
 		var price = "29.99";
-		string json = $$"""{"Name": "Little Book of Calm", "Price": {{price}}""";
+		string json = $$"""{"Name": "Little Book of Calm", "Price": {{price}}}""";
 
 		Assert.Throws<Newtonsoft.Json.JsonSerializationException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
 		Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
