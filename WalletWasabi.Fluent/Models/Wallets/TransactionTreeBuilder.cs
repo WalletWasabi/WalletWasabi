@@ -150,7 +150,7 @@ public class TransactionTreeBuilder
 			Type = itemType,
 			Status = GetItemStatus(transactionSummary),
 			Confirmations = confirmations,
-			Fee = transactionSummary.GetFee(),
+			Fee = transactionSummary.GetFee,
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
 		};
 	}
@@ -234,7 +234,7 @@ public class TransactionTreeBuilder
 		coinjoinGroup.Date = coinjoinGroup.Children.Select(tx => tx.Date).Max().ToLocalTime();
 
 		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
-		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
+		var fee = coinjoinGroup.Children.Sum(x => x.Fee() ?? Money.Zero);
 
 		var amounts = GetAmounts(amount, fee);
 
@@ -274,7 +274,7 @@ public class TransactionTreeBuilder
 			Status = GetItemStatus(transactionSummary),
 			Confirmations = confirmations,
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
-			Fee = transactionSummary.GetFee()
+			Fee = transactionSummary.GetFee
 		};
 	}
 

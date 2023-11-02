@@ -179,7 +179,7 @@ public class Wallet : BackgroundService, IWallet
 			}
 			else
 			{
-				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, feeFetcher: () => coin.Transaction.GetFee() ?? TransactionFeeProvider.GetFee(coin.TransactionId)));
 			}
 
 			if (coin.SpenderTransaction is { } spenderTransaction)
@@ -192,7 +192,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 				else
 				{
-					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, feeFetcher: () => spenderTransaction.GetFee() ?? TransactionFeeProvider.GetFee(spenderTxId)));
 				}
 			}
 		}

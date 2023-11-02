@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -38,7 +39,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
-		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
+		IsFeeVisible = Fee != null && Fee.HasBalance;
 
 		TransactionId = transactionSummary.GetHash();
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
@@ -63,10 +64,10 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 
-		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transactionSummary);
-		if (confirmationTime is { })
+		transactionSummary.TryGetConfirmationTime(out var estimate);
+		if (estimate is { })
 		{
-			ConfirmationTime = confirmationTime;
+			ConfirmationTime = estimate;
 		}
 
 		IsConfirmed = Confirmations > 0;
