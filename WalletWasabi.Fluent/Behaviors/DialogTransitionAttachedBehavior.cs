@@ -87,10 +87,9 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 
 		compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
 
-		control.GetObservable(Visual.BoundsProperty).Subscribe(x =>
-		{
-			compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
-		}).DisposeWith(disposables);
+		control.GetObservable(Visual.BoundsProperty)
+			.Subscribe(x => compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0))
+			.DisposeWith(disposables);
 
 		animationGroup.Add(scaleAnimation);
 
