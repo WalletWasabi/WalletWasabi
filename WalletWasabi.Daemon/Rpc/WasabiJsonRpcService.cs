@@ -372,7 +372,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["label"] = x.Labels.ToString(),
 				["scriptPubKey"] = x.GetAssumedScriptPubKey().ToString(),
 				["pubkey"] = x.PubKey.ToString(),
-				["pubKeyHash"] = x.PubKeyHash.ToString(),
+				["pubKeyHash"] = x.PubKey.Hash.ToString(),
 				["address"] = x.GetAddress(Global.Network).ToString()
 			}).ToImmutableArray();
 	}

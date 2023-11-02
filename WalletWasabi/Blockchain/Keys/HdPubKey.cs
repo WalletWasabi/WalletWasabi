@@ -39,9 +39,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH), isThreadSafe: true);
 		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
-		PubKeyHash = PubKey.Hash;
-		HashCode = PubKeyHash.GetHashCode();
-
 		Index = (int)FullKeyPath.Indexes[4];
 
 		int change = (int)FullKeyPath.Indexes[3];
@@ -98,12 +95,8 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public Script P2shOverP2wpkhScript => _p2shOverP2wpkhScript.Value;
 	public Script P2Taproot => _p2Taproot.Value;
 
-	public KeyId PubKeyHash { get; }
-
 	public int Index { get; }
 	public bool IsInternal { get; }
-
-	private int HashCode { get; }
 
 	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReason = null)
 	{
@@ -166,9 +159,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public bool Equals(HdPubKey? other) => this == other;
 
-	public override int GetHashCode() => HashCode;
+	public override int GetHashCode() => PubKey.GetHashCode();
 
-	public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKeyHash == y?.PubKeyHash;
+	public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKey == y?.PubKey;
 
 	public static bool operator !=(HdPubKey? x, HdPubKey? y) => !(x == y);
 
