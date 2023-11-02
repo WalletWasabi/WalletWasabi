@@ -187,8 +187,6 @@ public class SuggestionLabelsViewModelTests
 
 		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		public TransactionFeeProvider TransactionFeeProvider => throw new NotImplementedException();
-
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();

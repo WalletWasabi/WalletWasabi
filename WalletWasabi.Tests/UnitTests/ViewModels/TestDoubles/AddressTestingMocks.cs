@@ -40,7 +40,6 @@ internal class AddressTestingMocks
 		public Network Network => throw new NotSupportedException();
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
-		public TransactionFeeProvider TransactionFeeProvider => throw new NotSupportedException();
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
