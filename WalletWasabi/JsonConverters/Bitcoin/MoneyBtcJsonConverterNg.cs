@@ -11,20 +11,10 @@ public class MoneyBtcJsonConverterNg : JsonConverter<Money>
 	{
 		if (reader.TokenType != JsonTokenType.String)
 		{
-			throw new JsonException("Expected a JSON number value.");
+			return null;
 		}
 
 		string? stringValue = reader.GetString();
-		return Parse(stringValue);
-	}
-
-	public static Money? Parse(string? stringValue)
-	{
-		if (string.IsNullOrWhiteSpace(stringValue))
-		{
-			return null;
-		}
-		
 		return Money.Parse(stringValue);
 	}
 

@@ -1,6 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
@@ -24,19 +22,6 @@ public class MoneyBtcJsonConverterTests
 
 		string json = AssertSerializedEqually(testObject);
 		Assert.Equal("""{"Half":"0.50","One":"1.00","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""", json);
-	}
-
-	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and <c>NewtonSoft.Json</c> fails to deserialize object if JSON is in invalid format.
-	/// </summary>
-	[Fact]
-	public void InvalidFormatDeserializingFails()
-	{
-		var price = "29.99";
-		string json = $$"""{"Name": "Little Book of Calm", "Price": {{price}}}""";
-
-		Assert.Throws<Newtonsoft.Json.JsonSerializationException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-		Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 	}
 
 	/// <summary>
@@ -76,6 +61,25 @@ public class MoneyBtcJsonConverterTests
 		{
 			string token = "1."; // No digit after decimal point.
 			AssertBothDeserialize(S(token));
+		}
+
+		// Tests that both JSON converters deserialize to NULL if a JSON integer is found instead of a JSON number-string.
+		{
+			string json = $$"""{"Name": "Little Book of Calm", "Price": 29.99 }""";
+
+			// Old.
+			{
+				TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
+				Assert.NotNull(product);
+				Assert.Null(product.Price);
+			}
+
+			// New.
+			{
+				TestProduct? product = JsonConvertNew.Deserialize<TestProduct>(json);
+				Assert.NotNull(product);
+				Assert.Null(product.Price);
+			}
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
