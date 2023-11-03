@@ -22,6 +22,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private static readonly object ConfigLock = new();
 
 	private readonly Subject<bool> _isRestartNeeded = new();
+	private readonly string _persistentConfigFilePath;
 	private readonly PersistentConfig _startupConfig;
 	private readonly PersistentConfig _persistentConfig;
 	private readonly Config _config;
@@ -61,9 +62,10 @@ public partial class ApplicationSettings : ReactiveObject
 	// Non-persistent
 	[AutoNotify] private bool _doUpdateOnClose;
 
-	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
+	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(persistentConfig.FilePath);
+		_persistentConfigFilePath = persistentConfigFilePath;
+		_startupConfig = new PersistentConfig(persistentConfigFilePath);
 		_startupConfig.LoadFile();
 
 		_persistentConfig = persistentConfig;
@@ -149,7 +151,7 @@ public partial class ApplicationSettings : ReactiveObject
 			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
 			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
 
-		// Apply RunOnSystenStartup
+		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
 			.Subscribe();
