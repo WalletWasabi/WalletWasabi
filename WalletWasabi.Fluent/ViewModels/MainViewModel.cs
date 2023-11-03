@@ -170,10 +170,11 @@ public partial class MainViewModel : ViewModelBase
 	public void Initialize()
 	{
 		UiContext.WalletRepository.Wallets
-								  .FilterOnObservable(x => x.Coinjoin.IsRunning)
-								  .ToCollection()
-								  .Select(x => x.Any())
-								  .BindTo(this, x => x.IsCoinJoinActive);
+			.Connect()
+			.FilterOnObservable(x => x.Coinjoin.IsRunning)
+			.ToCollection()
+			.Select(x => x.Any())
+			.BindTo(this, x => x.IsCoinJoinActive);
 
 		Notifications.StartListening();
 

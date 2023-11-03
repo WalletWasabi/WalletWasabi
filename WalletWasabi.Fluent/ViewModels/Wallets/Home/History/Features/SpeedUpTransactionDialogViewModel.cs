@@ -40,15 +40,13 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		// Close dialog if target transaction is already confirmed.
-		_wallet.Transactions.List
-							.ToObservableChangeSet(x => x.Id)
-							.ToCollection()
-							.Select(col => col.FirstOrDefault(x => x.Id == _speedupTransaction.TargetTransaction.GetHash()))
-							.WhereNotNull()
-							.Where(s => s.IsConfirmed)
-							.Do(_ => Navigate().Back())
-							.Subscribe()
-							.DisposeWith(disposables);
+		_wallet.Transactions.Cache
+			.Connect()
+			.Watch(_speedupTransaction.TargetTransaction.GetHash())
+			.Select(change => change.Current.IsConfirmed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
