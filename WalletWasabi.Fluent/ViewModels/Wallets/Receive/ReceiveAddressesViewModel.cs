@@ -27,7 +27,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_wallet
-			.UnusedAddresses()
+			.AddressesModel.UnusedAddresses
 			.Transform(CreateAddressViewModel)
 			.Bind(out var addresses)
 			.Subscribe()

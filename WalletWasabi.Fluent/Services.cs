@@ -26,6 +26,7 @@ public static class Services
 	public static LegalChecker LegalChecker { get; private set; } = null!;
 
 	public static string PersistentConfigFilePath { get; private set; } = null!;
+
 	public static PersistentConfig PersistentConfig { get; private set; } = null!;
 
 	public static WasabiSynchronizer Synchronizer { get; private set; } = null!;

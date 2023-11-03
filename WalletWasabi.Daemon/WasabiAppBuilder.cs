@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Daemon;
 
@@ -45,6 +48,11 @@ public class WasabiApplication
 		if (AppConfig.Arguments.Contains("--version"))
 		{
 			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+			return ExitCode.Ok;
+		}
+		if (AppConfig.Arguments.Contains("--help"))
+		{
+			ShowHelp();
 			return ExitCode.Ok;
 		}
 
@@ -144,6 +152,26 @@ public class WasabiApplication
 			? parsedLevel
 			: LogLevel.Info;
 		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel);
+	}
+
+	private void ShowHelp()
+	{
+		Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+		Console.WriteLine($"Usage: {AppConfig.AppName} [OPTION]...");
+		Console.WriteLine();
+		Console.WriteLine("Available options are:");
+
+		foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.ParameterName))
+		{
+			Console.Write($"  --{parameter.ToLower(),-30} ");
+			var hintLines = hint.SplitLines(lineWidth: 40);
+			Console.WriteLine(hintLines[0]);
+			foreach (var hintLine in hintLines.Skip(1))
+			{
+				Console.WriteLine($"{' ',-35}{hintLine}");
+			}
+			Console.WriteLine();
+		}
 	}
 }
 

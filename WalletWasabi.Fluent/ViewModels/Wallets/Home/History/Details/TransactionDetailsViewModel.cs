@@ -104,7 +104,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateCurrentTransaction()
 	{
-		if (_wallet.Transactions.TryGetById(TransactionId, out var transaction))
+		if (_wallet.Transactions.TryGetById(TransactionId, false, out var transaction))
 		{
 			UpdateValues(transaction.TransactionSummary);
 		}

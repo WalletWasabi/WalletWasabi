@@ -65,10 +65,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 				await _wallet.Transactions.SendAsync(speedupTransaction);
 				var (title, caption) = ("Success", "Your transaction has been successfully accelerated.");
 
-				// TODO: Remove this after SendSuccessViewModel is decoupled
-				var wallet = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).Wallet;
-
-				UiContext.Navigate().To().SendSuccess(wallet, speedupTransaction.BoostingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
+				UiContext.Navigate().To().SendSuccess(speedupTransaction.BoostingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)

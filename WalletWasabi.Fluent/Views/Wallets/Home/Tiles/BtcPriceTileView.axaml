@@ -14,6 +14,6 @@
                Classes="h2 monoSpaced"
                VerticalAlignment="Center" HorizontalAlignment="Center"
                TextAlignment="Center"
-               Text="{Binding UsdPerBtc^, Converter={x:Static converters:MoneyConverters.ToUsd}}" />
+               Text="{Binding UsdPerBtc^, Converter={x:Static converters:MoneyConverters.ToUsdFormatted}}" />
   </controls:TileControl>
 </UserControl>

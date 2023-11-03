@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using System.Net;
@@ -55,6 +56,12 @@ public partial class ApplicationSettings : ReactiveObject
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
 
+	[AutoNotify] private bool _oobe;
+	[AutoNotify] private WindowState _windowState;
+
+	// Non-persistent
+	[AutoNotify] private bool _doUpdateOnClose;
+
 	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
 		_persistentConfigFilePath = persistentConfigFilePath;
@@ -92,6 +99,10 @@ public partial class ApplicationSettings : ReactiveObject
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
 
+		_oobe = _uiConfig.Oobe;
+
+		_windowState = (WindowState)Enum.Parse(typeof(WindowState), _uiConfig.WindowState);
+
 		// Save on change
 		this.WhenAnyValue(
 			x => x.EnableGpu,
@@ -118,7 +129,9 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.CustomChangeAddress,
 			x => x.SelectedFeeDisplayUnit,
 			x => x.RunOnSystemStartup,
-			x => x.HideOnClose)
+			x => x.HideOnClose,
+			x => x.Oobe,
+			x => x.WindowState)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
@@ -140,6 +153,11 @@ public partial class ApplicationSettings : ReactiveObject
 		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
+			.Subscribe();
+
+		// Apply DoUpdateOnClose
+		this.WhenAnyValue(x => x.DoUpdateOnClose)
+			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
 	}
 
@@ -240,6 +258,8 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.FeeDisplayUnit = (int)SelectedFeeDisplayUnit;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+		_uiConfig.Oobe = Oobe;
+		_uiConfig.WindowState = WindowState.ToString();
 	}
 
 	private void ApplyUiConfigPrivacyModeChange()
