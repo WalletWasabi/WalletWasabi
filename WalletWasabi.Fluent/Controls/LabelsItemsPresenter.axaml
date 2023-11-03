@@ -25,9 +25,9 @@
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="38" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
-    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource TagsBoxItemBackground}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
   </ControlTheme>
 
   <ControlTheme x:Key="{x:Type c:LabelsItemsPresenter}" TargetType="c:LabelsItemsPresenter">
@@ -61,6 +61,7 @@
                   ToolTip.Tip="{Binding}"
                   BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
             <TextBlock Text="{Binding}"
+                       Opacity="0.6"
                        TextTrimming="CharacterEllipsis"
                        TextWrapping="NoWrap"
                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
@@ -86,6 +87,7 @@
                   </Panel>
                 </ToolTip.Tip>
                 <TextBlock Text="..."
+                           Opacity="0.6"
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
