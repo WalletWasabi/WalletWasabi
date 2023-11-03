@@ -5,7 +5,9 @@ using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
@@ -18,8 +20,6 @@ namespace WalletWasabi.Fluent.Models.UI;
 public partial class ApplicationSettings : ReactiveObject
 {
 	private const int ThrottleTime = 500;
-
-	private static readonly object ConfigLock = new();
 
 	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly string _persistentConfigFilePath;
@@ -65,10 +65,9 @@ public partial class ApplicationSettings : ReactiveObject
 	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
 		_persistentConfigFilePath = persistentConfigFilePath;
-		_startupConfig = new PersistentConfig(persistentConfigFilePath);
-		_startupConfig.LoadFile();
+		_startupConfig = persistentConfig;
 
-		_persistentConfig = persistentConfig;
+		_persistentConfig = persistentConfig with { }; // Clone the object.
 		_config = config;
 		_uiConfig = uiConfig;
 
@@ -168,29 +167,20 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !_startupConfig.AreDeepEqual(config);
+		return !ConfigManager.AreDeepEqual(_startupConfig, config);
 	}
 
 	private void Save()
 	{
-		var config = new PersistentConfig(_startupConfig.FilePath);
-
 		RxApp.MainThreadScheduler.Schedule(
 			() =>
 			{
 				try
 				{
-					lock (ConfigLock)
-					{
-						// TODO: Roland: do we really need to do this?
-						config.LoadFile();
+					PersistentConfig newConfig = ApplyChanges(_startupConfig);
+					ConfigManager.ToFile(_persistentConfigFilePath, newConfig);
 
-						ApplyChanges(config);
-
-						config.ToFile();
-					}
-
-					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
+					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}
 				catch (Exception ex)
 				{
@@ -199,36 +189,64 @@ public partial class ApplicationSettings : ReactiveObject
 			});
 	}
 
-	private void ApplyChanges(PersistentConfig config)
+	private PersistentConfig ApplyChanges(PersistentConfig config)
 	{
+		PersistentConfig result = config;
+
 		// Advanced
-		config.EnableGpu = EnableGpu;
+		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
 		if (Network == config.Network)
 		{
-			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
+			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? endPoint))
 			{
-				config.SetBitcoinP2pEndpoint(p2PEp);
+				if (Network == Network.Main)
+				{
+					result = result with { MainNetBitcoinP2pEndPoint = endPoint };
+				}
+				else if (Network == Network.TestNet)
+				{
+					result = result with { TestNetBitcoinP2pEndPoint = endPoint };
+				}
+				else if (Network == Network.RegTest)
+				{
+					result = result with { RegTestBitcoinP2pEndPoint = endPoint };
+				}
+				else
+				{
+					throw new NotSupportedNetworkException(Network);
+				}
 			}
 
-			config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-			config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-			config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
-				? Money.Coins(threshold)
-				: PersistentConfig.DefaultDustThreshold;
+			result = result with {
+				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
+				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
+				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
+				DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+					? Money.Coins(threshold)
+					: PersistentConfig.DefaultDustThreshold,
+			};
 		}
 		else
 		{
-			config.Network = Network;
+			result = result with
+			{
+				Network = Network
+			};
+
 			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
 
 		// General
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
-		config.DownloadNewVersion = DownloadNewVersion;
+		result = result with
+		{
+			UseTor = UseTor,
+			TerminateTorOnExit = TerminateTorOnExit,
+			DownloadNewVersion = DownloadNewVersion,
+		};
+
+		return result;
 	}
 
 	private void ApplyUiConfigChanges()
