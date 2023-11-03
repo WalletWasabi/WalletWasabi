@@ -13,8 +13,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
-#pragma warning disable CA2000
-
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
@@ -32,16 +30,14 @@ public partial class WalletCoinsModel : IDisposable
 		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
 
-		var signals = transactionProcessed
-			.Merge(anonScoreTargetChanged)
-			.Merge(isCoinjoinRunningChanged)
-			.Publish();
+		var signals =
+			transactionProcessed
+				.Merge(anonScoreTargetChanged)
+				.Merge(isCoinjoinRunningChanged)
+				.Publish();
 
-		var coinRetriever = new SignaledFetcher<ICoinModel, int>(signals, x => x.Key, GetCoins).DisposeWith(_disposables);
-		var pocketRetriever = new SignaledFetcher<Pocket, LabelsArray>(signals, x => x.Labels, GetPockets).DisposeWith(_disposables);
-
-		List = coinRetriever.Cache;
-		Pockets = pocketRetriever.Cache;
+		List = signals.Fetch(GetCoins, x => x.Key).DisposeWith(_disposables);
+		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
 
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))

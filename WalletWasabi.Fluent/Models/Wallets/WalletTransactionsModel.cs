@@ -16,8 +16,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
-#pragma warning disable CA2000
-
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
@@ -46,13 +44,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		var retriever =
-			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
-				.DisposeWith(_disposable);
+		Cache =
+			TransactionProcessed.Fetch(BuildSummary, model => model.Id)
+								.DisposeWith(_disposable);
 
-		Cache = retriever.Cache;
-
-		IsEmpty = retriever.Cache.Empty();
+		IsEmpty = Cache.Empty();
 	}
 
 	public IObservableCache<TransactionModel, uint256> Cache { get; set; }

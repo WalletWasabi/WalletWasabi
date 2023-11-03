@@ -10,12 +10,12 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
-#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -30,19 +30,20 @@ public partial class WalletRepository : ReactiveObject
 	{
 		_amountProvider = amountProvider;
 
-		var signals = Observable
-			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded)).Select(_ => Unit.Default)
-			.StartWith(Unit.Default);
+		var signals =
+			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+					  .Select(_ => Unit.Default)
+					  .StartWith(Unit.Default);
 
-		var wallets = new SignaledFetcher<Wallet, string>(signals, x => x.WalletName, () => Services.WalletManager.GetWallets()).DisposeWith(_disposable);
+		Wallets =
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletName)
+				   .DisposeWith(_disposable)
+				   .Connect()
+				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
+				   .Cast(x => (IWalletModel)x)
+				   .AsObservableCache()
+				   .DisposeWith(_disposable);
 
-		var walletModels = wallets.Cache
-			.Connect()
-			.TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
-			.Cast(x => (IWalletModel)x);
-
-		Wallets = walletModels.AsObservableCache().DisposeWith(_disposable);
-		
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 

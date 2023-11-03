@@ -5,8 +5,6 @@ using System.Reactive.Disposables;
 using DynamicData;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
-#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -19,17 +17,25 @@ public partial class AddressesModel : IDisposable
 	public AddressesModel(IObservable<Unit> transactionProcessed, KeyManager keyManager)
 	{
 		_keyManager = keyManager;
-		
-		var addressFetcher = new SignaledFetcher<IAddress, string>(transactionProcessed, address => address.Text, GetAddresses).DisposeWith(_disposable);
-		Cache = addressFetcher.Cache;
-		UnusedAddressesCache = addressFetcher.Cache.Connect().AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed).AsObservableCache().DisposeWith(_disposable);
+
+		Cache =
+			transactionProcessed.Fetch(GetAddresses, address => address.Text)
+								.DisposeWith(_disposable);
+
+		UnusedAddressesCache =
+			Cache.Connect()
+				 .AutoRefresh(x => x.IsUsed)
+				 .Filter(x => !x.IsUsed)
+				 .AsObservableCache()
+				 .DisposeWith(_disposable);
+
 		HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
 	}
 
 	public IObservableCache<IAddress, string> Cache { get; }
 
 	public IObservableCache<IAddress, string> UnusedAddressesCache { get; }
-	
+
 	public IObservable<bool> HasUnusedAddresses { get; }
 
 	public void Dispose() => _disposable.Dispose();
