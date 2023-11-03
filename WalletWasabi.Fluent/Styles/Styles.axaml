@@ -9,6 +9,7 @@
     <FontFamily x:Key="WasabiLogoTextFont">avares://WalletWasabi.Fluent/Assets/Fonts#Objectivity</FontFamily>
     <sys:Int32 x:Key="MaxLabelLength">50</sys:Int32>
     <x:Double x:Key="LabelMaxWidth">120</x:Double>
+    <x:String x:Key="LabelsWatermarkText">Person or Company i.e. Alice, Bob, Pizza Inc</x:String>
   </Styles.Resources>
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContextMenu.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Button.axaml" />
