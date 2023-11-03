@@ -1,9 +1,10 @@
-using System.Reactive.Disposables;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Selection;
 using Avalonia.Media;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -12,22 +13,30 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private FormattedText? _formattedText;
-	private bool _isContentVisible = true;
-	private string _mask = "";
-	private int _numberOfPrivacyChars;
-	private IDisposable _subscription = Disposable.Empty;
+	private IDisposable? Subscription;
+	private bool IsContentVisible = true;
 	private string? _value;
+	private FormattedText? _formattedText;
+	private int _numberOfPrivacyChars;
 
-	private string? Text => _isContentVisible ? _value : TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
+	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
 
-	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == ForegroundProperty)
+		{
+			InvalidateVisual();
+		}
+	}
+
+	public override void Realize(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection, ICell model, int columnIndex, int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell)model;
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
-		_mask = TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
 
 		if (text != _value)
 		{
@@ -35,42 +44,29 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			_formattedText = null;
 		}
 
-		base.Realize(factory, model, columnIndex, rowIndex);
+		base.Realize(factory, selection, model, columnIndex, rowIndex);
 	}
 
 	public override void Render(DrawingContext context)
 	{
-		if (Background is { } background)
+		if (_formattedText is not null)
 		{
-			context.FillRectangle(background, new Rect(Bounds.Size));
+			var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(_formattedText.Width, _formattedText.Height)));
+			if (Foreground is { })
+			{
+				_formattedText.SetForegroundBrush(Foreground);
+			}
+			context.DrawText(_formattedText, new Point(0, r.Position.Y));
 		}
-
-		if (_formattedText is null)
-		{
-			var placeHolder = new FormattedText(
-				_mask,
-				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				Size.Infinity);
-
-			var rc = Bounds.CenterRect(placeHolder.Bounds);
-			context.DrawText(Brushes.Transparent, new Point(0, rc.Position.Y), placeHolder);
-			return;
-		}
-
-		var r = Bounds.CenterRect(_formattedText.Bounds);
-		context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
-			this.WhenAnyValue(x => x.IsPointerOver),
-			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
+		base.OnAttachedToVisualTree(e);
 
-		_subscription = displayContent
+		Subscription = PrivacyModeHelper.DelayedRevealAndHide(
+			this.WhenAnyValue(x => x.IsPointerOver),
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(SetContentVisible)
 			.Subscribe();
@@ -78,7 +74,8 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		_subscription.Dispose();
+		Subscription?.Dispose();
+		Subscription = null;
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
@@ -88,24 +85,33 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			return default;
 		}
 
-		if (availableSize != _formattedText?.Constraint)
+		if (availableSize.Width != _formattedText?.MaxTextWidth
+		    || availableSize.Height != _formattedText?.MaxTextHeight)
 		{
 			_formattedText = new FormattedText(
 				Text,
+				CultureInfo.CurrentCulture,
+				FlowDirection.LeftToRight,
 				new Typeface(FontFamily, FontStyle, FontWeight),
 				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				availableSize);
+				null)
+			{
+				TextAlignment = TextAlignment.Left,
+				MaxTextHeight = availableSize.Height,
+				MaxTextWidth = availableSize.Width,
+				Trimming = TextTrimming.None
+			};
 		}
 
-		return _formattedText.Bounds.Size;
+		return new Size(_formattedText.Width, _formattedText.Height);
 	}
 
 	private void SetContentVisible(bool value)
 	{
-		_isContentVisible = value;
+		IsContentVisible = value;
+
 		_formattedText = null;
 		InvalidateMeasure();
+		InvalidateVisual();
 	}
 }

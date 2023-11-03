@@ -18,7 +18,7 @@ public record FullPrivacySuggestion(BuildTransactionResult Transaction, decimal 
 
 public record BetterPrivacySuggestion(BuildTransactionResult Transaction, string DifferenceFiatText, IEnumerable<SmartCoin> Coins, bool IsChangeless) : PrivacySuggestion(Transaction);
 
-public record ChangeAvoidanceSuggestion(BuildTransactionResult Transaction, string DifferenceFiatText, bool IsMore, bool IsLess) : PrivacySuggestion(Transaction)
+public record ChangeAvoidanceSuggestion(BuildTransactionResult Transaction, decimal Difference, string DifferenceFiatText, bool IsMore, bool IsLess) : PrivacySuggestion(Transaction)
 {
 	public Money GetAmount(BitcoinAddress destination) => Transaction!.CalculateDestinationAmount(destination);
 }

@@ -83,6 +83,13 @@ public class AmountDecomposer
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
 
+		// If there are no output denominations, the participation in coinjoin makes no sense.
+		if (!denoms.Any())
+		{
+			throw new InvalidOperationException(
+				"No valid output denominations found. This can occur when an insufficient number of coins are registered to participate in the coinjoin.");
+		}
+
 		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
 		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
 		{

@@ -7,12 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class SendSuccessViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
 	private readonly SmartTransaction _finalTransaction;
 
-	private SendSuccessViewModel(Wallet wallet, SmartTransaction finalTransaction, string? title = null, string? caption = null)
+	private SendSuccessViewModel(SmartTransaction finalTransaction, string? title = null, string? caption = null)
 	{
-		_wallet = wallet;
 		_finalTransaction = finalTransaction;
 		Title = title ?? "Payment successful";
 
@@ -30,8 +28,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 	{
 		Navigate().Clear();
 
-		var walletViewModel = UiServices.WalletManager.GetWalletViewModel(_wallet);
-
-		walletViewModel.History.SelectTransaction(_finalTransaction.GetHash());
+		// TODO: Remove this
+		MainViewModel.Instance.NavBar.SelectedWallet?.WalletViewModel?.SelectTransaction(_finalTransaction.GetHash());
 	}
 }

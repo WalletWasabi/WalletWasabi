@@ -8,6 +8,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -18,9 +19,9 @@ public static class NotificationHelpers
 	private const int DefaultNotificationTimeout = 10;
 	private static WindowNotificationManager? NotificationManager;
 
-	public static void SetNotificationManager(Window host)
+	public static void SetNotificationManager(Visual host)
 	{
-		var notificationManager = new WindowNotificationManager(host)
+		var notificationManager = new WindowNotificationManager(TopLevel.GetTopLevel(host))
 		{
 			Position = NotificationPosition.BottomRight,
 			MaxItems = 4,
@@ -38,11 +39,11 @@ public static class NotificationHelpers
 		}
 	}
 
-	public static void Show(Wallet wallet, ProcessedResult result, Action onClick)
+	public static void Show(IWalletModel wallet, ProcessedResult result, Action onClick)
 	{
-		if (TryGetNotificationInputs(result, wallet.Synchronizer.UsdExchangeRate, out var message))
+		if (TryGetNotificationInputs(result, wallet.AmountProvider.UsdExchangeRate, out var message))
 		{
-			Show(wallet.WalletName, message, onClick);
+			Show(wallet.Name, message, onClick);
 		}
 	}
 

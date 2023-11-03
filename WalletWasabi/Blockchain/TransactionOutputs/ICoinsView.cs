@@ -11,19 +11,11 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView Available();
 
-	ICoinsView ChildrenOf(SmartCoin coin);
-
 	ICoinsView CoinJoinInProcess();
 
 	ICoinsView Confirmed();
 
-	ICoinsView DescendantOf(SmartCoin coin);
-
-	ICoinsView DescendantOfAndSelf(SmartCoin coin);
-
 	ICoinsView FilterBy(Func<SmartCoin, bool> expression);
-
-	ICoinsView OutPoints(ISet<OutPoint> outPoints);
 
 	ICoinsView CreatedBy(uint256 txid);
 

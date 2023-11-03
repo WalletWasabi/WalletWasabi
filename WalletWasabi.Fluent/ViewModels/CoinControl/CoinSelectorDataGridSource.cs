@@ -53,7 +53,7 @@ public static class CoinSelectorDataGridSource
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
 			SelectionColumn(),
 			group => group.Children,
-			node => node.Children.Any(),
+			node => node.HasChildren(),
 			node => node.IsExpanded);
 	}
 
@@ -64,6 +64,7 @@ public static class CoinSelectorDataGridSource
 			new FuncDataTemplate<CoinControlItemViewModelBase>(
 				(_, _) => new SelectionCellView(),
 				true),
+			null,
 			GridLength.Auto);
 	}
 
@@ -85,8 +86,9 @@ public static class CoinSelectorDataGridSource
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new IndicatorsCellView(), true),
+			null,
 			GridLength.Auto,
-			new ColumnOptions<CoinControlItemViewModelBase>
+			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
 				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(GetIndicatorPriority),
 				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(GetIndicatorPriority)
@@ -111,8 +113,9 @@ public static class CoinSelectorDataGridSource
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"Pocket",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new LabelsCellView(), true),
+			null,
 			GridLength.Star,
-			new ColumnOptions<CoinControlItemViewModelBase>
+			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
 				CompareAscending = CoinControlLabelComparer.Ascending,
 				CompareDescending = CoinControlLabelComparer.Descending

@@ -26,6 +26,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		}
 		catch (Exception ex) when (IsUserCheating(ex))
 		{
+			Logger.LogInfo($"{request.Input} is cheating: {ex.Message}");
 			Prison.CheatingDetected(request.Input, request.RoundId);
 			throw;
 		}
@@ -167,6 +168,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 			var alice = GetAlice(request.AliceId, round);
+			Logger.LogInfo($"{alice.Coin.Outpoint} is cheating: {ex.Message}");
 			Prison.CheatingDetected(alice.Coin.Outpoint, request.RoundId);
 			throw;
 		}
@@ -187,7 +189,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (alice.ConfirmedConnection)
 			{
-				Prison.CheatingDetected(alice.Coin.Outpoint, round.Id);
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 			}
 
@@ -402,7 +403,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private void CheckCoinIsNotBanned(OutPoint input)
 	{
-		var banningTime = Prison.GetBanTimePeriod(input);
+		var banningTime = Prison.GetBanTimePeriod(input, Config.GetDoSConfiguration());
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));

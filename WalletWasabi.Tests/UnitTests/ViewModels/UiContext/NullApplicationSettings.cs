@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using NBitcoin;
 using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Models;
@@ -7,8 +8,8 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullApplicationSettings : IApplicationSettings
 {
+	public bool IsOverridden => throw new NotImplementedException();
 	public IObservable<bool> IsRestartNeeded => throw new NotImplementedException();
-
 	public bool EnableGpu { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public Network Network { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public bool StartLocalBitcoinCoreOnStartup { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -27,6 +28,9 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool TerminateTorOnExit { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public bool DownloadNewVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 	public bool PrivacyMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+	public bool Oobe { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+	public WindowState WindowState { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+	public bool DoUpdateOnClose { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{

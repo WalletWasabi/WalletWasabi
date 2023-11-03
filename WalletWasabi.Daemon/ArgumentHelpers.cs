@@ -6,25 +6,30 @@ namespace WalletWasabi.Daemon;
 
 public static class ArgumentHelpers
 {
-	public static bool TryGetValue<T>(string key, string[] args, Func<string, T> converter, [NotNullWhen(true)] out T? value)
+	public static bool TryGetValue(string key, string[] args, [NotNullWhen(true)] out string? value)
 	{
-		var values = GetValues(key, args, converter);
-		if (values.Length > 0)
+		string cliArgKey = $"--{key}=";
+
+		foreach (string arg in args)
 		{
-			value = values[0];
-			return value != null;
+			if (arg.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase))
+			{
+				value = arg[cliArgKey.Length..];
+				return true;
+			}
 		}
 
-		value = default;
+		value = null;
 		return false;
 	}
 
-	public static T[] GetValues<T>(string key, string[] args, Func<string, T> converter)
+	public static string[] GetValues(string key, string[] args)
 	{
-		var cliArgKey = "--" + key + "=";
+		string cliArgKey = $"--{key}=";
+
 		return args
-			.Where(a => a.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase))
-			.Select(x => converter(x[cliArgKey.Length..]))
+			.Where(x => x.StartsWith(cliArgKey, StringComparison.InvariantCultureIgnoreCase))
+			.Select(x => x[cliArgKey.Length..])
 			.ToArray();
 	}
 }
