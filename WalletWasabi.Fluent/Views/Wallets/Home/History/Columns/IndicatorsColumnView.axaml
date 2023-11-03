@@ -68,13 +68,13 @@
                   Classes.CPFP="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CPFP}, Converter={x:Static converters:EnumToBoolConverter.Instance}}">
           <PathIcon.Styles>
             <Style Selector="PathIcon.IncomingTransaction">
-              <Setter Property="Data" Value="{StaticResource incoming_arrow}" />
-              <Setter Property="Height" Value="13" />
+              <Setter Property="Data" Value="{StaticResource wallet_action_receive}" />
+              <Setter Property="Height" Value="15" />
               <Setter Property="ToolTip.Tip" Value="Incoming" />
             </Style>
             <Style Selector="PathIcon.OutgoingTransaction">
-              <Setter Property="Data" Value="{StaticResource outgoing_arrow}" />
-              <Setter Property="Height" Value="13" />
+              <Setter Property="Data" Value="{StaticResource wallet_action_send}" />
+              <Setter Property="Height" Value="15" />
               <Setter Property="ToolTip.Tip" Value="Outgoing" />
             </Style>
             <Style Selector="PathIcon.SelfTransfer">
