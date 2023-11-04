@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Services;
@@ -10,8 +9,8 @@ public class ConfigWatcher : PeriodicRunner
 {
 	public ConfigWatcher(TimeSpan period, IConfig config, Action executeWhenChanged) : base(period)
 	{
-		Config = Guard.NotNull(nameof(config), config);
-		ExecuteWhenChanged = Guard.NotNull(nameof(executeWhenChanged), executeWhenChanged);
+		Config = config;
+		ExecuteWhenChanged = executeWhenChanged;
 		config.AssertFilePathSet();
 	}
 
