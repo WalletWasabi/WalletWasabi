@@ -44,7 +44,7 @@ public class TerminateService
 	public void Activate()
 	{
 		AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-		// Console.CancelKeyPress += Console_CancelKeyPress;
+		Console.CancelKeyPress += Console_CancelKeyPress;
 		AssemblyLoadContext.Default.Unloading += Default_Unloading;
 		AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
@@ -89,6 +89,17 @@ public class TerminateService
 
 		// This must be a blocking call because after this the OS will terminate Wasabi process if exists.
 		Terminate();
+	}
+
+	private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
+	{
+		Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
+
+		// Do not kill the process ...
+		e.Cancel = false;
+
+		// ... instead signal back that the app should terminate.
+		SignalTerminate();
 	}
 
 	public void SignalTerminate()
@@ -145,7 +156,7 @@ public class TerminateService
 		}).Wait();
 
 		AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
-		// Console.CancelKeyPress -= Console_CancelKeyPress;
+		Console.CancelKeyPress -= Console_CancelKeyPress;
 		AssemblyLoadContext.Default.Unloading -= Default_Unloading;
 		AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 

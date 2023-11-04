@@ -34,7 +34,6 @@ public class ApplicationStateManager : IMainWindowService
 		UiContext = uiContext;
 		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
-		Console.CancelKeyPress += Console_CancelKeyPress;
 
 		Observable
 			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
@@ -84,18 +83,6 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
 		_stateMachine.Start();
-	}
-
-	private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
-	{
-		Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
-
-		Dispatcher.UIThread.InvokeAsync(() =>
-		{
-			_stateMachine.Fire(ApplicationViewModel.CanShutdown(false) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
-		});
-
-		e.Cancel = true;
 	}
 
 	private enum Trigger
