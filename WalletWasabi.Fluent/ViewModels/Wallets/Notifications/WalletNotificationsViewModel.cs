@@ -24,14 +24,15 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 	public void StartListening()
 	{
 		UiContext.WalletRepository.Wallets
-								  .AutoRefresh(x => x.IsLoggedIn)
-								  .Filter(x => x.IsLoggedIn)
-								  .FilterOnObservable(x => x.State.Select(s => s == WalletWasabi.Wallets.WalletState.Started))
-								  .MergeMany(x => x.Transactions.NewTransactionArrived)
-								  .Where(x => !UiContext.ApplicationSettings.PrivacyMode)
-								  .Where(x => x.EventArgs.IsNews)
-								  .DoAsync(x => OnNotificationReceivedAsync(x.Wallet, x.EventArgs))
-								  .Subscribe();
+			.Connect()
+			.AutoRefresh(x => x.IsLoggedIn)
+			.Filter(x => x.IsLoggedIn)
+			.FilterOnObservable(x => x.State.Select(s => s == WalletWasabi.Wallets.WalletState.Started))
+			.MergeMany(x => x.Transactions.NewTransactionArrived)
+			.Where(x => !UiContext.ApplicationSettings.PrivacyMode)
+			.Where(x => x.EventArgs.IsNews)
+			.DoAsync(x => OnNotificationReceivedAsync(x.Wallet, x.EventArgs))
+			.Subscribe();
 	}
 
 	private async Task OnNotificationReceivedAsync(IWalletModel wallet, ProcessedResult e)

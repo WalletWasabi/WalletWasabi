@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -14,11 +16,11 @@ internal class AddressTestingMocks
 {
 	public class TestWallet : IWalletModel
 	{
-		private readonly IObservable<IChangeSet<IAddress, string>> _addresses;
+		private readonly IObservableCache<IAddress, string> _addresses;
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public TestWallet(IObservable<IChangeSet<IAddress, string>> addresses)
+		public TestWallet(IObservableCache<IAddress, string> addresses)
 		{
 			_addresses = addresses;
 		}
@@ -68,7 +70,7 @@ internal class AddressTestingMocks
 			_cache = new SourceCache<IAddress, string>(address => address.Text);
 		}
 
-		public IObservable<IChangeSet<IAddress, string>> Addresses => _cache.Connect();
+		public ISourceCache<IAddress, string> Addresses => _cache;
 
 		public void SetUnused(string address)
 		{
@@ -83,14 +85,16 @@ internal class AddressTestingMocks
 
 	private class TestAddressesModel : IAddressesModel
 	{
-		public TestAddressesModel(IObservable<IChangeSet<IAddress, string>> addresses)
+		public TestAddressesModel(IObservableCache<IAddress, string> cache)
 		{
-			Addresses = addresses;
+			Cache = cache;
+			UnusedAddressesCache = Cache.Connect().AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed).AsObservableCache();
+			HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
 		}
 
-		public IObservable<IChangeSet<IAddress, string>> UnusedAddresses => Addresses.AutoRefresh(x => x.IsUsed).Filter(address => !address.IsUsed);
-		public IObservable<bool> HasUnusedAddresses => UnusedAddresses.AsObservableCache().CountChanged.Select(i => i > 0);
-		public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+		public IObservableCache<IAddress, string> UnusedAddressesCache { get; set; }
+		public IObservableCache<IAddress, string> Cache { get; }
+		public IObservable<bool> HasUnusedAddresses { get; }
 
 		public void Dispose()
 		{
