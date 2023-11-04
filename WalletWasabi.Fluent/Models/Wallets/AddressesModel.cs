@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using DynamicData;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -17,27 +17,26 @@ public partial class AddressesModel : IDisposable
 	public AddressesModel(IObservable<Unit> transactionProcessed, KeyManager keyManager)
 	{
 		_keyManager = keyManager;
-		var sourceCache = new SourceCache<IAddress, string>(address => address.Text)
-			.DisposeWith(_disposable);
-		transactionProcessed
-			.Do(_ => sourceCache.EditDiff(GetAddresses(), (one, another) => string.Equals(one.Text, another.Text, StringComparison.Ordinal)))
-			.Subscribe()
-			.DisposeWith(_disposable);
 
-		var changes = sourceCache.Connect();
+		Cache =
+			transactionProcessed.Fetch(GetAddresses, address => address.Text)
+								.DisposeWith(_disposable);
 
-		Addresses = changes;
-		var unusedAddresses = changes.AutoRefresh(x => x.IsUsed).Filter(x => !x.IsUsed);
-		UnusedAddresses = unusedAddresses;
-		var unusedCache = unusedAddresses.AsObservableCache().DisposeWith(_disposable);
-		HasUnusedAddresses = unusedCache.CountChanged.Select(i => i > 0);
+		UnusedAddressesCache =
+			Cache.Connect()
+				 .AutoRefresh(x => x.IsUsed)
+				 .Filter(x => !x.IsUsed)
+				 .AsObservableCache()
+				 .DisposeWith(_disposable);
+
+		HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
 	}
 
-	public IObservable<IChangeSet<IAddress, string>> UnusedAddresses { get; }
+	public IObservableCache<IAddress, string> Cache { get; }
+
+	public IObservableCache<IAddress, string> UnusedAddressesCache { get; }
 
 	public IObservable<bool> HasUnusedAddresses { get; }
-
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
 
 	public void Dispose() => _disposable.Dispose();
 
