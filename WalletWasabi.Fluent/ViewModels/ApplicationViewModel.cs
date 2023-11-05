@@ -1,11 +1,13 @@
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -96,6 +98,14 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown(bool restart)
 	{
+		Task<bool> terminationTask = Services.TerminateService.TerminationRequestedTask;
+		bool ctrlCPressed = terminationTask.IsCompletedSuccessfully && terminationTask.Result;
+
+		if (ctrlCPressed)
+		{
+			return true;
+		}
+
 		if (!MainViewCanShutdown() && !restart)
 		{
 			return false;
