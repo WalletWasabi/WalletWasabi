@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
+using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Views;
 
@@ -14,7 +15,26 @@ public static class ApplicationHelper
 	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
-	public static IClipboard? Clipboard => MainWindow?.Clipboard;
+	public static IClipboard? Clipboard => GetClipboard();
+
+	public static IClipboard? GetClipboard()
+	{
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
+		{
+			return window.Clipboard;
+		}
+
+		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
+		{
+			var visualRoot = mainView.GetVisualRoot();
+			if (visualRoot is TopLevel topLevel)
+			{
+				return topLevel.Clipboard;
+			}
+		}
+
+		return null;
+	}
 
 	public static IObservable<bool> MainWindowActivated
 	{
