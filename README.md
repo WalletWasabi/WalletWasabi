@@ -32,8 +32,6 @@
   <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">
     PGP
   </a>
-</div>
-
 <br>
 <br>
 
@@ -70,6 +68,7 @@
 
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET 7.0 SDK: https://dotnet.microsoft.com/download
+3. If your system doesn't see installed SDK, try to uninstall it and install using  dotnet-install scripts
 3. Optionally disable .NET's telemetry by executing in the terminal `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
 
 ### Get Wasabi
@@ -91,3 +90,11 @@ Run Wasabi with `dotnet run` from the `WalletWasabi.Fluent.Desktop` folder.
 ```sh
 git pull
 ```
+### Resolving .NET SDK Recognition Issues
+If you encounter issues running your application due to your system not recognizing an installed .NET SDK, you may want to uninstall the current version and then reinstall it using the .NET installation scripts.
+
+You can do so with the following steps:
+
+1. Uninstall the current .NET SDK version from your linux system.
+
+2. Download and run the [.NET Install script](https://learn.microsoft.com/en-us/dotnet/core/install/linux-scripted-manual#scripted-install) to install the .NET SDK. The script automates the installation process for you, which should help bypass potential issues encountered with manual installations.
