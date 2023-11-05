@@ -45,6 +45,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Mvc" />
 
 		<PackageReference Include="Microsoft.Data.Sqlite" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http" />

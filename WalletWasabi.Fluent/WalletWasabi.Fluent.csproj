@@ -31,6 +31,7 @@
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="System.Runtime" />
 		<PackageReference Include="QRackers" />
+		<PackageReference Include="HarfBuzzSharp" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />
