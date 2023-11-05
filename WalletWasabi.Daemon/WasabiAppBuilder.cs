@@ -20,7 +20,7 @@ public enum ExitCode
 public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
-	public Global? Global { get; private set; }
+	public Global? Global { get; set; }
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
