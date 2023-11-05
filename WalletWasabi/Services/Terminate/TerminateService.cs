@@ -27,10 +27,14 @@ public class TerminateService
 	}
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
-	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
-	private TaskCompletionSource TerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	/// <remarks>
+	/// Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.
+	/// <para><c>true</c> if the termination was requested using CTRL+C, <c>false</c> otherwise.</para>
+	/// </remarks>
+	private TaskCompletionSource<bool> TerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-	public Task TerminationRequestedTask => TerminationRequested.Task;
+	/// <summary><c>true</c> if the termination was requested using CTRL+C, <c>false</c> otherwise.</summary>
+	public Task<bool> TerminationRequestedTask => TerminationRequested.Task;
 
 	/// <summary>Cancellation token source cancelled once <see cref="TerminationRequested"/> is assigned a result.</summary>
 	private CancellationTokenSource TerminationCts { get; } = new();
@@ -99,12 +103,12 @@ public class TerminateService
 		e.Cancel = true;
 
 		// ... instead signal back that the app should terminate.
-		SignalTerminate();
+		SignalTerminate(ctrlCPressed: true);
 	}
 
-	public void SignalTerminate()
+	public void SignalTerminate(bool ctrlCPressed)
 	{
-		if (TerminationRequested.TrySetResult())
+		if (TerminationRequested.TrySetResult(ctrlCPressed))
 		{
 			TerminationCts.Cancel();
 			TerminationCts.Dispose();
