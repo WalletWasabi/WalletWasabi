@@ -71,7 +71,7 @@ public class App : Application
 				desktop.Exit += (sender, args) =>
 				{
 					MainViewModel.Instance.ClearStacks();
-					MainViewModel.Instance.StatusIcon.Dispose();
+					uiContext.HealthMonitor.Dispose();
 				};
 
 				RxApp.MainThreadScheduler.Schedule(
@@ -170,7 +170,7 @@ public class App : Application
 
 	private static IApplicationSettings CreateApplicationSettings()
 	{
-		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
+		return new ApplicationSettings(Services.PersistentConfigFilePath, Services.PersistentConfig, Services.Config, Services.UiConfig);
 	}
 
 	private static ITransactionBroadcasterModel CreateBroadcaster(Network network)
@@ -188,6 +188,7 @@ public class App : Application
 		var amountProvider = CreateAmountProvider();
 
 		var applicationSettings = CreateApplicationSettings();
+		var torStatusChecker = new TorStatusCheckerModel();
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
@@ -204,7 +205,8 @@ public class App : Application
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSourceSource(),
-			new TorStatusCheckerModel(),
-			new LegalDocumentsProvider());
+			torStatusChecker,
+			new LegalDocumentsProvider(),
+			new HealthMonitor(applicationSettings, torStatusChecker));
 	}
 }

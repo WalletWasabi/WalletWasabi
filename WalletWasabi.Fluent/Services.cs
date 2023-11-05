@@ -25,6 +25,8 @@ public static class Services
 
 	public static LegalChecker LegalChecker { get; private set; } = null!;
 
+	public static string PersistentConfigFilePath { get; private set; } = null!;
+
 	public static PersistentConfig PersistentConfig { get; private set; } = null!;
 
 	public static WasabiSynchronizer Synchronizer { get; private set; } = null!;
@@ -72,6 +74,7 @@ public static class Services
 		BitcoinStore = global.BitcoinStore;
 		HttpClientFactory = global.HttpClientFactory;
 		LegalChecker = global.LegalChecker;
+		PersistentConfigFilePath = global.ConfigFilePath;
 		PersistentConfig = global.Config.PersistentConfig;
 		Synchronizer = global.Synchronizer;
 		WalletManager = global.WalletManager;
