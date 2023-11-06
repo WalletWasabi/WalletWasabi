@@ -11,7 +11,7 @@ public class MoneySatoshiJsonConverterNg : JsonConverter<Money>
 	{
 		if (reader.TokenType != JsonTokenType.Number)
 		{
-			throw new JsonException("Expected a JSON number value.");
+			return null;
 		}
 
 		long? serialized = reader.GetInt64();
