@@ -72,20 +72,6 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Subscribe();
 	}
 
-	private ISearchItem CreateSendItem()
-	{
-		return new ActionableItem(
-			"Send",
-			"Display wallet send dialog",
-			() =>
-			{
-				UiContext.Navigate().To().Send(WalletViewModel!);
-				return Task.CompletedTask;
-			},
-			"Wallet",
-			new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
-	}
-
 	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
@@ -149,5 +135,19 @@ public partial class WalletPageViewModel : ViewModelBase
 			new ActionableItem("Wallet Stats", "Display wallet stats", () => { UiContext.Navigate().To().WalletStats(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
 			new ActionableItem("Wallet Info", "Display wallet info", () => { UiContext.Navigate().To().WalletInfo(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
 		};
+	}
+
+	private ISearchItem CreateSendItem()
+	{
+		return new ActionableItem(
+			"Send",
+			"Display wallet send dialog",
+			() =>
+			{
+				UiContext.Navigate().To().Send(WalletViewModel!);
+				return Task.CompletedTask;
+			},
+			"Wallet",
+			new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
 }
