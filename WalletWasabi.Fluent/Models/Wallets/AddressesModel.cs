@@ -14,12 +14,12 @@ public partial class AddressesModel : IDisposable
 	private readonly CompositeDisposable _disposable = new();
 	private readonly KeyManager _keyManager;
 
-	public AddressesModel(IObservable<Unit> transactionProcessed, KeyManager keyManager)
+	public AddressesModel(IObservable<Unit> addressesUpdated, KeyManager keyManager)
 	{
 		_keyManager = keyManager;
 
 		Cache =
-			transactionProcessed.Fetch(GetAddresses, address => address.Text)
+			addressesUpdated.Fetch(GetAddresses, address => address.Text)
 								.DisposeWith(_disposable);
 
 		UnusedAddressesCache =
