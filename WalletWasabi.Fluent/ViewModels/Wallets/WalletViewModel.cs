@@ -10,6 +10,8 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Wallets;
@@ -41,6 +43,17 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, this, WalletModel);
+
+		SearchItems = CreateSearchItems();
+		SendSearchItem = CreateSendItem();
+
+		this.WhenAnyValue(x => x.IsSelected)
+			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(SearchItems, shouldDisplay))
+			.Subscribe();
+
+		this.WhenAnyValue(x => x.IsSendButtonVisible)
+			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(SendSearchItem, shouldAdd))
+			.Subscribe();
 
 		walletModel.HasBalance
 				   .Select(x => !x)
@@ -113,6 +126,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public HistoryViewModel History { get; }
 
+	private ISearchItem[] SearchItems { get; }
+
+	private ISearchItem SendSearchItem { get; }
+
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
@@ -135,6 +152,57 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		get => _title;
 		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+	}
+
+	private ISearchItem[] CreateSearchItems()
+	{
+		return new ISearchItem[]
+		{
+			new ActionableItem("Receive", "Display wallet receive dialog", () =>
+			{
+				UiContext.Navigate().To().Receive(WalletModel);
+				return Task.CompletedTask;
+			}, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
+			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () =>
+			{
+				UiContext.Navigate().To().CoinJoinSettings(WalletModel);
+				return Task.CompletedTask;
+			}, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
+			new ActionableItem("Wallet Settings", "Display wallet settings", () =>
+			{
+				UiContext.Navigate().To().WalletSettings(WalletModel);
+				return Task.CompletedTask;
+			}, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
+			new ActionableItem("Wallet Coins", "Display wallet coins", () =>
+			{
+				UiContext.Navigate().To().WalletCoins(WalletModel);
+				return Task.CompletedTask;
+			}, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 5 },
+			new ActionableItem("Wallet Stats", "Display wallet stats", () =>
+			{
+				UiContext.Navigate().To().WalletStats(WalletModel);
+				return Task.CompletedTask;
+			}, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
+			new ActionableItem("Wallet Info", "Display wallet info", () =>
+			{
+				UiContext.Navigate().To().WalletInfo(WalletModel);
+				return Task.CompletedTask;
+			}, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
+		};
+	}
+
+	private ISearchItem CreateSendItem()
+	{
+		return new ActionableItem(
+			"Send",
+			"Display wallet send dialog",
+			() =>
+			{
+				UiContext.Navigate().To().Send(this);
+				return Task.CompletedTask;
+			},
+			"Wallet",
+			new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
 
 	public override string ToString() => WalletName;
