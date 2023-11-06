@@ -39,7 +39,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
+		AddressesModel = new AddressesModel(Transactions.NewTransactionArrived.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
