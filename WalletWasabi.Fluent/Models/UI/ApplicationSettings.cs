@@ -5,6 +5,7 @@ using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -168,7 +169,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !_startupConfig.AreDeepEqual(config);
+		return !ConfigManager.AreDeepEqual(_startupConfig, config);
 	}
 
 	private void Save()
