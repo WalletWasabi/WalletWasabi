@@ -19,9 +19,20 @@
                       IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}">
       <shell:MainScreen.Styles>
         <Style Selector="shell|MainScreen[IsHitTestVisible=False]">
-          <Setter Property="Effect">
-            <BlurEffect Radius="10" />
-          </Setter>
+          <Style.Animations>
+            <Animation Duration="1:0:0" Delay="0:0:0.25" Easing="{StaticResource FluentEasing}" PlaybackDirection="AlternateReverse" IterationCount="Infinite">
+              <KeyFrame Cue="0%">
+                <Setter Property="Effect">
+                  <BlurEffect Radius="0" />
+                </Setter>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="Effect">
+                  <BlurEffect Radius="3" />
+                </Setter>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
         </Style>
       </shell:MainScreen.Styles>
     </shell:MainScreen>
