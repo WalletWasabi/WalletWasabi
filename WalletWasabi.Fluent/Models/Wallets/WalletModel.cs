@@ -21,9 +21,9 @@ public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
+	private readonly ISubject<IAddress> _newAddressGenerated = new Subject<IAddress>();
 
 	[AutoNotify] private bool _isLoggedIn;
-	private readonly ISubject<IAddress> _newAddressGenerated = new Subject<IAddress>();
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
