@@ -1,5 +1,4 @@
 ﻿using NBitcoin;
-using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
@@ -34,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 				string token = "209999999"; // Maximum number of bitcoins ever to exist + 1 satoshi.
 				AssertBothDeserialize(S(token));
 
-				token = "2"; // 21 million bitcoin.
+				token = "1";
 				AssertBothDeserialize(S(token));
 
 				token = "9223372036854775807"; // Biggest long number
@@ -49,47 +48,33 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 
 			// Format exception errors.
 			{
-				string token = "1e6"; // Exponential notation.
-				AssertDeserializeFailure<InvalidCastException>(S(token));
+				string token = "1e6";
+				//OldConverter - InvalidCastException, newConverter - JsonException
+				AssertDeserializeFailure<FormatException>(S(token));
 
-				// token = "1,0"; // Decimal comma.
-				// AssertDeserializeFailure<FormatException>(S(token));
-				//
-				// token = "1,000.00"; // Thousand separator.
-				// AssertDeserializeFailure<FormatException>(S(token));
+				//OldConverter - JsonReaderException, newConverter - JsonException
+				token = "1,0";
+				AssertDeserializeFailure<FormatException>(S(token));
+
+				//OldConverter - JsonReaderException  newConverter - JsonException
+				token = "1,000.00";
+				AssertDeserializeFailure<FormatException>(S(token));
 			}
 
-			// // Unique case.
-			// {
-			// 	string token = "1."; // No digit after decimal point.
-			// 	AssertBothDeserialize(S(token));
-			// }
+			// Unique case.
+			{
+				// Different exceptions
+				 string token = "1."; // No digit after decimal point.
+				 AssertBothDeserialize(S(token));
+			}
 
-			// Tests that both JSON converters deserialize to NULL if a JSON integer is found instead of a JSON number-string.
-			// {
-			// 	string json = $$"""{"Name": "Little Book of Calm", "Price": 29.99 }""";
-			//
-			// 	// Old.
-			// 	{
-			// 		TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			// 		Assert.NotNull(product);
-			// 		Assert.Null(product.Price);
-			// 	}
-			//
-			// 	// New.
-			// 	{
-			// 		TestProduct? product = JsonConvertNew.Deserialize<TestProduct>(json);
-			// 		Assert.NotNull(product);
-			// 		Assert.Null(product.Price);
-			// 	}
-			// }
 
 			static void AssertBothDeserialize(string jsonToken)
 			{
-				string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
+				string json = $$"""{"Name": "Little Book of Calm", "Fee": {{jsonToken}} }""";
 
-				TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
 				TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
+				TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
 
 				// Value equality.
 				Assert.Equal(product1, product2);
@@ -98,11 +83,10 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 			static void AssertDeserializeFailure<TException>(string jsonToken)
 				where TException : Exception
 			{
-				string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
+				string json = $$"""{"Name": "Little Book of Calm", "Fee": {{jsonToken}} }""";
 
-				var abc = JsonConvertOld.DeserializeObject<TestProduct>(json);
-				Assert.Throws<InvalidCastException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-				// Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+				Assert.Throws<Newtonsoft.Json.JsonReaderException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
+				Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 			}
 
 			static string S(string s)
@@ -132,11 +116,11 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 		{
 			public required string Name { get; init; }
 
-			[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Price))]
+			[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Fee))]
 			[Newtonsoft.Json.JsonConverter(typeof(FeeRateJsonConverter))]
 			[System.Text.Json.Serialization.JsonConverter(typeof(FeeRateJsonConverterNg))]
-			[System.Text.Json.Serialization.JsonPropertyName(nameof(Price))]
-			public FeeRate? Price { get; init; }
+			[System.Text.Json.Serialization.JsonPropertyName(nameof(Fee))]
+			public FeeRate? Fee { get; init; }
 		}
 
 		/// <summary>
