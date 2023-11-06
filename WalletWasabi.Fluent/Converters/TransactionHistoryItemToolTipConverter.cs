@@ -25,10 +25,10 @@ public class TransactionHistoryItemToolTipConverter : IValueConverter
 				return vm.Transaction.ConfirmedTooltip;
 			}
 
-			if (Services.BitcoinStore.TransactionStore.TryGetTransaction(vm.Transaction.Id, out var smartTransaction) &&
-			    TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), Services.WalletManager.Network, smartTransaction, out var estimate))
+			var estimateConfirmationTime = vm.TryEstimateConfirmationTime();
+			if (estimateConfirmationTime is { } estimate)
 			{
-				var friendlyString = TextHelpers.TimeSpanToFriendlyString(estimate.Value);
+				var friendlyString = TextHelpers.TimeSpanToFriendlyString(estimate);
 				if (friendlyString != "")
 				{
 					if (vm.Transaction.Status == TransactionStatus.SpeedUp)

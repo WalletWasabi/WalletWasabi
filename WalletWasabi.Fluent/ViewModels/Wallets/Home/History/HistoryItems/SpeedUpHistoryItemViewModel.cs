@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public SpeedUpHistoryItemViewModel(UiContext uiContext, TransactionModel transaction, HistoryItemViewModelBase? parent) : base(uiContext, transaction)
+	public SpeedUpHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction, HistoryItemViewModelBase? parent) : base(uiContext, wallet, transaction)
 	{
 		ShowDetailsCommand = parent?.ShowDetailsCommand;
 		SpeedUpTransactionCommand = parent?.SpeedUpTransactionCommand;
