@@ -425,13 +425,19 @@ public class BlockchainController : ControllerBase
 		uint256 txID = new(transactionId);
 
 		List<Coin> inputs = new();
+		Dictionary<uint256, Transaction> parentTransactions = new();
 
 		var tx = await RpcClient.GetRawTransactionAsync(txID, true, cancellationToken);
 
 		foreach (var input in tx.Inputs)
 		{
-			var parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
-			TxOut txOut = parentTx.Outputs[input.PrevOut.N];
+			if (!parentTransactions.ContainsKey(input.PrevOut.Hash))
+			{
+				var parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken).ConfigureAwait(false);
+				parentTransactions.Add(input.PrevOut.Hash, parentTx);
+			}
+
+			TxOut txOut = parentTransactions[input.PrevOut.Hash].Outputs[input.PrevOut.N];
 			inputs.Add(new Coin(input.PrevOut, txOut));
 		}
 
