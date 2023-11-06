@@ -27,7 +27,8 @@
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource eye_hide_regular}" />
             </Viewbox>
-            <controls:PrivacyTextPresenter Name="PART_PrivacyText" />
+            <controls:PrivacyTextPresenter Name="PART_PrivacyText"
+                                           MaxPrivacyChars="{TemplateBinding MaxPrivacyChars}"/>
           </Panel>
         </Panel>
       </ControlTemplate>

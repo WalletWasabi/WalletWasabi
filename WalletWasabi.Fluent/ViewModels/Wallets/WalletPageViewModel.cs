@@ -126,7 +126,7 @@ public partial class WalletPageViewModel : ViewModelBase
 			new ActionableItem("Wallet Settings", "Display wallet settings", () => { UiContext.Navigate().To().WalletSettings(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
 			new ActionableItem("Wallet Coins", "Display wallet coins", () => { UiContext.Navigate().To().WalletCoins(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 5 },
 			new ActionableItem("Wallet Stats", "Display wallet stats", () => { UiContext.Navigate().To().WalletStats(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
-			new ActionableItem("Wallet Info", "Display wallet info", () => { UiContext.Navigate().To().WalletInfo(WalletModel); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
+			new ActionableItem("Wallet Info", "Display wallet info", () => { WalletViewModel.WalletInfoCommand.Execute(null); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
 		};
 	}
 
