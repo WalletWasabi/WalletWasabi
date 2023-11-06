@@ -755,6 +755,7 @@ public partial class Arena : PeriodicRunner
 			var roundOrNull = Rounds.FirstOrDefault(x => x.Id == disruptedRoundId);
 			if (roundOrNull is { } nonNullRound)
 			{
+				nonNullRound.LogInfo("Round aborted because it was disrupted by double spenders.");
 				nonNullRound.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
 			}
 		}

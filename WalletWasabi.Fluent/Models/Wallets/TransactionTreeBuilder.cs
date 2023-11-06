@@ -214,7 +214,7 @@ public class TransactionTreeBuilder
 	{
 		coinjoinGroup.Balance = balance;
 
-		foreach (var child in coinjoinGroup.Children)
+		foreach (var child in coinjoinGroup.Children.Reverse())
 		{
 			child.Balance = balance;
 			balance -= child.Amount;

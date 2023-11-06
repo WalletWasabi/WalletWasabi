@@ -82,10 +82,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() =>
-		{
-			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
-		});
+		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -181,10 +178,7 @@ public static class WasabiAppExtensions
 						}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
-					.AfterSetup(_ =>
-					{
-						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-					});
+					.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{

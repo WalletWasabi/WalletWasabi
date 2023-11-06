@@ -2,12 +2,12 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class NestedItemConfiguration<TProperty>
 {
-	public NestedItemConfiguration(Func<TProperty?, bool> isVisibleSelector, ISearchItem item)
+	public NestedItemConfiguration(Func<TProperty?, bool> isDisplayed, ISearchItem item)
 	{
-		IsVisibleSelector = isVisibleSelector;
+		IsDisplayed = isDisplayed;
 		Item = item;
 	}
 
-	public Func<TProperty?, bool> IsVisibleSelector { get; }
+	public Func<TProperty?, bool> IsDisplayed { get; }
 	public ISearchItem Item { get; }
 }
