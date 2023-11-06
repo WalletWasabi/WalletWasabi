@@ -45,15 +45,14 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, this, WalletModel);
 
-		SearchItems = CreateSearchItems();
-		SendSearchItem = CreateSendItem();
-
+		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
-			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(SearchItems, shouldDisplay))
+			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(searchItems, shouldDisplay))
 			.Subscribe();
 
+		var sendSearchItem = CreateSendItem();
 		this.WhenAnyValue(x => x.IsSendButtonVisible, x => x.IsSelected, (x, y) => x && y)
-			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(SendSearchItem, shouldAdd))
+			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(sendSearchItem, shouldAdd))
 			.Subscribe();
 
 		walletModel.HasBalance
@@ -126,10 +125,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public WalletSettingsViewModel Settings { get; private set; }
 
 	public HistoryViewModel History { get; }
-
-	private ISearchItem[] SearchItems { get; }
-
-	private ISearchItem SendSearchItem { get; }
 
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
