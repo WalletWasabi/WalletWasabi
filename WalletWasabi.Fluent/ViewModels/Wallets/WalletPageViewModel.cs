@@ -60,7 +60,7 @@ public partial class WalletPageViewModel : ViewModelBase
 		SetIcon();
 
 		SearchItems = CreateSearchItems();
-		SendItem = CreateSendItem();
+		SendSearchItem = CreateSendItem();
 
 		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (selected, loggedIn) => selected && loggedIn)
 			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(SearchItems, shouldDisplay))
@@ -68,7 +68,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 		this.WhenAnyObservable(model => model.WalletModel.Balances)
 			.Select(amount => amount.HasBalance)
-			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(SendItem, shouldAdd))
+			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(SendSearchItem, shouldAdd))
 			.Subscribe();
 	}
 
@@ -93,6 +93,8 @@ public partial class WalletPageViewModel : ViewModelBase
 	public string Title => WalletModel.Name;
 
 	private ISearchItem[] SearchItems { get; }
+
+	private ISearchItem SendSearchItem { get; }
 
 	private void ShowLogin()
 	{
@@ -135,8 +137,6 @@ public partial class WalletPageViewModel : ViewModelBase
 		IconName = $"nav_{baseResourceName}_regular";
 		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
-
-	private ISearchItem SendItem { get; } = new ContentSearchItem();
 
 	private ISearchItem[] CreateSearchItems()
 	{
