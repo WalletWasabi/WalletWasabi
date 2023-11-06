@@ -7,6 +7,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -51,8 +52,7 @@ public class TransactionTreeBuilder
 			{
 				if (cjg.Children.Count == 1)
 				{
-					var singleCjItem = CreateCoinjoinTransaction(cjg.OrderIndex, cjg.Children[0].TransactionSummary, balance);
-					result.Add(singleCjItem);
+					result.Add(cjg.Children[0]);
 				}
 				else
 				{
@@ -136,7 +136,6 @@ public class TransactionTreeBuilder
 
 		return new TransactionModel
 		{
-			TransactionSummary = transactionSummary,
 			Id = transactionSummary.GetHash(),
 			OrderIndex = index,
 			Labels = transactionSummary.Labels,
@@ -150,6 +149,8 @@ public class TransactionTreeBuilder
 			Type = itemType,
 			Status = GetItemStatus(transactionSummary),
 			Confirmations = confirmations,
+			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
+			BlockHash = transactionSummary.BlockHash,
 			Fee = transactionSummary.GetFee(),
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
 		};
@@ -164,8 +165,9 @@ public class TransactionTreeBuilder
 		{
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
+			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
+			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
-			TransactionSummary = transactionSummary,
 			Id = transactionSummary.GetHash(),
 			Date = date,
 			DateString = date.ToUserFacingString(),
@@ -182,11 +184,12 @@ public class TransactionTreeBuilder
 		var result = new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
-			TransactionSummary = transactionSummary,
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
 			DateString = parent.DateString,
 			Confirmations = parent.Confirmations,
+			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
+			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = parent.ConfirmedTooltip,
 			Labels = parent.Labels,
 			IncomingAmount = parent.IncomingAmount,
@@ -260,7 +263,6 @@ public class TransactionTreeBuilder
 		return new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
-			TransactionSummary = transactionSummary,
 			OrderIndex = index,
 			Date = date,
 			DateString = date.ToUserFacingString(),
@@ -273,6 +275,8 @@ public class TransactionTreeBuilder
 			Type = TransactionType.Coinjoin,
 			Status = GetItemStatus(transactionSummary),
 			Confirmations = confirmations,
+			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
+			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
 			Fee = transactionSummary.GetFee()
 		};

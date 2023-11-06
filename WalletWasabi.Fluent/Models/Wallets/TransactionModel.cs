@@ -2,7 +2,6 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -22,13 +21,15 @@ public partial class TransactionModel : ReactiveObject
 
 	public int Confirmations { get; init; }
 
+	public int BlockHeight { get; init; }
+
+	public uint256? BlockHash { get; init; }
+
 	public string ConfirmedTooltip { get; set; }
 
 	public TransactionType Type { get; init; }
 
 	public TransactionStatus Status { get; set; }
-
-	public TransactionSummary TransactionSummary { get; init; }
 
 	public bool IsChild { get; set; }
 
