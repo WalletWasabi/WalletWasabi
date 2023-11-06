@@ -51,7 +51,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(SearchItems, shouldDisplay))
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.IsSendButtonVisible)
+		this.WhenAnyValue(x => x.IsSendButtonVisible, x => x.IsSelected, (x, y) => x && y)
 			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(SendSearchItem, shouldAdd))
 			.Subscribe();
 
