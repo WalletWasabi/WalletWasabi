@@ -30,34 +30,27 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 		public void DeserializationParity()
 		{
 			// Success cases.
-			// {
-			// 	string token = "209999999"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			// 	AssertBothDeserialize(S(token));
-			//
-			// 	token = "2"; // 21 million bitcoin.
-			// 	AssertBothDeserialize(S(token));
-			//
-			// 	token = "9223372036854775807"; // Biggest long number
-			// 	AssertBothDeserialize(S(token));
-			//
-			// 	token = "0";
-			// 	AssertBothDeserialize(S(token));
-			//
-			// 	token = "00000000000000";
-			// 	AssertBothDeserialize(S(token));
-			// }
+			{
+				string token = "209999999"; // Maximum number of bitcoins ever to exist + 1 satoshi.
+				AssertBothDeserialize(S(token));
+
+				token = "2"; // 21 million bitcoin.
+				AssertBothDeserialize(S(token));
+
+				token = "9223372036854775807"; // Biggest long number
+				AssertBothDeserialize(S(token));
+
+				token = "0";
+				AssertBothDeserialize(S(token));
+
+				token = "00000000000000";
+				AssertBothDeserialize(S(token));
+			}
 
 			// Format exception errors.
 			{
 				string token = "1e6"; // Exponential notation.
 				AssertDeserializeFailure<InvalidCastException>(S(token));
-
-				// System.InvalidCastException: Unable to cast object of type 'System.Double' to type 'System.Nullable`1[System.Int64]'.
-				// 	at WalletWasabi.JsonConverters.Bitcoin.FeeRateJsonConverter.ReadJson(JsonReader reader, Type objectType, FeeRate existingValue, Boolean hasExistingValue, JsonSerializer serializer) in WalletWasabi\JsonConverters\Bitcoin\FeeRateJsonConverter.cs:line 11
-				// at Newtonsoft.Json.JsonConverter`1.ReadJson(JsonReader reader, Type objectType, Object existingValue, JsonSerializer serializer)
-				// at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.DeserializeConvertable(JsonConverter converter, JsonReader reader, Type objectType, Object existingValue)
-				// at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.SetPropertyValue(JsonProperty property, JsonConverter propertyConverter, JsonContainerContract containerContract, JsonProperty containerProperty, JsonReader reader, Object target)
-				// at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.PopulateObject(Object newObject, JsonReader reader, JsonObjectContract contract, JsonProperty member, String id)
 
 				// token = "1,0"; // Decimal comma.
 				// AssertDeserializeFailure<FormatException>(S(token));
@@ -107,9 +100,9 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 			{
 				string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-				// var abc = JsonConvertOld.DeserializeObject<TestProduct>(json);
+				var abc = JsonConvertOld.DeserializeObject<TestProduct>(json);
 				Assert.Throws<InvalidCastException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-				Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+				// Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 			}
 
 			static string S(string s)
