@@ -98,10 +98,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown(bool restart)
 	{
-		Task<bool> terminationTask = Services.TerminateService.TerminationRequestedTask;
-		bool ctrlCPressed = terminationTask.IsCompletedSuccessfully && terminationTask.Result;
-
-		if (ctrlCPressed)
+		if (Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully)
 		{
 			return true;
 		}
