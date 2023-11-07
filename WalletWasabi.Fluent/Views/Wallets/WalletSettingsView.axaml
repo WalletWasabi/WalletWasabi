@@ -19,8 +19,8 @@
 
       <StackPanel Classes="settingsLayout">
         <DockPanel>
-          <TextBlock Text="Wallet name" />
-          <Button Command="{Binding RenameCommand}" VerticalAlignment="Top" Margin="10 4" Content="Rename" DockPanel.Dock="Right" />
+          <TextBlock Text="Name" />
+          <Button Command="{Binding RenameCommand}" VerticalAlignment="Top" Content="Rename" DockPanel.Dock="Right" />
           <TextBlock Text="{Binding WalletName}" />
         </DockPanel>
       </StackPanel>
