@@ -2,10 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletRenameView"
-             x:DataType="wallets:WalletRenameViewModel">
-  Welcome to Avalonia!
+             x:DataType="wallets:WalletRenameViewModel" >
+  <c:ContentArea Title="{Binding Title}"
+                 Caption="Type in a wallet name"
+                 EnableBack="{Binding EnableBack}"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableNext="True" NextContent="Save"
+                 Height="280">
+    <TextBox MaxLength="50" Text="{Binding NewWalletName}" VerticalAlignment="Top" Watermark="Wallet name">
+      <Interaction.Behaviors>
+        <behaviors:FocusOnAttachedBehavior />
+        <behaviors:TextBoxSelectAllTextBehavior />
+      </Interaction.Behaviors>
+    </TextBox>
+  </c:ContentArea>
 </UserControl>

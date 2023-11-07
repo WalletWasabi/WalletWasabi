@@ -20,15 +20,8 @@
       <StackPanel Classes="settingsLayout">
         <DockPanel>
           <TextBlock Text="Wallet name" />
-          <Button Command="{Binding RenameCommand}"
-            Opacity="{Binding CanRename^, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
-            VerticalAlignment="Top" Margin="10 4" Content="Rename" DockPanel.Dock="Right" />
-          <TextBox MaxLength="50" Text="{Binding NewWalletName}" Watermark="Type in a wallet name">
-            <Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-              <behaviors:TextBoxSelectAllTextBehavior />
-            </Interaction.Behaviors>
-          </TextBox>
+          <Button Command="{Binding RenameCommand}" VerticalAlignment="Top" Margin="10 4" Content="Rename" DockPanel.Dock="Right" />
+          <TextBlock Text="{Binding WalletName}" />
         </DockPanel>
       </StackPanel>
 

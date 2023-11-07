@@ -1,15 +1,8 @@
-using System.IO;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Daemon;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -27,7 +20,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
-	[AutoNotify] private string _newWalletName;
+	[AutoNotify] private string _walletName;
 
 	private WalletSettingsViewModel(IWalletModel wallet)
 	{
@@ -51,22 +44,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.Settings.Save();
 			});
 
-		this.ValidateProperty(
-			x => x.NewWalletName,
-			errors =>
-			{
-				if (string.IsNullOrWhiteSpace(NewWalletName))
-				{
-					errors.Add(ErrorSeverity.Error, "The name cannot be empty");
-				}
-			});
-
-		_newWalletName = _wallet.Name;
-		CanRename = this.WhenAnyValue(x => x.NewWalletName, s => s != _wallet.Name);
-		RenameCommand = ReactiveCommand.Create(OnRenameWallet, CanRename);
+		this.WhenAnyValue(x => x._wallet.Name).BindTo(this, x => x.WalletName);
+		
+		RenameCommand = ReactiveCommand.Create(OnRenameWallet);
 	}
-
-	public IObservable<bool> CanRename { get; }
 
 	public ICommand RenameCommand { get; set; }
 
@@ -75,15 +56,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsWatchOnly { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		NewWalletName = _wallet.Name;
-		base.OnNavigatedFrom(isInHistory);
-	}
-
+	
 	private void OnRenameWallet()
 	{
-		Navigate().To().WalletRename(NavigationTarget.CompactDialogScreen);
+		Navigate().To().WalletRename(_wallet, NavigationTarget.CompactDialogScreen);
 	}
 }
