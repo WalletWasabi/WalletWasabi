@@ -42,9 +42,10 @@ public class Global
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
-	public Global(string dataDir, Config config)
+	public Global(string dataDir, string configFilePath, Config config)
 	{
 		DataDir = dataDir;
+		ConfigFilePath = configFilePath;
 		Config = config;
 		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
 
@@ -133,6 +134,7 @@ public class Global
 	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
 	public LegalChecker LegalChecker { get; private set; }
+	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
 	public WalletManager WalletManager { get; }

@@ -5,6 +5,7 @@ using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -22,6 +23,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private static readonly object ConfigLock = new();
 
 	private readonly Subject<bool> _isRestartNeeded = new();
+	private readonly string _persistentConfigFilePath;
 	private readonly PersistentConfig _startupConfig;
 	private readonly PersistentConfig _persistentConfig;
 	private readonly Config _config;
@@ -58,9 +60,13 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _oobe;
 	[AutoNotify] private WindowState _windowState;
 
-	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
+	// Non-persistent
+	[AutoNotify] private bool _doUpdateOnClose;
+
+	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(persistentConfig.FilePath);
+		_persistentConfigFilePath = persistentConfigFilePath;
+		_startupConfig = new PersistentConfig(persistentConfigFilePath);
 		_startupConfig.LoadFile();
 
 		_persistentConfig = persistentConfig;
@@ -146,9 +152,14 @@ public partial class ApplicationSettings : ReactiveObject
 			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
 			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
 
-		// Apply RunOnSystenStartup
+		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
+			.Subscribe();
+
+		// Apply DoUpdateOnClose
+		this.WhenAnyValue(x => x.DoUpdateOnClose)
+			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
 	}
 
@@ -158,7 +169,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !_startupConfig.AreDeepEqual(config);
+		return !ConfigManager.AreDeepEqual(_startupConfig, config);
 	}
 
 	private void Save()

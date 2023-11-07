@@ -16,8 +16,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
-#pragma warning disable CA2000
-
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
@@ -26,7 +24,6 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
-	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
 	private readonly CompositeDisposable _disposable = new();
 
 	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
@@ -51,18 +48,14 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			Observable.FromEventPattern(wallet.TransactionFeeProvider, nameof(wallet.TransactionFeeProvider.RequestedFeeArrived)).ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		var retriever =
-			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
-				.DisposeWith(_disposable);
+		Cache =
+			TransactionProcessed.Fetch(BuildSummary, model => model.Id)
+								.DisposeWith(_disposable);
 
-		retriever.Changes.Bind(out _transactions)
-			.Subscribe()
-			.DisposeWith(_disposable);
-
-		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
+		IsEmpty = Cache.Empty();
 	}
 
-	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
+	public IObservableCache<TransactionModel, uint256> Cache { get; set; }
 
 	public IObservable<bool> IsEmpty { get; }
 
@@ -75,8 +68,8 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
 		var result = isChild
-			? List.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
-			: List.FirstOrDefault(x => x.Id == transactionId);
+			? Cache.Items.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
+			: Cache.Items.FirstOrDefault(x => x.Id == transactionId);
 
 		if (result is null)
 		{
