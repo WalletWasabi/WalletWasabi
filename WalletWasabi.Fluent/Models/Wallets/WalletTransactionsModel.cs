@@ -47,6 +47,10 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
+		RequestedFeeArrived =
+			Observable.FromEventPattern(wallet.TransactionFeeProvider, nameof(wallet.TransactionFeeProvider.RequestedFeeArrived)).ToSignal()
+			.ObserveOn(RxApp.MainThreadScheduler);
+
 		var retriever =
 			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
 				.DisposeWith(_disposable);
@@ -65,6 +69,8 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
+
+	public IObservable<Unit> RequestedFeeArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{

@@ -28,9 +28,6 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
-
-		ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
-		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
 	public TimeSpan? ConfirmationTime { get; set; }
@@ -40,6 +37,10 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		_wallet.Transactions.RequestedFeeArrived
+							.Subscribe(_ => Update())
+							.DisposeWith(disposables);
 
 		_wallet.Transactions.TransactionProcessed
 							.Subscribe(_ => Update())
@@ -55,6 +56,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;
+			ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		}
 	}
 }

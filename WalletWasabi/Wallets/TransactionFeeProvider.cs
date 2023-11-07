@@ -26,6 +26,8 @@ public class TransactionFeeProvider : PeriodicRunner
 
 	private IHttpClient HttpClient { get; }
 
+	public event EventHandler? RequestedFeeArrived;
+
 	private async Task FetchTransactionFeeAsync(uint256 txid, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
@@ -46,6 +48,8 @@ public class TransactionFeeProvider : PeriodicRunner
 			{
 				throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
 			}
+
+			RequestedFeeArrived?.Invoke(this, EventArgs.Empty);
 		}
 		catch (Exception ex)
 		{

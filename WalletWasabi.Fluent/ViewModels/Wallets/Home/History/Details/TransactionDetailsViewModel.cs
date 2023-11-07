@@ -31,6 +31,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private Amount? _amount;
+	[AutoNotify] private Amount? _fee;
+	[AutoNotify] private bool _isFeeVisible;
 
 	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
 	{
@@ -38,8 +40,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
-		IsFeeVisible = Fee != null && Fee.HasBalance;
 
 		TransactionId = transactionSummary.GetHash();
 		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
@@ -51,11 +51,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public uint256 TransactionId { get; }
 
-	public Amount? Fee { get; }
-
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
-
-	public bool IsFeeVisible { get; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -63,6 +59,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Labels = transactionSummary.Labels;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
+
+		Fee = UiContext.AmountProvider.Create(transactionSummary.GetFee());
+		IsFeeVisible = Fee != null && Fee.HasBalance;
 
 		transactionSummary.TryGetConfirmationTime(out var estimate);
 		if (estimate is { })
@@ -99,6 +98,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.TransactionProcessed
+							.Do(_ => UpdateCurrentTransaction())
+							.Subscribe()
+							.DisposeWith(disposables);
+
+		_wallet.Transactions.RequestedFeeArrived
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
 							.DisposeWith(disposables);
