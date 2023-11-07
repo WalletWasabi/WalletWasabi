@@ -47,7 +47,7 @@ public static class Services
 
 	public static Config Config { get; set; } = null!;
 
-	public static UpdateManager? UpdateManager { get; private set; }
+	public static UpdateManager UpdateManager { get; private set; } = null!;
 
 	public static bool IsInitialized { get; private set; }
 
