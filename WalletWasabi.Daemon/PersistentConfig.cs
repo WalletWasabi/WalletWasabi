@@ -17,13 +17,6 @@ public record PersistentConfig : IConfigNg
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
-	/// <summary>
-	/// Constructor for config population using Newtonsoft.JSON.
-	/// </summary>
-	public PersistentConfig() : base()
-	{
-	}
-
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
 	public Network Network { get; set; } = Network.Main;
