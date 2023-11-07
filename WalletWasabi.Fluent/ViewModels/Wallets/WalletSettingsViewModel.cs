@@ -84,15 +84,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	private void OnRenameWallet()
 	{
-		try
-		{
-			_wallet.Name = NewWalletName;
-			this.RaisePropertyChanged(nameof(CanRename));
-		}
-		catch
-		{
-			UiContext.Navigate().To().ShowErrorDialog($"The wallet cannot be renamed to {NewWalletName}", "Invalid name", "Cannot rename the wallet", NavigationTarget.CompactDialogScreen);
-			NewWalletName = _wallet.Name;
-		}
+		Navigate().To().WalletRename(NavigationTarget.CompactDialogScreen);
 	}
 }
