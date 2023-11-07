@@ -38,7 +38,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		// Close dialog if target transaction is already confirmed.
 		_wallet.Transactions.Cache
 			.Watch(_cancellingTransaction.TargetTransaction.Id)
-			.Select(change => change.Current.IsConfirmed)
+			.Where(change => change.Current.IsConfirmed)
 			.Do(_ => Navigate().Back())
 			.Subscribe()
 			.DisposeWith(disposables);
