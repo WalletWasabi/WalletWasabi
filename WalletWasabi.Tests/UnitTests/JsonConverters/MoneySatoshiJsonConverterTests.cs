@@ -47,26 +47,28 @@ public class MoneySatoshiJsonConverterTests
 		{
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back FormatException.
 			string token = "0.00000000000000000000000000000000000000000000001";
-			AssertDeserializeFailure<InvalidCastException>(token);
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
 
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back FormatException.
 			token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			AssertDeserializeFailure<InvalidCastException>(token);
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
 
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back FormatException.
 			token = "1e6"; // Exponential notation.
-			AssertDeserializeFailure<InvalidCastException>(token);
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
 		}
 
 		// Unique case.
 		{
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back JsonException (Read function not even called).
 			string token = "1."; // No digit after decimal point.
-			AssertDeserializeFailure<InvalidCastException>(token);
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
 
+			// TODO: remove https://stackoverflow.com/questions/27361565/why-is-json-invalid-if-an-integer-begins-with-a-leading-zero
+			// https://www.rfc-editor.org/rfc/rfc4627.txt - section 2.4. Numbers mentions "Leading zeros are not allowed."
 			// Newtonsoft reads 0, Microsoft gives back JsonException.
-			token = "00000000000000000000000";
-			AssertBothDeserialize(token);
+			// token = "00000000000000000000000";
+			// AssertBothDeserialize(token);
 		}
 
 		// Tests that both JSON converters deserialize to NULL if a JSON number-string is found instead of a JSON integer.
@@ -107,6 +109,16 @@ public class MoneySatoshiJsonConverterTests
 
 			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+		}
+
+		static void AssertDeserializeDifferentExceptions<TExceptionOld, TExceptionNew>(string jsonToken)
+			where TExceptionOld : Exception
+			where TExceptionNew : Exception
+		{
+			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
+
+			Assert.Throws<TExceptionOld>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
+			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
 		static void AssertDeserializeJsonException(string jsonToken)
