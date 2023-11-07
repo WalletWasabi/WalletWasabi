@@ -18,7 +18,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		_walletSettings = walletSettings;
 
-		WalletName = walletSettings.WalletName;
+		WalletName = options.WalletName;
 		WalletType = walletSettings.WalletType;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);

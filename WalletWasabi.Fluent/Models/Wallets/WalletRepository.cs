@@ -5,6 +5,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,29 +22,32 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletRepository : ReactiveObject
 {
-	// TODO: make this field non-static after CancelTransactionDialogViewModel and SpeedUpTransactionDialogViewModel are decoupled.
-	private static IAmountProvider AmountProvider;
-
-	private static Dictionary<string, WalletModel> WalletDictionary = new();
+	private readonly IAmountProvider _amountProvider;
+	private readonly Dictionary<int, WalletModel> _walletDictionary = new();
+	private readonly CompositeDisposable _disposable = new();
 
 	public WalletRepository(IAmountProvider amountProvider)
 	{
-		AmountProvider = amountProvider;
+		_amountProvider = amountProvider;
 
-		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
+		var signals =
+			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+					  .Select(_ => Unit.Default)
+					  .StartWith(Unit.Default);
+
 		Wallets =
-			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded)).Select(_ => Unit.Default)
-					  .StartWith(Unit.Default)
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .SelectMany(_ => Services.WalletManager.GetWallets())
-					  .ToObservableChangeSet(x => x.Id)
-					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
-					  .Transform(x => x as IWalletModel);
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.Id)
+				   .DisposeWith(_disposable)
+				   .Connect()
+				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
+				   .Cast(x => (IWalletModel)x)
+				   .AsObservableCache()
+				   .DisposeWith(_disposable);
 
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
-	public IObservable<IChangeSet<IWalletModel, int>> Wallets { get; }
+	public IObservableCache<IWalletModel, int> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();
@@ -75,7 +79,7 @@ public partial class WalletRepository : ReactiveObject
 	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
 	{
 		walletSettings.Save();
-		var result = GetByName(walletSettings.WalletName);
+		var result = GetById(walletSettings.Id);
 		result.Settings.IsCoinJoinPaused = walletSettings.IsCoinJoinPaused;
 		return result;
 	}
@@ -83,6 +87,16 @@ public partial class WalletRepository : ReactiveObject
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
 		return WalletHelpers.ValidateWalletName(walletName);
+	}
+
+	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
+	{
+		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
+		if (existingWallet is { })
+		{
+			return GetById(existingWallet.Id);
+		}
+		return null;
 	}
 
 	private async Task<IWalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
@@ -104,7 +118,7 @@ public partial class WalletRepository : ReactiveObject
 					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
 				});
 
-		return new WalletSettingsModel(keyManager, true);
+		return new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true);
 	}
 
 	private async Task<IWalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
@@ -119,7 +133,7 @@ public partial class WalletRepository : ReactiveObject
 		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, cancelToken.Value);
 		keyManager.SetIcon(device.WalletType);
 
-		var result = new WalletSettingsModel(keyManager, true);
+		var result = new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true);
 		return result;
 	}
 
@@ -131,7 +145,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentException.ThrowIfNullOrEmpty(filePath);
 
 		var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-		return new WalletSettingsModel(keyManager, true);
+		return new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true);
 	}
 
 	private async Task<IWalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
@@ -164,31 +178,20 @@ public partial class WalletRepository : ReactiveObject
 			return result;
 		});
 
-		return new WalletSettingsModel(keyManager, true, true);
+		return new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true, true);
 	}
 
-	private IWalletModel GetByName(string walletName)
+	private IWalletModel GetById(int id)
 	{
 		return
-			WalletDictionary.TryGetValue(walletName, out var wallet)
+			_walletDictionary.TryGetValue(id, out var wallet)
 			? wallet
-			: throw new InvalidOperationException($"Wallet not found: {walletName}");
+			: throw new InvalidOperationException($"Wallet not found: {id}");
 	}
 
-	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
+	private WalletModel CreateWalletModel(Wallet wallet)
 	{
-		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
-		if (existingWallet is { })
-		{
-			return GetByName(existingWallet.WalletName);
-		}
-		return null;
-	}
-
-	// TODO: Make this method private and non-static once refactoring is completed (this is the only place where WalletModel should be instantiated and its a responsibility of WalletRepository alone)
-	public static WalletModel CreateWalletModel(Wallet wallet)
-	{
-		if (WalletDictionary.TryGetValue(wallet.WalletName, out var existing))
+		if (_walletDictionary.TryGetValue(wallet.Id, out var existing))
 		{
 			if (!object.ReferenceEquals(existing.Wallet, wallet))
 			{
@@ -199,10 +202,10 @@ public partial class WalletRepository : ReactiveObject
 
 		var result =
 			wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletModel(wallet, AmountProvider)
-			: new WalletModel(wallet, AmountProvider);
+			? new HardwareWalletModel(wallet, _amountProvider)
+			: new WalletModel(wallet, _amountProvider);
 
-		WalletDictionary[wallet.WalletName] = result;
+		_walletDictionary[wallet.Id] = result;
 
 		return result;
 	}

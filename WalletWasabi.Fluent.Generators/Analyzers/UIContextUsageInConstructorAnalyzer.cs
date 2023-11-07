@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Analyzers;
 
 /// <summary>
 /// Report an error if UiContext is referenced in the constructor directly without being closed on by a lambda expression.

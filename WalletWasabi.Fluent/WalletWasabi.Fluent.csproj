@@ -13,6 +13,7 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent</PathMap>
+		<AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<ItemGroup>
@@ -25,6 +26,9 @@
 		<PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" />
 		<PackageReference Include="Avalonia.Skia" />
+		<PackageReference Include="Avalonia.Themes.Fluent" />
+		<PackageReference Include="Avalonia.Fonts.Inter" />
+		<PackageReference Include="DynamicData" />
 		<PackageReference Include="System.Runtime" />
 		<PackageReference Include="QRackers" />
 	</ItemGroup>

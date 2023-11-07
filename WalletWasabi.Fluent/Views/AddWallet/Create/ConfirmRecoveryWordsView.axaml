@@ -26,7 +26,7 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <ItemsControl Items="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
+      <ItemsControl ItemsSource="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -62,7 +62,7 @@
       </ItemsControl>
 
       <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ItemsControl Items="{Binding ConfirmationWords}">
+        <ItemsControl ItemsSource="{Binding ConfirmationWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock.error">
               <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />

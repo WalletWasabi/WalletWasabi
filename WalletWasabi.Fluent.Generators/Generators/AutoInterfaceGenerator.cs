@@ -3,8 +3,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Fluent.Generators.Abstractions;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 {
@@ -54,9 +55,12 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			if (member is IPropertySymbol property)
 			{
 				var accessors =
-					property.SetMethod is { }
-					? "{ get; set; }"
-					: "{ get; }";
+					property.SetMethod switch
+					{
+						IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
+						IMethodSymbol s                   => "{ get; set; }",
+						_                                 => "{ get; }"
+					};
 
 				var type = property.Type.SimplifyType(namespaces);
 				properties.Add($"\t{type} {property.Name} {accessors}");

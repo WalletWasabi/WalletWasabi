@@ -51,13 +51,13 @@ public class NavBarItem : ContentControl
 		set => SetValue(IndicatorOrientationProperty, value);
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IndicatorOrientationProperty)
 		{
-			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+			UpdateIndicatorOrientationPseudoClasses(change.GetNewValue<Orientation>());
 		}
 	}
 

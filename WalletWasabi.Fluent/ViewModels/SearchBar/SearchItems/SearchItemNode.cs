@@ -13,7 +13,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	private readonly NestedItemConfiguration<TProperty>[] _nestedItems;
 	private readonly Setting<TObject, TProperty> _setting;
 
-	public SearchItemNode(IEditableSearchSource editableSearchSource, Setting<TObject, TProperty> setting, string name, string category, IEnumerable<string> keywords, string? icon, bool isDefault, params NestedItemConfiguration<TProperty>[] nestedItems)
+	public SearchItemNode(IEditableSearchSource editableSearchSource, Setting<TObject, TProperty> setting, string name, string category, IEnumerable<string> keywords, string? icon, bool isDefault, bool isEnabled, params NestedItemConfiguration<TProperty>[] nestedItems)
 	{
 		_editableSearchSource = editableSearchSource;
 		_setting = setting;
@@ -24,6 +24,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 		Keywords = keywords;
 		Icon = icon;
 		IsDefault = isDefault;
+		IsEnabled = isEnabled;
 		this.WhenAnyValue(item => item._setting.Value)
 			.Do(AddOrRemoveNestedItems)
 			.Subscribe();
@@ -38,6 +39,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; }
 	public int Priority { get; set; }
+	public bool IsEnabled { get; }
 
 	private void AddOrRemoveNestedItems(TProperty? property)
 	{

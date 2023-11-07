@@ -48,6 +48,28 @@ public class BlockchainController : ControllerBase
 
 	public Global Global { get; }
 
+	/// <summary>
+	/// Get all fees.
+	/// </summary>
+	/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
+	/// <returns>A dictionary of fee targets and estimations.</returns>
+	/// <response code="200">A dictionary of fee targets and estimations.</response>
+	/// <response code="400">Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.</response>
+	[HttpGet("all-fees")]
+	[ProducesResponseType(200)]
+	[ProducesResponseType(400)]
+	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
+	{
+		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
+		{
+			return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
+		}
+
+		AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode, cancellationToken);
+
+		return Ok(estimation.Estimations);
+	}
+
 	internal Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode, CancellationToken cancellationToken = default)
 	{
 		var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";

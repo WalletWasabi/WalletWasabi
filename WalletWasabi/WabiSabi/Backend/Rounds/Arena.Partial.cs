@@ -45,7 +45,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// for validation purposes.
 			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
 
-			CheckCoinIsNotBanned(coin.Outpoint);
+			CheckCoinIsNotBanned(coin.Outpoint, round);
 
 			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
@@ -401,11 +401,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
 	}
 
-	private void CheckCoinIsNotBanned(OutPoint input)
+	private void CheckCoinIsNotBanned(OutPoint input, Round round)
 	{
-		var banningTime = Prison.GetBanTimePeriod(input);
+		var banningTime = Prison.GetBanTimePeriod(input, Config.GetDoSConfiguration());
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
+			round.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}");
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));
 		}
 	}

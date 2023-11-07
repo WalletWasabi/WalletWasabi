@@ -24,7 +24,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 
-	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
+	public WalletSettingsModel(int id, KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
 		_keyManager = keyManager;
 
@@ -41,7 +41,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
-		WalletName = _keyManager.WalletName;
+		Id = id;
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
@@ -64,7 +64,7 @@ public partial class WalletSettingsModel : ReactiveObject
 			.Subscribe();
 	}
 
-	public string WalletName { get; }
+	public int Id { get; }
 
 	public WalletType WalletType { get; }
 

@@ -976,10 +976,8 @@ public class TransactionProcessorTests
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
 		tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-		var txOut = new TxOut(amount, BitcoinFactory.CreateScript());
-		tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txOutputs
-		tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
-
+		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, count: 5));
+		tx.Inputs.AddRange(CreateRandomInputs(count: 4));
 		var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
 		// It is relevant even when all the coins can be dust.
@@ -1006,9 +1004,9 @@ public class TransactionProcessorTests
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
 		tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-		tx.Outputs.AddRange(Common.Repeat(() => new TxOut(Money.Coins(0.1m), BitcoinFactory.CreateScript()), 5)); // 6 indistinguishable txOutputs
+		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, 5));
 		tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
-		tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
+		tx.Inputs.AddRange(CreateRandomInputs(4));
 
 		var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
@@ -1519,5 +1517,29 @@ public class TransactionProcessorTests
 			null,
 			keyManager,
 			Money.Coins(0.0001m));
+	}
+
+	private List<TxOut> CreateRandomIndistinguishableOutputs(long amount, int count)
+	{
+		List<TxOut> outputs = new(capacity: count);
+
+		for (int i = 0; i < count; i++)
+		{
+			outputs.Add(new TxOut(amount, BitcoinFactory.CreateScript()));
+		}
+
+		return outputs;
+	}
+
+	private List<TxIn> CreateRandomInputs(int count)
+	{
+		List<TxIn> inputs = new(capacity: count);
+
+		for (int i = 0; i < count; i++)
+		{
+			inputs.Add(new TxIn(GetRandomOutPoint(), Script.Empty));
+		}
+
+		return inputs;
 	}
 }

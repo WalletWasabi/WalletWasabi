@@ -25,6 +25,8 @@ public static class Services
 
 	public static LegalChecker LegalChecker { get; private set; } = null!;
 
+	public static string PersistentConfigFilePath { get; private set; } = null!;
+
 	public static PersistentConfig PersistentConfig { get; private set; } = null!;
 
 	public static WasabiSynchronizer Synchronizer { get; private set; } = null!;
@@ -40,6 +42,9 @@ public static class Services
 	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
 
 	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
+
+	public static Config Config { get; set; } = null!;
+
 	public static UpdateManager? UpdateManager { get; private set; }
 
 	public static bool IsInitialized { get; private set; }
@@ -69,6 +74,7 @@ public static class Services
 		BitcoinStore = global.BitcoinStore;
 		HttpClientFactory = global.HttpClientFactory;
 		LegalChecker = global.LegalChecker;
+		PersistentConfigFilePath = global.ConfigFilePath;
 		PersistentConfig = global.Config.PersistentConfig;
 		Synchronizer = global.Synchronizer;
 		WalletManager = global.WalletManager;
@@ -78,6 +84,7 @@ public static class Services
 		SingleInstanceChecker = singleInstanceChecker;
 		TorStatusChecker = global.TorStatusChecker;
 		UpdateManager = global.UpdateManager;
+		Config = global.Config;
 
 		IsInitialized = true;
 	}

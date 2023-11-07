@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -20,14 +21,15 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
-
-	private static int WalletId;
+	public static int WalletCount;
 
 	public Wallet(
 		string dataDir,
@@ -60,7 +62,9 @@ public class Wallet : BackgroundService, IWallet
 		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
 		Coins = TransactionProcessor.Coins;
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
-		Id = ++WalletId;
+		BatchedPayments = new PaymentBatch();
+		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
+		Id = ++WalletCount;
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -68,6 +72,8 @@ public class Wallet : BackgroundService, IWallet
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
+
+	public int Id { get; }
 
 	public string WalletName
 	{
@@ -94,7 +100,7 @@ public class Wallet : BackgroundService, IWallet
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	
+
 	public CoinsRegistry Coins { get; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
@@ -117,6 +123,9 @@ public class Wallet : BackgroundService, IWallet
 
 	public IDestinationProvider DestinationProvider { get; }
 
+	public OutputProvider OutputProvider { get; }
+	public PaymentBatch BatchedPayments { get; }
+
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode { get; set; } = false;
 
@@ -128,8 +137,6 @@ public class Wallet : BackgroundService, IWallet
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
-
-	public int Id { get; }
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
@@ -207,23 +214,20 @@ public class Wallet : BackgroundService, IWallet
 	/// </summary>
 	public bool TryGetTransaction(uint256 txid, [NotNullWhen(true)] out SmartTransaction? smartTransaction)
 	{
-		foreach (SmartCoin coin in GetAllCoins())
+		// The lock is necessary to make sure that coins registry and transaction store do not change in this code block.
+		// The assumption is that the transaction processor is the only component modifying coins registry and transaction store.
+		lock (TransactionProcessor.Lock)
 		{
-			if (coin.TransactionId == txid)
+			smartTransaction = null;
+			bool isKnown = Coins.IsKnown(txid);
+
+			if (isKnown && !BitcoinStore.TransactionStore.TryGetTransaction(txid, out smartTransaction))
 			{
-				smartTransaction = coin.Transaction;
-				return true;
+				throw new UnreachableException($"{nameof(Coins)} and {nameof(BitcoinStore.TransactionStore)} are not in sync (txid '{txid}').");
 			}
 
-			if (coin.SpenderTransaction is not null && coin.SpenderTransaction.GetHash() == txid)
-			{
-				smartTransaction = coin.SpenderTransaction;
-				return true;
-			}
+			return isKnown;
 		}
-
-		smartTransaction = null;
-		return false;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels)
@@ -355,6 +359,12 @@ public class Wallet : BackgroundService, IWallet
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
+	}
+
+	public string AddCoinJoinPayment(IDestination destination, Money amount)
+	{
+		var paymentId = BatchedPayments.AddPayment(destination, amount);
+		return paymentId.ToString();
 	}
 
 	/// <inheritdoc/>

@@ -1,11 +1,8 @@
 using System.Collections.Generic;
-using System.Reactive;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using DynamicData;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -163,50 +160,31 @@ public class SuggestionLabelsViewModelTests
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
 
+		public event PropertyChangedEventHandler? PropertyChanged;
+
 		public TestWallet(List<(string Label, int Score)> mostUsedLabels)
 		{
 			_mostUsedLabels = mostUsedLabels;
 		}
 
-		public int Id { get; }
-
-		public string Name
-		{
-			get => throw new NotSupportedException();
-			set => throw new NotSupportedException();
-		}
-
-		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
-
+		public IAddressesModel AddressesModel => throw new NotSupportedException();
+		public string Name => throw new NotSupportedException();
 		public IObservable<WalletState> State => throw new NotSupportedException();
-
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
-
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
-
 		public IWalletAuthModel Auth => throw new NotSupportedException();
-
 		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
-
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
-
 		public IWalletCoinsModel Coins => throw new NotSupportedException();
-
 		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
-
 		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
-
-		public IObservable<Unit> TransactionProcessed => throw new NotSupportedException();
-
 		public Network Network => throw new NotSupportedException();
-
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
-
 		public IObservable<Amount> Balances => throw new NotSupportedException();
-
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
-
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
+
+		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
@@ -221,6 +199,11 @@ public class SuggestionLabelsViewModelTests
 		public IWalletInfoModel GetWalletInfo()
 		{
 			throw new NotSupportedException();
+		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

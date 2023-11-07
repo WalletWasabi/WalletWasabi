@@ -17,6 +17,7 @@ using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi;
 
@@ -104,10 +105,11 @@ public class WabiSabiCoordinator : BackgroundService
 	{
 		var now = DateTimeOffset.UtcNow;
 
-		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, now);
+		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, Config.GetDoSConfiguration(), now);
 		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
 
 		var outpointsToBan = block.Transactions
+			.Where(tx => !CoinJoinIdStore.Contains(tx.GetHash()))  // We don't ban coinjoin outputs
 			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
 			.Where(x => x.BannedInputs.Any())
 			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
@@ -120,6 +122,23 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
+		bool IsWasabiCoinjoin(uint256 txId)
+		{
+			var finishedCoinJoinIds = Arena.RoundStates
+				.Select(x => x.CoinjoinState)
+				.OfType<SigningState>()
+				.Where(x => x.IsFullySigned)
+				.Select(x => x.CreateUnsignedTransaction().GetHash());
+
+			return CoinJoinIdStore.Contains(txId) || finishedCoinJoinIds.Contains(txId);
+		}
+
+		// We don't ban our own coinjoin outputs.
+		if (IsWasabiCoinjoin(tx.GetHash()))
+		{
+			return;
+		}
+
 		var outPoints = tx.Inputs.Select(x => x.PrevOut);
 
 		// Detect and punish double spending coins
