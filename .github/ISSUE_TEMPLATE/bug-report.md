@@ -23,7 +23,7 @@ about: Report a bug
 
 <!-- *Please consider your privacy, before completing this section.* -->
 
-<!-- Example: Ubuntu 16.04 -->
+<!-- Example: Ubuntu 22.04.3 LTS -->
 
 ### Logs
 
