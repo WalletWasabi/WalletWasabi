@@ -10,6 +10,7 @@ namespace WalletWasabi.Wallets;
 
 public interface IWallet
 {
+	int Id { get; }
 	string WalletName { get; }
 	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
@@ -22,7 +23,7 @@ public interface IWallet
 	IDestinationProvider DestinationProvider { get; }
 	OutputProvider OutputProvider => new OutputProvider(DestinationProvider);
 	PaymentBatch BatchedPayments => new PaymentBatch();
-		
+
 	int AnonScoreTarget { get; }
 	bool ConsolidationMode { get; }
 	TimeSpan FeeRateMedianTimeFrame { get; }

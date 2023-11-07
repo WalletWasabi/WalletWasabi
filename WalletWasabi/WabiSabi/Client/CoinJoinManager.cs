@@ -110,18 +110,18 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task MonitorWalletsAsync(CancellationToken stoppingToken)
 	{
-		var trackedWallets = new Dictionary<string, IWallet>();
+		var trackedWallets = new Dictionary<int, IWallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			var mixableWallets = RoundStatusUpdater.AnyRound
 				? await GetMixableWalletsAsync().ConfigureAwait(false)
-				: ImmutableDictionary<string, IWallet>.Empty;
+				: ImmutableDictionary<int, IWallet>.Empty;
 
 			// Notifies when a wallet meets the criteria for participating in a coinjoin.
 			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
-				trackedWallets.Add(openedWallet.WalletName, openedWallet);
+				trackedWallets.Add(openedWallet.Id, openedWallet);
 				NotifyMixableWalletLoaded(openedWallet);
 			}
 
@@ -130,7 +130,7 @@ public class CoinJoinManager : BackgroundService
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
 				NotifyMixableWalletUnloaded(closedWallet);
-				trackedWallets.Remove(closedWallet.WalletName);
+				trackedWallets.Remove(closedWallet.Id);
 			}
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
@@ -672,10 +672,10 @@ public class CoinJoinManager : BackgroundService
 			this,
 			new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
 
-	private async Task<ImmutableDictionary<string, IWallet>> GetMixableWalletsAsync() =>
+	private async Task<ImmutableDictionary<int, IWallet>> GetMixableWalletsAsync() =>
 		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 			.Where(x => x.IsMixable)
-			.ToImmutableDictionary(x => x.WalletName, x => x);
+			.ToImmutableDictionary(x => x.Id, x => x);
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
