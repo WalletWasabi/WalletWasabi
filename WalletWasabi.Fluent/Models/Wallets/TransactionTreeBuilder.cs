@@ -129,21 +129,19 @@ public class TransactionTreeBuilder
 
 	private TransactionModel CreateRegular(int index, TransactionSummary transactionSummary, Money balance)
 	{
-		var amounts = GetAmounts(transactionSummary);
-		var itemType = GetItemType(transactionSummary, amounts.IncomingAmount, amounts.OutgoingAmount);
+		var itemType = GetItemType(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 
 		return new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
+			Amount = transactionSummary.Amount,
 			OrderIndex = index,
 			Labels = transactionSummary.Labels,
 			Date = date,
 			DateString = date.ToUserFacingString(),
 			Balance = balance,
-			IncomingAmount = amounts.IncomingAmount,
-			OutgoingAmount = amounts.OutgoingAmount,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 			Type = itemType,
@@ -163,10 +161,9 @@ public class TransactionTreeBuilder
 
 		return new TransactionModel
 		{
+			Amount = Money.Zero,
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
-			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
-			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
 			Id = transactionSummary.GetHash(),
 			Date = date,
@@ -184,20 +181,19 @@ public class TransactionTreeBuilder
 		var result = new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
+			Amount = parent.Amount,
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
 			DateString = parent.DateString,
 			Confirmations = parent.Confirmations,
-			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
-			BlockHash = transactionSummary.BlockHash,
+			BlockHeight = parent.BlockHeight,
+			BlockHash = parent.BlockHash,
 			ConfirmedTooltip = parent.ConfirmedTooltip,
 			Labels = parent.Labels,
-			IncomingAmount = parent.IncomingAmount,
-			OutgoingAmount = parent.OutgoingAmount,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 
-			Type = GetItemType(transactionSummary, parent.IncomingAmount, parent.OutgoingAmount),
+			Type = GetItemType(transactionSummary),
 			Status =
 				isConfirmed
 				? TransactionStatus.Confirmed
@@ -237,12 +233,10 @@ public class TransactionTreeBuilder
 		coinjoinGroup.Date = coinjoinGroup.Children.Select(tx => tx.Date).Max().ToLocalTime();
 
 		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
+		coinjoinGroup.Amount = amount;
+
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
-
-		var amounts = GetAmounts(amount, fee);
-
-		coinjoinGroup.IncomingAmount = amounts.IncomingAmount;
-		coinjoinGroup.OutgoingAmount = amounts.OutgoingAmount;
+		coinjoinGroup.Fee = fee;
 
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
@@ -256,22 +250,18 @@ public class TransactionTreeBuilder
 
 	private TransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary, Money balance)
 	{
-		var amounts = GetAmounts(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 
 		return new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
+			Amount = transactionSummary.Amount,
 			OrderIndex = index,
 			Date = date,
 			DateString = date.ToUserFacingString(),
 			Balance = balance,
 			Labels = transactionSummary.Labels,
-
-			IncomingAmount = amounts.IncomingAmount,
-			OutgoingAmount = amounts.OutgoingAmount,
-
 			Type = TransactionType.Coinjoin,
 			Status = GetItemStatus(transactionSummary),
 			Confirmations = confirmations,
@@ -282,14 +272,20 @@ public class TransactionTreeBuilder
 		};
 	}
 
-	private TransactionType GetItemType(TransactionSummary transactionSummary, Money? incomingAmount, Money? outgoingAmount)
+	private TransactionType GetItemType(TransactionSummary transactionSummary)
 	{
-		if (!transactionSummary.IsCPFP && incomingAmount is { } && incomingAmount > Money.Zero)
+		var isSelfSpend = transactionSummary.Amount == -(transactionSummary.GetFee() ?? Money.Zero);
+		if (!transactionSummary.IsCancellation && !transactionSummary.IsCPFP && isSelfSpend)
+		{
+			return TransactionType.SelfTransferTransaction;
+		}
+
+		if (!transactionSummary.IsCPFP && transactionSummary.Amount > Money.Zero)
 		{
 			return TransactionType.IncomingTransaction;
 		}
 
-		if (!transactionSummary.IsCPFP && outgoingAmount is { } && outgoingAmount > Money.Zero)
+		if (!transactionSummary.IsCPFP && transactionSummary.Amount < Money.Zero)
 		{
 			return TransactionType.OutgoingTransaction;
 		}
@@ -302,11 +298,6 @@ public class TransactionTreeBuilder
 		if (transactionSummary.IsCPFP)
 		{
 			return TransactionType.CPFP;
-		}
-
-		if (outgoingAmount == Money.Zero)
-		{
-			return TransactionType.SelfTransferTransaction;
 		}
 
 		return TransactionType.Unknown;
@@ -332,27 +323,5 @@ public class TransactionTreeBuilder
 		}
 
 		return TransactionStatus.Unknown;
-	}
-
-	private (Money? IncomingAmount, Money? OutgoingAmount) GetAmounts(TransactionSummary transactionSummary)
-	{
-		return GetAmounts(transactionSummary.Amount, transactionSummary.GetFee());
-	}
-
-	private (Money? IncomingAmount, Money? OutgoingAmount) GetAmounts(Money amount, Money? fee)
-	{
-		Money? incomingAmount = null;
-		Money? outgoingAmount = null;
-
-		if (amount < Money.Zero)
-		{
-			outgoingAmount = -amount - (fee ?? Money.Zero);
-		}
-		else
-		{
-			incomingAmount = amount;
-		}
-
-		return (incomingAmount, outgoingAmount);
 	}
 }

@@ -35,7 +35,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = uiContext.AmountProvider.Create(model.Fee);
-		IsFeeVisible = Fee != null && model.Amount < Money.Zero;
+		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
 
