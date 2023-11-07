@@ -3,6 +3,7 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.StatusChecker;
@@ -42,6 +43,7 @@ public static class Services
 	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
 
 	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
+	public static TerminateService TerminateService { get; private set; } = null!;
 
 	public static Config Config { get; set; } = null!;
 
@@ -52,9 +54,7 @@ public static class Services
 	/// <summary>
 	/// Initializes global services used by fluent project.
 	/// </summary>
-	/// <param name="global">The global instance.</param>
-	/// <param name="singleInstanceChecker">The singleInstanceChecker instance.</param>
-	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker)
+	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker, TerminateService terminateService)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
@@ -68,6 +68,7 @@ public static class Services
 		Guard.NotNull(nameof(global.TorStatusChecker), global.TorStatusChecker);
 		Guard.NotNull(nameof(global.UpdateManager), global.UpdateManager);
 		Guard.NotNull(nameof(uiConfig), uiConfig);
+		Guard.NotNull(nameof(terminateService), terminateService);
 
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
@@ -85,6 +86,7 @@ public static class Services
 		TorStatusChecker = global.TorStatusChecker;
 		UpdateManager = global.UpdateManager;
 		Config = global.Config;
+		TerminateService = terminateService;
 
 		IsInitialized = true;
 	}
