@@ -12,10 +12,12 @@ public class ConfigManager
 {
 	private static readonly JsonSerializer Serializer = JsonSerializer.Create(JsonSerializationOptions.Default.Settings);
 
-	public static void ToFile<T>(string filePath, T obj)
+	public static string ToFile<T>(string filePath, T obj)
 	{
 		string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSerializationOptions.Default.Settings);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+		return jsonString;
 	}
 
 	public static bool AreDeepEqual(object current, object other)

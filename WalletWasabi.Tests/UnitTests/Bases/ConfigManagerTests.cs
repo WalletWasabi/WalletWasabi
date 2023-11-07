@@ -1,10 +1,13 @@
 using NBitcoin;
+using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Daemon;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Bases;
@@ -15,13 +18,73 @@ namespace WalletWasabi.Tests.UnitTests.Bases;
 public class ConfigManagerTests
 {
 	/// <summary>
+	/// Tests <see cref="ConfigManager.ToFile{T}(string, T)"/> and <see cref="ConfigManager.LoadFile{TResponse}(string, bool)"/>.
+	/// </summary>
+	[Fact]
+	public async Task ToFileAndLoadFileTestAsync()
+	{
+		string workDirectory = await Common.GetEmptyWorkDirAsync();
+		string configPath = Path.Combine(workDirectory, $"{nameof(ToFileAndLoadFileTestAsync)}.json");
+
+		string expectedLocalBitcoinCoreDataDir = nameof(ConfigManagerTests);
+
+		// Create config and store it.
+		PersistentConfig actualConfig = new();
+		actualConfig = actualConfig with { LocalBitcoinCoreDataDir = expectedLocalBitcoinCoreDataDir };
+
+		string storedJson = ConfigManager.ToFile(configPath, actualConfig);
+		PersistentConfig readConfig = ConfigManager.LoadFile<PersistentConfig>(configPath);
+
+		// Is the content of each config the same?
+		Assert.Equal(expectedLocalBitcoinCoreDataDir, readConfig.LocalBitcoinCoreDataDir);
+
+		string expected = GetConfigString(expectedLocalBitcoinCoreDataDir);
+		string actual = JsonConvert.SerializeObject(readConfig, Formatting.Indented, JsonSerializationOptions.Default.Settings);
+
+		AssertJsonStringsEqual(expected, actual);
+		AssertJsonStringsEqual(expected, storedJson);
+
+		static string GetConfigString(string localBitcoinCoreDataDir)
+			=> $$"""
+			{
+			  "Network": "Main",
+			  "MainNetBackendUri": "https://api.wasabiwallet.io/",
+			  "TestNetClearnetBackendUri": "https://api.wasabiwallet.co/",
+			  "RegTestBackendUri": "http://localhost:37127/",
+			  "UseTor": true,
+			  "TerminateTorOnExit": false,
+			  "DownloadNewVersion": true,
+			  "StartLocalBitcoinCoreOnStartup": false,
+			  "StopLocalBitcoinCoreOnShutdown": true,
+			  "LocalBitcoinCoreDataDir": "{{localBitcoinCoreDataDir}}",
+			  "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
+			  "TestNetBitcoinP2pEndPoint": "127.0.0.1:18333",
+			  "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
+			  "JsonRpcServerEnabled": false,
+			  "JsonRpcUser": "",
+			  "JsonRpcPassword": "",
+			  "JsonRpcServerPrefixes": [
+			    "http://127.0.0.1:37128/",
+			    "http://localhost:37128/"
+			  ],
+			  "DustThreshold": "0.00005",
+			  "EnableGpu": true,
+			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier"
+			}
+			""";
+
+		static void AssertJsonStringsEqual(string expected, string actual)
+			=> Assert.Equal(expected.ReplaceLineEndings("\n"), actual.ReplaceLineEndings("\n"));
+	}
+
+	/// <summary>
 	/// Tests <see cref="ConfigManager.CheckFileChange{T}(string, T)"/>.
 	/// </summary>
 	[Fact]
 	public async Task CheckFileChangeTestAsync()
 	{
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
-		string configPath = Path.Join(workDirectory, "testConfig.json");
+		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
 		// Create config and store it.
 		WabiSabiConfig config = new();
@@ -55,10 +118,9 @@ public class ConfigManagerTests
 
 			Assert.Equal(expectedFileContents, actualFileContents);
 		}
-	}
 
-	private static string GetVanillaConfigString(decimal coordinationFeeRate = 0.003m)
-		=> $$"""
+		static string GetVanillaConfigString(decimal coordinationFeeRate = 0.003m)
+				=> $$"""
 			{
 			  "ConfirmationTarget": 108,
 			  "DoSSeverity": "0.10",
@@ -110,6 +172,7 @@ public class ConfigManagerTests
 			  "DelayTransactionSigning": false
 			}
 			""".ReplaceLineEndings("\n");
+	}
 
 	private static string ReadAllTextAndNormalize(string configPath)
 		=> File.ReadAllText(configPath).ReplaceLineEndings("\n");
