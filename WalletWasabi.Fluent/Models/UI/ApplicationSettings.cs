@@ -219,7 +219,8 @@ public partial class ApplicationSettings : ReactiveObject
 				}
 			}
 
-			result = result with {
+			result = result with
+			{
 				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
 				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
 				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
