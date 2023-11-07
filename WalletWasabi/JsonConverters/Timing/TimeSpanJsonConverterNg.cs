@@ -10,7 +10,7 @@ public class TimeSpanJsonConverterNg : JsonConverter<TimeSpan>
 	{
 		if (reader.TokenType != JsonTokenType.String)
 		{
-			throw new JsonException("Expected a JSON string value.");
+			return default;
 		}
 
 		string? stringValue = reader.GetString();
