@@ -17,6 +17,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
@@ -43,20 +44,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(
-			x => new JsonRpcResult
-			{
-				["txid"] = x.TransactionId.ToString(),
-				["index"] = x.Index,
-				["amount"] = x.Amount.Satoshi,
-				["anonymityScore"] = x.HdPubKey.AnonymitySet,
-				["confirmed"] = x.Confirmed,
-				["confirmations"] = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-				["label"] = x.HdPubKey.Labels.ToString(),
-				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
-				["address"] = x.HdPubKey.GetAddress(Global.Network).ToString(),
-				["excludedFromCoinjoin"] = x.IsExcludedFromCoinJoin
-			}).ToImmutableArray();
+		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(x => GetRpcResultFromSmartCoin(x, serverTipHeight)).ToImmutableArray();
 	}
 
 	[JsonRpcMethod("listcoins")]
@@ -70,19 +58,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
 		}
-		return coinRegistry.AsAllCoinsView().Select(
-			x => new JsonRpcResult
-			{
-				["txid"] = x.TransactionId.ToString(),
-				["index"] = x.Index,
-				["amount"] = x.Amount.Satoshi,
-				["anonymityScore"] = x.HdPubKey.AnonymitySet,
-				["confirmed"] = x.Confirmed,
-				["confirmations"] = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
-				["address"] = x.HdPubKey.GetAddress(Global.Network).ToString(),
-				["spentBy"] = x.SpenderTransaction?.GetHash().ToString()
-			}).ToImmutableArray();
+		return coinRegistry.AsAllCoinsView().Select(x => GetRpcResultFromSmartCoin(x, serverTipHeight)).ToImmutableArray();
 	}
 
 	[JsonRpcMethod("createwallet", initializable: false)]
@@ -167,6 +143,51 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		return info;
+	}
+
+	[JsonRpcMethod("getcoinjoininfo")]
+	public JsonRpcResult GetCoinjoinInfo(string? password = null)
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
+
+		var coinsInCoinjoin = activeWallet.Coins.Where(coin => coin.CoinJoinInProgress);
+
+		var currentRounds = coinJoinManager.RoundStatusUpdater.RoundStates;
+		var roundsIdsWithMyInputs = currentRounds.Values.ToDictionary(round => round.Id, _ => new List<JsonRpcResult>());
+
+		var coinsInInputRegistration = new List<JsonRpcResult>();
+		foreach (var coinInCoinjoin in coinsInCoinjoin)
+		{
+			var roundRegisteredTo =
+				currentRounds.Values.FirstOrDefault(x =>
+					x.CoinjoinState.Inputs.Any(y => y.Outpoint == coinInCoinjoin.Outpoint));
+
+			// Coin in coinjoin but not registered to any round, must be in InputRegistration
+			// We can't know in which round it will be registered
+			if (roundRegisteredTo is null)
+			{
+				coinsInInputRegistration.Add(GetRpcResultFromSmartCoin(coinInCoinjoin, serverTipHeight));
+				continue;
+			}
+
+			roundsIdsWithMyInputs[roundRegisteredTo.Id].Add(GetRpcResultFromSmartCoin(coinInCoinjoin, serverTipHeight));
+		}
+
+		return new JsonRpcResult
+		{
+			["coinsRegistering"] = coinsInInputRegistration.ToImmutableArray(),
+			["roundsWithMyInputsRegistered"] = roundsIdsWithMyInputs.Select(
+				x => new JsonRpcResult
+				{
+					["rounds"] = GetRpcResultFromRoundState(currentRounds[x.Key]),
+					["coins"] = x.Value
+				}).ToImmutableArray()
+		};
 	}
 
 	[JsonRpcMethod("getnewaddress")]
@@ -541,5 +562,61 @@ public class WasabiJsonRpcService : IJsonRpcService
 			mnemonic = null;
 			return false;
 		}
+	}
+
+	private JsonRpcResult GetRpcResultFromSmartCoin(SmartCoin coin, uint serverTipHeight)
+	{
+		return new JsonRpcResult
+		{
+			["txid"] = coin.TransactionId.ToString(),
+			["index"] = coin.Index,
+			["amount"] = coin.Amount.Satoshi,
+			["anonymityScore"] = coin.HdPubKey.AnonymitySet,
+			["confirmed"] = coin.Confirmed,
+			["confirmations"] = coin.Confirmed ? serverTipHeight - (uint)coin.Height.Value + 1 : 0,
+			["label"] = coin.HdPubKey.Labels.ToString(),
+			["keyPath"] = coin.HdPubKey.FullKeyPath.ToString(),
+			["address"] = coin.HdPubKey.GetAddress(Global.Network).ToString(),
+			["excludedFromCoinjoin"] = coin.IsExcludedFromCoinJoin
+		};
+	}
+
+	private JsonRpcResult GetRpcResultFromCoin(Coin coin)
+	{
+		return new JsonRpcResult
+		{
+			["amount"] = coin.Amount,
+			["outpoint"] = coin.Outpoint
+		};
+	}
+
+	private JsonRpcResult GetRpcResultFromRoundState(RoundState round)
+	{
+		return new JsonRpcResult
+		{
+			["id"] = round.Id,
+			["phase"] = round.Phase,
+			["blameOf"] = round.BlameOf,
+			["endRoundState"] = round.EndRoundState,
+			["inputRegistrationEnd"] = round.InputRegistrationEnd,
+			["inputRegistrationStart"] = round.InputRegistrationStart,
+			["coinjoinState"] = new JsonRpcResult
+				{
+					["inputs"] = round.CoinjoinState.Inputs.Select(GetRpcResultFromCoin).ToImmutableArray(),
+					["balance"] = round.CoinjoinState.Balance,
+					["outputs"] = round.CoinjoinState.Outputs.Select(x => new JsonRpcResult
+						{
+							["value"] = x.Value
+						}).ToImmutableArray(),
+					["estimatedCost"] = round.CoinjoinState.EstimatedCost,
+					["estimatedVsize"] = round.CoinjoinState.EstimatedVsize,
+					["effectiveFeeRate"] = round.CoinjoinState.EffectiveFeeRate,
+					["parameters"] = new JsonRpcResult
+						{
+							["maxSuggestedAmount"] = round.CoinjoinState.Parameters.MaxSuggestedAmount,
+							["miningFeeRate"] = round.CoinjoinState.Parameters.MiningFeeRate
+						}
+				},
+		};
 	}
 }
