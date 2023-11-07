@@ -168,7 +168,14 @@ public class SuggestionLabelsViewModelTests
 		}
 
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
-		public string Name => throw new NotSupportedException();
+		public int Id => throw new NotSupportedException();
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotSupportedException();
+		}
+
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
