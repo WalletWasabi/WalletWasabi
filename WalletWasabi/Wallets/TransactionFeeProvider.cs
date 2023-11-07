@@ -21,12 +21,12 @@ public class TransactionFeeProvider : PeriodicRunner
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
+	public event EventHandler? RequestedFeeArrived;
+
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
 
 	private IHttpClient HttpClient { get; }
-
-	public event EventHandler? RequestedFeeArrived;
 
 	private async Task FetchTransactionFeeAsync(uint256 txid, CancellationToken cancellationToken)
 	{
