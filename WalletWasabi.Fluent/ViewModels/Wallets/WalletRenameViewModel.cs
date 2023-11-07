@@ -24,6 +24,11 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 				{
 					errors.Add(ErrorSeverity.Error, "The name cannot be empty");
 				}
+
+				if (NewWalletName.Length > 50)
+				{
+					errors.Add(ErrorSeverity.Error, "The name is too long");
+				}
 			});
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
