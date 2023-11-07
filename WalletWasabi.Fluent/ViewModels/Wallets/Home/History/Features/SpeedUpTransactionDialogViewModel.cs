@@ -43,7 +43,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		_wallet.Transactions.Cache
 			.Connect()
 			.Watch(_speedupTransaction.TargetTransaction.GetHash())
-			.Select(change => change.Current.IsConfirmed)
+			.Where(change => change.Current.IsConfirmed)
 			.Do(_ => Navigate().Back())
 			.Subscribe()
 			.DisposeWith(disposables);
