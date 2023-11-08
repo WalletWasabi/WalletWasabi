@@ -1,0 +1,133 @@
+using NBitcoin;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.Tests.Helpers;
+using Xunit;
+using JsonConvertNew = System.Text.Json.JsonSerializer;
+using JsonConvertOld = Newtonsoft.Json.JsonConvert;
+
+namespace WalletWasabi.Tests.UnitTests.JsonConverters;
+
+public class ExtPubKeyJsonConverterTests
+{
+	/// <summary>
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *serialize* objects equally.
+	/// </summary>
+	[Fact]
+	public void SerializationParity()
+	{
+		var km = ServiceFactory.CreateKeyManager(isTaprootAllowed: true);
+
+		TestData testObject = new() { SegwitExtPubKey = km.SegwitExtPubKey, TaprootExtPubKey = km.TaprootExtPubKey };
+		var segwit = km.SegwitExtPubKey.ToString(Network.Main);
+		var taproot = km.TaprootExtPubKey!.ToString(Network.Main);
+
+		string json = AssertSerializedEqually(testObject);
+		Assert.Equal($$"""{"SegwitExtPubKey":"{{segwit}}","TaprootExtPubKey":"{{taproot}}"}""", json);
+	}
+
+	/// <summary>
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *deserialize* objects equally.
+	/// </summary>
+	[Fact]
+	public void DeserializationParity()
+	{
+		// Success cases.
+		{
+			string token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg54C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // SegwitExtPubKey
+			AssertBothDeserialize(S(token));
+			token = "xpub6Ch4bJcGsTXbw5P7gCutJUC8FPxaGV5ps59Hquj1Boypx9DZcR7JFp4uCYiMGgcxkJJuKkT6kNJjCZVSEBBuyQjZ7FtaJBH3WnVtjucFsin"; // TaprootExtPubKey
+			AssertBothDeserialize(S(token));
+		}
+
+		// Failing cases.
+		{
+			string token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed one letter of the first example
+			AssertDeserializeFailure<FormatException>(S(token));
+
+			token = "xpub1CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed xpub6 to xpub1
+			AssertDeserializeFailure<FormatException>(S(token));
+
+			token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx"; // Cut off half of the key
+			AssertDeserializeFailure<FormatException>(S(token));
+		}
+
+		static void AssertBothDeserialize(string jsonToken)
+		{
+			string json = $$"""{"Name": "Extended Public Key", "ExtPubKey": {{jsonToken}} }""";
+
+			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
+			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+
+			// Value equality.
+			Assert.Equal(product1, product2);
+		}
+
+		static void AssertDeserializeFailure<TException>(string jsonToken)
+			where TException : Exception
+		{
+			string json = $$"""{"Name": "Extended Public Key", "ExtPubKey": {{jsonToken}} }""";
+
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+		}
+
+		static string S(string s)
+			=> $"\"{s}\"";
+	}
+
+	/// <summary>
+	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft library and STJ library.
+	/// </summary>
+	/// <returns>JSON representation of <paramref name="o"/>.</returns>
+	private static string AssertSerializedEqually<T>(T o)
+	{
+		string newtonsoftJson = JsonConvertOld.SerializeObject(o);
+		string stjJson = JsonConvertNew.Serialize(o);
+
+		Assert.NotNull(newtonsoftJson);
+		Assert.NotNull(stjJson);
+		Assert.Equal(newtonsoftJson, stjJson);
+
+		return stjJson;
+	}
+
+	/// <summary>
+	/// Record for testing deserialization of <see cref="ExtPubKey"/>.
+	/// </summary>
+	private record TestData
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(SegwitExtPubKey))]
+		[Newtonsoft.Json.JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(ExtPubKeyJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(SegwitExtPubKey))]
+		public ExtPubKey? SegwitExtPubKey { get; init; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(TaprootExtPubKey))]
+		[Newtonsoft.Json.JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(ExtPubKeyJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(TaprootExtPubKey))]
+		public ExtPubKey? TaprootExtPubKey { get; init; }
+	}
+
+	/// <summary>
+	/// Record for testing deserialization of <see cref="ExtPubKey"/>.
+	/// </summary>
+	private record TestProduct
+	{
+		public required string Name { get; init; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(ExtPubKey))]
+		[Newtonsoft.Json.JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(ExtPubKeyJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(ExtPubKey))]
+		public ExtPubKey? ExtPubKey { get; init; }
+	}
+}
