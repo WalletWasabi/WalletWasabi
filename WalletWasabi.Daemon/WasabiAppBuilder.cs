@@ -238,7 +238,7 @@ public static class WasabiAppExtensions
 				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
 					ProcessCommands();
-					await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
+					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
 				}
 
 			}).ConfigureAwait(false);
