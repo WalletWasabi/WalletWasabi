@@ -173,6 +173,7 @@ public class TransactionTreeBuilder
 			OrderIndex = index,
 			Type = TransactionType.CoinjoinGroup,
 			Status = status,
+			Fee = transactionSummary.GetFee
 		};
 	}
 
@@ -194,6 +195,7 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
+			Fee = transactionSummary.GetFee,
 
 			Type = GetItemType(transactionSummary),
 			Status =
@@ -238,7 +240,7 @@ public class TransactionTreeBuilder
 		coinjoinGroup.Amount = amount;
 
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee() ?? Money.Zero);
-		coinjoinGroup.Fee = fee;
+		coinjoinGroup.Fee = () => fee;
 
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();

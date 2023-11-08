@@ -48,6 +48,10 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 							.Do(_ => Update())
 							.Subscribe()
 							.DisposeWith(disposables);
+
+		_wallet.Transactions.RequestedFeeArrived
+							.Subscribe(_ => Update())
+							.DisposeWith(disposables);
 	}
 
 	private void Update()
@@ -60,7 +64,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			TxCount = TransactionIds.Count;
-			ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+			ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transaction.Id);
 			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		}
 	}

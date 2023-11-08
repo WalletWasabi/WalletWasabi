@@ -41,7 +41,7 @@ public partial class TransactionModel : ReactiveObject
 
 	public Money? OutgoingAmount => GetAmounts().OutgoingAmount;
 
-	public Func<Money?> Fee { get; init; }
+	public required Func<Money?> Fee { get; set; }
 
 	public bool CanCancelTransaction { get; init; }
 
@@ -64,7 +64,7 @@ public partial class TransactionModel : ReactiveObject
 
 		if (Amount < Money.Zero)
 		{
-			outgoingAmount = -Amount - (Fee ?? Money.Zero);
+			outgoingAmount = -Amount - (Fee() ?? Money.Zero);
 		}
 		else
 		{
