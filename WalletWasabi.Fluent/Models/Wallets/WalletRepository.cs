@@ -118,7 +118,7 @@ public partial class WalletRepository : ReactiveObject
 					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
 				});
 
-		return new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true);
+		return new WalletSettingsModel(Wallet.NextId, keyManager, true);
 	}
 
 	private async Task<IWalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
@@ -133,7 +133,7 @@ public partial class WalletRepository : ReactiveObject
 		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, cancelToken.Value);
 		keyManager.SetIcon(device.WalletType);
 
-		var result = new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true);
+		var result = new WalletSettingsModel(Wallet.NextId, keyManager, true);
 		return result;
 	}
 
@@ -145,7 +145,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentException.ThrowIfNullOrEmpty(filePath);
 
 		var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-		return new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true);
+		return new WalletSettingsModel(Wallet.NextId, keyManager, true);
 	}
 
 	private async Task<IWalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
@@ -178,7 +178,7 @@ public partial class WalletRepository : ReactiveObject
 			return result;
 		});
 
-		return new WalletSettingsModel(Wallet.WalletCount+1, keyManager, true, true);
+		return new WalletSettingsModel(Wallet.NextId, keyManager, true, true);
 	}
 
 	private IWalletModel GetById(int id)

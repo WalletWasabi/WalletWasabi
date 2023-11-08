@@ -29,6 +29,16 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 				{
 					errors.Add(ErrorSeverity.Error, "The name is too long");
 				}
+
+				if (NewWalletName.TrimStart().Length != NewWalletName.Length)
+				{
+					errors.Add(ErrorSeverity.Error, "The name should not have leading white spaces");
+				}
+
+				if (NewWalletName.TrimEnd().Length != NewWalletName.Length)
+				{
+					errors.Add(ErrorSeverity.Error, "The name should not have trailing white spaces");
+				}
 			});
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

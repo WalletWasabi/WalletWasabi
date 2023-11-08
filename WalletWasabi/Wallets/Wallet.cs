@@ -29,7 +29,9 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
-	public static int WalletCount;
+	private static int WalletCount;
+
+	public static int NextId => WalletCount + 1;
 
 	public Wallet(
 		string dataDir,
@@ -137,7 +139,7 @@ public class Wallet : BackgroundService, IWallet
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
-
+	
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
