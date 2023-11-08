@@ -52,7 +52,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var coinChanges =
-			_wallet.Coins.List.ToObservableChangeSet(model => model.Key)
+			_wallet.Coins.List
+				.Connect()
 				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x), (_, _) => { })
 				.Replay(1)
 				.RefCount();

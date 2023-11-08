@@ -122,18 +122,24 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
-		var outPoints = tx.Inputs.Select(x => x.PrevOut);
+		bool IsWasabiCoinjoin(uint256 txId)
+		{
+			var finishedCoinJoinIds = Arena.RoundStates
+				.Select(x => x.CoinjoinState)
+				.OfType<SigningState>()
+				.Where(x => x.IsFullySigned)
+				.Select(x => x.CreateUnsignedTransaction().GetHash());
 
-		var finishedCoinjoinIds = Arena.RoundStates
-			.Select(x => x.CoinjoinState)
-			.OfType<SigningState>()
-			.Where(x => x.IsFullySigned)
-			.Select(x => x.CreateUnsignedTransaction().GetHash());
+			return CoinJoinIdStore.Contains(txId) || finishedCoinJoinIds.Contains(txId);
+		}
 
-		if (finishedCoinjoinIds.Contains(tx.GetHash()))
+		// We don't ban our own coinjoin outputs.
+		if (IsWasabiCoinjoin(tx.GetHash()))
 		{
 			return;
 		}
+
+		var outPoints = tx.Inputs.Select(x => x.PrevOut);
 
 		// Detect and punish double spending coins
 		var disrupters = Arena.RoundStates
