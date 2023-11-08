@@ -1,7 +1,7 @@
 {
   "version": 2,
   "dependencies": {
-    "net7.0": {
+    "net8.0": {
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "Direct",
         "requested": "[7.0.9, )",
@@ -337,7 +337,7 @@
         }
       }
     },
-    "net7.0/linux-arm64": {
+    "net8.0/linux-arm64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -633,7 +633,7 @@
         }
       }
     },
-    "net7.0/linux-x64": {
+    "net8.0/linux-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -929,7 +929,7 @@
         }
       }
     },
-    "net7.0/osx-arm64": {
+    "net8.0/osx-arm64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -1225,7 +1225,7 @@
         }
       }
     },
-    "net7.0/osx-x64": {
+    "net8.0/osx-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -1521,7 +1521,7 @@
         }
       }
     },
-    "net7.0/win7-x64": {
+    "net8.0/win-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -1607,11 +1607,6 @@
           "System.Private.Uri": "4.0.1"
         }
       },
-      "runtime.win7.System.Private.Uri": {
-        "type": "Transitive",
-        "resolved": "4.0.1",
-        "contentHash": "LPOuwNel9nJ+G751J/yb64zkodFzVUwYYukQ8vysjiHRBrnvsZOhIxvqKhG6od1szrBNkl8pw8VGvvcfQ/2VOA=="
-      },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
         "resolved": "2.1.4",
@@ -1680,8 +1675,7 @@
         "contentHash": "OltceAn9yyNf9LZIqvf80DhdRH55iVu1fxowdR79018w1CWIRNojUZBStsiRHvADeKI5pXcM9EftOFikBQh5AA==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
-          "Microsoft.NETCore.Targets": "1.0.1",
-          "runtime.win7.System.Private.Uri": "4.0.1"
+          "Microsoft.NETCore.Targets": "1.0.1"
         }
       },
       "System.Reflection": {
