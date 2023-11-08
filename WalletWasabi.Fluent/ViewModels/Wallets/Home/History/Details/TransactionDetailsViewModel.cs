@@ -5,8 +5,6 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -34,55 +32,55 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private bool _isFeeVisible;
 
-	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
+	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-
-		TransactionId = transactionSummary.GetHash();
-		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
+		TransactionId = model.Id;
+		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		UpdateValues(transactionSummary);
+		UpdateValues(model);
 	}
 
 	public uint256 TransactionId { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
-	private void UpdateValues(TransactionSummary transactionSummary)
-	{
-		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
-		Labels = transactionSummary.Labels;
-		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
-		Confirmations = transactionSummary.GetConfirmations();
 
-		Fee = UiContext.AmountProvider.Create(transactionSummary.GetFee());
+	private void UpdateValues(TransactionModel model)
+	{
+		DateString = model.DateString;
+		Labels = model.Labels;
+		BlockHeight = model.BlockHeight;
+		Confirmations = model.Confirmations;
+
+		Fee = UiContext.AmountProvider.Create(model.GetFee());
 		IsFeeVisible = Fee != null && Fee.HasBalance;
 
-		transactionSummary.TryGetConfirmationTime(out var estimate);
-		if (estimate is { })
+		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
+		if (confirmationTime is { })
 		{
 			ConfirmationTime = estimate;
 		}
 
 		IsConfirmed = Confirmations > 0;
 
-		if (transactionSummary.Amount < Money.Zero)
+		if (model.Amount < Money.Zero)
 		{
-			Amount = UiContext.AmountProvider.Create(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
+			Amount = _wallet.AmountProvider.Create(-model.Amount - (model.Fee ?? Money.Zero));
 			AmountText = "Amount sent";
 		}
 		else
 		{
-			Amount = UiContext.AmountProvider.Create(transactionSummary.Amount);
+			Amount = _wallet.AmountProvider.Create(model.Amount);
 			AmountText = "Amount received";
 		}
 
-		BlockHash = transactionSummary.BlockHash?.ToString();
+		BlockHash = model.BlockHash?.ToString();
 
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
@@ -97,8 +95,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Transactions.TransactionProcessed
-							.Merge(_wallet.Transactions.RequestedFeeArrived)
+		_wallet.Transactions.Cache
+			                .Connect()
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
 							.DisposeWith(disposables);
@@ -108,7 +106,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		if (_wallet.Transactions.TryGetById(TransactionId, false, out var transaction))
 		{
-			UpdateValues(transaction.TransactionSummary);
+			UpdateValues(transaction);
 		}
 	}
 }

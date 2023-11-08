@@ -144,7 +144,7 @@ public class Global
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
-	public UpdateManager UpdateManager { get; set; }
+	public UpdateManager UpdateManager { get; }
 	public HostedServices HostedServices { get; }
 
 	public Network Network => Config.Network;
@@ -405,11 +405,8 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				if (UpdateManager is { } updateManager)
-				{
-					UpdateManager.Dispose();
-					Logger.LogInfo($"{nameof(UpdateManager)} is stopped.", nameof(Global));
-				}
+				UpdateManager.Dispose();
+				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
 
 				if (RpcServer is { } rpcServer)
 				{

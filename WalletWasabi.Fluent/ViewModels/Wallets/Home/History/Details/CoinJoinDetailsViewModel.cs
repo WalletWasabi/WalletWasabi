@@ -1,7 +1,6 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -39,8 +38,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Transactions.TransactionProcessed
-							.Merge(_wallet.Transactions.RequestedFeeArrived)
+		_wallet.Transactions.Cache
+			                .Connect()
 							.Subscribe(_ => Update())
 							.DisposeWith(disposables);
 	}
@@ -50,7 +49,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
 		{
 			Date = transaction.DateString;
-			CoinJoinFeeAmount = UiContext.AmountProvider.Create(transaction.OutgoingAmount);
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(transaction.OutgoingAmount);
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;
