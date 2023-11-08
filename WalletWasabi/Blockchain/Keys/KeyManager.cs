@@ -242,11 +242,6 @@ public class KeyManager
 		set => SetFilePath(value);
 	}
 
-	private void Rename(string oldName, string newName, string rootDir)
-	{
-		File.Move(Path.Combine(rootDir, oldName), Path.Combine(rootDir, newName));
-	}
-
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
 		mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
