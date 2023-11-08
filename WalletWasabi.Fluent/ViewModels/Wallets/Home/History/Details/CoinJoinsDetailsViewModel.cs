@@ -33,9 +33,6 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
-
-		ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
-		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
 	public TimeSpan? ConfirmationTime { get; set; }
@@ -62,6 +59,8 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			TxCount = TransactionIds.Count;
+			ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		}
 	}
 }
