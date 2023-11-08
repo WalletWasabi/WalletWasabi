@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
@@ -44,6 +45,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.TransactionProcessed
+							.Merge(_wallet.Transactions.RequestedFeeArrived)
 							.Do(Update)
 							.Subscribe()
 							.DisposeWith(disposables);
