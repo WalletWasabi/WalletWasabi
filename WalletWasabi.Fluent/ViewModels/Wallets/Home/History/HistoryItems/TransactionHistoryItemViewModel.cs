@@ -10,7 +10,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private IWalletModel _wallet;
 
-	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(wallet, transaction)
+	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
 	{
 		_wallet = wallet;
 

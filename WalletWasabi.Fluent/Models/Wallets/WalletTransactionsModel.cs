@@ -81,18 +81,20 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return txn;
 	}
 
-	public TimeSpan? TryEstimateConfirmationTime(TransactionModel model)
+	public TimeSpan? TryEstimateConfirmationTime(uint256 id)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(model.Id, out var smartTransaction))
+		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
 		{
-			throw new InvalidOperationException($"Transaction not found! ID: {model.Id}");
+			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}
 
 		return
 			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, smartTransaction, out var estimate)
-			? estimate
-			: null;
+				? estimate
+				: null;
 	}
+
+	public TimeSpan? TryEstimateConfirmationTime(TransactionModel model) => TryEstimateConfirmationTime(model.Id);
 
 	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
 	{

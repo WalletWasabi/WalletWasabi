@@ -132,6 +132,7 @@ public class TransactionTreeBuilder
 		var itemType = GetItemType(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
+		var status = GetItemStatus(transactionSummary);
 
 		return new TransactionModel
 		{
@@ -145,12 +146,12 @@ public class TransactionTreeBuilder
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 			Type = itemType,
-			Status = GetItemStatus(transactionSummary),
+			Status = status,
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			Fee = transactionSummary.GetFee(),
-			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
+			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 		};
 	}
 
@@ -158,19 +159,20 @@ public class TransactionTreeBuilder
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
+		var status = GetItemStatus(transactionSummary);
 
 		return new TransactionModel
 		{
 			Amount = Money.Zero,
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
-			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
+			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 			Id = transactionSummary.GetHash(),
 			Date = date,
 			DateString = date.ToUserFacingString(),
 			OrderIndex = index,
 			Type = TransactionType.CoinjoinGroup,
-			Status = GetItemStatus(transactionSummary),
+			Status = status,
 		};
 	}
 
@@ -252,6 +254,7 @@ public class TransactionTreeBuilder
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
+		var status = GetItemStatus(transactionSummary);
 
 		return new TransactionModel
 		{
@@ -263,11 +266,11 @@ public class TransactionTreeBuilder
 			Balance = balance,
 			Labels = transactionSummary.Labels,
 			Type = TransactionType.Coinjoin,
-			Status = GetItemStatus(transactionSummary),
+			Status = status,
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
-			ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations),
+			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 			Fee = transactionSummary.GetFee()
 		};
 	}
@@ -323,5 +326,26 @@ public class TransactionTreeBuilder
 		}
 
 		return TransactionStatus.Unknown;
+	}
+
+	private string GetConfirmationToolTip(TransactionStatus status, int confirmations, SmartTransaction smartTransaction)
+	{
+		if (status == TransactionStatus.Confirmed)
+		{
+			return TextHelpers.GetConfirmationText(confirmations);
+		}
+
+		var friendlyString = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, smartTransaction, out var estimate)
+			? TextHelpers.TimeSpanToFriendlyString(estimate.Value)
+			: "";
+
+		return (status, friendlyString != "") switch
+		{
+			(TransactionStatus.SpeedUp, true) => $"Pending (accelerated, confirming in ≈ {friendlyString})",
+			(TransactionStatus.SpeedUp, false) => "Pending (accelerated)",
+			(TransactionStatus.Pending, true) => $"Pending (confirming in ≈ {friendlyString})",
+			(TransactionStatus.Pending, false) => "Pending",
+			_ => "Unknown"
+		};
 	}
 }

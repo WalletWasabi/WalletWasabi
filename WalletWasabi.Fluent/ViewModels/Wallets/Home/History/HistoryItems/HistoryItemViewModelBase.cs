@@ -15,9 +15,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private bool _isFlashing;
 	[AutoNotify] private bool _isExpanded;
 
-	protected HistoryItemViewModelBase(IWalletModel wallet, TransactionModel transaction)
+	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
-		Wallet = wallet;
 		Transaction = transaction;
 
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
@@ -31,12 +30,10 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			});
 	}
 
-	protected HistoryItemViewModelBase(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : this(wallet, transaction)
+	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : this(transaction)
 	{
 		UiContext = uiContext;
 	}
-
-	public IWalletModel Wallet { get; }
 
 	public TransactionModel Transaction { get; }
 
@@ -49,8 +46,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
-
-	public TimeSpan? TryEstimateConfirmationTime() => Wallet.Transactions.TryEstimateConfirmationTime(Transaction);
 
 	public bool HasChildren() => Children.Count > 0;
 
