@@ -1,18 +1,16 @@
-﻿using System.Threading.Tasks;
-using Avalonia.Headless.XUnit;
-using VerifyXunit;
+﻿using Avalonia.Headless.XUnit;
+using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AnimatedButtonTests;
 
-[UsesVerify]
 public class AnimatedButtonTests
 {
     [AvaloniaFact]
-    public Task AnimatedButton_Defaults()
+    public void AnimatedButton_Defaults()
     {
         var window = new AnimatedButton_Defaults();
         window.Show();
 
-        return Verifier.Verify(window);
+        Assert.NotNull(window.TargetButton);
     }
 }

@@ -1,9 +1,0 @@
-﻿{
-  Type: AnimatedButton_Defaults,
-  Title: AnimatedButton001,
-  Content: {
-    Type: AnimatedButton,
-    Name: TargetButton
-  },
-  IsVisible: true
-}

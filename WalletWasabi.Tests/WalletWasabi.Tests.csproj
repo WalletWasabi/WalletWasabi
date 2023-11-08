@@ -36,10 +36,6 @@
 		<DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
 		<PackageReference Include="Avalonia.Desktop" />
 		<PackageReference Include="Avalonia.Headless.XUnit" />
-		<PackageReference Include="Verify.Avalonia" />
-		<PackageReference Include="Verify.DiffPlex" />
-		<PackageReference Include="Verify.ImageMagick" />
-		<PackageReference Include="Verify.Xunit" />
 	</ItemGroup>
 
 	<ItemGroup>
