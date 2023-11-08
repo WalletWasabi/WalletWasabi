@@ -34,7 +34,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-		Fee = uiContext.AmountProvider.Create(model.Fee);
+		Fee = wallet.AmountProvider.Create(model.Fee);
 		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
@@ -69,12 +69,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (model.Amount < Money.Zero)
 		{
-			Amount = UiContext.AmountProvider.Create(-model.Amount - (model.Fee ?? Money.Zero));
+			Amount = _wallet.AmountProvider.Create(-model.Amount - (model.Fee ?? Money.Zero));
 			AmountText = "Amount sent";
 		}
 		else
 		{
-			Amount = UiContext.AmountProvider.Create(model.Amount);
+			Amount = _wallet.AmountProvider.Create(model.Amount);
 			AmountText = "Amount received";
 		}
 
