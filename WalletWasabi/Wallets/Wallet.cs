@@ -22,7 +22,6 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
@@ -30,9 +29,7 @@ public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
 	private static int WalletCount;
-
-	public static int NextId => WalletCount + 1;
-
+	
 	public Wallet(
 		string dataDir,
 		Network network,
@@ -76,6 +73,8 @@ public class Wallet : BackgroundService, IWallet
 	public event EventHandler<WalletState>? StateChanged;
 
 	public int Id { get; }
+
+	public static int NextId => WalletCount + 1;
 
 	public string WalletName
 	{

@@ -118,8 +118,7 @@ public partial class WalletModel : ReactiveObject
 	{
 		File.Move(Path.Combine(rootDir, oldName), Path.Combine(rootDir, newName));
 	}
-
-
+	
 	public Network Network => Wallet.Network;
 
 	public IWalletTransactionsModel Transactions { get; }
