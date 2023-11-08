@@ -1,10 +1,10 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 WORKDIR /src
 COPY ["WalletWasabi.Backend/WalletWasabi.Backend.csproj", "WalletWasabi.Backend/"]

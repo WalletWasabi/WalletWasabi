@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
@@ -28,12 +28,12 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\net7.0\WalletWasabi.Backend.xml</DocumentationFile>
+		<DocumentationFile>bin\Debug\net8.0\WalletWasabi.Backend.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<!-- Needed for Swagger! -->
-		<DocumentationFile>bin\Release\net7.0\WalletWasabi.Backend.xml</DocumentationFile>
+		<DocumentationFile>bin\Release\net8.0\WalletWasabi.Backend.xml</DocumentationFile>
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 		<ErrorReport>none</ErrorReport>
