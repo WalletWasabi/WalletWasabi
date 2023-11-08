@@ -98,11 +98,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.TransactionProcessed
-							.Do(_ => UpdateCurrentTransaction())
-							.Subscribe()
-							.DisposeWith(disposables);
-
-		_wallet.Transactions.RequestedFeeArrived
+							.Merge(_wallet.Transactions.RequestedFeeArrived)
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
 							.DisposeWith(disposables);
