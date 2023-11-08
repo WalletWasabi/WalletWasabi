@@ -5,10 +5,12 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -22,25 +24,30 @@ public partial class WalletRepository : ReactiveObject
 {
 	private readonly IAmountProvider _amountProvider;
 	private readonly Dictionary<string, WalletModel> _walletDictionary = new();
+	private readonly CompositeDisposable _disposable = new();
 
 	public WalletRepository(IAmountProvider amountProvider)
 	{
 		_amountProvider = amountProvider;
 
-		// Convert the Wallet Manager's contents into an observable stream of IWalletModels.
+		var signals =
+			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+					  .Select(_ => Unit.Default)
+					  .StartWith(Unit.Default);
+
 		Wallets =
-			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded)).Select(_ => Unit.Default)
-					  .StartWith(Unit.Default)
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .SelectMany(_ => Services.WalletManager.GetWallets())
-					  .ToObservableChangeSet(x => x.WalletName)
-					  .TransformWithInlineUpdate(CreateWalletModel, (model, wallet) => { })
-					  .Transform(x => x as IWalletModel);
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletName)
+				   .DisposeWith(_disposable)
+				   .Connect()
+				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
+				   .Cast(x => (IWalletModel)x)
+				   .AsObservableCache()
+				   .DisposeWith(_disposable);
 
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
-	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
+	public IObservableCache<IWalletModel, string> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();

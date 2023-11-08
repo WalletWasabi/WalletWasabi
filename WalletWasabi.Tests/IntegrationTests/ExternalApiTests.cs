@@ -9,6 +9,7 @@ using WalletWasabi.WebClients.Gemini;
 using Xunit;
 using WalletWasabi.Interfaces;
 using System.Threading;
+using WalletWasabi.WebClients.Coingate;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -33,6 +34,10 @@ public class ExternalApiTests
 	[Fact]
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync(new GeminiExchangeRateProvider());
+
+	[Fact]
+	public async Task CoingateExchangeRateProviderTestsAsync() =>
+		await AssertProviderAsync(new CoingateExchangeRateProvider());
 
 	private async Task AssertProviderAsync(IExchangeRateProvider provider)
 	{

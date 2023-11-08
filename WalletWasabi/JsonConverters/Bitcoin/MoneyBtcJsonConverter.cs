@@ -18,10 +18,8 @@ public class MoneyBtcJsonConverter : JsonConverter<Money>
 		{
 			return null;
 		}
-		else
-		{
-			return Money.Parse(stringValue);
-		}
+
+		return Money.Parse(stringValue);
 	}
 
 	/// <inheritdoc />
