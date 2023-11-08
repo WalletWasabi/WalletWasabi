@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
+using System.Xml.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
@@ -238,17 +239,12 @@ public class KeyManager
 	public string WalletName
 	{
 		get => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
-		set
-		{
-			var currentDirectory = Path.GetDirectoryName(FilePath);
-			var newPath = WalletGenerator.GetWalletFilePath(value, currentDirectory!);
+		set => SetFilePath(value);
+	}
 
-			if (FilePath != null)
-			{
-				File.Move(FilePath, newPath);
-				SetFilePath(newPath);
-			}
-		}
+	private void Rename(string oldName, string newName, string rootDir)
+	{
+		File.Move(Path.Combine(rootDir, oldName), Path.Combine(rootDir, newName));
 	}
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)

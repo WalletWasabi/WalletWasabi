@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -76,10 +80,45 @@ public partial class WalletModel : ReactiveObject
 		get => Wallet.WalletName;
 		set
 		{
+			if (value == null)
+			{
+				throw new InvalidOperationException("Wallet name can't be set to null");
+			}
+
+			if (!IsValidWalletName(value))
+			{
+				Logger.LogWarning($"Invalid name '{value}' when attempting to rename {Wallet.WalletName}");
+				throw new InvalidOperationException($"Invalid name {value}");
+			}
+
+			var newName = value + "." + WalletDirectories.WalletFileExtension;
+			var oldName = Wallet.WalletName + "." + WalletDirectories.WalletFileExtension;
+			Rename(oldName, newName, Services.WalletManager.WalletDirectories.WalletsDir);
+			try
+			{
+				Rename(oldName, newName, Services.WalletManager.WalletDirectories.WalletsBackupDir);
+			}
+			catch (Exception e)
+			{
+				Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
+			}
+
 			Wallet.WalletName = value;
+			
 			this.RaisePropertyChanged();
 		}
 	}
+
+	private static bool IsValidWalletName(string value)
+	{
+		return !WalletHelpers.ValidateWalletName(value).HasValue;
+	}
+
+	private void Rename(string oldName, string newName, string rootDir)
+	{
+		File.Move(Path.Combine(rootDir, oldName), Path.Combine(rootDir, newName));
+	}
+
 
 	public Network Network => Wallet.Network;
 
