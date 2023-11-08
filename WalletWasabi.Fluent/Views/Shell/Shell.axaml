@@ -18,19 +18,15 @@
     <shell:MainScreen x:CompileBindings="False"
                       IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}">
       <shell:MainScreen.Styles>
+        <!-- This animation is just to reset Effect (set as local value) after dialog is closed -->
         <Style Selector="shell|MainScreen[IsHitTestVisible=True]">
           <Style.Animations>
-            <Animation Duration="0:0:0.5"
+            <Animation Duration="0:0:0"
                        Delay="0:0:0.0"
                        Easing="{StaticResource FluentEasing}"
                        PlaybackDirection="Normal"
                        IterationCount="1"
                        FillMode="Both">
-              <KeyFrame Cue="0%">
-                <Setter Property="Effect">
-                  <BlurEffect Radius="10.0" />
-                </Setter>
-              </KeyFrame>
               <KeyFrame Cue="100%">
                 <Setter Property="Effect">
                   <BlurEffect Radius="0.0" />
@@ -39,6 +35,7 @@
             </Animation>
           </Style.Animations>
         </Style>
+        <!-- This animation after completes sets Effect as local value -->
         <Style Selector="shell|MainScreen[IsHitTestVisible=False]">
           <Style.Animations>
             <Animation Duration="0:0:1"
