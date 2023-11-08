@@ -23,7 +23,7 @@ public static class PortFinder
 
 			try
 			{
-				var listener = new TcpListener(IPAddress.Loopback, (int)port);
+				using var listener = new TcpListener(IPAddress.Loopback, (int)port);
 				listener.Start();
 				listener.Stop();
 				portArray[i] = (int)port;
