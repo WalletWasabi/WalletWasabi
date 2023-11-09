@@ -24,7 +24,7 @@
             DockPanel.Dock="Right">
             <Button.Content>
               <DockPanel>
-                <PathIcon Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}"/>
+                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
               </DockPanel>
             </Button.Content>

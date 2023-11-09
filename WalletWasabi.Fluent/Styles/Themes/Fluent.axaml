@@ -1,9 +1,9 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Common.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CaptionButtons.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />

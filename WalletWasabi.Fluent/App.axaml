@@ -7,7 +7,7 @@
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Light">
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
