@@ -1,5 +1,18 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Styles.Resources>
+    <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
+    <Thickness x:Key="InvisibleButtonPadding">20,10</Thickness>
+
+    <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="9 7" />
+    </ControlTheme>
+
+  </Styles.Resources>
+
   <Design.PreviewWith>
     <Border Padding="20">
       <StackPanel Spacing="10">
@@ -8,14 +21,10 @@
         <Button Classes="function" Content="Function Button" />
         <Button Classes="invisible" Content="Invisible Button" />
         <Button Classes="plainHyperlink" Content="Quick" />
+        <Button Theme="{StaticResource AccentButton}" Content="My Wallet" />
       </StackPanel>
     </Border>
   </Design.PreviewWith>
-
-  <Styles.Resources>
-    <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
-    <Thickness x:Key="InvisibleButtonPadding">20,10</Thickness>
-  </Styles.Resources>
 
   <Style Selector="Button.action /template/ ContentPresenter">
     <Setter Property="Cursor" Value="Hand" />
