@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -20,6 +22,8 @@ public class TransactionFeeProvider : PeriodicRunner
 	{
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
+
+	private readonly TimeSpan _maximumDelay = TimeSpan.FromMinutes(2);
 
 	public event EventHandler? RequestedFeeArrived;
 
@@ -59,12 +63,35 @@ public class TransactionFeeProvider : PeriodicRunner
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
+		var idsToFetch = new List<uint256>();
+
 		while (!Queue.IsEmpty)
 		{
 			if (Queue.TryDequeue(out var txid))
 			{
-				Task.Run(async () => await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false), cancel);
+				idsToFetch.Add(txid);
 			}
+		}
+
+		if (idsToFetch.Count > 0)
+		{
+			var endTime = DateTimeOffset.UtcNow + _maximumDelay;
+
+			var scheduledDates = endTime.GetScheduledDates(idsToFetch.Count);
+
+			var scheduledTasks = idsToFetch.Zip(
+				scheduledDates,
+				async (txid, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancel).ConfigureAwait(false);
+					}
+					await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
+				});
+
+			Task.WhenAll(scheduledTasks).ConfigureAwait(false);
 		}
 
 		return Task.CompletedTask;
