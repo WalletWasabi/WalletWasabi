@@ -50,15 +50,15 @@ public class App : Application
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		if (!Design.IsDesignMode)
+		if (!Design.IsDesignMode && ApplicationLifetime is not null)
 		{
+			var uiContext = CreateUiContext();
+			UiContext.Default = uiContext;
+			_applicationStateManager =
+				new ApplicationStateManager(ApplicationLifetime, uiContext, _startInBg);
+
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
-				var uiContext = CreateUiContext();
-				UiContext.Default = uiContext;
-				_applicationStateManager =
-					new ApplicationStateManager(desktop, uiContext, _startInBg);
-
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
