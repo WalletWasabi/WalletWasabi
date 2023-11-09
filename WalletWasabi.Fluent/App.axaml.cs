@@ -78,6 +78,10 @@ public class App : Application
 
 				InitializeTrayIcons();
 			}
+			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+			{
+				// TODO:
+			}
 		}
 
 		base.OnFrameworkInitializationCompleted();
