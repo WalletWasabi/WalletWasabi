@@ -92,19 +92,23 @@ public partial class WalletModel : ReactiveObject
 				throw new InvalidOperationException($"Invalid name {value}");
 			}
 
-			var newName = value + "." + WalletDirectories.WalletFileExtension;
-			var oldName = Wallet.WalletName + "." + WalletDirectories.WalletFileExtension;
-			Rename(oldName, newName, Services.WalletManager.WalletDirectories.WalletsDir);
+			string walletDir = Services.WalletManager.WalletDirectories.WalletsDir;
+			var oldWalletPath = Path.Combine(walletDir, Wallet.WalletName + "." + WalletDirectories.WalletFileExtension);
+			var newWalletPath = Path.Combine(walletDir, value + "." + WalletDirectories.WalletFileExtension);
+			Rename(oldWalletPath, newWalletPath);
 			try
 			{
-				Rename(oldName, newName, Services.WalletManager.WalletDirectories.WalletsBackupDir);
+				string backupDir = Services.WalletManager.WalletDirectories.WalletsBackupDir;
+				var oldBackupPath = Path.Combine(backupDir, Wallet.WalletName + "." + WalletDirectories.WalletFileExtension);
+				var newBackupPath = Path.Combine(backupDir, value + "." + WalletDirectories.WalletFileExtension);
+				Rename(oldBackupPath, newBackupPath);
 			}
 			catch (Exception e)
 			{
 				Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
 			}
 
-			Wallet.WalletName = value;
+			Wallet.SetFilePath(newWalletPath);
 			
 			this.RaisePropertyChanged();
 		}
@@ -115,9 +119,10 @@ public partial class WalletModel : ReactiveObject
 		return !WalletHelpers.ValidateWalletName(value).HasValue;
 	}
 
-	private void Rename(string oldName, string newName, string rootDir)
+	private void Rename(string sourceFileName, string destFileName)
 	{
-		File.Move(Path.Combine(rootDir, oldName), Path.Combine(rootDir, newName));
+		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
+		File.Move(sourceFileName, destFileName);
 	}
 	
 	public Network Network => Wallet.Network;

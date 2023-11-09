@@ -239,7 +239,6 @@ public class KeyManager
 	public string WalletName
 	{
 		get => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
-		set => SetFilePath(value);
 	}
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)

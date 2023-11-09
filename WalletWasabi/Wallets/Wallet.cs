@@ -76,11 +76,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public static int NextId => WalletCount + 1;
 
-	public string WalletName
-	{
-		get => KeyManager.WalletName;
-		set => KeyManager.WalletName = value;
-	}
+	public string WalletName => KeyManager.WalletName;
 
 	public WalletState State
 	{
@@ -138,7 +134,7 @@ public class Wallet : BackgroundService, IWallet
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
-	
+
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
@@ -584,6 +580,8 @@ public class Wallet : BackgroundService, IWallet
 		coin.IsExcludedFromCoinJoin = exclude;
 		UpdateExcludedCoinFromCoinJoin();
 	}
+
+	public void SetFilePath(string path) => KeyManager.SetFilePath(path);
 
 	private void UpdateExcludedCoinFromCoinJoin()
 	{
