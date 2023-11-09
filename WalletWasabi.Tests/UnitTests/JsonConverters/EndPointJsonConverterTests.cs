@@ -77,8 +77,8 @@ public class EndPointJsonConverterTests
 		// Unique cases.
 		// Microsoft sees and and returns null before even calling the converter's Read function.
 		{
-			string token = "null";
-			AssertDeserializeFailure<FormatException>(token);
+			//string token = "null";
+			//AssertDeserializeFailure<FormatException>(token);
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

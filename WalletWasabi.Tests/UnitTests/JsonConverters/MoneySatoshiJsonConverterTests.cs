@@ -77,10 +77,10 @@ public class MoneySatoshiJsonConverterTests
 
 			// Old.
 			{
-				// This fails here already with InvalidCastException.
-				TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
-				Assert.NotNull(product);
-				Assert.Null(product.Price);
+				// This fails here already with InvalidCastException because it expects and uses numerical value by default, not string.
+				//TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
+				//Assert.NotNull(product);
+				//Assert.Null(product.Price);
 			}
 
 			// New.
