@@ -8,7 +8,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class CoinjoinModel: ReactiveObject
 {
 	private CoinJoinManager? _coinJoinManager;
-	private bool _asd;
 
 	public bool CanShutdown()
 	{

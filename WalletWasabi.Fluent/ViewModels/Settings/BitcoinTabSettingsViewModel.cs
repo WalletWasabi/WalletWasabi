@@ -52,6 +52,10 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
 			}
+			else
+			{
+				Settings.BitcoinP2PEndPoint = BitcoinP2PEndPoint;
+			}
 		}
 	}
 
@@ -60,16 +64,25 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		var dustThreshold = DustThreshold;
 		if (!string.IsNullOrWhiteSpace(dustThreshold))
 		{
+			bool error = false;
+
 			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(
 				',',
 				StringComparison.InvariantCultureIgnoreCase))
 			{
+				error = true;
 				errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
 			}
 
 			if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
 			{
+				error = true;
 				errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
+			}
+
+			if (!error)
+			{
+				Settings.DustThreshold = dustThreshold;
 			}
 		}
 	}

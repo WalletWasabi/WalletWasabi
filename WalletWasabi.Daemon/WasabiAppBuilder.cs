@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -240,7 +239,7 @@ public static class WasabiAppExtensions
 				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
 					ProcessCommands();
-					await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
+					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
 				}
 
 			}).ConfigureAwait(false);

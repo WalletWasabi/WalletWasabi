@@ -26,6 +26,7 @@ public class ConfigWatcher : PeriodicRunner
 
 			ExecuteWhenChanged();
 		}
+
 		return Task.CompletedTask;
 	}
 }

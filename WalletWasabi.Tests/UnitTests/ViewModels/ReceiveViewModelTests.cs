@@ -22,7 +22,7 @@ public class ReceiveViewModelTests
 	[Fact]
 	public void UnusedAddress()
 	{
-		Assert.True(HasUnusedAddresses(configuration => { configuration.SetUnused("addr"); }));
+		Assert.True(HasUnusedAddresses(configuration => configuration.SetUnused("addr")));
 	}
 
 	[Fact]
