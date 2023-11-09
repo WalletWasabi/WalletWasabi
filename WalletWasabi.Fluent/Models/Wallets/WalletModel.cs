@@ -88,7 +88,7 @@ public partial class WalletModel : ReactiveObject
 
 			if (!IsValidWalletName(value))
 			{
-				Logger.LogWarning($"Invalid name '{value}' when attempting to rename {Wallet.WalletName}");
+				Logger.LogWarning($"Invalid name '{value}' when attempting to rename '{Wallet.WalletName}'");
 				throw new InvalidOperationException($"Invalid name {value}");
 			}
 
