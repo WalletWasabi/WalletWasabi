@@ -86,8 +86,17 @@ public class App : Application
 
 		base.OnFrameworkInitializationCompleted();
 #if DEBUG
-		this.AttachDevTools();
+		if (CanRunDevTools())
+		{
+			this.AttachDevTools();
+		}
 #endif
+	}
+
+	private bool CanRunDevTools()
+	{
+		return !OperatingSystem.IsAndroid()
+		       && !OperatingSystem.IsIOS();
 	}
 
 	private void InitializeTrayIcons()
