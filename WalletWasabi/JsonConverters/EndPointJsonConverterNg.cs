@@ -6,30 +6,6 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.JsonConverters;
 
-public class MainNetBitcoinP2pEndPointConverterNg : EndPointJsonConverterNg
-{
-	public MainNetBitcoinP2pEndPointConverterNg()
-		: base(Constants.DefaultMainNetBitcoinP2pPort)
-	{
-	}
-}
-
-public class TestNetBitcoinP2pEndPointConverterNg : EndPointJsonConverterNg
-{
-	public TestNetBitcoinP2pEndPointConverterNg()
-		: base(Constants.DefaultTestNetBitcoinP2pPort)
-	{
-	}
-}
-
-public class RegTestBitcoinP2pEndPointConverterNg : EndPointJsonConverterNg
-{
-	public RegTestBitcoinP2pEndPointConverterNg()
-		: base(Constants.DefaultRegTestBitcoinCoreRpcPort)
-	{
-	}
-}
-
 public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
 	public EndPointJsonConverterNg(int defaultPort)
