@@ -41,7 +41,7 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 	private void Program_RunAsGuiAsync()
 	{
 		_uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-		Services.Initialize(_app.Global!, _uiConfig, _app.SingleInstanceChecker);
+		Services.Initialize(_app.Global!, _uiConfig, _app.SingleInstanceChecker, _app.TerminateService);
 	}
 
 	public static UiConfig LoadOrCreateUiConfig(string dataDir)
