@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
+using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -109,13 +111,12 @@ public class WasabiApplication
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		PersistentConfig persistentConfig = new(ConfigFilePath);
-		persistentConfig.LoadFile(createIfMissing: true);
+		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
-		if (persistentConfig.MigrateOldDefaultBackendUris())
+		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
-			// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-			persistentConfig.ToFile();
+			persistentConfig = newConfig;
+			ConfigManager.ToFile(ConfigFilePath, persistentConfig);
 		}
 
 		return persistentConfig;
@@ -238,7 +239,7 @@ public static class WasabiAppExtensions
 				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
 					ProcessCommands();
-					await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
+					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
 				}
 
 			}).ConfigureAwait(false);

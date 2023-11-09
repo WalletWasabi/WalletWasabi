@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using NBitcoin;
-using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
@@ -34,7 +34,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+		ConfirmationTime = wallet.Transactions.TryEstimateConfirmationTime(transaction);
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
@@ -46,8 +46,9 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Transactions.TransactionProcessed
-							.Do(Update)
+		_wallet.Transactions.Cache
+			                .Connect()
+							.Do(_ => Update())
 							.Subscribe()
 							.DisposeWith(disposables);
 	}
