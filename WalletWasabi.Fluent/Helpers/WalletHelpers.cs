@@ -44,7 +44,7 @@ public static class WalletHelpers
 
 		if (string.IsNullOrEmpty(walletName))
 		{
-			return null;
+			return (ErrorSeverity.Error, "The name cannot be empty");
 		}
 
 		if (walletName.IsTrimmable())

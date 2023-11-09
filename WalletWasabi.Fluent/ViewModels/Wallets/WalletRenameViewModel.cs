@@ -3,7 +3,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -20,9 +19,9 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 			x => x.NewWalletName,
 			errors =>
 			{
-				if (ErrorString() is { } error)
+				if (UiContext.WalletRepository.ValidateWalletName(NewWalletName) is { } error)
 				{
-					errors.Add(ErrorSeverity.Error, error);
+					errors.Add(error.Severity, error.Message);
 				}
 			});
 
@@ -31,18 +30,6 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 		NextCommand = ReactiveCommand.Create(() => OnRename(wallet), canRename);
 	}
 
-	private string? ErrorString()
-	{
-		return NewWalletName switch
-		{
-			{ Length: 0 } => "The name cannot be empty",
-			{ Length: > 50 } => "The name is too long",
-			var name when name.TrimStart().Length != name.Length => "The name should not have leading white spaces",
-			var name when name.TrimEnd().Length != name.Length => "The name should not have trailing white spaces",
-			_ => null
-		};
-	}
-	
 	private void OnRename(IWalletModel wallet)
 	{
 		try
