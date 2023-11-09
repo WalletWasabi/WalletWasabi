@@ -20,24 +20,9 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 			x => x.NewWalletName,
 			errors =>
 			{
-				if (string.IsNullOrWhiteSpace(NewWalletName))
+				if (ErrorString() is { } error)
 				{
-					errors.Add(ErrorSeverity.Error, "The name cannot be empty");
-				}
-
-				if (NewWalletName.Length > 50)
-				{
-					errors.Add(ErrorSeverity.Error, "The name is too long");
-				}
-
-				if (NewWalletName.TrimStart().Length != NewWalletName.Length)
-				{
-					errors.Add(ErrorSeverity.Error, "The name should not have leading white spaces");
-				}
-
-				if (NewWalletName.TrimEnd().Length != NewWalletName.Length)
-				{
-					errors.Add(ErrorSeverity.Error, "The name should not have trailing white spaces");
+					errors.Add(ErrorSeverity.Error, error);
 				}
 			});
 
@@ -46,6 +31,18 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 		NextCommand = ReactiveCommand.Create(() => OnRename(wallet), canRename);
 	}
 
+	private string? ErrorString()
+	{
+		return NewWalletName switch
+		{
+			{ Length: 0 } => "The name cannot be empty",
+			{ Length: > 50 } => "The name is too long",
+			var name when name.TrimStart().Length != name.Length => "The name should not have leading white spaces",
+			var name when name.TrimEnd().Length != name.Length => "The name should not have trailing white spaces",
+			_ => null
+		};
+	}
+	
 	private void OnRename(IWalletModel wallet)
 	{
 		try
