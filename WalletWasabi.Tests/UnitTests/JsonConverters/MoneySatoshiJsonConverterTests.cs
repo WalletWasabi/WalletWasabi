@@ -74,21 +74,7 @@ public class MoneySatoshiJsonConverterTests
 		// Tests that both JSON converters deserialize to NULL if a JSON number-string is found instead of a JSON integer.
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": "2999" }""";
-
-			// Old.
-			{
-				// This fails here already with InvalidCastException because it expects and uses numerical value by default, not string.
-				//TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
-				//Assert.NotNull(product);
-				//Assert.Null(product.Price);
-			}
-
-			// New.
-			{
-				TestProduct? product = JsonConvertNew.Deserialize<TestProduct>(json);
-				Assert.NotNull(product);
-				Assert.Null(product.Price);
-			}
+			AssertDeserializeFailure<InvalidCastException>(S("2999"));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -128,6 +114,9 @@ public class MoneySatoshiJsonConverterTests
 			Assert.Throws<Newtonsoft.Json.JsonReaderException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
 			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
+
+		static string S(string s)
+			=> $"\"{s}\"";
 	}
 
 	/// <summary>

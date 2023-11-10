@@ -11,7 +11,7 @@ public class MoneySatoshiJsonConverterNg : JsonConverter<Money>
 	{
 		if (reader.TokenType != JsonTokenType.Number)
 		{
-			return null;
+			throw new InvalidCastException();
 		}
 
 		return new Money(reader.GetInt64());
