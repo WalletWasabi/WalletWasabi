@@ -14,9 +14,7 @@ public class MoneySatoshiJsonConverterNg : JsonConverter<Money>
 			return null;
 		}
 
-		long? serialized = reader.GetInt64();
-
-		return serialized is null ? null : new Money(serialized.Value);
+		return new Money(reader.GetInt64());
 	}
 
 	/// <inheritdoc />
