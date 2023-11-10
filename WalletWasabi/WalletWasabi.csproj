@@ -35,9 +35,6 @@
 
 	<ItemGroup>
 		<!-- TODO: Workaround for incompatible package Microsoft.AspNetCore.Mvc.NewtonsoftJson -->
-		<!--<PackageReference Include="Microsoft.AspNetCore.DataProtection" />-->
-		<!-- TODO: Microsoft.AspNetCore.Mvc is Depracated -->
-		<!--<PackageReference Include="Microsoft.AspNetCore.Mvc" />-->
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
