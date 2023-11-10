@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
-using System.Xml.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
@@ -236,10 +235,7 @@ public class KeyManager
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
 	private HdPubKeyGenerator? TaprootInternalKeyGenerator { get; }
 
-	public string WalletName
-	{
-		get => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
-	}
+	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
