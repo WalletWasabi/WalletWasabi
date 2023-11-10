@@ -81,11 +81,6 @@ public partial class WalletModel : ReactiveObject
 		get => Wallet.WalletName;
 		set
 		{
-			if (value == null)
-			{
-				throw new InvalidOperationException("Wallet name can't be set to null");
-			}
-
 			if (!IsValidWalletName(value))
 			{
 				Logger.LogWarning($"Invalid name '{value}' when attempting to rename '{Wallet.WalletName}'");
