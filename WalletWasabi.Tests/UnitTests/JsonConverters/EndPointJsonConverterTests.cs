@@ -1,8 +1,6 @@
-using NBitcoin;
 using System.Net;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
 using JsonConvertOld = Newtonsoft.Json.JsonConvert;
@@ -75,10 +73,9 @@ public class EndPointJsonConverterTests
 		}
 
 		// Unique cases.
-		// Microsoft sees and and returns null before even calling the converter's Read function.
 		{
-			//string token = "null";
-			//AssertDeserializeFailure<FormatException>(token);
+			string token = "null";
+			AssertDeserializeFailure<FormatException>(token);
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

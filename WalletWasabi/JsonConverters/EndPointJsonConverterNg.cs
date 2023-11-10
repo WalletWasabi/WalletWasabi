@@ -7,6 +7,9 @@ namespace WalletWasabi.JsonConverters;
 
 public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
+	/// <inheritdoc/>
+	public override bool HandleNull => true;
+
 	public EndPointJsonConverterNg(int defaultPort)
 	{
 		DefaultPort = defaultPort;
@@ -17,12 +20,14 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 	/// <inheritdoc />
 	public override EndPoint? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		if (reader.TokenType != JsonTokenType.String)
+		string? endPointString;
+
+		if (reader.TokenType != JsonTokenType.String && reader.TokenType != JsonTokenType.Null)
 		{
 			throw new JsonException("Expected a JSON string value.");
 		}
 
-		string? endPointString = reader.GetString();
+		endPointString = reader.GetString();
 
 		if (EndPointParser.TryParse(endPointString, DefaultPort, out EndPoint? endPoint))
 		{
@@ -39,7 +44,7 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 	{
 		if (value is null)
 		{
-			throw new NotSupportedException($"{nameof(EndPointJsonConverter)} can only convert {nameof(EndPoint)}.");
+			writer.WriteNullValue();
 		}
 		else
 		{
