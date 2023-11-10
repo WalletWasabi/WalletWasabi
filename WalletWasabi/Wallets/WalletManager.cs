@@ -243,7 +243,7 @@ public class WalletManager : IWalletProvider
 	{
 		lock (Lock)
 		{
-			if (Wallets.Any(w => w.WalletName == wallet.WalletName))
+			if (Wallets.Any(w => w.Id == wallet.Id))
 			{
 				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 			}
