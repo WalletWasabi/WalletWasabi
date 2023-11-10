@@ -11,7 +11,6 @@ namespace WalletWasabi.Wallets;
 public interface IWallet
 {
 	int Id { get; }
-	string WalletName { get; }
 	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
 
