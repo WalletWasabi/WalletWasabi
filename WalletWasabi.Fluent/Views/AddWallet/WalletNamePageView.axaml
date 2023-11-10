@@ -16,7 +16,7 @@
                  IsBusy="{Binding IsBusy}"
                  EnableNext="True" NextContent="Continue">
     <StackPanel DockPanel.Dock="Top">
-      <TextBox MaxLength="50" Text="{Binding WalletName}" Watermark="Type in a wallet name">
+      <TextBox MaxLength="{StaticResource WalletNameMaxLength}" Text="{Binding WalletName}" Watermark="Type in a wallet name">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
           <behaviors:TextBoxSelectAllTextBehavior />

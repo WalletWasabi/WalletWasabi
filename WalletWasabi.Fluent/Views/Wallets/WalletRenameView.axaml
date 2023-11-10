@@ -13,8 +13,8 @@
                  EnableBack="{Binding EnableBack}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableNext="True" NextContent="Save"
-                 Height="280">
-    <TextBox MaxLength="50" Text="{Binding NewWalletName}" VerticalAlignment="Top" Watermark="Wallet name">
+                 Height="280" Width="450">
+    <TextBox MaxLength="{StaticResource WalletNameMaxLength}" Text="{Binding NewWalletName}" VerticalAlignment="Top" Watermark="Wallet name">
       <Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
         <behaviors:TextBoxSelectAllTextBehavior />
