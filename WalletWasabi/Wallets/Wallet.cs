@@ -355,7 +355,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
-		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
+		Logger.LogInfo($"Wallet {this} is fully synchronized.");
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
@@ -529,7 +529,7 @@ public class Wallet : BackgroundService, IWallet
 					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
-						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						Logger.LogInfo($"'{this}': Transaction was successfully tested against the backend's mempool hashes: {hash}.");
 					}
 					else
 					{
@@ -603,4 +603,6 @@ public class Wallet : BackgroundService, IWallet
 
 		KeyManager.ToFile();
 	}
+
+	public override string ToString() => @$"[{Id}:""{WalletName}""]";
 }
