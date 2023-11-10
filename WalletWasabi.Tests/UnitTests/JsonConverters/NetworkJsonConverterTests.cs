@@ -68,8 +68,6 @@ public class NetworkJsonConverterTests
 
 		// Unique cases.
 		{
-			// Here, Newtonsoft fails with ArgumentNullException because of null.
-			// But Microsoft will instantly recognize the null as a value, and will just return it, without even calling the converter's Read function.
 			string token = "null";
 			AssertDeserializeFailure<ArgumentNullException>(token);
 		}
