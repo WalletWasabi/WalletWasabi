@@ -7,13 +7,13 @@ namespace WalletWasabi.JsonConverters;
 
 public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
-	/// <inheritdoc/>
-	public override bool HandleNull => true;
-
 	public EndPointJsonConverterNg(int defaultPort)
 	{
 		DefaultPort = defaultPort;
 	}
+
+	/// <inheritdoc/>
+	public override bool HandleNull => true;
 
 	private int DefaultPort { get; }
 
