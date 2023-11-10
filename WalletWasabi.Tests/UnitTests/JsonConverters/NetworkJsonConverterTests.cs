@@ -1,13 +1,6 @@
 using NBitcoin;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
 using JsonConvertOld = Newtonsoft.Json.JsonConvert;
@@ -72,12 +65,13 @@ public class NetworkJsonConverterTests
 			string token = "100";
 			AssertDeserializeDifferentExceptions<InvalidCastException, JsonException>(token);
 		}
+
 		// Unique cases.
 		{
 			// Here, Newtonsoft fails with ArgumentNullException because of null.
 			// But Microsoft will instantly recognize the null as a value, and will just return it, without even calling the converter's Read function.
-			//string token = "null";
-			//AssertDeserializeFailure<ArgumentNullException>(token);
+			string token = "null";
+			AssertDeserializeFailure<ArgumentNullException>(token);
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
