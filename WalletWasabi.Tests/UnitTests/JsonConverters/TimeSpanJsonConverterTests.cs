@@ -1,11 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
@@ -51,8 +44,9 @@ public class TimeSpanJsonConverterTests
 			AssertBothDeserialize(S(token));
 		}
 
-		// Failing cases
+		// Failing cases.
 		{
+			// Valid input is: <days>d <hours>h <minutes>m <seconds>s. All other variants are invalid.
 			string token = "1440";
 			AssertDeserializeFailure<IndexOutOfRangeException>(S(token));
 
@@ -81,7 +75,7 @@ public class TimeSpanJsonConverterTests
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
-	where TException : Exception
+			where TException : Exception
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Date": {{jsonToken}} }""";
 
