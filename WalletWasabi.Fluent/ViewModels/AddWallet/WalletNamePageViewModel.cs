@@ -29,7 +29,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		var nextCommandCanExecute =
 			this.WhenAnyValue(x => x.WalletName)
-				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
+				.Select(_ => !Validations.Any);
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
