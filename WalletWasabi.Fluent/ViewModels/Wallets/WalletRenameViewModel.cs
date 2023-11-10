@@ -19,6 +19,11 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 			x => x.NewWalletName,
 			errors =>
 			{
+				if (wallet.Name == NewWalletName)
+				{
+					return;
+				}
+
 				if (UiContext.WalletRepository.ValidateWalletName(NewWalletName) is { } error)
 				{
 					errors.Add(error.Severity, error.Message);
