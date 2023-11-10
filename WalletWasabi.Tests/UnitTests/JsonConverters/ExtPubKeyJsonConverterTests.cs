@@ -1,13 +1,5 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
@@ -15,6 +7,9 @@ using JsonConvertOld = Newtonsoft.Json.JsonConvert;
 
 namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 
+/// <summary>
+/// Tests for <see cref="ExtPubKeyJsonConverter"/> and <see cref="ExtPubKeyJsonConverterNg"/> classes.
+/// </summary>
 public class ExtPubKeyJsonConverterTests
 {
 	/// <summary>
