@@ -20,7 +20,8 @@ public class MoneySatoshiJsonConverterNg : JsonConverter<Money>
 	/// <inheritdoc />
 	public override void Write(Utf8JsonWriter writer, Money? value, JsonSerializerOptions options)
 	{
-		long longValue = value?.Satoshi ?? throw new ArgumentNullException(nameof(value));
+		long longValue = value?.Satoshi
+			?? throw new ArgumentNullException(nameof(value));
 		writer.WriteNumberValue(longValue);
 	}
 }
