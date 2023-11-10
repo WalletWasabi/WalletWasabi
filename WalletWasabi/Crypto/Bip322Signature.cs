@@ -17,9 +17,9 @@ public record Bip322Signature : IBitcoinSerializable
 	{
 	}
 
-	public Script ScriptSig => _scriptSig;
+	public Script? ScriptSig => _scriptSig;
 
-	public WitScript Witness { get; private set; } = WitScript.Empty;
+	public WitScript? Witness { get; private set; } = WitScript.Empty;
 
 	public void ReadWrite(BitcoinStream bitcoinStream)
 	{
