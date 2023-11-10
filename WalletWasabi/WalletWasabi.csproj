@@ -41,7 +41,7 @@
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="System.IO.Pipelines" />
 		<PackageReference Include="Microsoft.Data.Sqlite" />
-		<!-- TODO: Required to make iossimulator-arm64 RID work for iOS project -->
+		<!-- TODO: Can be removed after update to Microsoft.Data.Sqlite 8.0 which references SQLitePCLRaw.bundle_e_sqlite3 >= 2.1.6 -->
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" />
 		<PackageReference Include="NBitcoin" />

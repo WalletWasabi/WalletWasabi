@@ -15,7 +15,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.9" />
     <!-- SQLite. -->
 	<PackageVersion Include="Microsoft.Data.Sqlite" Version="7.0.13" />
-	<!-- TODO: SQLitePCLRaw.bundle_e_sqlite3 can be removed when Microsoft.Data.Sqlite gets updated version -->
+	<!-- TODO: Can be removed after update to Microsoft.Data.Sqlite 8.0 which references SQLitePCLRaw.bundle_e_sqlite3 >= 2.1.6 -->
 	<PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.6" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
     <!-- C# analysis. -->
