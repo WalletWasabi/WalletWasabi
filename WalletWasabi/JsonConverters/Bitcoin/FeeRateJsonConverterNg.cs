@@ -14,8 +14,7 @@ public class FeeRateJsonConverterNg : JsonConverter<FeeRate>
 			throw new JsonException("Expected a JSON number value.");
 		}
 
-		long? serialized = reader.GetInt64();
-		return serialized is null ? null : new FeeRate(Money.Satoshis(serialized.Value));
+		return new FeeRate(Money.Satoshis(reader.GetInt64()));
 	}
 
 	/// <inheritdoc />

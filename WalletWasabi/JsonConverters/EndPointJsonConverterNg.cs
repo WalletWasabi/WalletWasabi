@@ -1,34 +1,9 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.JsonConverters;
-
-public class MainNetBitcoinP2pEndPointConverterNg : EndPointJsonConverterNg
-{
-	public MainNetBitcoinP2pEndPointConverterNg()
-		: base(Constants.DefaultMainNetBitcoinP2pPort)
-	{
-	}
-}
-
-public class TestNetBitcoinP2pEndPointConverterNg : EndPointJsonConverterNg
-{
-	public TestNetBitcoinP2pEndPointConverterNg()
-		: base(Constants.DefaultTestNetBitcoinP2pPort)
-	{
-	}
-}
-
-public class RegTestBitcoinP2pEndPointConverterNg : EndPointJsonConverterNg
-{
-	public RegTestBitcoinP2pEndPointConverterNg()
-		: base(Constants.DefaultRegTestBitcoinCoreRpcPort)
-	{
-	}
-}
 
 public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
@@ -37,17 +12,22 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 		DefaultPort = defaultPort;
 	}
 
+	/// <inheritdoc/>
+	public override bool HandleNull => true;
+
 	private int DefaultPort { get; }
 
 	/// <inheritdoc />
 	public override EndPoint? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		if (reader.TokenType != JsonTokenType.String)
+		string? endPointString;
+
+		if (reader.TokenType != JsonTokenType.String && reader.TokenType != JsonTokenType.Null)
 		{
 			throw new JsonException("Expected a JSON string value.");
 		}
 
-		string? endPointString = reader.GetString();
+		endPointString = reader.GetString();
 
 		if (EndPointParser.TryParse(endPointString, DefaultPort, out EndPoint? endPoint))
 		{
@@ -64,7 +44,7 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 	{
 		if (value is null)
 		{
-			throw new NotSupportedException($"{nameof(EndPointJsonConverter)} can only convert {nameof(EndPoint)}.");
+			writer.WriteNullValue();
 		}
 		else
 		{

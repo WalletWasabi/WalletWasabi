@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,14 +11,23 @@ namespace WalletWasabi.JsonConverters;
 public class NetworkJsonConverterNg : JsonConverter<Network>
 {
 	/// <inheritdoc/>
+	public override bool HandleNull => true;
+
+	/// <inheritdoc/>
 	public override Network? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		if (reader.TokenType != JsonTokenType.String)
+		string? networkString;
+
+		if (reader.TokenType == JsonTokenType.Null)
+		{
+			throw new ArgumentNullException(nameof(networkString));
+		}
+		else if (reader.TokenType != JsonTokenType.String)
 		{
 			throw new JsonException("Expected a JSON string.");
 		}
 
-		string? networkString = reader.GetString();
+		networkString = reader.GetString();
 
 		if (networkString is null)
 		{
@@ -37,9 +45,13 @@ public class NetworkJsonConverterNg : JsonConverter<Network>
 	/// <inheritdoc/>
 	public override void Write(Utf8JsonWriter writer, Network? value, JsonSerializerOptions options)
 	{
-		string network = value?.ToString()
-			?? throw new ArgumentNullException(nameof(value));
-
-		writer.WriteStringValue(network);
+		if (value is null)
+		{
+			writer.WriteNullValue();
+		}
+		else
+		{
+			writer.WriteStringValue(value.ToString());
+		}
 	}
 }

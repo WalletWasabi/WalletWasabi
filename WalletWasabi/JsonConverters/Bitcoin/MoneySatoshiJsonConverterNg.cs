@@ -11,18 +11,17 @@ public class MoneySatoshiJsonConverterNg : JsonConverter<Money>
 	{
 		if (reader.TokenType != JsonTokenType.Number)
 		{
-			throw new JsonException("Expected a JSON number value.");
+			throw new InvalidCastException();
 		}
 
-		long? serialized = reader.GetInt64();
-
-		return serialized is null ? null : new Money(serialized.Value);
+		return new Money(reader.GetInt64());
 	}
 
 	/// <inheritdoc />
 	public override void Write(Utf8JsonWriter writer, Money? value, JsonSerializerOptions options)
 	{
-		long longValue = value?.Satoshi ?? throw new ArgumentNullException(nameof(value));
+		long longValue = value?.Satoshi
+			?? throw new ArgumentNullException(nameof(value));
 		writer.WriteNumberValue(longValue);
 	}
 }
