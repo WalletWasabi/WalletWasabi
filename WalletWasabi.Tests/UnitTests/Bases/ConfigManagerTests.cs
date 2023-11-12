@@ -1,6 +1,6 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
@@ -28,18 +28,20 @@ public class ConfigManagerTests
 
 		string expectedLocalBitcoinCoreDataDir = nameof(ConfigManagerTests);
 
+		JsonSerializerOptions serializationSettings = PersistentConfigJsonSerializationOptions.Default.Settings;
+
 		// Create config and store it.
 		PersistentConfig actualConfig = new();
 		actualConfig = actualConfig with { LocalBitcoinCoreDataDir = expectedLocalBitcoinCoreDataDir };
 
-		string storedJson = ConfigManager.ToFile(configPath, actualConfig);
-		PersistentConfig readConfig = ConfigManager.LoadFile<PersistentConfig>(configPath);
+		string storedJson = ConfigManager.ToFile(configPath, actualConfig, serializationSettings);
+		PersistentConfig readConfig = ConfigManager.LoadFile<PersistentConfig, JsonSerializerOptions>(configPath, serializationSettings);
 
 		// Is the content of each config the same?
 		Assert.Equal(expectedLocalBitcoinCoreDataDir, readConfig.LocalBitcoinCoreDataDir);
 
 		string expected = GetConfigString(expectedLocalBitcoinCoreDataDir);
-		string actual = JsonConvert.SerializeObject(readConfig, Formatting.Indented, JsonSerializationOptions.Default.Settings);
+		string actual = JsonSerializer.Serialize(readConfig, serializationSettings);
 
 		AssertJsonStringsEqual(expected, actual);
 		AssertJsonStringsEqual(expected, storedJson);
@@ -86,6 +88,8 @@ public class ConfigManagerTests
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
 		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
+		var serializationSettings = JsonSerializationOptions.Default.Settings;
+
 		// Create config and store it.
 		WabiSabiConfig config = new();
 		config.SetFilePath(configPath);
@@ -99,7 +103,7 @@ public class ConfigManagerTests
 			Assert.Equal(expectedFileContents, actualFileContents);
 
 			// No change was done.
-			Assert.False(ConfigManager.CheckFileChange(configPath, config));
+			Assert.False(ConfigManager.CheckFileChange(configPath, config, serializationSettings));
 		}
 
 		// Change coordination fee rate.
@@ -108,7 +112,7 @@ public class ConfigManagerTests
 			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.006m, plebsDontPayThreshold: Money.Coins(0.01m));
 
 			// Change should be detected.
-			Assert.True(ConfigManager.CheckFileChange(configPath, config));
+			Assert.True(ConfigManager.CheckFileChange(configPath, config, serializationSettings));
 
 			// Now store and check that JSON is as expected.
 			config.ToFile();

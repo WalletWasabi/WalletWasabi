@@ -1,76 +1,72 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
 using WalletWasabi.Interfaces;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases;
 
 public class ConfigManager
 {
-	private static readonly bool UseNg = true;
-
-	static ConfigManager()
+	public static string ToFile<T, TSerializationOptions>(string filePath, T obj, TSerializationOptions options)
 	{
-		SerializerSettingsNg.Converters.Add(new NetworkJsonConverterNg());
-		SerializerSettingsNg.Converters.Add(new FeeRateJsonConverterNg());
-		SerializerSettingsNg.Converters.Add(new MoneySatoshiJsonConverterNg());
-		SerializerSettingsNg.Converters.Add(new TimeSpanJsonConverterNg());
-		SerializerSettingsNg.Converters.Add(new ExtPubKeyJsonConverterNg());
-	}
-
-	/// <remarks>Do not add converters that are not needed. It prolongs app's startup time.</remarks>
-	private static readonly JsonSerializerSettings SerializerSettings = new()
-	{
-		Converters = new List<JsonConverter>()
-			{
-				new NetworkJsonConverter(),
-				new FeeRateJsonConverter(),
-				new MoneySatoshiJsonConverter(),
-				new TimeSpanJsonConverter(),
-				new ExtPubKeyJsonConverter(),
-			}
-	};
-
-	/// <remarks>Do not add converters that are not needed. It prolongs app's startup time.</remarks>
-	private static readonly JsonSerializerOptions SerializerSettingsNg = new();
-
-	private static readonly Newtonsoft.Json.JsonSerializer Serializer = Newtonsoft.Json.JsonSerializer.Create(SerializerSettings);
-
-	public static string ToFile<T>(string filePath, T obj)
-	{
-		string jsonString = UseNg
-			? JsonConvert.SerializeObject(obj, Formatting.Indented, SerializerSettings)
-			: System.Text.Json.JsonSerializer.Serialize<T>(obj, SerializerSettingsNg);
-
+		string jsonString = Serialize(obj, options);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 		return jsonString;
 	}
 
-	public static bool AreDeepEqual(object current, object other)
+	private static string Serialize<T, TSerializationOptions>(T obj, TSerializationOptions options)
 	{
-		JObject currentConfig = JObject.FromObject(current, Serializer);
-		JObject otherConfigJson = JObject.FromObject(other, Serializer);
-		return JToken.DeepEquals(otherConfigJson, currentConfig);
+		string jsonString;
+
+		if (options is JsonSerializerOptions serializerOptions)
+		{
+			jsonString = System.Text.Json.JsonSerializer.Serialize<T>(obj, serializerOptions);
+		}
+		else if (options is JsonSerializerSettings serializerSettings)
+		{
+			jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, serializerSettings);
+		}
+		else
+		{
+			throw new NotSupportedException();
+		}
+
+		return jsonString;
+	}
+
+	public static bool AreDeepEqual<TSerializationOptions>(object current, object other, TSerializationOptions options)
+	{
+		if (options is JsonSerializerOptions serializerOptions)
+		{
+			string currentConfig = Serialize(current, serializerOptions);
+			string otherConfigJson = Serialize(other, serializerOptions);
+			return currentConfig == otherConfigJson;
+		}
+		else if (options is JsonSerializerSettings serializerSettings)
+		{
+			Newtonsoft.Json.JsonSerializer serializer = Newtonsoft.Json.JsonSerializer.Create(serializerSettings);
+			JObject currentConfig = JObject.FromObject(current, serializer);
+			JObject otherConfigJson = JObject.FromObject(other, serializer);
+			return JToken.DeepEquals(otherConfigJson, currentConfig);
+		}
+
+		throw new NotSupportedException();
 	}
 
 	/// <summary>
 	/// Check if the config file differs from the config if the file path of the config file is set, otherwise throw exception.
 	/// </summary>
-	public static bool CheckFileChange<T>(string filePath, T current)
+	public static bool CheckFileChange<T, TSerializationOptions>(string filePath, T current, TSerializationOptions options)
 		where T : IConfig, new()
 	{
-		T diskVersion = LoadFile<T>(filePath);
-		return !AreDeepEqual(diskVersion, current);
+		T diskVersion = LoadFile<T, TSerializationOptions>(filePath, options);
+		return !AreDeepEqual(diskVersion, current, options);
 	}
 
-	private static TResponse LoadFile<TResponse>(string filePath)
+	private static TResponse LoadFile<TResponse, TSerializationOptions>(string filePath, TSerializationOptions options)
 	{
 		if (!File.Exists(filePath))
 		{
@@ -79,41 +75,52 @@ public class ConfigManager
 
 		string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
 
-		TResponse? result = UseNg
-			? System.Text.Json.JsonSerializer.Deserialize<TResponse>(jsonString, SerializerSettingsNg)
-			: JsonConvert.DeserializeObject<TResponse>(jsonString, SerializerSettings);
+		TResponse? result;
+
+		if (options is JsonSerializerOptions serializerOptions)
+		{
+			result = System.Text.Json.JsonSerializer.Deserialize<TResponse>(jsonString, serializerOptions);
+		}
+		else if (options is JsonSerializerSettings serializerSettings)
+		{
+			result = JsonConvert.DeserializeObject<TResponse>(jsonString, serializerSettings);
+		}
+		else
+		{
+			throw new NotSupportedException();
+		}
 
 		return result is not null
 			? result
 			: throw new Newtonsoft.Json.JsonException("Unexpected null value.");
 	}
 
-	public static TResponse LoadFile<TResponse>(string filePath, bool createIfMissing = false)
+	public static TResponse LoadFile<TResponse, TSerializationOptions>(string filePath, TSerializationOptions options, bool createIfMissing = false)
 		where TResponse : IConfigNg, new()
 	{
 		TResponse result;
 
 		if (!createIfMissing)
 		{
-			return LoadFile<TResponse>(filePath);
+			return LoadFile<TResponse, TSerializationOptions>(filePath, options);
 		}
 
 		if (!File.Exists(filePath))
 		{
 			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			result = new();
-			ToFile(filePath, result);
+			ToFile(filePath, result, options);
 		}
 		else
 		{
 			try
 			{
-				return LoadFile<TResponse>(filePath);
+				return LoadFile<TResponse, TSerializationOptions>(filePath, options);
 			}
 			catch (Exception ex)
 			{
 				result = new();
-				ToFile(filePath, result);
+				ToFile(filePath, result, options);
 
 				Logger.LogInfo($"File has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
 				Logger.LogWarning(ex);

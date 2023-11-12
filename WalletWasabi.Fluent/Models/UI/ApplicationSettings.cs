@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -165,7 +166,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !ConfigManager.AreDeepEqual(_startupConfig, config);
+		return !ConfigManager.AreDeepEqual(_startupConfig, config, JsonSerializationOptions.Default.Settings);
 	}
 
 	private void Save()
@@ -176,7 +177,7 @@ public partial class ApplicationSettings : ReactiveObject
 				try
 				{
 					PersistentConfig newConfig = ApplyChanges(_startupConfig);
-					ConfigManager.ToFile(_persistentConfigFilePath, newConfig);
+					ConfigManager.ToFile(_persistentConfigFilePath, newConfig, JsonSerializationOptions.Default.Settings);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}

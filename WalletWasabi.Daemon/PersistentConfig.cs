@@ -39,14 +39,17 @@ public record PersistentConfig : IConfigNg
 
 	[JsonProperty(PropertyName = "MainNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
 	[System.Text.Json.Serialization.JsonPropertyName("MainNetCoordinatorUri")]
+	[System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
 	public string? MainNetCoordinatorUri { get; init; }
 
 	[JsonProperty(PropertyName = "TestNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
 	[System.Text.Json.Serialization.JsonPropertyName("TestNetCoordinatorUri")]
+	[System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
 	public string? TestNetCoordinatorUri { get; init; }
 
 	[JsonProperty(PropertyName = "RegTestCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
 	[System.Text.Json.Serialization.JsonPropertyName("RegTestCoordinatorUri")]
+	[System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
 	public string? RegTestCoordinatorUri { get; init; }
 
 	[DefaultValue(true)]

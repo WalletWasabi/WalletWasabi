@@ -9,6 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using Constants = WalletWasabi.Helpers.Constants;
+using System.Text.Json;
 
 namespace WalletWasabi.Daemon;
 
@@ -111,12 +112,13 @@ public class WasabiApplication
 
 	private PersistentConfig LoadOrCreateConfigs(string filePath)
 	{
-		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(filePath, createIfMissing: true);
+		JsonSerializerOptions options = PersistentConfigJsonSerializationOptions.Default.Settings;
+		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig, JsonSerializerOptions>(filePath, options, createIfMissing: true);
 
 		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
 			persistentConfig = newConfig;
-			ConfigManager.ToFile(filePath, persistentConfig);
+			ConfigManager.ToFile(filePath, persistentConfig, options);
 		}
 
 		return persistentConfig;

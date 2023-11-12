@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Services;
 
@@ -19,7 +20,7 @@ public class ConfigWatcher : PeriodicRunner
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		if (ConfigManager.CheckFileChange(Config.FilePath, Config))
+		if (ConfigManager.CheckFileChange(Config.FilePath, Config, JsonSerializationOptions.Default.Settings))
 		{
 			cancel.ThrowIfCancellationRequested();
 			Config.LoadFile(createIfMissing: true);
