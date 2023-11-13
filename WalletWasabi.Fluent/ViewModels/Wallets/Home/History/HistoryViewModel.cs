@@ -43,7 +43,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Labels			LabelsColumnView			Labels			*			75				-			true
 		// Received			ReceivedColumnView			Received (BTC)	Auto		145				210			true
 		// Sent				SentColumnView				Sent (BTC)		Auto		145				210			true
-		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 
@@ -56,7 +55,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				LabelsColumn(),
 				ReceivedColumn(),
 				SentColumn(),
-				BalanceColumn(),
 			}
 		};
 
@@ -151,24 +149,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.OutgoingAmount),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.OutgoingAmount),
-				MinWidth = new GridLength(145, GridUnitType.Pixel),
-				MaxWidth = new GridLength(210, GridUnitType.Pixel)
-			},
-			width: new GridLength(0, GridUnitType.Auto),
-			numberOfPrivacyChars: 9);
-	}
-
-	private static IColumn<HistoryItemViewModelBase> BalanceColumn()
-	{
-		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Balance (BTC)",
-			x => x.Transaction.Balance?.ToFormattedString(),
-			options: new ColumnOptions<HistoryItemViewModelBase>
-			{
-				CanUserResizeColumn = false,
-				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Balance),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Balance),
 				MinWidth = new GridLength(145, GridUnitType.Pixel),
 				MaxWidth = new GridLength(210, GridUnitType.Pixel)
 			},

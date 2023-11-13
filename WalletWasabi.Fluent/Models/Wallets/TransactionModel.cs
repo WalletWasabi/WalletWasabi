@@ -33,8 +33,6 @@ public partial class TransactionModel : ReactiveObject
 
 	public bool IsChild { get; set; }
 
-	public Money? Balance { get; set; }
-
 	public required Money Amount { get; set; }
 
 	public Money? IncomingAmount => GetAmounts().IncomingAmount;
@@ -81,6 +79,6 @@ public partial class TransactionModel : ReactiveObject
 
 	public override string ToString()
 	{
-		return $"{Type} {Status} {DateString} {Amount} {Balance}";
+		return $"{Type} {Status} {DateString} {Amount}";
 	}
 }
