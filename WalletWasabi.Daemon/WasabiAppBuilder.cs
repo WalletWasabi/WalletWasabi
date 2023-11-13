@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
+using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -22,6 +23,7 @@ public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
 	public Global? Global { get; private set; }
+	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
@@ -29,7 +31,11 @@ public class WasabiApplication
 	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
 		AppConfig = wasabiAppBuilder;
+
+		ConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
+		Directory.CreateDirectory(Config.DataDir);
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
+
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 		SingleInstanceChecker = new(Config.Network);
@@ -101,19 +107,16 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-		=> new(Config.DataDir, Config);
+		=> new(Config.DataDir, ConfigFilePath, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		Directory.CreateDirectory(Config.DataDir);
+		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
-		PersistentConfig persistentConfig = new(Path.Combine(Config.DataDir, "Config.json"));
-		persistentConfig.LoadFile(createIfMissing: true);
-
-		if (persistentConfig.MigrateOldDefaultBackendUris())
+		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
-			// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-			persistentConfig.ToFile();
+			persistentConfig = newConfig;
+			ConfigManager.ToFile(ConfigFilePath, persistentConfig);
 		}
 
 		return persistentConfig;
@@ -236,7 +239,7 @@ public static class WasabiAppExtensions
 				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
 					ProcessCommands();
-					await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
+					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
 				}
 
 			}).ConfigureAwait(false);

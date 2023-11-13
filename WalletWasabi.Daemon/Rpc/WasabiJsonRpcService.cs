@@ -121,6 +121,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		var km = activeWallet.KeyManager;
+		var segwit = new JsonRpcResult
+		{
+			["name"] = "segwit",
+			["publicKey"] = km.SegwitExtPubKey.ToString(Global.Network),
+			["keyPath"] = $"m/{km.SegwitAccountKeyPath}"
+		};
 		var info = new JsonRpcResult
 		{
 			["walletName"] = activeWallet.WalletName,
@@ -132,22 +138,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isRedCoinIsolation"] = activeWallet.KeyManager.RedCoinIsolation,
-			["accounts"] = new [] {
-				new JsonRpcResult
-				{
-					["name"] = "segwit",
-					["publicKey"] = km.SegwitExtPubKey.ToString(Global.Network),
-					["keyPath"] = $"m/{km.SegwitAccountKeyPath}"
-				}
-
-			}
+			["accounts"] = new [] { segwit }
 		};
 
 		if (km.TaprootExtPubKey is { } taprootExtPubKey)
 		{
 			info["accounts"] = new[]
 			{
-				info["accounts"],
+				segwit,
 				new JsonRpcResult
 				{
 					["name"] = "taproot",
@@ -372,7 +370,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["label"] = x.Labels.ToString(),
 				["scriptPubKey"] = x.GetAssumedScriptPubKey().ToString(),
 				["pubkey"] = x.PubKey.ToString(),
-				["pubKeyHash"] = x.PubKeyHash.ToString(),
+				["pubKeyHash"] = x.PubKey.Hash.ToString(),
 				["address"] = x.GetAddress(Global.Network).ToString()
 			}).ToImmutableArray();
 	}
