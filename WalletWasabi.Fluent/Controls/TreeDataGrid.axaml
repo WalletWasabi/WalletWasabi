@@ -35,7 +35,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="PART_SelectionIndicator"
-                BorderThickness="0"
+                BorderThickness="1"
                 CornerRadius="30"
                 x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase"
                 Background="{DynamicResource Layer1BackgroundBrush}">
@@ -160,7 +160,8 @@
       <ControlTemplate>
         <DockPanel LastChildFill="True">
           <Border Name="PART_SelectionIndicator"
-                  BorderThickness="2 0 0 0"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource Layer1BackgroundBrush}"
                   DockPanel.Dock="Left"
                   VerticalAlignment="Stretch" />
           <Panel>
@@ -177,22 +178,14 @@
     <Style Selector="^/template/ Rectangle#BackgroundRectangle">
       <Setter Property="Fill" Value="{DynamicResource SystemControlTransparentBrush}" />
     </Style>
-    <Style Selector="^:pointerover /template/ Rectangle#BackgroundRectangle">
-      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundBrush}" />
+    <Style Selector="^/template/ Border#PART_SelectionIndicator">
+      <Setter Property="BorderBrush" Value="{DynamicResource Layer1BackgroundBrush}" />
     </Style>
-    <Style Selector="^:selected /template/ Rectangle#BackgroundRectangle">
-      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundBrush}" />
-      <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundOpacity}" />
-    </Style>
-    <Style Selector="^:selected:focus /template/ Rectangle#BackgroundRectangle">
-      <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundBrush}" />
-      <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedBackgroundOpacity}" />
+    <Style Selector="^:pointerover /template/ Border#PART_SelectionIndicator">
+      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" />
     </Style>
     <Style Selector="^:selected /template/ Border#PART_SelectionIndicator">
       <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
-    </Style>
-    <Style Selector="^/template/ Border#PART_SelectionIndicator">
-      <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
     <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
       <Setter Property="Background" Value="Transparent" />
