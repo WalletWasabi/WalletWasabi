@@ -130,8 +130,9 @@
         <TreeDataGrid.Styles>
           <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
             <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="Margin" Value="10 0" />
+            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeH7}" />
+            <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
           </Style>

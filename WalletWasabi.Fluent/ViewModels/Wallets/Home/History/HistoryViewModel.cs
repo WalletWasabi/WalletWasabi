@@ -40,8 +40,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
-		// Labels			LabelsColumnView			Labels			*			75				-			true
 		// Amount			ReceivedColumnView			Received (BTC)	Auto		145				210			true
+		// Labels			LabelsColumnView			Labels			*			75				-			true
+		// Actions			ActionsColumnView			Actions			Auto		-				-			false
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 
@@ -51,13 +52,16 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				IndicatorsColumn(),
 				DateColumn(),
-				LabelsColumn(),
 				AmountColumn(),
+				LabelsColumn(),
+				ActionsColumn(),
 			}
 		};
 
 		Source.RowSelection!.SingleSelect = true;
 	}
+
+
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
@@ -76,7 +80,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 					CanUserSortColumn = true,
 					CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.IsCoinjoin),
 					CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.IsCoinjoin),
-					MinWidth = new GridLength(80, GridUnitType.Pixel)
 				},
 				width: new GridLength(0, GridUnitType.Auto)),
 			x => x.Children,
@@ -95,7 +98,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Date),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Date),
-				MinWidth = new GridLength(150, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 15);
@@ -129,11 +131,22 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.DisplayAmount),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.DisplayAmount),
-				MinWidth = new GridLength(145, GridUnitType.Pixel),
-				MaxWidth = new GridLength(210, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 9);
+	}
+
+	private IColumn<HistoryItemViewModelBase> ActionsColumn()
+	{
+		return new TemplateColumn<HistoryItemViewModelBase>(
+			"Actions",
+			new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new ActionsColumnView(), true),
+			options: new TemplateColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = false,
+			},
+			width: new GridLength(0, GridUnitType.Auto));
 	}
 
 	public void SelectTransaction(uint256 txid)
