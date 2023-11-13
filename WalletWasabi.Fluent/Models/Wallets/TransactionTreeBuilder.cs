@@ -126,7 +126,8 @@ public class TransactionTreeBuilder
 			OrderIndex = index,
 			Labels = transactionSummary.Labels,
 			Date = date,
-			DateString = date.ToUserFacingString(),
+			DateString = date.ToUserFacingFriendlyString(),
+			DateToolTipString = date.ToUserFacingString(),
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 			Type = itemType,
@@ -153,7 +154,8 @@ public class TransactionTreeBuilder
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 			Id = transactionSummary.GetHash(),
 			Date = date,
-			DateString = date.ToUserFacingString(),
+			DateString = date.ToUserFacingFriendlyString(),
+			DateToolTipString = date.ToUserFacingString(),
 			OrderIndex = index,
 			Type = TransactionType.CoinjoinGroup,
 			Status = status,
@@ -171,6 +173,7 @@ public class TransactionTreeBuilder
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
 			DateString = parent.DateString,
+			DateToolTipString = parent.DateToolTipString,
 			Confirmations = parent.Confirmations,
 			BlockHeight = parent.BlockHeight,
 			BlockHash = parent.BlockHash,
@@ -223,10 +226,12 @@ public class TransactionTreeBuilder
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
 
-		coinjoinGroup.DateString =
+		coinjoinGroup.DateString = lastDate.ToUserFacingFriendlyString();
+
+		coinjoinGroup.DateToolTipString =
 			firstDate.Day == lastDate.Day
 			? $"{firstDate.ToUserFacingString(withTime: false)}"
-			: $"{firstDate.ToUserFacingString(withTime: false)} - {lastDate.ToUserFacingString(withTime: false)}";
+			: $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}";
 	}
 
 	private TransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary)
@@ -241,7 +246,8 @@ public class TransactionTreeBuilder
 			Amount = transactionSummary.Amount,
 			OrderIndex = index,
 			Date = date,
-			DateString = date.ToUserFacingString(),
+			DateString = date.ToUserFacingFriendlyString(),
+			DateToolTipString = date.ToUserFacingString(),
 			Labels = transactionSummary.Labels,
 			Type = TransactionType.Coinjoin,
 			Status = status,

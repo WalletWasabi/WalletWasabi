@@ -19,6 +19,8 @@ public partial class TransactionModel : ReactiveObject
 
 	public required string DateString { get; set; }
 
+	public required string DateToolTipString { get; set; }
+
 	public required int Confirmations { get; init; }
 
 	public int BlockHeight { get; init; }
