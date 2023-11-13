@@ -33,16 +33,8 @@
       </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding Transaction.IncomingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding Transaction.IncomingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <MenuItem.Icon>
-          <PathIcon Data="{StaticResource btc_logo}" />
-        </MenuItem.Icon>
-      </MenuItem>
-      <MenuItem Header="Copy Amount"
-                Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding Transaction.OutgoingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding Transaction.OutgoingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                CommandParameter="{Binding Transaction.DisplayAmount, StringFormat={}{0}}"
+                IsVisible="{Binding Transaction.DisplayAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
@@ -125,6 +117,7 @@
     <Panel>
       <TreeDataGrid Source="{Binding Source}"
                     CanUserResizeColumns="False"
+                    ShowColumnHeaders="False"
                     Margin="0 0 0 0"
                     IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
         <i:Interaction.Behaviors>
@@ -135,27 +128,12 @@
           <treeDataGrid:PrivacyElementFactory />
         </TreeDataGrid.ElementFactory>
         <TreeDataGrid.Styles>
-          <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
-            <Setter Property="(i:Interaction.Behaviors)">
-              <i:BehaviorCollectionTemplate>
-                <i:BehaviorCollection>
-                  <behaviors:PendingHistoryItemSeparatorBehavior />
-                </i:BehaviorCollection>
-              </i:BehaviorCollectionTemplate>
-            </Setter>
-          </Style>
           <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
             <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
             <Setter Property="FontSize" Value="15" />
             <Setter Property="Margin" Value="10 0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
-          </Style>
-          <Style Selector="TreeDataGridRow /template/ Rectangle#PART_Separator">
-            <Setter Property="Fill" Value="Transparent" />
-          </Style>
-          <Style Selector="TreeDataGridRow.separator /template/ Rectangle#PART_Separator">
-            <Setter Property="Fill" Value="{DynamicResource TreeDataGridGridLinesBrush}" />
           </Style>
           <Style Selector="PathIcon">
             <Setter Property="Height" Value="13" />

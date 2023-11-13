@@ -41,8 +41,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
 		// Labels			LabelsColumnView			Labels			*			75				-			true
-		// Received			ReceivedColumnView			Received (BTC)	Auto		145				210			true
-		// Sent				SentColumnView				Sent (BTC)		Auto		145				210			true
+		// Amount			ReceivedColumnView			Received (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 
@@ -53,8 +52,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				IndicatorsColumn(),
 				DateColumn(),
 				LabelsColumn(),
-				ReceivedColumn(),
-				SentColumn(),
+				AmountColumn(),
 			}
 		};
 
@@ -120,35 +118,17 @@ public partial class HistoryViewModel : ActivatableViewModel
 			width: new GridLength(1, GridUnitType.Star));
 	}
 
-	private static IColumn<HistoryItemViewModelBase> ReceivedColumn()
+	private static IColumn<HistoryItemViewModelBase> AmountColumn()
 	{
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Received (BTC)",
-			x => x.Transaction.IncomingAmount?.ToFormattedString(),
+			"Amount (BTC)",
+			x => x.Transaction.DisplayAmount?.ToFormattedString(),
 			options: new ColumnOptions<HistoryItemViewModelBase>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.IncomingAmount),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.IncomingAmount),
-				MinWidth = new GridLength(145, GridUnitType.Pixel),
-				MaxWidth = new GridLength(210, GridUnitType.Pixel)
-			},
-			width: new GridLength(0, GridUnitType.Auto),
-			numberOfPrivacyChars: 9);
-	}
-
-	private static IColumn<HistoryItemViewModelBase> SentColumn()
-	{
-		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Sent (BTC)",
-			x => x.Transaction.OutgoingAmount?.ToFormattedString(),
-			options: new ColumnOptions<HistoryItemViewModelBase>
-			{
-				CanUserResizeColumn = false,
-				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.OutgoingAmount),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.OutgoingAmount),
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.DisplayAmount),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.DisplayAmount),
 				MinWidth = new GridLength(145, GridUnitType.Pixel),
 				MaxWidth = new GridLength(210, GridUnitType.Pixel)
 			},

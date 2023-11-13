@@ -35,9 +35,7 @@ public partial class TransactionModel : ReactiveObject
 
 	public required Money Amount { get; set; }
 
-	public Money? IncomingAmount => GetAmounts().IncomingAmount;
-
-	public Money? OutgoingAmount => GetAmounts().OutgoingAmount;
+	public Money? DisplayAmount => GetAmount();
 
 	public Money? Fee { get; set; }
 
@@ -55,21 +53,11 @@ public partial class TransactionModel : ReactiveObject
 
 	public bool IsCancellation => Type == TransactionType.Cancellation;
 
-	private (Money? IncomingAmount, Money? OutgoingAmount) GetAmounts()
+	private Money GetAmount()
 	{
-		Money? incomingAmount = null;
-		Money? outgoingAmount = null;
-
-		if (Amount < Money.Zero)
-		{
-			outgoingAmount = -Amount - (Fee ?? Money.Zero);
-		}
-		else
-		{
-			incomingAmount = Amount;
-		}
-
-		return (incomingAmount, outgoingAmount);
+		return Amount < Money.Zero
+			? Amount + (Fee ?? Money.Zero)
+			: Amount;
 	}
 
 	public void Add(TransactionModel child)

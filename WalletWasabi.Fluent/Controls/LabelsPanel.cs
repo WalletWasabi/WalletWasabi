@@ -145,7 +145,7 @@ public class LabelsPanel : Panel
 
 		size = size.WithWidth(result.Width);
 
-		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
+		return InfiniteWidthMeasure ? new Size(10000, size.Height) : size;
 	}
 
 	private CalculateResult CalculateWidth(
