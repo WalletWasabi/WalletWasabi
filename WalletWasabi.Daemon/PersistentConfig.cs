@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -12,7 +13,7 @@ using WalletWasabi.JsonConverters.Bitcoin;
 namespace WalletWasabi.Daemon;
 
 [JsonObject(MemberSerialization.OptIn)]
-public record PersistentConfig : IConfigNg
+public record PersistentConfig : IConfigNg, IDeepEqual<PersistentConfig>
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
@@ -20,6 +21,7 @@ public record PersistentConfig : IConfigNg
 	[JsonProperty(PropertyName = "Network")]
 	[System.Text.Json.Serialization.JsonPropertyName("Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
+	[System.Text.Json.Serialization.JsonConverter(typeof(NetworkJsonConverterNg))]
 	public Network Network { get; set; } = Network.Main;
 
 	[DefaultValue(Constants.BackendUri)]
@@ -137,6 +139,34 @@ public record PersistentConfig : IConfigNg
 	[System.Text.Json.Serialization.JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
+	public bool DeepEquals(PersistentConfig other)
+	{
+		return
+			Network == other.Network &&
+			MainNetBackendUri == other.MainNetBackendUri &&
+			TestNetBackendUri == other.TestNetBackendUri &&
+			RegTestBackendUri == other.RegTestBackendUri &&
+			MainNetCoordinatorUri == other.MainNetCoordinatorUri &&
+			TestNetCoordinatorUri == other.TestNetCoordinatorUri &&
+			RegTestCoordinatorUri == other.RegTestCoordinatorUri &&
+			UseTor == other.UseTor &&
+			TerminateTorOnExit == other.TerminateTorOnExit &&
+			DownloadNewVersion == other.DownloadNewVersion &&
+			StartLocalBitcoinCoreOnStartup == other.StartLocalBitcoinCoreOnStartup &&
+			StopLocalBitcoinCoreOnShutdown == other.StopLocalBitcoinCoreOnShutdown &&
+			LocalBitcoinCoreDataDir == other.LocalBitcoinCoreDataDir &&
+			MainNetBitcoinP2pEndPoint.Equals(other.MainNetBitcoinP2pEndPoint) &&
+			TestNetBitcoinP2pEndPoint.Equals(other.TestNetBitcoinP2pEndPoint) &&
+			RegTestBitcoinP2pEndPoint.Equals(other.RegTestBitcoinP2pEndPoint) &&
+			JsonRpcServerEnabled == other.JsonRpcServerEnabled &&
+			JsonRpcUser == other.JsonRpcUser &&
+			JsonRpcPassword == other.JsonRpcPassword &&
+			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
+			DustThreshold == other.DustThreshold &&
+			EnableGpu == other.EnableGpu &&
+			CoordinatorIdentifier == other.CoordinatorIdentifier;
+	}
+
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)
@@ -154,7 +184,7 @@ public record PersistentConfig : IConfigNg
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public bool MigrateOldDefaultBackendUris([NotNullWhenAttribute(true)] out PersistentConfig? newConfig)
+	public bool MigrateOldDefaultBackendUris([NotNullWhen(true)] out PersistentConfig? newConfig)
 	{
 		bool hasChanged = false;
 		newConfig = null;

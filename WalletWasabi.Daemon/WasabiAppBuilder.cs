@@ -112,13 +112,12 @@ public class WasabiApplication
 
 	private PersistentConfig LoadOrCreateConfigs(string filePath)
 	{
-		JsonSerializerOptions options = PersistentConfigJsonSerializationOptions.Default.Settings;
-		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig, JsonSerializerOptions>(filePath, options, createIfMissing: true);
+		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(filePath, createIfMissing: true);
 
 		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
 			persistentConfig = newConfig;
-			ConfigManager.ToFile(filePath, persistentConfig, options);
+			ConfigManagerNg.ToFile(filePath, persistentConfig);
 		}
 
 		return persistentConfig;
