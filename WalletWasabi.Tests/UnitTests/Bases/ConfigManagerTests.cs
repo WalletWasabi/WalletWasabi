@@ -24,8 +24,6 @@ public class ConfigManagerTests
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
 		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
-		var serializationSettings = JsonSerializationOptions.Default.Settings;
-
 		// Create config and store it.
 		WabiSabiConfig config = new();
 		config.SetFilePath(configPath);
@@ -39,7 +37,7 @@ public class ConfigManagerTests
 			Assert.Equal(expectedFileContents, actualFileContents);
 
 			// No change was done.
-			Assert.False(ConfigManager.CheckFileChange(configPath, config, serializationSettings));
+			Assert.False(ConfigManager.CheckFileChange(configPath, config));
 		}
 
 		// Change coordination fee rate.
@@ -48,7 +46,7 @@ public class ConfigManagerTests
 			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.006m, plebsDontPayThreshold: Money.Coins(0.01m));
 
 			// Change should be detected.
-			Assert.True(ConfigManager.CheckFileChange(configPath, config, serializationSettings));
+			Assert.True(ConfigManager.CheckFileChange(configPath, config));
 
 			// Now store and check that JSON is as expected.
 			config.ToFile();

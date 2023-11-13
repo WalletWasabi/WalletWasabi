@@ -166,7 +166,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !ConfigManager.AreDeepEqual(_startupConfig, config, JsonSerializationOptions.Default.Settings);
+		return !_startupConfig.DeepEquals(config);
 	}
 
 	private void Save()
@@ -177,7 +177,7 @@ public partial class ApplicationSettings : ReactiveObject
 				try
 				{
 					PersistentConfig newConfig = ApplyChanges(_startupConfig);
-					ConfigManager.ToFile(_persistentConfigFilePath, newConfig, JsonSerializationOptions.Default.Settings);
+					ConfigManagerNg.ToFile(_persistentConfigFilePath, newConfig);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}

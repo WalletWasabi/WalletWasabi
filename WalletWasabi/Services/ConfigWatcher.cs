@@ -20,7 +20,7 @@ public class ConfigWatcher : PeriodicRunner
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		if (ConfigManager.CheckFileChange(Config.FilePath, Config, JsonSerializationOptions.Default.Settings))
+		if (ConfigManager.CheckFileChange(Config.FilePath, Config))
 		{
 			cancel.ThrowIfCancellationRequested();
 			Config.LoadFile(createIfMissing: true);
