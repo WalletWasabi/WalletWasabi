@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Services;
 
