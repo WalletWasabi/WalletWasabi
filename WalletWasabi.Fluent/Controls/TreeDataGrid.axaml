@@ -37,8 +37,7 @@
                 BorderThickness="1"
                 x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase"
                 Classes.isChild="{Binding Transaction.IsChild}"
-                Classes.isExpanded="{Binding IsExpanded}"
-                Margin="0 5 0 0">
+                Classes.isExpanded="{Binding IsExpanded}">
           <i:Interaction.Behaviors>
             <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
