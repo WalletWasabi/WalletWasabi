@@ -1,6 +1,5 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System.Text.Json;
 using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
@@ -53,11 +52,11 @@ public class FeeRateJsonConverterTests
 
 			//OldConverter - JsonReaderException, newConverter - JsonException
 			token = "1,0";
-			AssertDeserializeDifferentExceptions<Newtonsoft.Json.JsonReaderException, System.Text.Json.JsonException>(token);
+			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(token);
 
 			//OldConverter - JsonReaderException  newConverter - JsonException
 			token = "1,000.00";
-			AssertDeserializeDifferentExceptions<Newtonsoft.Json.JsonReaderException, System.Text.Json.JsonException>(token);
+			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(token);
 		}
 
 		// Unique case.
