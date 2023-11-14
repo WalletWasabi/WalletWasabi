@@ -17,7 +17,6 @@ using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
-using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
@@ -49,7 +48,6 @@ public class Startup
 		services.AddMvc(options =>
 			{
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Bip322Signature)));
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
 			})
 			.AddControllersAsServices();
