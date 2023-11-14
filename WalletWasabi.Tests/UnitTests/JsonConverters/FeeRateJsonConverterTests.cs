@@ -19,9 +19,7 @@ public class FeeRateJsonConverterTests
 		TestData testObject = new();
 
 		string json = AssertSerializedEqually(testObject);
-		Assert.Equal(
-			"""{"FeePaidSize":500000,"FeePerKByte":1000,"SatoshiPerByte":1000000,"Zero":0,"NoneFeeRate":null,"NotAnnotated":null}""",
-			json);
+		Assert.Equal("""{"FeePaidSize":500000,"FeePerKByte":1000,"SatoshiPerByte":1000000,"Zero":0,"NoneFeeRate":null,"NotAnnotated":null}""", json);
 	}
 
 	/// <summary>
