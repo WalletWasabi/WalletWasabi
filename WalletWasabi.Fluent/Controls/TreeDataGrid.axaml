@@ -29,7 +29,7 @@
   <ControlTheme x:Key="HistoryTableTreeDataGridRow" TargetType="TreeDataGridRow" BasedOn="{StaticResource GenericTreeDataGridRow}">
 
     <Setter Property="Focusable" Value="False" />
-    <Setter Property="Height" Value="35" />
+    <Setter Property="Height" Value="40" />
     <Setter Property="Margin" Value="0 0 0 5" />
 
     <Setter Property="Template">

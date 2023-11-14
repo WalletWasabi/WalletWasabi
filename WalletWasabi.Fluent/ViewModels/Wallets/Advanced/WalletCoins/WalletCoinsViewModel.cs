@@ -209,6 +209,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new PrivacyTextColumn<WalletCoinViewModel>(
 			"Amount",
 			node => node.Model.Amount.ToFormattedString(),
+			type: PrivacyCellType.Default,
 			options: new ColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,

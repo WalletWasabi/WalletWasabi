@@ -92,6 +92,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
 			"Date / Time",
 			x => x.Transaction.DateString,
+			type: PrivacyCellType.Date,
 			options: new ColumnOptions<HistoryItemViewModelBase>
 			{
 				CanUserResizeColumn = false,
@@ -125,6 +126,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
 			"Amount (BTC)",
 			x => x.Transaction.DisplayAmount?.ToFormattedString(),
+			type: PrivacyCellType.Amount,
 			options: new ColumnOptions<HistoryItemViewModelBase>
 			{
 				CanUserResizeColumn = false,

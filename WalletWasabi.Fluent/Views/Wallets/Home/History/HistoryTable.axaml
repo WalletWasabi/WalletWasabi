@@ -128,10 +128,17 @@
           <treeDataGrid:PrivacyElementFactory />
         </TreeDataGrid.ElementFactory>
         <TreeDataGrid.Styles>
-          <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
+          <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
             <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+            <Setter Property="Opacity" Value="0.8" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="20 0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+          </Style>
+          <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell">
             <Setter Property="Opacity" Value="0.6" />
-            <Setter Property="FontSize" Value="{StaticResource FontSizeH7}" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
