@@ -22,7 +22,7 @@ public class Prison
 	private Dictionary<uint256, List<Offender>> OffendersByTxId { get; }
 	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
 
-	/// <remarks>Lock object to guard <see cref="OffendersByTxId"/>.</remarks>
+	/// <remarks>Lock object to guard <see cref="OffendersByTxId"/>and <see cref="BanningTimeCache"/></remarks>
 	private object Lock { get; } = new();
 
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
@@ -63,16 +63,16 @@ public class Prison
 		{
 			var basePunishmentInHours = configuration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
 
-			List<RoundDisruption> offenderHistory;
+			IReadOnlyList<RoundDisruption> offenderHistory;
 			lock (Lock)
 			{
 				offenderHistory = OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders)
 					? offenders
-						.Where(x => x.OutPoint == offender.OutPoint)
+						.Where(x => x.OutPoint.N == offender.OutPoint.N)
 						.Select(x => x.Offense)
 						.OfType<RoundDisruption>()
 						.ToList()
-					: new List<RoundDisruption>();
+					: Array.Empty<RoundDisruption>();
 			}
 
 			var maxOffense = offenderHistory.Count == 0
