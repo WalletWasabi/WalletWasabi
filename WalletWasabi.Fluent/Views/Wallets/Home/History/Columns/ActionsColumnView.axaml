@@ -7,7 +7,16 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.ActionsColumnView"
              x:CompileBindings="True"
              x:DataType="viewmodel:HistoryItemViewModelBase">
-  <Border CornerRadius="30" Background="{DynamicResource Layer2BackgroundBrush}" HorizontalAlignment="Right">
+  <UserControl.Styles>
+    <Style Selector="Border">
+      <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
+    </Style>
+    <Style Selector="Border.isExpanded">
+      <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}" />
+    </Style>
+  </UserControl.Styles>
+  <Border CornerRadius="30" HorizontalAlignment="Right"
+          Classes.isExpanded="{Binding IsExpanded}">
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="15 0">
 
       <!-- SpeedUp -->

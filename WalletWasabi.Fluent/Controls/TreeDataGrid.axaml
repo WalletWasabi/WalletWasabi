@@ -30,15 +30,15 @@
 
     <Setter Property="Focusable" Value="False" />
     <Setter Property="Height" Value="40" />
-    <Setter Property="Margin" Value="0 0 0 5" />
 
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="PART_SelectionIndicator"
                 BorderThickness="1"
-                CornerRadius="30"
                 x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase"
-                Background="{DynamicResource Layer1BackgroundBrush}">
+                Classes.isChild="{Binding Transaction.IsChild}"
+                Classes.isExpanded="{Binding IsExpanded}"
+                Margin="0 5 0 0">
           <i:Interaction.Behaviors>
             <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
@@ -48,13 +48,18 @@
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
-                                        Rows="{TemplateBinding Rows}"
-                                        Classes.isChild="{Binding Transaction.IsChild}" />
+                                        Rows="{TemplateBinding Rows}" />
           </Panel>
         </Border>
 
       </ControlTemplate>
     </Setter>
+
+    <Style Selector="^/template/ Border#PART_SelectionIndicator">
+      <Setter Property="Margin" Value="0 5 0 0" />
+      <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="30" />
+    </Style>
 
     <Style Selector="^/template/ Rectangle#BackgroundRectangle.selectAnimation">
       <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
@@ -88,15 +93,25 @@
     <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="^/template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
-      <Setter Property="Background" Value="{DynamicResource SystemListLowColor}" />
+
+    <!-- Expand style -->
+    <Style Selector="^/template/ Border#PART_SelectionIndicator.isExpanded">
+      <Setter Property="CornerRadius" Value="15 15 0 0" />
     </Style>
-    <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
-      <Setter Property="Background" Value="Transparent" />
+
+    <!-- Child item style -->
+    <Style Selector="^/template/ Border#PART_SelectionIndicator.isChild">
+      <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Layer2BackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="0" />
     </Style>
-    <Style Selector="^:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
+    <!-- <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild"> -->
+    <!--   <Setter Property="Background" Value="Transparent" /> -->
+    <!-- </Style> -->
+    <!-- <Style Selector="^:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild"> -->
+    <!--   <Setter Property="Background" Value="Transparent" /> -->
+    <!-- </Style> -->
   </ControlTheme>
 
   <ControlTheme x:Key="HistoryTableTreeDataGridExpanderCell" TargetType="TreeDataGridExpanderCell">
