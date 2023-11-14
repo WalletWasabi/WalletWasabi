@@ -7,7 +7,7 @@ namespace WalletWasabi.JsonConverters.Bitcoin;
 public class FeeRateJsonConverterNg : JsonConverter<FeeRate>
 {
 	/// <inheritdoc />
-	public override FeeRate? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override FeeRate Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 		if (reader.TokenType != JsonTokenType.Number)
 		{
