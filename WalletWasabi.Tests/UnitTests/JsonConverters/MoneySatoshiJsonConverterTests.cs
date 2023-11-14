@@ -36,33 +36,33 @@ public class MoneySatoshiJsonConverterTests
 		// Json exceptions.
 		// Newtonsoft gives JsonReaderException, Microsoft gives JsonException. Similar but not the same.
 		{
-			string token = "1,000.00"; // Thousand separator.
-			AssertDeserializeJsonException(token);
+			string invalidToken = "1,000.00"; // Thousand separator.
+			AssertDeserializeJsonException(invalidToken);
 
-			token = "1,0"; // Decimal comma.
-			AssertDeserializeJsonException(token);
+			invalidToken = "1,0"; // Decimal comma.
+			AssertDeserializeJsonException(invalidToken);
 		}
 
 		// Casting errors Vs Format Exception.
 		{
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back FormatException.
-			string token = "0.00000000000000000000000000000000000000000000001";
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+			string invalidToken = "0.00000000000000000000000000000000000000000000001";
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back FormatException.
-			token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+			invalidToken = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back FormatException.
-			token = "1e6"; // Exponential notation.
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+			invalidToken = "1e6"; // Exponential notation.
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 		}
 
 		// Unique case.
 		{
 			// Newtonsoft gives back InvalidCastException, Microsoft gives back JsonException (Read function not even called).
-			string token = "1."; // No digit after decimal point.
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+			string invalidToken = "1."; // No digit after decimal point.
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 
 			// TODO: remove https://stackoverflow.com/questions/27361565/why-is-json-invalid-if-an-integer-begins-with-a-leading-zero
 			// https://www.rfc-editor.org/rfc/rfc4627.txt - section 2.4. Numbers mentions "Leading zeros are not allowed."
@@ -73,8 +73,8 @@ public class MoneySatoshiJsonConverterTests
 
 		// Tests that neither JSON converters can deserialize to NULL if a JSON number-string is found instead of a JSON integer.
 		{
-			string token = "2999";
-			AssertDeserializeFailure<InvalidCastException>(ConvertToString(token));
+			string invalidToken = "2999";
+			AssertDeserializeFailure<InvalidCastException>(ConvertToString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

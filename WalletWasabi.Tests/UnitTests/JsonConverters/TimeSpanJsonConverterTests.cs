@@ -47,20 +47,20 @@ public class TimeSpanJsonConverterTests
 		// Failing cases.
 		{
 			// Valid input is: <days>d <hours>h <minutes>m <seconds>s. All other variants are invalid.
-			string token = "1440";
-			AssertDeserializeFailure<IndexOutOfRangeException>(ConvertToString(token));
+			string invalidToken = "1440";
+			AssertDeserializeFailure<IndexOutOfRangeException>(ConvertToString(invalidToken));
 
-			token = "367d";
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "367d";
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "0h 0m 0s";
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "0h 0m 0s";
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "0s 0m 0h 0d";
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "0s 0m 0h 0d";
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "00:00:00";
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "00:00:00";
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

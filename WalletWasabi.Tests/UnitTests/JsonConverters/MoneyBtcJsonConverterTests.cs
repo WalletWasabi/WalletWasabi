@@ -47,20 +47,20 @@ public class MoneyBtcJsonConverterTests
 
 		// Format exception errors.
 		{
-			string token = "1e6"; // Exponential notation.
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			string invalidToken = "1e6"; // Exponential notation.
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "1,0"; // Decimal comma.
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "1,0"; // Decimal comma.
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "1,000.00"; // Thousand separator.
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "1,000.00"; // Thousand separator.
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 		}
 
 		// Unique case.
 		{
-			string token = "1."; // No digit after decimal point.
-			AssertBothDeserialize(ConvertToString(token));
+			string invalidToken = "1."; // No digit after decimal point.
+			AssertBothDeserialize(ConvertToString(invalidToken));
 		}
 
 		// Tests that both JSON converters deserialize to NULL if a JSON integer is found instead of a JSON number-string.

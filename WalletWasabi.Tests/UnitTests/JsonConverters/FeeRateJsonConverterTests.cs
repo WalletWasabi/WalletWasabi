@@ -45,29 +45,29 @@ public class FeeRateJsonConverterTests
 
 		// Format exception errors.
 		{
-			string token = "1e6";
+			string invalidToken = "1e6";
 			//OldConverter - InvalidCastException, newConverter - JsonException
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 
 			//OldConverter - JsonReaderException, newConverter - JsonException
-			token = "1,0";
-			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(token);
+			invalidToken = "1,0";
+			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(invalidToken);
 
 			//OldConverter - JsonReaderException  newConverter - JsonException
-			token = "1,000.00";
-			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(token);
+			invalidToken = "1,000.00";
+			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(invalidToken);
 		}
 
 		// Unique case.
 		{
-			string token = "1."; // No digit after decimal point.
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+			string invalidToken = "1."; // No digit after decimal point.
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 		}
 
 		// Tests that neither JSON converters can deserialize to NULL if a JSON number-string is found instead of a JSON integer.
 		{
-			string token = "100";
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(ConvertToString(token));
+			string invalidToken = "100";
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(ConvertToString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

@@ -65,17 +65,17 @@ public class EndPointJsonConverterTests
 
 		// Failing cases.
 		{
-			string token = "127.0.0.1:8888888";
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			string invalidToken = "127.0.0.1:8888888";
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "";
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "";
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 		}
 
 		// Unique cases.
 		{
-			string token = "null";
-			AssertDeserializeFailure<FormatException>(token);
+			string invalidToken = "null";
+			AssertDeserializeFailure<FormatException>(invalidToken);
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

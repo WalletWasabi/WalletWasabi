@@ -68,14 +68,14 @@ public class NetworkJsonConverterTests
 
 		// Failing cases.
 		{
-			string token = "100";
-			AssertDeserializeDifferentExceptions<InvalidCastException, JsonException>(token);
+			string invalidToken = "100";
+			AssertDeserializeDifferentExceptions<InvalidCastException, JsonException>(invalidToken);
 		}
 
 		// Unique cases.
 		{
-			string token = "null";
-			AssertDeserializeFailure<ArgumentNullException>(token);
+			string invalidToken = "null";
+			AssertDeserializeFailure<ArgumentNullException>(invalidToken);
 		}
 
 		static void AssertBothDeserialize(string jsonToken)

@@ -48,17 +48,17 @@ public class ExtPubKeyJsonConverterTests
 
 		// Failing cases.
 		{
-			string token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed one letter of the first example
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			string invalidToken = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed one letter of the first example
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "xpub1CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed xpub6 to xpub1
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "xpub1CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed xpub6 to xpub1
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx"; // Cut off half of the key
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx"; // Cut off half of the key
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 
-			token = "null"; // "null" as string
-			AssertDeserializeFailure<FormatException>(ConvertToString(token));
+			invalidToken = "null"; // "null" as string
+			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
