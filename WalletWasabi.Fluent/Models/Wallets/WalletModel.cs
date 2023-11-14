@@ -81,26 +81,7 @@ public partial class WalletModel : ReactiveObject
 		get => Wallet.WalletName;
 		set
 		{
-			if (!IsValidWalletName(value))
-			{
-				Logger.LogWarning($"Invalid name '{value}' when attempting to rename '{Wallet.WalletName}'");
-				throw new InvalidOperationException($"Invalid name {value}");
-			}
-
-			var walletDir = Services.WalletManager.WalletDirectories.WalletsDir;
-			Rename(WalletFile(walletDir, Wallet.WalletName), WalletFile(walletDir, value));
-			try
-			{
-				var backupDir = Services.WalletManager.WalletDirectories.WalletsBackupDir;
-				Rename(WalletFile(backupDir, Wallet.WalletName), WalletFile(backupDir, value));
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
-			}
-
-			Wallet.KeyManager.SetFilePath(WalletFile(walletDir, value));
-			
+			RenameWallet(value, Wallet.WalletName);
 			this.RaisePropertyChanged();
 		}
 	}
@@ -159,14 +140,37 @@ public partial class WalletModel : ReactiveObject
 
 	private static string WalletFile(string walletDir, string walletWalletName) => Path.Combine(walletDir, walletWalletName + "." + WalletDirectories.WalletFileExtension);
 
-	private static bool IsValidWalletName(string value)
-	{
-		return !WalletHelpers.ValidateWalletName(value).HasValue;
-	}
-
-	private static void Rename(string sourceFileName, string destFileName)
+	private static void MoveFile(string sourceFileName, string destFileName)
 	{
 		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
 		File.Move(sourceFileName, destFileName);
+	}
+
+	private void RenameWallet(string walletWalletName, string previousName)
+	{
+		if (!IsValidWalletName(walletWalletName))
+		{
+			Logger.LogWarning($"Invalid name '{walletWalletName}' when attempting to rename '{previousName}'");
+			throw new InvalidOperationException($"Invalid name {walletWalletName}");
+		}
+
+		var walletDir = Services.WalletManager.WalletDirectories.WalletsDir;
+		MoveFile(WalletFile(walletDir, previousName), WalletFile(walletDir, walletWalletName));
+		try
+		{
+			var backupDir = Services.WalletManager.WalletDirectories.WalletsBackupDir;
+			MoveFile(WalletFile(backupDir, previousName), WalletFile(backupDir, walletWalletName));
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
+		}
+
+		Wallet.KeyManager.SetFilePath(WalletFile(walletDir, walletWalletName));
+	}
+
+	private static bool IsValidWalletName(string value)
+	{
+		return !WalletHelpers.ValidateWalletName(value).HasValue;
 	}
 }
