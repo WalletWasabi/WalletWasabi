@@ -74,8 +74,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public int Id { get; }
 
-	public static int NextId => WalletCount + 1;
-
 	public string WalletName => KeyManager.WalletName;
 
 	public WalletState State
