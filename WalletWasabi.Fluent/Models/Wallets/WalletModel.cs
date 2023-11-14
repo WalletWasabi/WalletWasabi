@@ -105,19 +105,6 @@ public partial class WalletModel : ReactiveObject
 		}
 	}
 
-	private static string WalletFile(string walletDir, string walletWalletName) => Path.Combine(walletDir, walletWalletName + "." + WalletDirectories.WalletFileExtension);
-
-	private static bool IsValidWalletName(string value)
-	{
-		return !WalletHelpers.ValidateWalletName(value).HasValue;
-	}
-
-	private static void Rename(string sourceFileName, string destFileName)
-	{
-		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
-		File.Move(sourceFileName, destFileName);
-	}
-	
 	public Network Network => Wallet.Network;
 
 	public IWalletTransactionsModel Transactions { get; }
@@ -142,6 +129,25 @@ public partial class WalletModel : ReactiveObject
 
 	public IAmountProvider AmountProvider { get; }
 
+	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
+
+	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
+	{
+		return Wallet.GetLabelsWithRanking(intent);
+	}
+
+	public IWalletStatsModel GetWalletStats()
+	{
+		return new WalletStatsModel(this, Wallet);
+	}
+
+	public IWalletInfoModel GetWalletInfo()
+	{
+		return new WalletInfoModel(Wallet);
+	}
+
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
 		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
@@ -151,22 +157,16 @@ public partial class WalletModel : ReactiveObject
 		return nextReceiveAddress;
 	}
 
-	public IWalletInfoModel GetWalletInfo()
+	private static string WalletFile(string walletDir, string walletWalletName) => Path.Combine(walletDir, walletWalletName + "." + WalletDirectories.WalletFileExtension);
+
+	private static bool IsValidWalletName(string value)
 	{
-		return new WalletInfoModel(Wallet);
+		return !WalletHelpers.ValidateWalletName(value).HasValue;
 	}
 
-	public IWalletStatsModel GetWalletStats()
+	private static void Rename(string sourceFileName, string destFileName)
 	{
-		return new WalletStatsModel(this, Wallet);
-	}
-
-	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
-
-	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
-
-	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
-	{
-		return Wallet.GetLabelsWithRanking(intent);
+		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
+		File.Move(sourceFileName, destFileName);
 	}
 }
