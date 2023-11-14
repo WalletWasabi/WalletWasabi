@@ -22,7 +22,7 @@ public class Prison
 	private Dictionary<uint256, List<Offender>> OffendersByTxId { get; }
 	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
 
-	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
+	/// <remarks>Lock object to guard <see cref="OffendersByTxId"/>.</remarks>
 	private object Lock { get; } = new();
 
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
