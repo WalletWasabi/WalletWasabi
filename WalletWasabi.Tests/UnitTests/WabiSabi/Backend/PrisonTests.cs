@@ -168,6 +168,7 @@ public class PrisonTests
 		var failToSignBanningTime = prison.GetBanTimePeriod(ftcFailedToSign, cfg);
 		var inheritedBanningTime = prison.GetBanTimePeriod(ftcInheritFromFailedToSign, cfg);
 
-		Assert.Equal(failToSignBanningTime, inheritedBanningTime); // because fail to sign is punished harder
+		Assert.Equal(failToSignBanningTime.StartTime, inheritedBanningTime.StartTime); // because fail to sign is punished harder
+		Assert.Equal(failToSignBanningTime.Duration * 0.5, inheritedBanningTime.Duration); // after spending the punishment is reduced by half
 	}
 }

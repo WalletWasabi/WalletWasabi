@@ -96,10 +96,11 @@ public class Prison
 
 		TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors)
 		{
-			return ancestors
+			var banningTimeFrame = ancestors
 				.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a, configuration)))
 				.MaxBy(x => x.BanningTime.EndTime)
 				.BanningTime;
+			return new TimeFrame(banningTimeFrame.StartTime, banningTimeFrame.Duration / 2);
 		}
 
 		Offender? offender;
