@@ -133,7 +133,7 @@ public class Prison
 		return banningTime;
 	}
 
-	public void Punish(Offender offender)
+	private void Punish(Offender offender)
 	{
 		lock (Lock)
 		{
