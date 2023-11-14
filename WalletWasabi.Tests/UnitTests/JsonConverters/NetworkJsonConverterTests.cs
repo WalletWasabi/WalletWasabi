@@ -35,6 +35,9 @@ public class NetworkJsonConverterTests
 			string token = "Main";
 			AssertBothDeserialize(S(token));
 
+			token = "Mainnet";
+			AssertBothDeserialize(S(token));
+
 			token = "TestNet";
 			AssertBothDeserialize(S(token));
 
