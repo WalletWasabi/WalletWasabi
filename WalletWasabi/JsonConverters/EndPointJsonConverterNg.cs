@@ -33,10 +33,8 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 		{
 			return endPoint;
 		}
-		else
-		{
-			throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
-		}
+
+		throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
 	}
 
 	/// <inheritdoc />
