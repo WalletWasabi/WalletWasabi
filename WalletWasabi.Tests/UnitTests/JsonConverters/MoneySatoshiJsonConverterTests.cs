@@ -18,7 +18,7 @@ public class MoneySatoshiJsonConverterTests
 		TestData testObject = new();
 
 		string json = AssertSerializedEqually(testObject);
-		Assert.Equal("""{"OneCoin":100000000,"OneSatoshi":1,"Zeros":100,"Max":2099999997690000,"None":null,"NotAnnotated":null}""", json);
+		Assert.Equal("""{"OneCoin":100000000,"OneSatoshi":1,"SmallAmount":100,"Zeros":0,"Max":2099999997690000,"None":null,"NotAnnotated":null}""", json);
 	}
 
 	/// <summary>
@@ -167,10 +167,16 @@ public class MoneySatoshiJsonConverterTests
 		public Money OneSatoshi { get; set; } = Money.Satoshis(1m);
 
 		[System.Text.Json.Serialization.JsonConverter(typeof(MoneySatoshiJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(SmallAmount))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(SmallAmount))]
+		[Newtonsoft.Json.JsonConverter(typeof(MoneySatoshiJsonConverter))]
+		public Money SmallAmount { get; set; } = Money.Coins(0.000001m);
+
+		[System.Text.Json.Serialization.JsonConverter(typeof(MoneySatoshiJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(Zeros))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Zeros))]
 		[Newtonsoft.Json.JsonConverter(typeof(MoneySatoshiJsonConverter))]
-		public Money Zeros { get; set; } = Money.Coins(0.000001m);
+		public Money Zeros { get; set; } = Money.Zero;
 
 		[System.Text.Json.Serialization.JsonConverter(typeof(MoneySatoshiJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(Max))]
