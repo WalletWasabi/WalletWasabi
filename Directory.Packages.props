@@ -54,7 +54,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.13" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Moq" Version="[4.18.4]" />
-    <PackageVersion Include="xunit" Version="2.6.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageVersion Include="xunit" Version="2.5.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.0" />
   </ItemGroup>
 </Project>
