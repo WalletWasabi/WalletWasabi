@@ -51,13 +51,10 @@ public class Prison
 
 	public TimeFrame GetBanTimePeriod(OutPoint outpoint, DoSConfiguration configuration)
 	{
-		TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
-		{
-			var effectiveBanningTime = banningTime < configuration.MinTimeInPrison
-				? TimeSpan.Zero
-				: banningTime;
-			return new TimeFrame(offender.StartedTime, effectiveBanningTime);
-		}
+		TimeFrame EffectiveMinTimeFrame(TimeFrame banningPeriod) =>
+			banningPeriod.Duration < configuration.MinTimeInPrison
+				? TimeFrame.Zero
+				: banningPeriod;
 
 		TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
 		{
@@ -97,10 +94,11 @@ public class Prison
 
 		TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors)
 		{
-			return ancestors
+			var banningTimeFrame = ancestors
 				.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a, configuration)))
 				.MaxBy(x => x.BanningTime.EndTime)
 				.BanningTime;
+			return new TimeFrame(banningTimeFrame.StartTime, banningTimeFrame.Duration / 2);
 		}
 
 		Offender? offender;
@@ -116,15 +114,15 @@ public class Prison
 				: null;
 		}
 
-		var banningTime = offender switch
+		var banningTime = EffectiveMinTimeFrame(offender switch
 		{
 			null => TimeFrame.Zero,
-			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, configuration.MinTimeForFailedToVerify),
-			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, configuration.MinTimeForCheating),
-			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
+			{ Offense: FailedToVerify } => new TimeFrame(offender.StartedTime, configuration.MinTimeForFailedToVerify),
+			{ Offense: Cheating } => new TimeFrame(offender.StartedTime, configuration.MinTimeForCheating),
+			{ Offense: RoundDisruption offense } => new TimeFrame(offender.StartedTime, CalculatePunishment(offender, offense)),
 			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
 			_ => throw new NotSupportedException("Unknown offense type.")
-		};
+		});
 
 		lock (Lock)
 		{
