@@ -47,6 +47,9 @@ public class NetworkJsonConverterTests
 			token = "regression";
 			AssertBothDeserialize(S(token)); // Regtest
 
+			token = "     MainNet     "; // spaces to trim
+			AssertBothDeserialize(S(token));
+
 			token = "Test";
 			AssertBothDeserialize(S(token)); // Testnet
 
