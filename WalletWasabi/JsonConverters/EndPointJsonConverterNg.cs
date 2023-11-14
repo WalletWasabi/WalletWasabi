@@ -9,6 +9,10 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
 	public EndPointJsonConverterNg(int defaultPort)
 	{
+		if (defaultPort == 0)
+		{
+			throw new ArgumentException("Default port not specified.", nameof(defaultPort));
+		}
 		DefaultPort = defaultPort;
 	}
 
