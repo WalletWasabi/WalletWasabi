@@ -44,6 +44,10 @@ public class BlockchainController : ControllerBase
 
 	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
 	public static object TransactionHexCacheLock { get; } = new();
+
+	public Dictionary<uint256, Money> TransactionFeeCache { get; } = new();
+	public object TransactionFeeCacheLock { get; } = new();
+
 	public IdempotencyRequestCache Cache { get; }
 
 	public Global Global { get; }
@@ -424,6 +428,14 @@ public class BlockchainController : ControllerBase
 	{
 		uint256 txID = new(transactionId);
 
+		lock (TransactionFeeCacheLock)
+		{
+			if (TransactionFeeCache.TryGetValue(txID, out Money? value))
+			{
+				return Ok(value);
+			}
+		}
+
 		List<Coin> inputs = new();
 		Dictionary<uint256, Transaction> parentTransactions = new();
 
@@ -442,6 +454,14 @@ public class BlockchainController : ControllerBase
 		}
 
 		Money fee = tx.GetFee(inputs.ToArray());
+
+		lock (TransactionFeeCacheLock)
+		{
+			if (TransactionFeeCache.TryAdd(txID, fee) && TransactionFeeCache.Count > 1000)
+			{
+				TransactionFeeCache.Remove(TransactionFeeCache.Keys.First());
+			}
+		}
 
 		return Ok(fee);
 	}
