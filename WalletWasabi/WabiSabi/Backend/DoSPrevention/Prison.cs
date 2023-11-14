@@ -13,13 +13,13 @@ public class Prison
 	public Prison(ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
-		Offenders = offenders.ToList();
+		OffendersByTxId = offenders.GroupBy(x => x.OutPoint.Hash).ToDictionary(x => x.Key, x => x.ToList());
 		NotificationChannelWriter = channelWriterWriter;
 	}
 
 	private ICoinJoinIdStore CoinJoinIdStore { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
-	private List<Offender> Offenders { get; }
+	private Dictionary<uint256, List<Offender>> OffendersByTxId { get; }
 	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
 
 	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
@@ -66,12 +66,13 @@ public class Prison
 			List<RoundDisruption> offenderHistory;
 			lock (Lock)
 			{
-				offenderHistory = Offenders
-					.Where(x => x.OutPoint == offender.OutPoint)
-					.Select(x => x.Offense)
-					.OfType<RoundDisruption>()
-					.ToList();
-
+				offenderHistory = OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders)
+					? offenders
+						.Where(x => x.OutPoint == offender.OutPoint)
+						.Select(x => x.Offense)
+						.OfType<RoundDisruption>()
+						.ToList()
+					: new List<RoundDisruption>();
 			}
 
 			var maxOffense = offenderHistory.Count == 0
@@ -110,7 +111,9 @@ public class Prison
 				return cachedBanningTime;
 			}
 
-			offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
+			offender = OffendersByTxId.TryGetValue(outpoint.Hash, out var offenders)
+				? offenders.LastOrDefault(x => x.OutPoint == outpoint)
+				: null;
 		}
 
 		var banningTime = offender switch
@@ -130,11 +133,19 @@ public class Prison
 		return banningTime;
 	}
 
-	private void Punish(Offender offender)
+	public void Punish(Offender offender)
 	{
 		lock (Lock)
 		{
-			Offenders.Add(offender);
+			if (OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders))
+			{
+				offenders.Add(offender);
+			}
+			else
+			{
+				OffendersByTxId.Add(offender.OutPoint.Hash, new List<Offender> { offender });
+			}
+
 			BanningTimeCache.Remove(offender.OutPoint);
 		}
 		if (!NotificationChannelWriter.TryWrite(offender))
