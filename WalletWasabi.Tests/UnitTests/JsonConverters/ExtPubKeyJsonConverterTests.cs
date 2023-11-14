@@ -38,8 +38,12 @@ public class ExtPubKeyJsonConverterTests
 		{
 			string token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg54C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // SegwitExtPubKey
 			AssertBothDeserialize(S(token));
+
 			token = "xpub6Ch4bJcGsTXbw5P7gCutJUC8FPxaGV5ps59Hquj1Boypx9DZcR7JFp4uCYiMGgcxkJJuKkT6kNJjCZVSEBBuyQjZ7FtaJBH3WnVtjucFsin"; // TaprootExtPubKey
 			AssertBothDeserialize(S(token));
+
+			token = "null"; // null value
+			AssertBothDeserialize(token);
 		}
 
 		// Failing cases.
@@ -51,6 +55,9 @@ public class ExtPubKeyJsonConverterTests
 			AssertDeserializeFailure<FormatException>(S(token));
 
 			token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx"; // Cut off half of the key
+			AssertDeserializeFailure<FormatException>(S(token));
+
+			token = "null"; // "null" as string
 			AssertDeserializeFailure<FormatException>(S(token));
 		}
 
