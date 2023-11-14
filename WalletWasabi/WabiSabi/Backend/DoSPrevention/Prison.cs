@@ -51,13 +51,10 @@ public class Prison
 
 	public TimeFrame GetBanTimePeriod(OutPoint outpoint, DoSConfiguration configuration)
 	{
-		TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
-		{
-			var effectiveBanningTime = banningTime < configuration.MinTimeInPrison
-				? TimeSpan.Zero
-				: banningTime;
-			return new TimeFrame(offender.StartedTime, effectiveBanningTime);
-		}
+		TimeFrame EffectiveMinTimeFrame(TimeFrame banningPeriod) =>
+			banningPeriod.Duration < configuration.MinTimeInPrison
+				? TimeFrame.Zero
+				: banningPeriod;
 
 		TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
 		{
@@ -114,15 +111,15 @@ public class Prison
 			offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
 		}
 
-		var banningTime = offender switch
+		var banningTime = EffectiveMinTimeFrame(offender switch
 		{
 			null => TimeFrame.Zero,
-			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, configuration.MinTimeForFailedToVerify),
-			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, configuration.MinTimeForCheating),
-			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
+			{ Offense: FailedToVerify } => new TimeFrame(offender.StartedTime, configuration.MinTimeForFailedToVerify),
+			{ Offense: Cheating } => new TimeFrame(offender.StartedTime, configuration.MinTimeForCheating),
+			{ Offense: RoundDisruption offense } => new TimeFrame(offender.StartedTime, CalculatePunishment(offender, offense)),
 			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
 			_ => throw new NotSupportedException("Unknown offense type.")
-		};
+		});
 
 		lock (Lock)
 		{
