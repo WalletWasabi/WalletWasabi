@@ -99,7 +99,7 @@ public partial class WalletModel : ReactiveObject
 				Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
 			}
 
-			Wallet.SetFilePath(WalletFile(walletDir, value));
+			Wallet.KeyManager.SetFilePath(WalletFile(walletDir, value));
 			
 			this.RaisePropertyChanged();
 		}

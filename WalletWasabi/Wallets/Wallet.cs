@@ -579,8 +579,6 @@ public class Wallet : BackgroundService, IWallet
 		UpdateExcludedCoinFromCoinJoin();
 	}
 
-	public void SetFilePath(string path) => KeyManager.SetFilePath(path);
-
 	private void UpdateExcludedCoinFromCoinJoin()
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
