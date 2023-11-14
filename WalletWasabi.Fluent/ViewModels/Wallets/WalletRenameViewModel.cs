@@ -1,13 +1,12 @@
-using System.Reactive;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-[NavigationMetaData(Title = "Rename Wallet")]
-public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
+[NavigationMetaData(Title = "Rename Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+public partial class WalletRenameViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _newWalletName;
 
@@ -40,7 +39,7 @@ public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 		try
 		{
 			wallet.Name = NewWalletName;
-			Close();
+			Navigate().Back();
 		}
 		catch
 		{

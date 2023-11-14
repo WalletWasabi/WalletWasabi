@@ -59,6 +59,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	
 	private void OnRenameWallet()
 	{
-		Navigate().To().WalletRename(_wallet, NavigationTarget.CompactDialogScreen);
+		Navigate().To().WalletRename(_wallet);
 	}
 }
