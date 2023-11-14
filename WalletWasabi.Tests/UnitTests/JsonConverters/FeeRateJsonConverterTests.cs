@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
@@ -61,9 +62,14 @@ public class FeeRateJsonConverterTests
 
 		// Unique case.
 		{
-			// Different exceptions
 			string token = "1."; // No digit after decimal point.
 			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(token);
+		}
+
+		// Tests that neither JSON converters can deserialize to NULL if a JSON number-string is found instead of a JSON integer.
+		{
+			string token = "100";
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(S(token));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -77,15 +83,6 @@ public class FeeRateJsonConverterTests
 			Assert.Equal(product1, product2);
 		}
 
-		static void AssertDeserializeFailure<TException>(string jsonToken)
-			where TException : Exception
-		{
-			string json = $$"""{"Name": "Little Book of Calm", "Fee": {{jsonToken}} }""";
-
-			Assert.Throws<Newtonsoft.Json.JsonReaderException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
-		}
-
 		static void AssertDeserializeDifferentExceptions<TExceptionOld, TExceptionNew>(string jsonToken)
 			where TExceptionOld : Exception
 			where TExceptionNew : Exception
@@ -95,6 +92,9 @@ public class FeeRateJsonConverterTests
 			Assert.Throws<TExceptionOld>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
 			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
+
+		static string S(string s)
+			=> $"\"{s}\"";
 	}
 
 	/// <summary>
