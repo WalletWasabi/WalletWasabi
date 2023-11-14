@@ -37,10 +37,10 @@ public class ExtPubKeyJsonConverterTests
 		// Success cases.
 		{
 			string token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg54C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // SegwitExtPubKey
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "xpub6Ch4bJcGsTXbw5P7gCutJUC8FPxaGV5ps59Hquj1Boypx9DZcR7JFp4uCYiMGgcxkJJuKkT6kNJjCZVSEBBuyQjZ7FtaJBH3WnVtjucFsin"; // TaprootExtPubKey
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "null"; // null value
 			AssertBothDeserialize(token);
@@ -49,16 +49,16 @@ public class ExtPubKeyJsonConverterTests
 		// Failing cases.
 		{
 			string token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed one letter of the first example
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "xpub1CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx3EBAVNp8HANg1xJFYLR1fNGcfcWqirZ88GXEYdhh9rd1AyWceTDoZJ7GNxzx2K"; // Changed xpub6 to xpub1
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "xpub6CzZinqjT2VBCDQNqB1Y7saFqaMHYg55C6BCbLSnDWirx"; // Cut off half of the key
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "null"; // "null" as string
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -81,7 +81,7 @@ public class ExtPubKeyJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToString(string s)
 			=> $"\"{s}\"";
 	}
 

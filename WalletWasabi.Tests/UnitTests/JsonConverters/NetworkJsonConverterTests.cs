@@ -33,37 +33,37 @@ public class NetworkJsonConverterTests
 		// Success cases.
 		{
 			string token = "Main";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "Mainnet";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "TestNet";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "RegTest";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "regression";
-			AssertBothDeserialize(S(token)); // Regtest
+			AssertBothDeserialize(ConvertToString(token)); // Regtest
 
 			token = "     MainNet     "; // spaces to trim
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "Test";
-			AssertBothDeserialize(S(token)); // Testnet
+			AssertBothDeserialize(ConvertToString(token)); // Testnet
 
 			token = "Reg";
-			AssertBothDeserialize(S(token)); // Regtest
+			AssertBothDeserialize(ConvertToString(token)); // Regtest
 
 			token = "Man";
-			AssertBothDeserialize(S(token)); // null
+			AssertBothDeserialize(ConvertToString(token)); // null
 
 			token = " ";
-			AssertBothDeserialize(S(token)); // null
+			AssertBothDeserialize(ConvertToString(token)); // null
 
 			token = "null";
-			AssertBothDeserialize(S(token)); // null
+			AssertBothDeserialize(ConvertToString(token)); // null
 		}
 
 		// Failing cases.
@@ -108,7 +108,7 @@ public class NetworkJsonConverterTests
 			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToString(string s)
 			=> $"\"{s}\"";
 	}
 

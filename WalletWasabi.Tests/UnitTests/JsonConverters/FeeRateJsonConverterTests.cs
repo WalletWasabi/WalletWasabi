@@ -69,7 +69,7 @@ public class FeeRateJsonConverterTests
 		// Tests that neither JSON converters can deserialize to NULL if a JSON number-string is found instead of a JSON integer.
 		{
 			string token = "100";
-			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(S(token));
+			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(ConvertToString(token));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -93,7 +93,7 @@ public class FeeRateJsonConverterTests
 			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToString(string s)
 			=> $"\"{s}\"";
 	}
 

@@ -32,35 +32,35 @@ public class TimeSpanJsonConverterTests
 		// Success cases.
 		{
 			string token = "0d 0h 0m 0s";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "400d 0h 0m 0s";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "0d 0h 0m 0s 10u";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "10d10h10m10s";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 		}
 
 		// Failing cases.
 		{
 			// Valid input is: <days>d <hours>h <minutes>m <seconds>s. All other variants are invalid.
 			string token = "1440";
-			AssertDeserializeFailure<IndexOutOfRangeException>(S(token));
+			AssertDeserializeFailure<IndexOutOfRangeException>(ConvertToString(token));
 
 			token = "367d";
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "0h 0m 0s";
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "0s 0m 0h 0d";
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "00:00:00";
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -83,7 +83,7 @@ public class TimeSpanJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToString(string s)
 			=> $"\"{s}\"";
 	}
 

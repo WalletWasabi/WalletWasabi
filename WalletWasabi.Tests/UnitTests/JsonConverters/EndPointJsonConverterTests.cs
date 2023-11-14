@@ -33,43 +33,43 @@ public class EndPointJsonConverterTests
 		// Success cases.
 		{
 			string token = "127.0.0.1:8333";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "127.0.0.1:0";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "255.255.255.255:8888";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "0.0.0.0:0";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "127.0.0.1";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "256.0.0.0:8888";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "localhost:8888";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "127.0.0:8888";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "0:0";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "null";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 		}
 
 		// Failing cases.
 		{
 			string token = "127.0.0.1:8888888";
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "";
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 		}
 
 		// Unique cases.
@@ -98,7 +98,7 @@ public class EndPointJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToString(string s)
 			=> $"\"{s}\"";
 	}
 

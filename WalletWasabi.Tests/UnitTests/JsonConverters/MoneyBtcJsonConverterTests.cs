@@ -33,34 +33,34 @@ public class MoneyBtcJsonConverterTests
 		// Success cases.
 		{
 			string token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "210000000"; // 21 million bitcoin.
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "0.00000000000000000000000000000000000000000000001";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 
 			token = "00000000000000000000000";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 		}
 
 		// Format exception errors.
 		{
 			string token = "1e6"; // Exponential notation.
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "1,0"; // Decimal comma.
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 
 			token = "1,000.00"; // Thousand separator.
-			AssertDeserializeFailure<FormatException>(S(token));
+			AssertDeserializeFailure<FormatException>(ConvertToString(token));
 		}
 
 		// Unique case.
 		{
 			string token = "1."; // No digit after decimal point.
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToString(token));
 		}
 
 		// Tests that both JSON converters deserialize to NULL if a JSON integer is found instead of a JSON number-string.
@@ -102,7 +102,7 @@ public class MoneyBtcJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToString(string s)
 			=> $"\"{s}\"";
 	}
 
