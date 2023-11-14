@@ -71,10 +71,10 @@ public class MoneySatoshiJsonConverterTests
 			// AssertBothDeserialize(token);
 		}
 
-		// Tests that both JSON converters deserialize to NULL if a JSON number-string is found instead of a JSON integer.
+		// Tests that neither JSON converters can deserialize to NULL if a JSON number-string is found instead of a JSON integer.
 		{
-			string json = $$"""{"Name": "Little Book of Calm", "Price": "2999" }""";
-			AssertDeserializeFailure<InvalidCastException>(S("2999"));
+			string token = "2999";
+			AssertDeserializeFailure<InvalidCastException>(S(token));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
