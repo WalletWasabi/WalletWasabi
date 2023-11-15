@@ -18,6 +18,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
+	[AutoNotify] private TimeSpan? _confirmationTime;
+	[AutoNotify] private bool _isConfirmationTimeVisible;
 
 	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
@@ -30,16 +32,12 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 	}
 
-	public TimeSpan? ConfirmationTime { get; set; }
-
-	public bool IsConfirmationTimeVisible { get; set; }
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.Cache
-			                .Connect()
+							.Connect()
 							.Subscribe(_ => Update())
 							.DisposeWith(disposables);
 
