@@ -14,6 +14,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
 	[AutoNotify] private bool _isFlashing;
 	[AutoNotify] private bool _isExpanded;
+	[AutoNotify] private bool _isPointerOver;
+	[AutoNotify] private bool _isParentPointerOver;
 
 	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
@@ -28,6 +30,16 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				await Task.Delay(1260);
 				IsFlashing = false;
 			});
+
+		this.WhenAnyValue(x => x.IsPointerOver)
+			.Do(x =>
+			{
+				foreach (var child in Children)
+				{
+					child.IsParentPointerOver = x;
+				}
+			})
+			.Subscribe();
 	}
 
 	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : this(transaction)

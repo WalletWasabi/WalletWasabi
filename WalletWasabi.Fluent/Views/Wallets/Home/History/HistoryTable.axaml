@@ -159,8 +159,9 @@
             <Setter Property="Opacity" Value="1" />
           </Style>
 
-          <Style Selector="TreeDataGridRow">
+          <Style Selector="TreeDataGridRow" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
+            <Setter Property="IsPointerOver" Value="{Binding IsPointerOver, Mode=OneWayToSource}" />
           </Style>
 
           <Style Selector="TreeDataGridRow.Transaction">
