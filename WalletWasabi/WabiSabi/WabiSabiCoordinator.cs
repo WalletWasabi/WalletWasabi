@@ -122,19 +122,32 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
-		bool IsWasabiCoinjoin(uint256 txId)
-		{
-			var finishedCoinJoinIds = Arena.RoundStates
-				.Select(x => x.CoinjoinState)
-				.OfType<SigningState>()
-				.Where(x => x.IsFullySigned)
-				.Select(x => x.CreateUnsignedTransaction().GetHash());
-
-			return CoinJoinIdStore.Contains(txId) || finishedCoinJoinIds.Contains(txId);
-		}
+		var txId = tx.GetHash();
 
 		// We don't ban our own coinjoin outputs.
-		if (IsWasabiCoinjoin(tx.GetHash()))
+		if(CoinJoinIdStore.Contains(txId))
+		{
+			return;
+		}
+
+		// Just in case a coinjoin tx id is not in the CoinJoinIdStore
+		var isFinishedCoinJoin = Arena.RoundStates
+			.Select(x => x.CoinjoinState)
+			.OfType<SigningState>()
+			.Any(x => x.CreateUnsignedTransaction().GetHash() == txId);
+		if (isFinishedCoinJoin)
+		{
+			return;
+		}
+
+		// Do not ban coinjoin looking txs because all the previous mechanisms can fail.
+		var isWasabiCoinJoinLookingTx =
+			tx.RBF == false
+			&& tx.Inputs.Count >= Config.MinInputCountByRound
+			&& tx.Inputs.Count <= Config.MaxInputCountByRound
+			&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
+			&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a,b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second); // Outputs are ordered descending.
+		if (isWasabiCoinJoinLookingTx)
 		{
 			return;
 		}
