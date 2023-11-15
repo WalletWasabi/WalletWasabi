@@ -45,25 +45,25 @@ public class NetworkJsonConverterTests
 			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "regression";
-			AssertBothDeserialize(ConvertToJsonString(token)); // Regtest
+			AssertBothDeserialize(ConvertToJsonString(token)); // ~ RegTest.
 
-			token = "     MainNet     "; // spaces to trim
+			token = "     MainNet     "; // JSON convertors handle whitespace by trimming it.
 			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "Test";
-			AssertBothDeserialize(ConvertToJsonString(token)); // Testnet
+			AssertBothDeserialize(ConvertToJsonString(token)); // ~ TestNet.
 
 			token = "Reg";
-			AssertBothDeserialize(ConvertToJsonString(token)); // Regtest
+			AssertBothDeserialize(ConvertToJsonString(token)); // ~ RegTest.
 
 			token = "Man";
-			AssertBothDeserialize(ConvertToJsonString(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null.
 
 			token = " ";
-			AssertBothDeserialize(ConvertToJsonString(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null.
 
 			token = "null";
-			AssertBothDeserialize(ConvertToJsonString(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null.
 		}
 
 		// Failing cases.
