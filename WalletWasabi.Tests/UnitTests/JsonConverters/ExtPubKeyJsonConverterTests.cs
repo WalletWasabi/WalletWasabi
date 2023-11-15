@@ -102,7 +102,7 @@ public class ExtPubKeyJsonConverterTests
 	}
 
 	/// <summary>
-	/// Record for testing deserialization of <see cref="ExtPubKey"/>.
+	/// Record with various attributes for both STJ and Newtonsoft.
 	/// </summary>
 	private record TestData
 	{

@@ -121,6 +121,23 @@ public class EndPointJsonConverterTests
 		return stjJson;
 	}
 
+	/// <summary>
+	/// Record for testing deserialization of <see cref="EndPoint"/>.
+	/// </summary>
+	private record TestRecord
+	{
+		public required string Name { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Address))]
+		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
+		[System.Text.Json.Serialization.JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(Address))]
+		public EndPoint? Address { get; set; }
+	}
+
+	/// <summary>
+	/// Record with various attributes for both STJ and Newtonsoft.
+	/// </summary>
 	private record TestData
 	{
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(DefaultMainNet))]
@@ -148,16 +165,5 @@ public class EndPointJsonConverterTests
 		public EndPoint? None { get; set; }
 
 		public EndPoint? NotAnnotated { get; set; }
-	}
-
-	private record TestRecord
-	{
-		public required string Name { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Address))]
-		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-		[System.Text.Json.Serialization.JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
-		[System.Text.Json.Serialization.JsonPropertyName(nameof(Address))]
-		public EndPoint? Address { get; set; }
 	}
 }

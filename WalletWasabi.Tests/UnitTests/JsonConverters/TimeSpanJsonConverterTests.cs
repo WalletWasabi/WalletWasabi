@@ -104,7 +104,7 @@ public class TimeSpanJsonConverterTests
 	}
 
 	/// <summary>
-	/// Record for testing deserialization of <see cref="Money"/>.
+	/// Record for testing deserialization of <see cref="TimeSpan"/>.
 	/// </summary>
 	private record TestRecord
 	{
@@ -116,6 +116,7 @@ public class TimeSpanJsonConverterTests
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(Date))]
 		public TimeSpan? Date { get; init; }
 	}
+
 	/// <summary>
 	/// Record with various attributes for both STJ and Newtonsoft.
 	/// </summary>

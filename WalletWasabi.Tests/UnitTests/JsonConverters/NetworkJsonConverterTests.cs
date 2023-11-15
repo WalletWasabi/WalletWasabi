@@ -129,7 +129,7 @@ public class NetworkJsonConverterTests
 	}
 
 	/// <summary>
-	/// Record for testing deserialization of <see cref="Money"/>.
+	/// Record for testing deserialization of <see cref="NBitcoin.Network"/>.
 	/// </summary>
 	private record TestRecord
 	{
@@ -142,6 +142,9 @@ public class NetworkJsonConverterTests
 		public Network? Network { get; init; }
 	}
 
+	/// <summary>
+	/// Record with various attributes for both STJ and Newtonsoft.
+	/// </summary>
 	private record TestData
 	{
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Main))]
