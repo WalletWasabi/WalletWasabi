@@ -69,16 +69,16 @@ public class MoneyBtcJsonConverterTests
 
 			// Old.
 			{
-				TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
-				Assert.NotNull(product);
-				Assert.Null(product.Price);
+				TestRecord? record = JsonConvertOld.DeserializeObject<TestRecord>(json);
+				Assert.NotNull(record);
+				Assert.Null(record.Price);
 			}
 
 			// New.
 			{
-				TestProduct? product = JsonConvertNew.Deserialize<TestProduct>(json);
-				Assert.NotNull(product);
-				Assert.Null(product.Price);
+				TestRecord? record = JsonConvertNew.Deserialize<TestRecord>(json);
+				Assert.NotNull(record);
+				Assert.Null(record.Price);
 			}
 		}
 
@@ -86,11 +86,11 @@ public class MoneyBtcJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+			TestRecord? record1 = JsonConvertOld.DeserializeObject<TestRecord>(json);
+			TestRecord? record2 = JsonConvertNew.Deserialize<TestRecord>(json);
 
 			// Value equality.
-			Assert.Equal(product1, product2);
+			Assert.Equal(record1, record2);
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
@@ -98,8 +98,8 @@ public class MoneyBtcJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
 		static string ConvertToJsonString(string s)
@@ -125,7 +125,7 @@ public class MoneyBtcJsonConverterTests
 	/// <summary>
 	/// Record for testing deserialization of <see cref="Money"/>.
 	/// </summary>
-	private record TestProduct
+	private record TestRecord
 	{
 		public required string Name { get; init; }
 

@@ -85,11 +85,11 @@ public class EndPointJsonConverterTests
 		{
 			string json = $$"""{"Name": "IpAddress", "Address": {{jsonToken}} }""";
 
-			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+			TestRecord? record1 = JsonConvertOld.DeserializeObject<TestRecord>(json);
+			TestRecord? record2 = JsonConvertNew.Deserialize<TestRecord>(json);
 
 			// Value equality.
-			Assert.Equal(product1, product2);
+			Assert.Equal(record1, record2);
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
@@ -97,8 +97,8 @@ public class EndPointJsonConverterTests
 		{
 			string json = $$"""{"Name": "IpAddress", "Address": {{jsonToken}} }""";
 
-			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
 		static string ConvertToJsonString(string s)
@@ -150,7 +150,7 @@ public class EndPointJsonConverterTests
 		public EndPoint? NotAnnotated { get; set; }
 	}
 
-	private record TestProduct
+	private record TestRecord
 	{
 		public required string Name { get; set; }
 

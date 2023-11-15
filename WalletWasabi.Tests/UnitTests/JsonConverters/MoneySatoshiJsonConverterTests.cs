@@ -81,11 +81,11 @@ public class MoneySatoshiJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+			TestRecord? record1 = JsonConvertOld.DeserializeObject<TestRecord>(json);
+			TestRecord? record2 = JsonConvertNew.Deserialize<TestRecord>(json);
 
 			// Value equality.
-			Assert.Equal(product1, product2);
+			Assert.Equal(record1, record2);
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
@@ -93,8 +93,8 @@ public class MoneySatoshiJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
 		static void AssertDeserializeDifferentExceptions<TExceptionOld, TExceptionNew>(string jsonToken)
@@ -103,16 +103,16 @@ public class MoneySatoshiJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			Assert.Throws<TExceptionOld>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TExceptionOld>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
 		static void AssertDeserializeJsonException(string jsonToken)
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			Assert.Throws<Newtonsoft.Json.JsonReaderException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<Newtonsoft.Json.JsonReaderException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
 		static string ConvertToJsonString(string s)
@@ -138,7 +138,7 @@ public class MoneySatoshiJsonConverterTests
 	/// <summary>
 	/// Record for testing deserialization of <see cref="Money"/>.
 	/// </summary>
-	private record TestProduct
+	private record TestRecord
 	{
 		public required string Name { get; init; }
 
