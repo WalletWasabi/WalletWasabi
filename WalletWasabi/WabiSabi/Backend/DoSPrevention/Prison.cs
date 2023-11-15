@@ -27,16 +27,19 @@ public class Prison
 	private object Lock { get; } = new();
 
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId.Singleton(), value, RoundDisruptionMethod.DidNotConfirm)));
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotConfirm)));
 
 	public void FailedToSign(OutPoint outPoint, Money value, uint256 roundId) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId.Singleton(), value, RoundDisruptionMethod.DidNotSign)));
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotSign)));
 
 	public void FailedVerification(OutPoint outPoint, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new FailedToVerify(roundId)));
 
 	public void CheatingDetected(OutPoint outPoint, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new Cheating(roundId)));
+
+	public void DoubleSpent(OutPoint outPoint, Money value, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DoubleSpent)));
 
 	public void DoubleSpent(OutPoint outPoint, Money value, IEnumerable<uint256> roundIds) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundIds, value, RoundDisruptionMethod.DoubleSpent)));
@@ -45,7 +48,7 @@ public class Prison
 		Punish(new Offender(outpoint, DateTimeOffset.UtcNow, new Inherited(ancestors)));
 
 	public void FailedToSignalReadyToSign(OutPoint outPoint, Money value, uint256 roundId) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId.Singleton(), value, RoundDisruptionMethod.DidNotSignalReadyToSign)));
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotSignalReadyToSign)));
 
 	public bool IsBanned(OutPoint outpoint, DoSConfiguration configuration, DateTimeOffset when) =>
 		GetBanTimePeriod(outpoint, configuration).Includes(when);

@@ -1,13 +1,14 @@
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using Xunit;
@@ -65,6 +66,52 @@ public class CoordinatorTests
 		t = coordinator5.StopAsync(cts5.Token);
 		cts5.Cancel();
 		await t;
+	}
+
+	[Fact]
+	public void BanDoubleSpendersTest()
+	{
+		var workDir = Common.GetWorkDir();
+		CoordinatorParameters coordinatorParameters = new(workDir);
+		WabiSabiConfig cfg = coordinatorParameters.RuntimeCoordinatorConfig;
+		DoSConfiguration dosConfig = cfg.GetDoSConfiguration();
+		var coinJoinIdStore = new InMemoryCoinJoinIdStore();
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient(), coinJoinIdStore, new CoinJoinScriptStore(), new MockHttpClientFactory());
+
+		// Receive a tx that is not spending coins registered in any round.
+		var tx = CreateTransaction(Money.Coins(0.1m));
+		coordinator.BanDoubleSpenders(this, tx);
+		var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx, 0), dosConfig, DateTimeOffset.UtcNow);
+		Assert.False(isOutputBanned); // Not banned
+
+		// Receive a tx that is spending coins registered in a round.
+		var round = WabiSabiFactory.CreateRound(cfg);
+		using Key key = new();
+		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round);
+		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		coordinator.Arena.Rounds.Add(round);
+		tx = CreateTransaction(Money.Coins(0.1m), alice.Coin.Outpoint);
+		coordinator.BanDoubleSpenders(this, tx);
+		isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx, 0), dosConfig, DateTimeOffset.UtcNow);
+		Assert.True(isOutputBanned); // Banned
+
+		// Receive a tx that is spending coins registered in a round but the tx is a Wasabi coinjoin
+		tx.Outputs[0].ScriptPubKey = BitcoinFactory.CreateScript(); // Make it a completely different tx.
+		coinJoinIdStore.TryAdd(tx.GetHash());
+		coordinator.BanDoubleSpenders(this, tx);
+		isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx, 0), dosConfig, DateTimeOffset.UtcNow);
+		Assert.False(isOutputBanned);
+	}
+
+	private static Transaction CreateTransaction(Money amount, OutPoint? outPoint = default)
+	{
+		var tx = Network.RegTest.CreateTransaction();
+		tx.Version = 1;
+		tx.LockTime = LockTime.Zero;
+		tx.Inputs.Add(outPoint ?? BitcoinFactory.CreateOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+		using Key key = new();
+		tx.Outputs.Add(amount, key.GetScriptPubKey(ScriptPubKeyType.Segwit));
+		return tx;
 	}
 
 	private static IRPCClient NewMockRpcClient()

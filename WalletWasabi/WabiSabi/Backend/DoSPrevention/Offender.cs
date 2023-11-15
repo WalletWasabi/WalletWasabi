@@ -14,7 +14,12 @@ public enum RoundDisruptionMethod
 }
 
 public abstract record Offense();
-public record RoundDisruption(IEnumerable<uint256> DisruptedRoundIds, Money Value, RoundDisruptionMethod Method) : Offense;
+
+public record RoundDisruption(IEnumerable<uint256> DisruptedRoundIds, Money Value, RoundDisruptionMethod Method) : Offense
+{
+	public	RoundDisruption(uint256 disruptedRoundId, Money value, RoundDisruptionMethod method)
+		: this(disruptedRoundId.Singleton(), value, method) {}
+}
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
 public record Inherited(OutPoint[] Ancestors) : Offense;
 public record Cheating(uint256 RoundId) : Offense;
@@ -42,6 +47,10 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 						RoundDisruptionMethod.DoubleSpent => "double spent",
 						_ => throw new NotImplementedException("Unknown round disruption method.")
 					};
+					foreach (var disruptedRoundId in rd.DisruptedRoundIds.Skip(1))
+					{
+						yield return disruptedRoundId.ToString();
+					}
 					break;
 				case FailedToVerify fv:
 					yield return nameof(FailedToVerify);
@@ -77,7 +86,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 		{
 			nameof(RoundDisruption) =>
 				new RoundDisruption(
-					uint256.Parse(parts[4]).Singleton(),
+					parts.Skip(6).Select(x => uint256.Parse(x)).Prepend(uint256.Parse(parts[4])),
 					Money.Satoshis(long.Parse(parts[3])),
 
 					parts[5] switch

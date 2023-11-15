@@ -59,7 +59,7 @@ public class PrisonTests
 		Assert.Equal(Money.Coins(2m), disruptionNotSigning.Value);
 
 		// Double spent
-		prison.DoubleSpent(outpoint, Money.Coins(3m), roundId.Singleton());
+		prison.DoubleSpent(outpoint, Money.Coins(3m), roundId);
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var doubleSpending = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);

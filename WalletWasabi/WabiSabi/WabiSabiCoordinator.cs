@@ -130,7 +130,7 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 
 		var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
-		var disruptedRounds = GetDisruptedRounds(inputOutPoints);
+		var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
 
 		// No round was hurt disrupted by the received transaction. Nothing to do here.
 		if (disruptedRounds.Length == 0)
@@ -166,15 +166,6 @@ public class WabiSabiCoordinator : BackgroundService
 		&& tx.Inputs.Count <= Config.MaxInputCountByRound
 		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
 		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);
-
-	private uint256[] GetDisruptedRounds(IEnumerable<OutPoint> outPoints) =>
-		Arena.RoundStates
-		.Where(r => r.Phase != Phase.Ended)
-		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
-		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
-		.Select(x => x.RoundId)
-		.Distinct()
-		.ToArray();
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
