@@ -9,6 +9,11 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
 	public EndPointJsonConverterNg(int defaultPort)
 	{
+		if (defaultPort == 0)
+		{
+			throw new ArgumentException("Default port not specified.", nameof(defaultPort));
+		}
+
 		DefaultPort = defaultPort;
 	}
 
@@ -33,10 +38,8 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 		{
 			return endPoint;
 		}
-		else
-		{
-			throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
-		}
+
+		throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
 	}
 
 	/// <inheritdoc />

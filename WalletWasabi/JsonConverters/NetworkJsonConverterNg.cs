@@ -27,12 +27,7 @@ public class NetworkJsonConverterNg : JsonConverter<Network>
 			throw new JsonException("Expected a JSON string.");
 		}
 
-		networkString = reader.GetString();
-
-		if (networkString is null)
-		{
-			throw new ArgumentNullException(nameof(networkString));
-		}
+		networkString = reader.GetString()!.Trim();
 
 		if ("regression".Equals(networkString, StringComparison.OrdinalIgnoreCase))
 		{

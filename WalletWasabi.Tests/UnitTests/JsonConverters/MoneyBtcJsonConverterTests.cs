@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 public class MoneyBtcJsonConverterTests
 {
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *serialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *serialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void SerializationParity()
@@ -21,11 +21,11 @@ public class MoneyBtcJsonConverterTests
 		TestData testObject = new();
 
 		string json = AssertSerializedEqually(testObject);
-		Assert.Equal("""{"Half":"0.50","One":"1.00","Zeros":"0.000001","Max":"20999999.9769","None":null,"NotAnnotated":null}""", json);
+		Assert.Equal("""{"Half":"0.50","One":"1.00","SmallAmount":"0.000001","Zero":"0.00","Max":"20999999.9769","None":null,"NotAnnotated":null}""", json);
 	}
 
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *deserialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *deserialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void DeserializationParity()
@@ -33,34 +33,34 @@ public class MoneyBtcJsonConverterTests
 		// Success cases.
 		{
 			string token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "210000000"; // 21 million bitcoin.
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0.00000000000000000000000000000000000000000000001";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "00000000000000000000000";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 		}
 
 		// Format exception errors.
 		{
-			string token = "1e6"; // Exponential notation.
-			AssertDeserializeFailure<FormatException>(S(token));
+			string invalidToken = "1e6"; // Exponential notation.
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
-			token = "1,0"; // Decimal comma.
-			AssertDeserializeFailure<FormatException>(S(token));
+			invalidToken = "1,0"; // Decimal comma.
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
-			token = "1,000.00"; // Thousand separator.
-			AssertDeserializeFailure<FormatException>(S(token));
+			invalidToken = "1,000.00"; // Thousand separator.
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 		}
 
 		// Unique case.
 		{
-			string token = "1."; // No digit after decimal point.
-			AssertBothDeserialize(S(token));
+			string invalidToken = "1."; // No digit after decimal point.
+			AssertBothDeserialize(ConvertToJsonString(invalidToken));
 		}
 
 		// Tests that both JSON converters deserialize to NULL if a JSON integer is found instead of a JSON number-string.
@@ -69,16 +69,16 @@ public class MoneyBtcJsonConverterTests
 
 			// Old.
 			{
-				TestProduct? product = JsonConvertOld.DeserializeObject<TestProduct>(json);
-				Assert.NotNull(product);
-				Assert.Null(product.Price);
+				TestRecord? record = JsonConvertOld.DeserializeObject<TestRecord>(json);
+				Assert.NotNull(record);
+				Assert.Null(record.Price);
 			}
 
 			// New.
 			{
-				TestProduct? product = JsonConvertNew.Deserialize<TestProduct>(json);
-				Assert.NotNull(product);
-				Assert.Null(product.Price);
+				TestRecord? record = JsonConvertNew.Deserialize<TestRecord>(json);
+				Assert.NotNull(record);
+				Assert.Null(record.Price);
 			}
 		}
 
@@ -86,11 +86,11 @@ public class MoneyBtcJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+			TestRecord? record1 = JsonConvertOld.DeserializeObject<TestRecord>(json);
+			TestRecord? record2 = JsonConvertNew.Deserialize<TestRecord>(json);
 
 			// Value equality.
-			Assert.Equal(product1, product2);
+			Assert.Equal(record1, record2);
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
@@ -98,16 +98,16 @@ public class MoneyBtcJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Price": {{jsonToken}} }""";
 
-			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 
 	/// <summary>
-	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft library and STJ library.
+	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft.Json and STJ library.
 	/// </summary>
 	/// <returns>JSON representation of <paramref name="o"/>.</returns>
 	private static string AssertSerializedEqually<T>(T o)
@@ -125,7 +125,7 @@ public class MoneyBtcJsonConverterTests
 	/// <summary>
 	/// Record for testing deserialization of <see cref="Money"/>.
 	/// </summary>
-	private record TestProduct
+	private record TestRecord
 	{
 		public required string Name { get; init; }
 
@@ -154,10 +154,16 @@ public class MoneyBtcJsonConverterTests
 		public Money One { get; set; } = Money.Coins(1m);
 
 		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
-		[System.Text.Json.Serialization.JsonPropertyName(nameof(Zeros))]
-		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Zeros))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(SmallAmount))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(SmallAmount))]
 		[Newtonsoft.Json.JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money Zeros { get; set; } = Money.Coins(0.000001m);
+		public Money SmallAmount { get; set; } = Money.Coins(0.000001m);
+
+		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
+		[System.Text.Json.Serialization.JsonPropertyName(nameof(Zero))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Zero))]
+		[Newtonsoft.Json.JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money Zero { get; set; } = Money.Zero;
 
 		[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(Max))]

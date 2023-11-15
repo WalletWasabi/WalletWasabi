@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 public class TimeSpanJsonConverterTests
 {
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *serialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *serialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void SerializationParity()
@@ -24,7 +24,7 @@ public class TimeSpanJsonConverterTests
 	}
 
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *deserialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *deserialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void DeserializationParity()
@@ -32,46 +32,46 @@ public class TimeSpanJsonConverterTests
 		// Success cases.
 		{
 			string token = "0d 0h 0m 0s";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "400d 0h 0m 0s";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0d 0h 0m 0s 10u";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "10d10h10m10s";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 		}
 
 		// Failing cases.
 		{
 			// Valid input is: <days>d <hours>h <minutes>m <seconds>s. All other variants are invalid.
-			string token = "1440";
-			AssertDeserializeFailure<IndexOutOfRangeException>(S(token));
+			string invalidToken = "1440";
+			AssertDeserializeFailure<IndexOutOfRangeException>(ConvertToJsonString(invalidToken));
 
-			token = "367d";
-			AssertDeserializeFailure<FormatException>(S(token));
+			invalidToken = "367d";
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
-			token = "0h 0m 0s";
-			AssertDeserializeFailure<FormatException>(S(token));
+			invalidToken = "0h 0m 0s";
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
-			token = "0s 0m 0h 0d";
-			AssertDeserializeFailure<FormatException>(S(token));
+			invalidToken = "0s 0m 0h 0d";
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
-			token = "00:00:00";
-			AssertDeserializeFailure<FormatException>(S(token));
+			invalidToken = "00:00:00";
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
 		{
 			string json = $$"""{"Name": "DateTime", "Date": {{jsonToken}} }""";
 
-			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+			TestRecord? record1 = JsonConvertOld.DeserializeObject<TestRecord>(json);
+			TestRecord? record2 = JsonConvertNew.Deserialize<TestRecord>(json);
 
 			// Value equality.
-			Assert.Equal(product1, product2);
+			Assert.Equal(record1, record2);
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
@@ -79,16 +79,16 @@ public class TimeSpanJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Date": {{jsonToken}} }""";
 
-			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 
 	/// <summary>
-	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft library and STJ library.
+	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft.Json and STJ library.
 	/// </summary>
 	/// <returns>JSON representation of <paramref name="o"/>.</returns>
 	private static string AssertSerializedEqually<T>(T o)
@@ -104,9 +104,9 @@ public class TimeSpanJsonConverterTests
 	}
 
 	/// <summary>
-	/// Record for testing deserialization of <see cref="Money"/>.
+	/// Record for testing deserialization of <see cref="TimeSpan"/>.
 	/// </summary>
-	private record TestProduct
+	private record TestRecord
 	{
 		public required string Name { get; init; }
 
@@ -116,6 +116,7 @@ public class TimeSpanJsonConverterTests
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(Date))]
 		public TimeSpan? Date { get; init; }
 	}
+
 	/// <summary>
 	/// Record with various attributes for both STJ and Newtonsoft.
 	/// </summary>

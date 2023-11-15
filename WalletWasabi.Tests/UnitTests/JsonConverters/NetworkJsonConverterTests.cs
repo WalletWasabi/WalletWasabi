@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 public class NetworkJsonConverterTests
 {
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *serialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *serialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void SerializationParity()
@@ -25,7 +25,7 @@ public class NetworkJsonConverterTests
 	}
 
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *deserialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *deserialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void DeserializationParity()
@@ -33,54 +33,60 @@ public class NetworkJsonConverterTests
 		// Success cases.
 		{
 			string token = "Main";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
+
+			token = "Mainnet";
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "TestNet";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "RegTest";
-			AssertBothDeserialize(S(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "regression";
-			AssertBothDeserialize(S(token)); // Regtest
+			AssertBothDeserialize(ConvertToJsonString(token)); // ~ RegTest.
+
+			token = "     MainNet     "; // JSON convertors handle whitespace by trimming it.
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "Test";
-			AssertBothDeserialize(S(token)); // Testnet
+			AssertBothDeserialize(ConvertToJsonString(token)); // ~ TestNet.
 
 			token = "Reg";
-			AssertBothDeserialize(S(token)); // Regtest
+			AssertBothDeserialize(ConvertToJsonString(token)); // ~ RegTest.
 
 			token = "Man";
-			AssertBothDeserialize(S(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null.
 
 			token = " ";
-			AssertBothDeserialize(S(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null.
 
 			token = "null";
-			AssertBothDeserialize(S(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null.
 		}
 
 		// Failing cases.
 		{
-			string token = "100";
-			AssertDeserializeDifferentExceptions<InvalidCastException, JsonException>(token);
+			string invalidToken = "100";
+			AssertDeserializeDifferentExceptions<InvalidCastException, JsonException>(invalidToken);
 		}
 
 		// Unique cases.
 		{
-			string token = "null";
-			AssertDeserializeFailure<ArgumentNullException>(token);
+			string invalidToken = "null";
+			AssertDeserializeFailure<ArgumentNullException>(invalidToken);
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
 		{
 			string json = $$"""{"Name": "Network", "Network": {{jsonToken}} }""";
 
-			TestProduct? product1 = JsonConvertOld.DeserializeObject<TestProduct>(json);
-			TestProduct? product2 = JsonConvertNew.Deserialize<TestProduct>(json);
+			TestRecord? record1 = JsonConvertOld.DeserializeObject<TestRecord>(json);
+			TestRecord? record2 = JsonConvertNew.Deserialize<TestRecord>(json);
 
 			// Value equality.
-			Assert.Equal(product1, product2);
+			Assert.Equal(record1, record2);
 		}
 
 		static void AssertDeserializeFailure<TException>(string jsonToken)
@@ -88,8 +94,8 @@ public class NetworkJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Network": {{jsonToken}} }""";
 
-			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TException>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
 		static void AssertDeserializeDifferentExceptions<TExceptionOld, TExceptionNew>(string jsonToken)
@@ -98,16 +104,16 @@ public class NetworkJsonConverterTests
 		{
 			string json = $$"""{"Name": "Little Book of Calm", "Network": {{jsonToken}} }""";
 
-			Assert.Throws<TExceptionOld>(() => JsonConvertOld.DeserializeObject<TestProduct>(json));
-			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
+			Assert.Throws<TExceptionOld>(() => JsonConvertOld.DeserializeObject<TestRecord>(json));
+			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestRecord>(json));
 		}
 
-		static string S(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 
 	/// <summary>
-	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft library and STJ library.
+	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft.Json and STJ library.
 	/// </summary>
 	/// <returns>JSON representation of <paramref name="o"/>.</returns>
 	private static string AssertSerializedEqually<T>(T o)
@@ -123,9 +129,9 @@ public class NetworkJsonConverterTests
 	}
 
 	/// <summary>
-	/// Record for testing deserialization of <see cref="Money"/>.
+	/// Record for testing deserialization of <see cref="NBitcoin.Network"/>.
 	/// </summary>
-	private record TestProduct
+	private record TestRecord
 	{
 		public required string Name { get; init; }
 
@@ -136,6 +142,9 @@ public class NetworkJsonConverterTests
 		public Network? Network { get; init; }
 	}
 
+	/// <summary>
+	/// Record with various attributes for both STJ and Newtonsoft.
+	/// </summary>
 	private record TestData
 	{
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Main))]
