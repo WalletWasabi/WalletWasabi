@@ -123,6 +123,7 @@
         <i:Interaction.Behaviors>
           <behaviors:ScrollToSelectedItemBehavior />
           <behaviors:HistoryItemTypeClassBehavior />
+          <behaviors:SetLastChildBehavior />
         </i:Interaction.Behaviors>
         <TreeDataGrid.ElementFactory>
           <treeDataGrid:PrivacyElementFactory />

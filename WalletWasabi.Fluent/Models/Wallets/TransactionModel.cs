@@ -35,6 +35,8 @@ public partial class TransactionModel : ReactiveObject
 
 	public bool IsChild { get; set; }
 
+	public bool IsLastChild { get; set; }
+
 	public required Money Amount { get; set; }
 
 	public Money? DisplayAmount => GetAmount();
