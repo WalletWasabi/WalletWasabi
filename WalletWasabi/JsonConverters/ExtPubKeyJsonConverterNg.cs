@@ -15,11 +15,11 @@ public class ExtPubKeyJsonConverterNg : JsonConverter<ExtPubKey>
 			throw new JsonException("Expected a JSON string value.");
 		}
 
-		string? s = reader.GetString();
+		string? extPubKeyString = reader.GetString();
 
-		if (s is not null)
+		if (extPubKeyString is not null)
 		{
-			ExtPubKey epk = NBitcoinHelpers.BetterParseExtPubKey(s);
+			ExtPubKey epk = NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 			return epk;
 		}
 
