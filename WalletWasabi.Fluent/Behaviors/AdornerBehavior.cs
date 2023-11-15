@@ -8,6 +8,8 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class AdornerBehavior : AttachedToVisualTreeBehavior<Control>
 {
+	public Control? Adorner { get; set; }
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is null)
@@ -54,6 +56,4 @@ public class AdornerBehavior : AttachedToVisualTreeBehavior<Control>
 		Canvas.SetLeft(Adorner!, finalRect.Right);
 		Canvas.SetTop(Adorner!, finalRect.Y + (finalRect.Height / 2 - Adorner!.Bounds.Height / 2));
 	}
-
-	public Control? Adorner { get; set; }
 }
