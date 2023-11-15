@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Immutable;
@@ -123,47 +124,24 @@ public class WabiSabiCoordinator : BackgroundService
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
 		var txId = tx.GetHash();
-
-		// We don't ban our own coinjoin outputs.
-		if(CoinJoinIdStore.Contains(txId))
-		{
-			return;
-		}
-
-		// Just in case a coinjoin tx id is not in the CoinJoinIdStore
-		var isFinishedCoinJoin = Arena.RoundStates
-			.Select(x => x.CoinjoinState)
-			.OfType<SigningState>()
-			.Any(x => x.CreateUnsignedTransaction().GetHash() == txId);
-		if (isFinishedCoinJoin)
-		{
-			return;
-		}
-
-		// Do not ban coinjoin looking txs because all the previous mechanisms can fail.
-		var isWasabiCoinJoinLookingTx =
-			tx.RBF == false
-			&& tx.Inputs.Count >= Config.MinInputCountByRound
-			&& tx.Inputs.Count <= Config.MaxInputCountByRound
-			&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
-			&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a,b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second); // Outputs are ordered descending.
-		if (isWasabiCoinJoinLookingTx)
+		// Check if the transaction is already in the CoinJoinIdStore
+		// or if it is a finished but not in the CoinJoinIdStore yet
+		// or if it looks like a Wasabi coinJoin transaction
+		// in such a case do nothing because we don't want to ban our own coins.
+		if (CoinJoinIdStore.Contains(txId) || IsFinishedCoinJoin(txId) || IsWasabiCoinJoinLookingTx(tx))
 		{
 			return;
 		}
 
 		var outPoints = tx.Inputs.Select(x => x.PrevOut);
 
-		// Detect and punish double spending coins
-		var disrupters = Arena.RoundStates
-			.Where(r => r.Phase != Phase.Ended)
-			.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
-			.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
-			.ToArray();
+		// Get the coins that are registered in a round and were spent by the received transaction.
+		// These are disrupters (roundId and offenderCoin) for the given outPoints
+		var disrupters = GetDisrupters(outPoints);
 
-		foreach (var (roundId, offender) in disrupters)
+		foreach (var (roundId, offenderCoin) in disrupters)
 		{
-			Warden.Prison.DoubleSpent(offender.Outpoint, offender.Amount, roundId);
+			Warden.Prison.DoubleSpent(offenderCoin.Outpoint, offenderCoin.Amount, roundId);
 		}
 
 		// Abort disrupted rounds
@@ -173,6 +151,26 @@ public class WabiSabiCoordinator : BackgroundService
 			Arena.AbortRound(roundId);
 		}
 	}
+
+	private bool IsFinishedCoinJoin(uint256 txId) =>
+		Arena.RoundStates
+		.Select(x => x.CoinjoinState)
+		.OfType<SigningState>()
+		.Any(x => x.CreateUnsignedTransaction().GetHash() == txId);
+
+	private bool IsWasabiCoinJoinLookingTx(Transaction tx) =>
+		tx.RBF == false
+		&& tx.Inputs.Count >= Config.MinInputCountByRound
+		&& tx.Inputs.Count <= Config.MaxInputCountByRound
+		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
+		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);
+
+	private (uint256 RoundId, Coin Coin)[] GetDisrupters(IEnumerable<OutPoint> outPoints) =>
+		Arena.RoundStates
+		.Where(r => r.Phase != Phase.Ended)
+		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
+		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
+		.ToArray();
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
