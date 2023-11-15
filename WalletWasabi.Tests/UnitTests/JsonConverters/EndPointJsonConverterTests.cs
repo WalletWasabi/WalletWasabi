@@ -32,13 +32,13 @@ public class EndPointJsonConverterTests
 	{
 		// Success cases.
 		{
-			string token = "127.0.0.1:8333";
+			string token = "null";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
-			token = "127.0.0.1:0";
+			token = "0";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
-			token = "255.255.255.255:8888";
+			token = "0:0";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0.0.0.0:0";
@@ -47,19 +47,22 @@ public class EndPointJsonConverterTests
 			token = "127.0.0.1";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
-			token = "256.0.0.0:8888";
-			AssertBothDeserialize(ConvertToJsonString(token));
-
-			token = "localhost:8888";
+			token = "127.0.0.1:0";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "127.0.0:8888";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
-			token = "0:0";
+			token = "127.0.0.1:8333";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
-			token = "null";
+			token = "255.255.255.255:8888";
+			AssertBothDeserialize(ConvertToJsonString(token));
+
+			token = "256.0.0.0:8888";
+			AssertBothDeserialize(ConvertToJsonString(token));
+
+			token = "localhost:8888";
 			AssertBothDeserialize(ConvertToJsonString(token));
 		}
 
