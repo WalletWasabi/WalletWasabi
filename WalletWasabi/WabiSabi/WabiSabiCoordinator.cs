@@ -124,33 +124,35 @@ public class WabiSabiCoordinator : BackgroundService
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
 		var txId = tx.GetHash();
-		// Check if the transaction is already in the CoinJoinIdStore
-		// or if it is a finished but not in the CoinJoinIdStore yet
-		// or if it looks like a Wasabi coinJoin transaction
-		// in such a case do nothing because we don't want to ban our own coins.
-		if (CoinJoinIdStore.Contains(txId) || IsFinishedCoinJoin(txId) || IsWasabiCoinJoinLookingTx(tx))
+		if (IsWasabiCoinJoin(txId, tx))
 		{
 			return;
 		}
 
-		var outPoints = tx.Inputs.Select(x => x.PrevOut);
+		var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
+		var disruptedRounds = GetDisruptedRounds(inputOutPoints);
 
-		// Get the coins that are registered in a round and were spent by the received transaction.
-		// These are disrupters (roundId and offenderCoin) for the given outPoints
-		var disrupters = GetDisrupters(outPoints);
-
-		foreach (var (roundId, offenderCoin) in disrupters)
+		// No round was hurt disrupted by the received transaction. Nothing to do here.
+		if (disruptedRounds.Length == 0)
 		{
-			Warden.Prison.DoubleSpent(offenderCoin.Outpoint, offenderCoin.Amount, roundId);
+			return;
+		}
+
+		// Ban all outputs created by the the received transaction because it has spent coins participating in coinjoin rounds.
+		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
+		{
+			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds);
 		}
 
 		// Abort disrupted rounds
-		var disruptedRounds = disrupters.Select(x => x.RoundId).Distinct();
 		foreach (var roundId in disruptedRounds)
 		{
 			Arena.AbortRound(roundId);
 		}
 	}
+
+	private bool IsWasabiCoinJoin(uint256 txId, Transaction tx) =>
+		CoinJoinIdStore.Contains(txId) || IsFinishedCoinJoin(txId) || IsWasabiCoinJoinLookingTx(tx);
 
 	private bool IsFinishedCoinJoin(uint256 txId) =>
 		Arena.RoundStates
@@ -165,11 +167,13 @@ public class WabiSabiCoordinator : BackgroundService
 		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
 		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);
 
-	private (uint256 RoundId, Coin Coin)[] GetDisrupters(IEnumerable<OutPoint> outPoints) =>
+	private uint256[] GetDisruptedRounds(IEnumerable<OutPoint> outPoints) =>
 		Arena.RoundStates
 		.Where(r => r.Phase != Phase.Ended)
 		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
 		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
+		.Select(x => x.RoundId)
+		.Distinct()
 		.ToArray();
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -216,7 +216,7 @@ public partial class Arena : PeriodicRunner
 						{
 							foreach (var offender in offendingAlices)
 							{
-								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
+								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id.Singleton());
 								offendingAliceCounter++;
 							}
 						}

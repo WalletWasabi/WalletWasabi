@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
@@ -13,7 +14,7 @@ public enum RoundDisruptionMethod
 }
 
 public abstract record Offense();
-public record RoundDisruption(uint256 DisruptedRoundId, Money Value, RoundDisruptionMethod Method) : Offense;
+public record RoundDisruption(IEnumerable<uint256> DisruptedRoundIds, Money Value, RoundDisruptionMethod Method) : Offense;
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
 public record Inherited(OutPoint[] Ancestors) : Offense;
 public record Cheating(uint256 RoundId) : Offense;
@@ -32,7 +33,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 				case RoundDisruption rd:
 					yield return nameof(RoundDisruption);
 					yield return rd.Value.Satoshi.ToString();
-					yield return rd.DisruptedRoundId.ToString();
+					yield return rd.DisruptedRoundIds.First().ToString();
 					yield return rd.Method switch
 					{
 						RoundDisruptionMethod.DidNotConfirm => "didn't confirm",
@@ -76,7 +77,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 		{
 			nameof(RoundDisruption) =>
 				new RoundDisruption(
-					uint256.Parse(parts[4]),
+					uint256.Parse(parts[4]).Singleton(),
 					Money.Satoshis(long.Parse(parts[3])),
 
 					parts[5] switch
