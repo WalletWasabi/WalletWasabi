@@ -30,30 +30,30 @@ public class FeeRateJsonConverterTests
 	{
 		// Success cases.
 		{
-			string token = "209999999"; // Maximum number of bitcoins ever to exist + 1 satoshi.
+			string token = "0";
 			AssertBothDeserialize(token);
 
 			token = "1";
 			AssertBothDeserialize(token);
 
-			token = "9223372036854775807"; // Biggest long number
+			token = "209999999"; // Maximum number of bitcoins ever to exist + 1 satoshi.
 			AssertBothDeserialize(token);
 
-			token = "0";
+			token = "9223372036854775807"; // Biggest long number
 			AssertBothDeserialize(token);
 		}
 
 		// Format exception errors.
 		{
+			// The old converter throws InvalidCastException, the new converter throws JsonException.
 			string invalidToken = "1e6";
-			//OldConverter - InvalidCastException, newConverter - JsonException
 			AssertDeserializeDifferentExceptions<InvalidCastException, System.Text.Json.JsonException>(invalidToken);
 
-			//OldConverter - JsonReaderException, newConverter - JsonException
+			// The old converter throws JsonReaderException, the new converter throws JsonException.
 			invalidToken = "1,0";
 			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(invalidToken);
 
-			//OldConverter - JsonReaderException  newConverter - JsonException
+			// The old converter throws JsonReaderException, the new converter throws JsonException.
 			invalidToken = "1,000.00";
 			AssertDeserializeDifferentExceptions<JsonReaderException, System.Text.Json.JsonException>(invalidToken);
 		}
