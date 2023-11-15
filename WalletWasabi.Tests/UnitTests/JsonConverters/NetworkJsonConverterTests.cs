@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters;
 public class NetworkJsonConverterTests
 {
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *serialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *serialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void SerializationParity()
@@ -25,7 +25,7 @@ public class NetworkJsonConverterTests
 	}
 
 	/// <summary>
-	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>NewtonSoft.Json</c> *deserialize* objects equally.
+	/// Tests that JSON converter based on <c>System.Text.Json</c> and the one based on <c>Newtonsoft.Json</c> *deserialize* objects equally.
 	/// </summary>
 	[Fact]
 	public void DeserializationParity()
@@ -113,7 +113,7 @@ public class NetworkJsonConverterTests
 	}
 
 	/// <summary>
-	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft library and STJ library.
+	/// Asserts that object <paramref name="o"/> is serialized to the same JSON by both Newtonsoft.Json and STJ library.
 	/// </summary>
 	/// <returns>JSON representation of <paramref name="o"/>.</returns>
 	private static string AssertSerializedEqually<T>(T o)
