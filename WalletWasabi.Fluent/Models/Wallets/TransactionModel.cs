@@ -39,7 +39,7 @@ public partial class TransactionModel : ReactiveObject
 
 	public required Money Amount { get; set; }
 
-	public Money? DisplayAmount => GetAmount();
+	public Money DisplayAmount => GetAmount();
 
 	public Money? Fee { get; set; }
 

@@ -16,6 +16,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private bool _isExpanded;
 	[AutoNotify] private bool _isPointerOver;
 	[AutoNotify] private bool _isParentPointerOver;
+	[AutoNotify] private bool _isSelected;
+	[AutoNotify] private bool _isParentSelected;
 
 	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
@@ -37,6 +39,16 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 				foreach (var child in Children)
 				{
 					child.IsParentPointerOver = x;
+				}
+			})
+			.Subscribe();
+
+		this.WhenAnyValue(x => x.IsSelected)
+			.Do(x =>
+			{
+				foreach (var child in Children)
+				{
+					child.IsParentSelected = x;
 				}
 			})
 			.Subscribe();

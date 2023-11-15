@@ -25,11 +25,11 @@
         </Style>
         <Style Selector="PathIcon.Pending">
           <Setter Property="Data" Value="{StaticResource clock_regular}" />
-          <Setter Property="Height" Value="14" />
+          <Setter Property="Height" Value="15" />
         </Style>
         <Style Selector="PathIcon.SpeedUp">
           <Setter Property="Data" Value="{StaticResource rocket_regular}" />
-          <Setter Property="Height" Value="14" />
+          <Setter Property="Height" Value="15" />
         </Style>
       </PathIcon.Styles>
     </PathIcon>

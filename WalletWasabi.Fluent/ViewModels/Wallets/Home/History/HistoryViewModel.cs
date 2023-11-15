@@ -125,7 +125,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
 			"Amount (BTC)",
-			x => x.Transaction.DisplayAmount?.ToFormattedString(),
+			x => $"{(x.Transaction.DisplayAmount == Money.Zero ? " " : "")}{x.Transaction.DisplayAmount.ToBtcWithUnit(true)}",
 			type: PrivacyCellType.Amount,
 			options: new ColumnOptions<HistoryItemViewModelBase>
 			{
