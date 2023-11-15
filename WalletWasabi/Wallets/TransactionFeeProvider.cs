@@ -18,12 +18,12 @@ namespace WalletWasabi.Wallets;
 
 public class TransactionFeeProvider : PeriodicRunner
 {
+	private readonly TimeSpan _maximumDelay = TimeSpan.FromMinutes(2);
+
 	public TransactionFeeProvider(WasabiHttpClientFactory httpClientFactory) : base(TimeSpan.FromSeconds(10))
 	{
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
-
-	private readonly TimeSpan _maximumDelay = TimeSpan.FromMinutes(2);
 
 	public event EventHandler? RequestedFeeArrived;
 

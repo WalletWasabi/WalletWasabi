@@ -48,7 +48,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
-
 	private void UpdateValues(TransactionModel model)
 	{
 		DateString = model.DateString;
@@ -94,7 +93,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.Cache
-			                .Connect()
+							.Connect()
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
 							.DisposeWith(disposables);
