@@ -36,7 +36,7 @@ public class FeeRateJsonConverterTests
 			token = "1";
 			AssertBothDeserialize(token);
 
-			token = "209999999"; // Maximum number of bitcoins ever to exist + 1 satoshi.
+			token = "210000000"; // Maximum number of bitcoins ever to exist.
 			AssertBothDeserialize(token);
 
 			token = "9223372036854775807"; // Biggest long number
