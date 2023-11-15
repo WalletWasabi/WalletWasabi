@@ -187,6 +187,7 @@ public class P2pTests
 			addressManager?.SavePeerFile(addressManagerFilePath, network);
 			Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			cache.Dispose();
+			transactionFeeProvider.Dispose();
 		}
 	}
 }

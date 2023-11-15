@@ -204,6 +204,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();
+			transactionFeeProvider?.Dispose();
 		}
 	}
 

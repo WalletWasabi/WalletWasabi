@@ -226,6 +226,7 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
+			transactionFeeProvider.Dispose();
 		}
 	}
 }

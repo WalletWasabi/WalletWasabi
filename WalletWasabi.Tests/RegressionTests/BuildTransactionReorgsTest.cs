@@ -280,6 +280,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();
+			transactionFeeProvider?.Dispose();
 		}
 	}
 

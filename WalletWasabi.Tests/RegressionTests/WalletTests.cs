@@ -232,6 +232,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();
+			transactionFeeProvider.Dispose();
 		}
 	}
 }
