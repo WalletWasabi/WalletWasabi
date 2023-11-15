@@ -33,34 +33,34 @@ public class MoneyBtcJsonConverterTests
 		// Success cases.
 		{
 			string token = "209999999.97690001"; // Maximum number of bitcoins ever to exist + 1 satoshi.
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "210000000"; // 21 million bitcoin.
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0.00000000000000000000000000000000000000000000001";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "00000000000000000000000";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 		}
 
 		// Format exception errors.
 		{
 			string invalidToken = "1e6"; // Exponential notation.
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "1,0"; // Decimal comma.
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "1,000.00"; // Thousand separator.
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 		}
 
 		// Unique case.
 		{
 			string invalidToken = "1."; // No digit after decimal point.
-			AssertBothDeserialize(ConvertToString(invalidToken));
+			AssertBothDeserialize(ConvertToJsonString(invalidToken));
 		}
 
 		// Tests that both JSON converters deserialize to NULL if a JSON integer is found instead of a JSON number-string.
@@ -102,7 +102,7 @@ public class MoneyBtcJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string ConvertToString(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 

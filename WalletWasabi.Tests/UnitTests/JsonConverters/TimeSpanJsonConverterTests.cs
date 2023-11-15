@@ -32,35 +32,35 @@ public class TimeSpanJsonConverterTests
 		// Success cases.
 		{
 			string token = "0d 0h 0m 0s";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "400d 0h 0m 0s";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0d 0h 0m 0s 10u";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "10d10h10m10s";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 		}
 
 		// Failing cases.
 		{
 			// Valid input is: <days>d <hours>h <minutes>m <seconds>s. All other variants are invalid.
 			string invalidToken = "1440";
-			AssertDeserializeFailure<IndexOutOfRangeException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<IndexOutOfRangeException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "367d";
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "0h 0m 0s";
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "0s 0m 0h 0d";
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "00:00:00";
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -83,7 +83,7 @@ public class TimeSpanJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string ConvertToString(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 

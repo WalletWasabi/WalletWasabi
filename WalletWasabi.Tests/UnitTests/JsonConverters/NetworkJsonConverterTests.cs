@@ -33,37 +33,37 @@ public class NetworkJsonConverterTests
 		// Success cases.
 		{
 			string token = "Main";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "Mainnet";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "TestNet";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "RegTest";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "regression";
-			AssertBothDeserialize(ConvertToString(token)); // Regtest
+			AssertBothDeserialize(ConvertToJsonString(token)); // Regtest
 
 			token = "     MainNet     "; // spaces to trim
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "Test";
-			AssertBothDeserialize(ConvertToString(token)); // Testnet
+			AssertBothDeserialize(ConvertToJsonString(token)); // Testnet
 
 			token = "Reg";
-			AssertBothDeserialize(ConvertToString(token)); // Regtest
+			AssertBothDeserialize(ConvertToJsonString(token)); // Regtest
 
 			token = "Man";
-			AssertBothDeserialize(ConvertToString(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null
 
 			token = " ";
-			AssertBothDeserialize(ConvertToString(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null
 
 			token = "null";
-			AssertBothDeserialize(ConvertToString(token)); // null
+			AssertBothDeserialize(ConvertToJsonString(token)); // null
 		}
 
 		// Failing cases.
@@ -108,7 +108,7 @@ public class NetworkJsonConverterTests
 			Assert.Throws<TExceptionNew>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string ConvertToString(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 

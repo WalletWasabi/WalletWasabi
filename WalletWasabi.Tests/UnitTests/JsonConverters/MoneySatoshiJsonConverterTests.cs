@@ -74,7 +74,7 @@ public class MoneySatoshiJsonConverterTests
 		// Tests that neither JSON converters can deserialize to NULL if a JSON number-string is found instead of a JSON integer.
 		{
 			string invalidToken = "2999";
-			AssertDeserializeFailure<InvalidCastException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<InvalidCastException>(ConvertToJsonString(invalidToken));
 		}
 
 		static void AssertBothDeserialize(string jsonToken)
@@ -115,7 +115,7 @@ public class MoneySatoshiJsonConverterTests
 			Assert.Throws<System.Text.Json.JsonException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string ConvertToString(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 

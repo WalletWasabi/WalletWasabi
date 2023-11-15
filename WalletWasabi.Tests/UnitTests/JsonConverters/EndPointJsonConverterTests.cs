@@ -33,43 +33,43 @@ public class EndPointJsonConverterTests
 		// Success cases.
 		{
 			string token = "127.0.0.1:8333";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "127.0.0.1:0";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "255.255.255.255:8888";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0.0.0.0:0";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "127.0.0.1";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "256.0.0.0:8888";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "localhost:8888";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "127.0.0:8888";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0:0";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "null";
-			AssertBothDeserialize(ConvertToString(token));
+			AssertBothDeserialize(ConvertToJsonString(token));
 		}
 
 		// Failing cases.
 		{
 			string invalidToken = "127.0.0.1:8888888";
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 
 			invalidToken = "";
-			AssertDeserializeFailure<FormatException>(ConvertToString(invalidToken));
+			AssertDeserializeFailure<FormatException>(ConvertToJsonString(invalidToken));
 		}
 
 		// Unique cases.
@@ -98,7 +98,7 @@ public class EndPointJsonConverterTests
 			Assert.Throws<TException>(() => JsonConvertNew.Deserialize<TestProduct>(json));
 		}
 
-		static string ConvertToString(string s)
+		static string ConvertToJsonString(string s)
 			=> $"\"{s}\"";
 	}
 
