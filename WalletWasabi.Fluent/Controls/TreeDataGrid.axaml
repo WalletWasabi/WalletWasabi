@@ -57,6 +57,35 @@
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="1" />
     </Style>
+
+    <!-- Child's Parent pointerover -->
+    <Style Selector="^/template/ Border#PART_SelectionIndicator.isParentPointerOver">
+      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" />
+      <Setter Property="BorderThickness" Value="1 0 1 0" />
+      <Setter Property="Padding" Value="0 1 0 1" />
+    </Style>
+
+    <!-- Last Child's Parent pointerover -->
+    <Style Selector="^/template/ Border#PART_SelectionIndicator.lastChildIsParentPointerOver">
+      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" />
+      <Setter Property="BorderThickness" Value="1 0 1 1" />
+      <Setter Property="Padding" Value="0 1 0 0" />
+    </Style>
+
+    <!-- Child's Parent selected -->
+    <Style Selector="^/template/ Border#PART_SelectionIndicator.isParentSelected">
+      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
+      <Setter Property="BorderThickness" Value="1 0 1 0" />
+      <Setter Property="Padding" Value="0 1 0 1" />
+    </Style>
+
+    <!-- Last Child's Parent selected -->
+    <Style Selector="^/template/ Border#PART_SelectionIndicator.lastChildIsParentSelected">
+      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
+      <Setter Property="BorderThickness" Value="1 0 1 1" />
+      <Setter Property="Padding" Value="0 1 0 0" />
+    </Style>
+
     <Style Selector="^:pointerover /template/ Border#PART_SelectionIndicator">
       <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" />
       <Setter Property="BorderThickness" Value="1" />
@@ -84,22 +113,21 @@
                 x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase"
                 Classes.isChild="{Binding Transaction.IsChild}"
                 Classes.isLastChild="{Binding Transaction.IsLastChild}"
-                Classes.isExpanded="{Binding IsExpanded}">
-          <!-- TODO: Temp disabled full group selection -->
-          <!-- Classes.isParentPointerOver="{Binding IsParentPointerOver}" -->
-          <!-- Classes.isParentSelected="{Binding IsParentSelected}"> -->
-          <!-- <Classes.lastChildIsParentPointerOver> -->
-          <!--   <MultiBinding Converter="{x:Static BoolConverters.And}"> -->
-          <!--     <Binding Path="IsParentPointerOver" /> -->
-          <!--     <Binding Path="Transaction.IsLastChild" /> -->
-          <!--   </MultiBinding> -->
-          <!-- </Classes.lastChildIsParentPointerOver> -->
-          <!-- <Classes.lastChildIsParentSelected> -->
-          <!--   <MultiBinding Converter="{x:Static BoolConverters.And}"> -->
-          <!--     <Binding Path="IsParentSelected" /> -->
-          <!--     <Binding Path="Transaction.IsLastChild" /> -->
-          <!--   </MultiBinding> -->
-          <!-- </Classes.lastChildIsParentSelected> -->
+                Classes.isExpanded="{Binding IsExpanded}"
+                Classes.isParentPointerOver="{Binding IsParentPointerOver}"
+                Classes.isParentSelected="{Binding IsParentSelected}">
+          <Classes.lastChildIsParentPointerOver>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsParentPointerOver" />
+              <Binding Path="Transaction.IsLastChild" />
+            </MultiBinding>
+          </Classes.lastChildIsParentPointerOver>
+          <Classes.lastChildIsParentSelected>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsParentSelected" />
+              <Binding Path="Transaction.IsLastChild" />
+            </MultiBinding>
+          </Classes.lastChildIsParentSelected>
           <i:Interaction.Behaviors>
             <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
@@ -163,15 +191,14 @@
       <Setter Property="CornerRadius" Value="15 15 0 0" />
     </Style>
 
-    <!-- TODO: Temp disabled full group selection -->
-    <!-- <Style Selector="^:selected /template/ Border#PART_SelectionIndicator.isExpanded"> -->
-    <!--   <Setter Property="BorderThickness" Value="1 1 1 0" /> -->
-    <!--   <Setter Property="Padding" Value="0 0 0 1" /> -->
-    <!-- </Style> -->
-    <!-- <Style Selector="^:pointerover /template/ Border#PART_SelectionIndicator.isExpanded"> -->
-    <!--   <Setter Property="BorderThickness" Value="1 1 1 0" /> -->
-    <!--   <Setter Property="Padding" Value="0 0 0 1" /> -->
-    <!-- </Style> -->
+    <Style Selector="^:selected /template/ Border#PART_SelectionIndicator.isExpanded">
+      <Setter Property="BorderThickness" Value="1 1 1 0" />
+      <Setter Property="Padding" Value="0 0 0 1" />
+    </Style>
+    <Style Selector="^:pointerover /template/ Border#PART_SelectionIndicator.isExpanded">
+      <Setter Property="BorderThickness" Value="1 1 1 0" />
+      <Setter Property="Padding" Value="0 0 0 1" />
+    </Style>
 
     <!-- Child item style -->
     <Style Selector="^/template/ Border#PART_SelectionIndicator.isChild">
@@ -179,45 +206,39 @@
       <Setter Property="Margin" Value="0" />
       <Setter Property="CornerRadius" Value="0" />
     </Style>
-    <!-- <Style Selector="^:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild"> -->
-    <!--   <Setter Property="Background" Value="Transparent" /> -->
-    <!-- </Style> -->
-    <!-- <Style Selector="^:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild"> -->
-    <!--   <Setter Property="Background" Value="Transparent" /> -->
-    <!-- </Style> -->
 
     <!-- Child item style -->
     <Style Selector="^/template/ Border#PART_SelectionIndicator.isLastChild">
       <Setter Property="CornerRadius" Value="0 0 15 15" />
     </Style>
 
-    <!-- Child's Parent pointerover -->
-    <Style Selector="^/template/ Border#PART_SelectionIndicator.isParentPointerOver">
-      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" />
-      <Setter Property="BorderThickness" Value="1 0 1 0" />
-      <Setter Property="Padding" Value="0 1 0 1" />
-    </Style>
-
-    <!-- Last Child's Parent pointerover -->
-    <Style Selector="^/template/ Border#PART_SelectionIndicator.lastChildIsParentPointerOver">
-      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" />
-      <Setter Property="BorderThickness" Value="1 0 1 1" />
-      <Setter Property="Padding" Value="0 1 0 0" />
-    </Style>
-
-    <!-- Child's Parent selected -->
-    <Style Selector="^/template/ Border#PART_SelectionIndicator.isParentSelected">
-      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
-      <Setter Property="BorderThickness" Value="1 0 1 0" />
-      <Setter Property="Padding" Value="0 1 0 1" />
-    </Style>
-
-    <!-- Last Child's Parent selected -->
-    <Style Selector="^/template/ Border#PART_SelectionIndicator.lastChildIsParentSelected">
-      <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
-      <Setter Property="BorderThickness" Value="1 0 1 1" />
-      <Setter Property="Padding" Value="0 1 0 0" />
-    </Style>
+    <!-- ~1~ Child's Parent pointerover @1@ -->
+    <!-- <Style Selector="^/template/ Border#PART_SelectionIndicator.isParentPointerOver"> -->
+    <!--   <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" /> -->
+    <!--   <Setter Property="BorderThickness" Value="1 0 1 0" /> -->
+    <!--   <Setter Property="Padding" Value="0 1 0 1" /> -->
+    <!-- </Style> -->
+    <!-- -->
+    <!-- ~1~ Last Child's Parent pointerover @1@ -->
+    <!-- <Style Selector="^/template/ Border#PART_SelectionIndicator.lastChildIsParentPointerOver"> -->
+    <!--   <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorFadedBrush}" /> -->
+    <!--   <Setter Property="BorderThickness" Value="1 0 1 1" /> -->
+    <!--   <Setter Property="Padding" Value="0 1 0 0" /> -->
+    <!-- </Style> -->
+    <!-- -->
+    <!-- ~1~ Child's Parent selected @1@ -->
+    <!-- <Style Selector="^/template/ Border#PART_SelectionIndicator.isParentSelected"> -->
+    <!--   <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" /> -->
+    <!--   <Setter Property="BorderThickness" Value="1 0 1 0" /> -->
+    <!--   <Setter Property="Padding" Value="0 1 0 1" /> -->
+    <!-- </Style> -->
+    <!-- -->
+    <!-- ~1~ Last Child's Parent selected @1@ -->
+    <!-- <Style Selector="^/template/ Border#PART_SelectionIndicator.lastChildIsParentSelected"> -->
+    <!--   <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" /> -->
+    <!--   <Setter Property="BorderThickness" Value="1 0 1 1" /> -->
+    <!--   <Setter Property="Padding" Value="0 1 0 0" /> -->
+    <!-- </Style> -->
   </ControlTheme>
 
   <ControlTheme x:Key="HistoryTableTreeDataGridExpanderCell" TargetType="TreeDataGridExpanderCell">
