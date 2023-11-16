@@ -248,7 +248,9 @@ public class ApplicationStateManager : IMainWindowService
 			DataContext = MainViewModel.Instance
 		};
 
-		// TODO:
+		// TODO: Handle Closing event from Android/iOS.
+
+		// TODO: Handle Close event from Android/iOS.
 
 		single.MainView = result;
 
