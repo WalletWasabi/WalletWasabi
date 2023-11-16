@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using WalletWasabi.Fluent.Generators.Abstractions;
 
 namespace WalletWasabi.Fluent.Generators.Generators;
@@ -69,26 +70,26 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			{
 				var returnType = method.ReturnType.SimplifyType(namespaces);
 
-				var signature = "\t";
+				StringBuilder signatureBuilder = new(capacity: 150);
+				signatureBuilder.Append('\t');
+				signatureBuilder.Append(returnType);
+				signatureBuilder.Append(' ');
+				signatureBuilder.Append(method.Name);
 
-				signature += returnType;
-
-				signature += $" {method.Name}";
 				if (method.IsGenericMethod)
 				{
-					signature += "<";
+					signatureBuilder.Append('<');
 
 					var typeArgs =
 						from argument in method.TypeArguments
 						let typeName = argument.SimplifyType(namespaces)
 						select typeName;
 
-					signature += string.Join(", ", typeArgs);
-
-					signature += ">";
+					signatureBuilder.Append(string.Join(", ", typeArgs));
+					signatureBuilder.Append('>');
 				}
 
-				signature += "(";
+				signatureBuilder.Append('(');
 
 				var parameters =
 					from parameter in method.Parameters
@@ -102,11 +103,10 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					let defaultValueString = defaultValue != null ? " = " + defaultValue : null
 					select $"{attributeList?.ToFullString()}{refKind}{type} {name}{defaultValueString}";
 
-				signature += string.Join(", ", parameters);
+				signatureBuilder.Append(string.Join(", ", parameters));
+				signatureBuilder.Append(");");
 
-				signature += ");";
-
-				methods.Add(signature);
+				methods.Add(signatureBuilder.ToString());
 			}
 		}
 
