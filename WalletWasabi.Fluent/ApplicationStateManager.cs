@@ -252,6 +252,9 @@ public class ApplicationStateManager : IMainWindowService
 
 		// TODO: Handle Close event from Android/iOS.
 
+		// This needs to be somehow wired up in mobile projects
+		// as avalonia single lifetime and main view does not support this
+
 		single.MainView = result;
 
 		// TODO:
