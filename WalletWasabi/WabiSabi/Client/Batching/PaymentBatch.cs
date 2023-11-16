@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Extensions;
@@ -91,13 +92,14 @@ public class PaymentBatch
 		}
 	}
 
-	private List<Payment> GetPayments()
+	public ReadOnlyCollection<Payment> GetPayments()
 	{
 		lock (_syncObj)
 		{
-			return new List<Payment>(_payments);
+			return _payments.AsReadOnly();
 		}
 	}
+
 	private static void LogPaymentSetDetails(PaymentSet paymentSet)
 	{
 		Logger.LogInfo($"Best payment set contains {paymentSet.PaymentCount} payments.");

@@ -17,6 +17,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
@@ -261,6 +262,46 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
 		return activeWallet.AddCoinJoinPayment(address, amount);
+	}
+
+	[JsonRpcMethod("listpayments")]
+	public JsonRpcResultList ListPayments()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		var payments = activeWallet.BatchedPayments.GetPayments();
+		return payments.Select(x =>
+		{
+			var result = new JsonRpcResult
+			{
+				["amount"] = x.Amount,
+				["destination"] = x.Destination.ScriptPubKey,
+				["details"] = x switch
+				{
+					PendingPayment pending => new JsonRpcResult
+					{
+						["status"] = "Pending",
+						["paymentId"] = pending.Id
+					},
+					InProgressPayment inProgress => new JsonRpcResult
+					{
+						["status"] = "In progress",
+						["round"] = inProgress.RoundId
+					},
+					FinishedPayment finished => new JsonRpcResult
+					{
+						["status"] = "Finished",
+						["txid"] = finished.TransactionId
+					},
+					_ => "Unknown"
+				}
+			};
+			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
+			{
+				result["address"] = address;
+			}
+			return result;
+		}).ToImmutableArray();
 	}
 
 	[JsonRpcMethod("send")]
