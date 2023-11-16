@@ -334,12 +334,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		remainingUsablePockets.Remove(_privatePocket);
 		remainingUsablePockets.Remove(_semiPrivatePocket);
 
-		if (usedPockets.Length == 1 && usedPockets.First() == _privatePocket)
-		{
-			return false;
-		}
-
-		if (usedPockets.Length == 1 && usedPockets.First() == _semiPrivatePocket)
+		if (usedPockets.Length == 1)
 		{
 			return false;
 		}
