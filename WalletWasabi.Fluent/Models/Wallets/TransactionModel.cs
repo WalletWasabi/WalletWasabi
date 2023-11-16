@@ -9,39 +9,39 @@ public partial class TransactionModel : ReactiveObject
 {
 	private readonly List<TransactionModel> _children = new();
 
-	public required int OrderIndex { get; init; }
+	public int OrderIndex { get; init; }
 
-	public required uint256 Id { get; init; }
+	public uint256 Id { get; init; }
 
-	public required LabelsArray Labels { get; init; }
+	public LabelsArray Labels { get; init; }
 
-	public required DateTimeOffset Date { get; set; }
+	public DateTimeOffset Date { get; set; }
 
-	public required string DateString { get; set; }
+	public string DateString { get; set; }
 
-	public required int Confirmations { get; init; }
+	public int Confirmations { get; init; }
 
 	public int BlockHeight { get; init; }
 
 	public uint256? BlockHash { get; init; }
 
-	public required string ConfirmedTooltip { get; set; }
+	public string ConfirmedTooltip { get; set; }
 
-	public required TransactionType Type { get; init; }
+	public TransactionType Type { get; init; }
 
-	public required TransactionStatus Status { get; set; }
+	public TransactionStatus Status { get; set; }
 
 	public bool IsChild { get; set; }
 
 	public Money? Balance { get; set; }
 
-	public required Money Amount { get; set; }
+	public Money Amount { get; set; }
 
 	public Money? IncomingAmount => GetAmounts().IncomingAmount;
 
 	public Money? OutgoingAmount => GetAmounts().OutgoingAmount;
 
-	public required Func<Money?> Fee { get; set; }
+	public Money? Fee { get; set; }
 
 	public bool CanCancelTransaction { get; init; }
 
@@ -64,7 +64,7 @@ public partial class TransactionModel : ReactiveObject
 
 		if (Amount < Money.Zero)
 		{
-			outgoingAmount = -Amount - (Fee() ?? Money.Zero);
+			outgoingAmount = -Amount - (Fee ?? Money.Zero);
 		}
 		else
 		{

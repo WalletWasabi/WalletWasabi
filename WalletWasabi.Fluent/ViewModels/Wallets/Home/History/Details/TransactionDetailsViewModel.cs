@@ -55,7 +55,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = model.BlockHeight;
 		Confirmations = model.Confirmations;
 
-		Fee = UiContext.AmountProvider.Create(model.Fee());
+		Fee = UiContext.AmountProvider.Create(model.Fee);
 		IsFeeVisible = Fee != null && Fee.HasBalance;
 
 		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
@@ -68,7 +68,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		if (model.Amount < Money.Zero)
 		{
-			Amount = _wallet.AmountProvider.Create(-model.Amount - (model.Fee() ?? Money.Zero));
+			Amount = _wallet.AmountProvider.Create(-model.Amount - (model.Fee ?? Money.Zero));
 			AmountText = "Amount sent";
 		}
 		else
@@ -96,10 +96,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 							.Connect()
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
-							.DisposeWith(disposables);
-
-		_wallet.Transactions.RequestedFeeArrived
-							.Subscribe(_ => UpdateCurrentTransaction())
 							.DisposeWith(disposables);
 	}
 

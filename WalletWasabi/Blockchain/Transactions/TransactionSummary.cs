@@ -6,11 +6,10 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionSummary
 {
-	public TransactionSummary(SmartTransaction tx, Money amount, Func<Money> feeFetcher)
+	public TransactionSummary(SmartTransaction tx, Money amount)
 	{
 		Transaction = tx;
 		Amount = amount;
-		GetFee = feeFetcher;
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -24,7 +23,7 @@ public class TransactionSummary
 	public bool IsSpeedup => Transaction.IsSpeedup;
 	public bool IsCPFP => Transaction.IsCPFP;
 	public bool IsCPFPd => Transaction.IsCPFPd;
-	public Func<Money> GetFee { get; }
+	public Money? GetFee() => Transaction.GetFee();
 
 	public uint256 GetHash() => Transaction.GetHash();
 

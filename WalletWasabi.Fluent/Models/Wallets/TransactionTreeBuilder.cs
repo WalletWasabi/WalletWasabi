@@ -148,7 +148,7 @@ public class TransactionTreeBuilder
 			Type = itemType,
 			Status = status,
 			Confirmations = confirmations,
-			Fee = transactionSummary.GetFee,
+			Fee = transactionSummary.GetFee(),
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
@@ -173,7 +173,7 @@ public class TransactionTreeBuilder
 			OrderIndex = index,
 			Type = TransactionType.CoinjoinGroup,
 			Status = status,
-			Fee = transactionSummary.GetFee
+			Fee = transactionSummary.GetFee()
 		};
 	}
 
@@ -195,7 +195,7 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
-			Fee = transactionSummary.GetFee,
+			Fee = transactionSummary.GetFee(),
 
 			Type = GetItemType(transactionSummary),
 			Status =
@@ -239,8 +239,8 @@ public class TransactionTreeBuilder
 		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
 		coinjoinGroup.Amount = amount;
 
-		var fee = coinjoinGroup.Children.Sum(x => x.Fee() ?? Money.Zero);
-		coinjoinGroup.Fee = () => fee;
+		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
+		coinjoinGroup.Fee = fee;
 
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
@@ -273,7 +273,7 @@ public class TransactionTreeBuilder
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
-			Fee = transactionSummary.GetFee
+			Fee = transactionSummary.GetFee()
 		};
 	}
 

@@ -44,15 +44,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedFeeArrived =
-			Observable.FromEventPattern(wallet.TransactionFeeProvider, nameof(wallet.TransactionFeeProvider.RequestedFeeArrived)).ToSignal()
-			.ObserveOn(RxApp.MainThreadScheduler);
-
 		Cache =
 			TransactionProcessed.Fetch(BuildSummary, model => model.Id)
 								.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
+
+		_wallet.TransactionFeeProvider.RequestedFeeArrived += UpdateTransactionFee;
 	}
 
 	public IObservableCache<TransactionModel, uint256> Cache { get; set; }
@@ -63,7 +61,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 
-	public IObservable<Unit> RequestedFeeArrived { get; }
+	public void UpdateTransactionFee(object? sender, (uint256 txid, Money fee) eventArgs)
+	{
+		if (TryGetById(eventArgs.txid, false, out TransactionModel? transaction))
+		{
+			transaction.Fee = eventArgs.fee;
+		}
+	}
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
@@ -221,5 +225,9 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return foreignOutputs.Select(x => x.DestinationAddress);
 	}
 
-	public void Dispose() => _disposable.Dispose();
+	public void Dispose()
+	{
+		_wallet.TransactionFeeProvider.RequestedFeeArrived -= UpdateTransactionFee;
+		_disposable.Dispose();
+	}
 }

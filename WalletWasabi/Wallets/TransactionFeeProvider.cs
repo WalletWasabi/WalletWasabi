@@ -25,7 +25,7 @@ public class TransactionFeeProvider : PeriodicRunner
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
-	public event EventHandler? RequestedFeeArrived;
+	public event EventHandler<(uint256 TxID, Money Fee)>? RequestedFeeArrived;
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
@@ -53,7 +53,7 @@ public class TransactionFeeProvider : PeriodicRunner
 				throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
 			}
 
-			RequestedFeeArrived?.Invoke(this, EventArgs.Empty);
+			RequestedFeeArrived?.Invoke(this, (txid, fee));
 		}
 		catch (Exception ex)
 		{
