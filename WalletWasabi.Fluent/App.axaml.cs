@@ -48,6 +48,18 @@ public class App : Application
 		AvaloniaXamlLoader.Load(this);
 	}
 
+	// TODO: Refactor WalletWasabi.Fluent.Desktop.Program class so it can be reused in mobile projects (if needed)
+	// - Program
+	//   - Main
+	//   - TerminateApplication
+	//   - LogUnobservedTaskException
+	//   - LogUnhandledException
+	//   - BuildAvaloniaApp
+	//   - BuildCrashReporterApp
+	// - WasabiAppExtensions
+	//   - RunAsGuiAsync
+	//   - AfterStarting
+
 	public override void OnFrameworkInitializationCompleted()
 	{
 		if (!Design.IsDesignMode && ApplicationLifetime is not null)
