@@ -152,22 +152,20 @@ public class App : Application
 
 		using CancellationTokenSource stopLoadingCts = new();
 
+		async Task BackendInitialise()
+		{
+			// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+			await app.Global!.InitializeNoWalletAsync(app.TerminateService, stopLoadingCts.Token)
+				.ConfigureAwait(false);
+
+			// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+			await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+		}
+
 		AppBuilder appBuilder = AppBuilder
-			.Configure(() =>
-			{
-				async Task BackendInitialise()
-				{
-					// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-					await app.Global!.InitializeNoWalletAsync(app.TerminateService, stopLoadingCts.Token)
-						.ConfigureAwait(false);
-
-					// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-					await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-				}
-
-				return new App(
-					backendInitialiseAsync: BackendInitialise, startInBg: runGuiInBackground);
-			})
+			.Configure(() => new App(
+				backendInitialiseAsync: BackendInitialise,
+				startInBg: runGuiInBackground))
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
 			.UseReactiveUI();
 
