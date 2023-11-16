@@ -84,6 +84,7 @@ public class App : Application
 						MainViewModel.Instance.Initialize();
 					});
 
+				// Not available on mobile, only supported on Desktop
 				InitializeTrayIcons();
 			}
 			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
