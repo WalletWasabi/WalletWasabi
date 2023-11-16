@@ -74,11 +74,7 @@ public class App : Application
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-				desktop.Exit += (sender, args) =>
-				{
-					MainViewModel.Instance.ClearStacks();
-					uiContext.HealthMonitor.Dispose();
-				};
+				desktop.Exit += (_, _) => OnExit(uiContext);
 
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
@@ -103,6 +99,12 @@ public class App : Application
 			this.AttachDevTools();
 		}
 #endif
+	}
+
+	private static void OnExit(UiContext uiContext)
+	{
+		MainViewModel.Instance.ClearStacks();
+		uiContext.HealthMonitor.Dispose();
 	}
 
 	private bool CanRunDevTools()
