@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;

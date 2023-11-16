@@ -1,3 +1,4 @@
+using System.Linq;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
@@ -168,6 +169,24 @@ public class PrisonTests
 		var failToSignBanningTime = prison.GetBanTimePeriod(ftcFailedToSign, cfg);
 		var inheritedBanningTime = prison.GetBanTimePeriod(ftcInheritFromFailedToSign, cfg);
 
-		Assert.Equal(failToSignBanningTime, inheritedBanningTime); // because fail to sign is punished harder
+		Assert.Equal(failToSignBanningTime.StartTime, inheritedBanningTime.StartTime); // because fail to sign is punished harder
+		Assert.Equal(failToSignBanningTime.Duration * 0.5, inheritedBanningTime.Duration); // after spending the punishment is reduced by half
+
+		// After spending a couple of times the coin is no longer banned
+		var outpointsToBan = Enumerable.Range(0, 10).Select(_ => BitcoinFactory.CreateOutPoint()).ToArray();
+		prison.FailedToSign(outpointsToBan[0], Money.Coins(0.005m), roundId);
+		var banningTimeFrames = outpointsToBan.Zip(outpointsToBan[1..], (a, b) => new { Destroyed = a, Created = b })
+			.Select(x =>
+			{
+				prison.InheritPunishment(x.Created, new[] { x.Destroyed });
+				return prison.GetBanTimePeriod(x.Created, cfg);
+			}).ToArray();
+
+		// Every time it is banned, the duration is halfed
+		var banningTimeFramePairs = banningTimeFrames.Zip(banningTimeFrames[1..], (parent, child) => (Parent: parent, Child: child)).ToArray();
+		Assert.All(banningTimeFramePairs[..^1], x => Assert.Equal(x.Parent.Duration, x.Child.Duration * 2));
+
+		// Final time frame is always zero
+		Assert.Equal(TimeSpan.Zero, banningTimeFrames[^1].Duration);
 	}
 }
