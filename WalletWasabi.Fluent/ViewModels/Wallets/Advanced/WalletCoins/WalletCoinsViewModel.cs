@@ -152,20 +152,20 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Selection		SelectionColumnView		-			Auto		-				-			false
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
-		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
+		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			true
+		// Selection		SelectionColumnView		-			Auto		-				-			false
 		var source = new FlatTreeDataGridSource<WalletCoinViewModel>(coins)
 		{
 			Columns =
 			{
-				SelectionColumn(),
 				IndicatorsColumn(),
-				AmountColumn(),
 				AnonymityScoreColumn(),
-				LabelsColumn()
+				AmountColumn(),
+				LabelsColumn(),
+				SelectionColumn(),
 			}
 		};
 
@@ -208,8 +208,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		return new PrivacyTextColumn<WalletCoinViewModel>(
 			"Amount",
-			node => node.Model.Amount.ToFormattedString(),
-			type: PrivacyCellType.Default,
+			node => node.Model.Amount.ToBtcWithUnit(),
+			type: PrivacyCellType.Amount,
 			options: new ColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
@@ -235,7 +235,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 				CompareAscending = Sort<WalletCoinViewModel>.Ascending(x => x.Model.AnonScore),
 				CompareDescending = Sort<WalletCoinViewModel>.Descending(x => x.Model.AnonScore)
 			},
-			width: new GridLength(55, GridUnitType.Pixel));
+			width: new GridLength(0, GridUnitType.Auto));
 	}
 
 	private static IColumn<WalletCoinViewModel> LabelsColumn()

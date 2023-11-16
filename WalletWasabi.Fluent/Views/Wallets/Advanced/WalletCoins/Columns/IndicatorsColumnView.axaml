@@ -7,13 +7,13 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.IndicatorsColumnView">
-  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="5 0">
+  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="15 0 20 0">
 
     <Panel>
       <!-- Confirmed -->
       <PathIcon IsVisible="{Binding Model.IsConfirmed}"
                 Data="{StaticResource checkmark_filled}"
-                Foreground="{DynamicResource SystemAccentColor}"
+                Opacity="0.6"
                 Height="11"
                 ToolTip.Tip="{Binding Model.ConfirmedToolTip}" />
       <!-- Pending -->

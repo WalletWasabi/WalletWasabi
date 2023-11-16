@@ -28,6 +28,14 @@
         <Style Selector="TreeDataGridRow">
           <Setter Property="Theme" Value="{StaticResource WalletCoinsViewTreeDataGridRow}" />
         </Style>
+        <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
+          <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+          <Setter Property="Opacity" Value="0.8" />
+          <Setter Property="FontSize" Value="14" />
+          <Setter Property="Margin" Value="20 0" />
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+        </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
   </c:ContentArea>
