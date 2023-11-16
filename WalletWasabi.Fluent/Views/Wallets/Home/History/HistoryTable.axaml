@@ -137,12 +137,13 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
           </Style>
-          <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell">
+          <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="Opacity" Value="0.6" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="ToolTip.Tip" Value="{Binding Transaction.DateToolTipString}" />
           </Style>
           <Style Selector="PathIcon">
             <Setter Property="Height" Value="13" />

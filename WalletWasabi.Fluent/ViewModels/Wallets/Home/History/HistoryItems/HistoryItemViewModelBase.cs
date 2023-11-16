@@ -22,7 +22,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
 		Transaction = transaction;
-
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 
 		this.WhenAnyValue(x => x.IsFlashing)
