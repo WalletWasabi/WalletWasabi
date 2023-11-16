@@ -41,11 +41,10 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 		var interfaceNamespace = namedTypeSymbol.ContainingNamespace.ToDisplayString();
 		var interfaceName = $"I{namedTypeSymbol.Name}";
 
-		var members =
-			namedTypeSymbol.GetMembers()
-						   .Where(x => x.DeclaredAccessibility == Accessibility.Public)
-						   .Where(x => !x.IsStatic)
-						   .ToList();
+		var members = namedTypeSymbol.GetMembers()
+			.Where(x => x.DeclaredAccessibility == Accessibility.Public)
+			.Where(x => !x.IsStatic)
+			.ToList();
 
 		var namespaces = new List<string>();
 		var properties = new List<string>();
@@ -92,17 +91,26 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					let defaultValueString = defaultValue != null ? " = " + defaultValue : null
 					select $"{attributeList?.ToFullString()}{refKind}{type} {name}{defaultValueString}";
 
-				string methodSignature = $"\t {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
+				string methodSignature;
+
+				if (!IsInterfaceMethodImplementation(method))
+				{
+					methodSignature = $"\t {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
+				}
+				else
+				{
+					methodSignature = $"\t /* SKIPPED: Implements an interface */ /* {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)}); */";
+				}
+
 				methods.Add(methodSignature);
 			}
 		}
 
-		namespaces =
-			namespaces.Distinct()
-					  .OrderBy(x => x)
-					  .Where(x => x != interfaceNamespace)
-					  .Select(x => $"using {x};")
-					  .ToList();
+		namespaces = namespaces.Distinct()
+			.OrderBy(x => x)
+			.Where(x => x != interfaceNamespace)
+			.Select(x => $"using {x};")
+			.ToList();
 
 		var source =
 			$$"""
@@ -126,5 +134,23 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			""";
 
 		AddSource($"{className}.AutoInterface.g.cs", source);
+	}
+
+	private static bool IsInterfaceMethodImplementation(IMethodSymbol method)
+	{
+		foreach (INamedTypeSymbol implementedInterfaceSymbol in method.ContainingType.AllInterfaces)
+		{
+			foreach (ISymbol interfaceMember in implementedInterfaceSymbol.GetMembers())
+			{
+				ISymbol? foundMember = method.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
+
+				if (SymbolEqualityComparer.IncludeNullability.Equals(method, foundMember))
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
