@@ -128,7 +128,9 @@ public class App : Application
 #endif
 	}
 
-	public static Task AfterStarting(WasabiApplication app, Func<AppBuilder, AppBuilder> setupAppBuilder)
+	public static Task AfterStarting(
+		WasabiApplication app,
+		Func<AppBuilder, AppBuilder> setupAppBuilder)
 	{
 		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 		{
