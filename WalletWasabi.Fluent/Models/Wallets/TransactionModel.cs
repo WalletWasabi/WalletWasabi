@@ -9,33 +9,33 @@ public partial class TransactionModel : ReactiveObject
 {
 	private readonly List<TransactionModel> _children = new();
 
-	public int OrderIndex { get; init; }
+	public required int OrderIndex { get; init; }
 
-	public uint256 Id { get; init; }
+	public required uint256 Id { get; init; }
 
-	public LabelsArray Labels { get; init; }
+	public required LabelsArray Labels { get; init; }
 
-	public DateTimeOffset Date { get; set; }
+	public required DateTimeOffset Date { get; set; }
 
-	public string DateString { get; set; }
+	public required string DateString { get; set; }
 
-	public int Confirmations { get; init; }
+	public required int Confirmations { get; init; }
 
 	public int BlockHeight { get; init; }
 
 	public uint256? BlockHash { get; init; }
 
-	public string ConfirmedTooltip { get; set; }
+	public required string ConfirmedTooltip { get; set; }
 
-	public TransactionType Type { get; init; }
+	public required TransactionType Type { get; init; }
 
-	public TransactionStatus Status { get; set; }
+	public required TransactionStatus Status { get; set; }
 
 	public bool IsChild { get; set; }
 
 	public Money? Balance { get; set; }
 
-	public Money Amount { get; set; }
+	public required Money Amount { get; set; }
 
 	public Money? IncomingAmount => GetAmounts().IncomingAmount;
 
