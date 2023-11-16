@@ -53,31 +53,26 @@ public static class TransactionFeeHelper
 
 	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, TransactionFeeProvider feeFetcher, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
-		TryGetFeeEstimates(feeProvider, network, out var feeEstimates);
-		if (feeEstimates is not null && feeEstimates.TryEstimateConfirmationTime(tx, out estimate))
+		estimate = null;
+
+		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate))
 		{
+			return true;
+		}
+		else if (feeEstimates is not null)
+		{
+			Money fee = feeFetcher.GetFee(tx.GetHash());
+			int vSize = tx.Transaction.GetVirtualSize();
+			FeeRate feeRate = new(fee, vSize);
+
+			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+
 			return true;
 		}
 		else
 		{
-			Money fee = feeFetcher.GetFee(tx.GetHash());
-			int vSize = tx.Transaction.GetVirtualSize();
-			return TryEstimateConfirmationTime(feeProvider, network, fee, vSize, out estimate);
+			return false;
 		}
-	}
-
-	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, Money feeInSats, int vSize, [NotNullWhen(true)] out TimeSpan? estimate)
-	{
-		estimate = null;
-		FeeRate feeRate = new(feeInSats, vSize);
-
-		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates))
-		{
-			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
-			return true;
-		}
-
-		return false;
 	}
 
 	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)
