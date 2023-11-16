@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -132,7 +130,7 @@ public class WabiSabiCoordinator : BackgroundService
 		var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
 		var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
 
-		// No round was hurt disrupted by the received transaction. Nothing to do here.
+		// No round was disrupted by the received transaction. Nothing to do here.
 		if (disruptedRounds.Length == 0)
 		{
 			return;

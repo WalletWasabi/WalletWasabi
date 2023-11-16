@@ -2,7 +2,6 @@ using System.Linq;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using Xunit;
