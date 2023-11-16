@@ -11,30 +11,16 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
   <c:ContentArea Title="{Binding Title}"
+                 Caption="You can choose to hide, modify, or display the addresses listed below."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <TreeDataGrid Source="{Binding Source}"
-                  CanUserSortColumns="True">
+                  VerticalAlignment="Stretch"
+                  Margin="0 20 0 0">
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGridRow">
           <Setter Property="Theme" Value="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
-        </Style>
-        <Style Selector="c|AnimatedButton.addressActionButton">
-          <Setter Property="DockPanel.Dock" Value="Right" />
-          <Setter Property="Margin" Value="5 0 0 0" />
-        </Style>
-        <Style Selector="c|AnimatedButton /template/ PathIcon">
-          <Setter Property="Height" Value="15" />
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-        </Style>
-        <Style Selector="Button.addressActionButton">
-          <Setter Property="DockPanel.Dock" Value="Right" />
-          <Setter Property="Margin" Value="5 0 0 0" />
-        </Style>
-        <Style Selector="PathIcon.addressActionIcon">
-          <Setter Property="Height" Value="15" />
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
