@@ -89,7 +89,25 @@ public class App : Application
 			}
 			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
 			{
-				// TODO:
+				DataContext = _applicationStateManager.ApplicationViewModel;
+
+				// TODO: Handle ShutdownMode.OnExplicitShutdown in iOS/Android projects.
+
+				// TODO: Handle Exit command in iOS/Android projects.
+				// OnExit(uiContext);
+
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						// TODO: Handle AppBuilder.Configure to initialize App from ctor to run _backendInitialiseAsync
+						// TODO: Use WasabiAppExtensions.AfterStarting and not WasabiAppExtensions.RunAsGuiAsync
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+
+						MainViewModel.Instance.Initialize();
+					});
+
+				// Not available on mobile, only supported on Desktop
+				InitializeTrayIcons();
 			}
 		}
 
