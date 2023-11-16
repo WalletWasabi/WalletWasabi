@@ -35,22 +35,15 @@
 	</Target>
 
 	<ItemGroup>
-
-		<!--<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />-->
-
 		<!-- TODO: Workaround for incompatible package Microsoft.AspNetCore.Mvc.NewtonsoftJson -->
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection" />
-		<!-- Depracated --><PackageReference Include="Microsoft.AspNetCore.Mvc" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="System.IO.Pipelines" />
-
 		<PackageReference Include="Microsoft.Data.Sqlite" />
-
-		<!-- TODO: Required to make iossimulator-arm64 RID work for iOS project -->
+		<!-- TODO: Can be removed after update to Microsoft.Data.Sqlite 8.0 which references SQLitePCLRaw.bundle_e_sqlite3 >= 2.1.6 -->
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
-
 		<PackageReference Include="Microsoft.Win32.SystemEvents" />
 		<PackageReference Include="NBitcoin" />
 		<PackageReference Include="WabiSabi" />

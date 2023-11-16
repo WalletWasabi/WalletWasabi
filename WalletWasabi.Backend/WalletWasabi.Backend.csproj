@@ -45,7 +45,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Swashbuckle.AspNetCore" />
-		<!-- TODO: Workaround for mobile as this package is causing issues when used in WalletWasabi.csproj -->
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
 	</ItemGroup>
 
