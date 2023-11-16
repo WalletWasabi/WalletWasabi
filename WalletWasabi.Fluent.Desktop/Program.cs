@@ -60,7 +60,7 @@ public class Program
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = await app.RunAsGuiAsync();
+			var exitCode = await app.RunAsDesktopGuiAsync();
 
 			if (exitCode == ExitCode.Ok && (Services.UpdateManager?.DoUpdateOnClose ?? false))
 			{
@@ -145,7 +145,7 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
+	public static async Task<ExitCode> RunAsDesktopGuiAsync(this WasabiApplication app)
 	{
 		return await app.RunAsync(afterStarting: () => App.AfterStarting(app, AppBuilderDesktopExtension.SetupAppBuilder));
 	}
