@@ -147,7 +147,7 @@ public class Global
 
 	public Network Network => Config.Network;
 
-	public MemoryCache Cache { get; private set; }
+	public IMemoryCache Cache { get; private set; }
 	public CoinPrison CoinPrison { get; }
 	public JsonRpcServer? RpcServer { get; private set; }
 
