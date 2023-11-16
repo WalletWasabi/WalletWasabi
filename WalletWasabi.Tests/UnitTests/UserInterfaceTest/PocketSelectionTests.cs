@@ -938,6 +938,7 @@ public class PocketSelectionTests
 		// No other pocket can be used case.
 		recipient = "Adam";
 		selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), recipient);
+		await selection.ResetAsync(pockets.ToArray());
 		output = await selection.AutoSelectPocketsAsync();
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
