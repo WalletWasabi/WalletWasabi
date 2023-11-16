@@ -162,11 +162,16 @@ public class App : Application
 			await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 		}
 
+		void AfterSetup()
+		{
+			ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+		}
+
 		AppBuilder appBuilder = AppBuilder
 			.Configure(() => new App(
 				backendInitialiseAsync: BackendInitialise,
 				startInBg: runGuiInBackground))
-			.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+			.AfterSetup(_ => AfterSetup())
 			.UseReactiveUI();
 
 		appBuilder = setupAppBuilder(appBuilder);
