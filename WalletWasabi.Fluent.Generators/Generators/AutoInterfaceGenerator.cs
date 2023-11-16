@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.Fluent.Generators.Abstractions;
 
 namespace WalletWasabi.Fluent.Generators.Generators;
@@ -59,8 +58,8 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					property.SetMethod switch
 					{
 						IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
-						IMethodSymbol s                   => "{ get; set; }",
-						_                                 => "{ get; }"
+						IMethodSymbol s => "{ get; set; }",
+						_ => "{ get; }"
 					};
 
 				var type = property.Type.SimplifyType(namespaces);
@@ -69,27 +68,17 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			else if (member is IMethodSymbol method && method.MethodKind == MethodKind.Ordinary)
 			{
 				var returnType = method.ReturnType.SimplifyType(namespaces);
-
-				StringBuilder signatureBuilder = new(capacity: 150);
-				signatureBuilder.Append('\t');
-				signatureBuilder.Append(returnType);
-				signatureBuilder.Append(' ');
-				signatureBuilder.Append(method.Name);
+				string genericTypeOrEmpty = "";
 
 				if (method.IsGenericMethod)
 				{
-					signatureBuilder.Append('<');
-
 					var typeArgs =
 						from argument in method.TypeArguments
 						let typeName = argument.SimplifyType(namespaces)
 						select typeName;
 
-					signatureBuilder.Append(string.Join(", ", typeArgs));
-					signatureBuilder.Append('>');
+					genericTypeOrEmpty = $"<{string.Join(", ", typeArgs)}>";
 				}
-
-				signatureBuilder.Append('(');
 
 				var parameters =
 					from parameter in method.Parameters
@@ -103,10 +92,8 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					let defaultValueString = defaultValue != null ? " = " + defaultValue : null
 					select $"{attributeList?.ToFullString()}{refKind}{type} {name}{defaultValueString}";
 
-				signatureBuilder.Append(string.Join(", ", parameters));
-				signatureBuilder.Append(");");
-
-				methods.Add(signatureBuilder.ToString());
+				string methodSignature = $"\t {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
+				methods.Add(methodSignature);
 			}
 		}
 
