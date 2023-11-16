@@ -257,7 +257,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		single.MainView = result;
 
-		// TODO:
+		ApplicationViewModel.IsMainWindowShown = true;
 	}
 
 	private void SetWindowSize(Window window)
