@@ -1,16 +1,23 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.TreeDataGrid;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract class CoinControlItemViewModelBase : ViewModelBase
+public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITreeDataGridExpanderItem
 {
 	private bool? _isSelected;
+
+	[AutoNotify] private bool _isParentSelected;
+	[AutoNotify] private bool _isParentPointerOver;
+	[AutoNotify] private bool _isControlSelected;
+	[AutoNotify] private bool _isControlPointerOver;
 
 	protected CoinControlItemViewModelBase()
 	{
@@ -18,6 +25,26 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
 		// CanBeSelected = !IsCoinjoining;
 		CanBeSelected = true;
+
+		this.WhenAnyValue(x => x.IsControlPointerOver)
+			.Do(x =>
+			{
+				foreach (var child in Children)
+				{
+					child.IsParentPointerOver = x;
+				}
+			})
+			.Subscribe();
+
+		this.WhenAnyValue(x => x.IsControlSelected)
+			.Do(x =>
+			{
+				foreach (var child in Children)
+				{
+					child.IsParentSelected = x;
+				}
+			})
+			.Subscribe();
 	}
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
@@ -47,6 +74,10 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 	public DateTimeOffset? BannedUntilUtc { get; protected set; }
 
 	public bool IsExpanded { get; set; }
+
+	public bool IsChild { get; set; }
+
+	public bool IsLastChild { get; set; }
 
 	public bool CanBeSelected { get; protected set; }
 

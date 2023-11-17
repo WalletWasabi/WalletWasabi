@@ -7,10 +7,11 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.TreeDataGrid;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-public abstract partial class HistoryItemViewModelBase : ViewModelBase
+public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDataGridExpanderItem
 {
 	[AutoNotify] private bool _isFlashing;
 	[AutoNotify] private bool _isExpanded;
@@ -61,6 +62,10 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public TransactionModel Transaction { get; }
 
 	public ObservableCollection<HistoryItemViewModelBase> Children { get; } = new();
+
+	public bool IsChild { get; set; }
+
+	public bool IsLastChild { get; set; }
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 

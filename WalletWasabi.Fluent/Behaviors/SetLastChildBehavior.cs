@@ -1,12 +1,14 @@
 ﻿using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Controls.Models.TreeDataGrid;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Fluent.TreeDataGrid;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
+/// <remark>
+/// Items must implement <see cref="ITreeDataGridExpanderItem"/> interface.
+/// </remark>
 public class SetLastChildBehavior : AttachedToVisualTreeBehavior<Avalonia.Controls.TreeDataGrid>
 {
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
@@ -18,16 +20,16 @@ public class SetLastChildBehavior : AttachedToVisualTreeBehavior<Avalonia.Contro
 				.WhereNotNull()
 				.Do(items =>
 				{
-					var castedList = items.Cast<HierarchicalRow<HistoryItemViewModelBase>>().ToArray();
+					var castedList = items.Select(x => x.Model as ITreeDataGridExpanderItem).ToArray();
 
 					for (var i = 0; i < castedList.Length; i++)
 					{
-						var currentItem = castedList[i].Model;
-						var nextItem = i + 1 < castedList.Length ? castedList[i + 1].Model : null;
+						var currentItem = castedList[i];
+						var nextItem = i + 1 < castedList.Length ? castedList[i + 1] : null;
 
-						if (currentItem.Transaction.IsChild)
+						if (currentItem is { IsChild: true })
 						{
-							currentItem.Transaction.IsLastChild = nextItem is null or { Transaction.IsChild: false };
+							currentItem.IsLastChild = nextItem is null or { IsChild: false };
 						}
 					}
 				})
