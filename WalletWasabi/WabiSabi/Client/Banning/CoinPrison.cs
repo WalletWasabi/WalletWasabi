@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoinPrison
 {
-	private readonly int _absoluteMaximumLocalPrisonBanningTimeInDays = 31;
+	private readonly int _maxDaysToTrustLocalPrison = 4;
 
 	public CoinPrison(string filePath)
 	{
@@ -85,10 +85,12 @@ public class CoinPrison
 	private DateTimeOffset ReduceBanningTimeIfNeeded(DateTimeOffset bannedUntil)
 	{
 		var currentDate = DateTimeOffset.UtcNow;
-		if (bannedUntil > currentDate.AddDays(_absoluteMaximumLocalPrisonBanningTimeInDays))
+		if (bannedUntil > currentDate.AddDays(_maxDaysToTrustLocalPrison))
 		{
 			Random random = new();
-			int randomHours = random.Next(24, 49);
+			int minHours = (_maxDaysToTrustLocalPrison * 24 - 1) / 2;
+			int maxHours = _maxDaysToTrustLocalPrison * 24 - 1;
+			int randomHours = random.Next(minHours, maxHours);
 			int randomMinutes = random.Next(0, 60);
 			int randomSeconds = random.Next(0, 60);
 
