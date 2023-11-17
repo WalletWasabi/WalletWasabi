@@ -1,7 +1,7 @@
 {
   description = "Wasabi wallet coordinator";
 
-  inputs.nixpkgs.url = "github:mdarocha/nixpkgs?ref=dotnet-update"; #"github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   outputs = { self, nixpkgs }:
     let
         pkgs = import nixpkgs { system = "x86_64-linux"; }; #nixpkgs.legacyPackages.x86_64-linux;
