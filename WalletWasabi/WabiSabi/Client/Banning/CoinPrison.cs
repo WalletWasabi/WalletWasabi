@@ -12,6 +12,8 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoinPrison
 {
+	private readonly int _absoluteMaximumLocalPrisonBanningTimeInDays = 31;
+
 	public CoinPrison(string filePath)
 	{
 		FilePath = filePath;
@@ -43,10 +45,12 @@ public class CoinPrison
 	{
 		lock (Lock)
 		{
-			if (BannedCoins.SingleOrDefault(record => record.Outpoint == coin.Outpoint) is { } record)
+			if (BannedCoins.Any(record => record.Outpoint == coin.Outpoint))
 			{
 				return;
 			}
+
+			until = ReduceBanningTimeIfNeeded(until);
 			BannedCoins.Add(new(coin.Outpoint, until));
 			coin.BannedUntilUtc = until;
 			ToFile();
@@ -76,6 +80,22 @@ public class CoinPrison
 		IoHelpers.EnsureFileExists(FilePath);
 		string json = JsonConvert.SerializeObject(BannedCoins, Formatting.Indented);
 		File.WriteAllText(FilePath, json);
+	}
+
+	private DateTimeOffset ReduceBanningTimeIfNeeded(DateTimeOffset bannedUntil)
+	{
+		var currentDate = DateTimeOffset.UtcNow;
+		if (bannedUntil > currentDate.AddDays(_absoluteMaximumLocalPrisonBanningTimeInDays))
+		{
+			Random random = new();
+			int randomHours = random.Next(24, 49);
+			int randomMinutes = random.Next(0, 60);
+			int randomSeconds = random.Next(0, 60);
+
+			return currentDate.AddHours(randomHours).AddMinutes(randomMinutes).AddSeconds(randomSeconds);
+		}
+
+		return bannedUntil;
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
