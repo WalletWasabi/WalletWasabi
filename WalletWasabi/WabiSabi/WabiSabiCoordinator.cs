@@ -136,7 +136,7 @@ public class WabiSabiCoordinator : BackgroundService
 			return;
 		}
 
-		// Ban all outputs created by the the received transaction because it has spent coins participating in coinjoin rounds.
+		// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
 		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
 		{
 			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds);
